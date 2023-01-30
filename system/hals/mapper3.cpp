@@ -387,8 +387,6 @@ private:  // **** impl ****
                         char* const bufferBits) {
         const bool usageSwRead = usage & BufferUsage::CPU_READ_MASK;
         const bool usageSwWrite = usage & BufferUsage::CPU_WRITE_MASK;
-        const bool usageHwCamera = usage & (BufferUsage::CAMERA_INPUT | BufferUsage::CAMERA_OUTPUT);
-        const bool usageHwCameraWrite = usage & BufferUsage::CAMERA_OUTPUT;
 
         const HostConnectionSession conn = getHostConnectionSession();
         ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
@@ -399,10 +397,8 @@ private:  // **** impl ****
             RETURN_ERROR(Error3::NO_RESOURCES);
         }
 
-        // camera delivers bits to the buffer directly and does not require
-        // an explicit read.
         const bool cbReadable = cb.usage & BufferUsage::CPU_READ_MASK;
-        if (usageSwRead && !usageHwCamera && cbReadable) {
+        if (usageSwRead && cbReadable) {
             if (gralloc_is_yuv_format(cb.format)) {
                 if (rcEnc->hasYUVCache()) {
                     uint32_t bufferSize;
@@ -474,7 +470,7 @@ private:  // **** impl ****
             }
         }
 
-        if (usageSwWrite || usageHwCameraWrite) {
+        if (usageSwWrite) {
             cb.lockedLeft = accessRegion.left;
             cb.lockedTop = accessRegion.top;
             cb.lockedWidth = accessRegion.width;
@@ -595,8 +591,6 @@ private:  // **** impl ****
         const uint32_t usage = usage64;
         const bool usageSwWrite = usage & BufferUsage::CPU_WRITE_MASK;
         const bool usageSwRead = usage & BufferUsage::CPU_READ_MASK;
-        const bool usageHwCamWrite = usage & BufferUsage::CAMERA_OUTPUT;
-        const bool usageHwCamRead = usage & BufferUsage::CAMERA_INPUT;
 
         switch (descriptor.format) {
         case PixelFormat::RGBA_8888:
@@ -611,9 +605,6 @@ private:  // **** impl ****
             RETURN(true);
 
         case PixelFormat::IMPLEMENTATION_DEFINED:
-            if (usage & BufferUsage::CAMERA_OUTPUT) {
-                RETURN(true);
-            }
             RETURN(false);
 
         case PixelFormat::RGB_888:
@@ -624,8 +615,7 @@ private:  // **** impl ****
 
         case PixelFormat::RAW16:
         case PixelFormat::Y16:
-            RETURN((usageSwRead || usageHwCamRead) &&
-                   (usageSwWrite || usageHwCamWrite));
+            RETURN(usageSwRead && usageSwWrite);
 
         case PixelFormat::BLOB:
             RETURN(usageSwRead);

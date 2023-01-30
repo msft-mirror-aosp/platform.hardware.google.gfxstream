@@ -91,17 +91,23 @@ struct cb_handle_old_t : public cb_handle_t {
                           QEMU_PIPE_INVALID_HANDLE,
                           CB_HANDLE_MAGIC_OLD,
                           0,
-                          p_usage,
-                          p_width,
-                          p_height,
                           p_format,
-                          p_glFormat,
-                          p_glType,
+                          p_width,
                           p_ashmemSize,
-                          NULL,
                           ~uint64_t(0)),
+              usage(p_usage),
+              width(p_width),
+              height(p_height),
+              glFormat(p_glFormat),
+              glType(p_glType),
               ashmemBasePid(0),
-              mappedPid(0) {
+              mappedPid(0),
+              bufferPtrLo(0),
+              bufferPtrHi(0),
+              lockedLeft(0),
+              lockedTop(0),
+              lockedWidth(0),
+              lockedHeight(0) {
         numInts = CB_HANDLE_NUM_INTS(numFds);
     }
 
@@ -119,6 +125,17 @@ struct cb_handle_old_t : public cb_handle_t {
 
     bool canBePosted() const {
         return (0 != (usage & GRALLOC_USAGE_HW_FB));
+    }
+
+    void* getBufferPtr() const {
+        const uint64_t addr = (uint64_t(bufferPtrHi) << 32) | bufferPtrLo;
+        return reinterpret_cast<void*>(static_cast<uintptr_t>(addr));
+    }
+
+    void setBufferPtr(void* ptr) {
+        const uint64_t addr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(ptr));
+        bufferPtrLo = uint32_t(addr);
+        bufferPtrHi = uint32_t(addr >> 32);
     }
 
     bool isValid() const {
@@ -139,8 +156,19 @@ struct cb_handle_old_t : public cb_handle_t {
         return from(const_cast<void*>(p));
     }
 
+    uint32_t usage;         // usage bits the buffer was created with
+    uint32_t width;         // buffer width
+    uint32_t height;        // buffer height
+    uint32_t glFormat;      // OpenGL format enum used for host h/w color buffer
+    uint32_t glType;        // OpenGL type enum used when uploading to host
     int32_t ashmemBasePid;      // process id which mapped the ashmem region
     int32_t mappedPid;          // process id which succeeded gralloc_register call
+    uint32_t bufferPtrLo;
+    uint32_t bufferPtrHi;
+    uint32_t lockedLeft;    // region of buffer locked for s/w write
+    uint32_t lockedTop;
+    uint32_t lockedWidth;
+    uint32_t lockedHeight;
 };
 
 int32_t* getOpenCountPtr(const cb_handle_old_t* cb) {

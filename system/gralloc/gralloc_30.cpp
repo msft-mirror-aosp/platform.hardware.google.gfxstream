@@ -70,6 +70,93 @@
 
 namespace {
 
+template <class T> T& unconst(const T& x) { return const_cast<T&>(x); }
+
+const uint32_t CB_HANDLE_MAGIC_30 = CB_HANDLE_MAGIC_BASE | 0x2;
+
+struct cb_handle_30_t : public cb_handle_t {
+    cb_handle_30_t(address_space_handle_t p_bufferFd,
+                   QEMU_PIPE_HANDLE p_hostHandleRefCountFd,
+                   uint32_t p_hostHandle,
+                   int32_t p_usage,
+                   int32_t p_width,
+                   int32_t p_height,
+                   int32_t p_format,
+                   int32_t p_glFormat,
+                   int32_t p_glType,
+                   uint32_t p_stride,
+                   uint32_t p_bufSize,
+                   void* p_bufPtr,
+                   int32_t p_bufferPtrPid,
+                   uint32_t p_mmapedSize,
+                   uint64_t p_mmapedOffset)
+            : cb_handle_t(p_bufferFd,
+                          p_hostHandleRefCountFd,
+                          CB_HANDLE_MAGIC_30,
+                          p_hostHandle,
+                          p_format,
+                          p_stride,
+                          p_bufSize,
+                          p_mmapedOffset),
+              usage(p_usage),
+              width(p_width),
+              height(p_height),
+              glFormat(p_glFormat),
+              glType(p_glType),
+              mmapedSize(p_mmapedSize),
+              bufferFdAsInt(p_bufferFd),
+              bufferPtrPid(p_bufferPtrPid),
+              lockedLeft(0),
+              lockedTop(0),
+              lockedWidth(0),
+              lockedHeight(0) {
+        numInts = CB_HANDLE_NUM_INTS(numFds);
+        setBufferPtr(p_bufPtr);
+    }
+
+    bool isValid() const { return (version == sizeof(native_handle_t)) && (magic == CB_HANDLE_MAGIC_30); }
+
+    void* getBufferPtr() const {
+        const uint64_t addr = (uint64_t(bufferPtrHi) << 32) | bufferPtrLo;
+        return reinterpret_cast<void*>(static_cast<uintptr_t>(addr));
+    }
+
+    void setBufferPtr(void* ptr) {
+        const uint64_t addr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(ptr));
+        bufferPtrLo = uint32_t(addr);
+        bufferPtrHi = uint32_t(addr >> 32);
+    }
+
+    static cb_handle_30_t* from(void* p) {
+        if (!p) { return nullptr; }
+        cb_handle_30_t* cb = static_cast<cb_handle_30_t*>(p);
+        return cb->isValid() ? cb : nullptr;
+    }
+
+    static const cb_handle_30_t* from(const void* p) {
+        return from(const_cast<void*>(p));
+    }
+
+    static cb_handle_30_t* from_unconst(const void* p) {
+        return from(const_cast<void*>(p));
+    }
+
+    uint32_t usage;         // usage bits the buffer was created with
+    uint32_t width;         // buffer width
+    uint32_t height;        // buffer height
+    uint32_t glFormat;      // OpenGL format enum used for host h/w color buffer
+    uint32_t glType;        // OpenGL type enum used when uploading to host
+    uint32_t mmapedSize;    // real allocation side
+    int32_t  bufferFdAsInt; // int copy of bufferFd, to check if fd was duped
+    int32_t  bufferPtrPid;  // pid where bufferPtr belongs to
+    uint32_t lockedLeft;    // region of buffer locked for s/w write
+    uint32_t lockedTop;
+    uint32_t lockedWidth;
+    uint32_t lockedHeight;
+    uint32_t bufferPtrLo;
+    uint32_t bufferPtrHi;
+};
+
 const char GOLDFISH_GRALLOC_MODULE_NAME[] = "Graphics Memory Allocator Module";
 
 hw_device_t make_hw_device(hw_module_t* module, int (*close)(hw_device_t*)) {
@@ -138,7 +225,7 @@ public:
                              int width, int height, int format,
                              EmulatorFrameworkFormat emulatorFrameworkFormat,
                              int glFormat, int glType,
-                             size_t bufferSize,
+                             size_t stride, size_t bufferSize,
                              buffer_handle_t* pHandle) = 0;
     virtual int free_buffer(buffer_handle_t h) = 0;
     virtual int register_buffer(buffer_handle_t h) = 0;
@@ -165,13 +252,13 @@ public:
                      int width, int height, int format,
                      EmulatorFrameworkFormat emulatorFrameworkFormat,
                      int glFormat, int glType,
-                     size_t bufferSize,
+                     size_t stride, size_t bufferSize,
                      buffer_handle_t* pHandle) {
         return m_bufferManager->alloc_buffer(usage,
                                              width, height, format,
                                              emulatorFrameworkFormat,
                                              glFormat, glType,
-                                             bufferSize,
+                                             stride, bufferSize,
                                              pHandle);
     }
 
@@ -187,7 +274,7 @@ public:
         return m_bufferManager->unregister_buffer(h);
     }
 
-    int lock(cb_handle_t& handle,
+    int lock(cb_handle_30_t& handle,
              const int usage,
              const int left, const int top, const int width, const int height,
              void** vaddr) {
@@ -207,7 +294,7 @@ public:
         return 0;
     }
 
-    int unlock(cb_handle_t& handle) {
+    int unlock(cb_handle_30_t& handle) {
         if (!handle.bufferSize) { RETURN_ERROR_CODE(-EINVAL); }
 
         char* const bufferBits = static_cast<char*>(handle.getBufferPtr());
@@ -220,7 +307,7 @@ public:
         return 0;
     }
 
-    int lock_ycbcr(cb_handle_t& handle,
+    int lock_ycbcr(cb_handle_30_t& handle,
                    const int usage,
                    const int left, const int top, const int width, const int height,
                    android_ycbcr* ycbcr) {
@@ -286,7 +373,7 @@ public:
     }
 
 private:
-    int lock_impl(cb_handle_t& handle,
+    int lock_impl(cb_handle_30_t& handle,
                   const int usage,
                   const int left, const int top, const int width, const int height,
                   char* const bufferBits) {
@@ -378,7 +465,7 @@ private:
         return 0;
     }
 
-    void unlock_impl(cb_handle_t& handle, char* const bufferBits) {
+    void unlock_impl(cb_handle_30_t& handle, char* const bufferBits) {
         const int bpp = glUtilsPixelBitSize(handle.glFormat, handle.glType) >> 3;
         const int left = handle.lockedLeft;
         const int top = handle.lockedTop;
@@ -653,7 +740,7 @@ private:
             width, height, format,
             emulatorFrameworkFormat,
             glFormat, glType,
-            bufferSize,
+            stride, bufferSize,
             pHandle);
         if (res) {
             return res;
@@ -718,65 +805,6 @@ private:
     }
 };
 
-template <class T> T& unconst(const T& x) { return const_cast<T&>(x); }
-
-const uint32_t CB_HANDLE_MAGIC_30 = CB_HANDLE_MAGIC_BASE | 0x2;
-
-struct cb_handle_30_t : public cb_handle_t {
-    cb_handle_30_t(address_space_handle_t p_bufferFd,
-                   QEMU_PIPE_HANDLE p_hostHandleRefCountFd,
-                   uint32_t p_hostHandle,
-                   int32_t p_usage,
-                   int32_t p_width,
-                   int32_t p_height,
-                   int32_t p_format,
-                   int32_t p_glFormat,
-                   int32_t p_glType,
-                   uint32_t p_bufSize,
-                   void* p_bufPtr,
-                   int32_t p_bufferPtrPid,
-                   uint32_t p_mmapedSize,
-                   uint64_t p_mmapedOffset)
-            : cb_handle_t(p_bufferFd,
-                          p_hostHandleRefCountFd,
-                          CB_HANDLE_MAGIC_30,
-                          p_hostHandle,
-                          p_usage,
-                          p_width,
-                          p_height,
-                          p_format,
-                          p_glFormat,
-                          p_glType,
-                          p_bufSize,
-                          p_bufPtr,
-                          p_mmapedOffset),
-              bufferFdAsInt(p_bufferFd),
-              bufferPtrPid(p_bufferPtrPid),
-              mmapedSize(p_mmapedSize) {
-        numInts = CB_HANDLE_NUM_INTS(numFds);
-    }
-
-    bool isValid() const { return (version == sizeof(native_handle_t)) && (magic == CB_HANDLE_MAGIC_30); }
-
-    static cb_handle_30_t* from(void* p) {
-        if (!p) { return nullptr; }
-        cb_handle_30_t* cb = static_cast<cb_handle_30_t*>(p);
-        return cb->isValid() ? cb : nullptr;
-    }
-
-    static const cb_handle_30_t* from(const void* p) {
-        return from(const_cast<void*>(p));
-    }
-
-    static cb_handle_30_t* from_unconst(const void* p) {
-        return from(const_cast<void*>(p));
-    }
-
-    int32_t  bufferFdAsInt;         // int copy of bufferFd, to check if fd was duped
-    int32_t  bufferPtrPid;          // pid where bufferPtr belongs to
-    uint32_t mmapedSize;            // real allocation side
-};
-
 // goldfish_address_space_host_malloc_handle_manager_t uses
 // GoldfishAddressSpaceHostMemoryAllocator and GoldfishAddressSpaceBlock
 // to allocate buffers on the host.
@@ -804,7 +832,7 @@ public:
                      int width, int height, int format,
                      EmulatorFrameworkFormat emulatorFrameworkFormat,
                      int glFormat, int glType,
-                     size_t bufferSize,
+                     size_t stride, size_t bufferSize,
                      buffer_handle_t* pHandle) override {
         const HostConnectionSession conn = m_gr->getHostConnectionSession();
         ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
@@ -846,7 +874,7 @@ public:
                 hostHandle,
                 usage, width, height,
                 format, glFormat, glType,
-                bufferSize, bufferBits.guestPtr(), getpid(),
+                stride, bufferSize, bufferBits.guestPtr(), getpid(),
                 bufferBits.size(), bufferBits.offset());
         bufferBits.release();
 
@@ -988,7 +1016,7 @@ int gralloc_lock(const gralloc_module_t* gralloc_module,
         RETURN_ERROR_CODE(-EINVAL);
     }
 
-    cb_handle_t* handle = cb_handle_t::from_unconst(bh);
+    cb_handle_30_t* handle = cb_handle_30_t::from_unconst(bh);
     if (!handle) {
         RETURN_ERROR_CODE(-EINVAL);
     }
@@ -1002,7 +1030,7 @@ int gralloc_unlock(const gralloc_module_t* gralloc_module, buffer_handle_t bh) {
         RETURN_ERROR_CODE(-EINVAL);
     }
 
-    cb_handle_t* handle = cb_handle_t::from_unconst(bh);
+    cb_handle_30_t* handle = cb_handle_30_t::from_unconst(bh);
     if (!handle) {
         RETURN_ERROR_CODE(-EINVAL);
     }
@@ -1019,7 +1047,7 @@ int gralloc_lock_ycbcr(const gralloc_module_t* gralloc_module,
         RETURN_ERROR_CODE(-EINVAL);
     }
 
-    cb_handle_t* handle = cb_handle_t::from_unconst(bh);
+    cb_handle_30_t* handle = cb_handle_30_t::from_unconst(bh);
     if (!handle) {
         RETURN_ERROR_CODE(-EINVAL);
     }
