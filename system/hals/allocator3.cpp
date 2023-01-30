@@ -93,8 +93,6 @@ private:
         const uint32_t usage = descriptor.usage;
         const bool usageSwWrite = usage & BufferUsage::CPU_WRITE_MASK;
         const bool usageSwRead = usage & BufferUsage::CPU_READ_MASK;
-        const bool usageHwCamWrite = usage & BufferUsage::CAMERA_OUTPUT;
-        const bool usageHwCamRead = usage & BufferUsage::CAMERA_INPUT;
 
         int bpp = 1;
         int glFormat = 0;
@@ -156,7 +154,7 @@ private:
         case PixelFormat::Y16:
             bpp = 2;
             align = 16 * bpp;
-            if (!((usageSwRead || usageHwCamRead) && (usageSwWrite || usageHwCamWrite))) {
+            if (!(usageSwRead && usageSwWrite)) {
                 // Raw sensor data or Y16 only goes between camera and CPU
                 RETURN_ERROR(Error3::UNSUPPORTED);
             }
@@ -166,13 +164,6 @@ private:
             break;
 
         case PixelFormat::BLOB:
-            if (!usageSwRead) {
-                // Blob data cannot be used by HW other than camera emulator
-                // But there is a CTS test trying to have access to it
-                // BUG: https://buganizer.corp.google.com/issues/37719518
-                RETURN_ERROR(Error3::UNSUPPORTED);
-            }
-            // Not expecting to actually create any GL surfaces for this
             glFormat = GL_LUMINANCE;
             glType = GL_UNSIGNED_BYTE;
             break;
