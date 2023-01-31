@@ -18605,9 +18605,11 @@ void VkEncoder::vkGetDeviceQueue2(VkDevice device, const VkDeviceQueueInfo2* pQu
         healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_2;
     stream->read((uint64_t*)&cgen_var_2, 8);
     stream->handleMapping()->mapHandles_u64_VkQueue(&cgen_var_2, (VkQueue*)pQueue, 1);
+    stream->unsetHandleMapping();
     sResourceTracker->on_vkGetDeviceQueue2(this, device, pQueueInfo, pQueue);
     ++encodeCount;
     ;
