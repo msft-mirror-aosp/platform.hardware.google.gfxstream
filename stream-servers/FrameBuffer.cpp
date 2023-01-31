@@ -177,45 +177,6 @@ void FrameBuffer::waitUntilInitialized() {
 #endif
 }
 
-void FrameBuffer::finalize() {
-    AutoLock lock(sGlobals()->lock);
-    AutoLock fbLock(m_lock);
-    m_perfStats = false;
-    m_perfThread->wait(NULL);
-    sInitialized.store(true, std::memory_order_relaxed);
-    sGlobals()->condVar.broadcastAndUnlock(&lock);
-
-    for (auto it : m_platformEglContexts) {
-        destroySharedTrivialContext(it.second.context, it.second.surface);
-    }
-
-    if (m_shuttingDown) {
-        // The only visible thing in the framebuffer is subwindow. Everything else
-        // will get cleaned when the process exits.
-        if (m_useSubWindow) {
-            m_postWorker.reset();
-            removeSubWindow_locked();
-        }
-        return;
-    }
-
-    sweepColorBuffersLocked();
-
-    m_buffers.clear();
-    {
-        AutoLock lock(m_colorBufferMapLock);
-        m_colorbuffers.clear();
-    }
-    m_colorBufferDelayedCloseList.clear();
-    if (m_useSubWindow) {
-        removeSubWindow_locked();
-    }
-    m_windows.clear();
-    m_contexts.clear();
-
-    m_readbackThread.enqueue({ReadbackCmd::Exit});
-}
-
 bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2egl) {
     GL_LOG("FrameBuffer::initialize");
     if (s_theFrameBuffer != NULL) {
@@ -476,6 +437,14 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     return true;
 }
 
+void FrameBuffer::finalize() {
+    FrameBuffer* fb = s_theFrameBuffer;
+    s_theFrameBuffer = nullptr;
+    if (fb) {
+        delete fb;
+    }
+}
+
 bool FrameBuffer::importMemoryToColorBuffer(ManagedDescriptor externalDescriptor, uint64_t size,
                                             bool dedicated, bool vulkanOnly,
                                             uint32_t colorBufferHandle, VkImage image,
@@ -543,27 +512,47 @@ FrameBuffer::FrameBuffer(int p_width, int p_height, bool useSubWindow)
 }
 
 FrameBuffer::~FrameBuffer() {
-    finalize();
+    AutoLock fbLock(m_lock);
 
-    m_postThread.enqueue({
-        PostCmd::Exit,
-    });
+    m_perfStats = false;
+    m_perfThread->wait(NULL);
+
+    m_postThread.enqueue({PostCmd::Exit});
+    m_postThread.join();
+    m_postWorker.reset();
+
+    if (m_useSubWindow) {
+        removeSubWindow_locked();
+    }
+
+    m_readbackThread.enqueue({ReadbackCmd::Exit});
+    m_readbackThread.join();
+
+    m_vsyncThread.reset();
 
     delete m_perfThread;
 
-    if (s_theFrameBuffer) {
-        s_theFrameBuffer = nullptr;
+    SyncThread::destroy();
+
+    sweepColorBuffersLocked();
+
+    m_buffers.clear();
+    {
+        AutoLock lock(m_colorBufferMapLock);
+        m_colorbuffers.clear();
     }
-    sInitialized.store(false, std::memory_order_relaxed);
+    m_colorBufferDelayedCloseList.clear();
 
-    m_readbackThread.join();
-    m_postThread.join();
+    m_windows.clear();
+    m_contexts.clear();
 
-    m_postWorker.reset();
-    m_vsyncThread.reset();
+    for (auto it : m_platformEglContexts) {
+        destroySharedTrivialContext(it.second.context, it.second.surface);
+    }
 
     goldfish_vk::teardownGlobalVkEmulation();
-    SyncThread::destroy();
+
+    sInitialized.store(false, std::memory_order_relaxed);
 }
 
 WorkerProcessingResult

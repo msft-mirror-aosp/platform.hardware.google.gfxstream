@@ -117,9 +117,8 @@ protected:
     }
 
     virtual void TearDown() override {
-        if (mFb) {
-            delete mFb;  // destructor calls finalize
-        }
+        FrameBuffer::finalize();
+        mFb = nullptr;
 
         delete mRenderThreadInfo;
         EXPECT_EQ(EGL_SUCCESS, LazyLoadedEGLDispatch::get()->eglGetError())

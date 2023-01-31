@@ -98,7 +98,7 @@ protected:
 
     bool mUseSubWindow = false;
     OSWindow* mWindow = nullptr;
-    std::unique_ptr<FrameBuffer> mFb = {};
+    FrameBuffer* mFb = nullptr;
     std::unique_ptr<RenderThreadInfo> mRenderThreadInfo = {};
 
     int mXOffset= 400;
