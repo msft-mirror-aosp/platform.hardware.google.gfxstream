@@ -256,7 +256,7 @@ SampleApplication::SampleApplication(int windowWidth, int windowHeight, int refr
             mWidth, mHeight,
             mUseSubWindow,
             !useHostGpu /* egl2egl */);
-    mFb.reset(FrameBuffer::getFB());
+    mFb = FrameBuffer::getFB();
 
     if (mUseSubWindow) {
         mFb->setupSubWindow(
@@ -295,7 +295,8 @@ SampleApplication::~SampleApplication() {
         mFb->bindContext(0, 0, 0);
         mFb->closeColorBuffer(mColorBuffer);
         mFb->destroyEmulatedEglWindowSurface(mSurface);
-        mFb->finalize();
+        mFb = nullptr;
+        FrameBuffer::finalize();
     }
 }
 

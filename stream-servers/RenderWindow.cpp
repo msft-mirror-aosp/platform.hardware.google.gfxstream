@@ -155,9 +155,7 @@ struct RenderWindowMessage {
                 // this command may be issued even when frame buffer is not
                 // yet created (e.g. if CMD_INITIALIZE failed),
                 // so make sure we check if it is there before finalizing
-                if (const auto fb = FrameBuffer::getFB()) {
-                    fb->finalize();
-                }
+                FrameBuffer::finalize();
                 result = true;
                 break;
 
@@ -165,11 +163,13 @@ struct RenderWindowMessage {
                 GL_LOG("CMD_SET_POST_CALLBACK");
                 D("CMD_SET_POST_CALLBACK\n");
                 fb = FrameBuffer::getFB();
-                fb->setPostCallback(msg.set_post_callback.on_post,
-                                    msg.set_post_callback.on_post_context,
-                                    msg.set_post_callback.on_post_displayId,
-                                    msg.set_post_callback.use_bgra_readback);
-                result = true;
+                if (fb) {
+                    fb->setPostCallback(msg.set_post_callback.on_post,
+                                        msg.set_post_callback.on_post_context,
+                                        msg.set_post_callback.on_post_displayId,
+                                        msg.set_post_callback.use_bgra_readback);
+                    result = true;
+                }
                 break;
 
             case CMD_SETUP_SUBWINDOW:
@@ -193,24 +193,23 @@ struct RenderWindowMessage {
                     msg.subwindow.fbh,
                     msg.subwindow.dpr,
                     msg.subwindow.rotation);
-                result = FrameBuffer::getFB()->setupSubWindow(
-                        msg.subwindow.parent,
-                        msg.subwindow.wx,
-                        msg.subwindow.wy,
-                        msg.subwindow.ww,
-                        msg.subwindow.wh,
-                        msg.subwindow.fbw,
-                        msg.subwindow.fbh,
-                        msg.subwindow.dpr,
-                        msg.subwindow.rotation,
-                        msg.subwindow.deleteExisting,
+                fb = FrameBuffer::getFB();
+                if (fb) {
+                    result = FrameBuffer::getFB()->setupSubWindow(
+                        msg.subwindow.parent, msg.subwindow.wx, msg.subwindow.wy, msg.subwindow.ww,
+                        msg.subwindow.wh, msg.subwindow.fbw, msg.subwindow.fbh, msg.subwindow.dpr,
+                        msg.subwindow.rotation, msg.subwindow.deleteExisting,
                         msg.subwindow.hideWindow);
+                }
                 break;
 
             case CMD_REMOVE_SUBWINDOW:
                 GL_LOG("CMD_REMOVE_SUBWINDOW");
                 D("CMD_REMOVE_SUBWINDOW\n");
-                result = FrameBuffer::getFB()->removeSubWindow();
+                fb = FrameBuffer::getFB();
+                if (fb) {
+                    result = fb->removeSubWindow();
+                }
                 break;
 
             case CMD_SET_ROTATION:
