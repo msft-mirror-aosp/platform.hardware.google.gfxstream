@@ -9934,14 +9934,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
                 VkDevice device;
                 const VkDeviceQueueInfo2* pQueueInfo;
                 VkQueue* pQueue;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
-                auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pQueueInfo, sizeof(const VkDeviceQueueInfo2));
                 reservedunmarshal_VkDeviceQueueInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                      (VkDeviceQueueInfo2*)(pQueueInfo),
@@ -9961,7 +9958,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
                             ioStream, (unsigned long long)device, (unsigned long long)pQueueInfo,
                             (unsigned long long)pQueue);
                 }
-                vk->vkGetDeviceQueue2(unboxed_device, pQueueInfo, pQueue);
+                m_state->on_vkGetDeviceQueue2(&m_pool, device, pQueueInfo, pQueue);
                 vkStream->unsetHandleMapping();
                 uint64_t cgen_var_2;
                 vkStream->handleMapping()->mapHandles_VkQueue_u64(pQueue, &cgen_var_2, 1);
