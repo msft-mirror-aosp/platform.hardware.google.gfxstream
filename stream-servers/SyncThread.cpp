@@ -69,10 +69,10 @@ class GlobalSyncThread {
 public:
     GlobalSyncThread() = default;
 
-    void initialize(bool noGL, HealthMonitor<>* healthMonitor) {
+    void initialize(bool hasGl, HealthMonitor<>* healthMonitor) {
         AutoLock mutex(mLock);
         SYNC_THREAD_CHECK(!mSyncThread);
-        mSyncThread = std::make_unique<SyncThread>(noGL, healthMonitor);
+        mSyncThread = std::make_unique<SyncThread>(hasGl, healthMonitor);
     }
     SyncThread* syncThreadPtr() {
         AutoLock mutex(mLock);
@@ -99,17 +99,17 @@ static GlobalSyncThread* sGlobalSyncThread() {
 static const uint32_t kTimelineInterval = 1;
 static const uint64_t kDefaultTimeoutNsecs = 5ULL * 1000ULL * 1000ULL * 1000ULL;
 
-SyncThread::SyncThread(bool noGL, HealthMonitor<>* healthMonitor)
+SyncThread::SyncThread(bool hasGl, HealthMonitor<>* healthMonitor)
     : android::base::Thread(android::base::ThreadFlags::MaskSignals, 512 * 1024),
       mWorkerThreadPool(kNumWorkerThreads,
                         [this](Command&& command, ThreadPool::WorkerId id) {
                             doSyncThreadCmd(std::move(command), id);
                         }),
-      mNoGL(noGL),
+      mHasGl(hasGl),
       mHealthMonitor(healthMonitor) {
     this->start();
     mWorkerThreadPool.start();
-    if (!noGL) {
+    if (hasGl) {
         initSyncEGLContext();
     }
 }
@@ -203,7 +203,7 @@ void SyncThread::triggerGeneral(FenceCompletionCallback cb, std::string descript
 void SyncThread::cleanup() {
     sendAndWaitForResult(
         [this](WorkerId workerId) {
-            if (!mNoGL) {
+            if (mHasGl) {
                 const EGLDispatch* egl = emugl::LazyLoadedEGLDispatch::get();
 
                 egl->eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -287,7 +287,7 @@ void SyncThread::initSyncEGLContext() {
                 DPRINT("for worker id: %d", workerId);
                 // We shouldn't initialize EGL context, when SyncThread is initialized
                 // without GL enabled.
-                SYNC_THREAD_CHECK(!mNoGL);
+                SYNC_THREAD_CHECK(mHasGl);
 
                 const EGLDispatch* egl = emugl::LazyLoadedEGLDispatch::get();
 
@@ -345,7 +345,7 @@ void SyncThread::doSyncWait(EmulatedEglFenceSync* fenceSync, std::function<void(
     }
     // We shouldn't use EmulatedEglFenceSync to wait, when SyncThread is initialized
     // without GL enabled, because EmulatedEglFenceSync uses EGL/GLES.
-    SYNC_THREAD_CHECK(!mNoGL);
+    SYNC_THREAD_CHECK(mHasGl);
 
     EGLint wait_result = 0x0;
 
@@ -432,8 +432,8 @@ SyncThread* SyncThread::get() {
     return res;
 }
 
-void SyncThread::initialize(bool noEGL, HealthMonitor<>* healthMonitor) {
-    sGlobalSyncThread()->initialize(noEGL, healthMonitor);
+void SyncThread::initialize(bool hasGl, HealthMonitor<>* healthMonitor) {
+    sGlobalSyncThread()->initialize(hasGl, healthMonitor);
 }
 
 void SyncThread::destroy() { sGlobalSyncThread()->destroy(); }
