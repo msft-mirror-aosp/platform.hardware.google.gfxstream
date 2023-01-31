@@ -456,7 +456,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     // swapchain, then don't initialize SyncThread worker threads with EGL
     // contexts.
     SyncThread::initialize(
-        /* noGL */ fb->m_displayVk != nullptr, fb->getHealthMonitor());
+        /* hasGL */ fb->m_emulationGl != nullptr, fb->getHealthMonitor());
 
     // Start the vsync thread
     const uint64_t kOneSecondNs = 1000000000ULL;
