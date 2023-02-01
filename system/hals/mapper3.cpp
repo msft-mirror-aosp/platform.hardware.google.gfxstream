@@ -80,6 +80,14 @@ int waitHidlFence(const hidl_handle& hidlHandle, const char* logname) {
     return waitFenceFd(nativeHandle->data[0], logname);
 }
 
+bool needGpuBuffer(const uint32_t usage) {
+    return usage & (BufferUsage::GPU_TEXTURE
+                    | BufferUsage::GPU_RENDER_TARGET
+                    | BufferUsage::COMPOSER_OVERLAY
+                    | BufferUsage::COMPOSER_CLIENT_TARGET
+                    | BufferUsage::GPU_DATA_BUFFER);
+}
+
 constexpr uint64_t one64 = 1;
 
 constexpr uint64_t ones(int from, int to) {
@@ -589,8 +597,6 @@ private:  // **** impl ****
         }
 
         const uint32_t usage = usage64;
-        const bool usageSwWrite = usage & BufferUsage::CPU_WRITE_MASK;
-        const bool usageSwRead = usage & BufferUsage::CPU_READ_MASK;
 
         switch (descriptor.format) {
         case PixelFormat::RGBA_8888:
@@ -599,7 +605,6 @@ private:  // **** impl ****
         case PixelFormat::RGB_565:
         case PixelFormat::RGBA_FP16:
         case PixelFormat::RGBA_1010102:
-        case PixelFormat::YCRCB_420_SP:
         case PixelFormat::YV12:
         case PixelFormat::YCBCR_420_888:
             RETURN(true);
@@ -608,17 +613,11 @@ private:  // **** impl ****
             RETURN(false);
 
         case PixelFormat::RGB_888:
-            RETURN(0 == (usage & (BufferUsage::GPU_TEXTURE |
-                                  BufferUsage::GPU_RENDER_TARGET |
-                                  BufferUsage::COMPOSER_OVERLAY |
-                                  BufferUsage::COMPOSER_CLIENT_TARGET)));
-
+        case PixelFormat::YCRCB_420_SP:
         case PixelFormat::RAW16:
         case PixelFormat::Y16:
-            RETURN(usageSwRead && usageSwWrite);
-
         case PixelFormat::BLOB:
-            RETURN(usageSwRead);
+            RETURN(!needGpuBuffer(usage));
 
         default:
             if (static_cast<int>(descriptor.format) == kOMX_COLOR_FormatYUV420Planar) {
