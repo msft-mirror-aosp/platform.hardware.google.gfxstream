@@ -44,6 +44,16 @@ using IMapper3 = MapperV3::IMapper;
 using Error3 = MapperV3::Error;
 using BufferDescriptorInfo = IMapper3::BufferDescriptorInfo;
 
+namespace {
+bool needGpuBuffer(const uint32_t usage) {
+    return usage & (BufferUsage::GPU_TEXTURE
+                    | BufferUsage::GPU_RENDER_TARGET
+                    | BufferUsage::COMPOSER_OVERLAY
+                    | BufferUsage::COMPOSER_CLIENT_TARGET
+                    | BufferUsage::GPU_DATA_BUFFER);
+}
+}  // namespace
+
 class GoldfishAllocator : public IAllocator3 {
 public:
     GoldfishAllocator() : m_hostConn(HostConnection::createUnique()) {}
@@ -91,8 +101,6 @@ private:
         if (descriptor.layerCount != 1) { RETURN_ERROR(Error3::UNSUPPORTED); }
 
         const uint32_t usage = descriptor.usage;
-        const bool usageSwWrite = usage & BufferUsage::CPU_WRITE_MASK;
-        const bool usageSwRead = usage & BufferUsage::CPU_READ_MASK;
 
         int bpp = 1;
         int glFormat = 0;
@@ -120,16 +128,12 @@ private:
             break;
 
         case PixelFormat::RGB_888:
-            if (usage & (BufferUsage::GPU_TEXTURE |
-                         BufferUsage::GPU_RENDER_TARGET |
-                         BufferUsage::COMPOSER_OVERLAY |
-                         BufferUsage::COMPOSER_CLIENT_TARGET)) {
+            if (needGpuBuffer(usage)) {
                 RETURN_ERROR(Error3::UNSUPPORTED);
-            } else {
-                bpp = 3;
-                glFormat = GL_RGB;
-                glType = GL_UNSIGNED_BYTE;
             }
+            bpp = 3;
+            glFormat = GL_RGB;
+            glType = GL_UNSIGNED_BYTE;
             break;
 
         case PixelFormat::RGB_565:
@@ -152,25 +156,28 @@ private:
 
         case PixelFormat::RAW16:
         case PixelFormat::Y16:
-            bpp = 2;
-            align = 16 * bpp;
-            if (!(usageSwRead && usageSwWrite)) {
-                // Raw sensor data or Y16 only goes between camera and CPU
+            if (needGpuBuffer(usage)) {
                 RETURN_ERROR(Error3::UNSUPPORTED);
             }
-            // Not expecting to actually create any GL surfaces for this
+            bpp = 2;
+            align = 16 * bpp;
             glFormat = GL_LUMINANCE;
             glType = GL_UNSIGNED_SHORT;
             break;
 
         case PixelFormat::BLOB:
+            if (needGpuBuffer(usage)) {
+                RETURN_ERROR(Error3::UNSUPPORTED);
+            }
             glFormat = GL_LUMINANCE;
             glType = GL_UNSIGNED_BYTE;
             break;
 
         case PixelFormat::YCRCB_420_SP:
+            if (needGpuBuffer(usage)) {
+                RETURN_ERROR(Error3::UNSUPPORTED);
+            }
             yuv_format = true;
-            // Not expecting to actually create any GL surfaces for this
             break;
 
         case PixelFormat::YV12:
@@ -295,31 +302,6 @@ private:
         }
     }
 
-    static bool needHostCb(const uint32_t usage, const PixelFormat format) {
-        if (static_cast<android::hardware::graphics::common::V1_1::PixelFormat>(format) ==
-                android::hardware::graphics::common::V1_1::PixelFormat::YCBCR_P010) {
-            return false;
-        }
-
-        // b/186585177
-        if ((usage & (BufferUsage::CPU_READ_MASK | BufferUsage::CPU_WRITE_MASK)) &&
-                (0 == (usage & ~(BufferUsage::CPU_READ_MASK | BufferUsage::CPU_WRITE_MASK)))) {
-            return false;
-        }
-
-        return ((usage & BufferUsage::GPU_DATA_BUFFER)
-                   || (format != PixelFormat::BLOB &&
-                       format != PixelFormat::RAW16 &&
-                       format != PixelFormat::Y16))
-               && (usage & (BufferUsage::GPU_TEXTURE
-                            | BufferUsage::GPU_RENDER_TARGET
-                            | BufferUsage::COMPOSER_OVERLAY
-                            | BufferUsage::VIDEO_ENCODER
-                            | BufferUsage::VIDEO_DECODER
-                            | BufferUsage::COMPOSER_CLIENT_TARGET
-                            | BufferUsage::CPU_READ_MASK));
-    }
-
     Error3 allocateCb(const uint32_t usage,
                       const uint32_t width, const uint32_t height,
                       const PixelFormat format,
@@ -346,7 +328,7 @@ private:
 
         uint32_t hostHandle = 0;
         QEMU_PIPE_HANDLE hostHandleRefCountFd = QEMU_PIPE_INVALID_HANDLE;
-        if (needHostCb(usage, format)) {
+        if (needGpuBuffer(usage)) {
             hostHandleRefCountFd = qemu_pipe_open("refcount");
             if (!qemu_pipe_valid(hostHandleRefCountFd)) {
                 RETURN_ERROR(Error3::NO_RESOURCES);
