@@ -281,6 +281,9 @@ private:  // **** impl ****
         if (!cb) {
             RETURN_ERROR(Error3::BAD_BUFFER);
         }
+        if ((cb->usage & cpuUsage) == 0) {
+            RETURN_ERROR(Error3::BAD_VALUE);
+        }
         if (!cb->bufferSize) {
             RETURN_ERROR(Error3::BAD_BUFFER);
         }
@@ -316,6 +319,9 @@ private:  // **** impl ****
         cb_handle_30_t* cb = cb_handle_30_t::from(raw);
         if (!cb) {
             RETURN_ERROR(Error3::BAD_BUFFER);
+        }
+        if ((cb->usage & cpuUsage) == 0) {
+            RETURN_ERROR(Error3::BAD_VALUE);
         }
         if (!cb->bufferSize) {
             RETURN_ERROR(Error3::BAD_BUFFER);
