@@ -5099,7 +5099,6 @@ public:
         VkDeviceSize memoryOffset) {
         VkEncoder* enc = (VkEncoder*)context;
         // Do not forward calls with invalid handles to host.
-        AutoLock<RecursiveLock> lock(mLock);
         if (info_VkDeviceMemory.find(memory) == info_VkDeviceMemory.end() ||
             info_VkImage.find(image) == info_VkImage.end()) {
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -5111,9 +5110,10 @@ public:
         void* context, VkResult,
         VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
         VkEncoder* enc = (VkEncoder*)context;
-        AutoLock<RecursiveLock> lock(mLock);
+        // Do not forward calls with invalid handles to host.
         if (!pBindInfos ||
-            info_VkDeviceMemory.find(pBindInfos->memory) == info_VkDeviceMemory.end() ||
+            info_VkDeviceMemory.find(pBindInfos->memory) ==
+                info_VkDeviceMemory.end() ||
             info_VkImage.find(pBindInfos->image) == info_VkImage.end()) {
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
@@ -5125,9 +5125,9 @@ public:
         VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
         VkEncoder* enc = (VkEncoder*)context;
         // Do not forward calls with invalid handles to host.
-        AutoLock<RecursiveLock> lock(mLock);
         if (!pBindInfos ||
-            info_VkDeviceMemory.find(pBindInfos->memory) == info_VkDeviceMemory.end() ||
+            info_VkDeviceMemory.find(pBindInfos->memory) ==
+                info_VkDeviceMemory.end() ||
             info_VkImage.find(pBindInfos->image) == info_VkImage.end()) {
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
