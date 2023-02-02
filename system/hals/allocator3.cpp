@@ -14,6 +14,7 @@
 * limitations under the License.
 */
 
+#include <android-base/unique_fd.h>
 #include <android/hardware/graphics/allocator/3.0/IAllocator.h>
 #include <android/hardware/graphics/mapper/3.0/IMapper.h>
 #include <hidl/LegacySupport.h>
@@ -210,22 +211,27 @@ private:
             RETURN_ERROR(Error3::UNSUPPORTED);
         }
 
-        const size_t align1 = align - 1;
         const uint32_t width = descriptor.width;
         const uint32_t height = descriptor.height;
-        uint32_t stride;
         size_t bufferSize;
+        uint32_t stride;
 
-        if (yuv_format) {
-            const size_t yStride = (width * bpp + align1) & ~align1;
-            const size_t uvStride = (yStride / 2 + align1) & ~align1;
-            const size_t uvHeight = height / 2;
-            bufferSize = yStride * height + 2 * (uvHeight * uvStride);
-            stride = yStride / bpp;
+        if (usage & (BufferUsage::CPU_READ_MASK | BufferUsage::CPU_WRITE_MASK)) {
+            const size_t align1 = align - 1;
+            if (yuv_format) {
+                const size_t yStride = (width * bpp + align1) & ~align1;
+                const size_t uvStride = (yStride / 2 + align1) & ~align1;
+                const size_t uvHeight = height / 2;
+                bufferSize = yStride * height + 2 * (uvHeight * uvStride);
+                stride = yStride / bpp;
+            } else {
+                const size_t bpr = (width * bpp + align1) & ~align1;
+                bufferSize = bpr * height;
+                stride = bpr / bpp;
+            }
         } else {
-            const size_t bpr = (width * bpp + align1) & ~align1;
-            bufferSize = bpr * height;
-            stride = bpr / bpp;
+            bufferSize = 0;
+            stride = 0;
         }
 
         *pStride = stride;
@@ -315,22 +321,27 @@ private:
         ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
         CRASH_IF(!rcEnc, "conn.getRcEncoder() failed");
 
-        GoldfishAddressSpaceHostMemoryAllocator host_memory_allocator(
-            rcEnc->featureInfo_const()->hasSharedSlotsHostMemoryAllocator);
-        if (!host_memory_allocator.is_opened()) {
-            RETURN_ERROR(Error3::NO_RESOURCES);
-        }
-
+        android::base::unique_fd cpuAlocatorFd;
         GoldfishAddressSpaceBlock bufferBits;
-        if (host_memory_allocator.hostMalloc(&bufferBits, bufferSize)) {
-            RETURN_ERROR(Error3::NO_RESOURCES);
+        if (bufferSize > 0) {
+            GoldfishAddressSpaceHostMemoryAllocator host_memory_allocator(
+                rcEnc->featureInfo_const()->hasSharedSlotsHostMemoryAllocator);
+            if (!host_memory_allocator.is_opened()) {
+                RETURN_ERROR(Error3::NO_RESOURCES);
+            }
+
+            if (host_memory_allocator.hostMalloc(&bufferBits, bufferSize)) {
+                RETURN_ERROR(Error3::NO_RESOURCES);
+            }
+
+            cpuAlocatorFd.reset(host_memory_allocator.release());
         }
 
         uint32_t hostHandle = 0;
-        QEMU_PIPE_HANDLE hostHandleRefCountFd = QEMU_PIPE_INVALID_HANDLE;
+        android::base::unique_fd hostHandleRefCountFd;
         if (needGpuBuffer(usage)) {
-            hostHandleRefCountFd = qemu_pipe_open("refcount");
-            if (!qemu_pipe_valid(hostHandleRefCountFd)) {
+            hostHandleRefCountFd.reset(qemu_pipe_open("refcount"));
+            if (!hostHandleRefCountFd.ok()) {
                 RETURN_ERROR(Error3::NO_RESOURCES);
             }
 
@@ -343,23 +354,21 @@ private:
                 allocFormat, static_cast<int>(emulatorFrameworkFormat));
 
             if (!hostHandle) {
-                qemu_pipe_close(hostHandleRefCountFd);
                 RETURN_ERROR(Error3::NO_RESOURCES);
             }
 
-            if (qemu_pipe_write(hostHandleRefCountFd,
+            if (qemu_pipe_write(hostHandleRefCountFd.get(),
                                 &hostHandle,
                                 sizeof(hostHandle)) != sizeof(hostHandle)) {
                 rcEnc->rcCloseColorBuffer(rcEnc, hostHandle);
-                qemu_pipe_close(hostHandleRefCountFd);
                 RETURN_ERROR(Error3::NO_RESOURCES);
             }
         }
 
         std::unique_ptr<cb_handle_30_t> handle =
             std::make_unique<cb_handle_30_t>(
-                host_memory_allocator.release(),
-                hostHandleRefCountFd,
+                cpuAlocatorFd.release(),
+                hostHandleRefCountFd.release(),
                 hostHandle,
                 usage,
                 width,
@@ -380,14 +389,14 @@ private:
     }
 
     void freeCb(std::unique_ptr<cb_handle_30_t> cb) {
-        // no need to undo .hostMalloc: the kernel will take care of it once the
-        // last bufferFd (duped) is closed.
-
-        if (qemu_pipe_valid(cb->hostHandleRefCountFd)) {
-            qemu_pipe_close(cb->hostHandleRefCountFd);
+        if (cb->hostHandleRefcountFdIndex >= 0) {
+            ::close(cb->fds[cb->hostHandleRefcountFdIndex]);
         }
-        GoldfishAddressSpaceBlock::memoryUnmap(cb->getBufferPtr(), cb->mmapedSize);
-        GoldfishAddressSpaceHostMemoryAllocator::closeHandle(cb->bufferFd);
+
+        if (cb->bufferFdIndex >= 0) {
+            GoldfishAddressSpaceBlock::memoryUnmap(cb->getBufferPtr(), cb->mmapedSize);
+            GoldfishAddressSpaceHostMemoryAllocator::closeHandle(cb->fds[cb->bufferFdIndex]);
+        }
     }
 
     HostConnectionSession getHostConnectionSession() const {

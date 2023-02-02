@@ -24,7 +24,7 @@ const uint32_t CB_HANDLE_MAGIC_30 = CB_HANDLE_MAGIC_BASE | 0x2;
 
 struct cb_handle_30_t : public cb_handle_t {
     cb_handle_30_t(int p_bufferFd,
-                   QEMU_PIPE_HANDLE p_hostHandleRefCountFd,
+                   int p_hostHandleRefCountFd,
                    uint32_t p_hostHandle,
                    uint32_t p_usage,
                    uint32_t p_width,
@@ -38,9 +38,7 @@ struct cb_handle_30_t : public cb_handle_t {
                    uint64_t p_mmapedOffset,
                    uint32_t p_bytesPerPixel,
                    uint32_t p_stride)
-            : cb_handle_t(p_bufferFd,
-                          p_hostHandleRefCountFd,
-                          CB_HANDLE_MAGIC_30,
+            : cb_handle_t(CB_HANDLE_MAGIC_30,
                           p_hostHandle,
                           p_format,
                           p_stride,
@@ -53,13 +51,26 @@ struct cb_handle_30_t : public cb_handle_t {
               glType(p_glType),
               bytesPerPixel(p_bytesPerPixel),
               mmapedSize(p_mmapedSize),
-              locked(0),
-              lockedUsage(0),
-              lockedLeft(0),
-              lockedTop(0),
-              lockedWidth(0),
-              lockedHeight(0) {
-        numInts = CB_HANDLE_NUM_INTS(numFds);
+              lockedUsage(0) {
+        fds[0] = -1;
+        fds[1] = -1;
+        int n = 0;
+        if (p_bufferFd >= 0) {
+            bufferFdIndex = n++;
+            fds[bufferFdIndex] = p_bufferFd;
+        } else {
+            bufferFdIndex = -1;
+        }
+
+        if (p_hostHandleRefCountFd >= 0) {
+            hostHandleRefcountFdIndex = n++;
+            fds[hostHandleRefcountFdIndex] = p_hostHandleRefCountFd;
+        } else {
+            hostHandleRefcountFdIndex = -1;
+        }
+
+        numFds = n;
+        numInts = CB_HANDLE_NUM_INTS(n);
         setBufferPtr(p_bufPtr);
     }
 
@@ -99,8 +110,10 @@ struct cb_handle_30_t : public cb_handle_t {
     uint32_t mmapedSize;    // real allocation side
     uint32_t bufferPtrLo;
     uint32_t bufferPtrHi;
-    uint32_t locked;
-    uint32_t lockedUsage;
+    uint8_t  lockedUsage;
+    int8_t   bufferFdIndex;
+    int8_t   hostHandleRefcountFdIndex;
+    int8_t   unused;
     uint32_t lockedLeft;    // region of buffer locked for s/w write
     uint32_t lockedTop;
     uint32_t lockedWidth;

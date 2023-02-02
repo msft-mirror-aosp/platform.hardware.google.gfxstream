@@ -82,14 +82,14 @@ static const bool isHidlGralloc = false;
 using android::base::guest::getCurrentThreadId;
 
 const uint32_t CB_HANDLE_MAGIC_OLD = CB_HANDLE_MAGIC_BASE | 0x1;
+const int kBufferFdIndex = 0;
+const int kHostHandleRefCountIndex = 1;
 
 struct cb_handle_old_t : public cb_handle_t {
     cb_handle_old_t(int p_fd, int p_ashmemSize, int p_usage,
                     int p_width, int p_height,
                     int p_format, int p_glFormat, int p_glType)
-            : cb_handle_t(p_fd,
-                          QEMU_PIPE_INVALID_HANDLE,
-                          CB_HANDLE_MAGIC_OLD,
+            : cb_handle_t(CB_HANDLE_MAGIC_OLD,
                           0,
                           p_format,
                           p_width,
@@ -108,18 +108,20 @@ struct cb_handle_old_t : public cb_handle_t {
               lockedTop(0),
               lockedWidth(0),
               lockedHeight(0) {
+        fds[kBufferFdIndex] = p_fd;
+        numFds = 1;
         numInts = CB_HANDLE_NUM_INTS(numFds);
     }
 
     bool hasRefcountPipe() const {
-        return qemu_pipe_valid(hostHandleRefCountFd);
+        return qemu_pipe_valid(fds[kHostHandleRefCountIndex]);
     }
 
     void setRefcountPipeFd(QEMU_PIPE_HANDLE fd) {
         if (qemu_pipe_valid(fd)) {
             numFds++;
         }
-        hostHandleRefCountFd = fd;
+        fds[kHostHandleRefCountIndex] = fd;
         numInts = CB_HANDLE_NUM_INTS(numFds);
     }
 
@@ -452,12 +454,13 @@ static bool put_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_old_t *
 
 static int map_buffer(cb_handle_old_t *cb, void **vaddr)
 {
-    if (cb->bufferFd < 0) {
+    const int bufferFd = cb->fds[kBufferFdIndex];
+    if (bufferFd < 0) {
         return -EINVAL;
     }
 
     void *addr = mmap(0, cb->bufferSize, PROT_READ | PROT_WRITE,
-                      MAP_SHARED, cb->bufferFd, 0);
+                      MAP_SHARED, bufferFd, 0);
     if (addr == MAP_FAILED) {
         ALOGE("%s: failed to map ashmem region!", __FUNCTION__);
         return -errno;
@@ -991,17 +994,18 @@ static int gralloc_free(alloc_device_t* dev,
     //
     // detach and unmap ashmem area if present
     //
-    if (cb->bufferFd > 0) {
+    const int bufferFd = cb->fds[kBufferFdIndex];
+    if (bufferFd > 0) {
         if (cb->bufferSize > 0 && cb->getBufferPtr()) {
             D("%s: unmapped %p", __FUNCTION__, cb->getBufferPtr());
             munmap(cb->getBufferPtr(), cb->bufferSize);
             put_gralloc_region(rcEnc, cb->bufferSize);
         }
-        close(cb->bufferFd);
+        close(bufferFd);
     }
 
-    if(qemu_pipe_valid(cb->hostHandleRefCountFd)) {
-        qemu_pipe_close(cb->hostHandleRefCountFd);
+    if(qemu_pipe_valid(cb->fds[kHostHandleRefCountIndex])) {
+        qemu_pipe_close(cb->fds[kHostHandleRefCountIndex]);
     }
     D("%s: done", __FUNCTION__);
     // remove it from the allocated list

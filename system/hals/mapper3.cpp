@@ -242,11 +242,12 @@ private:  // **** impl ****
         }
 
         if (cb->mmapedSize > 0) {
+            LOG_ALWAYS_FATAL_IF(cb->bufferFdIndex < 0);
             void* ptr;
             const int res = GoldfishAddressSpaceBlock::memoryMap(
                 cb->getBufferPtr(),
                 cb->mmapedSize,
-                cb->bufferFd,
+                cb->fds[cb->bufferFdIndex],
                 cb->getMmapedOffset(),
                 &ptr);
             if (res) {
@@ -268,7 +269,7 @@ private:  // **** impl ****
     }
 
     Error3 lockImpl(void* raw,
-                    uint64_t cpuUsage,
+                    const uint64_t uncheckedUsage,
                     const Rect& accessRegion,
                     const hidl_handle& acquireFence,
                     void** pptr,
@@ -281,7 +282,12 @@ private:  // **** impl ****
         if (!cb) {
             RETURN_ERROR(Error3::BAD_BUFFER);
         }
-        if ((cb->usage & cpuUsage) == 0) {
+        if (cb->lockedUsage) {
+            RETURN_ERROR(Error3::BAD_VALUE);
+        }
+        const uint8_t checkedUsage = uncheckedUsage & cb->usage &
+            (BufferUsage::CPU_READ_MASK | BufferUsage::CPU_WRITE_MASK);
+        if (checkedUsage == 0) {
             RETURN_ERROR(Error3::BAD_VALUE);
         }
         if (!cb->bufferSize) {
@@ -296,7 +302,7 @@ private:  // **** impl ****
         }
 
         if (cb->hostHandle) {
-            const Error3 e = lockHostImpl(*cb, cpuUsage, accessRegion, bufferBits);
+            const Error3 e = lockHostImpl(*cb, checkedUsage, accessRegion, bufferBits);
             if (e != Error3::NONE) {
                 return e;
             }
@@ -309,7 +315,7 @@ private:  // **** impl ****
     }
 
     Error3 lockYCbCrImpl(void* raw,
-                         uint64_t cpuUsage,
+                         const uint64_t uncheckedUsage,
                          const Rect& accessRegion,
                          const hidl_handle& acquireFence,
                          YCbCrLayout3* pYcbcr) {
@@ -320,7 +326,12 @@ private:  // **** impl ****
         if (!cb) {
             RETURN_ERROR(Error3::BAD_BUFFER);
         }
-        if ((cb->usage & cpuUsage) == 0) {
+        if (cb->lockedUsage) {
+            RETURN_ERROR(Error3::BAD_VALUE);
+        }
+        const uint8_t checkedUsage = uncheckedUsage & cb->usage &
+            (BufferUsage::CPU_READ_MASK | BufferUsage::CPU_WRITE_MASK);
+        if (checkedUsage == 0) {
             RETURN_ERROR(Error3::BAD_VALUE);
         }
         if (!cb->bufferSize) {
@@ -379,7 +390,7 @@ private:  // **** impl ****
         }
 
         if (cb->hostHandle) {
-            const Error3 e = lockHostImpl(*cb, cpuUsage, accessRegion, bufferBits);
+            const Error3 e = lockHostImpl(*cb, checkedUsage, accessRegion, bufferBits);
             if (e != Error3::NONE) {
                 return e;
             }
@@ -396,14 +407,12 @@ private:  // **** impl ****
     }
 
     Error3 lockHostImpl(cb_handle_30_t& cb,
-                        const uint32_t usage,
+                        const uint8_t checkedUsage,
                         const Rect& accessRegion,
                         char* const bufferBits) {
-        const bool usageSwRead = usage & BufferUsage::CPU_READ_MASK;
-        const bool usageSwWrite = usage & BufferUsage::CPU_WRITE_MASK;
-
         const HostConnectionSession conn = getHostConnectionSession();
         ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
+        const bool usageSwRead = (checkedUsage & BufferUsage::CPU_READ_MASK) != 0;
 
         const int res = rcEnc->rcColorBufferCacheFlush(
             rcEnc, cb.hostHandle, 0, usageSwRead);
@@ -411,8 +420,7 @@ private:  // **** impl ****
             RETURN_ERROR(Error3::NO_RESOURCES);
         }
 
-        const bool cbReadable = cb.usage & BufferUsage::CPU_READ_MASK;
-        if (usageSwRead && cbReadable) {
+        if (usageSwRead) {
             if (gralloc_is_yuv_format(cb.format)) {
                 if (rcEnc->hasYUVCache()) {
                     uint32_t bufferSize;
@@ -484,7 +492,7 @@ private:  // **** impl ****
             }
         }
 
-        if (usageSwWrite) {
+        if (checkedUsage & BufferUsage::CPU_WRITE_MASK) {
             cb.lockedLeft = accessRegion.left;
             cb.lockedTop = accessRegion.top;
             cb.lockedWidth = accessRegion.width;
@@ -495,9 +503,7 @@ private:  // **** impl ****
             cb.lockedWidth = cb.width;
             cb.lockedHeight = cb.height;
         }
-
-        cb.locked = 1;
-        cb.lockedUsage = usage;
+        cb.lockedUsage = checkedUsage;
 
         RETURN(Error3::NONE);
     }
@@ -510,6 +516,9 @@ private:  // **** impl ****
         cb_handle_30_t* cb = cb_handle_30_t::from(raw);
         if (!cb) {
             RETURN_ERROR(Error3::BAD_BUFFER);
+        }
+        if (cb->lockedUsage == 0) {
+            RETURN_ERROR(Error3::BAD_VALUE);
         }
         if (!cb->bufferSize) {
             RETURN_ERROR(Error3::BAD_BUFFER);
@@ -528,16 +537,12 @@ private:  // **** impl ****
 
     void unlockHostImpl(cb_handle_30_t& cb, char* const bufferBits) {
         AEMU_SCOPED_TRACE("unlockHostImpl body");
-        const int bpp = glUtilsPixelBitSize(cb.glFormat, cb.glType) >> 3;
-        const uint32_t lockedUsage = cb.lockedUsage;
-        const uint32_t rgbSize = cb.width * cb.height * bpp;
-        const char* bitsToSend;
-        uint32_t sizeToSend;
+        if (cb.lockedUsage & BufferUsage::CPU_WRITE_MASK) {
+            const int bpp = glUtilsPixelBitSize(cb.glFormat, cb.glType) >> 3;
+            const uint32_t rgbSize = cb.width * cb.height * bpp;
+            const char* bitsToSend;
+            uint32_t sizeToSend;
 
-        const uint32_t usageSwWrite = (uint32_t)BufferUsage::CPU_WRITE_MASK;
-        uint32_t readOnly = (!(lockedUsage & usageSwWrite));
-
-        if (!readOnly) {
             if (gralloc_is_yuv_format(cb.format)) {
                 bitsToSend = bufferBits;
                 switch (static_cast<PixelFormat>(cb.format)) {
@@ -579,7 +584,6 @@ private:  // **** impl ****
         cb.lockedTop = 0;
         cb.lockedWidth = 0;
         cb.lockedHeight = 0;
-        cb.locked = 0;
         cb.lockedUsage = 0;
     }
 
