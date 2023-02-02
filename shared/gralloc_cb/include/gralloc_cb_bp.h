@@ -29,17 +29,13 @@ const uint32_t CB_HANDLE_MAGIC_BASE = 0xABFABFA0;
     ((sizeof(*this)-sizeof(native_handle_t)-nfd*sizeof(int32_t))/sizeof(int32_t))
 
 struct cb_handle_t : public native_handle_t {
-    cb_handle_t(int32_t p_bufferFd,
-                QEMU_PIPE_HANDLE p_hostHandleRefCountFd,
-                uint32_t p_magic,
+    cb_handle_t(uint32_t p_magic,
                 uint32_t p_hostHandle,
                 int32_t p_format,
                 uint32_t p_stride,
                 uint32_t p_bufSize,
                 uint64_t p_mmapedOffset)
-        : bufferFd(p_bufferFd),
-          hostHandleRefCountFd(p_hostHandleRefCountFd),
-          magic(p_magic),
+        : magic(p_magic),
           hostHandle(p_hostHandle),
           format(p_format),
           bufferSize(p_bufSize),
@@ -47,8 +43,6 @@ struct cb_handle_t : public native_handle_t {
           mmapedOffsetLo(static_cast<uint32_t>(p_mmapedOffset)),
           mmapedOffsetHi(static_cast<uint32_t>(p_mmapedOffset >> 32)) {
         version = sizeof(native_handle);
-        numFds = ((bufferFd >= 0) ? 1 : 0) + (qemu_pipe_valid(hostHandleRefCountFd) ? 1 : 0);
-        numInts = 0; // has to be overwritten in children classes
     }
 
     uint64_t getMmapedOffset() const {
@@ -78,9 +72,7 @@ struct cb_handle_t : public native_handle_t {
         return from(const_cast<void*>(p));
     }
 
-    // fds
-    int32_t bufferFd;       // underlying buffer file handle
-    QEMU_PIPE_HANDLE hostHandleRefCountFd; // guest side refcounter to hostHandle
+    int32_t fds[2];
 
     // ints
     uint32_t magic;         // magic number in order to validate a pointer
