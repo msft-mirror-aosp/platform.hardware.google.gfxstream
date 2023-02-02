@@ -13,22 +13,20 @@ LIST_GLX_FUNCTYPES(DEFINE_DUMMY_IMPL)
 class X11FunctionGetter {
     public:
         X11FunctionGetter() :
-            mX11Lib(android::base::SharedLibrary::open("libX11")),
-            mXextLib(android::base::SharedLibrary::open("libXext")) {
+            mX11Lib(android::base::SharedLibrary::open("libX11")) {
 
 #define X11_ASSIGN_DUMMY_IMPL(funcname) mApi.funcname = dummy_##funcname;
 
                 LIST_XLIB_FUNCS(X11_ASSIGN_DUMMY_IMPL)
 
             if (!mX11Lib) return;
-            if (!mXextLib) return;
 
 #define X11_GET_FUNC(funcname) \
             { \
                 auto f = mX11Lib->findSymbol(#funcname); \
                 if (f) mApi.funcname = (funcname##_t)f; \
             } \
-           
+
                 LIST_XLIB_FUNCS(X11_GET_FUNC);
 
             }
@@ -36,7 +34,6 @@ class X11FunctionGetter {
         X11Api* getApi() { return &mApi; }
     private:
         android::base::SharedLibrary* mX11Lib;
-        android::base::SharedLibrary* mXextLib;
 
         X11Api mApi;
 };
