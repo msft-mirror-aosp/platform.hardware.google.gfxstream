@@ -283,11 +283,9 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
             .useVulkanComposition = fb->m_useVulkanComposition,
             .useVulkanNativeSwapchain = feature_is_enabled(kFeature_VulkanNativeSwapchain),
             .guestRenderDoc = std::move(renderDocMultipleVkInstances),
-            .astcLdrEmulationMode = feature_is_enabled(kFeature_VulkanAstcLdrEmulation)
-                                        ? AstcEmulationMode::Auto
-                                        : AstcEmulationMode::Disabled,
-            .enableEtc2Emulation = feature_is_enabled(kFeature_VulkanEtc2Emulation),
-            .enableYcbcrEmulation = feature_is_enabled(kFeature_VulkanYcbcrEmulation),
+            .astcLdrEmulationMode = AstcEmulationMode::Auto,
+            .enableEtc2Emulation = true,
+            .enableYcbcrEmulation = false,
             .guestUsesAngle = fb->m_guestUsesAngle,
         });
 
