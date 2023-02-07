@@ -38,13 +38,13 @@ CommandBufferStagingStream::CommandBufferStagingStream()
     // use default allocators
     m_alloc = [](size_t size) -> Memory {
         return {
-            .deviceMemory = nullptr,  // no device memory for malloc
+            .deviceMemory = VK_NULL_HANDLE,  // no device memory for malloc
             .ptr = malloc(size),
         };
     };
     m_free = [](const Memory& mem) { free(mem.ptr); };
     m_realloc = [](const Memory& mem, size_t size) -> Memory {
-        return {.deviceMemory = nullptr, .ptr = realloc(mem.ptr, size)};
+        return {.deviceMemory = VK_NULL_HANDLE, .ptr = realloc(mem.ptr, size)};
     };
 }
 
@@ -88,7 +88,7 @@ CommandBufferStagingStream::CommandBufferStagingStream(const Alloc& allocFn, con
 
     m_free = [&freeFn](const Memory& mem) {
         if (!freeFn) {
-            ALOGE("Custom free for device memory(%p) failed\n", mem.deviceMemory);
+            ALOGE("Custom free for memory(%p) failed\n", mem.ptr);
             return;
         }
         freeFn(mem);
@@ -186,6 +186,18 @@ void* CommandBufferStagingStream::allocBuffer(size_t minSize) {
         return (void*)(getDataPtr() + m_writePos);
     }
 
+    // for custom allocations, host should have finished reading
+    // data from command buffer since command buffers are flushed
+    // on queue submit.
+    // allocBuffer should not be called on command buffers that are currently
+    // being read by the host
+    if (m_usingCustomAlloc) {
+        uint32_t* syncDWordPtr = reinterpret_cast<uint32_t*>(m_mem.ptr);
+        LOG_ALWAYS_FATAL_IF(
+            __atomic_load_n(syncDWordPtr, __ATOMIC_ACQUIRE) != kSyncDataReadComplete,
+            "FATAL: allocBuffer() called but previous read not complete");
+    }
+
     return (void*)(getDataPtr() + m_writePos);
 }
 
@@ -235,3 +247,5 @@ void CommandBufferStagingStream::reset() {
     m_writePos = 0;
     IOStream::rewind();
 }
+
+VkDeviceMemory CommandBufferStagingStream::getDeviceMemory() { return m_mem.deviceMemory; }

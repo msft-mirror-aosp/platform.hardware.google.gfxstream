@@ -15,18 +15,15 @@
 
 #include "ResourceTracker.h"
 
-#include "Resources.h"
-#include "CommandBufferStagingStream.h"
-#include "DescriptorSetVirtualization.h"
-
-#include "aemu/base/Optional.h"
-#include "aemu/base/threads/AndroidWorkPool.h"
-#include "aemu/base/Tracing.h"
-
-#include "goldfish_vk_private_defs.h"
-
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
 #include "../OpenglSystemCommon/HostConnection.h"
+#include "CommandBufferStagingStream.h"
+#include "DescriptorSetVirtualization.h"
+#include "Resources.h"
+#include "aemu/base/Optional.h"
+#include "aemu/base/Tracing.h"
+#include "aemu/base/threads/AndroidWorkPool.h"
+#include "goldfish_vk_private_defs.h"
 #include "vulkan/vulkan_core.h"
 
 /// Use installed headers or locally defined Fuchsia-specific bits
@@ -205,6 +202,14 @@ struct StagingInfo {
     Lock mLock;
     std::vector<CommandBufferStagingStream*> streams;
     std::vector<VkEncoder*> encoders;
+    /// \brief sets alloc and free callbacks for memory allocation for CommandBufferStagingStream(s)
+    /// \param allocFn is the callback to allocate memory
+    /// \param freeFn is the callback to free memory
+    void setAllocFree(CommandBufferStagingStream::Alloc&& allocFn,
+                      CommandBufferStagingStream::Free&& freeFn) {
+        mAlloc = allocFn;
+        mFree = freeFn;
+    }
 
     ~StagingInfo() {
         for (auto stream : streams) {
@@ -228,7 +233,12 @@ struct StagingInfo {
         CommandBufferStagingStream* stream;
         VkEncoder* encoder;
         if (streams.empty()) {
-            stream = new CommandBufferStagingStream;
+            if (mAlloc && mFree) {
+                // if custom allocators are provided, forward them to CommandBufferStagingStream
+                stream = new CommandBufferStagingStream(mAlloc, mFree);
+            } else {
+                stream = new CommandBufferStagingStream;
+            }
             encoder = new VkEncoder(stream);
         } else {
             stream = streams.back();
@@ -239,6 +249,10 @@ struct StagingInfo {
         *streamOut = stream;
         *encoderOut = encoder;
     }
+
+   private:
+    CommandBufferStagingStream::Alloc mAlloc = nullptr;
+    CommandBufferStagingStream::Free mFree = nullptr;
 };
 
 static StagingInfo sStaging;
@@ -2933,8 +2947,8 @@ public:
         return coherentMemory;
     }
 
-  VkResult allocateCoherentMemory(VkDevice device, const VkMemoryAllocateInfo *pAllocateInfo,
-                                    VkEncoder *enc, VkDeviceMemory* pMemory) {
+    VkResult allocateCoherentMemory(VkDevice device, const VkMemoryAllocateInfo* pAllocateInfo,
+                                    VkEncoder* enc, VkDeviceMemory* pMemory) {
         uint64_t offset = 0;
         uint8_t *ptr = nullptr;
         VkMemoryAllocateFlagsInfo allocFlagsInfo;
@@ -3019,7 +3033,6 @@ public:
 
     VkResult getCoherentMemory(const VkMemoryAllocateInfo* pAllocateInfo, VkEncoder* enc,
                                VkDevice device, VkDeviceMemory* pMemory) {
-
         VkMemoryAllocateFlagsInfo allocFlagsInfo;
         VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
 
@@ -3061,6 +3074,9 @@ public:
                 info.coherentMemory = coherentMemory;
                 info.device = device;
 
+                // for suballocated memory, create an alias VkDeviceMemory handle for application
+                // memory used for suballocations will still be VkDeviceMemory associated with
+                // CoherentMemory
                 auto mem = new_from_host_VkDeviceMemory(VK_NULL_HANDLE);
                 info_VkDeviceMemory[mem] = info;
                 *pMemory = mem;
@@ -3731,6 +3747,23 @@ public:
         _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
     }
 
+    CoherentMemoryPtr freeCoherentMemoryLocked(VkDeviceMemory memory, VkDeviceMemory_Info& info) {
+        if (info.coherentMemory && info.ptr) {
+            if (info.coherentMemory->getDeviceMemory() != memory) {
+                delete_goldfish_VkDeviceMemory(memory);
+            }
+
+            if (info.ptr) {
+                info.coherentMemory->release(info.ptr);
+                info.ptr = nullptr;
+            }
+
+            return std::move(info.coherentMemory);
+        }
+
+        return nullptr;
+    }
+
     void on_vkFreeMemory(
         void* context,
         VkDevice device,
@@ -3748,15 +3781,12 @@ public:
             memoryObjectId = getAHardwareBufferId(info.ahw);
         }
 #endif
-        emitDeviceMemoryReport(
-            info_VkDevice[device],
-            info.imported ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_UNIMPORT_EXT
-                          : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_FREE_EXT,
-            memoryObjectId,
-            0 /* size */,
-            VK_OBJECT_TYPE_DEVICE_MEMORY,
-            (uint64_t)(void*)memory
-        );
+
+        emitDeviceMemoryReport(info_VkDevice[device],
+                               info.imported ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_UNIMPORT_EXT
+                                             : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_FREE_EXT,
+                               memoryObjectId, 0 /* size */, VK_OBJECT_TYPE_DEVICE_MEMORY,
+                               (uint64_t)(void*)memory);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (info.vmoHandle && info.ptr) {
@@ -3776,23 +3806,13 @@ public:
             return;
         }
 
-        if (info.coherentMemory && info.ptr) {
-            if (info.coherentMemory->getDeviceMemory() != memory) {
-                delete_goldfish_VkDeviceMemory(memory);
-            }
+        auto coherentMemory = freeCoherentMemoryLocked(memory, info);
 
-            if (info.ptr) {
-                info.coherentMemory->release(info.ptr);
-                info.ptr = nullptr;
-            }
-
-            auto coherentMemory = std::move(info.coherentMemory);
-            // We have to release the lock before we could possibly free a
-            // CoherentMemory, because that will call into VkEncoder, which
-            // shouldn't be called when the lock is held.
-            lock.unlock();
-            coherentMemory = nullptr;
-        }
+        // We have to release the lock before we could possibly free a
+        // CoherentMemory, because that will call into VkEncoder, which
+        // shouldn't be called when the lock is held.
+        lock.unlock();
+        coherentMemory = nullptr;
     }
 
     VkResult on_vkMapMemory(
@@ -5716,17 +5736,42 @@ public:
 
             unsigned char* writtenPtr = 0;
             size_t written = 0;
-            ((CommandBufferStagingStream*)cb->privateStream)->getWritten(&writtenPtr, &written);
+            CommandBufferStagingStream* cmdBufStream =
+                static_cast<CommandBufferStagingStream*>(cb->privateStream);
+            cmdBufStream->getWritten(&writtenPtr, &written);
 
             // There's no pending commands here, skip. (case 2, stream created but no new recordings)
             if (!written) continue;
 
             // There are pending commands to flush.
             VkEncoder* enc = (VkEncoder*)context;
-            enc->vkQueueFlushCommandsGOOGLE(queue, cmdbuf, written, (const void*)writtenPtr, true /* do lock */);
+            VkDeviceMemory deviceMemory = cmdBufStream->getDeviceMemory();
+            VkDeviceSize dataOffset = 0;
+            if (mFeatureInfo->hasVulkanAuxCommandMemory) {
+                // for suballocations, deviceMemory is an alias VkDeviceMemory
+                // get underling VkDeviceMemory for given alias
+                deviceMemoryTransform_tohost(&deviceMemory, 1 /*memoryCount*/, &dataOffset,
+                                             1 /*offsetCount*/, nullptr /*size*/, 0 /*sizeCount*/,
+                                             nullptr /*typeIndex*/, 0 /*typeIndexCount*/,
+                                             nullptr /*typeBits*/, 0 /*typeBitCounts*/);
 
+                // mark stream as flushing before flushing commands
+                cmdBufStream->markFlushing();
+                enc->vkQueueFlushCommandsFromAuxMemoryGOOGLE(queue, cmdbuf, deviceMemory,
+                                                             dataOffset, written, true /*do lock*/);
+            } else {
+                enc->vkQueueFlushCommandsGOOGLE(queue, cmdbuf, written, (const void*)writtenPtr,
+                                                true /* do lock */);
+            }
             // Reset this stream.
-            ((CommandBufferStagingStream*)cb->privateStream)->reset();
+            // flushing happens on vkQueueSubmit
+            // vulkan api states that on queue submit,
+            // applications MUST not attempt to modify the command buffer in any way
+            // -as the device may be processing the commands recorded to it.
+            // It is safe to call reset() here for this reason.
+            // Command Buffer associated with this stream will only leave pending state
+            // after queue submit is complete and host has read the data
+            cmdBufStream->reset();
         }
     }
 
@@ -6603,6 +6648,69 @@ public:
         return 0;
     }
 
+    CommandBufferStagingStream::Alloc getAlloc() {
+        if (mFeatureInfo->hasVulkanAuxCommandMemory) {
+            return [this](size_t size) -> CommandBufferStagingStream::Memory {
+                VkMemoryAllocateInfo info{
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                    .pNext = nullptr,
+                    .allocationSize = size,
+                    .memoryTypeIndex = VK_MAX_MEMORY_TYPES  // indicates auxiliary memory
+                };
+
+                auto enc = ResourceTracker::getThreadLocalEncoder();
+                VkDevice device = VK_NULL_HANDLE;
+                VkDeviceMemory vkDeviceMem = VK_NULL_HANDLE;
+                VkResult result = getCoherentMemory(&info, enc, device, &vkDeviceMem);
+                if (result != VK_SUCCESS) {
+                    ALOGE("Failed to get coherent memory %u", result);
+                    return {.deviceMemory = VK_NULL_HANDLE, .ptr = nullptr};
+                }
+
+                // getCoherentMemory() uses suballocations.
+                // To retrieve the suballocated memory address, look up
+                // VkDeviceMemory filled in by getCoherentMemory()
+                // scope of mLock
+                {
+                    AutoLock<RecursiveLock> lock(mLock);
+                    const auto it = info_VkDeviceMemory.find(vkDeviceMem);
+                    if (it == info_VkDeviceMemory.end()) {
+                        ALOGE("Coherent memory allocated %u not found", result);
+                        return {.deviceMemory = VK_NULL_HANDLE, .ptr = nullptr};
+                    };
+
+                    const auto& info = it->second;
+                    return {.deviceMemory = vkDeviceMem, .ptr = info.ptr};
+                }
+            };
+        }
+        return nullptr;
+    }
+
+    CommandBufferStagingStream::Free getFree() {
+        if (mFeatureInfo->hasVulkanAuxCommandMemory) {
+            return [this](const CommandBufferStagingStream::Memory& memory) {
+                // deviceMemory may not be the actual backing auxiliary VkDeviceMemory
+                // for suballocations, deviceMemory is a alias VkDeviceMemory hand;
+                // freeCoherentMemoryLocked maps the alias to the backing VkDeviceMemory
+                VkDeviceMemory deviceMemory = memory.deviceMemory;
+                AutoLock<RecursiveLock> lock(mLock);
+                auto it = info_VkDeviceMemory.find(deviceMemory);
+                if (it == info_VkDeviceMemory.end()) {
+                    ALOGE("Device memory to free not found");
+                    return;
+                }
+                auto coherentMemory = freeCoherentMemoryLocked(deviceMemory, it->second);
+                // We have to release the lock before we could possibly free a
+                // CoherentMemory, because that will call into VkEncoder, which
+                // shouldn't be called when the lock is held.
+                lock.unlock();
+                coherentMemory = nullptr;
+            };
+        }
+        return nullptr;
+    }
+
     VkResult on_vkBeginCommandBuffer(
         void* context, VkResult input_result,
         VkCommandBuffer commandBuffer,
@@ -7103,7 +7211,8 @@ public:
     // Resets staging stream for this command buffer and primary command buffers
     // where this command buffer has been recorded. If requested, also clears the pending
     // descriptor sets.
-    void resetCommandBufferStagingInfo(VkCommandBuffer commandBuffer, bool alsoResetPrimaries, bool alsoClearPendingDescriptorSets) {
+    void resetCommandBufferStagingInfo(VkCommandBuffer commandBuffer, bool alsoResetPrimaries,
+                                       bool alsoClearPendingDescriptorSets) {
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
         if (!cb) {
             return;
@@ -7299,6 +7408,8 @@ ALWAYS_INLINE VkEncoder* ResourceTracker::getCommandBufferEncoder(VkCommandBuffe
 
     struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
     if (!cb->privateEncoder) {
+        sStaging.setAllocFree(ResourceTracker::get()->getAlloc(),
+                              ResourceTracker::get()->getFree());
         sStaging.popStaging((CommandBufferStagingStream**)&cb->privateStream, &cb->privateEncoder);
     }
     uint8_t* writtenPtr; size_t written;
@@ -8114,6 +8225,9 @@ uint32_t ResourceTracker::syncEncodersForQueue(VkQueue queue, VkEncoder* current
     return mImpl->syncEncodersForQueue(queue, current);
 }
 
+CommandBufferStagingStream::Alloc ResourceTracker::getAlloc() { return mImpl->getAlloc(); }
+
+CommandBufferStagingStream::Free ResourceTracker::getFree() { return mImpl->getFree(); }
 
 VkResult ResourceTracker::on_vkBeginCommandBuffer(
     void* context, VkResult input_result,
