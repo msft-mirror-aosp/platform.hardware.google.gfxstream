@@ -33,127 +33,130 @@
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
-CommandBufferStagingStream::CommandBufferStagingStream(Alloc&& allocFn, Free&& freeFn)
-    : IOStream(1048576),
-      m_buf(nullptr),
-      m_size(0),
-      m_writePos(0),
-      m_customAlloc(allocFn),
-      m_customFree(freeFn) {
-    // custom allocator/free
-    if (allocFn && freeFn) {
-        m_usingCustomAlloc = true;
-        // for custom allocation, allocate metadata memory at the beginning.
-        // m_alloc, m_free and m_realloc wraps sync data logic
-
-        // \param size to allocate
-        // \return ptr starting at data
-        m_alloc = [this](size_t size) -> void* {
-            // allocation requested size + sync data size
-
-            // <---sync bytes--><----Data--->
-            // |———————————————|————————————|
-            // |0|1|2|3|4|5|6|7|............|
-            // |———————————————|————————————|
-            // ꜛ               ꜛ
-            // allocated ptr   ptr to data [dataPtr]
-            const size_t totalSize = size + kSyncDataSize;
-
-            unsigned char* dataPtr = static_cast<unsigned char*>(m_customAlloc(totalSize));
-            if (!dataPtr) {
-                ALOGE("Custom allocation (%zu bytes) failed\n", size);
-                return nullptr;
-            }
-
-            // set DWORD sync data to 0
-            *(reinterpret_cast<uint32_t*>(dataPtr)) = kSyncDataReadComplete;
-
-            // pointer for data starts after sync data
-            dataPtr += kSyncDataSize;
-
-            return dataPtr;
+CommandBufferStagingStream::CommandBufferStagingStream()
+    : IOStream(1048576), m_size(0), m_writePos(0) {
+    // use default allocators
+    m_alloc = [](size_t size) -> Memory {
+        return {
+            .deviceMemory = nullptr,  // no device memory for malloc
+            .ptr = malloc(size),
         };
+    };
+    m_free = [](const Memory& mem) { free(mem.ptr); };
+    m_realloc = [](const Memory& mem, size_t size) -> Memory {
+        return {.deviceMemory = nullptr, .ptr = realloc(mem.ptr, size)};
+    };
+}
 
-        // Free freeMemory(freeFn);
-        //  \param dataPtr to free
-        m_free = [this](void* dataPtr) {
-            // for custom allocation/free, memory holding metadata must be freed
-            // <---sync byte---><----Data--->
-            // |———————————————|————————————|
-            // |0|1|2|3|4|5|6|7|............|
-            // |———————————————|————————————|
-            // ꜛ               ꜛ
-            // ptr to free     ptr to data [dataPtr]
-            unsigned char* toFreePtr = static_cast<unsigned char*>(dataPtr);
-            toFreePtr -= kSyncDataSize;
-            m_customFree(toFreePtr);
-        };
+CommandBufferStagingStream::CommandBufferStagingStream(const Alloc& allocFn, const Free& freeFn)
+    : CommandBufferStagingStream() {
+    m_usingCustomAlloc = true;
+    // for custom allocation, allocate metadata memory at the beginning.
+    // m_alloc, m_free and m_realloc wraps sync data logic
 
-        // \param ptr is the data pointer currently allocated
-        // \return dataPtr starting at data
-        m_realloc = [this](void* ptr, size_t size) -> void* {
-            // realloc requires freeing previously allocated memory
-            // read sync DWORD to ensure host is done reading this memory
-            // before releasing it.
+    // \param size to allocate
+    // \return ptr starting at data
+    m_alloc = [&allocFn, this](size_t size) -> Memory {
+        // allocation requested size + sync data size
 
-            size_t hostWaits = 0;
-            unsigned char* syncDataStart = static_cast<unsigned char*>(ptr) - kSyncDataSize;
-            uint32_t* syncDWordPtr = reinterpret_cast<uint32_t*>(syncDataStart);
+        // <---sync bytes--><----Data--->
+        // |———————————————|————————————|
+        // |0|1|2|3|4|5|6|7|............|
+        // |———————————————|————————————|
+        // ꜛ               ꜛ
+        // allocated ptr   ptr to data [dataPtr]
 
-            while (__atomic_load_n(syncDWordPtr, __ATOMIC_ACQUIRE) != kSyncDataReadComplete) {
-                hostWaits++;
-                usleep(10);
-                if (hostWaits > 1000) {
-                    ALOGD("%s: warning, stalled on host decoding on this command buffer stream\n",
-                          __func__);
-                }
+        Memory memory;
+        if (!allocFn) {
+            ALOGE("Custom allocation (%zu bytes) failed\n", size);
+            return memory;
+        }
+
+        // custom allocation/free requires metadata for sync between host/guest
+        const size_t totalSize = size + kSyncDataSize;
+        memory = allocFn(totalSize);
+        if (!memory.ptr) {
+            ALOGE("Custom allocation (%zu bytes) failed\n", size);
+            return memory;
+        }
+
+        // set sync data to read complete
+        uint32_t* syncDWordPtr = reinterpret_cast<uint32_t*>(memory.ptr);
+        __atomic_store_n(syncDWordPtr, kSyncDataReadComplete, __ATOMIC_RELEASE);
+        return memory;
+    };
+
+    m_free = [&freeFn](const Memory& mem) {
+        if (!freeFn) {
+            ALOGE("Custom free for device memory(%p) failed\n", mem.deviceMemory);
+            return;
+        }
+        freeFn(mem);
+    };
+
+    // \param ptr is the data pointer currently allocated
+    // \return dataPtr starting at data
+    m_realloc = [this](const Memory& mem, size_t size) -> Memory {
+        // realloc requires freeing previously allocated memory
+        // read sync DWORD to ensure host is done reading this memory
+        // before releasing it.
+
+        size_t hostWaits = 0;
+
+        uint32_t* syncDWordPtr = reinterpret_cast<uint32_t*>(mem.ptr);
+        while (__atomic_load_n(syncDWordPtr, __ATOMIC_ACQUIRE) != kSyncDataReadComplete) {
+            hostWaits++;
+            usleep(10);
+            if (hostWaits > 1000) {
+                ALOGD("%s: warning, stalled on host decoding on this command buffer stream\n",
+                      __func__);
             }
+        }
 
-            // for custom allocation/free, memory holding metadata must be copied
-            // along with stream data
-            // <---sync byte---><----Data--->
-            // |———————————————|————————————|
-            // |0|1|2|3|4|5|6|7|............|
-            // |———————————————|————————————|
-            // ꜛ               ꜛ
-            // [copyLocation]  ptr to data [ptr]
+        // for custom allocation/free, memory holding metadata must be copied
+        // along with stream data
+        // <---sync bytes--><----Data--->
+        // |———————————————|————————————|
+        // |0|1|2|3|4|5|6|7|............|
+        // |———————————————|————————————|
+        // ꜛ               ꜛ
+        // [copyLocation]  ptr to data [ptr]
 
-            const size_t toCopySize = m_writePos + kSyncDataSize;
-            unsigned char* copyLocation = static_cast<unsigned char*>(ptr) - kSyncDataSize;
-            std::vector<uint8_t> tmp(copyLocation, copyLocation + toCopySize);
-            m_free(ptr);
+        const size_t toCopySize = m_writePos + kSyncDataSize;
+        unsigned char* copyLocation = static_cast<unsigned char*>(mem.ptr);
+        std::vector<uint8_t> tmp(copyLocation, copyLocation + toCopySize);
+        m_free(mem);
 
-            // get new buffer and copy previous stream data to it
-            unsigned char* newBuf = static_cast<unsigned char*>(m_alloc(size));
-            if (!newBuf) {
-                ALOGE("Custom allocation (%zu bytes) failed\n", size);
-                return nullptr;
-            }
-            // custom allocator will allocate space for metadata too
-            // copy previous metadata too
-            memcpy(newBuf - kSyncDataSize, tmp.data(), toCopySize);
+        // get new buffer and copy previous stream data to it
+        Memory newMemory = m_alloc(size);
+        unsigned char* newBuf = static_cast<unsigned char*>(newMemory.ptr);
+        if (!newBuf) {
+            ALOGE("Custom allocation (%zu bytes) failed\n", size);
+            return newMemory;
+        }
+        // copy previous data
+        memcpy(newBuf, tmp.data(), toCopySize);
 
-            return newBuf;
-        };
-    } else {
-        // use default allocators
-        m_alloc = [](size_t size) { return malloc(size); };
-        m_free = [](void* ptr) { free(ptr); };
-        m_realloc = [](void* ptr, size_t size) { return realloc(ptr, size); };
-    }
+        return newMemory;
+    };
 }
 
 CommandBufferStagingStream::~CommandBufferStagingStream() {
     flush();
-    if (m_buf) m_free(m_buf);
+    if (m_mem.ptr) m_free(m_mem);
+}
+
+unsigned char* CommandBufferStagingStream::getDataPtr() {
+    if (!m_mem.ptr) return nullptr;
+    const size_t metadataSize = m_usingCustomAlloc ? kSyncDataSize : 0;
+    return static_cast<unsigned char*>(m_mem.ptr) + metadataSize;
 }
 
 void CommandBufferStagingStream::markFlushing() {
     if (!m_usingCustomAlloc) {
         return;
     }
-    // mark read of stream buffer as pending
-    uint32_t* syncDWordPtr = reinterpret_cast<uint32_t*>(m_buf - kSyncDataSize);
+    uint32_t* syncDWordPtr = reinterpret_cast<uint32_t*>(m_mem.ptr);
     __atomic_store_n(syncDWordPtr, kSyncDataReadPending, __ATOMIC_RELEASE);
 }
 
@@ -165,10 +168,10 @@ size_t CommandBufferStagingStream::idealAllocSize(size_t len) {
 void* CommandBufferStagingStream::allocBuffer(size_t minSize) {
     size_t allocSize = (1048576 < minSize ? minSize : 1048576);
     // Initial case: blank
-    if (!m_buf) {
-        m_buf = (unsigned char*)m_alloc(allocSize);
+    if (!m_mem.ptr) {
+        m_mem = m_alloc(allocSize);
         m_size = allocSize;
-        return (void*)m_buf;
+        return getDataPtr();
     }
 
     // Calculate remaining
@@ -177,13 +180,13 @@ void* CommandBufferStagingStream::allocBuffer(size_t minSize) {
     // if not, reallocate a buffer of big enough size
     if (remaining < minSize) {
         size_t newAllocSize = m_size * 2 + allocSize;
-        m_buf = (unsigned char*)m_realloc(m_buf, newAllocSize);
+        m_mem = m_realloc(m_mem, newAllocSize);
         m_size = newAllocSize;
 
-        return (void*)(m_buf + m_writePos);
+        return (void*)(getDataPtr() + m_writePos);
     }
 
-    return (void*)(m_buf + m_writePos);
+    return (void*)(getDataPtr() + m_writePos);
 }
 
 int CommandBufferStagingStream::commitBuffer(size_t size)
@@ -224,7 +227,7 @@ const unsigned char *CommandBufferStagingStream::commitBufferAndReadFully(
 }
 
 void CommandBufferStagingStream::getWritten(unsigned char** bufOut, size_t* sizeOut) {
-    *bufOut = m_buf;
+    *bufOut = getDataPtr();
     *sizeOut = m_writePos;
 }
 

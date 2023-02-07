@@ -201,30 +201,37 @@ TEST(CommandBufferStagingStreamDeathTest, UnsupportedAPIs) {
         << "commitBufferAndReadFully should not be supported";
 }
 
-// CommandBufferStagingStreamCustomAllocationTest tests tests behavior of CommandBufferStagingStream
+using MockAlloc = MockFunction<CommandBufferStagingStream::Memory(size_t)>;
+using MockFree = MockFunction<void(const CommandBufferStagingStream::Memory&)>;
+// default empty implementation of free
+static std::function<void(const CommandBufferStagingStream::Memory&)> EmptyFree =
+    [](const CommandBufferStagingStream::Memory&) {};
+// CommandBufferStagingStreamCustomAllocationTest tests behavior of CommandBufferStagingStream
 // when initialized with custom allocator/free function.
 // These tests test the same outcome as CommandBufferStagingStreamTest tests
 
 // tests allocBuffer can successfully allocate a buffer of given size
-
 TEST(CommandBufferStagingStreamCustomAllocationTest, AllocateBufferTest) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
-    MockFunction<void*(size_t)> allocFn;
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
+
+    MockAlloc allocFn;
 
     // alloc function should be called once
-    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-        .Times(1)
-        .WillRepeatedly(Return(memorySrc.data()));
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
 
     // free function should be called once
-    MockFunction<void(void*)> freeFn;
-    EXPECT_CALL(freeFn, Call(Eq(static_cast<void*>(memorySrc.data())))).Times(1);
+    MockFree freeFn;
+    EXPECT_CALL(freeFn, Call(Eq(memory))).Times(1);
 
     // scope: CommandBufferStagingStream_Creation
     {
-        CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+        auto allocStdFn = allocFn.AsStdFunction();
+        auto freeStdFn = freeFn.AsStdFunction();
+        CommandBufferStagingStream stream(allocStdFn, freeStdFn);
         uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
         EXPECT_THAT(buffer, NotNull());
     }
@@ -235,20 +242,80 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, AllocateBufferFailure) {
     // memory source for initial allocation
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
-    MockFunction<void*(size_t)> allocFn;
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = nullptr,  // not needed for this test
+        .ptr = nullptr,           // to test alloc call failing
+    };
+
+    MockAlloc allocFn;
 
     // alloc function should be called once
-    // return nullptr to test alloc call failing
-    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(nullptr));
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
 
     // free function should not be called if allocation fails
-    MockFunction<void(void*)> freeFn;
+    MockFree freeFn;
     EXPECT_CALL(freeFn, Call).Times(0);
 
     // scope: CommandBufferStagingStream_Creation
     {
-        CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+        auto allocStdFn = allocFn.AsStdFunction();
+        auto freeStdFn = freeFn.AsStdFunction();
+        CommandBufferStagingStream stream(allocStdFn, freeStdFn);
         void* buffer = stream.allocBuffer(kTestBufferSize);
+        EXPECT_THAT(buffer, IsNull());
+    }
+}
+
+TEST(CommandBufferStagingStreamCustomAllocationTest, DeviceMemoryPointerIsPassedDuringFree) {
+    // memory source
+    std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
+
+    // device memory for test purposes. The test just needs a pointer
+    uint32_t deviceMem = 0;
+    uint32_t* deviceMemPtr = &deviceMem;
+
+    CommandBufferStagingStream::Memory memory{.deviceMemory = deviceMemPtr,
+                                              .ptr = memorySrc.data()};
+
+    MockAlloc allocFn;
+
+    // alloc function should be called once
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
+
+    // free function should be called once
+    MockFree freeFn;
+    EXPECT_CALL(freeFn, Call(Eq(memory))).Times(1);
+
+    // scope: CommandBufferStagingStream_Creation
+    {
+        auto allocStdFn = allocFn.AsStdFunction();
+        auto freeStdFn = freeFn.AsStdFunction();
+        CommandBufferStagingStream stream(allocStdFn, freeStdFn);
+        uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
+        EXPECT_THAT(buffer, NotNull());
+    }
+}
+
+// test verifies that there are no crashes if alloc/free function reference becomes null
+TEST(CommandBufferStagingStreamCustomAllocationTest, AllocFreeInvalidReference) {
+    MockAlloc allocFn;
+    // alloc shouldn't be called if reference is invalidated
+    EXPECT_CALL(allocFn, Call).Times(0);
+
+    MockFree freeFn;
+    // free shouldn't be called if reference is invalidated
+    EXPECT_CALL(freeFn, Call).Times(0);
+
+    auto allocStdFn = allocFn.AsStdFunction();
+    auto freeStdFn = freeFn.AsStdFunction();
+    // scope: CommandBufferStagingStream_Creation
+    {
+        CommandBufferStagingStream stream(allocStdFn, freeStdFn);
+        // invalidate alloc/free functions
+        allocStdFn = nullptr;
+        freeStdFn = nullptr;
+        stream.allocBuffer(kTestBufferSize);
+        uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
         EXPECT_THAT(buffer, IsNull());
     }
 }
@@ -260,35 +327,42 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocateBuffer) {
     // memory source after reallocation
     std::vector<uint8_t> reallocatedMemorySrc(kTestBufferSize * 3);
 
-    MockFunction<void*(size_t)> allocFn;
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
+
+    CommandBufferStagingStream::Memory reallocatedMemory{
+        .deviceMemory = nullptr,  // not needed for this test
+        .ptr = reallocatedMemorySrc.data()};
+
+    MockAlloc allocFn;
 
     // alloc function should be called twice
     {
         InSequence seq;
 
         // expect initial allocation call with allocation size == kTestBufferSize;
-        EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-            .Times(1)
-            .WillRepeatedly(Return(memorySrc.data()));
+        EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
 
         // expect reallocation call with allocation size > kTestBufferSize.
         EXPECT_CALL(allocFn, Call(testing::Ge(kTestBufferSize)))
             .Times(1)
-            .WillRepeatedly(Return(reallocatedMemorySrc.data()));
+            .WillRepeatedly(Return(reallocatedMemory));
     }
 
-    MockFunction<void(void*)> freeFn;
+    MockFree freeFn;
     {
         InSequence seq;
         // free function should be called when reallocation happens
-        EXPECT_CALL(freeFn, Call(Eq(memorySrc.data()))).Times(1);
+        EXPECT_CALL(freeFn, Call(Eq(memory))).Times(1);
         // free function should be called when stream goes out of scope
-        EXPECT_CALL(freeFn, Call(Eq(reallocatedMemorySrc.data()))).Times(1);
+        EXPECT_CALL(freeFn, Call(Eq(reallocatedMemory))).Times(1);
     }
 
     // scope: CommandBufferStagingStream_Creation
     {
-        CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+        auto allocStdFn = allocFn.AsStdFunction();
+        auto freeStdFn = freeFn.AsStdFunction();
+        CommandBufferStagingStream stream(allocStdFn, freeStdFn);
         uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
         EXPECT_THAT(buffer, NotNull());
 
@@ -318,14 +392,16 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocateBuffer) {
 TEST(CommandBufferStagingStreamCustomAllocationTest, CommitBuffer) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
-    MockFunction<void*(size_t)> allocFn;
+
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
+
+    MockAlloc allocFn;
 
     // alloc function should be called once
-    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-        .Times(1)
-        .WillRepeatedly(Return(memorySrc.data()));
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
+    auto allocStdFn = allocFn.AsStdFunction();
+    CommandBufferStagingStream stream(allocStdFn, EmptyFree);
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
     EXPECT_THAT(buffer, NotNull());
 
@@ -351,17 +427,15 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, Reset) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
-    MockFunction<void*(size_t)> allocFn;
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
+
+    MockAlloc allocFn;
 
     // alloc function should be called once
-    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-        .Times(1)
-        .WillRepeatedly(Return(memorySrc.data()));
-
-    // free function expectation not needed in this test
-    MockFunction<void(void*)> freeFn;
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
+    auto allocStdFn = allocFn.AsStdFunction();
+    CommandBufferStagingStream stream(allocStdFn, EmptyFree);
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
 
     // write some arbitrary data
@@ -389,18 +463,16 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, MultipleAllocationCalls) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
-    MockFunction<void*(size_t)> allocFn;
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
+
+    MockAlloc allocFn;
 
     // alloc function should be called once, no reallocation
-    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-        .Times(1)
-        .WillRepeatedly(Return(memorySrc.data()));
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
 
-    // free function expectation not needed in this test
-    MockFunction<void(void*)> freeFn;
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
-
+    auto allocStdFn = allocFn.AsStdFunction();
+    CommandBufferStagingStream stream(allocStdFn, EmptyFree);
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
     EXPECT_THAT(buffer, NotNull());
 
@@ -413,31 +485,32 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, MultipleAllocationCalls) {
 TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocationBoundary) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 3);
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
 
-    MockFunction<void*(size_t)> allocFn;
+    MockAlloc allocFn;
 
     // alloc function should be called twice
     {
         InSequence seq;
 
         // expect initial allocation call with allocation size >= kTestBufferSize;
-        EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-            .Times(1)
-            .WillRepeatedly(Return(memorySrc.data()));
+        EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
 
         // expect reallocation call with allocation size > kTestBufferSize.
         EXPECT_CALL(allocFn, Call(testing::Ge(kTestBufferSize)))
             .Times(1)
-            .WillRepeatedly(Return(memorySrc.data()));
+            .WillRepeatedly(Return(memory));
     }
 
     // free function should be called once during reallocation,
     // once when stream goes out of scope
-    MockFunction<void(void*)> freeFn;
+    MockFree freeFn;
 
-    EXPECT_CALL(freeFn, Call(Eq(memorySrc.data()))).Times(2);
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+    EXPECT_CALL(freeFn, Call(Eq(memory))).Times(2);
+    auto allocStdFn = allocFn.AsStdFunction();
+    auto freeStdFn = freeFn.AsStdFunction();
+    CommandBufferStagingStream stream(allocStdFn, freeStdFn);
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
     EXPECT_THAT(buffer, NotNull());
 
@@ -473,12 +546,14 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, NoReallocationIfBufferIsNot
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 3);
 
-    MockFunction<void*(size_t)> allocFn;
-    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-        .Times(1)
-        .WillRepeatedly(Return(memorySrc.data()));
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
 
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
+    MockAlloc allocFn;
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
+
+    auto allocStdFn = allocFn.AsStdFunction();
+    CommandBufferStagingStream stream(allocStdFn, EmptyFree);
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
     EXPECT_THAT(buffer, NotNull());
 
@@ -495,30 +570,36 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, NoReallocationIfBufferIsNot
 TEST(CommandBufferStagingStreamCustomAllocationTest, MetadataCheck) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
+
     // CommandBufferStagingStream allocates metadata when using custom allocators
     static const size_t expectedMetadataSize = 8;
-    MockFunction<void*(size_t)> allocFn;
+    MockAlloc allocFn;
 
-    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-        .Times(1)
-        .WillRepeatedly(Return(memorySrc.data()));
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
 
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
+    auto allocStdFn = allocFn.AsStdFunction();
+    CommandBufferStagingStream stream(allocStdFn, EmptyFree);
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
-    EXPECT_THAT(buffer, NotNull());
+    // data should start after metadata
+    EXPECT_THAT(buffer, memorySrc.data() + expectedMetadataSize);
+    // metadata should be initialized to read complete
+    uint32_t* metadataPtr = reinterpret_cast<uint32_t*>(memorySrc.data());
+    EXPECT_THAT(*metadataPtr, CommandBufferStagingStream::kSyncDataReadComplete);
 }
 
-TEST(CommandBufferStagingStreamCustomAllocationTest, MarkFlushingTest) {
+TEST(CommandBufferStagingStreamCustomAllocationTest, MarkFlushing) {
     // memory source for  allocation
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
+    MockAlloc allocFn;
 
-    MockFunction<void*(size_t)> allocFn;
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
 
-    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-        .Times(1)
-        .WillRepeatedly(Return(memorySrc.data()));
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
+    auto allocStdFn = allocFn.AsStdFunction();
+    CommandBufferStagingStream stream(allocStdFn, EmptyFree);
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
 
     // write some data
@@ -536,47 +617,18 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, MarkFlushingTest) {
     EXPECT_EQ(*readPtr, CommandBufferStagingStream::kSyncDataReadPending);
 }
 
-TEST(CommandBufferStagingStreamCustomAllocationTest, MarkFlushing) {
-    // memory source for  allocation
-    std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
-
-    MockFunction<void*(size_t)> allocFn;
-
-    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-        .Times(1)
-        .WillRepeatedly(Return(memorySrc.data()));
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
-    uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
-
-    // write some data
-    const std::string_view commandData{"some command"};
-    const size_t dataSize = commandData.size();
-    memcpy(buffer, commandData.data(), dataSize);
-
-    // commit data
-    stream.commitBuffer(dataSize);
-
-    // will set metadata of the stream buffer to pending read
-    stream.markFlushing();
-
-    uint32_t* readPtr = reinterpret_cast<uint32_t*>(memorySrc.data());
-    EXPECT_EQ(*readPtr, 0x01);
-}
-
 // this test verifies that realloc waits till consumer of memory has completed read
 TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocNotCalledTillBufferIsRead) {
     // memory source for  allocation
     // allocate a big enough buffer to avoid resizes in test
     std::vector<uint8_t> memorySrc(kTestBufferSize * 3);
-    auto ptr = memorySrc.data();
+    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
+                                              .ptr = memorySrc.data()};
 
     std::condition_variable memoryFlushedCondition;
     std::mutex mutex;
 
-    // track the number of times allocFn is called
-
-    MockFunction<void*(size_t)> allocFn;
+    MockAlloc allocFn;
 
     // mock function to notify read is complete
     // this will be used to set up the expectation that realloc should
@@ -589,7 +641,8 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocNotCalledTillBufferI
         std::unique_lock readLock(mutex);
         memoryFlushedCondition.wait(readLock, [&]() {
             // wait till memorySrc is ready for read
-            return *ptr == CommandBufferStagingStream::kSyncDataReadPending;
+            uint32_t* syncData = static_cast<uint32_t*>(memory.ptr);
+            return *syncData = CommandBufferStagingStream::kSyncDataReadPending;
         });
 
         readLock.unlock();
@@ -601,14 +654,12 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocNotCalledTillBufferI
         fn();
     });
 
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
-    // scope for writeLock
+    auto allocStdFn = allocFn.AsStdFunction();
+    CommandBufferStagingStream stream(allocStdFn, EmptyFree);  // scope for writeLock
     {
         std::lock_guard writeLock(mutex);
 
-        EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
-            .Times(1)
-            .WillRepeatedly(Return(memorySrc.data()));
+        EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
 
         uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
 
@@ -630,7 +681,7 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocNotCalledTillBufferI
     EXPECT_CALL(allocFn, Call(testing::Ge(kTestBufferSize)))
         .Times(1)
         .After(readCompleteExpectation)
-        .WillRepeatedly(Return(memorySrc.data()));
+        .WillRepeatedly(Return(memory));
 
     // realloc will be blocked till buffer read is complete by reader
     (void)stream.allocBuffer(kTestBufferSize);

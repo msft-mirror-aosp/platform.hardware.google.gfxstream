@@ -31,18 +31,30 @@ public:
  // indicates read is pending
  static constexpr uint32_t kSyncDataReadPending = 0X1;
 
+ // alias for DeviceMemory
+ using DeviceMemory = void*;
+ // \struct backing memory structure
+ struct Memory {
+     DeviceMemory deviceMemory = nullptr;  // device memory associated with allocated memory
+     void* ptr = nullptr;                  // pointer to allocated memory
+     bool operator==(const Memory& rhs) const {
+         return (deviceMemory == rhs.deviceMemory) && (ptr == rhs.ptr);
+     }
+ };
+
  // allocator
  // param size to allocate
- // return pointer to allocated memory
- using Alloc = std::function<void*(size_t)>;
+ // return allocated memory
+ using Alloc = std::function<Memory(size_t)>;
  // free function
- // param pointer to free
- using Free = std::function<void(void*)>;
+ // param memory to free
+ using Free = std::function<void(const Memory&)>;
  // constructor
- // \param allocFn is the allocation function provided. Default allocation function used if nullptr
- // \param freeFn is the free function provided. Default free function used if nullptr
- // freeFn must be provided if allocFn is provided and vice versa
- explicit CommandBufferStagingStream(Alloc&& allocFn = nullptr, Free&& freeFn = nullptr);
+ // \param allocFn is the allocation function provided.
+ // \param freeFn is the free function provided
+ explicit CommandBufferStagingStream(const Alloc& allocFn, const Free& freeFn);
+ // constructor
+ explicit CommandBufferStagingStream();
  ~CommandBufferStagingStream();
 
  virtual size_t idealAllocSize(size_t len);
@@ -64,37 +76,32 @@ public:
  void markFlushing();
 
 private:
- // underlying buffer for data
- unsigned char* m_buf;
- // size of portion of m_buf available for data.
+ // underlying memory for data
+ Memory m_mem;
+ // size of portion of memory available for data.
  // for custom allocation, this size excludes size of sync data.
  size_t m_size;
- // current write position in m_buf
+ // current write position in data buffer
  uint32_t m_writePos;
 
+ // alloc function
  Alloc m_alloc;
+ // free function
  Free m_free;
-
- // underlying custom alloc. default is null
- Alloc m_customAlloc = nullptr;
- // underlying free alloc. default is null
- Free m_customFree = nullptr;
 
  // realloc function
  // \param size of memory to be allocated
  // \ param reference size to update with actual size allocated. This size can be < requested size
  // for custom allocation to account for sync data
- using Realloc = std::function<void*(void*, size_t)>;
+ using Realloc = std::function<Memory(const Memory&, size_t)>;
  Realloc m_realloc;
 
  // flag tracking use of custom allocation/free
  bool m_usingCustomAlloc = false;
 
- // calculates actual allocation size for data
- // \param requestedSize is the size requested for allocation
- // \return actual data size allocated for requested size. For
- // custom allocation the data size < requested size to account for sync data word
- size_t getDataAllocationSize(const size_t requestedSize);
+ // adjusted memory location to point to start of data after accounting for metadata
+ // \return pointer to data start
+ unsigned char* getDataPtr();
 };
 
 #endif
