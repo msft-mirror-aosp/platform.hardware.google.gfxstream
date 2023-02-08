@@ -14,15 +14,15 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/Tracing.h"
-
 #include <vulkan/vulkan.h>
 
-#include "VulkanHandleMapping.h"
-#include "VulkanHandles.h"
 #include <functional>
 #include <memory>
 
+#include "CommandBufferStagingStream.h"
+#include "VulkanHandleMapping.h"
+#include "VulkanHandles.h"
+#include "aemu/base/Tracing.h"
 #include "goldfish_vk_transform_guest.h"
 
 struct EmulatorFeatureInfo;
@@ -527,6 +527,9 @@ public:
 
     uint32_t syncEncodersForCommandBuffer(VkCommandBuffer commandBuffer, VkEncoder* current);
     uint32_t syncEncodersForQueue(VkQueue queue, VkEncoder* current);
+
+    CommandBufferStagingStream::Alloc getAlloc();
+    CommandBufferStagingStream::Free getFree();
 
     VkResult on_vkBeginCommandBuffer(
         void* context, VkResult input_result,
