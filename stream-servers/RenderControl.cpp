@@ -48,13 +48,16 @@ using gfxstream::GLESApi;
 using gfxstream::GLESApi_CM;
 using gfxstream::EmulatedEglFenceSync;
 
+#define DEBUG 0
 #define DEBUG_GRALLOC_SYNC 0
 #define DEBUG_EGL_SYNC 0
 
-#define RENDERCONTROL_DPRINT(...) do { \
-    if (!VERBOSE_CHECK(gles)) { VERBOSE_ENABLE(gles); } \
-    VERBOSE_TID_FUNCTION_DPRINT(gles, __VA_ARGS__); \
-} while(0)
+#define RENDERCONTROL_DPRINT(...)         \
+    do {                                  \
+        if (DEBUG) {                      \
+            fprintf(stderr, __VA_ARGS__); \
+        }                                 \
+    } while (0)
 
 #if DEBUG_GRALLOC_SYNC
 #define GRSYNC_DPRINT RENDERCONTROL_DPRINT
@@ -670,8 +673,9 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
         if (hasNativeAstc || hasAstcDecompressor) {
             glStr += "GL_KHR_texture_compression_astc_ldr ";
         } else {
-            INFO("rcGetGLString: ASTC not supported. CPU decompressor? %d. GL extensions: %s",
-                 hasAstcDecompressor, glExtensions.c_str());
+            RENDERCONTROL_DPRINT(
+                "rcGetGLString: ASTC not supported. CPU decompressor? %d. GL extensions: %s",
+                hasAstcDecompressor, glExtensions.c_str());
         }
 
         // Host side tracing support.
