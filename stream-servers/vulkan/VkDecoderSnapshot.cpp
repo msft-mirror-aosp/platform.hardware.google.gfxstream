@@ -1367,6 +1367,18 @@ class VkDecoderSnapshot::Impl {
                            android::base::BumpPool* pool, VkDevice device,
                            const VkDeviceQueueInfo2* pQueueInfo, VkQueue* pQueue) {
         // TODO: Implement
+        android::base::AutoLock lock(mLock);
+        // pQueue create
+        mReconstruction.addHandles((const uint64_t*)pQueue, 1);
+        mReconstruction.addHandleDependency((const uint64_t*)pQueue, 1,
+                                            (uint64_t)(uintptr_t)device);
+        if (!pQueue) return;
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkGetDeviceQueue2, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pQueue, 1, apiHandle);
+        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pQueue, 1);
     }
     void vkCreateSamplerYcbcrConversion(const uint8_t* snapshotTraceBegin,
                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
