@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+#include "Handle.h"
 #include "render-utils/Renderer.h"
 
 class ColorBuffer;
@@ -36,6 +37,7 @@ struct Post {
     std::vector<char> composeBuffer;
     std::unique_ptr<CompletionCallback> completionCallback = nullptr;
     std::unique_ptr<Block> block = nullptr;
+    HandleType cbHandle = 0;
     union {
         ColorBuffer* cb;
         struct {
