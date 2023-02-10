@@ -1347,21 +1347,11 @@ HWC3::Error ComposerClient::handleHotplug(bool connected, uint32_t id,
                                           uint32_t width, uint32_t height,
                                           uint32_t dpiX, uint32_t dpiY,
                                           uint32_t refreshRate) {
-  std::unique_lock<std::mutex> lock(mStateMutex);
-
   if (!mCallbacks) {
     return HWC3::Error::None;
   }
 
   const int64_t displayId = static_cast<int64_t>(id);
-
-  Display* display = getDisplay(displayId);
-  if (display != nullptr) {
-    ALOGI("Disconnecting display:%" PRIu64, displayId);
-    mCallbacks->onHotplug(displayId, /*connected=*/false);
-
-    destroyDisplayLocked(displayId);
-  }
 
   if (connected) {
     const int32_t configId = static_cast<int32_t>(id);
@@ -1369,14 +1359,24 @@ HWC3::Error ComposerClient::handleHotplug(bool connected, uint32_t id,
         DisplayConfig(configId, static_cast<int>(width),
                       static_cast<int>(height), static_cast<int>(dpiX),
                       static_cast<int>(dpiY), static_cast<int>(refreshRate))};
-
-    createDisplayLocked(displayId, configId, configs);
+    {
+      std::unique_lock<std::mutex> lock(mStateMutex);
+      createDisplayLocked(displayId, configId, configs);
+    }
 
     ALOGI("Connecting display:%" PRIu32 " w:%" PRIu32 " h:%" PRIu32
           " dpiX:%" PRIu32 " dpiY %" PRIu32 "fps %" PRIu32,
           id, width, height, dpiX, dpiY, refreshRate);
-
     mCallbacks->onHotplug(displayId, /*connected=*/true);
+  } else {
+    ALOGI("Disconnecting display:%" PRIu64, displayId);
+    mCallbacks->onHotplug(displayId, /*connected=*/false);
+
+    Display* display = getDisplay(displayId);
+    if (display != nullptr) {
+      std::unique_lock<std::mutex> lock(mStateMutex);
+      destroyDisplayLocked(displayId);
+    }
   }
 
   return HWC3::Error::None;
