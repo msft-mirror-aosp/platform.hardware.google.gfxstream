@@ -795,7 +795,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
         }
     };
     std::map<uint32_t, onPost> m_onPost;
-    gfxstream::ReadbackWorker* m_readbackWorker;
+    gfxstream::ReadbackWorker* m_readbackWorker = nullptr;
     android::base::WorkerThread<Readback> m_readbackThread;
     std::atomic_bool m_readbackThreadStarted = false;
 
