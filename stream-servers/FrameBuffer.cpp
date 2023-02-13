@@ -598,6 +598,7 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
                             "Wait for post");
                     });
             m_postWorker->post(post.cb, std::move(postCallback));
+            decColorBufferRefCountNoDestroy(post.cbHandle);
             break;
         }
         case PostCmd::Viewport:
@@ -638,6 +639,7 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
                     post.screenshot.screenheight, post.screenshot.format,
                     post.screenshot.type, post.screenshot.rotation,
                     post.screenshot.pixels, post.screenshot.rect);
+            decColorBufferRefCountNoDestroy(post.cbHandle);
             break;
         case PostCmd::Block:
             m_postWorker->block(std::move(post.block->scheduledSignal),
@@ -1634,6 +1636,20 @@ bool FrameBuffer::closeColorBufferLocked(HandleType p_colorbuffer,
     return deleted;
 }
 
+void FrameBuffer::decColorBufferRefCountNoDestroy(HandleType p_colorbuffer) {
+    AutoLock colorBufferMapLock(m_colorBufferMapLock);
+
+    ColorBufferMap::iterator c(m_colorbuffers.find(p_colorbuffer));
+    if (c == m_colorbuffers.end()) {
+        return;
+    }
+
+    if (--c->second.refcount == 0) {
+        c->second.closedTs = android::base::getUnixTimeUs();
+        m_colorBufferDelayedCloseList.push_back({c->second.closedTs, p_colorbuffer});
+    }
+}
+
 void FrameBuffer::performDelayedColorBufferCloseLocked(bool forced) {
     // Let's wait just long enough to make sure it's not because of instant
     // timestamp change (end of previous second -> beginning of a next one),
@@ -2519,6 +2535,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
         ColorBufferMap::iterator c = m_colorbuffers.find(p_colorbuffer);
         if (c != m_colorbuffers.end()) {
             colorBuffer = c->second.cb;
+            c->second.refcount++;
             markOpened(&c->second);
         }
     }
@@ -2533,6 +2550,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
         Post postCmd;
         postCmd.cmd = PostCmd::Post;
         postCmd.cb = colorBuffer.get();
+        postCmd.cbHandle = p_colorbuffer;
         postCmd.completionCallback = std::make_unique<Post::CompletionCallback>(callback);
         sendPostWorkerCmd(std::move(postCmd));
         ret = AsyncResult::OK_AND_CALLBACK_SCHEDULED;
@@ -2596,6 +2614,9 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
             cb->readback(iter.second.img, iter.second.readBgra);
             doPostCallback(iter.second.img, iter.first);
         }
+    }
+    if (!m_subWin) { // m_subWin is supposed to be false
+        decColorBufferRefCountLocked(p_colorbuffer);
     }
 
 EXIT:
