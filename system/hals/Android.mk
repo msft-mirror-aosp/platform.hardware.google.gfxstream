@@ -25,6 +25,7 @@ LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_VENDOR_MODULE := true
 LOCAL_SRC_FILES := allocator3.cpp
 LOCAL_INIT_RC := android.hardware.graphics.allocator@3.0-service.ranchu.rc
+LOCAL_VINTF_FRAGMENTS := android.hardware.graphics.gralloc3.ranchu.xml
 
 LOCAL_SHARED_LIBRARIES += \
     android.hardware.graphics.allocator@3.0 \
