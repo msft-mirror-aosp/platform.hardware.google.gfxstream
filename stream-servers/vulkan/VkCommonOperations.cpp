@@ -1742,7 +1742,11 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
 bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
                         FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
                         bool vulkanOnly, uint32_t memoryProperty) {
-    if (!isFormatVulkanCompatible(internalFormat)) return false;
+    if (!isFormatVulkanCompatible(internalFormat)) {
+        VK_COMMON_ERROR("Failed to create Vk ColorBuffer: format:%d not compatible.",
+                        internalFormat);
+        return false;
+    }
 
     AutoLock lock(sVkEmulationLock);
 
