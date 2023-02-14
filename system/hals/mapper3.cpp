@@ -131,12 +131,6 @@ public:
             RETURN_ERROR(Error3::BAD_BUFFER);
         }
 
-        if (cb->hostHandle) {
-            const HostConnectionSession conn = getHostConnectionSession();
-            ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
-            rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);
-        }
-
         if (cb->mmapedSize > 0) {
             GoldfishAddressSpaceBlock::memoryUnmap(cb->getBufferPtr(), cb->mmapedSize);
         }
@@ -256,12 +250,6 @@ private:  // **** impl ****
                 RETURN_ERROR(Error3::NO_RESOURCES);
             }
             cb->setBufferPtr(ptr);
-        }
-
-        if (cb->hostHandle) {
-            const HostConnectionSession conn = getHostConnectionSession();
-            ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
-            rcEnc->rcOpenColorBuffer2(rcEnc, cb->hostHandle);
         }
 
         *phandle = imported;
