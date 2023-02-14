@@ -237,6 +237,9 @@ static_assert(offsetof(stream_renderer_param_host_visible_memory_mask, entries) 
 static_assert(offsetof(stream_renderer_param_host_visible_memory_mask, num_entries) == 8,
               "stream_renderer_param_host_visible_memory_mask.num_entries must be at offset 8");
 
+// Enables the host to control which GPU is used for rendering.
+#define STREAM_RENDERER_PARAM_RENDERING_GPU 9
+
 // External callbacks for tracking metrics.
 // Separating each function to a parameter allows new functions to be added later.
 #define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT 1024
