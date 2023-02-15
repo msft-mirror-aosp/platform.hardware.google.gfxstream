@@ -263,23 +263,48 @@ HWC3::Error DrmClient::destroyDrmFramebuffer(DrmBuffer* buffer) {
 bool DrmClient::handleHotplug() {
     DEBUG_LOG("%s", __FUNCTION__);
 
-    AutoWriteLock lock(mDisplaysMutex);
+    struct HotplugToReport {
+        uint32_t id;
+        uint32_t width;
+        uint32_t height;
+        uint32_t dpiX;
+        uint32_t dpiY;
+        uint32_t rr;
+        bool connected;
+    };
 
-    for (auto& display : mDisplays) {
-        auto change = display->checkAndHandleHotplug(mFd);
-        if (change == DrmHotplugChange::kNoChange) {
-            continue;
+    std::vector<HotplugToReport> hotplugs;
+
+    {
+        AutoWriteLock lock(mDisplaysMutex);
+
+        for (auto& display : mDisplays) {
+            auto change = display->checkAndHandleHotplug(mFd);
+            if (change == DrmHotplugChange::kNoChange) {
+                continue;
+            }
+
+            hotplugs.push_back(HotplugToReport{
+                .id = display->getId(),
+                .width = display->getWidth(),
+                .height = display->getHeight(),
+                .dpiX = display->getDpiX(),
+                .dpiY = display->getDpiY(),
+                .rr = display->getRefreshRateUint(),
+                .connected = change == DrmHotplugChange::kConnected,
+            });
         }
+    }
 
+    for (const auto& hotplug : hotplugs) {
         if (mHotplugCallback) {
-            const bool connected = (change == DrmHotplugChange::kConnected);
-            (*mHotplugCallback)(connected,             //
-                                display->getId(),      //
-                                display->getWidth(),   //
-                                display->getHeight(),  //
-                                display->getDpiX(),    //
-                                display->getDpiY(),    //
-                                display->getRefreshRateUint());
+            (*mHotplugCallback)(hotplug.connected,  //
+                                hotplug.id,         //
+                                hotplug.width,      //
+                                hotplug.height,     //
+                                hotplug.dpiX,       //
+                                hotplug.dpiY,       //
+                                hotplug.rr);
         }
     }
 
