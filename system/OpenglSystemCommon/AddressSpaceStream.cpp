@@ -610,10 +610,8 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
     ensureType1Finished();
 
     size_t actuallyRead = 0;
-    size_t readIters = 0;
 
     while (!actuallyRead) {
-        ++readIters;
 
         uint32_t readAvail =
             ring_buffer_available_read(

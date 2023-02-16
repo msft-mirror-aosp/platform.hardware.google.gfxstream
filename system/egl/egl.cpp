@@ -984,7 +984,6 @@ static std::vector<std::string> getExtStringArray() {
     // find the number of extensions
     int extStart = 0;
     int extEnd = 0;
-    int currentExtIndex = 0;
 
     if (sWantES30OrAbove(hostStr) &&
         !strstr(hostStr, kOESEGLImageExternalEssl3)) {
@@ -996,7 +995,6 @@ static std::vector<std::string> getExtStringArray() {
         if (hostStr[extEnd] == ' ') {
             int extSz = extEnd - extStart;
             res.push_back(std::string(hostStr + extStart, extSz));
-            currentExtIndex++;
             extStart = extEnd + 1;
         }
         extEnd++;
