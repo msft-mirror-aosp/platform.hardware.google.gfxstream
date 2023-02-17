@@ -553,11 +553,6 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             (unsigned int *)con->m_stream->allocBuffer(sizeof(unsigned int));
     *pClientFlags = 0;
     con->m_stream->commitBuffer(sizeof(unsigned int));
-
-    ALOGD("HostConnection::get() New Host Connection established %p, tid %d\n",
-          con.get(), getCurrentThreadId());
-
-    // ALOGD("Address space echo latency check done\n");
     return con;
 }
 
@@ -599,7 +594,6 @@ void HostConnection::exitUnclean() {
 
 // static
 std::unique_ptr<HostConnection> HostConnection::createUnique() {
-    ALOGD("%s: call\n", __func__);
     return connect();
 }
 
