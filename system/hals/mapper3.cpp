@@ -256,6 +256,22 @@ private:  // **** impl ****
         RETURN(Error3::NONE);
     }
 
+    void setLocked(cb_handle_30_t* cb, const uint8_t checkedUsage,
+                   const Rect& accessRegion) {
+        if (checkedUsage & BufferUsage::CPU_WRITE_MASK) {
+            cb->lockedLeft = accessRegion.left;
+            cb->lockedTop = accessRegion.top;
+            cb->lockedWidth = accessRegion.width;
+            cb->lockedHeight = accessRegion.height;
+        } else {
+            cb->lockedLeft = 0;
+            cb->lockedTop = 0;
+            cb->lockedWidth = cb->width;
+            cb->lockedHeight = cb->height;
+        }
+        cb->lockedUsage = checkedUsage;
+    }
+
     Error3 lockImpl(void* raw,
                     const uint64_t uncheckedUsage,
                     const Rect& accessRegion,
@@ -295,6 +311,8 @@ private:  // **** impl ****
                 return e;
             }
         }
+
+        setLocked(cb, checkedUsage, accessRegion);
 
         *pptr = bufferBits;
         *pBytesPerPixel = cb->bytesPerPixel;
@@ -383,6 +401,8 @@ private:  // **** impl ****
                 return e;
             }
         }
+
+        setLocked(cb, checkedUsage, accessRegion);
 
         pYcbcr->y = bufferBits;
         pYcbcr->cb = bufferBits + uOffset;
@@ -479,19 +499,6 @@ private:  // **** impl ****
                 }
             }
         }
-
-        if (checkedUsage & BufferUsage::CPU_WRITE_MASK) {
-            cb.lockedLeft = accessRegion.left;
-            cb.lockedTop = accessRegion.top;
-            cb.lockedWidth = accessRegion.width;
-            cb.lockedHeight = accessRegion.height;
-        } else {
-            cb.lockedLeft = 0;
-            cb.lockedTop = 0;
-            cb.lockedWidth = cb.width;
-            cb.lockedHeight = cb.height;
-        }
-        cb.lockedUsage = checkedUsage;
 
         RETURN(Error3::NONE);
     }
