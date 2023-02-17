@@ -15,6 +15,7 @@
 #include <GLES2/gl2.h>
 
 #include <memory>
+#include <vector>
 
 #include "FrameworkFormats.h"
 
@@ -27,6 +28,12 @@ class ColorBufferVk {
                                                  bool vulkanOnly, uint32_t memoryProperty);
 
     ~ColorBufferVk();
+
+    bool readToBytes(std::vector<uint8_t>* outBytes);
+    bool readToBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, void* outBytes);
+
+    bool updateFromBytes(const std::vector<uint8_t>& bytes);
+    bool updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const void* bytes);
 
    private:
     ColorBufferVk(uint32_t handle);

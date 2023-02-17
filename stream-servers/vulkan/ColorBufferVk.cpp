@@ -40,4 +40,21 @@ ColorBufferVk::~ColorBufferVk() {
     }
 }
 
+bool ColorBufferVk::readToBytes(std::vector<uint8_t>* outBytes) {
+    return goldfish_vk::readColorBufferToBytes(mHandle, outBytes);
+}
+
+bool ColorBufferVk::readToBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, void* outBytes) {
+    return goldfish_vk::readColorBufferToBytes(mHandle, x, y, w, h, outBytes);
+}
+
+bool ColorBufferVk::updateFromBytes(const std::vector<uint8_t>& bytes) {
+    return goldfish_vk::updateColorBufferFromBytes(mHandle, bytes);
+}
+
+bool ColorBufferVk::updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h,
+                                    const void* bytes) {
+    return goldfish_vk::updateColorBufferFromBytes(mHandle, x, y, w, h, bytes);
+}
+
 }  // namespace gfxstream
