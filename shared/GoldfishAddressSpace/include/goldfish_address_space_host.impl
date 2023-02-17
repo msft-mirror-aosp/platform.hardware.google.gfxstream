@@ -108,7 +108,7 @@ GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAd
 
 bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size)
 {
-    ALOGD("%s: Ask for block of size 0x%llx\n", __func__,
+    ALOGV("%s: Ask for block of size 0x%llx\n", __func__,
          (unsigned long long)size);
 
     destroy();
