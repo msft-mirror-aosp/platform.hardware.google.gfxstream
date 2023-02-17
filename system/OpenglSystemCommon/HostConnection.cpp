@@ -593,9 +593,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
     *pClientFlags = 0;
     con->m_stream->commitBuffer(sizeof(unsigned int));
 
-    DPRINT("HostConnection::get() New Host Connection established %p, tid %lu\n", con.get(),
-           getCurrentThreadId());
-
 #if defined(__linux__) || defined(__ANDROID__)
     auto rcEnc = con->rcEncoder();
     if (rcEnc != nullptr) {
@@ -654,7 +651,6 @@ void HostConnection::exitUnclean() {
 
 // static
 std::unique_ptr<HostConnection> HostConnection::createUnique(uint32_t capset_id) {
-    DPRINT("%s: call\n", __func__);
     return connect(capset_id);
 }
 
