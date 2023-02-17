@@ -15,6 +15,7 @@
 #include "ColorBuffer.h"
 
 #include "gl/EmulationGl.h"
+#include "vulkan/ColorBufferVk.h"
 #include "vulkan/VkCommonOperations.h"
 
 using android::base::ManagedDescriptor;
@@ -63,13 +64,13 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gfxstream::EmulationGl* emulati
     if (emulationVk && emulationVk->live) {
         const bool vulkanOnly = colorBuffer->mColorBufferGl == nullptr;
 
-        colorBuffer->mColorBufferVk = std::make_unique<ColorBufferVk>();
-        if (!goldfish_vk::setupVkColorBuffer(width, height, format, frameworkFormat, handle,
-                                             vulkanOnly, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+        colorBuffer->mColorBufferVk =
+            gfxstream::ColorBufferVk::create(handle, width, height, format, frameworkFormat,
+                                             vulkanOnly, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        if (!colorBuffer->mColorBufferVk) {
             if (emulationGl) {
                 // Historically, ColorBufferVk setup was deferred until the first actual Vulkan
                 // usage. This allowed ColorBufferVk setup failures to be unintentionally avoided.
-                colorBuffer->mColorBufferVk.reset();
             } else {
                 ERR("Failed to initialize ColorBufferVk.");
                 return nullptr;
