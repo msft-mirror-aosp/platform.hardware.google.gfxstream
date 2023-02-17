@@ -527,6 +527,12 @@ private:  // **** impl ****
             unlockHostImpl(*cb, bufferBits);
         }
 
+        cb->lockedLeft = 0;
+        cb->lockedTop = 0;
+        cb->lockedWidth = 0;
+        cb->lockedHeight = 0;
+        cb->lockedUsage = 0;
+
         RETURN(Error3::NONE);
     }
 
@@ -574,12 +580,6 @@ private:  // **** impl ****
                 }
             }
         }
-
-        cb.lockedLeft = 0;
-        cb.lockedTop = 0;
-        cb.lockedWidth = 0;
-        cb.lockedHeight = 0;
-        cb.lockedUsage = 0;
     }
 
     /* BufferUsage bits that must be zero */
