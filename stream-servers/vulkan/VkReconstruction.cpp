@@ -17,6 +17,7 @@
 
 #include <unordered_map>
 
+#include "FrameBuffer.h"
 #include "IOStream.h"
 #include "VkDecoder.h"
 #include "aemu/base/containers/EntityManager.h"
@@ -250,13 +251,13 @@ void VkReconstruction::load(android::base::Stream* stream, emugl::GfxApiLogger& 
     DEBUG_RECON("start decoding trace");
 
     // TODO: This needs to be the puid seqno ptr
-    uint32_t seqno;
+    auto resources = ProcessResources::create();
     VkDecoderContext context = {
         .processName = nullptr,
         .gfxApiLogger = &gfxLogger,
         .healthMonitor = healthMonitor,
     };
-    decoderForLoading.decode(mLoadedTrace.data(), mLoadedTrace.size(), &trivialStream, &seqno,
+    decoderForLoading.decode(mLoadedTrace.data(), mLoadedTrace.size(), &trivialStream, resources.get(),
                              context);
 
     DEBUG_RECON("finished decoding trace");
