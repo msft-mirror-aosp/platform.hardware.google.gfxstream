@@ -2474,7 +2474,7 @@ void FrameBuffer::destroySharedTrivialContext(EGLContext context,
 
 bool FrameBuffer::post(HandleType p_colorbuffer, bool needLockAndBind) {
     if (m_guestUsesAngle) {
-        goldfish_vk::updateColorBufferFromGl(p_colorbuffer);
+        updateColorBufferFromGlLocked(p_colorbuffer);
     }
 
     auto res = postImplSync(p_colorbuffer, needLockAndBind);
@@ -2485,7 +2485,7 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLockAndBind) {
 void FrameBuffer::postWithCallback(HandleType p_colorbuffer, Post::CompletionCallback callback,
                                    bool needLockAndBind) {
     if (m_guestUsesAngle) {
-        goldfish_vk::updateColorBufferFromGl(p_colorbuffer);
+        updateColorBufferFromGl(p_colorbuffer);
     }
 
     AsyncResult res = postImpl(p_colorbuffer, callback, needLockAndBind);
@@ -3788,4 +3788,70 @@ const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
 const int FrameBuffer::getDisplayActiveConfig() {
     AutoLock mutex(m_lock);
     return mDisplayActiveConfigId >= 0 ? mDisplayActiveConfigId : -1;
+}
+
+void FrameBuffer::updateColorBufferFromGl(HandleType colorBufferHandle) {
+    AutoLock mutex(m_lock);
+    updateColorBufferFromGlLocked(colorBufferHandle);
+}
+
+void FrameBuffer::updateColorBufferFromGlLocked(HandleType colorBufferHandle) {
+    auto colorBuffer = findColorBuffer(colorBufferHandle);
+    if (!colorBuffer) {
+        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
+
+    // TODO(b/233939967): move the below into the generic ColorBuffer.
+
+    if (!goldfish_vk::colorBufferNeedsUpdateBetweenGlAndVk(colorBufferHandle)) {
+        return;
+    }
+
+    std::size_t contentsSize = 0;
+    if (!colorBuffer->readContents(&contentsSize, nullptr)) {
+        ERR("Failed to get GL contents size for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
+
+    std::vector<uint8_t> contents(contentsSize, 0);
+
+    if (!colorBuffer->readContents(&contentsSize, contents.data())) {
+        ERR("Failed to get GL contents for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
+
+    if (!goldfish_vk::updateColorBufferFromBytes(colorBufferHandle, contents)) {
+        ERR("Failed to set VK contents for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
+}
+
+void FrameBuffer::updateColorBufferFromVk(HandleType colorBufferHandle) {
+    AutoLock mutex(m_lock);
+
+    auto colorBuffer = findColorBuffer(colorBufferHandle);
+    if (!colorBuffer) {
+        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
+
+    // TODO(b/233939967): move the below into the generic ColorBuffer.
+
+    if (!goldfish_vk::colorBufferNeedsUpdateBetweenGlAndVk(colorBufferHandle)) {
+        return;
+    }
+
+    std::vector<uint8_t> contents;
+    if (!goldfish_vk::readColorBufferToBytes(colorBufferHandle, &contents)) {
+        ERR("Failed to get VK contents for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
+
+    if (contents.empty()) return;
+
+    if (!colorBuffer->replaceContents(contents.data(), contents.size())) {
+        ERR("Failed to set GL contents for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
 }

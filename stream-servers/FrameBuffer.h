@@ -662,6 +662,10 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     const int getDisplayConfigsParam(int configId, EGLint param);
     const int getDisplayActiveConfig();
 
+    void updateColorBufferFromGl(HandleType colorBufferHandle);
+    void updateColorBufferFromGlLocked(HandleType colorBufferHandle);
+    void updateColorBufferFromVk(HandleType colorBufferHandle);
+
    private:
     FrameBuffer(int p_width, int p_height, bool useSubWindow);
     // Requires the caller to hold the m_colorBufferMapLock until the new handle is inserted into of
