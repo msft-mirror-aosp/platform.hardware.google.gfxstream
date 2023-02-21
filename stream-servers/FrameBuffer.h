@@ -557,7 +557,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
 
     bool isVulkanInteropSupported() const { return m_vulkanInteropSupported; }
     bool isVulkanEnabled() const { return m_vulkanEnabled; }
-    void setColorBufferInUse(uint32_t colorBufferHandle, bool inUse);
 
     // Fill GLES usage protobuf
     void fillGLESUsages(android_studio::EmulatorGLESUsages*);
@@ -855,6 +854,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     Compositor* m_compositor = nullptr;
     bool m_useVulkanComposition = false;
 
+    goldfish_vk::VkEmulation* m_emulationVk = nullptr;
     // The implementation for Vulkan native swapchain. Only initialized when useVulkan is set when
     // calling FrameBuffer::initialize(). DisplayVk is actually owned by VkEmulation.
     DisplayVk *m_displayVk = nullptr;

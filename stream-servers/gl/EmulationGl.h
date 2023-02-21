@@ -14,24 +14,24 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-#include <string>
-#include <optional>
-#include <unordered_set>
-
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
 
-#include "ContextHelper.h"
+#include <array>
+#include <memory>
+#include <optional>
+#include <string>
+#include <unordered_set>
+
+#include "ColorBufferGl.h"
 #include "Compositor.h"
 #include "CompositorGl.h"
+#include "ContextHelper.h"
 #include "Display.h"
 #include "DisplayGl.h"
 #include "DisplaySurface.h"
-#include "EmulatedEglContext.h"
 #include "EmulatedEglConfig.h"
 #include "EmulatedEglContext.h"
 #include "EmulatedEglFenceSync.h"
@@ -40,6 +40,7 @@
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "ReadbackWorkerGl.h"
 #include "TextureDraw.h"
+#include "aemu/base/files/Stream.h"
 
 #define EGL_NO_CONFIG ((EGLConfig)0)
 
@@ -85,13 +86,17 @@ class EmulationGl {
 
     ReadbackWorkerGl* getReadbackWorker() { return mReadbackWorkerGl.get(); }
 
-    // TODO(b/233939967): Remove after adding ColorBufferGl and EmulationGl::createColorBuffer().
-    TextureDraw* getTextureDraw() const { return mTextureDraw.get(); }
-
     using GlesUuid = std::array<uint8_t, GL_UUID_SIZE_EXT>;
     const std::optional<GlesUuid> getGlesDeviceUuid() const { return mGlesDeviceUuid; }
 
     void setUseBoundSurfaceContextForDisplay(bool use);
+
+    std::unique_ptr<ColorBufferGl> createColorBuffer(uint32_t width, uint32_t height,
+                                                     GLenum internalFormat,
+                                                     FrameworkFormat frameworkFormat,
+                                                     HandleType handle);
+
+    std::unique_ptr<ColorBufferGl> loadColorBuffer(android::base::Stream* stream);
 
     std::unique_ptr<EmulatedEglContext> createEmulatedEglContext(
         uint32_t emulatedEglConfigIndex,
@@ -127,6 +132,8 @@ class EmulationGl {
     friend class ::FrameBuffer;
 
     EmulationGl() = default;
+
+    ContextHelper* getColorBufferContextHelper();
 
     EGLDisplay mEglDisplay = EGL_NO_DISPLAY;
     EGLint mEglVersionMajor = 0;

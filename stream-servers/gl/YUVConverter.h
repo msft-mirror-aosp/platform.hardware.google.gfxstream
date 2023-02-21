@@ -71,7 +71,7 @@ public:
     // if size mismatches, will read nothing.
     void readPixels(uint8_t* pixels, uint32_t pixels_size);
 
-    void swapTextures(uint32_t type, uint32_t* textures);
+    void swapTextures(FrameworkFormat type, GLuint* textures);
 
     // public so other classes can call
     static void createYUVGLTex(GLenum textureUnit,
