@@ -39,12 +39,10 @@ void IOStream::readbackPixels(void* context, int width, int height, unsigned int
         readback(&paddingToDiscard[0], startOffset);
         readback((char*)pixels + startOffset, pixelDataSize - startOffset);
     } else {
-        int totalReadback = 0;
 
         if (startOffset > 0) {
             std::vector<char> paddingToDiscard(startOffset, 0);
             readback(&paddingToDiscard[0], startOffset);
-            totalReadback += startOffset;
         }
         // need to read back row by row
         size_t paddingSize = totalRowSize - pixelRowSize;
@@ -58,15 +56,11 @@ void IOStream::readbackPixels(void* context, int width, int height, unsigned int
                 std::vector<char> rowSlackToDiscard(rowSlack, 0);
                 readback(start, width * bpp);
                 readback(&rowSlackToDiscard[0], rowSlack);
-                totalReadback += pixelRowSize;
                 readback(&paddingToDiscard[0], paddingSize);
-                totalReadback += paddingSize;
                 start += totalRowSize;
             } else {
                 readback(start, pixelRowSize);
-                totalReadback += pixelRowSize;
                 readback(&paddingToDiscard[0], paddingSize);
-                totalReadback += paddingSize;
                 start += totalRowSize;
             }
         }
@@ -105,12 +99,10 @@ void IOStream::uploadPixels(void* context, int width, int height, int depth, uns
             writeFully(&paddingToDiscard[0], startOffset);
             writeFully((char*)pixels + startOffset, pixelDataSize - startOffset);
         } else {
-            int totalReadback = 0;
 
             if (startOffset > 0) {
                 std::vector<char> paddingToDiscard(startOffset, 0);
                 writeFully(&paddingToDiscard[0], startOffset);
-                totalReadback += startOffset;
             }
             // need to upload row by row
             size_t paddingSize = totalRowSize - pixelRowSize;
@@ -124,15 +116,11 @@ void IOStream::uploadPixels(void* context, int width, int height, int depth, uns
                     std::vector<char> rowSlackToDiscard(rowSlack, 0);
                     writeFully(start, width * bpp);
                     writeFully(&rowSlackToDiscard[0], rowSlack);
-                    totalReadback += pixelRowSize;
                     writeFully(&paddingToDiscard[0], paddingSize);
-                    totalReadback += paddingSize;
                     start += totalRowSize;
                 } else {
                     writeFully(start, pixelRowSize);
-                    totalReadback += pixelRowSize;
                     writeFully(&paddingToDiscard[0], paddingSize);
-                    totalReadback += paddingSize;
                     start += totalRowSize;
                 }
             }
@@ -161,14 +149,12 @@ void IOStream::uploadPixels(void* context, int width, int height, int depth, uns
             ctx->state()->pixelDataSize(
                     width, height, depth, format, type, 0 /* is unpack */);
 
-        size_t sent = 0;
 
         if (startOffset == 0 &&
             pixelRowSize == totalRowSize &&
             pixelImageSize == totalImageSize) {
             // fast path
             writeFully(pixels, pixelDataSize);
-            sent += pixelDataSize;
         } else if (pixelRowSize == totalRowSize &&
                    pixelImageSize == totalImageSize &&
                    pixelRowSize == (width * bpp)) {
@@ -176,14 +162,11 @@ void IOStream::uploadPixels(void* context, int width, int height, int depth, uns
             std::vector<char> paddingToDiscard(startOffset, 0);
             writeFully(&paddingToDiscard[0], startOffset);
             writeFully((char*)pixels + startOffset, pixelDataSize - startOffset);
-            sent += pixelDataSize;
         } else {
-            int totalReadback = 0;
 
             if (startOffset > 0) {
                 std::vector<char> paddingToDiscard(startOffset, 0);
                 writeFully(&paddingToDiscard[0], startOffset);
-                totalReadback += startOffset;
             }
             // need to upload row by row
             size_t paddingSize = totalRowSize - pixelRowSize;
@@ -202,22 +185,17 @@ void IOStream::uploadPixels(void* context, int width, int height, int depth, uns
                     if (pixelRowSize != width * bpp) {
                         writeFully(start, width * bpp);
                         writeFully(&rowSlackToDiscard[0], rowSlack);
-                        totalReadback += pixelRowSize;
                         writeFully(&paddingToDiscard[0], paddingSize);
-                        totalReadback += paddingSize;
                         start += totalRowSize;
                     } else {
                         writeFully(start, pixelRowSize);
-                        totalReadback += pixelRowSize;
                         writeFully(&paddingToDiscard[0], paddingSize);
-                        totalReadback += paddingSize;
                         start += totalRowSize;
                     }
                 }
                 if (imageSlack > 0) {
                     writeFully(&imageSlackToDiscard[0], imageSlack);
                     start += imageSlack;
-                    totalReadback += imageSlack;
                 }
             }
         }
