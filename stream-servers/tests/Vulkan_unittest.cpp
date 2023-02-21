@@ -541,17 +541,19 @@ TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
     }
 
     // Create a color buffer with the target memory property flags.
+    HandleType colorBuffer =
+        mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
+    EXPECT_TRUE(goldfish_vk::setupVkColorBuffer(colorBuffer, true, /* vulkanOnly */
+                                                static_cast<uint32_t>(kTargetMemoryPropertyFlags)));
+
     uint32_t allocatedTypeIndex = 0u;
-    HandleType colorBuffer = mFb->createColorBuffer(
-            mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    ASSERT_NE(colorBuffer, 0u);
-    EXPECT_TRUE(goldfish_vk::setupVkColorBuffer(
-            colorBuffer, true, /* vulkanOnly */
-            static_cast<uint32_t>(kTargetMemoryPropertyFlags), nullptr, nullptr,
-            &allocatedTypeIndex));
+    EXPECT_TRUE(goldfish_vk::getColorBufferAllocationInfo(colorBuffer, nullptr, &allocatedTypeIndex,
+                                                          nullptr));
+
     EXPECT_TRUE(vkEmulation->deviceInfo.memProps.memoryTypes[allocatedTypeIndex]
                         .propertyFlags &
                 kTargetMemoryPropertyFlags);
+
     EXPECT_TRUE(goldfish_vk::teardownVkColorBuffer(colorBuffer));
     mFb->closeColorBuffer(colorBuffer);
 }

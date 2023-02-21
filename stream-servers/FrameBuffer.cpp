@@ -1085,10 +1085,8 @@ void FrameBuffer::createColorBufferWithHandle(int p_width, int p_height, GLenum 
 
     if (m_displayVk || m_guestUsesAngle) {
         if (!goldfish_vk::setupVkColorBuffer(
-            handle,
-            m_guestUsesAngle /* not vulkan only */,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT /* memory property */,
-            nullptr /* exported */)) {
+                handle, m_guestUsesAngle /* not vulkan only */,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT /* memory property */)) {
             GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                 << "Failed to set up color buffer, Format:" << p_internalFormat
                 << " Width:" << p_width << " Height:" << p_height;

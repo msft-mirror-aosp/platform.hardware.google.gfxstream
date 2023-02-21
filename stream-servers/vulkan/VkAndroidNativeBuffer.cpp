@@ -134,7 +134,6 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     out->stride = nativeBufferANDROID->stride;
     out->colorBufferHandle = *(nativeBufferANDROID->handle);
 
-    bool colorBufferVulkanCompatible = isColorBufferVulkanCompatible(out->colorBufferHandle);
     bool externalMemoryCompatible = false;
 
     auto emu = getGlobalVkEmulation();
@@ -144,14 +143,12 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     }
 
     bool colorBufferExportedToGl = false;
-    if (colorBufferVulkanCompatible && externalMemoryCompatible) {
-        if (!setupVkColorBuffer(out->colorBufferHandle, emu->guestUsesAngle,
-                                0u /* memoryProperty */, &colorBufferExportedToGl)) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Failed to create vk color buffer. format:" << pCreateInfo->format
-                << " width:" << out->extent.width << " height:" << out->extent.height
-                << " depth:" << out->extent.depth;
-        }
+    if (!isColorBufferExportedToGl(out->colorBufferHandle, &colorBufferExportedToGl)) {
+        VK_ANB_ERR("Failed to query if ColorBuffer:%d exported to GL.", out->colorBufferHandle);
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (externalMemoryCompatible) {
         releaseColorBufferForGuestUse(out->colorBufferHandle);
         out->externallyBacked = true;
     }
