@@ -697,7 +697,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     HandleType createColorBufferWithHandleLocked(int p_width, int p_height, GLenum p_internalFormat,
                                                  FrameworkFormat p_frameworkFormat,
                                                  HandleType handle);
-    HandleType createBufferWithHandleLocked(int p_size, HandleType handle);
+    HandleType createBufferWithHandleLocked(int p_size, HandleType handle, uint32_t memoryProperty);
 
     void recomputeLayout();
     void setDisplayPoseInSkinUI(int totalHeight);
