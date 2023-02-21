@@ -3,6 +3,7 @@ add_subdirectory(emulated_textures)
 
 add_library(gfxstream-vulkan-server
             BorrowedImageVk.cpp
+            ColorBufferVk.cpp
             CompositorVk.cpp
             DisplayVk.cpp
             DisplaySurfaceVk.cpp
