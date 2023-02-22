@@ -464,12 +464,8 @@ intptr_t RenderThread::main() {
                     .healthMonitor = FrameBuffer::getFB()->getHealthMonitor(),
                     .metricsLogger = &metricsLogger,
                 };
-                uint32_t* seqno = nullptr;
-                if (processResources) {
-                    seqno = processResources->getSequenceNumberPtr();
-                }
                 last = tInfo.m_vkInfo->m_vkDec.decode(readBuf.buf(), readBuf.validData(), ioStream,
-                                                      seqno, context);
+                                                      processResources, context);
                 if (last > 0) {
                     if (!processResources) {
                         ERR("Processed some Vulkan packets without process resources created. "
