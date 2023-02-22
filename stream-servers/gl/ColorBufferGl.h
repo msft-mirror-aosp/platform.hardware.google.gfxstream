@@ -33,6 +33,7 @@
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/files/Stream.h"
 #include "render-utils/Renderer.h"
+#include "snapshot/LazySnapshotObj.h"
 
 // From ANGLE "src/common/angleutils.h"
 #define GL_BGR10_A2_ANGLEX 0x6AF9
@@ -45,54 +46,60 @@ class YUVConverter;
 // related things:
 //
 //  - Every gralloc native buffer with HW read or write requirements will
-//    allocate a host ColorBufferGl instance. When gralloc_lock() is called,
-//    the guest will use ColorBufferGl::readPixels() to read the current content
+//    allocate a host ColorBuffer instance. When gralloc_lock() is called,
+//    the guest will use ColorBuffer::readPixels() to read the current content
 //    of the buffer. When gralloc_unlock() is later called, it will call
-//    ColorBufferGl::subUpdate() to send the updated pixels.
+//    ColorBuffer::subUpdate() to send the updated pixels.
 //
 //  - Every guest window EGLSurface is implemented by a host PBuffer
-//    (see WindowSurface.h) that can have a ColorBufferGl instance attached to
+//    (see WindowSurface.h) that can have a ColorBuffer instance attached to
 //    it (through WindowSurface::attachColorBuffer()). When such an attachment
 //    exists, WindowSurface::flushColorBuffer() will copy the PBuffer's
-//    pixel data into the ColorBufferGl. The latter can then be displayed
-//    in the client's UI sub-window with ColorBufferGl::post().
+//    pixel data into the ColorBuffer. The latter can then be displayed
+//    in the client's UI sub-window with ColorBuffer::post().
 //
 //  - Guest EGLImages are implemented as native gralloc buffers too.
 //    The guest glEGLImageTargetTexture2DOES() implementations will end up
-//    calling ColorBufferGl::bindToTexture() to bind the current context's
+//    calling ColorBuffer::bindToTexture() to bind the current context's
 //    GL_TEXTURE_2D to the buffer. Similarly, the guest versions of
 //    glEGLImageTargetRenderbufferStorageOES() will end up calling
-//    ColorBufferGl::bindToRenderbuffer().
+//    ColorBuffer::bindToRenderbuffer().
 //
 // This forces the implementation to use a host EGLImage to implement each
-// ColorBufferGl.
+// ColorBuffer.
 //
 // As an additional twist.
 
-namespace gfxstream {
-
-class ColorBufferGl {
+class ColorBuffer :
+        public android::snapshot::LazySnapshotObj<ColorBuffer> {
    public:
-    // Create a new ColorBufferGl instance.
-    // |display| is the host EGLDisplay handle.
-    // |width| and |height| are the buffer's dimensions in pixels.
-    // |internalFormat| is the internal OpenGL pixel format to use, valid
+    // Create a new ColorBuffer instance.
+    // |p_display| is the host EGLDisplay handle.
+    // |p_width| and |p_height| are the buffer's dimensions in pixels.
+    // |p_internalFormat| is the internal OpenGL pixel format to use, valid
     // values
     // are: GL_RGB, GL_RGB565, GL_RGBA, GL_RGB5_A1_OES and GL_RGBA4_OES.
     // Implementation is free to use something else though.
-    // |frameworkFormat| specifies the original format of the guest
-    // color buffer so that we know how to convert to |internalFormat|,
-    // if necessary (otherwise, frameworkFormat ==
+    // |p_frameworkFormat| specifies the original format of the guest
+    // color buffer so that we know how to convert to |p_internalFormat|,
+    // if necessary (otherwise, p_frameworkFormat ==
     // FRAMEWORK_FORMAT_GL_COMPATIBLE).
     // It is assumed underlying EGL has EGL_KHR_gl_texture_2D_image.
     // Returns NULL on failure.
-    // |fastBlitSupported|: whether or not this ColorBufferGl can be
+    // |fastBlitSupported|: whether or not this ColorBuffer can be
     // blitted and posted to swapchain without context switches.
-    static std::unique_ptr<ColorBufferGl> create(EGLDisplay display, int width, int height,
-                                                 GLint internalFormat,
-                                                 FrameworkFormat frameworkFormat, HandleType handle,
-                                                 ContextHelper* helper, TextureDraw* textureDraw,
-                                                 bool fastBlitSupported);
+    // |vulkanOnly|: whether or not the guest interacts entirely with Vulkan
+    // and does not use the GL based API.
+    static ColorBuffer* create(EGLDisplay p_display,
+                               int p_width,
+                               int p_height,
+                               GLint p_internalFormat,
+                               FrameworkFormat p_frameworkFormat,
+                               HandleType hndl,
+                               ContextHelper* helper,
+                               TextureDraw* textureDraw,
+                               bool fastBlitSupported,
+                               bool vulkanOnly = false);
 
     // Sometimes things happen and we need to reformat the GL texture
     // used. This function replaces the format of the underlying texture
@@ -100,14 +107,14 @@ class ColorBufferGl {
     void reformat(GLint internalformat, GLenum type);
 
     // Destructor.
-    ~ColorBufferGl();
+    ~ColorBuffer();
 
-    // Return ColorBufferGl width and height in pixels
+    // Return ColorBuffer width and height in pixels
     GLuint getWidth() const { return m_width; }
     GLuint getHeight() const { return m_height; }
     GLint getInternalFormat() const { return m_internalFormat; }
 
-    // Read the ColorBufferGl instance's pixel values into host memory.
+    // Read the ColorBuffer instance's pixel values into host memory.
     void readPixels(int x,
                     int y,
                     int width,
@@ -119,7 +126,7 @@ class ColorBufferGl {
     // to the size of width x height, then clipping a |rect| from the
     // screen defined by width x height.
     void readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type, int skinRotation,
-                          emugl::Rect rect, void* pixels);
+                          void* pixels, emugl::Rect rect);
 
     // Read cached YUV pixel values into host memory.
     void readPixelsYUVCached(int x,
@@ -129,18 +136,23 @@ class ColorBufferGl {
                              void* pixels,
                              uint32_t pixels_size);
 
-    void swapYUVTextures(FrameworkFormat texture_type, GLuint* textures);
+    void swapYUVTextures(uint32_t texture_type, uint32_t* textures);
 
-    // Update the ColorBufferGl instance's pixel values from host memory.
+    // Update the ColorBuffer instance's pixel values from host memory.
     // |p_format / p_type| are the desired OpenGL color buffer format
     // and data type.
     // Otherwise, subUpdate() will explicitly convert |pixels|
     // to be in |p_format|.
-    bool subUpdate(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
-                   const void* pixels);
-    bool subUpdateFromFrameworkFormat(int x, int y, int width, int height,
+    void subUpdate(int x,
+                   int y,
+                   int width,
+                   int height,
+                   GLenum p_format,
+                   GLenum p_type,
+                   void* pixels);
+    void subUpdateFromFrameworkFormat(int x, int y, int width, int height,
                                       FrameworkFormat fwkFormat, GLenum p_format, GLenum p_type,
-                                      const void* pixels);
+                                      void* pixels);
 
     // Completely replaces contents, assuming that |pixels| is a buffer
     // that is allocated and filled with the same format.
@@ -150,7 +162,7 @@ class ColorBufferGl {
     // If the framework format is YUV, it will read back as raw YUV data.
     bool readContents(size_t* numBytes, void* pixels);
 
-    // Draw a ColorBufferGl instance, i.e. blit it to the current guest
+    // Draw a ColorBuffer instance, i.e. blit it to the current guest
     // framebuffer object / window surface. This doesn't display anything.
     bool draw();
 
@@ -162,38 +174,40 @@ class ColorBufferGl {
     // |rotation| is the rotation angle in degrees, clockwise in the GL
     // coordinate space.
     bool post(GLuint tex, float rotation, float dx, float dy);
-    // Post this ColorBufferGl to the host native sub-window and apply
+    // Post this ColorBuffer to the host native sub-window and apply
     // the device screen overlay (if there is one).
     // |rotation| is the rotation angle in degrees, clockwise in the GL
     // coordinate space.
-    bool postViewportScaledWithOverlay(float rotation, float dx, float dy);
+    bool postWithOverlay(float rotation, float dx, float dy);
 
-    // Bind the current context's EGL_TEXTURE_2D texture to this ColorBufferGl's
+    // Bind the current context's EGL_TEXTURE_2D texture to this ColorBuffer's
     // EGLImage. This is intended to implement glEGLImageTargetTexture2DOES()
     // for all GLES versions.
     bool bindToTexture();
     bool bindToTexture2();
 
     // Bind the current context's EGL_RENDERBUFFER_OES render buffer to this
-    // ColorBufferGl's EGLImage. This is intended to implement
+    // ColorBuffer's EGLImage. This is intended to implement
     // glEGLImageTargetRenderbufferStorageOES() for all GLES versions.
     bool bindToRenderbuffer();
 
     // Copy the content of the current context's read surface to this
-    // ColorBufferGl. This is used from WindowSurface::flushColorBuffer().
+    // ColorBuffer. This is used from WindowSurface::flushColorBuffer().
     // Return true on success, false on failure (e.g. no current context).
     bool blitFromCurrentReadBuffer();
 
-    // Read the content of the whole ColorBufferGl as 32-bit RGBA pixels.
+    // Read the content of the whole ColorBuffer as 32-bit RGBA pixels.
     // |img| must be a buffer large enough (i.e. width * height * 4).
     void readback(unsigned char* img, bool readbackBgra = false);
     // readback() but async (to the specified |buffer|)
     void readbackAsync(GLuint buffer, bool readbackBgra = false);
 
     void onSave(android::base::Stream* stream);
-    static std::unique_ptr<ColorBufferGl> onLoad(android::base::Stream* stream,
-                                                 EGLDisplay p_display, ContextHelper* helper,
-                                                 TextureDraw* textureDraw, bool fastBlitSupported);
+    static ColorBuffer* onLoad(android::base::Stream* stream,
+                               EGLDisplay p_display,
+                               ContextHelper* helper,
+                               TextureDraw* textureDraw,
+                               bool fastBlitSupported);
 
     HandleType getHndl() const;
 
@@ -203,17 +217,20 @@ class ColorBufferGl {
 
     std::unique_ptr<BorrowedImageInfo> getBorrowedImageInfo();
 
-    // ColorBufferGl backing change methods
+    // ColorBuffer backing change methods
     //
     // Change to opaque fd or opaque win32 handle-backed VkDeviceMemory
     // via GL_EXT_memory_objects
     bool importMemory(android::base::ManagedDescriptor externalDescriptor, uint64_t size,
-                      bool dedicated, bool linearTiling);
+                      bool dedicated, bool linearTiling, bool vulkanOnly);
     // Change to EGL native pixmap
     bool importEglNativePixmap(void* pixmap, bool preserveContent);
     // Change to some other native EGL image.  nativeEglImage must not have
     // been created from our s_egl.eglCreateImage.
     bool importEglImage(void* nativeEglImage, bool preserveContent);
+
+    void setInUse(bool inUse);
+    bool isInUse() const { return m_inUse; }
 
     void setSync(bool debug = false);
     void waitSync(bool debug = false);
@@ -225,24 +242,24 @@ class ColorBufferGl {
     void restore();
 
 private:
- ColorBufferGl(EGLDisplay display, HandleType hndl, GLuint width, GLuint height,
-               ContextHelper* helper, TextureDraw* textureDraw);
- // Helper function to get contents.
- std::vector<uint8_t> getContents();
- // Helper function to clear current EGL image.
- void clearStorage();
- // Helper function to bind EGL image as texture. Assumes storage cleared.
- void restoreEglImage(EGLImageKHR image);
- // Helper function that does the above two operations in one go.
- void rebindEglImage(EGLImageKHR image, bool preserveContent);
+    ColorBuffer(EGLDisplay display, HandleType hndl, ContextHelper* helper,
+                TextureDraw* textureDraw);
+    // Helper function to get contents.
+    std::vector<uint8_t> getContents();
+    // Helper function to clear current EGL image.
+    void clearStorage();
+    // Helper function to bind EGL image as texture. Assumes storage cleared.
+    void restoreEglImage(EGLImageKHR image);
+    // Helper function that does the above two operations in one go.
+    void rebindEglImage(EGLImageKHR image, bool preserveContent);
 
 private:
     GLuint m_tex = 0;
     GLuint m_blitTex = 0;
     EGLImageKHR m_eglImage = nullptr;
     EGLImageKHR m_blitEGLImage = nullptr;
-    const GLuint m_width = 0;
-    const GLuint m_height = 0;
+    GLuint m_width = 0;
+    GLuint m_height = 0;
     GLuint m_fbo = 0;
     GLint m_internalFormat = 0;
     GLint m_sizedInternalFormat = 0;
@@ -289,6 +306,21 @@ private:
     bool m_BRSwizzle = false;
 };
 
-typedef std::shared_ptr<ColorBufferGl> ColorBufferGlPtr;
+typedef std::shared_ptr<ColorBuffer> ColorBufferPtr;
 
-}  // namespace gfxstream
+struct ColorBufferRef {
+    ColorBufferPtr cb;
+    uint32_t refcount;  // number of client-side references
+
+    // Tracks whether opened at least once. In O+,
+    // color buffers can be created/closed immediately,
+    // but then registered (opened) afterwards.
+    bool opened;
+
+    // Tracks the time when this buffer got a close request while not being
+    // opened yet.
+    uint64_t closedTs;
+};
+
+typedef std::unordered_map<HandleType, ColorBufferRef> ColorBufferMap;
+typedef std::unordered_multiset<HandleType> ColorBufferSet;
