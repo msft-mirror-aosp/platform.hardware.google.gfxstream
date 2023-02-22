@@ -43,6 +43,7 @@ class BumpPool;
 }  // namespace base
 }  // namespace android
 
+class ProcessResources;
 class IOStream;
 
 class VkDecoder {
@@ -50,8 +51,8 @@ class VkDecoder {
     VkDecoder();
     ~VkDecoder();
     void setForSnapshotLoad(bool forSnapshotLoad);
-    size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
-                  const VkDecoderContext&);
+    size_t decode(void* buf, size_t bufsize, IOStream* stream,
+                  const ProcessResources* processResources, const VkDecoderContext&);
 
    private:
     class Impl;
