@@ -391,7 +391,8 @@ VkEmulation* getGlobalVkEmulation();
 void teardownGlobalVkEmulation();
 
 std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowType window,
-                                                                uint32_t width, uint32_t height);
+                                                                uint32_t width,
+                                                                uint32_t height);
 
 bool allocExternalMemory(
     VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* info, bool actuallyExternal = true,
@@ -424,15 +425,13 @@ MTLTextureRef getColorBufferMTLTexture(uint32_t colorBufferHandle);
 bool setColorBufferVulkanMode(uint32_t colorBufferHandle, uint32_t vulkanMode);
 int32_t mapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa, uint64_t size = 0);
 
-bool colorBufferNeedsUpdateBetweenGlAndVk(uint32_t colorBufferHandle);
-
-bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* bytes);
+bool readColorBufferToGl(uint32_t colorBufferHandle);
 bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                             uint32_t h, void* outPixels);
 bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                                   uint32_t h, void* outPixels);
 
-bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes);
+bool updateColorBufferFromGl(uint32_t colorBufferHandle);
 bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                                 uint32_t h, const void* pixels);
 bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y,
