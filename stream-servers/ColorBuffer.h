@@ -27,7 +27,6 @@
 
 namespace gfxstream {
 class EmulationGl;
-class ColorBufferVk;
 }  // namespace gfxstream
 namespace goldfish_vk {
 struct VkEmulation;
@@ -106,7 +105,10 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     std::unique_ptr<gfxstream::ColorBufferGl> mColorBufferGl;
 
     // If Vk emulation is enabled.
-    std::unique_ptr<gfxstream::ColorBufferVk> mColorBufferVk;
+    struct ColorBufferVk {
+        bool thisIsAPlaceHolder = true;
+    };
+    std::unique_ptr<ColorBufferVk> mColorBufferVk;
 
     bool mGlAndVkAreSharingExternalMemory = false;
 };
