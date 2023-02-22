@@ -554,8 +554,6 @@ void EmulationGl::getGlesVersion(GLint* major, GLint* minor) const {
     }
 }
 
-bool EmulationGl::isMesa() const { return mGlesVersion.find("Mesa") != std::string::npos; }
-
 bool EmulationGl::isFastBlitSupported() const {
     return mFastBlitSupported;
 }

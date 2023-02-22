@@ -104,8 +104,6 @@ struct VkEmulation {
 
     bool guestUsesAngle = false;
 
-    bool useDedicatedAllocations = false;
-
     // Instance and device for creating the system-wide shareable objects.
     VkInstance instance = VK_NULL_HANDLE;
     VkPhysicalDevice physdev = VK_NULL_HANDLE;
@@ -206,6 +204,7 @@ struct VkEmulation {
         // Output fields
         uint32_t id = 0;
         VkDeviceMemory memory = VK_NULL_HANDLE;
+        VkDeviceSize actualSize;
 
         // host-mapping fields
         // host virtual address (hva).
@@ -223,7 +222,6 @@ struct VkEmulation {
 
         VK_EXT_MEMORY_HANDLE exportedHandle = VK_EXT_MEMORY_HANDLE_INVALID;
         bool actuallyExternal = false;
-        bool dedicatedAllocation = false;
     };
 
     // 128 mb staging buffer (really, just a few 4K frames or one 4k HDR frame)
@@ -388,7 +386,6 @@ struct VkEmulationFeatures {
     bool enableEtc2Emulation = false;
     bool enableYcbcrEmulation = false;
     bool guestUsesAngle = false;
-    bool useDedicatedAllocations = false;
 };
 void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures>);
 
@@ -400,9 +397,7 @@ std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowTy
 
 bool allocExternalMemory(
     VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* info, bool actuallyExternal = true,
-    android::base::Optional<uint64_t> deviceAlignment = android::base::kNullopt,
-    android::base::Optional<VkBuffer> bufferForDedicatedAllocation = android::base::kNullopt,
-    android::base::Optional<VkImage> imageForDedicatedAllocation = android::base::kNullopt);
+    android::base::Optional<uint64_t> deviceAlignment = android::base::kNullopt);
 void freeExternalMemoryLocked(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* info);
 
 bool importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice,
@@ -416,8 +411,7 @@ bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevic
 bool isColorBufferExportedToGl(uint32_t colorBufferHandle, bool* exported);
 
 bool getColorBufferAllocationInfo(uint32_t colorBufferHandle, VkDeviceSize* outSize,
-                                  uint32_t* outMemoryTypeIndex, bool* outMemoryIsDedicatedAlloc,
-                                  void** outMappedPtr);
+                                  uint32_t* outMemoryTypeIndex, void** outMappedPtr);
 
 std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat format,
                                                                         uint32_t width,
@@ -435,7 +429,6 @@ struct VkColorBufferMemoryExport {
     android::base::ManagedDescriptor descriptor;
     uint64_t size = 0;
     bool linearTiling = false;
-    bool dedicatedAllocation = false;
 };
 std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorBufferHandle);
 
@@ -459,7 +452,7 @@ bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, ui
 
 // Data buffer operations
 bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
-                             uint32_t* outMemoryTypeIndex, bool* outMemoryIsDedicatedAlloc);
+                             uint32_t* outMemoryTypeIndex);
 
 bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly = false,
                    uint32_t memoryProperty = 0);
