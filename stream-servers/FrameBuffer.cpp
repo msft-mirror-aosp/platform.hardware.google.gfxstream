@@ -443,22 +443,6 @@ void FrameBuffer::finalize() {
     }
 }
 
-bool FrameBuffer::importMemoryToColorBuffer(ManagedDescriptor externalDescriptor, uint64_t size,
-                                            bool dedicated, bool vulkanOnly,
-                                            uint32_t colorBufferHandle, VkImage image,
-                                            const VkImageCreateInfo& imageCi) {
-    AutoLock mutex(m_lock);
-
-    ColorBufferPtr cb = findColorBuffer(colorBufferHandle);
-    if (!cb) {
-        // bad colorbuffer handle
-        ERR("FB: importMemoryToColorBuffer cb handle %#x not found", colorBufferHandle);
-        return false;
-    }
-    return cb->importMemory(std::move(externalDescriptor), size, dedicated,
-                            imageCi.tiling == VK_IMAGE_TILING_LINEAR, vulkanOnly);
-}
-
 void FrameBuffer::setColorBufferInUse(
     uint32_t colorBufferHandle,
     bool inUse) {
@@ -1076,21 +1060,8 @@ void FrameBuffer::createColorBufferWithHandle(int p_width, int p_height, GLenum 
             GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER));
         }
 
-        handle = createColorBufferWithHandleLocked(p_width, p_height, p_internalFormat,
-                                                   p_frameworkFormat, handle);
-        if (!handle) {
-            return;
-        }
-    }
-
-    if (m_displayVk || m_guestUsesAngle) {
-        if (!goldfish_vk::setupVkColorBuffer(
-                handle, m_guestUsesAngle /* not vulkan only */,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT /* memory property */)) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Failed to set up color buffer, Format:" << p_internalFormat
-                << " Width:" << p_width << " Height:" << p_height;
-        }
+        createColorBufferWithHandleLocked(p_width, p_height, p_internalFormat, p_frameworkFormat,
+                                          handle);
     }
 }
 
@@ -1115,44 +1086,61 @@ HandleType FrameBuffer::createColorBufferWithHandleLocked(
                                           p_internalFormat, p_frameworkFormat,
                                           handle, contextHelper, textureDraw,
                                           isFastBlitSupported, m_guestUsesAngle));
-    if (cb.get() != NULL) {
-        assert(m_colorbuffers.count(handle) == 0);
-        // When guest feature flag RefCountPipe is on, no reference counting is
-        // needed. We only memoize the mapping from handle to ColorBuffer.
-        // Explicitly set refcount to 1 to avoid the colorbuffer being added to
-        // m_colorBufferDelayedCloseList in FrameBuffer::onLoad().
-        if (m_refCountPipeEnabled) {
-            m_colorbuffers.try_emplace(
-                handle, ColorBufferRef{std::move(cb), 1, false, 0});
-        } else {
-            // Android master default api level is 1000
-            int apiLevel = 1000;
-            emugl::getAvdInfo(nullptr, &apiLevel);
-            // pre-O and post-O use different color buffer memory management
-            // logic
-            if (apiLevel > 0 && apiLevel < 26) {
-                m_colorbuffers.try_emplace(
-                    handle,
-                    ColorBufferRef{std::move(cb), 1, false, 0});
+    if (cb.get() == nullptr) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            << "Failed to create ColorBuffer:" << handle << " format:" << p_internalFormat
+            << " framework-format:" << p_frameworkFormat << " width:" << p_width
+            << " height:" << p_height;
+    }
 
-                RenderThreadInfo* tInfo = RenderThreadInfo::get();
-                uint64_t puid = tInfo->m_puid;
-                if (puid) {
-                    m_procOwnedColorBuffers[puid].insert(handle);
-                }
+    if (m_vulkanEnabled) {
+        if (!goldfish_vk::setupVkColorBuffer(
+                p_width, p_height, p_internalFormat, p_frameworkFormat, handle,
+                /*vulkanOnly=*/m_guestUsesAngle, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "Failed to create color buffer."
+                << " format:" << p_internalFormat << " width:" << p_width << " height:" << p_height;
+            return 0;
+        }
 
-            } else {
-                m_colorbuffers.try_emplace(
-                    handle,
-                    ColorBufferRef{std::move(cb), 0, false, 0});
+        auto memoryExport = goldfish_vk::exportColorBufferMemory(handle);
+        if (memoryExport) {
+            if (!cb->importMemory(std::move(memoryExport->descriptor), memoryExport->size,
+                                  /*dedicated=*/false, memoryExport->linearTiling,
+                                  /*vulkanOnly*/false)) {
+                ERR("Failed to import memory to ColorBuffer:%d", handle);
+                return 0;
             }
         }
-    } else {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Failed to create color buffer. format:" << p_internalFormat << " width:" << p_width
-            << " height:" << p_height;
-        handle = 0;
     }
+
+    assert(m_colorbuffers.count(handle) == 0);
+    // When guest feature flag RefCountPipe is on, no reference counting is
+    // needed. We only memoize the mapping from handle to ColorBuffer.
+    // Explicitly set refcount to 1 to avoid the colorbuffer being added to
+    // m_colorBufferDelayedCloseList in FrameBuffer::onLoad().
+    if (m_refCountPipeEnabled) {
+        m_colorbuffers.try_emplace(handle, ColorBufferRef{std::move(cb), 1, false, 0});
+    } else {
+        // Android master default api level is 1000
+        int apiLevel = 1000;
+        emugl::getAvdInfo(nullptr, &apiLevel);
+        // pre-O and post-O use different color buffer memory management
+        // logic
+        if (apiLevel > 0 && apiLevel < 26) {
+            m_colorbuffers.try_emplace(handle, ColorBufferRef{std::move(cb), 1, false, 0});
+
+            RenderThreadInfo* tInfo = RenderThreadInfo::get();
+            uint64_t puid = tInfo->m_puid;
+            if (puid) {
+                m_procOwnedColorBuffers[puid].insert(handle);
+            }
+
+        } else {
+            m_colorbuffers.try_emplace(handle, ColorBufferRef{std::move(cb), 0, false, 0});
+        }
+    }
+
     return handle;
 }
 
