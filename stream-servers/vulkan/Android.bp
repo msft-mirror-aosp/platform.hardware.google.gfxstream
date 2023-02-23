@@ -34,6 +34,7 @@ cc_library_static {
     ],
     srcs: [
         "BorrowedImageVk.cpp",
+        "ColorBufferVk.cpp",
         "CompositorVk.cpp",
         "DebugUtilsHelper.cpp",
         "DisplayVk.cpp",
