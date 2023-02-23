@@ -3204,20 +3204,8 @@ public:
         const VkMemoryDedicatedAllocateInfo* dedicatedAllocInfoPtr =
             vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo);
 
-        // Note for AHardwareBuffers, the Vulkan spec states:
-        //
-        //     Android hardware buffers have intrinsic width, height, format, and usage
-        //     properties, so Vulkan images bound to memory imported from an Android
-        //     hardware buffer must use dedicated allocations
-        //
-        // so any allocation requests with a VkImportAndroidHardwareBufferInfoANDROID
-        // will necessarily have a VkMemoryDedicatedAllocateInfo. However, the host
-        // may or may not actually use a dedicated allocation to emulate
-        // AHardwareBuffers. As such, the VkMemoryDedicatedAllocateInfo is passed to the
-        // host and the host will decide whether or not to use it.
-
         bool shouldPassThroughDedicatedAllocInfo =
-            !exportAllocateInfoPtr &&
+            !exportAllocateInfoPtr && !importAhbInfoPtr &&
             !importBufferCollectionInfoPtr &&
             !importVmoInfoPtr;
 
