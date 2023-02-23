@@ -77,7 +77,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gfxstream::EmulationGl* emulati
         if (memoryExport) {
             if (colorBuffer->mColorBufferGl->importMemory(
                     std::move(memoryExport->descriptor), memoryExport->size,
-                    /*dedicated=*/false, memoryExport->linearTiling)) {
+                    memoryExport->dedicatedAllocation, memoryExport->linearTiling)) {
                 colorBuffer->mGlAndVkAreSharingExternalMemory = true;
             } else {
                 ERR("Failed to import memory to ColorBufferGl:%d", handle);
