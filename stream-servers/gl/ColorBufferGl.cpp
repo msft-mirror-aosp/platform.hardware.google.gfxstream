@@ -31,7 +31,7 @@
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/opengl/misc.h"
 
-#define DEBUG_CB_FBO 0
+#define DEBUG_CB_FBO 1
 
 using android::base::ManagedDescriptor;
 using emugl::ABORT_REASON_OTHER;
@@ -63,6 +63,7 @@ bool bindFbo(GLuint* fbo, GLuint tex, bool ensureTextureAttached) {
     s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
     s_gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0_OES,
                                    GL_TEXTURE_2D, tex, 0);
+
 #if DEBUG_CB_FBO
     GLenum status = s_gles2.glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE_OES) {
@@ -1033,6 +1034,10 @@ bool ColorBufferGl::importMemory(ManagedDescriptor externalDescriptor, uint64_t 
     s_gles2.glDeleteTextures(1, &m_tex);
     s_gles2.glDeleteFramebuffers(1, &m_fbo);
     m_fbo = 0;
+    s_gles2.glDeleteFramebuffers(1, &m_scaleRotationFbo);
+    m_scaleRotationFbo = 0;
+    s_gles2.glDeleteFramebuffers(1, &m_yuv_conversion_fbo);
+    m_yuv_conversion_fbo = 0;
     s_egl.eglDestroyImageKHR(m_display, m_eglImage);
 
     s_gles2.glGenTextures(1, &m_tex);

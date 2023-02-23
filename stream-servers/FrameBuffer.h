@@ -412,11 +412,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     bool updateColorBufferFromFrameworkFormat(HandleType p_colorbuffer, int x, int y, int width,
                                               int height, FrameworkFormat fwkFormat, GLenum format,
                                               GLenum type, void* pixels);
-    // Replaces contents completely using the color buffer's current format,
-    // with row length equal to width of a row in bytes.
-    // The number of bytes is passed as a check.
-    bool replaceColorBufferContents(HandleType p_colorbuffer,
-                                    const void* pixels, size_t numBytes);
+
     // Reads back the raw color buffer to |pixels|
     // if |pixels| is not null.
     // Always returns in |numBytes| how many bytes were
@@ -660,9 +656,12 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     const int getDisplayConfigsParam(int configId, EGLint param);
     const int getDisplayActiveConfig();
 
-    void updateColorBufferFromGl(HandleType colorBufferHandle);
-    void updateColorBufferFromGlLocked(HandleType colorBufferHandle);
-    void updateColorBufferFromVk(HandleType colorBufferHandle);
+    bool flushColorBufferFromGl(HandleType colorBufferHandle);
+    bool flushColorBufferFromGlLocked(HandleType colorBufferHandle);
+    bool flushColorBufferFromVk(HandleType colorBufferHandle);
+    bool flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes, size_t bytesSize);
+    bool invalidateColorBufferForGl(HandleType colorBufferHandle);
+    bool invalidateColorBufferForVk(HandleType colorBufferHandle);
 
    private:
     FrameBuffer(int p_width, int p_height, bool useSubWindow);
