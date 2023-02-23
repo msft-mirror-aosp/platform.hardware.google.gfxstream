@@ -53,14 +53,16 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
                 mTextureDraw->prepareForDrawLayer();
                 hasDrawLayer = true;
             }
-            layer.colorBuffer->glOpPostLayer(*layer.layerOptions, post.frameWidth,
-                                             post.frameHeight);
+            layer.colorBuffer->postLayer(*layer.layerOptions,
+                                         post.frameWidth,
+                                         post.frameHeight);
         } else if (layer.overlayOptions) {
             if (hasDrawLayer) {
                 ERR("Cannot mix colorBuffer.postLayer with postWithOverlay!");
             }
-            layer.colorBuffer->glOpPostViewportScaledWithOverlay(
-                layer.overlayOptions->rotation, layer.overlayOptions->dx, layer.overlayOptions->dy);
+            layer.colorBuffer->postWithOverlay(layer.overlayOptions->rotation,
+                                               layer.overlayOptions->dx,
+                                               layer.overlayOptions->dy);
         }
     }
     if (hasDrawLayer) {

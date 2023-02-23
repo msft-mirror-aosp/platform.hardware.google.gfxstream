@@ -16,14 +16,13 @@
 
 #pragma once
 
+#include <memory>
+#include <unordered_set>
+#include <unordered_map>
+
 #include <EGL/egl.h>
 #include <GLES/gl.h>
 
-#include <memory>
-#include <unordered_map>
-#include <unordered_set>
-
-#include "ColorBuffer.h"
 #include "Handle.h"
 #include "gl/ColorBufferGl.h"
 #include "gl/EmulatedEglContext.h"
