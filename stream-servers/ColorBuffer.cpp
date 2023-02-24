@@ -66,8 +66,14 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gfxstream::EmulationGl* emulati
         colorBuffer->mColorBufferVk = std::make_unique<ColorBufferVk>();
         if (!goldfish_vk::setupVkColorBuffer(width, height, format, frameworkFormat, handle,
                                              vulkanOnly, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
-            ERR("Failed to initialize ColorBufferVk.");
-            return nullptr;
+            if (emulationGl) {
+                // Historically, ColorBufferVk setup was deferred until the first actual Vulkan
+                // usage. This allowed ColorBufferVk setup failures to be unintentionally avoided.
+                colorBuffer->mColorBufferVk.reset();
+            } else {
+                ERR("Failed to initialize ColorBufferVk.");
+                return nullptr;
+            }
         }
     }
 
