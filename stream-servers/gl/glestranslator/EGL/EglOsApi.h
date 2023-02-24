@@ -65,6 +65,8 @@ public:
         return mCoreProfile;
     }
 
+    // as of now, only osx has this non-nullptr, needed by media decoder
+    virtual void* lowLevelContext() { return nullptr; }
     virtual void* getNative() { return nullptr; }
 
 protected:
