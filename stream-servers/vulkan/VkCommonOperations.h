@@ -418,10 +418,20 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
                                                                         uint32_t height,
                                                                         VkImageTiling tiling);
 
-bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t memoryProperty);
+bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
+                        FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
+                        bool vulkanOnly, uint32_t memoryProperty);
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
 VK_EXT_MEMORY_HANDLE getColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
+
+struct VkColorBufferMemoryExport {
+    android::base::ManagedDescriptor descriptor;
+    uint64_t size = 0;
+    bool linearTiling = false;
+};
+std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorBufferHandle);
+
 MTLTextureRef getColorBufferMTLTexture(uint32_t colorBufferHandle);
 bool setColorBufferVulkanMode(uint32_t colorBufferHandle, uint32_t vulkanMode);
 int32_t mapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa, uint64_t size = 0);
