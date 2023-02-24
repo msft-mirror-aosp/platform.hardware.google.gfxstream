@@ -3028,7 +3028,10 @@ class VkDecoderGlobalState::Impl {
             }
 
             if (!vulkanOnly) {
-                updateColorBufferFromGl(importCbInfoPtr->colorBuffer);
+                auto fb = FrameBuffer::getFB();
+                if (fb) {
+                    fb->updateColorBufferFromGl(importCbInfoPtr->colorBuffer);
+                }
             }
 
             if (m_emu->instanceSupportsExternalMemoryCapabilities) {
