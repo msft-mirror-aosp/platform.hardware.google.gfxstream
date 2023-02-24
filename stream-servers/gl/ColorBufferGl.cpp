@@ -1033,6 +1033,7 @@ bool ColorBufferGl::importMemory(ManagedDescriptor externalDescriptor, uint64_t 
     s_gles2.glDeleteTextures(1, &m_tex);
     s_gles2.glDeleteFramebuffers(1, &m_fbo);
     m_fbo = 0;
+    s_egl.eglDestroyImageKHR(m_display, m_eglImage);
 
     s_gles2.glGenTextures(1, &m_tex);
     s_gles2.glBindTexture(GL_TEXTURE_2D, m_tex);
@@ -1060,7 +1061,6 @@ bool ColorBufferGl::importMemory(ManagedDescriptor externalDescriptor, uint64_t 
         m_BRSwizzle = false;
     }
 
-    s_egl.eglDestroyImageKHR(m_display, m_eglImage);
     m_eglImage = s_egl.eglCreateImageKHR(
             m_display, s_egl.eglGetCurrentContext(), EGL_GL_TEXTURE_2D_KHR,
             (EGLClientBuffer)SafePointerFromUInt(m_tex), NULL);

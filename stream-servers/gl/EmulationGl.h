@@ -69,6 +69,8 @@ class EmulationGl {
     const std::string& getGlesExtensionsString() const { return mGlesExtensions; }
     bool isGlesVulkanInteropSupported() const { return mGlesVulkanInteropSupported; }
 
+    bool isMesa() const;
+
     bool isFastBlitSupported() const;
     void disableFastBlitForTesting();
 

@@ -1190,6 +1190,7 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
     INFO("    enable ETC2 emulation: %s", features->enableEtc2Emulation ? "true" : "false");
     INFO("    enable Ycbcr emulation: %s", features->enableYcbcrEmulation ? "true" : "false");
     INFO("    guestUsesAngle: %s", features->guestUsesAngle ? "true" : "false");
+    INFO("    useDedicatedAllocations: %s", features->useDedicatedAllocations ? "true" : "false");
     sVkEmulation->deviceInfo.glInteropSupported = features->glInteropSupported;
     sVkEmulation->useDeferredCommands = features->deferredCommands;
     sVkEmulation->useCreateResourcesWithRequirements = features->createResourceWithRequirements;
@@ -1198,6 +1199,7 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
     sVkEmulation->enableEtc2Emulation = features->enableEtc2Emulation;
     sVkEmulation->enableYcbcrEmulation = features->enableYcbcrEmulation;
     sVkEmulation->guestUsesAngle = features->guestUsesAngle;
+    sVkEmulation->useDedicatedAllocations = features->useDedicatedAllocations;
 
     if (features->useVulkanComposition) {
         if (sVkEmulation->compositorVk) {
@@ -1271,26 +1273,45 @@ std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowTy
 
 // Precondition: sVkEmulation has valid device support info
 bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* info,
-                         bool actuallyExternal, Optional<uint64_t> deviceAlignment) {
+                         bool actuallyExternal, Optional<uint64_t> deviceAlignment,
+                         Optional<VkBuffer> bufferForDedicatedAllocation,
+                         Optional<VkImage> imageForDedicatedAllocation) {
     VkExportMemoryAllocateInfo exportAi = {
-        VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
-        0,
-        VK_EXT_MEMORY_HANDLE_TYPE_BIT,
+        .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .handleTypes = VK_EXT_MEMORY_HANDLE_TYPE_BIT,
     };
 
-    VkExportMemoryAllocateInfo* exportAiPtr = nullptr;
+    VkMemoryDedicatedAllocateInfo dedicatedAllocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .image = VK_NULL_HANDLE,
+        .buffer = VK_NULL_HANDLE,
+    };
+
+    VkMemoryAllocateInfo allocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = info->size,
+        .memoryTypeIndex = info->typeIndex,
+    };
+
+    auto allocInfoChain = vk_make_chain_iterator(&allocInfo);
 
     if (sVkEmulation->deviceInfo.supportsExternalMemory && actuallyExternal) {
-        exportAiPtr = &exportAi;
+        vk_append_struct(&allocInfoChain, &exportAi);
     }
 
-    info->actualSize = (info->size + 2 * kPageSize - 1) / kPageSize * kPageSize;
-    VkMemoryAllocateInfo allocInfo = {
-        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        exportAiPtr,
-        info->actualSize,
-        info->typeIndex,
-    };
+    if (bufferForDedicatedAllocation.hasValue() || imageForDedicatedAllocation.hasValue()) {
+        info->dedicatedAllocation = true;
+        if (bufferForDedicatedAllocation.hasValue()) {
+            dedicatedAllocInfo.buffer = *bufferForDedicatedAllocation;
+        }
+        if (imageForDedicatedAllocation.hasValue()) {
+            dedicatedAllocInfo.image = *imageForDedicatedAllocation;
+        }
+        vk_append_struct(&allocInfoChain, &dedicatedAllocInfo);
+    }
 
     bool memoryAllocated = false;
     std::vector<VkDeviceMemory> allocationAttempts;
@@ -1308,8 +1329,8 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
 
         if (sVkEmulation->deviceInfo.memProps.memoryTypes[info->typeIndex].propertyFlags &
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-            VkResult mapRes = vk->vkMapMemory(sVkEmulation->device, info->memory, 0,
-                                              info->actualSize, 0, &info->mappedPtr);
+            VkResult mapRes = vk->vkMapMemory(sVkEmulation->device, info->memory, 0, info->size, 0,
+                                              &info->mappedPtr);
             if (mapRes != VK_SUCCESS) {
                 // LOG(VERBOSE) << "allocExternalMemory: failed in vkMapMemory: "
                 //              << mapRes;
@@ -1446,7 +1467,7 @@ bool importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice,
     VkMemoryAllocateInfo allocInfo = {
         VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         &importInfo,
-        info->actualSize,
+        info->size,
         info->typeIndex,
     };
 
@@ -1575,7 +1596,8 @@ bool isColorBufferExportedToGl(uint32_t colorBufferHandle, bool* exported) {
 }
 
 bool getColorBufferAllocationInfo(uint32_t colorBufferHandle, VkDeviceSize* outSize,
-                                  uint32_t* outMemoryTypeIndex, void** outMappedPtr) {
+                                  uint32_t* outMemoryTypeIndex, bool* outMemoryIsDedicatedAlloc,
+                                  void** outMappedPtr) {
     if (!sVkEmulation || !sVkEmulation->live) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Vulkan emulation not available.";
     }
@@ -1593,6 +1615,10 @@ bool getColorBufferAllocationInfo(uint32_t colorBufferHandle, VkDeviceSize* outS
 
     if (outMemoryTypeIndex) {
         *outMemoryTypeIndex = info->memory.typeIndex;
+    }
+
+    if (outMemoryIsDedicatedAlloc) {
+        *outMemoryIsDedicatedAlloc = info->memory.dedicatedAllocation;
     }
 
     if (outMappedPtr) {
@@ -1827,8 +1853,10 @@ bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
     bool isHostVisible = memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
     Optional<uint64_t> deviceAlignment =
         isHostVisible ? Optional<uint64_t>(res.memReqs.alignment) : kNullopt;
-    bool allocRes =
-        allocExternalMemory(vk, &res.memory, true /*actuallyExternal*/, deviceAlignment);
+    Optional<VkImage> dedicatedImage =
+        sVkEmulation->useDedicatedAllocations ? Optional<VkImage>(res.image) : kNullopt;
+    bool allocRes = allocExternalMemory(vk, &res.memory, true /*actuallyExternal*/, deviceAlignment,
+                                        kNullopt, dedicatedImage);
 
     if (!allocRes) {
         // LOG(VERBOSE) << "Failed to allocate ColorBuffer with Vulkan backing.";
@@ -1924,6 +1952,7 @@ std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorB
         .descriptor = std::move(descriptor),
         .size = info->memory.size,
         .linearTiling = info->imageCreateInfoShallow.tiling == VK_IMAGE_TILING_LINEAR,
+        .dedicatedAllocation = info->memory.dedicatedAllocation,
     };
 }
 
@@ -2484,7 +2513,7 @@ int32_t mapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa, uint64_t size)
 }
 
 bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
-                             uint32_t* outMemoryTypeIndex) {
+                             uint32_t* outMemoryTypeIndex, bool* outMemoryIsDedicatedAlloc) {
     if (!sVkEmulation || !sVkEmulation->live) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Vulkan emulation not available.";
     }
@@ -2502,6 +2531,10 @@ bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
 
     if (outMemoryTypeIndex) {
         *outMemoryTypeIndex = info->memory.typeIndex;
+    }
+
+    if (outMemoryIsDedicatedAlloc) {
+        *outMemoryIsDedicatedAlloc = info->memory.dedicatedAllocation;
     }
 
     return true;

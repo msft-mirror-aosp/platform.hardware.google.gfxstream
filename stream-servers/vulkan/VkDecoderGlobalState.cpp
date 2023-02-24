@@ -2944,8 +2944,19 @@ class VkDecoderGlobalState::Impl {
 
         if (dedicatedAllocInfoPtr) {
             localDedicatedAllocInfo = vk_make_orphan_copy(*dedicatedAllocInfoPtr);
-            vk_append_struct(&structChainIter, &localDedicatedAllocInfo);
         }
+        // Note for AHardwareBuffers, the Vulkan spec states:
+        //
+        //     Android hardware buffers have intrinsic width, height, format, and usage
+        //     properties, so Vulkan images bound to memory imported from an Android
+        //     hardware buffer must use dedicated allocations
+        //
+        // so any allocation requests with a VkImportAndroidHardwareBufferInfoANDROID
+        // will necessarily have a VkMemoryDedicatedAllocateInfo. However, the host
+        // may or may not actually use a dedicated allocations during Buffer/ColorBuffer
+        // setup. Below checks if the underlying Buffer/ColorBuffer backing memory was
+        // originally created with a dedicated allocation.
+        bool shouldUseDedicatedAllocInfo = dedicatedAllocInfoPtr != nullptr;
 
         const VkImportPhysicalAddressGOOGLE* importPhysAddrInfoPtr =
             vk_find_struct<VkImportPhysicalAddressGOOGLE>(pAllocateInfo);
@@ -3017,13 +3028,17 @@ class VkDecoderGlobalState::Impl {
         if (importCbInfoPtr) {
             bool vulkanOnly = mGuestUsesAngle;
 
+            bool colorBufferMemoryUsesDedicatedAlloc = false;
             if (!getColorBufferAllocationInfo(importCbInfoPtr->colorBuffer,
                                               &localAllocInfo.allocationSize,
-                                              &localAllocInfo.memoryTypeIndex, &mappedPtr)) {
+                                              &localAllocInfo.memoryTypeIndex,
+                                              &colorBufferMemoryUsesDedicatedAlloc, &mappedPtr)) {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "Failed to get allocation info for ColorBuffer:"
                     << importCbInfoPtr->colorBuffer;
             }
+
+            shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
 
             if (!vulkanOnly) {
                 auto fb = FrameBuffer::getFB();
@@ -3056,12 +3071,15 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (importBufferInfoPtr) {
-            if (!getBufferAllocationInfo(importBufferInfoPtr->buffer,
-                                         &localAllocInfo.allocationSize,
-                                         &localAllocInfo.memoryTypeIndex)) {
+            bool bufferMemoryUsesDedicatedAlloc = false;
+            if (!getBufferAllocationInfo(
+                    importBufferInfoPtr->buffer, &localAllocInfo.allocationSize,
+                    &localAllocInfo.memoryTypeIndex, &bufferMemoryUsesDedicatedAlloc)) {
                 ERR("Failed to get Buffer:%d allocation info.", importBufferInfoPtr->buffer);
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
+
+            shouldUseDedicatedAllocInfo &= bufferMemoryUsesDedicatedAlloc;
 
             if (m_emu->instanceSupportsExternalMemoryCapabilities) {
                 VK_EXT_MEMORY_HANDLE bufferExtMemoryHandle =
@@ -3085,6 +3103,10 @@ class VkDecoderGlobalState::Impl {
 #endif
                 vk_append_struct(&structChainIter, &importInfo);
             }
+        }
+
+        if (shouldUseDedicatedAllocInfo) {
+            vk_append_struct(&structChainIter, &localDedicatedAllocInfo);
         }
 
         VkExportMemoryAllocateInfo exportAllocate = {

@@ -547,7 +547,7 @@ TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
 
     uint32_t allocatedTypeIndex = 0u;
     EXPECT_TRUE(goldfish_vk::getColorBufferAllocationInfo(kArbitraryColorBufferHandle, nullptr,
-                                                          &allocatedTypeIndex, nullptr));
+                                                          &allocatedTypeIndex, nullptr, nullptr));
 
     EXPECT_TRUE(vkEmulation->deviceInfo.memProps.memoryTypes[allocatedTypeIndex]
                         .propertyFlags &

@@ -192,14 +192,24 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
 
         vk->vkGetImageMemoryRequirements(device, out->image, &out->memReqs);
 
-        if (out->memReqs.size < memInfo.actualSize) {
-            out->memReqs.size = memInfo.actualSize;
+        if (out->memReqs.size < memInfo.size) {
+            out->memReqs.size = memInfo.size;
         }
 
-        if (!importExternalMemory(vk, device, &memInfo, &out->imageMemory)) {
-            fprintf(stderr, "%s: Failed to import external memory\n", __func__);
-            return VK_ERROR_INITIALIZATION_FAILED;
+        if (memInfo.dedicatedAllocation) {
+            if (!importExternalMemoryDedicatedImage(vk, device, &memInfo, out->image,
+                                                    &out->imageMemory)) {
+                VK_ANB_ERR(
+                    "VK_ANDROID_native_buffer: Failed to import external memory (dedicated)");
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+        } else {
+            if (!importExternalMemory(vk, device, &memInfo, &out->imageMemory)) {
+                VK_ANB_ERR("VK_ANDROID_native_buffer: Failed to import external memory");
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
         }
+
         bindOffset = memInfo.bindOffset;
     } else {
         // delete the info struct and pass to vkCreateImage, and also add
