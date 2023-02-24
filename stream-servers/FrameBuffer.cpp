@@ -2044,19 +2044,6 @@ bool FrameBuffer::updateColorBufferFromFrameworkFormat(HandleType p_colorbuffer,
     return true;
 }
 
-bool FrameBuffer::replaceColorBufferContents(
-    HandleType p_colorbuffer, const void* pixels, size_t numBytes) {
-    AutoLock mutex(m_lock);
-
-    ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
-    if (!colorBuffer) {
-        // bad colorbuffer handle
-        return false;
-    }
-
-    return colorBuffer->glOpReplaceContents(numBytes, pixels);
-}
-
 bool FrameBuffer::readColorBufferContents(
     HandleType p_colorbuffer, size_t* numBytes, void* pixels) {
 
@@ -2371,7 +2358,7 @@ void FrameBuffer::destroySharedTrivialContext(EGLContext context,
 
 bool FrameBuffer::post(HandleType p_colorbuffer, bool needLockAndBind) {
     if (m_guestUsesAngle) {
-        updateColorBufferFromGlLocked(p_colorbuffer);
+        flushColorBufferFromGl(p_colorbuffer);
     }
 
     auto res = postImplSync(p_colorbuffer, needLockAndBind);
@@ -2382,7 +2369,7 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLockAndBind) {
 void FrameBuffer::postWithCallback(HandleType p_colorbuffer, Post::CompletionCallback callback,
                                    bool needLockAndBind) {
     if (m_guestUsesAngle) {
-        updateColorBufferFromGl(p_colorbuffer);
+        flushColorBufferFromGl(p_colorbuffer);
     }
 
     AsyncResult res = postImpl(p_colorbuffer, callback, needLockAndBind);
@@ -3497,6 +3484,12 @@ std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForComposition(
         return nullptr;
     }
 
+    if (m_useVulkanComposition) {
+        invalidateColorBufferForVk(colorBufferHandle);
+    } else {
+        invalidateColorBufferForGl(colorBufferHandle);
+    }
+
     const auto api = m_useVulkanComposition ? ColorBuffer::UsedApi::kVk : ColorBuffer::UsedApi::kGl;
     return colorBufferPtr->borrowForComposition(api, colorBufferIsTarget);
 }
@@ -3508,6 +3501,13 @@ std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForDisplay(
         ERR("Failed to get borrowed image info for ColorBuffer:%d", colorBufferHandle);
         return nullptr;
     }
+
+    if (m_useVulkanComposition) {
+        invalidateColorBufferForVk(colorBufferHandle);
+    } else {
+        invalidateColorBufferForGl(colorBufferHandle);
+    }
+
     const auto api = m_useVulkanComposition ? ColorBuffer::UsedApi::kVk : ColorBuffer::UsedApi::kGl;
     return colorBufferPtr->borrowForDisplay(api);
 }
@@ -3714,27 +3714,60 @@ const int FrameBuffer::getDisplayActiveConfig() {
     return mDisplayActiveConfigId >= 0 ? mDisplayActiveConfigId : -1;
 }
 
-void FrameBuffer::updateColorBufferFromGl(HandleType colorBufferHandle) {
+bool FrameBuffer::flushColorBufferFromGl(HandleType colorBufferHandle) {
     AutoLock mutex(m_lock);
-    updateColorBufferFromGlLocked(colorBufferHandle);
+    return flushColorBufferFromGlLocked(colorBufferHandle);
 }
 
-void FrameBuffer::updateColorBufferFromGlLocked(HandleType colorBufferHandle) {
+bool FrameBuffer::flushColorBufferFromGlLocked(HandleType colorBufferHandle) {
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
-        return;
+        return false;
     }
-    colorBuffer->updateFromGl();
+    return colorBuffer->flushFromGl();
 }
 
-void FrameBuffer::updateColorBufferFromVk(HandleType colorBufferHandle) {
+bool FrameBuffer::flushColorBufferFromVk(HandleType colorBufferHandle) {
     AutoLock mutex(m_lock);
 
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
-        return;
+        return false;
     }
-    colorBuffer->updateFromVk();
+    return colorBuffer->flushFromVk();
+}
+
+bool FrameBuffer::flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes, size_t bytesSize) {
+    AutoLock mutex(m_lock);
+
+    auto colorBuffer = findColorBuffer(colorBufferHandle);
+    if (!colorBuffer) {
+        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        return false;
+    }
+    return colorBuffer->flushFromVkBytes(bytes, bytesSize);
+}
+
+bool FrameBuffer::invalidateColorBufferForGl(HandleType colorBufferHandle) {
+    AutoLock mutex(m_lock);
+
+    auto colorBuffer = findColorBuffer(colorBufferHandle);
+    if (!colorBuffer) {
+        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        return false;
+    }
+    return colorBuffer->invalidateForGl();
+}
+
+bool FrameBuffer::invalidateColorBufferForVk(HandleType colorBufferHandle) {
+    AutoLock mutex(m_lock);
+
+    auto colorBuffer = findColorBuffer(colorBufferHandle);
+    if (!colorBuffer) {
+        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        return false;
+    }
+    return colorBuffer->invalidateForVk();
 }

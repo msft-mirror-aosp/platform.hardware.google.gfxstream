@@ -3043,7 +3043,7 @@ class VkDecoderGlobalState::Impl {
             if (!vulkanOnly) {
                 auto fb = FrameBuffer::getFB();
                 if (fb) {
-                    fb->updateColorBufferFromGl(importCbInfoPtr->colorBuffer);
+                    fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
                 }
             }
 

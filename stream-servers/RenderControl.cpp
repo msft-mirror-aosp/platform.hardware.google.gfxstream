@@ -879,16 +879,13 @@ static int rcFlushWindowColorBuffer(uint32_t windowSurface)
 
     HandleType colorBufferHandle = fb->getEmulatedEglWindowSurfaceColorBufferHandle(windowSurface);
 
-    // Update from Vulkan if necessary
-    fb->updateColorBufferFromVk(colorBufferHandle);
-
     if (!fb->flushEmulatedEglWindowSurfaceColorBuffer(windowSurface)) {
         GRSYNC_DPRINT("unlock gralloc cb lock }");
         return -1;
     }
 
-    // Update to Vulkan if necessary
-    fb->updateColorBufferFromGl(colorBufferHandle);
+    // Make the GL updates visible to other backings if necessary.
+    fb->flushColorBufferFromGl(colorBufferHandle);
 
     GRSYNC_DPRINT("unlock gralloc cb lock }");
 
@@ -953,9 +950,6 @@ static void rcFBPost(uint32_t colorBuffer)
         return;
     }
 
-    // Update from Vulkan if necessary
-    fb->updateColorBufferFromVk(colorBuffer);
-
     fb->post(colorBuffer);
 }
 
@@ -971,8 +965,8 @@ static void rcBindTexture(uint32_t colorBuffer)
         return;
     }
 
-    // Update from Vulkan if necessary
-    fb->updateColorBufferFromVk(colorBuffer);
+    // Update for GL use if necessary.
+    fb->invalidateColorBufferForGl(colorBuffer);
 
     fb->bindColorBufferToTexture(colorBuffer);
 }
@@ -984,8 +978,8 @@ static void rcBindRenderbuffer(uint32_t colorBuffer)
         return;
     }
 
-    // Update from Vulkan if necessary
-    fb->updateColorBufferFromVk(colorBuffer);
+    // Update for GL use if necessary.
+    fb->invalidateColorBufferForGl(colorBuffer);
 
     fb->bindColorBufferToRenderbuffer(colorBuffer);
 }
@@ -1010,9 +1004,6 @@ static void rcReadColorBuffer(uint32_t colorBuffer,
         return;
     }
 
-    // Update from Vulkan if necessary
-    fb->updateColorBufferFromVk(colorBuffer);
-
     fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
 }
 
@@ -1029,17 +1020,10 @@ static int rcUpdateColorBuffer(uint32_t colorBuffer,
         return -1;
     }
 
-    // Since this is a modify operation, also read the current contents
-    // of the VkImage, if any.
-    fb->updateColorBufferFromVk(colorBuffer);
-
     fb->updateColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
 
     GRSYNC_DPRINT("unlock gralloc cb lock");
     sGrallocSync()->unlockColorBufferPrepare();
-
-    // Update to Vulkan if necessary
-    fb->updateColorBufferFromGl(colorBuffer);
 
     return 0;
 }
@@ -1058,18 +1042,11 @@ static int rcUpdateColorBufferDMA(uint32_t colorBuffer,
         return -1;
     }
 
-    // Since this is a modify operation, also read the current contents
-    // of the VkImage, if any.
-    fb->updateColorBufferFromVk(colorBuffer);
-
     fb->updateColorBuffer(colorBuffer, x, y, width, height,
                           format, type, pixels);
 
     GRSYNC_DPRINT("unlock gralloc cb lock");
     sGrallocSync()->unlockColorBufferPrepare();
-
-    // Update to Vulkan if necessary
-    fb->updateColorBufferFromGl(colorBuffer);
 
     return 0;
 }
@@ -1525,9 +1502,6 @@ static int rcReadColorBufferDMA(uint32_t colorBuffer,
     if (!fb) {
         return -1;
     }
-
-    // Update from Vulkan if necessary
-    fb->updateColorBufferFromVk(colorBuffer);
 
     fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
     return 0;
