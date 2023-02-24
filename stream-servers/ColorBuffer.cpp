@@ -202,8 +202,7 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height, GLenum pi
     touch();
 
     if (mColorBufferGl) {
-        mColorBufferGl->subUpdate(x, y, width, height, pixelsFormat, pixelsType, pixels);
-        return true;
+        return mColorBufferGl->subUpdate(x, y, width, height, pixelsFormat, pixelsType, pixels);
     }
     if (mColorBufferVk) {
         return goldfish_vk::updateColorBufferFromBytes(mHandle, x, y, width, height, pixels);

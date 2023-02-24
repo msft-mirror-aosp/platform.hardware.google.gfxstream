@@ -546,18 +546,19 @@ void ColorBufferGl::swapYUVTextures(FrameworkFormat type, uint32_t* textures) {
     }
 }
 
-void ColorBufferGl::subUpdate(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
+bool ColorBufferGl::subUpdate(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
                               const void* pixels) {
-    subUpdateFromFrameworkFormat(x, y, width, height, m_frameworkFormat, p_format, p_type, pixels);
+    return subUpdateFromFrameworkFormat(x, y, width, height, m_frameworkFormat, p_format, p_type,
+                                        pixels);
 }
 
-void ColorBufferGl::subUpdateFromFrameworkFormat(int x, int y, int width, int height,
+bool ColorBufferGl::subUpdateFromFrameworkFormat(int x, int y, int width, int height,
                                                  FrameworkFormat fwkFormat, GLenum p_format,
                                                  GLenum p_type, const void* pixels) {
     const GLenum p_unsizedFormat = sGetUnsizedColorBufferFormat(p_format);
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
-        return;
+        return false;
     }
 
     GL_SCOPED_DEBUG_GROUP("ColorBufferGl::subUpdate(handle:%d fbo:%d tex:%d)", mHndl, m_fbo, m_tex);
@@ -593,42 +594,12 @@ void ColorBufferGl::subUpdateFromFrameworkFormat(int x, int y, int width, int he
         s_gles2.glFlush();
         m_sync = (GLsync)s_egl.eglSetImageFenceANDROID(m_display, m_eglImage);
     }
+
+    return true;
 }
 
 bool ColorBufferGl::replaceContents(const void* newContents, size_t numBytes) {
-    if (m_vulkanOnly) {
-        return false;
-    }
-    RecursiveScopedContextBind context(m_helper);
-    if (!context.isOk()) {
-        fprintf(stderr, "%s: Failed: Could not get current context\n", __func__);
-        return false;
-    }
-
-    if (m_numBytes != numBytes) {
-        fprintf(stderr,
-            "%s: Error: Tried to replace contents of ColorBuffer with "
-            "%zu bytes (expected %zu; GL format info: 0x%x 0x%x 0x%x); ",
-            __func__,
-            numBytes,
-            m_numBytes,
-            m_internalFormat,
-            m_format,
-            m_type);
-        return false;
-    }
-
-    s_gles2.glBindTexture(GL_TEXTURE_2D, m_tex);
-    s_gles2.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    s_gles2.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_format,
-                            m_type, newContents);
-
-    if (m_fastBlitSupported) {
-        s_gles2.glFlush();
-        m_sync = (GLsync)s_egl.eglSetImageFenceANDROID(m_display, m_eglImage);
-    }
-
-    return true;
+    return subUpdate(0, 0, m_width, m_height, m_format, m_type, newContents);
 }
 
 bool ColorBufferGl::readContents(size_t* numBytes, void* pixels) {
