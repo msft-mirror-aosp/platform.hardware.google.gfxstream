@@ -50,6 +50,7 @@
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
 #include "host-common/vm_operations.h"
+#include "render-utils/MediaNative.h"
 #include "vulkan/DisplayVk.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderGlobalState.h"
@@ -1932,12 +1933,6 @@ void FrameBuffer::destroyYUVTextures(uint32_t type,
     }
 }
 
-extern "C" {
-typedef void (*yuv_updater_t)(void* privData,
-                              uint32_t type,
-                              uint32_t* textures);
-}
-
 void FrameBuffer::updateYUVTextures(uint32_t type,
                                     uint32_t* textures,
                                     void* privData,
@@ -1957,7 +1952,18 @@ void FrameBuffer::updateYUVTextures(uint32_t type,
         gtextures[2] = s_gles2.glGetGlobalTexName(textures[2]);
     }
 
-    updater(privData, type, gtextures);
+#ifdef __APPLE__
+    EGLContext prevContext = s_egl.eglGetCurrentContext();
+    void* nativecontext = getDisplay().getLowLevelContext(prevContext);
+    struct MediaNativeCallerData callerdata;
+    callerdata.ctx = nativecontext;
+    callerdata.converter = nsConvertVideoFrameToNV12Textures;
+    void* pcallerdata = &callerdata;
+#else
+    void* pcallerdata = nullptr;
+#endif
+
+    updater(privData, type, gtextures, pcallerdata);
 }
 
 void FrameBuffer::swapTexturesAndUpdateColorBuffer(uint32_t p_colorbuffer,
