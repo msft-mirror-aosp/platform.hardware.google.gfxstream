@@ -805,7 +805,7 @@ VkResult syncImageToColorBuffer(VulkanDispatch* vk, uint32_t queueFamilyIndex, V
                 break;
         }
 
-        FrameBuffer::getFB()->replaceColorBufferContents(
+        FrameBuffer::getFB()->flushColorBufferFromVkBytes(
             colorBufferHandle, anbInfo->mappedStagingPtr,
             bpp * anbInfo->extent.width * anbInfo->extent.height);
         anbInfo->qsriTimeline->signalNextPresentAndPoll();

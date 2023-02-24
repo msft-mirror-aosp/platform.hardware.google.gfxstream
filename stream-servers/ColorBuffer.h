@@ -72,8 +72,11 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     std::unique_ptr<BorrowedImageInfo> borrowForComposition(UsedApi api, bool isTarget);
     std::unique_ptr<BorrowedImageInfo> borrowForDisplay(UsedApi api);
 
-    void updateFromGl();
-    void updateFromVk();
+    bool flushFromGl();
+    bool flushFromVk();
+    bool flushFromVkBytes(const void* bytes, size_t bytesSize);
+    bool invalidateForGl();
+    bool invalidateForVk();
 
     GLuint glOpGetTexture();
     bool glOpBlitFromCurrentReadBuffer();
@@ -87,7 +90,6 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     void glOpSwapYuvTexturesAndUpdate(GLenum format, GLenum type, FrameworkFormat frameworkFormat,
                                       GLuint* textures);
     bool glOpReadContents(size_t* outNumBytes, void* outContents);
-    bool glOpReplaceContents(size_t numBytes, const void* contents);
     bool glOpIsFastBlitSupported() const;
     void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight);
     void glOpPostViewportScaledWithOverlay(float rotation, float dx, float dy);
