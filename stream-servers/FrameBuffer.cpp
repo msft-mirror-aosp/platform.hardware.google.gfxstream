@@ -1778,22 +1778,15 @@ void FrameBuffer::markOpened(ColorBufferRef* cbRef) {
 bool FrameBuffer::flushEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface) {
     AutoLock mutex(m_lock);
 
-    EmulatedEglWindowSurfaceMap::iterator w(m_windows.find(p_surface));
-    if (w == m_windows.end()) {
+    auto it = m_windows.find(p_surface);
+    if (it == m_windows.end()) {
         ERR("FB::flushEmulatedEglWindowSurfaceColorBuffer: window handle %#x not found",
             p_surface);
         // bad surface handle
         return false;
     }
 
-    GLenum resetStatus = s_gles2.glGetGraphicsResetStatusEXT();
-    if (resetStatus != GL_NO_ERROR) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) <<
-                "Stream server aborting due to graphics reset. ResetStatus: " <<
-                std::hex << resetStatus;
-    }
-
-    EmulatedEglWindowSurface* surface = (*w).second.first.get();
+    EmulatedEglWindowSurface* surface = it->second.first.get();
     surface->flushColorBuffer();
 
     return true;

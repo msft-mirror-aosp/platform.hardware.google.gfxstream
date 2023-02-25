@@ -16,14 +16,20 @@
 #include "EmulatedEglWindowSurface.h"
 
 #include <assert.h>
+#include <ios>
 #include <stdio.h>
 #include <string.h>
 
 #include <GLES/glext.h>
 
+#include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "aemu/base/containers/Lookup.h"
+#include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
+
+using emugl::ABORT_REASON_OTHER;
+using emugl::FatalError;
 
 namespace gfxstream {
 
@@ -103,6 +109,13 @@ bool EmulatedEglWindowSurface::flushColorBuffer() {
     if (!mDrawContext.get()) {
         ERR("%p: Draw context is NULL", this);
         return false;
+    }
+
+    GLenum resetStatus = s_gles2.glGetGraphicsResetStatusEXT();
+    if (resetStatus != GL_NO_ERROR) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) <<
+                "Stream server aborting due to graphics reset. ResetStatus: " <<
+                std::hex << resetStatus;
     }
 
     // Make the surface current
