@@ -15,6 +15,8 @@
 #include "ColorBuffer.h"
 
 #include "gl/EmulationGl.h"
+#include "host-common/GfxstreamFatalError.h"
+#include "host-common/logging.h"
 #include "vulkan/ColorBufferVk.h"
 #include "vulkan/VkCommonOperations.h"
 
@@ -149,7 +151,7 @@ void ColorBuffer::readToBytes(int x, int y, int width, int height, GLenum pixels
         return;
     }
     if (mColorBufferVk) {
-        goldfish_vk::readColorBufferToBytes(mHandle, x, y, width, height, outPixels);
+        mColorBufferVk->readToBytes(x, y, width, height, outPixels);
         return;
     }
 
@@ -179,7 +181,7 @@ void ColorBuffer::readYuvToBytes(int x, int y, int width, int height, void* outP
         return;
     }
     if (mColorBufferVk) {
-        goldfish_vk::readColorBufferToBytes(mHandle, x, y, width, height, outPixels);
+        mColorBufferVk->readToBytes(x, y, width, height, outPixels);
         return;
     }
 
@@ -197,7 +199,7 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height,
         return true;
     }
     if (mColorBufferVk) {
-        return goldfish_vk::updateColorBufferFromBytes(mHandle, x, y, width, height, pixels);
+        return mColorBufferVk->updateFromBytes(x, y, width, height, pixels);
     }
 
     GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "No ColorBuffer impl?";
@@ -212,7 +214,7 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height, GLenum pi
         return mColorBufferGl->subUpdate(x, y, width, height, pixelsFormat, pixelsType, pixels);
     }
     if (mColorBufferVk) {
-        return goldfish_vk::updateColorBufferFromBytes(mHandle, x, y, width, height, pixels);
+        return mColorBufferVk->updateFromBytes(x, y, width, height, pixels);
     }
 
     GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "No ColorBuffer impl?";
@@ -363,7 +365,7 @@ bool ColorBuffer::invalidateForVk() {
         return false;
     }
 
-    if (!goldfish_vk::updateColorBufferFromBytes(mHandle, contents)) {
+    if (!mColorBufferVk->updateFromBytes(contents)) {
         ERR("Failed to set VK contents for ColorBuffer:%d", mHandle);
         return false;
     }
