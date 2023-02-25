@@ -1954,7 +1954,7 @@ void FrameBuffer::updateYUVTextures(uint32_t type,
 
 #ifdef __APPLE__
     EGLContext prevContext = s_egl.eglGetCurrentContext();
-    void* nativecontext = getDisplay().getLowLevelContext(prevContext);
+    void* nativecontext = getDisplay()->getLowLevelContext(prevContext);
     struct MediaNativeCallerData callerdata;
     callerdata.ctx = nativecontext;
     callerdata.converter = nsConvertVideoFrameToNV12Textures;
