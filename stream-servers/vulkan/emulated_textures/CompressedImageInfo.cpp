@@ -893,7 +893,7 @@ VkExtent3D CompressedImageInfo::compressedMipmapPortion(const VkExtent3D& origEx
     return {
         .width = std::min(ceil_div(origExtent.width, mBlock.width), maxExtent.width),
         .height = std::min(ceil_div(origExtent.height, mBlock.height), maxExtent.height),
-        .depth = 1,
+        .depth = origExtent.depth,
     };
 }
 
