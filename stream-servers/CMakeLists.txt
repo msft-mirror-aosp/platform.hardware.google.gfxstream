@@ -72,6 +72,7 @@ target_include_directories(
         ${GFXSTREAM_REPO_ROOT}/stream-servers
         ${GFXSTREAM_REPO_ROOT}/stream-servers/apigen-codec-common
         ${GFXSTREAM_REPO_ROOT}/stream-servers/gl
+        ${GFXSTREAM_REPO_ROOT}/stream-servers/gl/glestranslator/include
         ${GFXSTREAM_REPO_ROOT}/stream-servers/vulkan
         ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
 
