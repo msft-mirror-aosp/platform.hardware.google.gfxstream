@@ -2808,6 +2808,8 @@ class VkDecoderGlobalState::Impl {
 
         if (needRebind && cmdBufferInfo->computePipeline) {
             // Recover pipeline bindings
+            // TODO(gregschlom): instead of doing this here again and again after each image we
+            // decompress, could we do it once before calling vkCmdDispatch?
             vk->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                                   cmdBufferInfo->computePipeline);
             if (!cmdBufferInfo->descriptorSets.empty()) {
@@ -4168,9 +4170,7 @@ class VkDecoderGlobalState::Impl {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
             if (cmdBufferInfo) {
-                if (pipelineBindPoint == VK_PIPELINE_BIND_POINT_COMPUTE) {
-                    cmdBufferInfo->computePipeline = pipeline;
-                }
+                cmdBufferInfo->computePipeline = pipeline;
             }
         }
     }
@@ -5617,20 +5617,22 @@ class VkDecoderGlobalState::Impl {
     struct CommandBufferInfo {
         std::vector<PreprocessFunc> preprocessFuncs = {};
         std::vector<VkCommandBuffer> subCmds = {};
-        VkDevice device = 0;
-        VkCommandPool cmdPool = nullptr;
-        VkCommandBuffer boxed = nullptr;
-        VkPipeline computePipeline = 0;
+        VkDevice device = VK_NULL_HANDLE;
+        VkCommandPool cmdPool = VK_NULL_HANDLE;
+        VkCommandBuffer boxed = VK_NULL_HANDLE;
+
+        // Most recently bound compute pipeline and descriptor sets. We save it here so that we can
+        // restore it after doing emulated texture decompression.
+        VkPipeline computePipeline = VK_NULL_HANDLE;
         uint32_t firstSet = 0;
-        VkPipelineLayout descriptorLayout = 0;
+        VkPipelineLayout descriptorLayout = VK_NULL_HANDLE;
         std::vector<VkDescriptorSet> descriptorSets;
         std::vector<uint32_t> dynamicOffsets;
-        uint32_t sequenceNumber = 0;
     };
 
     struct CommandPoolInfo {
-        VkDevice device = 0;
-        VkCommandPool boxed = 0;
+        VkDevice device = VK_NULL_HANDLE;
+        VkCommandPool boxed = VK_NULL_HANDLE;
         std::unordered_set<VkCommandBuffer> cmdBuffers = {};
     };
 
