@@ -42,6 +42,7 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/Tracing.h"
 #include "gl/YUVConverter.h"
+#include "gl/glestranslator/EGL/EglGlobalInfo.h"
 #include "gl/gles2_dec/gles2_dec.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
@@ -1947,7 +1948,8 @@ void FrameBuffer::updateYUVTextures(uint32_t type,
 
 #ifdef __APPLE__
     EGLContext prevContext = s_egl.eglGetCurrentContext();
-    void* nativecontext = getDisplay()->getLowLevelContext(prevContext);
+    auto mydisp = EglGlobalInfo::getInstance()->getDisplay(EGL_DEFAULT_DISPLAY);
+    void* nativecontext = mydisp->getLowLevelContext(prevContext);
     struct MediaNativeCallerData callerdata;
     callerdata.ctx = nativecontext;
     callerdata.converter = nsConvertVideoFrameToNV12Textures;
