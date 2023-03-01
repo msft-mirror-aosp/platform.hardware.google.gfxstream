@@ -180,9 +180,6 @@ GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAd
 
 bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size)
 {
-    ALOGV("%s: Ask for block of size 0x%llx\n", __func__,
-         (unsigned long long)size);
-
     destroy();
 
     if (!provider->is_opened()) {
@@ -203,20 +200,12 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
         m_handle = provider->m_handle;
         m_is_shared_mapping = false;
 
-        ALOGV("%s: ioctl allocate returned offset 0x%llx size 0x%llx\n", __func__,
-                (unsigned long long)m_offset,
-                (unsigned long long)m_size);
-
         return true;
     }
 }
 
 bool GoldfishAddressSpaceBlock::claimShared(GoldfishAddressSpaceBlockProvider *provider, uint64_t offset, uint64_t size)
 {
-    ALOGV("%s: Ask to claim region [0x%llx 0x%llx]\n", __func__,
-         (unsigned long long)offset,
-         (unsigned long long)offset + size);
-
     destroy();
 
     if (!provider->is_opened()) {
