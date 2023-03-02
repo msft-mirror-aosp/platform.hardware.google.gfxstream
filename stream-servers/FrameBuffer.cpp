@@ -1258,13 +1258,7 @@ void FrameBuffer::destroyEmulatedEglWindowSurface(HandleType p_surface) {
         return;
     }
     AutoLock mutex(m_lock);
-    auto colorBuffersToCleanup = destroyEmulatedEglWindowSurfaceLocked(p_surface);
-
-    mutex.unlock();
-
-    for (auto handle : colorBuffersToCleanup) {
-        vk::teardownVkColorBuffer(handle);
-    }
+    destroyEmulatedEglWindowSurfaceLocked(p_surface);
 }
 
 std::vector<HandleType> FrameBuffer::destroyEmulatedEglWindowSurfaceLocked(HandleType p_surface) {
@@ -1423,12 +1417,6 @@ void FrameBuffer::drainGlRenderThreadSurfaces() {
         }
     }
     tinfo->m_windowSet.clear();
-
-    m_lock.unlock();
-
-    for (auto handle: colorBuffersToCleanup) {
-        vk::teardownVkColorBuffer(handle);
-    }
 }
 
 int FrameBuffer::openColorBuffer(HandleType p_colorbuffer) {
@@ -1489,12 +1477,6 @@ void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer) {
         if (closeColorBufferLocked(p_colorbuffer)) {
             toCleanup.push_back(p_colorbuffer);
         }
-    }
-
-    mutex.unlock();
-
-    for (auto handle : toCleanup) {
-        vk::teardownVkColorBuffer(handle);
     }
 }
 
@@ -1674,10 +1656,6 @@ void FrameBuffer::cleanupProcGLObjects(uint64_t puid) {
     }
 
     mutex.unlock();
-
-    for (auto handle : colorBuffersToCleanup) {
-        vk::teardownVkColorBuffer(handle);
-    }
 
     for (auto cb : callbacks) {
         cb();
@@ -3033,10 +3011,6 @@ bool FrameBuffer::onLoad(Stream* stream,
 
             lock.unlock();
 
-            for (auto colorBufferHandle : colorBuffersToCleanup) {
-                vk::teardownVkColorBuffer(colorBufferHandle);
-            }
-
             for (auto cb : cleanupCallbacks) {
                 cb();
             }
@@ -3312,12 +3286,7 @@ int FrameBuffer::setDisplayPose(uint32_t displayId,
 void FrameBuffer::sweepColorBuffersLocked() {
     HandleType handleToDestroy;
     while (mOutstandingColorBufferDestroys.tryReceive(&handleToDestroy)) {
-        bool needCleanup = decColorBufferRefCountLocked(handleToDestroy);
-        if (needCleanup) {
-            m_lock.unlock();
-            vk::teardownVkColorBuffer(handleToDestroy);
-            m_lock.lock();
-        }
+        decColorBufferRefCountLocked(handleToDestroy);
     }
 }
 
