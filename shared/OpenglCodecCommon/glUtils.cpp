@@ -1117,7 +1117,7 @@ GLuint glUtilsIndirectStructSize(IndirectCommandType cmdType) {
     return 4;
 }
 
-bool colorRenderableFormat(GLint internalformat, GLenum texturetype, int majorVersion, int minorVersion, bool hasColorBufferFloatExtension, bool hasColorBufferHalfFloatExtension) {
+bool colorRenderableFormat(GLint internalformat, GLenum texturetype, int majorVersion, __attribute__((unused)) int minorVersion, bool hasColorBufferFloatExtension, bool hasColorBufferHalfFloatExtension) {
     switch (internalformat) {
         case GL_RGB:
         case GL_RGBA:
