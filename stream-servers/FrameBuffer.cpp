@@ -960,11 +960,6 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
         }
     }
 
-    if (m_emulationGl && success && redrawSubwindow) {
-        RecursiveScopedContextBind bind(getPbufferSurfaceContextHelper());
-        assert(bind.isOk());
-        s_gles2.glViewport(0, 0, fbw * dpr, fbh * dpr);
-    }
     mutex.unlock();
 
     // Nobody ever checks for the return code, so there will be no retries or
