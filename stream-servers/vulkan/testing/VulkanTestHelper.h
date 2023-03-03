@@ -55,8 +55,14 @@ class VulkanTestHelper {
 
     void initialize(const InitializationOptions& options = {});
 
+    // Destroys all the Vulkan objects. This is normally automatically called by the destructor but
+    // can be called manually to allow checking if there are any validation errors at destruction.
+    void destroy();
+
     // Whether the test should fail if there were Vulkan validation errors. Defaults to true.
     void failOnValidationErrors(bool value) { mFailOnValidationErrors = value; }
+
+    bool hasValidationErrors() const;
 
     // Vulkan helper functions
 
@@ -75,11 +81,17 @@ class VulkanTestHelper {
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
                       VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
+    // Calls vkCmdPipelineBarrier to change an image layout
+    void transitionImageLayout(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout oldLayout,
+                               VkImageLayout newLayout);
+
     // Accessors
     VkDecoderTestDispatch& vk() { return mTestDispatch; }
     VkInstance instance() { return mInstance; }
     VkDevice device() { return mDevice; }
     VkPhysicalDevice physDev() { return mPhysicalDevice; }
+    VkCommandPool commandPool() { return mCommandPool; }
+    VkQueue graphicsQueue() { return mGraphicsQueue; }
 
    private:
     static std::mutex mMutex;  // Locked for the entire lifetime of this class.
