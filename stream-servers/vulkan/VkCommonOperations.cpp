@@ -1823,13 +1823,13 @@ bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
         return false;
     }
 
-    bool use_dedicated = sVkEmulation->useDedicatedAllocations;
+    bool useDedicated = sVkEmulation->useDedicatedAllocations;
 
     res.imageCreateInfoShallow = vk_make_orphan_copy(*imageCi);
     res.currentLayout = res.imageCreateInfoShallow.initialLayout;
     res.currentQueueFamilyIndex = sVkEmulation->queueFamilyIndex;
 
-    if (!use_dedicated && vk->vkGetImageMemoryRequirements2KHR) {
+    if (!useDedicated && vk->vkGetImageMemoryRequirements2KHR) {
         VkMemoryDedicatedRequirements dedicated_reqs{
             VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS, nullptr};
         VkMemoryRequirements2 reqs{VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2, &dedicated_reqs};
@@ -1837,7 +1837,7 @@ bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
         VkImageMemoryRequirementsInfo2 info{VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2,
                                             nullptr, res.image};
         vk->vkGetImageMemoryRequirements2KHR(sVkEmulation->device, &info, &reqs);
-        use_dedicated = dedicated_reqs.prefersDedicatedAllocation;
+        useDedicated = dedicated_reqs.requiresDedicatedAllocation;
         res.memReqs = reqs.memoryRequirements;
     } else {
         vk->vkGetImageMemoryRequirements(sVkEmulation->device, res.image, &res.memReqs);
@@ -1871,7 +1871,7 @@ bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
     bool isHostVisible = memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
     Optional<uint64_t> deviceAlignment =
         isHostVisible ? Optional<uint64_t>(res.memReqs.alignment) : kNullopt;
-    Optional<VkImage> dedicatedImage = use_dedicated ? Optional<VkImage>(res.image) : kNullopt;
+    Optional<VkImage> dedicatedImage = useDedicated ? Optional<VkImage>(res.image) : kNullopt;
     bool allocRes = allocExternalMemory(vk, &res.memory, true /*actuallyExternal*/, deviceAlignment,
                                         kNullopt, dedicatedImage);
 
@@ -2616,7 +2616,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
         // << bufferHandle;
         return false;
     }
-    bool use_dedicated = false;
+    bool useDedicated = false;
     if (vk->vkGetBufferMemoryRequirements2KHR) {
         VkMemoryDedicatedRequirements dedicated_reqs{
             VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS, nullptr};
@@ -2625,7 +2625,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
         VkBufferMemoryRequirementsInfo2 info{VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2,
                                              nullptr, res.buffer};
         vk->vkGetBufferMemoryRequirements2KHR(sVkEmulation->device, &info, &reqs);
-        use_dedicated = dedicated_reqs.prefersDedicatedAllocation;
+        useDedicated = dedicated_reqs.requiresDedicatedAllocation;
         res.memReqs = reqs.memoryRequirements;
     } else {
         vk->vkGetBufferMemoryRequirements(sVkEmulation->device, res.buffer, &res.memReqs);
@@ -2659,7 +2659,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
     bool isHostVisible = memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
     Optional<uint64_t> deviceAlignment =
         isHostVisible ? Optional<uint64_t>(res.memReqs.alignment) : kNullopt;
-    Optional<VkBuffer> dedicated_buffer = use_dedicated ? Optional<VkBuffer>(res.buffer) : kNullopt;
+    Optional<VkBuffer> dedicated_buffer = useDedicated ? Optional<VkBuffer>(res.buffer) : kNullopt;
     bool allocRes = allocExternalMemory(vk, &res.memory, true /* actuallyExternal */,
                                         deviceAlignment, dedicated_buffer);
 
