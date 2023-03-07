@@ -20,7 +20,7 @@ BufferGl::BufferGl(uint64_t size, HandleType handle, ContextHelper* helper)
     : mSize(size), mHandle(handle), mContextHelper(helper) {}
 
 // static
-std::unique_ptr<BufferGl> BufferGl::create(size_t size, HandleType handle, ContextHelper* helper) {
+std::unique_ptr<BufferGl> BufferGl::create(uint64_t size, HandleType handle, ContextHelper* helper) {
     RecursiveScopedContextBind bind(helper);
     if (!bind.isOk()) {
         return NULL;
