@@ -19,6 +19,8 @@
 #include <cstdint>
 #include <memory>
 
+#include "virtgpu_gfxstream_protocol.h"
+
 enum VirtGpuParamId {
     kParam3D,
     kParamCapsetFix,
@@ -157,6 +159,7 @@ class VirtGpuDevice {
     static VirtGpuDevice mInstance;
     int64_t mDeviceHandle;
     struct VirtGpuParam mParams[kParamMax];
+    struct gfxstreamCapset mGfxstreamCapset;
 };
 
 // HACK: We can use android::base::EnumFlags, but we'll have to do more guest
