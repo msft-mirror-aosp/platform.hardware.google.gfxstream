@@ -605,6 +605,14 @@ ContextHelper* EmulationGl::getColorBufferContextHelper() {
     return surfaceGl->getContextHelper();
 }
 
+std::unique_ptr<BufferGl> EmulationGl::createBuffer(uint64_t size, HandleType handle) {
+    return BufferGl::create(size, handle, getColorBufferContextHelper());
+}
+
+std::unique_ptr<BufferGl> EmulationGl::loadBuffer(android::base::Stream* stream) {
+    return BufferGl::onLoad(stream, getColorBufferContextHelper());
+}
+
 std::unique_ptr<ColorBufferGl> EmulationGl::createColorBuffer(uint32_t width, uint32_t height,
                                                               GLenum internalFormat,
                                                               FrameworkFormat frameworkFormat,

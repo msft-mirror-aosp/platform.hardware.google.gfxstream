@@ -25,6 +25,7 @@
 #include <string>
 #include <unordered_set>
 
+#include "BufferGl.h"
 #include "ColorBufferGl.h"
 #include "Compositor.h"
 #include "CompositorGl.h"
@@ -92,6 +93,10 @@ class EmulationGl {
     const std::optional<GlesUuid> getGlesDeviceUuid() const { return mGlesDeviceUuid; }
 
     void setUseBoundSurfaceContextForDisplay(bool use);
+
+    std::unique_ptr<BufferGl> createBuffer(uint64_t size, HandleType handle);
+
+    std::unique_ptr<BufferGl> loadBuffer(android::base::Stream* stream);
 
     std::unique_ptr<ColorBufferGl> createColorBuffer(uint32_t width, uint32_t height,
                                                      GLenum internalFormat,

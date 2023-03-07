@@ -2817,7 +2817,8 @@ bool readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint64_t size, vo
     return true;
 }
 
-bool updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, uint64_t size, void* bytes) {
+bool updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, uint64_t size,
+                           const void* bytes) {
     if (!sVkEmulation || !sVkEmulation->live) {
         VK_COMMON_ERROR("VkEmulation not available.");
         return false;

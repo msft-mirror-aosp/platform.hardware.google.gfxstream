@@ -14,42 +14,48 @@
 
 #pragma once
 
-#include <memory>
-
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
 
+#include <memory>
+
 #include "ContextHelper.h"
 #include "Handle.h"
-#include "snapshot/LazySnapshotObj.h"
+#include "aemu/base/files/Stream.h"
 
-class Buffer : public android::snapshot::LazySnapshotObj<Buffer> {
-  public:
-    static Buffer* create(size_t sizeBytes, HandleType hndl, ContextHelper* helper);
+namespace gfxstream {
 
-    ~Buffer() = default;
+class BufferGl {
+   public:
+    static std::unique_ptr<BufferGl> create(uint64_t sizeBytes, HandleType hndl,
+                                            ContextHelper* helper);
 
-    HandleType getHndl() const { return m_handle; }
-    size_t getSize() const { return m_sizeBytes; }
+    ~BufferGl() = default;
+
+    HandleType getHndl() const { return mHandle; }
+    uint64_t getSize() const { return mSize; }
 
     void read(uint64_t offset, uint64_t size, void* bytes);
 
-    void subUpdate(uint64_t offset, uint64_t size, void* bytes);
+    void subUpdate(uint64_t offset, uint64_t size, const void* bytes);
 
-  protected:
-    Buffer(size_t sizeBytes, HandleType hndl, ContextHelper* helper)
-        : m_handle(hndl), m_sizeBytes(sizeBytes), m_helper(helper) {}
+    void onSave(android::base::Stream* stream);
 
-  private:
+    static std::unique_ptr<BufferGl> onLoad(android::base::Stream* stream, ContextHelper* helper);
+
+   protected:
+    BufferGl(uint64_t size, HandleType hndl, ContextHelper* helper);
+
+   private:
     /*
     // TODO: GL_EXT_external_buffer
     GLuint m_buffer = 0;
     */
-    HandleType m_handle;
-    size_t m_sizeBytes;
-    ContextHelper* m_helper = nullptr;
+    const uint64_t mSize;
+    const HandleType mHandle;
+    ContextHelper* mContextHelper = nullptr;
 };
 
-typedef std::shared_ptr<Buffer> BufferPtr;
+}  // namespace gfxstream

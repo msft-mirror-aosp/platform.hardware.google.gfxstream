@@ -14,14 +14,19 @@
 
 #include "BufferGl.h"
 
+namespace gfxstream {
+
+BufferGl::BufferGl(uint64_t size, HandleType handle, ContextHelper* helper)
+    : mSize(size), mHandle(handle), mContextHelper(helper) {}
+
 // static
-Buffer* Buffer::create(size_t size, HandleType handle, ContextHelper* helper) {
-    RecursiveScopedContextBind context(helper);
-    if (!context.isOk()) {
+std::unique_ptr<BufferGl> BufferGl::create(size_t size, HandleType handle, ContextHelper* helper) {
+    RecursiveScopedContextBind bind(helper);
+    if (!bind.isOk()) {
         return NULL;
     }
 
-    Buffer* buffer = new Buffer(size, handle, helper);
+    std::unique_ptr<BufferGl> buffer(new BufferGl(size, handle, helper));
 
     /*
     // TODO: GL_EXT_external_buffer
@@ -33,13 +38,13 @@ Buffer* Buffer::create(size_t size, HandleType handle, ContextHelper* helper) {
     return buffer;
 }
 
-void Buffer::read(uint64_t offset, uint64_t size, void* bytes) {
-    RecursiveScopedContextBind context(m_helper);
-    if (!context.isOk()) {
+void BufferGl::read(uint64_t offset, uint64_t size, void* bytes) {
+    RecursiveScopedContextBind bind(mContextHelper);
+    if (!bind.isOk()) {
         return;
     }
 
-    // Note: Gfxstream does not yet support GL_EXT_external_buffer so Buffer reads are
+    // Note: Gfxstream does not yet support GL_EXT_external_buffer so BufferGl reads are
     // currently a no-op from the host point-of-view when the guest is not using ANGLE.
     // Instead, the guest shadow buffer contains the source of truth of the buffer
     // contents.
@@ -59,13 +64,13 @@ void Buffer::read(uint64_t offset, uint64_t size, void* bytes) {
     */
 }
 
-void Buffer::subUpdate(uint64_t offset, uint64_t size, void* bytes) {
-    RecursiveScopedContextBind context(m_helper);
-    if (!context.isOk()) {
+void BufferGl::subUpdate(uint64_t offset, uint64_t size, const void* bytes) {
+    RecursiveScopedContextBind bind(mContextHelper);
+    if (!bind.isOk()) {
         return;
     }
 
-    // Note: Gfxstream does not yet support GL_EXT_external_buffer so Buffer writes are
+    // Note: Gfxstream does not yet support GL_EXT_external_buffer so BufferGl writes are
     // currently a no-op from the host point-of-view when the guest is not using ANGLE.
     // Instead, the guest shadow buffer contains the source of truth of the buffer
     // contents.
@@ -82,3 +87,17 @@ void Buffer::subUpdate(uint64_t offset, uint64_t size, void* bytes) {
     s_gles2.glBindBuffer(GL_ARRAY_BUFFER, 0);
     */
 }
+
+/*static*/
+std::unique_ptr<BufferGl> BufferGl::onLoad(android::base::Stream* stream, ContextHelper* helper) {
+    const auto size = static_cast<uint64_t>(stream->getBe64());
+    const auto handle = static_cast<HandleType>(stream->getBe32());
+    return std::unique_ptr<BufferGl>(new BufferGl(size, handle, helper));
+}
+
+void BufferGl::onSave(android::base::Stream* stream) {
+    stream->putBe64(mSize);
+    stream->putBe32(mHandle);
+}
+
+}  // namespace gfxstream
