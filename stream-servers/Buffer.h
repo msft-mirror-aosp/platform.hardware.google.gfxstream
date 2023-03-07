@@ -51,9 +51,9 @@ class Buffer : public android::snapshot::LazySnapshotObj<Buffer> {
     bool updateFromBytes(uint64_t offset, uint64_t size, const void* bytes);
 
    private:
-    Buffer(HandleType handle, std::size_t size);
+    Buffer(HandleType handle, uint64_t size);
 
-    const uint32_t mSize;
+    const uint64_t mSize;
     const HandleType mHandle;
 
     // If GL emulation is enabled.
