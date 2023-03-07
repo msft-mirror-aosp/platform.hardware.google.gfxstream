@@ -246,9 +246,6 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
             GL_LOG("Doesn't support id properties, no vulkan device UUID");
             fprintf(stderr, "%s: Doesn't support id properties, no vulkan device UUID\n", __func__);
         }
-        INFO("Gfxstream initialized VK emulation.");
-    } else {
-        INFO("Gfxstream skipping VK emulation.");
     }
 
     // Use ANGLE's EGL null backend to prevent from accidentally calling into EGL.
@@ -267,9 +264,6 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
             ERR("Failed to initialize GL emulation.");
             return false;
         }
-        INFO("Gfxstream initialized GL emulation.");
-    } else {
-        INFO("Gfxstream skipping GL emulation.");
     }
 
     fb->m_guestUsesAngle =
