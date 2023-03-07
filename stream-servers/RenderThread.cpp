@@ -17,14 +17,10 @@
 
 #include "ChannelStream.h"
 #include "FrameBuffer.h"
-#include "OpenGLESDispatch/EGLDispatch.h"
-#include "OpenGLESDispatch/GLESv1Dispatch.h"
-#include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "ReadBuffer.h"
 #include "RenderChannelImpl.h"
 #include "RenderControl.h"
 #include "RenderThreadInfo.h"
-#include "RendererImpl.h"
 #include "RingStream.h"
 #include "VkDecoderContext.h"
 #include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
@@ -34,13 +30,11 @@
 #include "aemu/base/Metrics.h"
 #include "aemu/base/files/StreamSerializing.h"
 #include "aemu/base/system/System.h"
-#include "aemu/base/Tracing.h"
 #include "host-common/feature_control.h"
 #include "host-common/logging.h"
 #include "vulkan/VkCommonOperations.h"
 
 #define EMUGL_DEBUG_LEVEL 0
-#include "host-common/crash_reporter.h"
 #include "host-common/debug.h"
 
 #ifndef _WIN32
