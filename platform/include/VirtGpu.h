@@ -142,9 +142,9 @@ class VirtGpuDevice {
 
     uint64_t getParam(enum VirtGpuParamId param);
 
-    VirtGpuBlobPtr createBlob(struct VirtGpuCreateBlob& blobCreate);
+    VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate);
     VirtGpuBlobPtr createPipeBlob(uint32_t size);
-    VirtGpuBlobPtr importBlob(struct VirtGpuExternalHandle& handle);
+    VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle);
 
     int execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob);
 
