@@ -2991,38 +2991,6 @@ class VkDecoderGlobalState::Impl {
         };
 #endif
 
-        VkMemoryPropertyFlags memoryPropertyFlags;
-        {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            auto* physdev = android::base::find(mDeviceToPhysicalDevice, device);
-            if (!physdev) {
-                // User app gave an invalid VkDevice, but we don't really want to crash here.
-                // We should allow invalid apps.
-                return VK_ERROR_DEVICE_LOST;
-            }
-
-            auto* physdevInfo = android::base::find(mPhysdevInfo, *physdev);
-            if (!physdevInfo) {
-                // If this fails, we crash, as we assume that the memory properties map should have
-                // the info.
-                fprintf(stderr, "Error: Could not get memory properties for VkPhysicalDevice\n");
-            }
-
-            // If the memory was allocated with a type index that corresponds
-            // to a memory type that is host visible, let's also map the entire
-            // thing.
-
-            // First, check validity of the user's type index.
-            if (localAllocInfo.memoryTypeIndex >= physdevInfo->memoryProperties.memoryTypeCount) {
-                // Continue allowing invalid behavior.
-                return VK_ERROR_INCOMPATIBLE_DRIVER;
-            }
-            memoryPropertyFlags =
-                physdevInfo->memoryProperties.memoryTypes[localAllocInfo.memoryTypeIndex]
-                    .propertyFlags;
-        }
-
         void* mappedPtr = nullptr;
         ManagedDescriptor externalMemoryHandle;
         if (importCbInfoPtr) {
@@ -3103,6 +3071,38 @@ class VkDecoderGlobalState::Impl {
 #endif
                 vk_append_struct(&structChainIter, &importInfo);
             }
+        }
+
+        VkMemoryPropertyFlags memoryPropertyFlags;
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+
+            auto* physdev = android::base::find(mDeviceToPhysicalDevice, device);
+            if (!physdev) {
+                // User app gave an invalid VkDevice, but we don't really want to crash here.
+                // We should allow invalid apps.
+                return VK_ERROR_DEVICE_LOST;
+            }
+
+            auto* physdevInfo = android::base::find(mPhysdevInfo, *physdev);
+            if (!physdevInfo) {
+                // If this fails, we crash, as we assume that the memory properties map should have
+                // the info.
+                fprintf(stderr, "Error: Could not get memory properties for VkPhysicalDevice\n");
+            }
+
+            // If the memory was allocated with a type index that corresponds
+            // to a memory type that is host visible, let's also map the entire
+            // thing.
+
+            // First, check validity of the user's type index.
+            if (localAllocInfo.memoryTypeIndex >= physdevInfo->memoryProperties.memoryTypeCount) {
+                // Continue allowing invalid behavior.
+                return VK_ERROR_INCOMPATIBLE_DRIVER;
+            }
+            memoryPropertyFlags =
+                physdevInfo->memoryProperties.memoryTypes[localAllocInfo.memoryTypeIndex]
+                    .propertyFlags;
         }
 
         if (shouldUseDedicatedAllocInfo) {
