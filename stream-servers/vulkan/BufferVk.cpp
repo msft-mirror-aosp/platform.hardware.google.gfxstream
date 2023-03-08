@@ -20,7 +20,7 @@ namespace gfxstream {
 
 /*static*/
 std::unique_ptr<BufferVk> BufferVk::create(uint32_t handle, uint64_t size, bool vulkanOnly) {
-    if (!goldfish_vk::setupVkBuffer(handle, size, vulkanOnly,
+    if (!goldfish_vk::setupVkBuffer(size, handle, vulkanOnly,
                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
         ERR("Failed to create BufferVk:%d", handle);
         return nullptr;
