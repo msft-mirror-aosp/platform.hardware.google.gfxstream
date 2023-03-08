@@ -37,11 +37,11 @@ VirtGpuBlobPtr VirtGpuDevice::createPipeBlob(uint32_t size) {
     return nullptr;
 }
 
-VirtGpuBlobPtr VirtGpuDevice::createBlob(struct VirtGpuCreateBlob& blobCreate) {
+VirtGpuBlobPtr VirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
     return nullptr;
 }
 
-VirtGpuBlobPtr VirtGpuDevice::importBlob(struct VirtGpuExternalHandle& handle) {
+VirtGpuBlobPtr VirtGpuDevice::importBlob(const struct VirtGpuExternalHandle& handle) {
     return nullptr;
 }
 
