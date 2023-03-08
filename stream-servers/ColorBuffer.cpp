@@ -322,7 +322,7 @@ bool ColorBuffer::flushFromVkBytes(const void* bytes, size_t bytesSize) {
     }
 
     if (mColorBufferGl) {
-        if (mColorBufferGl->replaceContents(bytes, bytesSize)) {
+        if (!mColorBufferGl->replaceContents(bytes, bytesSize)) {
             ERR("Failed to update ColorBuffer:%d GL backing from VK bytes.", mHandle);
             return false;
         }
