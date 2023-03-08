@@ -1217,7 +1217,7 @@ bool pixelInternalFormat(GLenum internalformat) {
 }
 
 
-bool textureBufferFormat(GL2Encoder* ctx, GLenum internalFormat) {
+bool textureBufferFormat(__attribute__((unused)) GL2Encoder* ctx, GLenum internalFormat) {
     switch(internalFormat) {
     LIST_VALID_TEX_BUFFER_FORMATS(VALID_INTERNAL_FORMAT)
     default:
