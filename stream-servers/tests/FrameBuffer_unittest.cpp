@@ -12,36 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "aemu/base/files/PathUtils.h"
+#include "aemu/base/files/StdioStream.h"
+#include "aemu/base/GLObjectCounter.h"
+#include "aemu/base/system/System.h"
+#include "aemu/base/testing/TestSystem.h"
+#include "host-common/GraphicsAgentFactory.h"
+#include "host-common/multi_display_agent.h"
+#include "host-common/testing/MockGraphicsAgentFactory.h"
+#include "host-common/window_agent.h"
+#include "host-common/MultiDisplay.h"
+#include "host-common/opengl/misc.h"
+#include "snapshot/TextureLoader.h"
+#include "snapshot/TextureSaver.h"
+
+#include "GLSnapshotTesting.h"
+#include "GLTestUtils.h"
+#include "Standalone.h"
+
+#include <gtest/gtest.h>
+#include <memory>
+
 #ifdef _MSC_VER
 #include "aemu/base/msvc.h"
 #else
 #include <sys/time.h>
 #endif
-#include <gtest/gtest.h>
 
-#include <memory>
-
-#include "GLSnapshotTesting.h"
-#include "GLTestUtils.h"
-#include "Standalone.h"
 #ifdef __linux__
 #include "X11TestingSupport.h"
 #endif
-#include "aemu/base/GLObjectCounter.h"
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/files/StdioStream.h"
-#include "aemu/base/misc/StringUtils.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/testing/TestSystem.h"
-#include "host-common/GraphicsAgentFactory.h"
-#include "host-common/MultiDisplay.h"
-#include "host-common/feature_control.h"
-#include "host-common/multi_display_agent.h"
-#include "host-common/opengl/misc.h"
-#include "host-common/testing/MockGraphicsAgentFactory.h"
-#include "host-common/window_agent.h"
-#include "snapshot/TextureLoader.h"
-#include "snapshot/TextureSaver.h"
 
 using android::base::StdioStream;
 using android::snapshot::TextureLoader;
@@ -49,44 +49,21 @@ using android::snapshot::TextureSaver;
 using gfxstream::GLESApi_3_0;
 
 namespace emugl {
-namespace {
 
-std::string GetEnabledDisabledString(bool enabled) { return enabled ? "Enabled" : "Disabled"; }
+class FrameBufferTest : public ::testing::Test {
+public:
+    FrameBufferTest() = default;
 
-struct FrameBufferTestParams {
-    std::map<Feature, bool> features;
+protected:
 
-    std::string ToString() const {
-        std::vector<std::string> featureStrings;
-        for (const auto& [feature, featureEnabled] : features) {
-            featureStrings.push_back(feature_name(feature) +
-                                     GetEnabledDisabledString(featureEnabled));
-        }
-        return android::base::Join(featureStrings, "_");
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, const FrameBufferTestParams& params) {
-        return os << params.ToString();
-    }
-};
-
-std::string GetTestName(const ::testing::TestParamInfo<FrameBufferTestParams>& info) {
-    return info.param.ToString();
-}
-
-class FrameBufferTest : public ::testing::TestWithParam<FrameBufferTestParams> {
-   protected:
     static void SetUpTestSuite() {
         android::emulation::injectGraphicsAgents(
                 android::emulation::MockGraphicsAgentFactory());
     }
 
-    virtual void SetUp() override {
-        const FrameBufferTestParams params = GetParam();
-        for (const auto& [feature, featureEnabled] : params.features) {
-            feature_set_enabled_override(feature, featureEnabled);
-        }
+    static void TearDownTestSuite() { }
 
+    virtual void SetUp() override {
         // setupStandaloneLibrarySearchPaths();
         emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
         emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
@@ -160,10 +137,8 @@ class FrameBufferTest : public ::testing::TestWithParam<FrameBufferTestParams> {
     }
 
     void loadSnapshot() {
-        if (!feature_is_enabled(kFeature_GuestUsesAngle)) {
-            // unbind so load will destroy previous objects
-            mFb->bindContext(0, 0, 0);
-        }
+        // unbind so load will destroy previous objects
+        mFb->bindContext(0, 0, 0);
 
         std::unique_ptr<StdioStream> m_stream(new StdioStream(
                     android_fopen(mSnapshotFile.c_str(), "rb"), StdioStream::kOwner));
@@ -192,14 +167,12 @@ class FrameBufferTest : public ::testing::TestWithParam<FrameBufferTestParams> {
     std::string mTextureFile;
 };
 
-// Tests which require host GL/EGL.
-class FrameBufferGlTest : public FrameBufferTest {};
-
 // Tests that framebuffer initialization and finalization works.
-TEST_P(FrameBufferTest, FrameBufferBasic) {}
+TEST_F(FrameBufferTest, FrameBufferBasic) {
+}
 
 // Tests the creation of a single color buffer for the framebuffer.
-TEST_P(FrameBufferTest, CreateColorBuffer) {
+TEST_F(FrameBufferTest, CreateColorBuffer) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     EXPECT_NE(0, handle);
@@ -207,7 +180,7 @@ TEST_P(FrameBufferTest, CreateColorBuffer) {
 }
 
 // Tests both creation and closing a color buffer.
-TEST_P(FrameBufferTest, CreateCloseColorBuffer) {
+TEST_F(FrameBufferTest, CreateCloseColorBuffer) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     EXPECT_NE(0, handle);
@@ -215,7 +188,7 @@ TEST_P(FrameBufferTest, CreateCloseColorBuffer) {
 }
 
 // Tests create, open, and close color buffer.
-TEST_P(FrameBufferTest, CreateOpenCloseColorBuffer) {
+TEST_F(FrameBufferTest, CreateOpenCloseColorBuffer) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     EXPECT_NE(0, handle);
@@ -225,7 +198,7 @@ TEST_P(FrameBufferTest, CreateOpenCloseColorBuffer) {
 
 // Tests that the color buffer can be update with a test pattern and that
 // the test pattern can be read back from the color buffer.
-TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer) {
+TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     EXPECT_NE(0, handle);
@@ -242,7 +215,7 @@ TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer) {
     mFb->closeColorBuffer(handle);
 }
 
-TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYUV420) {
+TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYUV420) {
     HandleType handle = mFb->createColorBuffer(mWidth, mHeight, GL_RGBA,
                                                FRAMEWORK_FORMAT_YUV_420_888);
     EXPECT_NE(0, handle);
@@ -269,7 +242,7 @@ TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYUV420) {
     mFb->closeColorBuffer(handle);
 }
 
-TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadNV12) {
+TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadNV12) {
     HandleType handle = mFb->createColorBuffer(mWidth, mHeight, GL_RGBA,
                                                FRAMEWORK_FORMAT_NV12);
     EXPECT_NE(0, handle);
@@ -296,14 +269,7 @@ TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadNV12) {
     mFb->closeColorBuffer(handle);
 }
 
-TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadNV12TOYUV420) {
-    if (feature_is_enabled(kFeature_GuestUsesAngle)) {
-        GTEST_SKIP() << "TODO: ColorBufferGl and ColorBufferVk seem to have "
-                     << "different expectations about the underlying format "
-                     << "of FRAMEWORK_FORMAT_YUV_420_888 which require "
-                     << "different padding for the `forRead` below.";
-    }
-
+TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadNV12TOYUV420) {
     // nv12
     mWidth = 8;
     mHeight = 8;
@@ -357,7 +323,7 @@ TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadNV12TOYUV420) {
     mFb->closeColorBuffer(handle_yuv420);
 }
 
-TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYV12) {
+TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYV12) {
     mWidth = 20 * 16;
     HandleType handle = mFb->createColorBuffer(mWidth, mHeight, GL_RGBA,
                                                FRAMEWORK_FORMAT_YV12);
@@ -388,7 +354,7 @@ TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYV12) {
 // bug: 110105029
 // Tests that color buffer updates should not fail if there is a format change.
 // Needed to accomodate format-changing behavior from the guest gralloc.
-TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
+TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     EXPECT_NE(0, handle);
@@ -407,25 +373,25 @@ TEST_P(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
 }
 
 // Tests obtaining EGL configs from FrameBuffer.
-TEST_P(FrameBufferGlTest, Configs) {
+TEST_F(FrameBufferTest, Configs) {
     const EmulatedEglConfigList* configs = mFb->getConfigs();
     EXPECT_GE(configs->size(), 0);
 }
 
 // Tests creating GL context from FrameBuffer.
-TEST_P(FrameBufferGlTest, CreateEmulatedEglContext) {
+TEST_F(FrameBufferTest, CreateEmulatedEglContext) {
     HandleType handle = mFb->createEmulatedEglContext(0, 0, GLESApi_3_0);
     EXPECT_NE(0, handle);
 }
 
 // Tests creating window surface from FrameBuffer.
-TEST_P(FrameBufferGlTest, CreateEmulatedEglWindowSurface) {
+TEST_F(FrameBufferTest, CreateEmulatedEglWindowSurface) {
     HandleType handle = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
     EXPECT_NE(0, handle);
 }
 
 // Tests eglMakeCurrent from FrameBuffer.
-TEST_P(FrameBufferGlTest, CreateBindEmulatedEglContext) {
+TEST_F(FrameBufferTest, CreateBindEmulatedEglContext) {
     HandleType context = mFb->createEmulatedEglContext(0, 0, GLESApi_3_0);
     HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
     EXPECT_TRUE(mFb->bindContext(context, surface, surface));
@@ -438,7 +404,7 @@ TEST_P(FrameBufferGlTest, CreateBindEmulatedEglContext) {
 // ANativeWindow::queueBuffer in the guest.
 // 3. Calls post() with the resulting color buffer, the backing operation of fb device "post"
 // in the guest.
-TEST_P(FrameBufferGlTest, BasicBlit) {
+TEST_F(FrameBufferTest, BasicBlit) {
     auto gl = LazyLoadedGLESv2Dispatch::get();
 
     HandleType colorBuffer =
@@ -492,7 +458,7 @@ TEST_P(FrameBufferGlTest, BasicBlit) {
 }
 
 // Tests that snapshot works with an empty FrameBuffer.
-TEST_P(FrameBufferGlTest, SnapshotSmokeTest) {
+TEST_F(FrameBufferTest, SnapshotSmokeTest) {
     saveSnapshot();
     loadSnapshot();
 }
@@ -500,7 +466,7 @@ TEST_P(FrameBufferGlTest, SnapshotSmokeTest) {
 // Tests that the snapshot restores the clear color state, by changing the clear
 // color in between save and load. If this fails, it means failure to restore a
 // number of different states from GL contexts.
-TEST_P(FrameBufferGlTest, SnapshotPreserveColorClear) {
+TEST_F(FrameBufferTest, SnapshotPreserveColorClear) {
     HandleType context = mFb->createEmulatedEglContext(0, 0, GLESApi_3_0);
     HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
     EXPECT_TRUE(mFb->bindContext(context, surface, surface));
@@ -525,11 +491,7 @@ TEST_P(FrameBufferGlTest, SnapshotPreserveColorClear) {
 // Tests that snapshot works to save the state of a single ColorBuffer; we
 // upload a test pattern to the ColorBuffer, take a snapshot, load it, and
 // verify that the contents are the same.
-TEST_P(FrameBufferTest, SnapshotSingleColorBuffer) {
-    if (feature_is_enabled(kFeature_GuestUsesAngle)) {
-        GTEST_SKIP() << "TODO: ColorBufferVk does not yet have snapshot support.";
-    }
-
+TEST_F(FrameBufferTest, SnapshotSingleColorBuffer) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
 
@@ -551,14 +513,9 @@ TEST_P(FrameBufferTest, SnapshotSingleColorBuffer) {
 // Tests that the ColorBuffer is successfully updated even if a reformat happens
 // on restore; the reformat may mess up the texture restore logic.
 // In ColorBuffer::subUpdate, this test is known to fail if touch() is moved after the reformat.
-TEST_P(FrameBufferTest, SnapshotColorBufferSubUpdateRestore) {
-    if (feature_is_enabled(kFeature_GuestUsesAngle)) {
-        GTEST_SKIP() << "TODO: ColorBufferVk does not yet have snapshot support.";
-    }
-
+TEST_F(FrameBufferTest, SnapshotColorBufferSubUpdateRestore) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    ASSERT_NE(handle, 0);
 
     saveSnapshot();
     loadSnapshot();
@@ -576,7 +533,7 @@ TEST_P(FrameBufferTest, SnapshotColorBufferSubUpdateRestore) {
 
 // bug: 111558407
 // Tests that ColorBuffer's blit path is retained on save/restore.
-TEST_P(FrameBufferGlTest, SnapshotFastBlitRestore) {
+TEST_F(FrameBufferTest, SnapshotFastBlitRestore) {
     HandleType handle = mFb->createColorBuffer(mWidth, mHeight, GL_RGBA,
                                                FRAMEWORK_FORMAT_GL_COMPATIBLE);
 
@@ -599,7 +556,7 @@ TEST_P(FrameBufferGlTest, SnapshotFastBlitRestore) {
 // Tests rate of draw calls with no guest/host communication, but with translator.
 static constexpr uint32_t kDrawCallLimit = 50000;
 
-TEST_P(FrameBufferGlTest, DrawCallRate) {
+TEST_F(FrameBufferTest, DrawCallRate) {
     HandleType colorBuffer =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     HandleType context = mFb->createEmulatedEglContext(0, 0, GLESApi_3_0);
@@ -684,7 +641,7 @@ TEST_P(FrameBufferGlTest, DrawCallRate) {
 
     auto cpuTimeStart = android::base::cpuTime();
 
-    fprintf(stderr, "%s: transform loc %d\n", __func__, transformLoc);
+fprintf(stderr, "%s: transform loc %d\n", __func__, transformLoc);
 
     while (drawCount < kDrawCallLimit) {
         gl->glUniformMatrix4fv(transformLoc, 1, GL_FALSE, matrix);
@@ -723,7 +680,7 @@ TEST_P(FrameBufferGlTest, DrawCallRate) {
 }
 
 // Tests rate of draw calls with only the host driver and no translator.
-TEST_P(FrameBufferGlTest, HostDrawCallRate) {
+TEST_F(FrameBufferTest, HostDrawCallRate) {
     HandleType colorBuffer =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     HandleType context = mFb->createEmulatedEglContext(0, 0, GLESApi_3_0);
@@ -760,7 +717,7 @@ TEST_P(FrameBufferGlTest, HostDrawCallRate) {
 }
 
 // Tests Vulkan interop query.
-TEST_P(FrameBufferGlTest, VulkanInteropQuery) {
+TEST_F(FrameBufferTest, VulkanInteropQuery) {
     auto egl = LazyLoadedEGLDispatch::get();
 
     EXPECT_NE(nullptr, egl->eglQueryVulkanInteropSupportANDROID);
@@ -773,7 +730,7 @@ TEST_P(FrameBufferGlTest, VulkanInteropQuery) {
 }
 
 // Tests ColorBuffer with GL_BGRA input.
-TEST_P(FrameBufferTest, CreateColorBufferBGRA) {
+TEST_F(FrameBufferTest, CreateColorBufferBGRA) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_BGRA_EXT, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     EXPECT_NE(0, handle);
@@ -782,7 +739,7 @@ TEST_P(FrameBufferTest, CreateColorBufferBGRA) {
 
 // Test ColorBuffer with GL_RGBA, but read back as GL_BGRA, so that R/B are switched.
 // TODO: This doesn't work on NVIDIA EGL, it issues GL_INVALID_OPERATION if the format doesn't match.
-TEST_P(FrameBufferTest, DISABLED_ReadColorBufferSwitchRedBlue) {
+TEST_F(FrameBufferTest, DISABLED_ReadColorBufferSwitchRedBlue) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     EXPECT_NE(0, handle);
@@ -818,14 +775,14 @@ TEST_P(FrameBufferTest, DISABLED_ReadColorBufferSwitchRedBlue) {
     mFb->closeColorBuffer(handle);
 }
 
-TEST_P(FrameBufferTest, CreateMultiDisplay) {
+TEST_F(FrameBufferTest, CreateMultiDisplay) {
     uint32_t id = 1;
     mFb->createDisplay(&id);
     EXPECT_EQ(0, mFb->createDisplay(&id));
     EXPECT_EQ(0, mFb->destroyDisplay(id));
 }
 
-TEST_P(FrameBufferTest, BindMultiDisplayColorBuffer) {
+TEST_F(FrameBufferTest, BindMultiDisplayColorBuffer) {
     uint32_t id = 2;
     EXPECT_EQ(0, mFb->createDisplay(&id));
     uint32_t handle =
@@ -842,7 +799,7 @@ TEST_P(FrameBufferTest, BindMultiDisplayColorBuffer) {
     EXPECT_EQ(0, mFb->destroyDisplay(id));
 }
 
-TEST_P(FrameBufferTest, SetMultiDisplayPosition) {
+TEST_F(FrameBufferTest, SetMultiDisplayPosition) {
     uint32_t id = FrameBuffer::s_invalidIdMultiDisplay;
     mFb->createDisplay(&id);
     EXPECT_NE(0, id);
@@ -856,7 +813,7 @@ TEST_P(FrameBufferTest, SetMultiDisplayPosition) {
     EXPECT_EQ(0, mFb->destroyDisplay(id));
 }
 
-TEST_P(FrameBufferGlTest, ComposeMultiDisplay) {
+TEST_F(FrameBufferTest, ComposeMultiDisplay) {
     LazyLoadedGLESv2Dispatch::get();
 
     HandleType context = mFb->createEmulatedEglContext(0, 0, GLESApi_3_0);
@@ -919,7 +876,7 @@ TEST_P(FrameBufferGlTest, ComposeMultiDisplay) {
 #ifdef GFXSTREAM_HAS_X11
 // Tests basic pixmap import. Can we import a native pixmap and successfully
 // upload and read back some color?
-TEST_P(FrameBufferTest, PixmapImport_Basic) {
+TEST_F(FrameBufferTest, PixmapImport_Basic) {
     const int kWidth = 16;
     const int kHeight = 16;
     const int kBytesPerPixel = 4;
@@ -955,7 +912,7 @@ TEST_P(FrameBufferTest, PixmapImport_Basic) {
 
 // Similar to BasicBlit, except the color buffer is backed by a pixmap.
 // Can we render to the pixmap and read back contents?
-TEST_P(FrameBufferGlTest, PixmapImport_Blit) {
+TEST_F(FrameBufferTest, PixmapImport_Blit) {
     // Only run this test on display :0.
     auto disp =  android::base::getEnvironmentVariable("DISPLAY");
     if (disp != ":0" ) {
@@ -1024,33 +981,4 @@ TEST_P(FrameBufferGlTest, PixmapImport_Blit) {
     freeNativePixmap(pixmap);
 }
 #endif
-
-INSTANTIATE_TEST_CASE_P(FrameBufferTests, FrameBufferTest,
-                        ::testing::ValuesIn({FrameBufferTestParams{
-                                                 .features =
-                                                     {
-                                                         {kFeature_GuestUsesAngle, true},
-                                                         {kFeature_Vulkan, true},
-                                                     },
-                                             },
-                                             FrameBufferTestParams{
-                                                 .features =
-                                                     {
-                                                         {kFeature_GuestUsesAngle, false},
-                                                     },
-                                             }}),
-                        &GetTestName);
-
-INSTANTIATE_TEST_CASE_P(FrameBufferTests, FrameBufferGlTest,
-                        ::testing::ValuesIn({
-                            FrameBufferTestParams{
-                                .features =
-                                    {
-                                        {kFeature_GuestUsesAngle, false},
-                                    },
-                            },
-                        }),
-                        &GetTestName);
-
-}  // namespace
 }  // namespace emugl
