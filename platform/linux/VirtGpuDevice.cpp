@@ -125,7 +125,7 @@ VirtGpuBlobPtr VirtGpuDevice::createPipeBlob(uint32_t size) {
                                          static_cast<uint64_t>(size));
 }
 
-VirtGpuBlobPtr VirtGpuDevice::createBlob(struct VirtGpuCreateBlob& blobCreate) {
+VirtGpuBlobPtr VirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
     int ret;
     struct drm_virtgpu_resource_create_blob create = {0};
 
@@ -144,7 +144,7 @@ VirtGpuBlobPtr VirtGpuDevice::createBlob(struct VirtGpuCreateBlob& blobCreate) {
                                          blobCreate.size);
 }
 
-VirtGpuBlobPtr VirtGpuDevice::importBlob(struct VirtGpuExternalHandle& handle) {
+VirtGpuBlobPtr VirtGpuDevice::importBlob(const struct VirtGpuExternalHandle& handle) {
     struct drm_virtgpu_resource_info info = {0};
     uint32_t blobHandle;
     int ret;
