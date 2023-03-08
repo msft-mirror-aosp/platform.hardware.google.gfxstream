@@ -31,7 +31,7 @@
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/opengl/misc.h"
 
-#define DEBUG_CB_FBO 1
+#define DEBUG_CB_FBO 0
 
 using android::base::ManagedDescriptor;
 using emugl::ABORT_REASON_OTHER;
