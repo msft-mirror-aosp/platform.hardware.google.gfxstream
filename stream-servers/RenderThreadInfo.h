@@ -23,7 +23,6 @@
 #include "aemu/base/files/Stream.h"
 #include "renderControl_dec/renderControl_dec.h"
 #include "RenderThreadInfoGl.h"
-#include "RenderThreadInfoMagma.h"
 #include "RenderThreadInfoVk.h"
 
 // A class used to model the state of each RenderThread related
@@ -52,7 +51,6 @@ struct RenderThreadInfo {
 
     std::optional<RenderThreadInfoGl> m_glInfo;
     std::optional<goldfish_vk::RenderThreadInfoVk> m_vkInfo;
-    std::optional<RenderThreadInfoMagma> m_magmaInfo;
 
     // Whether this thread was used to perform composition.
     bool m_isCompositionThread = false;
