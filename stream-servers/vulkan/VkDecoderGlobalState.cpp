@@ -327,7 +327,7 @@ class VkDecoderGlobalState::Impl {
         mPhysicalDeviceToInstance.clear();
         mQueueInfo.clear();
         mBufferInfo.clear();
-        mMapInfo.clear();
+        mMemoryInfo.clear();
         mShaderModuleInfo.clear();
         mPipelineCacheInfo.clear();
         mPipelineInfo.clear();
@@ -1616,11 +1616,11 @@ class VkDecoderGlobalState::Impl {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
         if (!deviceInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
-        auto* mapInfo = android::base::find(mMapInfo, memory);
-        if (!mapInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+        auto* memoryInfo = android::base::find(mMemoryInfo, memory);
+        if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 #ifdef VK_MVK_moltenvk
-        if (mapInfo->mtlTexture) {
-            result = m_vk->vkSetMTLTextureMVK(image, mapInfo->mtlTexture);
+        if (memoryInfo->mtlTexture) {
+            result = m_vk->vkSetMTLTextureMVK(image, memoryInfo->mtlTexture);
             if (result != VK_SUCCESS) {
                 fprintf(stderr, "vkSetMTLTexture failed\n");
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -2700,7 +2700,7 @@ class VkDecoderGlobalState::Impl {
         // Perform CPU decompression of ASTC textures, if enabled
         if (cmpInfo.canDecompressOnCpu()) {
             // Get a pointer to the compressed image memory
-            const MappedMemoryInfo* memoryInfo = android::base::find(mMapInfo, bufferInfo->memory);
+            const MemoryInfo* memoryInfo = android::base::find(mMemoryInfo, bufferInfo->memory);
             if (!memoryInfo) {
                 WARN("ASTC CPU decompression: couldn't find mapped memory info");
                 return;
@@ -2837,7 +2837,7 @@ class VkDecoderGlobalState::Impl {
             // "while GLDirectMem is not enabled!\n");
         }
 
-        auto* info = android::base::find(mMapInfo, memory);
+        auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return false;
 
         info->guestPhysAddr = physAddr;
@@ -3194,14 +3194,14 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        mMapInfo[*pMemory] = MappedMemoryInfo();
-        auto& mapInfo = mMapInfo[*pMemory];
-        mapInfo.size = localAllocInfo.allocationSize;
-        mapInfo.device = device;
-        mapInfo.memoryIndex = localAllocInfo.memoryTypeIndex;
+        mMemoryInfo[*pMemory] = MemoryInfo();
+        auto& memoryInfo = mMemoryInfo[*pMemory];
+        memoryInfo.size = localAllocInfo.allocationSize;
+        memoryInfo.device = device;
+        memoryInfo.memoryIndex = localAllocInfo.memoryTypeIndex;
 #ifdef VK_MVK_moltenvk
         if (importCbInfoPtr && m_emu->instanceSupportsMoltenVK) {
-            mapInfo.mtlTexture = getColorBufferMTLTexture(importCbInfoPtr->colorBuffer);
+            memoryInfo.mtlTexture = getColorBufferMTLTexture(importCbInfoPtr->colorBuffer);
         }
 #endif
 
@@ -3211,11 +3211,11 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) {
-            mapInfo.caching = MAP_CACHE_CACHED;
+            memoryInfo.caching = MAP_CACHE_CACHED;
         } else if (memoryPropertyFlags & VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD) {
-            mapInfo.caching = MAP_CACHE_UNCACHED;
+            memoryInfo.caching = MAP_CACHE_UNCACHED;
         } else if (memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
-            mapInfo.caching = MAP_CACHE_WC;
+            memoryInfo.caching = MAP_CACHE_WC;
         }
 
         VkInstance* instance = deviceToInstanceLocked(device);
@@ -3231,9 +3231,9 @@ class VkDecoderGlobalState::Impl {
 
         // Some cases provide a mappedPtr, so we only map if we still don't have a pointer here.
         if (!mappedPtr && needToMap) {
-            mapInfo.needUnmap = true;
+            memoryInfo.needUnmap = true;
             VkResult mapResult =
-                vk->vkMapMemory(device, *pMemory, 0, mapInfo.size, 0, &mapInfo.ptr);
+                vk->vkMapMemory(device, *pMemory, 0, memoryInfo.size, 0, &memoryInfo.ptr);
             if (mapResult != VK_SUCCESS) {
                 freeMemoryLocked(vk, device, *pMemory, pAllocator);
                 *pMemory = VK_NULL_HANDLE;
@@ -3241,11 +3241,11 @@ class VkDecoderGlobalState::Impl {
             }
         } else {
             // Since we didn't call vkMapMemory, unmapping is not needed (don't own mappedPtr).
-            mapInfo.needUnmap = false;
-            mapInfo.ptr = mappedPtr;
-            // Always assign the shared memory into mapInfo. If it was used, then it will have
+            memoryInfo.needUnmap = false;
+            memoryInfo.ptr = mappedPtr;
+            // Always assign the shared memory into memoryInfo. If it was used, then it will have
             // ownership transferred.
-            mapInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
+            memoryInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
         }
 
         *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);
@@ -3255,7 +3255,7 @@ class VkDecoderGlobalState::Impl {
 
     void freeMemoryLocked(VulkanDispatch* vk, VkDevice device, VkDeviceMemory memory,
                           const VkAllocationCallbacks* pAllocator) {
-        auto* info = android::base::find(mMapInfo, memory);
+        auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return;  // Invalid usage.
 
 #ifdef __APPLE__
@@ -3295,7 +3295,7 @@ class VkDecoderGlobalState::Impl {
 
         vk->vkFreeMemory(device, memory, pAllocator);
 
-        mMapInfo.erase(memory);
+        mMemoryInfo.erase(memory);
     }
 
     void on_vkFreeMemory(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -3316,7 +3316,7 @@ class VkDecoderGlobalState::Impl {
     }
     VkResult on_vkMapMemoryLocked(VkDevice, VkDeviceMemory memory, VkDeviceSize offset,
                                   VkDeviceSize size, VkMemoryMapFlags flags, void** ppData) {
-        auto* info = android::base::find(mMapInfo, memory);
+        auto* info = android::base::find(mMemoryInfo, memory);
         if (!info || !info->ptr) return VK_ERROR_MEMORY_MAP_FAILED;  // Invalid usage.
 
         *ppData = (void*)((uint8_t*)info->ptr + offset);
@@ -3331,7 +3331,7 @@ class VkDecoderGlobalState::Impl {
     uint8_t* getMappedHostPointer(VkDeviceMemory memory) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        auto* info = android::base::find(mMapInfo, memory);
+        auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return nullptr;
 
         return (uint8_t*)(info->ptr);
@@ -3340,7 +3340,7 @@ class VkDecoderGlobalState::Impl {
     VkDeviceSize getDeviceMemorySize(VkDeviceMemory memory) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        auto* info = android::base::find(mMapInfo, memory);
+        auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return 0;
 
         return info->size;
@@ -3527,7 +3527,7 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-        auto* info = android::base::find(mMapInfo, memory);
+        auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return VK_ERROR_INITIALIZATION_FAILED;
 
         *pAddress = (uint64_t)(uintptr_t)info->ptr;
@@ -3542,7 +3542,7 @@ class VkDecoderGlobalState::Impl {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         struct MemEntry entry = {0};
 
-        auto* info = android::base::find(mMapInfo, memory);
+        auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         if (feature_is_enabled(kFeature_SystemBlob) && info->sharedMemory.has_value()) {
@@ -5541,7 +5541,7 @@ class VkDecoderGlobalState::Impl {
                 destroyImageLocked(deviceToDestroy, deviceToDestroyDispatch, image, nullptr);
             }
 
-            for (auto memory : findDeviceObjects(deviceToDestroy, mMapInfo)) {
+            for (auto memory : findDeviceObjects(deviceToDestroy, mMemoryInfo)) {
                 freeMemoryLocked(deviceToDestroyDispatch, deviceToDestroy, memory, nullptr);
             }
 
@@ -5774,7 +5774,7 @@ class VkDecoderGlobalState::Impl {
     // We always map the whole size on host.
     // This makes it much easier to implement
     // the memory map API.
-    struct MappedMemoryInfo {
+    struct MemoryInfo {
         // This indicates whether the VkDecoderGlobalState needs to clean up
         // and unmap the mapped memory; only the owner of the mapped memory
         // should call unmap.
@@ -6075,7 +6075,7 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkQueue, QueueInfo> mQueueInfo;
     std::unordered_map<VkBuffer, BufferInfo> mBufferInfo;
 
-    std::unordered_map<VkDeviceMemory, MappedMemoryInfo> mMapInfo;
+    std::unordered_map<VkDeviceMemory, MemoryInfo> mMemoryInfo;
 
     std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo;
     std::unordered_map<VkPipelineCache, PipelineCacheInfo> mPipelineCacheInfo;
