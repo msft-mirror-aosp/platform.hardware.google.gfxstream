@@ -1,0 +1,20 @@
+add_library(
+    gfxstream-magma-server
+    Decoder.cpp
+    IntelDrmDecoder.cpp
+    magma_dec/magma_dec.cpp
+    magma_dec/magma_server_context.cpp)
+target_link_libraries(
+    gfxstream-magma-server
+    PUBLIC
+    apigen-codec-common)
+target_include_directories(
+    gfxstream-magma-server
+    PRIVATE
+    ${GFXSTREAM_REPO_ROOT}
+    ${GFXSTREAM_REPO_ROOT}/include
+    ${GFXSTREAM_REPO_ROOT}/stream-servers
+    ${GFXSTREAM_REPO_ROOT}/stream-servers/apigen-codec-common
+    ${GFXSTREAM_REPO_ROOT}/stream-servers/magma
+    ${GFXSTREAM_REPO_ROOT}/stream-servers/magma/magma_dec
+    ${GFXSTREAM_REPO_ROOT}/third-party/fuchsia/magma/include)
