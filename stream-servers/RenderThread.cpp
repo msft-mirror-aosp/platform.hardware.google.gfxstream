@@ -296,6 +296,8 @@ intptr_t RenderThread::main() {
         tInfo.m_vkInfo.emplace();
     }
 
+    tInfo.m_magmaInfo.emplace();
+
     // This is the only place where we try loading from snapshot.
     // But the context bind / restoration will be delayed after receiving
     // the first GL command.
@@ -524,6 +526,20 @@ intptr_t RenderThread::main() {
             //
             {
                 last = tInfo.m_rcDec.decode(readBuf.buf(), readBuf.validData(),
+                                            ioStream, &checksumCalc);
+                if (last > 0) {
+                    readBuf.consume(last);
+                    progress = true;
+                }
+            }
+
+            //
+            // try to process some of the command buffer using the Magma
+            // decoder
+            //
+            if (tInfo.m_magmaInfo)
+            {
+                last = tInfo.m_magmaInfo->m_magmaDec.decode(readBuf.buf(), readBuf.validData(),
                                             ioStream, &checksumCalc);
                 if (last > 0) {
                     readBuf.consume(last);
