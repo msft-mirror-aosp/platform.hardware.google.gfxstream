@@ -746,7 +746,7 @@ VkResult syncImageToColorBuffer(VulkanDispatch* vk, uint32_t queueFamilyIndex, V
     // TODO(kaiyili): initiate ownership transfer to DisplayVk here.
     VkFence qsriFence = anbInfo->qsriWaitFencePool->getFenceFromPool();
     AutoLock qLock(*queueLock);
-    vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, qsriFence);
+    VK_CHECK(vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, qsriFence));
     auto waitForQsriFenceTask = [anbInfoPtr, anbInfo, vk, device = anbInfo->device, qsriFence] {
         (void)anbInfoPtr;
         VK_ANB_DEBUG_OBJ(anbInfoPtr, "wait callback: enter");
