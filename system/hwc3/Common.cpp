@@ -20,6 +20,12 @@
 
 namespace aidl::android::hardware::graphics::composer3::impl {
 
+bool IsAutoDevice() {
+  // gcar_emu_x86_64, sdk_car_md_x86_64, cf_x86_64_auto, cf_x86_64_only_auto_md
+  const std::string product_name = ::android::base::GetProperty("ro.product.name", "");
+  return product_name.find("car_") || product_name.find("_auto");
+}
+
 bool IsCuttlefish() {
   return ::android::base::GetProperty("ro.product.board", "") == "cutf";
 }
