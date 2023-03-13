@@ -51,7 +51,7 @@ void IOStream::readbackPixels(void* context, int width, int height, unsigned int
         char* start = (char*)pixels + startOffset;
 
         for (int i = 0; i < height; i++) {
-            if (pixelRowSize != width * bpp) {
+            if (pixelRowSize > width * bpp) {
                 size_t rowSlack = pixelRowSize - width * bpp;
                 std::vector<char> rowSlackToDiscard(rowSlack, 0);
                 readback(start, width * bpp);
@@ -111,7 +111,7 @@ void IOStream::uploadPixels(void* context, int width, int height, int depth, uns
             char* start = (char*)pixels + startOffset;
 
             for (int i = 0; i < height; i++) {
-                if (pixelRowSize != width * bpp) {
+                if (pixelRowSize > width * bpp) {
                     size_t rowSlack = pixelRowSize - width * bpp;
                     std::vector<char> rowSlackToDiscard(rowSlack, 0);
                     writeFully(start, width * bpp);
@@ -174,15 +174,14 @@ void IOStream::uploadPixels(void* context, int width, int height, int depth, uns
 
             char* start = (char*)pixels + startOffset;
 
-            size_t rowSlack = pixelRowSize - width * bpp;
-            std::vector<char> rowSlackToDiscard(rowSlack, 0);
-
             size_t imageSlack = totalImageSize - pixelImageSize;
             std::vector<char> imageSlackToDiscard(imageSlack, 0);
 
             for (int k = 0; k < depth; ++k) {
                 for (int i = 0; i < height; i++) {
-                    if (pixelRowSize != width * bpp) {
+                    if (pixelRowSize > width * bpp) {
+                        size_t rowSlack = pixelRowSize - width * bpp;
+                        std::vector<char> rowSlackToDiscard(rowSlack, 0);
                         writeFully(start, width * bpp);
                         writeFully(&rowSlackToDiscard[0], rowSlack);
                         writeFully(&paddingToDiscard[0], paddingSize);
