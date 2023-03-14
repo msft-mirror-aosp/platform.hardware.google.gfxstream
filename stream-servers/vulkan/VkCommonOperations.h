@@ -375,6 +375,11 @@ struct VkEmulation {
     // The implementation for Vulkan native swapchain. Only initialized in initVkEmulationFeatures
     // if useVulkanNativeSwapchain is set.
     std::unique_ptr<DisplayVk> displayVk;
+
+    // The host memory type index that will be used to create an emulated memory type specifically
+    // for AHardwareBuffers/ColorBuffers so that the host can control which memory flags are
+    // exposed to the guest (i.e. hide VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT from the guest).
+    std::optional<uint32_t> representativeColorBufferMemoryTypeIndex;
 };
 
 VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk);
@@ -428,7 +433,9 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
 bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
                         FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
                         bool vulkanOnly, uint32_t memoryProperty);
+
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
+
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
 VK_EXT_MEMORY_HANDLE getColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
 

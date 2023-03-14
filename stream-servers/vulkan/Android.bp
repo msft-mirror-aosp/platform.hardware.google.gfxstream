@@ -47,6 +47,7 @@ cc_library_static {
         "VkDecoderGlobalState.cpp",
         "VkDecoderSnapshot.cpp",
         "VkFormatUtils.cpp",
+        "VkGuestMemoryUtils.cpp",
         "VkReconstruction.cpp",
         "VulkanDispatch.cpp",
         "VulkanHandleMapping.cpp",
@@ -75,6 +76,30 @@ cc_test_host {
         "liblog",
     ],
     static_libs: [
+        "gfxstream_glm",
+        "gfxstream_host_common",
+        "gfxstream_vulkan_server",
+        "libgtest",
+        "libgmock",
+    ],
+    test_options: {
+        unit_test: true,
+    },
+}
+
+// Run with `atest --host gfxstream_vkguestmemoryutils_tests`
+cc_test_host {
+    name: "gfxstream_vkguestmemoryutils_tests",
+    defaults: [ "gfxstream_defaults" ],
+    srcs: [
+        "VkGuestMemoryUtils_unittest.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "liblog",
+    ],
+    static_libs: [
+        "gfxstream_base",
         "gfxstream_glm",
         "gfxstream_host_common",
         "gfxstream_vulkan_server",
