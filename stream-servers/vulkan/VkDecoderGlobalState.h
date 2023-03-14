@@ -329,6 +329,18 @@ class VkDecoderGlobalState {
                                              const VkImageMemoryRequirementsInfo2* pInfo,
                                              VkMemoryRequirements2* pMemoryRequirements);
 
+    void on_vkGetBufferMemoryRequirements(android::base::BumpPool* pool, VkDevice device,
+                                          VkBuffer buffer,
+                                          VkMemoryRequirements* pMemoryRequirements);
+
+    void on_vkGetBufferMemoryRequirements2(android::base::BumpPool* pool, VkDevice device,
+                                           const VkBufferMemoryRequirementsInfo2* pInfo,
+                                           VkMemoryRequirements2* pMemoryRequirements);
+
+    void on_vkGetBufferMemoryRequirements2KHR(android::base::BumpPool* pool, VkDevice device,
+                                              const VkBufferMemoryRequirementsInfo2* pInfo,
+                                              VkMemoryRequirements2* pMemoryRequirements);
+
     void on_vkCmdPipelineBarrier(android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
                                  VkPipelineStageFlags srcStageMask,
                                  VkPipelineStageFlags dstStageMask,
