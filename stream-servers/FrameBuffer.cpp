@@ -842,9 +842,11 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
         m_windowWidth = ww;
         m_windowHeight = wh;
 
-        m_subWin = ::createSubWindow(p_window, m_x, m_y, m_windowWidth,
-                                     m_windowHeight, dpr, subWindowRepaint, this,
-                                     hideWindow);
+        if (!hideWindow) {
+            m_subWin = ::createSubWindow(p_window, m_x, m_y, m_windowWidth,
+                                         m_windowHeight, dpr, subWindowRepaint, this,
+                                         hideWindow);
+        }
         if (m_subWin) {
             m_nativeWindow = p_window;
 
