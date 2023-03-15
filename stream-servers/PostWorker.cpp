@@ -229,8 +229,8 @@ std::shared_future<void> PostWorker::postImpl(ColorBuffer* cb) {
     } else if (emugl::get_emugl_window_operations().isFolded()) {
         const float dpr = mFb->getDpr();
 
-        post.frameWidth = m_viewportWidth;
-        post.frameHeight = m_viewportHeight;
+        post.frameWidth = m_viewportWidth / dpr;
+        post.frameHeight = m_viewportHeight / dpr;
 
         int displayOffsetX;
         int displayOffsetY;
