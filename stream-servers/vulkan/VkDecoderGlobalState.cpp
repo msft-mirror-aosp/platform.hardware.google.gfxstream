@@ -3634,10 +3634,6 @@ class VkDecoderGlobalState::Impl {
 
             info->virtioGpuMapped = true;
             info->hostmemId = id;
-
-            fprintf(stderr, "%s: hva, size, sizeToPage: %p 0x%llx 0x%llx id 0x%llx\n", __func__,
-                    info->ptr, (unsigned long long)(info->size), (unsigned long long)(alignedSize),
-                    (unsigned long long)(*pHostmemId));
         }
 
         return VK_SUCCESS;
