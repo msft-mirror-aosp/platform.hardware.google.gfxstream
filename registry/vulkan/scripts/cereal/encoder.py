@@ -401,7 +401,7 @@ def emit_parameter_encode_do_parameter_write(typeInfo, api, cgen):
             emit_marshal(typeInfo, p, cgen)
 
         dispatchDone = True
-    
+
     cgen.beginIf("watchdog")
     cgen.stmt("size_t watchdogBufSize = std::min<size_t>(static_cast<size_t>(packetSize_%s), kWatchdogBufferMax)" % (api.name))
     cgen.stmt("healthMonitorAnnotation_packetContents.resize(watchdogBufSize)")
