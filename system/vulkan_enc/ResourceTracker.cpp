@@ -1545,14 +1545,12 @@ public:
     }
 
     void on_vkGetPhysicalDeviceMemoryProperties(
-        void*,
-        VkPhysicalDevice physdev,
+        void* context,
+        VkPhysicalDevice physicalDevice,
         VkPhysicalDeviceMemoryProperties* out) {
-
-        (void)physdev;
         // gfxstream decides which physical device to expose to the guest on startup.
         // Otherwise, we would need a physical device to properties mapping.
-        mMemoryProps = *out;
+        *out = getPhysicalDeviceMemoryProperties(context, VK_NULL_HANDLE, physicalDevice);
     }
 
     void on_vkGetPhysicalDeviceMemoryProperties2(
@@ -1652,15 +1650,17 @@ public:
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
-        void*, VkResult,
-        VkDevice device,
-        const AHardwareBuffer* buffer,
-        VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
+            void* context, VkResult,
+            VkDevice device,
+            const AHardwareBuffer* buffer,
+            VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
+        const VkPhysicalDeviceMemoryProperties& memoryProperties =
+            getPhysicalDeviceMemoryProperties(context, device, VK_NULL_HANDLE);
         auto grallocHelper =
             ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
         return getAndroidHardwareBufferPropertiesANDROID(
             grallocHelper,
-            &mMemoryProps,
+            &memoryProperties,
             device, buffer, pProperties);
     }
 
@@ -3222,13 +3222,18 @@ public:
             !importVmoInfoPtr;
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-        shouldPassThroughDedicatedAllocInfo &=
-            !isHostVisible(&mMemoryProps, pAllocateInfo->memoryTypeIndex);
+        const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProps
+            = getPhysicalDeviceMemoryProperties(context, device, VK_NULL_HANDLE);
+
+        const bool requestedMemoryIsHostVisible =
+            isHostVisible(&physicalDeviceMemoryProps, pAllocateInfo->memoryTypeIndex);
+
+        shouldPassThroughDedicatedAllocInfo &= !requestedMemoryIsHostVisible;
 
         if (!exportAllocateInfoPtr &&
-            ( importBufferCollectionInfoPtr || importVmoInfoPtr) &&
+            (importBufferCollectionInfoPtr || importVmoInfoPtr) &&
             dedicatedAllocInfoPtr &&
-            isHostVisible(&mMemoryProps, pAllocateInfo->memoryTypeIndex)) {
+            requestedMemoryIsHostVisible) {
             ALOGE(
                 "FATAL: It is not yet supported to import-allocate "
                 "external memory that is both host visible and dedicated.");
@@ -3687,7 +3692,7 @@ public:
         }
 #endif
 
-        if (ahw || !isHostVisible(&mMemoryProps, finalAllocInfo.memoryTypeIndex)) {
+        if (ahw || !requestedMemoryIsHostVisible) {
             input_result =
                 enc->vkAllocateMemory(
                     device, &finalAllocInfo, pAllocator, pMemory, true /* do lock */);
@@ -3879,7 +3884,7 @@ public:
         // no-op
     }
 
-    uint32_t transformNonExternalResourceMemoryTypeBitsForGuest(
+uint32_t transformNonExternalResourceMemoryTypeBitsForGuest(
         uint32_t hostBits) {
         uint32_t res = 0;
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
@@ -7292,7 +7297,35 @@ public:
 
 private:
     mutable RecursiveLock mLock;
-    VkPhysicalDeviceMemoryProperties mMemoryProps;
+
+    const VkPhysicalDeviceMemoryProperties& getPhysicalDeviceMemoryProperties(
+            void* context,
+            VkDevice device = VK_NULL_HANDLE,
+            VkPhysicalDevice physicalDevice = VK_NULL_HANDLE) {
+        if (!mCachedPhysicalDeviceMemoryProps) {
+            if (physicalDevice == VK_NULL_HANDLE) {
+                AutoLock<RecursiveLock> lock(mLock);
+
+                auto deviceInfoIt = info_VkDevice.find(device);
+                if (deviceInfoIt == info_VkDevice.end()) {
+                    ALOGE("Failed to pass device or physical device.");
+                    abort();
+                }
+                const auto& deviceInfo = deviceInfoIt->second;
+                physicalDevice = deviceInfo.physdev;
+            }
+
+            VkEncoder* enc = (VkEncoder*)context;
+
+            VkPhysicalDeviceMemoryProperties properties;
+            enc->vkGetPhysicalDeviceMemoryProperties(physicalDevice, &properties, true /* no lock */);
+
+            mCachedPhysicalDeviceMemoryProps.emplace(std::move(properties));
+        }
+        return *mCachedPhysicalDeviceMemoryProps;
+    }
+
+    std::optional<const VkPhysicalDeviceMemoryProperties> mCachedPhysicalDeviceMemoryProps;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 
