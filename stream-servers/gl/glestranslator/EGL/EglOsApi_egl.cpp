@@ -29,6 +29,7 @@
 
 #ifdef __linux__
 #include "apigen-codec-common/X11Support.h"
+#include "X11ErrorHandler.h"
 #endif
 
 #include <EGL/egl.h>
@@ -770,6 +771,7 @@ bool EglOsEglDisplay::isValidNativeWin(EGLNativeWindowType win) {
     Window root;
     int t;
     unsigned int u;
+    X11ErrorHandler handler(mGlxDisplay);
     return getX11Api()->XGetGeometry(mGlxDisplay, win, &root, &t, &t, &u, &u, &u, &u) != 0;
 #else // __APPLE__
     unsigned int width, height;
@@ -798,6 +800,7 @@ bool EglOsEglDisplay::checkWindowPixelFormatMatch(EGLNativeWindowType win,
     unsigned int depth, border;
     int x, y;
     Window root;
+    X11ErrorHandler handler(mGlxDisplay);
     return getX11Api()->XGetGeometry(
             mGlxDisplay, win, &root, &x, &y, width, height, &border, &depth);
 #else // __APPLE__

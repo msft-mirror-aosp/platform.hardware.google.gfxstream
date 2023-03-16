@@ -41,7 +41,10 @@ cc_library_static {
     ],
     target: {
         host: {
-            srcs: [ "EglOsApi_glx.cpp", ],
+            srcs: [
+                "EglOsApi_glx.cpp",
+                "X11ErrorHandler.cpp",
+            ],
         }
     }
 }

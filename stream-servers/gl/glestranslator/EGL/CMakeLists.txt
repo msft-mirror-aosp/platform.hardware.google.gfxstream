@@ -18,7 +18,7 @@ set(egl-translator-darwin-sources
     EglOsApi_darwin.cpp EglOsApi_egl.cpp MacNative.m
     MacPixelFormatsAttribs.m)
 set(egl-translator-linux-sources
-    CoreProfileConfigs_linux.cpp EglOsApi_egl.cpp EglOsApi_glx.cpp)
+    CoreProfileConfigs_linux.cpp EglOsApi_egl.cpp EglOsApi_glx.cpp X11ErrorHandler.cpp)
 
 if (WIN32)
     add_library(
