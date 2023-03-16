@@ -1139,8 +1139,6 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
         transform_fromhost_VkPhysicalDeviceMemoryProperties(
             sResourceTracker, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     }
-    sResourceTracker->on_vkGetPhysicalDeviceMemoryProperties(this, physicalDevice,
-                                                             pMemoryProperties);
     ++encodeCount;
     ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
@@ -18223,8 +18221,6 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
         transform_fromhost_VkPhysicalDeviceMemoryProperties2(
             sResourceTracker, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
-    sResourceTracker->on_vkGetPhysicalDeviceMemoryProperties2(this, physicalDevice,
-                                                              pMemoryProperties);
     ++encodeCount;
     ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
@@ -27840,8 +27836,6 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
         transform_fromhost_VkPhysicalDeviceMemoryProperties2(
             sResourceTracker, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
-    sResourceTracker->on_vkGetPhysicalDeviceMemoryProperties2KHR(this, physicalDevice,
-                                                                 pMemoryProperties);
     ++encodeCount;
     ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
