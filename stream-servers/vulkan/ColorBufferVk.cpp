@@ -25,7 +25,7 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(uint32_t handle, uint32_t w
                                                      bool vulkanOnly, uint32_t memoryProperty) {
     if (!goldfish_vk::setupVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
                                          memoryProperty)) {
-        ERR("Failed to create ColorBufferVk:%d", handle);
+        GL_LOG("Failed to create ColorBufferVk:%d", handle);
         return nullptr;
     }
 

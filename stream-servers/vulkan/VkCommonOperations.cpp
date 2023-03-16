@@ -1743,7 +1743,7 @@ bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
                         FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
                         bool vulkanOnly, uint32_t memoryProperty) {
     if (!isFormatVulkanCompatible(internalFormat)) {
-        VK_COMMON_ERROR("Failed to create Vk ColorBuffer: format:%d not compatible.",
+        VK_COMMON_VERBOSE("Failed to create Vk ColorBuffer: format:%d not compatible.",
                         internalFormat);
         return false;
     }
