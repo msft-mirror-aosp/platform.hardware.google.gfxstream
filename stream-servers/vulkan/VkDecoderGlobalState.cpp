@@ -2644,17 +2644,58 @@ class VkDecoderGlobalState::Impl {
             vk->vkGetImageMemoryRequirements2KHR(device, pInfo, pMemoryRequirements);
         } else {
             if (pInfo->pNext) {
-                fprintf(stderr,
-                        "%s: Warning: Trying to use extension struct in "
-                        "VkMemoryRequirements2 without having enabled "
-                        "the extension!!!!11111\n",
-                        __func__);
+                ERR("Warning: trying to use extension struct in VkMemoryRequirements2 without "
+                    "having enabled the extension!");
             }
 
             vk->vkGetImageMemoryRequirements(device, pInfo->image,
                                              &pMemoryRequirements->memoryRequirements);
         }
         updateImageMemorySizeLocked(device, pInfo->image, &pMemoryRequirements->memoryRequirements);
+    }
+
+    void on_vkGetBufferMemoryRequirements(android::base::BumpPool* pool, VkDevice boxed_device,
+                                          VkBuffer buffer,
+                                          VkMemoryRequirements* pMemoryRequirements) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+        vk->vkGetBufferMemoryRequirements(device, buffer, pMemoryRequirements);
+    }
+
+    void on_vkGetBufferMemoryRequirements2(android::base::BumpPool* pool, VkDevice boxed_device,
+                                           const VkBufferMemoryRequirementsInfo2* pInfo,
+                                           VkMemoryRequirements2* pMemoryRequirements) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
+        if (!physicalDevice) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "No physical device available for " << device;
+        }
+
+        auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
+        if (!physicalDeviceInfo) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "No physical device info available for " << *physicalDevice;
+        }
+
+        if ((physicalDeviceInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) &&
+            vk->vkGetBufferMemoryRequirements2) {
+            vk->vkGetBufferMemoryRequirements2(device, pInfo, pMemoryRequirements);
+        } else if (hasDeviceExtension(device, VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)) {
+            vk->vkGetBufferMemoryRequirements2KHR(device, pInfo, pMemoryRequirements);
+        } else {
+            if (pInfo->pNext) {
+                ERR("Warning: trying to use extension struct in VkMemoryRequirements2 without "
+                    "having enabled the extension!");
+            }
+
+            vk->vkGetBufferMemoryRequirements(device, pInfo->buffer,
+                                              &pMemoryRequirements->memoryRequirements);
+        }
     }
 
     void on_vkCmdCopyBufferToImage(android::base::BumpPool* pool,
@@ -6650,6 +6691,24 @@ void VkDecoderGlobalState::on_vkGetImageMemoryRequirements2KHR(
     android::base::BumpPool* pool, VkDevice device, const VkImageMemoryRequirementsInfo2* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
     mImpl->on_vkGetImageMemoryRequirements2(pool, device, pInfo, pMemoryRequirements);
+}
+
+void VkDecoderGlobalState::on_vkGetBufferMemoryRequirements(
+    android::base::BumpPool* pool, VkDevice device, VkBuffer buffer,
+    VkMemoryRequirements* pMemoryRequirements) {
+    mImpl->on_vkGetBufferMemoryRequirements(pool, device, buffer, pMemoryRequirements);
+}
+
+void VkDecoderGlobalState::on_vkGetBufferMemoryRequirements2(
+    android::base::BumpPool* pool, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetBufferMemoryRequirements2(pool, device, pInfo, pMemoryRequirements);
+}
+
+void VkDecoderGlobalState::on_vkGetBufferMemoryRequirements2KHR(
+    android::base::BumpPool* pool, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetBufferMemoryRequirements2(pool, device, pInfo, pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkCmdPipelineBarrier(
