@@ -29,6 +29,9 @@
 #include <stdlib.h>
 #include "vk_struct_id.h"
 
+namespace gfxstream {
+namespace vk {
+
 struct vk_struct_common {
     VkStructureType sType;
     struct vk_struct_common *pNext;
@@ -247,5 +250,8 @@ template <class T> void vk_append_struct(vk_struct_chain_iterator* i, T* vk_stru
 
     *i = vk_make_chain_iterator(vk_struct);
 }
+
+}  // namespace vk
+}  // namespace gfxstream
 
 #endif /* VK_UTIL_H */

@@ -36,7 +36,8 @@
 #include "goldfish_vk_extension_structs_guest.h"
 #include "goldfish_vk_private_defs.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
                             const void* structExtension, size_t* count);
@@ -17380,4 +17381,5 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
     }
 }
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
