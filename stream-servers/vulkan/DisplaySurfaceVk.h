@@ -21,23 +21,25 @@
 #include "render-utils/render_api_platform_types.h"
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 
+namespace gfxstream {
+namespace vk {
+
 class DisplaySurfaceVk : public gfxstream::DisplaySurfaceImpl {
   public:
-    static std::unique_ptr<DisplaySurfaceVk> create(
-        const goldfish_vk::VulkanDispatch& vk,
-        VkInstance vkInstance,
-        FBNativeWindowType window);
+   static std::unique_ptr<DisplaySurfaceVk> create(const VulkanDispatch& vk, VkInstance vkInstance,
+                                                   FBNativeWindowType window);
 
-    ~DisplaySurfaceVk();
+   ~DisplaySurfaceVk();
 
-    VkSurfaceKHR getSurface() const { return mSurface; }
+   VkSurfaceKHR getSurface() const { return mSurface; }
 
   private:
-    DisplaySurfaceVk(const goldfish_vk::VulkanDispatch& vk,
-                     VkInstance vkInstance,
-                     VkSurfaceKHR vkSurface);
+   DisplaySurfaceVk(const VulkanDispatch& vk, VkInstance vkInstance, VkSurfaceKHR vkSurface);
 
-    const goldfish_vk::VulkanDispatch& mVk;
-    VkInstance mInstance = VK_NULL_HANDLE;
-    VkSurfaceKHR mSurface = VK_NULL_HANDLE;
+   const VulkanDispatch& mVk;
+   VkInstance mInstance = VK_NULL_HANDLE;
+   VkSurfaceKHR mSurface = VK_NULL_HANDLE;
 };
+
+}  // namespace vk
+}  // namespace gfxstream

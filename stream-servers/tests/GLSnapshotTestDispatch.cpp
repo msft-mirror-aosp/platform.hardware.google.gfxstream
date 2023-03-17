@@ -12,7 +12,8 @@
 #include "snapshot/TextureLoader.h"
 #include "snapshot/TextureSaver.h"
 
-namespace emugl {
+namespace gfxstream {
+namespace gl {
 
 using android::base::StdioStream;
 using android::snapshot::TextureLoader;
@@ -169,4 +170,5 @@ void SnapshotTestDispatch::testDraw(std::function<void()> doDraw) {
                              prePixels.data(), postPixels.data()));
 }
 
-}  // namespace emugl
+}  // namespace gl
+}  // namespace gfxstream

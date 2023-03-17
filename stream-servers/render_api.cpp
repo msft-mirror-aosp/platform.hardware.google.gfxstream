@@ -23,11 +23,13 @@
 
 #include <memory>
 
-RENDER_APICALL emugl::RenderLibPtr RENDER_APIENTRY initLibrary() {
+namespace gfxstream {
+
+RENDER_APICALL RenderLibPtr RENDER_APIENTRY initLibrary() {
     //
     // Load EGL Plugin
     //
-    if (!emugl::LazyLoadedEGLDispatch::get()) {
+    if (!gl::LazyLoadedEGLDispatch::get()) {
         // Failed to load EGL
         printf("Failed to init_egl_dispatch\n");
         return nullptr;
@@ -36,17 +38,19 @@ RENDER_APICALL emugl::RenderLibPtr RENDER_APIENTRY initLibrary() {
     //
     // Load GLES Plugin
     //
-    if (!emugl::LazyLoadedGLESv1Dispatch::get()) {
+    if (!gl::LazyLoadedGLESv1Dispatch::get()) {
         // Failed to load GLES
         ERR("Failed to gles1_dispatch_init\n");
         return nullptr;
     }
 
     /* failure to init the GLES2 dispatch table is not fatal */
-    if (!emugl::LazyLoadedGLESv2Dispatch::get()) {
+    if (!gl::LazyLoadedGLESv2Dispatch::get()) {
         ERR("Failed to gles2_dispatch_init\n");
         return nullptr;
     }
 
-    return emugl::RenderLibPtr(new emugl::RenderLibImpl());
+    return RenderLibPtr(new RenderLibImpl());
 }
+
+}  // namespace gfxstream

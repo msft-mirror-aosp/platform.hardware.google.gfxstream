@@ -18,8 +18,8 @@
 #include "OpenGLTestContext.h"
 #include "TextureDraw.h"
 
-namespace emugl {
-
+namespace gfxstream {
+namespace gl {
 namespace {
 
 void TestTextureDrawBasic(const GLESv2Dispatch* gl, GLenum internalformat,
@@ -205,8 +205,6 @@ void TestTextureDrawLayer(const GLESv2Dispatch* gl) {
 
 }
 
-}  // namespace
-
 #define GL_BGRA_EXT 0x80E1
 
 TEST_F(GLTest, TextureDrawBasic) {
@@ -218,4 +216,6 @@ TEST_F(GLTest, TextureDrawBasic) {
     TestTextureDrawLayer(gl);
 }
 
-}  // namespace emugl
+}  // namespace
+}  // namespace gl
+}  // namespace gfxstream

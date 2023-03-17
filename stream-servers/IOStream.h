@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+namespace gfxstream {
+
 class IOStream {
 protected:
     explicit IOStream(size_t bufSize) : m_bufsize(bufSize) {}
@@ -110,3 +112,5 @@ protected:
     size_t m_bufsize;
     size_t m_free = 0;
 };
+
+}  // namespace gfxstream

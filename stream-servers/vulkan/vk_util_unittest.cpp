@@ -21,6 +21,8 @@
 
 #include <tuple>
 
+namespace gfxstream {
+namespace vk {
 namespace vk_util {
 namespace vk_fn_info {
 
@@ -261,3 +263,5 @@ TEST(vk_util, vk_insert_struct) {
 }  // namespace
 }  // namespace vk_fn_info
 }  // namespace vk_util
+}  // namespace vk
+}  // namespace gfxstream

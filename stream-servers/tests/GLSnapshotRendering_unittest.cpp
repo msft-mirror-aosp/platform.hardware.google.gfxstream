@@ -21,10 +21,9 @@
 
 #include <gtest/gtest.h>
 
-
-namespace emugl {
-
-
+namespace gfxstream {
+namespace gl {
+namespace {
 
 TEST(SnapshotGlRenderingSampleTest, OverrideDispatch) {
     const GLESv2Dispatch* gl = LazyLoadedGLESv2Dispatch::get();
@@ -73,7 +72,7 @@ protected:
         emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
         //const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
 
-        LazyLoadedGLESv2Dispatch::get();
+        gl::LazyLoadedGLESv2Dispatch::get();
         getSnapshotTestDispatch();
 
         mApp.reset(new T());
@@ -104,4 +103,6 @@ TYPED_TEST(SnapshotGlRenderingSampleTest, SnapshotDrawLoop) {
     this->mApp->drawLoop();
 }
 
-}  // namespace emugl
+}  // namespace
+}  // namespace gl
+}  // namespace gfxstream

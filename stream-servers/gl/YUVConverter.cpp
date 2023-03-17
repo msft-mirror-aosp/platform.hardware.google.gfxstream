@@ -24,6 +24,8 @@
 #include "host-common/feature_control.h"
 #include "host-common/opengl/misc.h"
 
+namespace gfxstream {
+namespace gl {
 
 #define FATAL(fmt,...) do { \
     fprintf(stderr, "%s: FATAL: " fmt "\n", __func__, ##__VA_ARGS__); \
@@ -1025,3 +1027,6 @@ void YUVConverter::reset() {
 YUVConverter::~YUVConverter() {
     reset();
 }
+
+}  // namespace gl
+}  // namespace gfxstream

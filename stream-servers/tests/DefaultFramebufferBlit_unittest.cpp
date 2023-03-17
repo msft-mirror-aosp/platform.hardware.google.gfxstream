@@ -19,14 +19,17 @@
 
 #include <memory>
 
-using gfxstream::GLESApi;
-using gfxstream::GLESApi_2;
-using gfxstream::GLESApi_3_0;
-using gfxstream::GLESApi_3_1;
-using gfxstream::GLESApi_3_2;
-using gfxstream::GLESApi_CM;
+namespace gfxstream {
+namespace {
 
-namespace emugl {
+using gl::GLESApi;
+using gl::GLESApi_2;
+using gl::GLESApi_3_0;
+using gl::GLESApi_3_1;
+using gl::GLESApi_3_2;
+using gl::GLESApi_CM;
+using gl::LazyLoadedEGLDispatch;
+using gl::LazyLoadedGLESv2Dispatch;
 
 struct ClearColorParam {
     const GLESApi glVersion;
@@ -275,5 +278,5 @@ INSTANTIATE_TEST_SUITE_P(DefaultFramebufferBlitTest,
                         testing::Values(
                             ClearColorParam(GLESApi_3_0, true)));
 
-
-}  // namespace emugl
+}  // namespace
+}  // namespace gfxstream

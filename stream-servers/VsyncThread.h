@@ -19,6 +19,8 @@
 #include <inttypes.h>
 #include <functional>
 
+namespace gfxstream {
+
 // A thread that regularly processes tasks that need to happen at some vsync
 // interval (initialized from FrameBuffer).
 //
@@ -73,3 +75,5 @@ private:
     android::base::MessageChannel<VsyncThreadCommand, 128> mChannel;
     android::base::FunctorThread mThread;
 };
+
+}  // namespace gfxstream

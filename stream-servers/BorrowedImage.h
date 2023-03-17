@@ -14,6 +14,8 @@
 
 #pragma once
 
+namespace gfxstream {
+
 // Common base struct representing images (Gl/Vk) that are borrowed
 // by server components (e.g. CompositorGl, CompositorVk, DisplayVk)
 // from the underlying server image owner (GlEmulation/VkEmulation).
@@ -24,3 +26,5 @@ struct BorrowedImageInfo {
     uint32_t width = 0;
     uint32_t height = 0;
 };
+
+}  // namespace gfxstream

@@ -27,6 +27,8 @@
 #include <pthread.h>
 #endif
 
+namespace gfxstream {
+
 #define DEBUG 0
 
 #if DEBUG
@@ -85,7 +87,7 @@ struct RenderWindowMessage {
 
         // CMD_SET_POST_CALLBACK
         struct {
-            emugl::Renderer::OnPostCallback on_post;
+            Renderer::OnPostCallback on_post;
             void* on_post_context;
             uint32_t on_post_displayId;
             bool use_bgra_readback;
@@ -504,10 +506,8 @@ bool RenderWindow::getHardwareStrings(const char** vendor,
     return true;
 }
 
-void RenderWindow::setPostCallback(emugl::Renderer::OnPostCallback onPost,
-                                   void* onPostContext,
-                                   uint32_t displayId,
-                                   bool useBgraReadback) {
+void RenderWindow::setPostCallback(Renderer::OnPostCallback onPost, void* onPostContext,
+                                   uint32_t displayId, bool useBgraReadback) {
     D("Entering\n");
     RenderWindowMessage msg = {};
     msg.cmd = CMD_SET_POST_CALLBACK;
@@ -524,21 +524,20 @@ bool RenderWindow::asyncReadbackSupported() {
     return FrameBuffer::getFB()->asyncReadbackSupported();
 }
 
-emugl::Renderer::ReadPixelsCallback RenderWindow::getReadPixelsCallback() {
+Renderer::ReadPixelsCallback RenderWindow::getReadPixelsCallback() {
     D("Entering\n");
     return FrameBuffer::getFB()->getReadPixelsCallback();
 }
 
-void RenderWindow::addListener(emugl::Renderer::FrameBufferChangeEventListener* listener) {
+void RenderWindow::addListener(Renderer::FrameBufferChangeEventListener* listener) {
     FrameBuffer::getFB()->addListener(listener);
 }
 
-void RenderWindow::removeListener(emugl::Renderer::FrameBufferChangeEventListener* listener) {
+void RenderWindow::removeListener(Renderer::FrameBufferChangeEventListener* listener) {
     FrameBuffer::getFB()->removeListener(listener);
 }
 
-emugl::Renderer::FlushReadPixelPipeline
-RenderWindow::getFlushReadPixelPipeline() {
+Renderer::FlushReadPixelPipeline RenderWindow::getFlushReadPixelPipeline() {
     return FrameBuffer::getFB()->getFlushReadPixelPipeline();
 }
 bool RenderWindow::setupSubWindow(FBNativeWindowType window,
@@ -691,3 +690,5 @@ bool RenderWindow::processMessage(const RenderWindowMessage& msg) {
         return msg.process();
     }
 }
+
+}  // namespace gfxstream

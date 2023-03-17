@@ -49,7 +49,8 @@ class Stream;
 }  // namespace base
 }  // namespace android
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 // Class for tracking host-side state. Currently we only care about
 // tracking VkDeviceMemory to make it easier to pass the right data
@@ -951,4 +952,5 @@ class ExternalFencePool {
     int mMaxSize;
 };
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

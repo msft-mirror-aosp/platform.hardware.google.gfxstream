@@ -40,13 +40,20 @@
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderGlobalState.h"
 
+namespace gfxstream {
+
 using android::base::AutoLock;
 using android::base::Lock;
 using emugl::emugl_sync_device_exists;
 using emugl::emugl_sync_register_trigger_wait;
-using gfxstream::GLESApi;
-using gfxstream::GLESApi_CM;
-using gfxstream::EmulatedEglFenceSync;
+using gl::EmulatedEglFenceSync;
+using gl::GLES_DISPATCH_MAX_VERSION_2;
+using gl::GLES_DISPATCH_MAX_VERSION_3_0;
+using gl::GLES_DISPATCH_MAX_VERSION_3_1;
+using gl::GLESApi;
+using gl::GLESApi_CM;
+using gl::GLESDispatchMaxVersion;
+using gl::RenderThreadInfoGl;
 
 #define DEBUG 0
 #define DEBUG_GRALLOC_SYNC 0
@@ -282,7 +289,7 @@ static EGLint rcQueryEGLString(EGLenum name, void* buffer, EGLint bufferSize)
         return 0;
     }
 
-    const char *str = s_egl.eglQueryString(fb->getDisplay(), name);
+    const char* str = gl::s_egl.eglQueryString(fb->getDisplay(), name);
     if (!str) {
         return 0;
     }
@@ -322,22 +329,18 @@ static bool shouldEnableHostComposition() {
 
 static bool shouldEnableVulkan() {
     // TODO: Restrict further to devices supporting external memory.
-    return feature_is_enabled(kFeature_Vulkan) && goldfish_vk::getGlobalVkEmulation() &&
-           goldfish_vk::VkDecoderGlobalState::get()->getHostFeatureSupport().supportsVulkan;
+    return feature_is_enabled(kFeature_Vulkan) && vk::getGlobalVkEmulation() &&
+           vk::VkDecoderGlobalState::get()->getHostFeatureSupport().supportsVulkan;
 }
 
 static bool shouldEnableDeferredVulkanCommands() {
-    auto supportInfo =
-        goldfish_vk::VkDecoderGlobalState::get()->
-            getHostFeatureSupport();
+    auto supportInfo = vk::VkDecoderGlobalState::get()->getHostFeatureSupport();
     return supportInfo.supportsVulkan &&
            supportInfo.useDeferredCommands;
 }
 
 static bool shouldEnableCreateResourcesWithRequirements() {
-    auto supportInfo =
-        goldfish_vk::VkDecoderGlobalState::get()->
-            getHostFeatureSupport();
+    auto supportInfo = vk::VkDecoderGlobalState::get()->getHostFeatureSupport();
     return supportInfo.supportsVulkan &&
            supportInfo.useCreateResourcesWithRequirements;
 }
@@ -445,10 +448,10 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
     if (tInfo && tInfo->currContext.get()) {
         const char *str = nullptr;
         if (tInfo->currContext->clientVersion() > GLESApi_CM) {
-            str = (const char *)s_gles2.glGetString(name);
+            str = (const char*)gl::s_gles2.glGetString(name);
         }
         else {
-            str = (const char *)s_gles1.glGetString(name);
+            str = (const char*)gl::s_gles1.glGetString(name);
         }
         if (str) {
             glStr += str;
@@ -460,7 +463,7 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
     // filter extensions by name to match guest-side support
     GLESDispatchMaxVersion maxVersion = FrameBuffer::getFB()->getMaxGLESVersion();
     if (name == GL_EXTENSIONS) {
-        glStr = filterExtensionsBasedOnMaxVersion(maxVersion, glStr);
+        glStr = gl::filterExtensionsBasedOnMaxVersion(maxVersion, glStr);
     }
 
     bool isChecksumEnabled =
@@ -669,7 +672,7 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
                 : "<no GL emulation>";
         const bool hasNativeAstc =
             glExtensions.find("GL_KHR_texture_compression_astc_ldr") != std::string::npos;
-        const bool hasAstcDecompressor = goldfish_vk::AstcCpuDecompressor::get().available();
+        const bool hasAstcDecompressor = vk::AstcCpuDecompressor::get().available();
         if (hasNativeAstc || hasAstcDecompressor) {
             glStr += "GL_KHR_texture_compression_astc_ldr ";
         } else {
@@ -1406,7 +1409,7 @@ static int rcSetColorBufferVulkanMode2(uint32_t colorBuffer, uint32_t mode,
 
     bool modeIsVulkanOnly = mode == VULKAN_MODE_VULKAN_ONLY;
 
-    if (!goldfish_vk::setColorBufferVulkanMode(colorBuffer, mode)) {
+    if (!vk::setColorBufferVulkanMode(colorBuffer, mode)) {
         fprintf(stderr,
                 "%s: error: failed to set Vulkan mode for colorBuffer 0x%x\n",
                 __func__, colorBuffer);
@@ -1422,7 +1425,7 @@ static int rcSetColorBufferVulkanMode(uint32_t colorBuffer, uint32_t mode) {
 }
 
 static int32_t rcMapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa) {
-    int32_t result = goldfish_vk::mapGpaToBufferHandle(bufferHandle, gpa);
+    int32_t result = vk::mapGpaToBufferHandle(bufferHandle, gpa);
     if (result < 0) {
         fprintf(stderr,
                 "%s: error: failed to map gpa %" PRIx64 " to buffer handle 0x%x: %d\n",
@@ -1434,7 +1437,7 @@ static int32_t rcMapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa) {
 static int32_t rcMapGpaToBufferHandle2(uint32_t bufferHandle,
                                        uint64_t gpa,
                                        uint64_t size) {
-    int32_t result = goldfish_vk::mapGpaToBufferHandle(bufferHandle, gpa, size);
+    int32_t result = vk::mapGpaToBufferHandle(bufferHandle, gpa, size);
     if (result < 0) {
         fprintf(stderr,
                 "%s: error: failed to map gpa %" PRIx64 " to buffer handle 0x%x: %d\n",
@@ -1617,3 +1620,5 @@ void initRenderControlContext(renderControl_decoder_context_t *dec)
     dec->rcSetProcessMetadata = rcSetProcessMetadata;
     dec->rcGetHostExtensionsString = rcGetHostExtensionsString;
 }
+
+}  // namespace gfxstream

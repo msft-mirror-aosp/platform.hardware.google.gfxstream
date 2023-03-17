@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 
+namespace gfxstream {
+
 EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
                                     int x,
                                     int y,
@@ -45,3 +47,5 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
     // moving windows not supported in Android; we can't create an actual sub window
     return true;
 }
+
+}  // namespace gfxstream

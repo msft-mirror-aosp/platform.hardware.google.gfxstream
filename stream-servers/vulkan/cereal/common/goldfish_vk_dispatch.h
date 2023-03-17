@@ -34,15 +34,18 @@
 #include "goldfish_vk_private_defs.h"
 #include "vk_android_native_buffer.h"
 #include "vulkan_gfxstream.h"
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 struct VulkanDispatch;
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
 using DlOpenFunc = void*(void);
 using DlSymFunc = void*(void*, const char*);
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dlSymFunc,
                                              VulkanDispatch* dispatch_out);
@@ -1163,4 +1166,5 @@ struct VulkanDispatch {
 #endif
 };
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

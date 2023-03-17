@@ -18,5 +18,11 @@
 #include "OpenGLESDispatch/GLESv1Dispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 
+namespace gfxstream {
+namespace gl {
+
 extern GLESv2Dispatch s_gles2;
 extern GLESv1Dispatch s_gles1;
+
+}  // namespace gl
+}  // namespace gfxstream
