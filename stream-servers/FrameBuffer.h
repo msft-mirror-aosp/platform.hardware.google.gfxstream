@@ -218,10 +218,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     // handle value as returned by createEmulatedEglWindowSurface().
     void destroyEmulatedEglWindowSurface(HandleType p_surface);
 
-    // Destroy a given EmulatedEglWindowSurface instance and moves any references to
-    // backing ColorBuffers to the `toDestroy`.
-    void destroyEmulatedEglWindowSurfaceLocked(HandleType p_surface,
-                                               std::vector<ColorBufferPtr>* toDestroy);
+    // Returns the set of ColorBuffers destroyed (for further cleanup)
+    std::vector<HandleType> destroyEmulatedEglWindowSurfaceLocked(HandleType p_surface);
 
     void createEmulatedEglFenceSync(EGLenum type,
                                     int destroyWhenSignaled,
@@ -296,8 +294,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     std::unique_ptr<ProcessResources> removeGraphicsProcessResources(uint64_t puid);
     // TODO(kaiyili): retire cleanupProcGLObjects in favor of removeGraphicsProcessResources.
     void cleanupProcGLObjects(uint64_t puid);
-    void cleanupProcGLObjects_locked(uint64_t puid, std::vector<ColorBufferPtr>* toDestroy,
-                                     bool forced = false);
 
     // Equivalent for eglMakeCurrent() for the current display.
     // |p_context|, |p_drawSurface| and |p_readSurface| are the handle values
@@ -675,22 +671,21 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     HandleType genHandle_locked();
 
     bool removeSubWindow_locked();
+    // Returns the set of ColorBuffers destroyed (for further cleanup)
+    std::vector<HandleType> cleanupProcGLObjects_locked(uint64_t puid,
+                                                        bool forced = false);
 
     void markOpened(ColorBufferRef* cbRef);
     // Returns true if the color buffer was erased.
-    bool closeColorBufferLocked(HandleType p_colorbuffer, std::vector<ColorBufferPtr>* toDestroy,
-                                bool forced = false);
-    // Decrements the color buffer's reference count and adds the color buffer to the given
-    // `toDestroy` list if this was the last reference to the color buffer.
-    void decColorBufferRefCountLocked(HandleType p_colorbuffer,
-                                      std::vector<ColorBufferPtr>* toDestroy);
+    bool closeColorBufferLocked(HandleType p_colorbuffer, bool forced = false);
+    // Returns true if this was the last ref and we need to destroy stuff.
+    bool decColorBufferRefCountLocked(HandleType p_colorbuffer);
     // Decrease refcount but not destroy the object.
     // Mainly used in post thread, when we need to destroy the object but cannot in post thread.
     void decColorBufferRefCountNoDestroy(HandleType p_colorbuffer);
     // Close all expired color buffers for real.
     // Treat all delayed color buffers as expired if forced=true
-    void performDelayedColorBufferCloseLocked(std::vector<ColorBufferPtr>* toDestroy,
-                                              bool forced = false);
+    void performDelayedColorBufferCloseLocked(bool forced = false);
     void eraseDelayedCloseColorBufferLocked(HandleType cb, uint64_t ts);
 
     AsyncResult postImpl(HandleType p_colorbuffer, Post::CompletionCallback callback,
