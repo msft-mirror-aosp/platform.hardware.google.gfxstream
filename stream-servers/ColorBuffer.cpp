@@ -32,9 +32,7 @@ namespace {
 // memory should not be shared between the VK YUV image and the GL RGBA
 // texture.
 bool shouldAttemptExternalMemorySharing(FrameworkFormat format) {
-    // TODO(b/271030190): this doesn't work on certain Intel GPU
-    //return format == FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE;
-    return false;
+    return format == FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE;
 }
 
 }  // namespace
