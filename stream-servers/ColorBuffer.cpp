@@ -80,8 +80,10 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gfxstream::EmulationGl* emulati
         }
     }
 
+    bool b271028352Workaround = emulationGl && strstr(emulationGl->getGlesRenderer().c_str(), "Intel");
+
     if (colorBuffer->mColorBufferGl && colorBuffer->mColorBufferVk &&
-        shouldAttemptExternalMemorySharing(frameworkFormat)) {
+        !b271028352Workaround && shouldAttemptExternalMemorySharing(frameworkFormat)) {
         auto memoryExport = goldfish_vk::exportColorBufferMemory(handle);
         if (memoryExport) {
             if (colorBuffer->mColorBufferGl->importMemory(
