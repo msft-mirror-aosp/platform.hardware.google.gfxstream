@@ -389,7 +389,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     vkEmulationFeatures->glInteropSupported = fb->m_vulkanInteropSupported;
     if (feature_is_enabled(kFeature_Vulkan)) {
         goldfish_vk::initVkEmulationFeatures(std::move(vkEmulationFeatures));
-        if (vkEmu->displayVk) {
+        if (vkEmu && vkEmu->displayVk) {
             fb->m_displayVk = vkEmu->displayVk.get();
             fb->m_displaySurfaceUsers.push_back(fb->m_displayVk);
         }
