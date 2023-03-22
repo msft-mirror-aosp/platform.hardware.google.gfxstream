@@ -1793,6 +1793,10 @@ bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
     std::unique_ptr<VkImageCreateInfo> imageCi =
         generateColorBufferVkImageCreateInfo_locked(vkFormat, width, height, tiling);
     // pNext will be filled later.
+    if (imageCi == nullptr) {
+        // it can happen if the format is not supported
+        return false;
+    }
     imageCi->sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageCi->queueFamilyIndexCount = 0;
     imageCi->pQueueFamilyIndices = nullptr;
