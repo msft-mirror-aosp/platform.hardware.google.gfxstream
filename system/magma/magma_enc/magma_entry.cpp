@@ -13,15 +13,13 @@ extern "C" {
 	magma_status_t magma_connection_get_error(magma_connection_t connection);
 	magma_status_t magma_connection_create_context(magma_connection_t connection, uint32_t* context_id_out);
 	void magma_connection_release_context(magma_connection_t connection, uint32_t context_id);
-	magma_status_t magma_connection_create_buffer(magma_connection_t connection, uint64_t size, uint64_t* size_out, magma_buffer_t* buffer_out);
+	magma_status_t magma_connection_create_buffer(magma_connection_t connection, uint64_t size, uint64_t* size_out, magma_buffer_t* buffer_out, magma_buffer_id_t* id_out);
 	void magma_connection_release_buffer(magma_connection_t connection, magma_buffer_t buffer);
-	magma_status_t magma_connection_export_buffer(magma_connection_t connection, magma_buffer_t buffer, magma_handle_t* buffer_handle_out);
-	magma_status_t magma_connection_import_buffer(magma_connection_t connection, magma_handle_t buffer_handle, magma_buffer_t* buffer_out);
-	magma_status_t magma_connection_create_semaphore(magma_connection_t connection, magma_semaphore_t* semaphore_out);
+	magma_status_t magma_connection_import_buffer(magma_connection_t connection, magma_handle_t buffer_handle, uint64_t* size_out, magma_buffer_t* buffer_out, magma_buffer_id_t* id_out);
+	magma_status_t magma_connection_create_semaphore(magma_connection_t connection, magma_semaphore_t* semaphore_out, magma_semaphore_id_t* id_out);
 	void magma_connection_release_semaphore(magma_connection_t connection, magma_semaphore_t semaphore);
-	magma_status_t magma_connection_export_semaphore(magma_connection_t connection, magma_semaphore_t semaphore, magma_handle_t* semaphore_handle_out);
-	magma_status_t magma_connection_import_semaphore(magma_connection_t connection, magma_handle_t semaphore_handle, magma_semaphore_t* semaphore_out);
-	magma_status_t magma_connection_buffer_range_op(magma_connection_t connection, magma_buffer_t buffer, uint32_t options, uint64_t start_offset, uint64_t length);
+	magma_status_t magma_connection_import_semaphore(magma_connection_t connection, magma_handle_t semaphore_handle, magma_semaphore_t* semaphore_out, magma_semaphore_id_t* id_out);
+	magma_status_t magma_connection_perform_buffer_op(magma_connection_t connection, magma_buffer_t buffer, uint32_t options, uint64_t start_offset, uint64_t length);
 	magma_status_t magma_connection_map_buffer(magma_connection_t connection, uint64_t hw_va, magma_buffer_t buffer, uint64_t offset, uint64_t length, uint64_t map_flags);
 	void magma_connection_unmap_buffer(magma_connection_t connection, uint64_t hw_va, magma_buffer_t buffer);
 	magma_status_t magma_connection_execute_command(uint64_t* parameters, uint64_t parameter_count);
@@ -29,17 +27,16 @@ extern "C" {
 	magma_status_t magma_connection_flush(magma_connection_t connection);
 	magma_handle_t magma_connection_get_notification_channel_handle(magma_connection_t connection);
 	magma_status_t magma_connection_read_notification_channel(magma_connection_t connection, void* buffer, uint64_t buffer_size, uint64_t* buffer_size_out, magma_bool_t* more_data_out);
-	uint64_t magma_buffer_get_id(magma_buffer_t buffer);
-	uint64_t magma_buffer_get_size(magma_buffer_t buffer);
 	magma_status_t magma_buffer_clean_cache(magma_buffer_t buffer, uint64_t offset, uint64_t size, magma_cache_operation_t operation);
 	magma_status_t magma_buffer_set_cache_policy(magma_buffer_t buffer, magma_cache_policy_t policy);
 	magma_status_t magma_buffer_get_cache_policy(magma_buffer_t buffer, magma_cache_policy_t* cache_policy_out);
 	magma_status_t magma_buffer_set_name(magma_buffer_t buffer, void* name, uint64_t name_size);
 	magma_status_t magma_buffer_get_info(uint64_t* parameters, uint64_t parameter_count);
 	magma_status_t magma_buffer_get_handle(magma_buffer_t buffer, magma_handle_t* handle_out);
-	uint64_t magma_semaphore_get_id(magma_semaphore_t semaphore);
+	magma_status_t magma_buffer_export(magma_buffer_t buffer, magma_handle_t* buffer_handle_out);
 	void magma_semaphore_signal(magma_semaphore_t semaphore);
 	void magma_semaphore_reset(magma_semaphore_t semaphore);
+	magma_status_t magma_semaphore_export(magma_semaphore_t semaphore, magma_handle_t* semaphore_handle_out);
 	magma_status_t magma_poll(magma_poll_item_t* items, uint32_t count, uint64_t timeout_ns);
 	magma_status_t magma_initialize_tracing(magma_handle_t channel);
 	magma_status_t magma_initialize_logging(magma_handle_t channel);
@@ -110,10 +107,10 @@ void magma_connection_release_context(magma_connection_t connection, uint32_t co
 	ctx->magma_connection_release_context(ctx, connection, context_id);
 }
 
-magma_status_t magma_connection_create_buffer(magma_connection_t connection, uint64_t size, uint64_t* size_out, magma_buffer_t* buffer_out)
+magma_status_t magma_connection_create_buffer(magma_connection_t connection, uint64_t size, uint64_t* size_out, magma_buffer_t* buffer_out, magma_buffer_id_t* id_out)
 {
 	GET_CONTEXT;
-	return ctx->magma_connection_create_buffer(ctx, connection, size, size_out, buffer_out);
+	return ctx->magma_connection_create_buffer(ctx, connection, size, size_out, buffer_out, id_out);
 }
 
 void magma_connection_release_buffer(magma_connection_t connection, magma_buffer_t buffer)
@@ -122,22 +119,16 @@ void magma_connection_release_buffer(magma_connection_t connection, magma_buffer
 	ctx->magma_connection_release_buffer(ctx, connection, buffer);
 }
 
-magma_status_t magma_connection_export_buffer(magma_connection_t connection, magma_buffer_t buffer, magma_handle_t* buffer_handle_out)
+magma_status_t magma_connection_import_buffer(magma_connection_t connection, magma_handle_t buffer_handle, uint64_t* size_out, magma_buffer_t* buffer_out, magma_buffer_id_t* id_out)
 {
 	GET_CONTEXT;
-	return ctx->magma_connection_export_buffer(ctx, connection, buffer, buffer_handle_out);
+	return ctx->magma_connection_import_buffer(ctx, connection, buffer_handle, size_out, buffer_out, id_out);
 }
 
-magma_status_t magma_connection_import_buffer(magma_connection_t connection, magma_handle_t buffer_handle, magma_buffer_t* buffer_out)
+magma_status_t magma_connection_create_semaphore(magma_connection_t connection, magma_semaphore_t* semaphore_out, magma_semaphore_id_t* id_out)
 {
 	GET_CONTEXT;
-	return ctx->magma_connection_import_buffer(ctx, connection, buffer_handle, buffer_out);
-}
-
-magma_status_t magma_connection_create_semaphore(magma_connection_t connection, magma_semaphore_t* semaphore_out)
-{
-	GET_CONTEXT;
-	return ctx->magma_connection_create_semaphore(ctx, connection, semaphore_out);
+	return ctx->magma_connection_create_semaphore(ctx, connection, semaphore_out, id_out);
 }
 
 void magma_connection_release_semaphore(magma_connection_t connection, magma_semaphore_t semaphore)
@@ -146,22 +137,16 @@ void magma_connection_release_semaphore(magma_connection_t connection, magma_sem
 	ctx->magma_connection_release_semaphore(ctx, connection, semaphore);
 }
 
-magma_status_t magma_connection_export_semaphore(magma_connection_t connection, magma_semaphore_t semaphore, magma_handle_t* semaphore_handle_out)
+magma_status_t magma_connection_import_semaphore(magma_connection_t connection, magma_handle_t semaphore_handle, magma_semaphore_t* semaphore_out, magma_semaphore_id_t* id_out)
 {
 	GET_CONTEXT;
-	return ctx->magma_connection_export_semaphore(ctx, connection, semaphore, semaphore_handle_out);
+	return ctx->magma_connection_import_semaphore(ctx, connection, semaphore_handle, semaphore_out, id_out);
 }
 
-magma_status_t magma_connection_import_semaphore(magma_connection_t connection, magma_handle_t semaphore_handle, magma_semaphore_t* semaphore_out)
+magma_status_t magma_connection_perform_buffer_op(magma_connection_t connection, magma_buffer_t buffer, uint32_t options, uint64_t start_offset, uint64_t length)
 {
 	GET_CONTEXT;
-	return ctx->magma_connection_import_semaphore(ctx, connection, semaphore_handle, semaphore_out);
-}
-
-magma_status_t magma_connection_buffer_range_op(magma_connection_t connection, magma_buffer_t buffer, uint32_t options, uint64_t start_offset, uint64_t length)
-{
-	GET_CONTEXT;
-	return ctx->magma_connection_buffer_range_op(ctx, connection, buffer, options, start_offset, length);
+	return ctx->magma_connection_perform_buffer_op(ctx, connection, buffer, options, start_offset, length);
 }
 
 magma_status_t magma_connection_map_buffer(magma_connection_t connection, uint64_t hw_va, magma_buffer_t buffer, uint64_t offset, uint64_t length, uint64_t map_flags)
@@ -206,18 +191,6 @@ magma_status_t magma_connection_read_notification_channel(magma_connection_t con
 	return ctx->magma_connection_read_notification_channel(ctx, connection, buffer, buffer_size, buffer_size_out, more_data_out);
 }
 
-uint64_t magma_buffer_get_id(magma_buffer_t buffer)
-{
-	GET_CONTEXT;
-	return ctx->magma_buffer_get_id(ctx, buffer);
-}
-
-uint64_t magma_buffer_get_size(magma_buffer_t buffer)
-{
-	GET_CONTEXT;
-	return ctx->magma_buffer_get_size(ctx, buffer);
-}
-
 magma_status_t magma_buffer_clean_cache(magma_buffer_t buffer, uint64_t offset, uint64_t size, magma_cache_operation_t operation)
 {
 	GET_CONTEXT;
@@ -254,10 +227,10 @@ magma_status_t magma_buffer_get_handle(magma_buffer_t buffer, magma_handle_t* ha
 	return ctx->magma_buffer_get_handle(ctx, buffer, handle_out);
 }
 
-uint64_t magma_semaphore_get_id(magma_semaphore_t semaphore)
+magma_status_t magma_buffer_export(magma_buffer_t buffer, magma_handle_t* buffer_handle_out)
 {
 	GET_CONTEXT;
-	return ctx->magma_semaphore_get_id(ctx, semaphore);
+	return ctx->magma_buffer_export(ctx, buffer, buffer_handle_out);
 }
 
 void magma_semaphore_signal(magma_semaphore_t semaphore)
@@ -270,6 +243,12 @@ void magma_semaphore_reset(magma_semaphore_t semaphore)
 {
 	GET_CONTEXT;
 	ctx->magma_semaphore_reset(ctx, semaphore);
+}
+
+magma_status_t magma_semaphore_export(magma_semaphore_t semaphore, magma_handle_t* semaphore_handle_out)
+{
+	GET_CONTEXT;
+	return ctx->magma_semaphore_export(ctx, semaphore, semaphore_handle_out);
 }
 
 magma_status_t magma_poll(magma_poll_item_t* items, uint32_t count, uint64_t timeout_ns)

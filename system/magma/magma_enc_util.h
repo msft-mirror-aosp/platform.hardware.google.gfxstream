@@ -15,7 +15,7 @@
 #pragma once
 
 #include <log/log.h>
-#include <magma/magma_common_defs.h>
+#include <lib/magma/magma_common_defs.h>
 #include <stddef.h>
 
 namespace magma_enc_util {

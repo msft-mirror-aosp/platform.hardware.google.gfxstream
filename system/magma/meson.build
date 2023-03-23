@@ -35,6 +35,9 @@ lib_magma_enc = static_library(
 )
 
 lib_magma_gfxstream_dep = declare_dependency(
-   include_directories: [inc_magma, inc_magma_enc],
+   include_directories: [
+      inc_fuchsia_magma,
+      inc_fuchsia_magma_nolib
+   ],
    link_with: [lib_magma_enc],
 )
