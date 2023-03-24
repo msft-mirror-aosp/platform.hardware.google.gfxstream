@@ -292,3 +292,4 @@ Release_x64/
 TestResults.qpa
 .idea/
 .cache/
+compile_commands.json
