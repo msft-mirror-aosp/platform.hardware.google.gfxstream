@@ -142,6 +142,8 @@ static constexpr uint32_t kMinVersion = VK_MAKE_VERSION(1, 0, 0);
 static constexpr uint64_t kPageSizeforBlob = 4096;
 static constexpr uint64_t kPageMaskForBlob = ~(0xfff);
 
+static uint64_t hostBlobId = 0;
+
 #define DEFINE_BOXED_HANDLE_TYPE_TAG(type) Tag_##type,
 
 enum BoxedHandleTypeTag {
@@ -3588,13 +3590,15 @@ class VkDecoderGlobalState::Impl {
         auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
+        hostBlobId++;
         if (feature_is_enabled(kFeature_SystemBlob) && info->sharedMemory.has_value()) {
             uint32_t handleType = STREAM_MEM_HANDLE_TYPE_SHM;
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
-            *pHostmemId = HostmemIdMapping::get()->addDescriptorInfo(
+            HostmemIdMapping::get()->addDescriptorInfo(hostBlobId,
                 info->sharedMemory->releaseHandle(), handleType, info->caching, std::nullopt);
+            *pHostmemId = hostBlobId;
             *pSize = info->size;
             *pAddress = 0;
         } else if (feature_is_enabled(kFeature_ExternalBlob)) {
@@ -3652,9 +3656,10 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             ManagedDescriptor managedHandle(handle);
-            *pHostmemId = HostmemIdMapping::get()->addDescriptorInfo(
+            HostmemIdMapping::get()->addDescriptorInfo(hostBlobId,
                 std::move(managedHandle), handleType, info->caching,
                 std::optional<VulkanInfo>(vulkanInfo));
+            *pHostmemId = hostBlobId;
             *pSize = info->size;
             *pAddress = 0;
         } else {
