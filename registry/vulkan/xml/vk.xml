@@ -5462,15 +5462,6 @@ typedef void <name>CAMetalLayer</name>;
             <member><type>void</type>*                  <name>pNext</name></member>
             <member><type>uint32_t</type>   <name>buffer</name></member>
         </type>
-        <type category="struct" name="VkImportPhysicalAddressGOOGLE" structextends="VkMemoryAllocateInfo">
-            <member values="VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE"><type>VkStructureType</type> <name>sType</name></member>
-            <member><type>void</type>*                  <name>pNext</name></member>
-            <member><type>uint64_t</type>   <name>physicalAddress</name></member>
-            <member><type>VkDeviceSize</type>   <name>size</name></member>
-            <member><type>VkFormat</type>   <name>format</name></member>
-            <member><type>VkImageTiling</type>   <name>tiling</name></member>
-            <member><type>uint32_t</type>   <name>tilingParameter</name></member>
-        </type>
         <type category="struct" name="VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE" structextends="VkPhysicalDeviceFeatures2,VkDeviceCreateInfo">
             <member values="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_VALVE"><type>VkStructureType</type> <name>sType</name></member>
             <member optional="true" noautovalidity="true"><type>void</type>*                     <name>pNext</name></member>
@@ -10221,18 +10212,6 @@ typedef void <name>CAMetalLayer</name>;
             <param><type>VkDevice</type> <name>device</name></param>
             <param externsync="true" devicememoryhandle="1"><type>VkDeviceMemory</type> <name>memory</name></param>
             <param optional="false,true"><type>uint64_t</type>* <name>pAddress</name></param>
-        </command>
-        <command successcodes="VK_SUCCESS" errorcodes="VK_ERROR_INITIALIZATION_FAILED,VK_ERROR_OUT_OF_HOST_MEMORY,VK_ERROR_OUT_OF_DEVICE_MEMORY">
-            <proto><type>VkResult</type> <name>vkRegisterImageColorBufferGOOGLE</name></proto>
-            <param><type>VkDevice</type> <name>device</name></param>
-            <param><type>VkImage</type> <name>image</name></param>
-            <param><type>uint32_t</type> <name>colorBuffer</name></param>
-        </command>
-        <command successcodes="VK_SUCCESS" errorcodes="VK_ERROR_INITIALIZATION_FAILED,VK_ERROR_OUT_OF_HOST_MEMORY,VK_ERROR_OUT_OF_DEVICE_MEMORY">
-            <proto><type>VkResult</type> <name>vkRegisterBufferColorBufferGOOGLE</name></proto>
-            <param><type>VkDevice</type> <name>device</name></param>
-            <param><type>VkBuffer</type> <name>buffer</name></param>
-            <param><type>uint32_t</type> <name>colorBuffer</name></param>
         </command>
         <command>
             <proto><type>void</type> <name>vkUpdateDescriptorSetWithTemplateSizedGOOGLE</name></proto>
@@ -17657,14 +17636,10 @@ typedef void <name>CAMetalLayer</name>;
                 <enum value="386"                                           name="VK_GOOGLE_GFXSTREAM_NUMBER"/>
                 <enum value="&quot;VK_GOOGLE_gfxstream&quot;"               name="VK_GOOGLE_GFXSTREAM_EXTENSION_NAME"/>
                 <enum offset="0" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_COLOR_BUFFER_GOOGLE"/>
-                <enum offset="1" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE"/>
-                <enum offset="2" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_BUFFER_HANDLE_GOOGLE"/>
-                <enum offset="3" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE"/>
+                <enum offset="1" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_BUFFER_HANDLE_GOOGLE"/>
+                <enum offset="2" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE"/>
                 <type name="VkImportColorBufferGOOGLE"/>
                 <type name="VkImportBufferGOOGLE"/>
-                <type name="VkImportPhysicalAddressGOOGLE"/>
-                <command name="vkRegisterImageColorBufferGOOGLE"/>
-                <command name="vkRegisterBufferColorBufferGOOGLE"/>
                 <command name="vkMapMemoryIntoAddressSpaceGOOGLE"/>
                 <command name="vkUpdateDescriptorSetWithTemplateSizedGOOGLE"/>
                 <command name="vkBeginCommandBufferAsyncGOOGLE"/>

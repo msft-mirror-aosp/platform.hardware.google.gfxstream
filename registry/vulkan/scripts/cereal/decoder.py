@@ -688,10 +688,6 @@ custom_decodes = {
     "vkMapMemoryIntoAddressSpaceGOOGLE" : emit_global_state_wrapped_decoding,
     "vkGetMemoryHostAddressInfoGOOGLE" : emit_global_state_wrapped_decoding,
 
-    # VK_GOOGLE_color_buffer
-    "vkRegisterImageColorBufferGOOGLE" : emit_global_state_wrapped_decoding,
-    "vkRegisterBufferColorBufferGOOGLE" : emit_global_state_wrapped_decoding,
-
     # Descriptor update templates
     "vkCreateDescriptorUpdateTemplate" : emit_global_state_wrapped_decoding,
     "vkCreateDescriptorUpdateTemplateKHR" : emit_global_state_wrapped_decoding,
