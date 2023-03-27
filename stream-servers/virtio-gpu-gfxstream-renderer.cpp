@@ -1310,6 +1310,22 @@ class PipeVirglRenderer {
         return ret;
     }
 
+    void getCapset(uint32_t set, uint32_t *max_size) {
+        // Only one capset right not
+        *max_size = sizeof(struct gfxstreamCapset);
+    }
+
+    void fillCaps(uint32_t set, void* caps) {
+        struct gfxstreamCapset *capset = reinterpret_cast<struct gfxstreamCapset*>(caps);
+        if (capset) {
+            memset(capset, 0, sizeof(*capset));
+
+            capset->protocolVersion = 1;
+            capset->ringSize = 12288;
+            capset->bufferSize = 1048576;
+        }
+    }
+
     void attachResource(uint32_t ctxId, uint32_t resId) {
         AutoLock lock(mLock);
         VGPLOG("ctxid: %u resid: %u", ctxId, resId);
@@ -1781,9 +1797,15 @@ VG_EXPORT int pipe_virgl_renderer_transfer_write_iov(uint32_t handle, uint32_t c
     return sRenderer()->transferWriteIov(handle, offset, box, iovec, iovec_cnt);
 }
 
-// Not implemented
-VG_EXPORT void pipe_virgl_renderer_get_cap_set(uint32_t, uint32_t*, uint32_t*) {}
-VG_EXPORT void pipe_virgl_renderer_fill_caps(uint32_t, uint32_t, void* caps) {}
+VG_EXPORT void pipe_virgl_renderer_get_cap_set(uint32_t set, uint32_t* max_ver, uint32_t* max_size) {
+    // `max_ver` not useful
+    return sRenderer()->getCapset(set, max_size);
+}
+
+VG_EXPORT void pipe_virgl_renderer_fill_caps(uint32_t set, uint32_t version, void* caps) {
+    // `version` not useful
+    return sRenderer()->fillCaps(set, caps);
+}
 
 VG_EXPORT int pipe_virgl_renderer_resource_attach_iov(int res_handle, struct iovec* iov,
                                                       int num_iovs) {
