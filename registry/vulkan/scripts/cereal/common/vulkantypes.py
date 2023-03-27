@@ -750,7 +750,7 @@ class VulkanCompoundType(object):
 
 class VulkanAPI(object):
 
-    def __init__(self, name: str, retType: VulkanType, parameters: list[VulkanType], origName=None):
+    def __init__(self, name: str, retType: VulkanType, parameters, origName=None):
         self.name: str = name
         self.origName = name
         self.retType: VulkanType = retType
