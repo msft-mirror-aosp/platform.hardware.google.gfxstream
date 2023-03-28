@@ -419,12 +419,6 @@ class VkDecoderGlobalState {
                                        VkDeviceMemory memory,
                                        const VkAllocationCallbacks* pAllocator);
 
-    // VK_GOOGLE_color_buffer
-    VkResult on_vkRegisterImageColorBufferGOOGLE(android::base::BumpPool* pool, VkDevice device,
-                                                 VkImage image, uint32_t colorBuffer);
-    VkResult on_vkRegisterBufferColorBufferGOOGLE(android::base::BumpPool* pool, VkDevice device,
-                                                  VkBuffer buffer, uint32_t colorBuffer);
-
     VkResult on_vkAllocateCommandBuffers(android::base::BumpPool* pool, VkDevice device,
                                          const VkCommandBufferAllocateInfo* pAllocateInfo,
                                          VkCommandBuffer* pCommandBuffers);

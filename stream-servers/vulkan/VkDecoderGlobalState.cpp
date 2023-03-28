@@ -3003,17 +3003,6 @@ class VkDecoderGlobalState::Impl {
         // originally created with a dedicated allocation.
         bool shouldUseDedicatedAllocInfo = dedicatedAllocInfoPtr != nullptr;
 
-        const VkImportPhysicalAddressGOOGLE* importPhysAddrInfoPtr =
-            vk_find_struct<VkImportPhysicalAddressGOOGLE>(pAllocateInfo);
-
-        if (importPhysAddrInfoPtr) {
-            // TODO: Implement what happens on importing a physical address:
-            // 1 - perform action of vkMapMemoryIntoAddressSpaceGOOGLE if
-            //     host visible
-            // 2 - create color buffer, setup Vk for it,
-            //     and associate it with the physical address
-        }
-
         const VkImportColorBufferGOOGLE* importCbInfoPtr =
             vk_find_struct<VkImportColorBufferGOOGLE>(pAllocateInfo);
         const VkImportBufferGOOGLE* importBufferInfoPtr =
@@ -3693,20 +3682,6 @@ class VkDecoderGlobalState::Impl {
         on_vkFreeMemory(pool, boxed_device, memory, pAllocator);
 
         return VK_SUCCESS;
-    }
-
-    VkResult on_vkRegisterImageColorBufferGOOGLE(android::base::BumpPool*, VkDevice, VkImage,
-                                                 uint32_t) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Unimplemented deprecated vkRegisterImageColorBufferGOOGLE() called.";
-        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-    }
-
-    VkResult on_vkRegisterBufferColorBufferGOOGLE(android::base::BumpPool* pool, VkDevice, VkBuffer,
-                                                  uint32_t) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Unimplemented deprecated on_vkRegisterBufferColorBufferGOOGLE() called.";
-        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
     }
 
     VkResult on_vkAllocateCommandBuffers(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -6815,20 +6790,6 @@ VkResult VkDecoderGlobalState::on_vkFreeMemorySyncGOOGLE(android::base::BumpPool
                                                          VkDevice device, VkDeviceMemory memory,
                                                          const VkAllocationCallbacks* pAllocator) {
     return mImpl->on_vkFreeMemorySyncGOOGLE(pool, device, memory, pAllocator);
-}
-
-// VK_GOOGLE_color_buffer
-VkResult VkDecoderGlobalState::on_vkRegisterImageColorBufferGOOGLE(android::base::BumpPool* pool,
-                                                                   VkDevice device, VkImage image,
-                                                                   uint32_t colorBuffer) {
-    return mImpl->on_vkRegisterImageColorBufferGOOGLE(pool, device, image, colorBuffer);
-}
-
-VkResult VkDecoderGlobalState::on_vkRegisterBufferColorBufferGOOGLE(android::base::BumpPool* pool,
-                                                                    VkDevice device,
-                                                                    VkBuffer buffer,
-                                                                    uint32_t colorBuffer) {
-    return mImpl->on_vkRegisterBufferColorBufferGOOGLE(pool, device, buffer, colorBuffer);
 }
 
 VkResult VkDecoderGlobalState::on_vkAllocateCommandBuffers(
