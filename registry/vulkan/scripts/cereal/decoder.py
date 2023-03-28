@@ -687,6 +687,7 @@ custom_decodes = {
     "vkFreeMemorySyncGOOGLE" : emit_global_state_wrapped_decoding,
     "vkMapMemoryIntoAddressSpaceGOOGLE" : emit_global_state_wrapped_decoding,
     "vkGetMemoryHostAddressInfoGOOGLE" : emit_global_state_wrapped_decoding,
+    "vkGetBlobGOOGLE" : emit_global_state_wrapped_decoding,
 
     # Descriptor update templates
     "vkCreateDescriptorUpdateTemplate" : emit_global_state_wrapped_decoding,

@@ -353,6 +353,7 @@ KNOWN_FUNCTION_OPCODES = {
     "vkUseIOSurfaceMVK": 20338,
     "vkGetIOSurfaceMVK": 20339,
     "vkQueueFlushCommandsGOOGLE": 20340,
+    "vkGetBlobGOOGLE": 20341,
 }
 
 CUSTOM_MARSHAL_TYPES = {

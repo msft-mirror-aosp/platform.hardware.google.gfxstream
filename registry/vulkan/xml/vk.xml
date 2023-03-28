@@ -10336,6 +10336,11 @@ typedef void <name>CAMetalLayer</name>;
             <param><type>VkDeviceSize</type> <name>dataSize</name></param>
             <param len="dataSize">const <type>void</type>* <name>pData</name></param>
         </command>
+        <command successcodes="VK_SUCCESS" errorcodes="VK_ERROR_OUT_OF_HOST_MEMORY">
+            <proto><type>VkResult</type> <name>vkGetBlobGOOGLE</name></proto>
+            <param><type>VkDevice</type> <name>device</name></param>
+            <param externsync="true" devicememoryhandle="1"><type>VkDeviceMemory</type> <name>memory</name></param>
+        </command>
         <command>
             <proto><type>void</type> <name>vkGetMTLDeviceMVK</name></proto>
             <param><type>VkPhysicalDevice</type> <name>physicalDevice</name></param>
@@ -17669,6 +17674,7 @@ typedef void <name>CAMetalLayer</name>;
                 <command name="vkCollectDescriptorPoolIdsGOOGLE"/>
                 <command name="vkQueueSignalReleaseImageANDROIDAsyncGOOGLE"/>
                 <command name="vkQueueFlushCommandsFromAuxMemoryGOOGLE"/>
+                <command name="vkGetBlobGOOGLE"/>
             </require>
         </extension>
     </extensions>

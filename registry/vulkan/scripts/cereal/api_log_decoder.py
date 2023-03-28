@@ -72,6 +72,7 @@ class ApiLogDecoder(VulkanWrapperGenerator):
         "vkFreeMemorySyncGOOGLE",
         "vkGetFenceStatus",
         "vkGetMemoryHostAddressInfoGOOGLE",
+        "vkGetBlobGOOGLE",
         "vkGetPhysicalDeviceFormatProperties",
         "vkGetPhysicalDeviceProperties2KHR",
         "vkGetPipelineCacheData",
