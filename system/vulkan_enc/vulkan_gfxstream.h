@@ -43,20 +43,6 @@ typedef struct VkImportBufferGOOGLE {
     uint32_t buffer;
 } VkImportBufferGOOGLE;
 
-typedef struct VkImportPhysicalAddressGOOGLE {
-    VkStructureType sType;
-    void* pNext;
-    uint64_t physicalAddress;
-    VkDeviceSize size;
-    VkFormat format;
-    VkImageTiling tiling;
-    uint32_t tilingParameter;
-} VkImportPhysicalAddressGOOGLE;
-
-typedef VkResult(VKAPI_PTR* PFN_vkRegisterImageColorBufferGOOGLE)(VkDevice device, VkImage image,
-                                                                  uint32_t colorBuffer);
-typedef VkResult(VKAPI_PTR* PFN_vkRegisterBufferColorBufferGOOGLE)(VkDevice device, VkBuffer buffer,
-                                                                   uint32_t colorBuffer);
 typedef VkResult(VKAPI_PTR* PFN_vkMapMemoryIntoAddressSpaceGOOGLE)(VkDevice device,
                                                                    VkDeviceMemory memory,
                                                                    uint64_t* pAddress);
@@ -126,12 +112,6 @@ typedef void(VKAPI_PTR* PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)(VkQueue que
                                                                      VkDeviceSize dataSize);
 
 #ifndef VK_NO_PROTOTYPES
-VKAPI_ATTR VkResult VKAPI_CALL vkRegisterImageColorBufferGOOGLE(VkDevice device, VkImage image,
-                                                                uint32_t colorBuffer);
-
-VKAPI_ATTR VkResult VKAPI_CALL vkRegisterBufferColorBufferGOOGLE(VkDevice device, VkBuffer buffer,
-                                                                 uint32_t colorBuffer);
-
 VKAPI_ATTR VkResult VKAPI_CALL vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device,
                                                                  VkDeviceMemory memory,
                                                                  uint64_t* pAddress);
