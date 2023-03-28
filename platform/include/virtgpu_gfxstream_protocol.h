@@ -65,4 +65,14 @@ struct gfxstreamCreateQSRIExportVK {
     uint32_t imageHandleHi;
 };
 
+struct gfxstreamCapset {
+    uint32_t protocolVersion;
+
+    // ASG Ring Parameters
+    uint32_t ringSize;
+    uint32_t bufferSize;
+
+    uint32_t pad;
+};
+
 #endif

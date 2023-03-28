@@ -25,6 +25,7 @@
 
 #include "VirtGpu.h"
 #include "virtgpu_drm.h"
+#include "virtgpu_gfxstream_protocol.h"
 
 #define PARAM(x) \
     (struct VirtGpuParam) { x, #x, 0 }
@@ -48,6 +49,7 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
     };
 
     int ret;
+    struct drm_virtgpu_get_caps get_caps = {0};
     struct drm_virtgpu_context_init init = {0};
     struct drm_virtgpu_context_set_param ctx_set_params[2] = {{0}};
 
@@ -62,12 +64,25 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
         get_param.param = params[i].param;
         get_param.value = (uint64_t)(uintptr_t)&params[i].value;
 
-        int ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_GETPARAM, &get_param);
+        ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_GETPARAM, &get_param);
         if (ret) {
             ALOGE("virtgpu backend not enabling %s", params[i].name);
         }
 
         mParams[i] = params[i];
+    }
+
+    get_caps.cap_set_id = static_cast<uint32_t>(capset);
+    if (capset == kCapsetGfxStream) {
+        get_caps.size = sizeof(struct gfxstreamCapset);
+        get_caps.addr = (unsigned long long)&mGfxstreamCapset;
+    }
+
+    ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_GET_CAPS, &get_caps);
+    if (ret) {
+        // Don't fail get capabilities just yet, AEMU doesn't use this API
+        // yet (b/272121235);
+        ALOGE("DRM_IOCTL_VIRTGPU_GET_CAPS failed with %s", strerror(errno));
     }
 
 
