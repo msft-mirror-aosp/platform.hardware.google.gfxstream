@@ -400,6 +400,12 @@ def OP_vkFreeMemorySyncGOOGLE(printer, indent: int):
     printer.write_struct("pAllocator", struct_VkAllocationCallbacks, True, None, indent)
     return
 
+def OP_vkGetBlobGOOGLE(printer, indent: int):
+    printer.write_int("seqno: ", 4, indent)
+    device = printer.write_int("device", 8, indent, signed=False, big_endian=False)
+    memory = printer.write_int("memory", 8, indent, signed=False, big_endian=False)
+    return
+
 def OP_vkGetFenceStatus(printer, indent: int):
     printer.write_int("seqno: ", 4, indent)
     device = printer.write_int("device", 8, indent, signed=False, big_endian=False)
@@ -2374,9 +2380,8 @@ VkStructureType = {
     1000413002: "VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS_KHR",
     1000413003: "VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS_KHR",
     1000385000: "VK_STRUCTURE_TYPE_IMPORT_COLOR_BUFFER_GOOGLE",
-    1000385001: "VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE",
-    1000385002: "VK_STRUCTURE_TYPE_IMPORT_BUFFER_HANDLE_GOOGLE",
-    1000385003: "VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE",
+    1000385001: "VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE",
+    1000385002: "VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE",
 }
 
 VkSubpassContents = {
