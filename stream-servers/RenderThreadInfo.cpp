@@ -21,8 +21,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace gfxstream {
-
 using android::base::AutoLock;
 using android::base::Stream;
 using android::base::Lock;
@@ -75,5 +73,3 @@ bool RenderThreadInfo::onLoad(Stream* stream) {
 void RenderThreadInfo::postLoadRefreshCurrentContextSurfacePtrs() {
     return m_glInfo->postLoadRefreshCurrentContextSurfacePtrs();
 }
-
-}  // namespace gfxstream

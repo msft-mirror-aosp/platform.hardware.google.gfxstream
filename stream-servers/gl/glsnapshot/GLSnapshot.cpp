@@ -17,9 +17,7 @@
 #define D(...)
 #endif
 
-namespace gfxstream {
-namespace gl {
-namespace snapshot {
+namespace GLSnapshot {
 
 GLSnapshotState::GLSnapshotState(const GLESv2Dispatch* gl) : mGL(gl) {
     D("init snapshot state");
@@ -118,6 +116,7 @@ GLuint GLSnapshotState::createProgram(GLuint program) {
 
 void GLSnapshotState::shaderString(GLuint shader, const GLchar* string) {
     mShaderState[mProgramNamesBack[shader]].source = std::string(string);
+    
 }
 
 void GLSnapshotState::genBuffers(GLsizei n, GLuint* buffers) {
@@ -128,6 +127,4 @@ GLuint GLSnapshotState::getProgramName(GLuint name) {
     return mProgramNames[name];
 }
 
-}  // namespace snapshot
-}  // namespace gl
-}  // namespace gfxstream
+} // namespace GLSnapshot

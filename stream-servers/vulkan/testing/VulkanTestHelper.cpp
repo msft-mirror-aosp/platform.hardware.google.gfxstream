@@ -19,9 +19,7 @@
 #include "host-common/logging.h"
 #include "host-common/vm_operations.h"
 
-namespace gfxstream {
-namespace vk {
-namespace testing {
+namespace goldfish_vk::testing {
 namespace {
 
 using ::android::base::BumpPool;
@@ -45,7 +43,7 @@ std::mutex VulkanTestHelper::mMutex;
 
 VulkanTestHelper::VulkanTestHelper()
     : mLock(mMutex),
-      mVk(vkDispatch(/*forTesting=*/true)),
+      mVk(emugl::vkDispatch(/*forTesting=*/true)),
       mLogger(),
       mMetricsLogger(android::base::CreateMetricsLogger()),
       mHealthMonitor(*mMetricsLogger),
@@ -342,6 +340,4 @@ void VulkanTestHelper::transitionImageLayout(VkCommandBuffer cmdBuf, VkImage ima
                               &barrier);
 }
 
-}  // namespace testing
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk::testing

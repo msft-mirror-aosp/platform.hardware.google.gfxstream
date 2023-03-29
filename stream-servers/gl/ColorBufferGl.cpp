@@ -36,9 +36,11 @@
 using android::base::ManagedDescriptor;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
+using gfxstream::GLESApi;
+using gfxstream::GLESApi_CM;
+using gfxstream::GLESApi_2;
 
 namespace gfxstream {
-namespace gl {
 namespace {
 
 // Lazily create and bind a framebuffer object to the current host context.
@@ -391,7 +393,7 @@ void ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_for
 }
 
 void ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type,
-                                     int rotation, Rect rect, void* pixels) {
+                                     int rotation, emugl::Rect rect, void* pixels) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
         return;
@@ -1159,5 +1161,4 @@ std::unique_ptr<BorrowedImageInfo> ColorBufferGl::getBorrowedImageInfo() {
     return info;
 }
 
-}  // namespace gl
 }  // namespace gfxstream

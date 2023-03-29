@@ -25,7 +25,7 @@
 #define EMUGL_DEBUG_LEVEL 0
 #include "host-common/debug.h"
 
-namespace gfxstream {
+namespace emugl {
 
 using Buffer = RenderChannel::Buffer;
 using IoResult = android::base::BufferQueueResult;
@@ -221,4 +221,4 @@ void RenderChannelImpl::onSave(android::base::Stream* stream) {
     mRenderThread->save(stream);
 }
 
-}  // namespace gfxstream
+}  // namespace emugl

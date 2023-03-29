@@ -25,7 +25,7 @@
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
 
 using android::AlignedBuf;
-using gfxstream::vk::AstcCpuDecompressor;
+using goldfish_vk::AstcCpuDecompressor;
 
 #define GL_R16 0x822A
 #define GL_RG16 0x822C

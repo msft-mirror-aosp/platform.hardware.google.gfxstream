@@ -20,8 +20,6 @@
 #include "TextureDraw.h"
 #include "host-common/logging.h"
 
-namespace gfxstream {
-namespace gl {
 namespace {
 
 std::shared_future<void> getCompletedFuture() {
@@ -115,6 +113,3 @@ void DisplayGl::clear() {
     s_egl.eglSwapBuffers(surfaceGl->mDisplay, surfaceGl->mSurface);
 #endif
 }
-
-}  // namespace gl
-}  // namespace gfxstream

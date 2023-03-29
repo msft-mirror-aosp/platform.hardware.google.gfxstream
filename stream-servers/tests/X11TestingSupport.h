@@ -13,9 +13,5 @@
 // limitations under the License.
 #pragma once
 
-namespace gfxstream {
-
 void* createNativePixmap(int width, int height, int bytesPerPixel);
 void freeNativePixmap(void* pixmap);
-
-}  // namespace gfxstream

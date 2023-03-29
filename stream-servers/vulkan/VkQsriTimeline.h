@@ -9,9 +9,7 @@
 
 #include "host-common/logging.h"
 
-namespace gfxstream {
-namespace vk {
-
+namespace goldfish_vk {
 class VkQsriTimeline {
    public:
     using Callback = std::function<void()>;
@@ -62,8 +60,6 @@ class VkQsriTimeline {
         mPendingCallbacks.erase(mPendingCallbacks.begin(), firstPendingCallback);
     }
 };
-
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk
 
 #endif  // VK_QSRI_TIMELINE_H

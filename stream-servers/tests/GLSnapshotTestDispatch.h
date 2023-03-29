@@ -18,8 +18,7 @@
 
 #include "aemu/base/testing/TestSystem.h"
 
-namespace gfxstream {
-namespace gl {
+namespace emugl {
 
 // Global dispatch object with functions overridden for snapshot testing
 const GLESv2Dispatch* getSnapshotTestDispatch();
@@ -69,5 +68,4 @@ protected:
     std::string mTextureFile = {};
 };
 
-}  // namespace gl
-}  // namespace gfxstream
+}  // namespace emugl

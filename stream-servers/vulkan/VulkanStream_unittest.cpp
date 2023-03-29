@@ -27,11 +27,9 @@
 #include "common/goldfish_vk_reserved_marshaling.h"
 #include "common/goldfish_vk_testing.h"
 
-namespace gfxstream {
-namespace vk {
-namespace {
-
 using android::base::arraySize;
+
+namespace goldfish_vk {
 
 class TestStream : public IOStream {
    public:
@@ -709,6 +707,4 @@ TEST(VulkanStream, testConflictStructExtensions_size) {
     }
 }
 
-}  // namespace
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

@@ -27,7 +27,6 @@
 #include "aemu/base/synchronization/Lock.h"
 
 namespace gfxstream {
-namespace gl {
 
 // The EmulatedEglFenceSync class wraps actual EGLSyncKHR objects
 // and issues calls to eglCreateSyncKHR, eglClientWaitSyncKHR,
@@ -163,5 +162,4 @@ class EmulatedEglFenceSync {
     DISALLOW_COPY_AND_ASSIGN(EmulatedEglFenceSync);
 };
 
-}  // namespace gl
 }  // namespace gfxstream

@@ -24,8 +24,6 @@
 extern "C" {
 #endif
 
-namespace gfxstream {
-
 typedef void (*SubWindowRepaintCallback)(void*);
 
 // Create a new sub-window that will be used to display the content of the
@@ -70,7 +68,5 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
 #ifdef __cplusplus
 }
 #endif
-
-}  // namespace gfxstream
 
 #endif

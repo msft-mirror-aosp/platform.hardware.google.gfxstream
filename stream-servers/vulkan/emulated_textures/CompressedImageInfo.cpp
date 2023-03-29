@@ -18,8 +18,8 @@
 #include "stream-servers/vulkan/VkFormatUtils.h"
 #include "stream-servers/vulkan/emulated_textures/shaders/DecompressionShaders.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
+
 namespace {
 
 #define _RETURN_ON_FAILURE(cmd)                                                                \
@@ -157,7 +157,7 @@ const ShaderData* getDecompressionShader(VkFormat format, VkImageType imageType)
 // Note the potential integer overflow for large numbers.
 inline constexpr uint32_t ceil_div(uint32_t x, uint32_t y) { return (x + y - 1) / y; }
 
-VkImageView createDefaultImageView(VulkanDispatch* vk, VkDevice device, VkImage image,
+VkImageView createDefaultImageView(goldfish_vk::VulkanDispatch* vk, VkDevice device, VkImage image,
                                    VkFormat format, VkImageType imageType, uint32_t mipLevel,
                                    uint32_t layerCount) {
     VkImageViewCreateInfo imageViewInfo = {};
@@ -462,7 +462,7 @@ VkImageCreateInfo CompressedImageInfo::getDecompressedCreateInfo(
     return result;
 }
 
-void CompressedImageInfo::createCompressedMipmapImages(VulkanDispatch* vk,
+void CompressedImageInfo::createCompressedMipmapImages(goldfish_vk::VulkanDispatch* vk,
                                                        const VkImageCreateInfo& createInfo) {
     if (!mCompressedMipmaps.empty()) {
         return;
@@ -505,7 +505,8 @@ void CompressedImageInfo::initAstcCpuDecompression(VulkanDispatch* vk,
                                                  mBlock.height, &AstcCpuDecompressor::get());
 }
 
-bool CompressedImageInfo::decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
+bool CompressedImageInfo::decompressIfNeeded(goldfish_vk::VulkanDispatch* vk,
+                                             VkCommandBuffer commandBuffer,
                                              VkPipelineStageFlags srcStageMask,
                                              VkPipelineStageFlags dstStageMask,
                                              const VkImageMemoryBarrier& targetBarrier,
@@ -577,7 +578,8 @@ VkMemoryRequirements CompressedImageInfo::getMemoryRequirements() const {
     };
 }
 
-VkResult CompressedImageInfo::bindCompressedMipmapsMemory(VulkanDispatch* vk, VkDeviceMemory memory,
+VkResult CompressedImageInfo::bindCompressedMipmapsMemory(goldfish_vk::VulkanDispatch* vk,
+                                                          VkDeviceMemory memory,
                                                           VkDeviceSize memoryOffset) {
     VkResult result = VK_SUCCESS;
     for (size_t i = 0; i < mCompressedMipmaps.size(); i++) {
@@ -641,7 +643,7 @@ void CompressedImageInfo::destroy(VulkanDispatch* vk) {
     vk->vkDestroyImage(mDevice, mDecompressedImage, nullptr);
 }
 
-VkDeviceSize CompressedImageInfo::getImageSize(VulkanDispatch* vk, VkImage image) {
+VkDeviceSize CompressedImageInfo::getImageSize(goldfish_vk::VulkanDispatch* vk, VkImage image) {
     VkMemoryRequirements memRequirements;
     vk->vkGetImageMemoryRequirements(mDevice, image, &memRequirements);
     mAlignment = std::max(mAlignment, memRequirements.alignment);
@@ -683,7 +685,8 @@ VkImageSubresourceRange CompressedImageInfo::getImageSubresourceRange(
     return result;
 }
 
-VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk, VkDevice device) {
+VkResult CompressedImageInfo::initializeDecompressionPipeline(goldfish_vk::VulkanDispatch* vk,
+                                                              VkDevice device) {
     if (mDecompPipeline != nullptr) {
         return VK_SUCCESS;
     }
@@ -826,7 +829,7 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
     return VK_SUCCESS;
 }
 
-void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
+void CompressedImageInfo::decompress(goldfish_vk::VulkanDispatch* vk, VkCommandBuffer commandBuffer,
                                      const VkImageSubresourceRange& range) {
     vk->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mDecompPipeline);
     uint32_t dispatchZ = mExtent.depth == 1 ? range.layerCount : mExtent.depth;
@@ -894,5 +897,4 @@ VkExtent3D CompressedImageInfo::compressedMipmapPortion(const VkExtent3D& origEx
     };
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

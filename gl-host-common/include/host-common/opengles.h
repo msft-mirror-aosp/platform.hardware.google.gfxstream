@@ -139,11 +139,11 @@ AEMU_EXPORT void android_cleanupProcGLObjects(uint64_t puid);
 
 AEMU_EXPORT void android_waitForOpenglesProcessCleanup();
 
-namespace gfxstream {
-class Renderer;
+namespace emugl {
+    class Renderer;
 }
 
-AEMU_EXPORT const gfxstream::RendererPtr& android_getOpenglesRenderer();
+AEMU_EXPORT const emugl::RendererPtr& android_getOpenglesRenderer();
 
 AEMU_EXPORT struct AndroidVirtioGpuOps* android_getVirtioGpuOps(void);
 

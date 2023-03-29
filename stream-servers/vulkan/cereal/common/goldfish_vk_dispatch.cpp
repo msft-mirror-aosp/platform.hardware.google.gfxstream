@@ -35,8 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 #ifdef VK_VERSION_1_0
 #endif
@@ -5525,5 +5524,4 @@ bool vulkan_dispatch_check_device_VK_VERSION_1_1(const VulkanDispatch* vk)
     return good;
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

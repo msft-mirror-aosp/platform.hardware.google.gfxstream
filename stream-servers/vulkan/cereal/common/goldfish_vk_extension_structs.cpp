@@ -31,8 +31,7 @@
 
 #include "goldfish_vk_extension_structs.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 #ifdef VK_VERSION_1_0
 #endif
@@ -3425,5 +3424,4 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
     }
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

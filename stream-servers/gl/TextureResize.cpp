@@ -31,9 +31,6 @@
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
 
-namespace gfxstream {
-namespace gl {
-
 // #define V(...)  VERBOSE_PRINT(gles,__VA_ARGS__)
 #define V(...)
 #define MAX_FACTOR_POWER 4
@@ -617,5 +614,4 @@ TextureResize::GenericResizer::~GenericResizer() {
     s_gles2.glDeleteBuffers(1, &mIndexBuffer);
 }
 
-}  // namespace gl
-}  // namespace gfxstream
+

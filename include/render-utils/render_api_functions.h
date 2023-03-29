@@ -6,6 +6,8 @@
 
 #include "render-utils/RenderLib.h"
 
-#define LIST_RENDER_API_FUNCTIONS(X) X(gfxstream::RenderLibPtr, initLibrary, (), ())
+#define LIST_RENDER_API_FUNCTIONS(X) \
+  X(emugl::RenderLibPtr, initLibrary, (), ()) \
+
 
 #endif  // RENDER_API_FUNCTIONS_H

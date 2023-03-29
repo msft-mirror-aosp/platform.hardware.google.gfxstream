@@ -46,13 +46,11 @@
 
 #include <unordered_map>
 
-namespace gfxstream {
-
 using android::base::AutoLock;
 using android::base::EventHangMetadata;
 using android::base::MessageChannel;
-using emugl::GfxApiLogger;
-using vk::VkDecoderContext;
+
+namespace emugl {
 
 struct RenderThread::SnapshotObjects {
     RenderThreadInfo* threadInfo;
@@ -294,7 +292,7 @@ intptr_t RenderThread::main() {
     // Framebuffer initialization is asynchronous, so we need to make sure
     // it's completely initialized before running any GL commands.
     FrameBuffer::waitUntilInitialized();
-    if (vk::getGlobalVkEmulation()) {
+    if (goldfish_vk::getGlobalVkEmulation()) {
         tInfo.m_vkInfo.emplace();
     }
 
@@ -570,4 +568,4 @@ intptr_t RenderThread::main() {
     return 0;
 }
 
-}  // namespace gfxstream
+}  // namespace emugl

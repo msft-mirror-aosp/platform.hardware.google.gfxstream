@@ -18,13 +18,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace gfxstream {
-namespace gl {
-
 EGLDispatch s_egl;
 
 #define RENDER_EGL_LOAD_FIELD_STATIC(return_type, function_name, signature) \
-    s_egl.function_name = (function_name##_t)(::translator::egl::function_name);
+    s_egl. function_name = (function_name ## _t) (translator::egl::function_name); \
 
 #define RENDER_EGL_LOAD_FIELD_WITH_EGL(return_type, function_name, signature) \
     if ((!s_egl. function_name) && s_egl.eglGetProcAddress) s_egl. function_name = \
@@ -47,6 +44,3 @@ bool init_egl_dispatch() {
     s_egl.initialized = true;
     return true;
 }
-
-}  // namespace gl
-}  // namespace gfxstream

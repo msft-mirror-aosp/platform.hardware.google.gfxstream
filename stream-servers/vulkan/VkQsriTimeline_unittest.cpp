@@ -3,8 +3,7 @@
 
 #include "VkQsriTimeline.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 namespace {
 using ::testing::InSequence;
 using ::testing::MockFunction;
@@ -40,5 +39,4 @@ TEST(VkQsriTImelineTest, registerCallbackFirstSignalLater) {
 }
 
 }  // namespace
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

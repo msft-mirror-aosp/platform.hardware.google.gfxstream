@@ -16,8 +16,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 #define DEFAULT_HANDLE_MAP_DEFINE(type)                                                            \
     void DefaultHandleMapping::mapHandles_##type(type*, size_t) { return; }                        \
@@ -36,5 +35,4 @@ namespace vk {
 
 GOLDFISH_VK_LIST_HANDLE_TYPES(DEFAULT_HANDLE_MAP_DEFINE)
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

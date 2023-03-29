@@ -21,7 +21,7 @@
 #include <functional>
 #include <memory>
 
-namespace gfxstream {
+namespace emugl {
 
 // Turn the RenderChannel::State enum into flags.
 using namespace ::android::base::EnumFlags;
@@ -117,4 +117,4 @@ protected:
 // Shared pointer to RenderChannel instance.
 using RenderChannelPtr = std::shared_ptr<RenderChannel>;
 
-}  // namespace gfxstream
+}  // namespace emugl

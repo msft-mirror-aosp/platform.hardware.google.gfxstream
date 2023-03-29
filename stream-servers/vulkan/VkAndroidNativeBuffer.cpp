@@ -27,9 +27,6 @@
 #include "stream-servers/FrameBuffer.h"
 #include "vulkan/vk_enum_string_helper.h"
 
-namespace gfxstream {
-namespace vk {
-
 #define VK_ANB_ERR(fmt, ...) fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
 
 #define ENABLE_VK_ANB_DEBUG 0
@@ -48,6 +45,8 @@ using android::base::AutoLock;
 using android::base::Lock;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
+
+namespace goldfish_vk {
 
 AndroidNativeBufferInfo::QsriWaitFencePool::QsriWaitFencePool(VulkanDispatch* vk, VkDevice device)
     : mVk(vk), mDevice(device) {}
@@ -815,5 +814,4 @@ VkResult syncImageToColorBuffer(VulkanDispatch* vk, uint32_t queueFamilyIndex, V
     return VK_SUCCESS;
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

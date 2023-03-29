@@ -20,7 +20,6 @@
 #include "FrameworkFormats.h"
 
 namespace gfxstream {
-namespace vk {
 
 class ColorBufferVk {
    public:
@@ -42,5 +41,4 @@ class ColorBufferVk {
     const uint32_t mHandle;
 };
 
-}  // namespace vk
 }  // namespace gfxstream

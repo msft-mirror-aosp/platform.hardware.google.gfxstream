@@ -25,7 +25,7 @@
 #include <atomic>
 #include <memory>
 
-namespace gfxstream {
+namespace emugl {
 
 class RenderChannelImpl;
 class RendererImpl;
@@ -104,4 +104,4 @@ private:
     uint32_t mContextId = 0;
 };
 
-}  // namespace gfxstream
+}  // namespace emugl

@@ -22,9 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace gfxstream {
-namespace gl {
-
 #define DEBUG 0
 
 #if DEBUG
@@ -102,12 +99,12 @@ static return_type gles1_dummy_##func_name signature { \
 //
 
 // macro to assign from static library
-#define ASSIGN_GLES1_STATIC(return_type, function_name, signature, callargs)     \
-    dispatch_table->function_name =                                              \
-        reinterpret_cast<function_name##_t>(::translator::gles1::function_name); \
-    if ((!dispatch_table->function_name) && s_egl.eglGetProcAddress)             \
-        dispatch_table->function_name =                                          \
-            reinterpret_cast<function_name##_t>(s_egl.eglGetProcAddress(#function_name));
+#define ASSIGN_GLES1_STATIC(return_type,function_name,signature,callargs)\
+    dispatch_table-> function_name = reinterpret_cast< function_name ## _t >( \
+            translator::gles1::function_name); \
+        if ((!dispatch_table-> function_name) && s_egl.eglGetProcAddress) \
+        dispatch_table-> function_name = reinterpret_cast< function_name ## _t >( \
+            s_egl.eglGetProcAddress(#function_name)); \
 
 bool gles1_dispatch_init(GLESv1Dispatch* dispatch_table) {
     if (dispatch_table->initialized) return true;
@@ -130,6 +127,3 @@ void *gles1_dispatch_get_proc_func(const char *name, void *userData)
     }
     return func;
 }
-
-}  // namespace gl
-}  // namespace gfxstream

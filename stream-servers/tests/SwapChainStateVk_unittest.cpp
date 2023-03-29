@@ -5,17 +5,13 @@
 #include "Standalone.h"
 #include "vulkan/VulkanDispatch.h"
 
-namespace gfxstream {
-namespace vk {
-namespace {
-
 class SwapChainStateVkTest : public ::testing::Test {
    protected:
-    static void SetUpTestCase() { k_vk = vkDispatch(false); }
+    static void SetUpTestCase() { k_vk = emugl::vkDispatch(false); }
 
     void SetUp() override {
         // skip the test when testing without a window
-        if (!shouldUseWindow()) {
+        if (!emugl::shouldUseWindow()) {
             GTEST_SKIP();
         }
         ASSERT_NE(k_vk, nullptr);
@@ -27,14 +23,14 @@ class SwapChainStateVkTest : public ::testing::Test {
     }
 
     void TearDown() override {
-        if (shouldUseWindow()) {
+        if (emugl::shouldUseWindow()) {
             k_vk->vkDestroyDevice(m_vkDevice, nullptr);
             k_vk->vkDestroySurfaceKHR(m_vkInstance, m_vkSurface, nullptr);
             k_vk->vkDestroyInstance(m_vkInstance, nullptr);
         }
     }
 
-    static VulkanDispatch* k_vk;
+    static goldfish_vk::VulkanDispatch *k_vk;
     static const uint32_t k_width = 0x100;
     static const uint32_t k_height = 0x100;
 
@@ -67,7 +63,7 @@ class SwapChainStateVkTest : public ::testing::Test {
     }
 
     void createWindowAndSurface() {
-        m_window = createOrGetTestWindow(0, 0, k_width, k_height);
+        m_window = emugl::createOrGetTestWindow(0, 0, k_width, k_height);
         ASSERT_NE(m_window, nullptr);
 #ifdef _WIN32
         VkWin32SurfaceCreateInfoKHR surfaceCi = {
@@ -166,7 +162,7 @@ class SwapChainStateVkTest : public ::testing::Test {
     }
 };
 
-VulkanDispatch* SwapChainStateVkTest::k_vk = nullptr;
+goldfish_vk::VulkanDispatch *SwapChainStateVkTest::k_vk = nullptr;
 
 TEST_F(SwapChainStateVkTest, init) {
     auto swapChainCi = SwapChainStateVk::createSwapChainCi(
@@ -176,7 +172,3 @@ TEST_F(SwapChainStateVkTest, init) {
     std::unique_ptr<SwapChainStateVk> swapChainState =
         SwapChainStateVk::createSwapChainVk(*k_vk, m_vkDevice, swapChainCi->mCreateInfo);
 }
-
-}  // namespace
-}  // namespace vk
-}  // namespace gfxstream

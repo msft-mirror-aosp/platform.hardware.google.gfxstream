@@ -16,8 +16,6 @@
 
 #include <unordered_map>
 
-namespace gfxstream {
-namespace vk {
 namespace {
 
 struct FormatPlaneLayout {
@@ -193,6 +191,3 @@ bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
 
     return true;
 }
-
-}  // namespace vk
-}  // namespace gfxstream

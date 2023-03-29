@@ -17,11 +17,11 @@
 #include "VkCommonOperations.h"
 
 namespace gfxstream {
-namespace vk {
 
 /*static*/
 std::unique_ptr<BufferVk> BufferVk::create(uint32_t handle, uint64_t size, bool vulkanOnly) {
-    if (!setupVkBuffer(size, handle, vulkanOnly, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+    if (!goldfish_vk::setupVkBuffer(size, handle, vulkanOnly,
+                                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
         ERR("Failed to create BufferVk:%d", handle);
         return nullptr;
     }
@@ -32,18 +32,17 @@ std::unique_ptr<BufferVk> BufferVk::create(uint32_t handle, uint64_t size, bool 
 BufferVk::BufferVk(uint32_t handle) : mHandle(handle) {}
 
 BufferVk::~BufferVk() {
-    if (!teardownVkBuffer(mHandle)) {
+    if (!goldfish_vk::teardownVkBuffer(mHandle)) {
         ERR("Failed to destroy BufferVk:%d", mHandle);
     }
 }
 
 void BufferVk::readToBytes(uint64_t offset, uint64_t size, void* outBytes) {
-    readBufferToBytes(mHandle, offset, size, outBytes);
+    goldfish_vk::readBufferToBytes(mHandle, offset, size, outBytes);
 }
 
 bool BufferVk::updateFromBytes(uint64_t offset, uint64_t size, const void* bytes) {
-    return updateBufferFromBytes(mHandle, offset, size, bytes);
+    return goldfish_vk::updateBufferFromBytes(mHandle, offset, size, bytes);
 }
 
-}  // namespace vk
 }  // namespace gfxstream

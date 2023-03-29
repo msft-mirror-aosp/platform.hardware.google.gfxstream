@@ -16,7 +16,7 @@
 
 using android::AlignedBuf;
 
-namespace gfxstream {
+namespace emugl {
 
 testing::AssertionResult RowMatches(int rowIndex, size_t rowBytes,
                                     unsigned char* expected, unsigned char* actual) {
@@ -624,4 +624,4 @@ const char* getEnumString(GLenum v) {
     }
 }
 
-}  // namespace gfxstream
+} // namespace emugl

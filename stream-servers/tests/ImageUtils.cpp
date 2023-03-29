@@ -19,8 +19,6 @@
 
 #include <cstring>
 
-namespace gfxstream {
-
 bool LoadRGBAFromPng(const std::string& filename, uint32_t* outWidth, uint32_t* outHeight,
                      std::vector<uint32_t>* outPixels) {
     *outWidth = 0;
@@ -58,5 +56,3 @@ bool SaveRGBAToPng(uint32_t width, uint32_t height, const uint32_t* pixels,
     }
     return true;
 }
-
-}  // namespace gfxstream

@@ -22,8 +22,7 @@
 #include <GLES2/gl2.h>
 #include <GLES3/gl31.h>
 
-namespace gfxstream {
-namespace gl {
+namespace emugl {
 
 GLuint createBuffer(const GLESv2Dispatch* gl, GlBufferData data) {
     // We bind to GL_ARRAY_BUFFER in order to set up buffer data,
@@ -108,5 +107,4 @@ std::vector<GLubyte> getTextureImageData(const GLESv2Dispatch* gl,
     return out;
 }
 
-}  // namespace gl
-}  // namespace gfxstream
+}  // namespace emugl

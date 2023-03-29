@@ -16,9 +16,6 @@
 
 #include <gtest/gtest.h>
 
-namespace gfxstream {
-namespace {
-
 TEST(StalePtrRegistry, Constructor) {
     StalePtrRegistry<void> reg;
 }
@@ -202,6 +199,3 @@ TEST(StalePtrRegistry, AddMakeStaleTwiceWithCollision) {
     EXPECT_EQ(reg.getPtr(handle1), ptr1);
     EXPECT_EQ(reg.getPtr(handle2), ptr2);
 }
-
-}  // namespace
-}  // namespace gfxstream

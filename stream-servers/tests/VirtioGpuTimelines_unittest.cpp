@@ -18,9 +18,6 @@
 
 #include <memory>
 
-namespace gfxstream {
-namespace {
-
 using RingGlobal = VirtioGpuRingGlobal;
 using RingContextSpecific = VirtioGpuRingContextSpecific;
 
@@ -242,6 +239,3 @@ TEST(VirtioGpuTimelinesTest, TasksAndFencesOnMultipleRingsWithAsyncCallback) {
     check.Call(3);
     virtioGpuTimelines->notifyTaskCompletion(taskId3);
 }
-
-}  // namespace
-}  // namespace gfxstream

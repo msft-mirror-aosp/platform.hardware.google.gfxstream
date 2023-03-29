@@ -21,8 +21,7 @@
 
 #include "host-common/logging.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 /*static*/ DebugUtilsHelper DebugUtilsHelper::withUtilsDisabled() {
     return DebugUtilsHelper(false, VK_NULL_HANDLE, nullptr);
@@ -92,5 +91,4 @@ void DebugUtilsHelper::cmdEndDebugLabel(VkCommandBuffer commandBuffer) const {
     m_vk->vkCmdEndDebugUtilsLabelEXT(commandBuffer);
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

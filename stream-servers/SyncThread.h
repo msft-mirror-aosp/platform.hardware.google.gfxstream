@@ -36,8 +36,6 @@
 #include "render-utils/virtio_gpu_ops.h"
 #include "vulkan/VkDecoderGlobalState.h"
 
-namespace gfxstream {
-
 using emugl::HealthMonitor;
 using emugl::HealthWatchdog;
 
@@ -60,7 +58,7 @@ class SyncThread : public android::base::Thread {
     // which should signal the guest-side fence FD.
     // This method is how the goldfish sync virtual device
     // knows when to increment timelines / signal native fence FD's.
-    void triggerWait(gl::EmulatedEglFenceSync* fenceSync, uint64_t timeline);
+    void triggerWait(gfxstream::EmulatedEglFenceSync* fenceSync, uint64_t timeline);
 
     // |triggerWaitVk|: async wait with a given VkFence object.
     // The |vkFence| argument is a *boxed* host Vulkan handle of the fence.
@@ -74,11 +72,11 @@ class SyncThread : public android::base::Thread {
 
     // for use with the virtio-gpu path; is meant to have a current context
     // while waiting.
-    void triggerBlockedWaitNoTimeline(gl::EmulatedEglFenceSync* fenceSync);
+    void triggerBlockedWaitNoTimeline(gfxstream::EmulatedEglFenceSync* fenceSync);
 
     // For use with virtio-gpu and async fence completion callback. This is async like triggerWait,
     // but takes a fence completion callback instead of incrementing some timeline directly.
-    void triggerWaitWithCompletionCallback(gl::EmulatedEglFenceSync* fenceSync,
+    void triggerWaitWithCompletionCallback(gfxstream::EmulatedEglFenceSync* fenceSync,
                                            FenceCompletionCallback);
     void triggerWaitVkWithCompletionCallback(VkFence fenceHandle, FenceCompletionCallback);
     void triggerWaitVkQsriWithCompletionCallback(VkImage image, FenceCompletionCallback);
@@ -129,7 +127,8 @@ class SyncThread : public android::base::Thread {
     // |doSyncThreadCmd| execute the actual task. These run on the sync thread.
     void doSyncThreadCmd(Command&& command, ThreadPool::WorkerId);
 
-    void doSyncWait(gl::EmulatedEglFenceSync* fenceSync, std::function<void()> onComplete);
+    void doSyncWait(gfxstream::EmulatedEglFenceSync* fenceSync,
+                    std::function<void()> onComplete);
     static int doSyncWaitVk(VkFence, std::function<void()> onComplete);
 
     // EGL objects / object handles specific to
@@ -148,5 +147,3 @@ class SyncThread : public android::base::Thread {
 
     HealthMonitor<>* mHealthMonitor;
 };
-
-}  // namespace gfxstream

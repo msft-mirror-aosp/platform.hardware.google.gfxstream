@@ -25,9 +25,6 @@ extern "C" {
 #include "OpenGLESDispatch/RenderEGL_extensions_static_translator_namespaced_header.h"
 #include "OpenGLESDispatch/RenderEGL_snapshot_static_translator_namespaced_header.h"
 
-namespace gfxstream {
-namespace gl {
-
 // This header is used to define the EGLDispatch structure that contains
 // pointers to the EGL shared library used by libOpenglRender. Normally,
 // this will be our own libEGL_translator, but one could imagine a
@@ -65,6 +62,3 @@ bool init_egl_dispatch();
 
 // Global EGLDispatch instance. Call init_egl_dispatch() before using it.
 extern EGLDispatch s_egl;
-
-}  // namespace gl
-}  // namespace gfxstream

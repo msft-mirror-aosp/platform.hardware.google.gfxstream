@@ -10,9 +10,7 @@
 
 #include <GLES2/gl2.h>
 
-namespace gfxstream {
-namespace gl {
-namespace snapshot {
+namespace GLSnapshot {
 
 struct GLValue {
     std::vector<GLenum> enums;
@@ -72,6 +70,4 @@ private:
 
 };
 
-}  // namespace snapshot
-}  // namespace gl
-}  // namespace gfxstream
+} // namespace GLSnapshot

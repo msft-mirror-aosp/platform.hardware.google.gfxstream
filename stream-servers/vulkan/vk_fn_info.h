@@ -20,8 +20,6 @@
 #include <initializer_list>
 #include <tuple>
 
-namespace gfxstream {
-namespace vk {
 namespace vk_util {
 namespace vk_fn_info {
 template <class T>
@@ -42,10 +40,7 @@ REGISTER_VK_FN_INFO(GetPhysicalDeviceImageFormatProperties2,
                      "vkGetPhysicalDeviceImageFormatProperties2"))
 REGISTER_VK_FN_INFO(GetPhysicalDeviceFeatures2,
                     ("vkGetPhysicalDeviceFeatures2", "vkGetPhysicalDeviceFeatures2KHR"));
-
 }  // namespace vk_fn_info
 }  // namespace vk_util
-}  // namespace vk
-}  // namespace gfxstream
 
 #endif /* VK_FN_INFO_H */

@@ -32,7 +32,6 @@
 #include "host-common/opengl/misc.h"
 
 namespace gfxstream {
-namespace gl {
 namespace {
 
 static void EGLAPIENTRY EglDebugCallback(EGLenum error,
@@ -701,5 +700,4 @@ std::unique_ptr<EmulatedEglWindowSurface> EmulationGl::loadEmulatedEglWindowSurf
     return EmulatedEglWindowSurface::onLoad(stream, mEglDisplay, colorBuffers, contexts);
 }
 
-}  // namespace gl
 }  // namespace gfxstream

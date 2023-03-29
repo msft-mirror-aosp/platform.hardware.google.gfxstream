@@ -17,7 +17,7 @@
 #include "aemu/base/files/Stream.h"
 #include "IOStream.h"
 
-namespace gfxstream {
+namespace emugl {
 
 class ReadBuffer {
 public:
@@ -44,4 +44,4 @@ private:
     size_t m_neededFreeTailSize = 0;
 };
 
-}  // namespace gfxstream
+}  // namespace emugl

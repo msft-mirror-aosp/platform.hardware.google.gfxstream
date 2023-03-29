@@ -16,7 +16,6 @@
 #include <vector>
 
 namespace gfxstream {
-namespace vk {
 
 class BufferVk {
    public:
@@ -34,5 +33,4 @@ class BufferVk {
     const uint32_t mHandle;
 };
 
-}  // namespace vk
 }  // namespace gfxstream

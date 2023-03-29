@@ -25,8 +25,7 @@
 #include <memory>
 #include <vector>
 
-namespace gfxstream {
-namespace gl {
+namespace emugl {
 
 struct GlValues {
     std::vector<GLint> ints;
@@ -193,8 +192,8 @@ testing::AssertionResult compareGlobalGlFloatv(
 //         EXPECT_FALSE(fooBarState());  // Snapshot preserved the state change
 //     }
 //
-class SnapshotTest : public gfxstream::gl::GLTest {
-   public:
+class SnapshotTest : public emugl::GLTest {
+public:
     SnapshotTest() = default;
 
     void SetUp() override;
@@ -321,5 +320,4 @@ protected:
     std::unique_ptr<T> m_changed_value;
 };
 
-}  // namespace gl
-}  // namespace gfxstream
+}  // namespace emugl

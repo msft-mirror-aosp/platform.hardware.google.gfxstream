@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace gfxstream {
-namespace vk {
-namespace decompression_shaders {
+namespace goldfish_vk::decompression_shaders {
 
 // Compiled code of the image decompression shaders
 //
@@ -85,6 +83,4 @@ inline constexpr uint32_t Etc2RGBA8_3D[] = {
 #include "compiled/Etc2RGBA8_3D.inl"
 };
 
-}  // namespace decompression_shaders
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk::decompression_shaders

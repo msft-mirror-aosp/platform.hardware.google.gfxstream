@@ -23,7 +23,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace gfxstream {
+namespace emugl {
 
 void HelloTriangle::initialize() {
     constexpr char vshaderSrc[] = R"(#version 300 es
@@ -53,7 +53,7 @@ void HelloTriangle::initialize() {
     }
     )";
 
-    GLint program = compileAndLinkShaderProgram(vshaderSrc, fshaderSrc);
+    GLint program = emugl::compileAndLinkShaderProgram(vshaderSrc, fshaderSrc);
 
     auto gl = getGlDispatch();
 
@@ -97,4 +97,4 @@ void HelloTriangle::draw() {
     mTime += 0.05f;
 }
 
-}  // namespace gfxstream
+}  // namespace emugl
