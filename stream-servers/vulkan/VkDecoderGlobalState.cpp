@@ -99,6 +99,17 @@ using emugl::GfxApiLogger;
 #define VKDGS_LOG(fmt, ...)
 #endif
 
+// Blob mem
+#define STREAM_BLOB_MEM_GUEST 1
+#define STREAM_BLOB_MEM_HOST3D 2
+#define STREAM_BLOB_MEM_HOST3D_GUEST 3
+
+// Blob flags
+#define STREAM_BLOB_FLAG_USE_MAPPABLE 1
+#define STREAM_BLOB_FLAG_USE_SHAREABLE 2
+#define STREAM_BLOB_FLAG_USE_CROSS_DEVICE 4
+#define STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE 8
+
 #define VALIDATE_REQUIRED_HANDLE(parameter) \
     validateRequiredHandle(__FUNCTION__, #parameter, parameter)
 
@@ -3167,7 +3178,34 @@ class VkDecoderGlobalState::Impl {
 
         bool hostVisible = memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         if (hostVisible && feature_is_enabled(kFeature_ExternalBlob)) {
-            localAllocInfo.pNext = &exportAllocate;
+            vk_append_struct(&structChainIter, &exportAllocate);
+        }
+
+        if (createBlobInfoPtr && createBlobInfoPtr->blobMem == STREAM_BLOB_MEM_GUEST &&
+            (createBlobInfoPtr->blobFlags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
+            DescriptorType rawDescriptor;
+            auto descriptorInfoOpt =
+                HostmemIdMapping::get()->removeDescriptorInfo(createBlobInfoPtr->blobId);
+            if (descriptorInfoOpt) {
+                auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
+                if (rawDescriptorOpt) {
+                    rawDescriptor = *rawDescriptorOpt;
+                } else {
+                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                }
+            } else {
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+#ifdef __unix__
+            importInfo.fd = rawDescriptor;
+#endif
+
+#ifdef __linux__
+            if (hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+                importInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+            }
+#endif
+            vk_append_struct(&structChainIter, &importInfo);
         }
 
         VkImportMemoryHostPointerInfoEXT importHostInfo;
