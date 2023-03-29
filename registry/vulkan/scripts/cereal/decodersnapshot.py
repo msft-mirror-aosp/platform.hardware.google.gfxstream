@@ -39,7 +39,7 @@ private:
 
 decoder_snapshot_impl_preamble ="""
 
-using namespace gfxstream::vk;
+using namespace goldfish_vk;
 using emugl::GfxApiLogger;
 using emugl::HealthMonitor;
 
