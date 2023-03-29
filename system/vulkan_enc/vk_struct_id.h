@@ -18,9 +18,6 @@
 #include "goldfish_vk_private_defs.h"
 #include "vulkan_gfxstream.h"
 
-namespace gfxstream {
-namespace vk {
-
 template <class T> struct vk_get_vk_struct_id;
 
 #define REGISTER_VK_STRUCT_ID(T, ID) \
@@ -76,6 +73,3 @@ REGISTER_VK_STRUCT_ID(VkMemoryAllocateFlagsInfo, VK_STRUCTURE_TYPE_MEMORY_ALLOCA
 REGISTER_VK_STRUCT_ID(VkMemoryOpaqueCaptureAddressAllocateInfo, VK_STRUCTURE_TYPE_MEMORY_OPAQUE_CAPTURE_ADDRESS_ALLOCATE_INFO);
 
 #undef REGISTER_VK_STRUCT_ID
-
-}  // namespace vk
-}  // namespace gfxstream

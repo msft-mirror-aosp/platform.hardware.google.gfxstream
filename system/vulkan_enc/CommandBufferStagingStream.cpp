@@ -33,9 +33,6 @@
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
-namespace gfxstream {
-namespace vk {
-
 CommandBufferStagingStream::CommandBufferStagingStream()
     : IOStream(1048576), m_size(0), m_writePos(0) {
     // use default allocators
@@ -252,6 +249,3 @@ void CommandBufferStagingStream::reset() {
 }
 
 VkDeviceMemory CommandBufferStagingStream::getDeviceMemory() { return m_mem.deviceMemory; }
-
-}  // namespace vk
-}  // namespace gfxstream
