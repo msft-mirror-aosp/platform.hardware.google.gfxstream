@@ -68,13 +68,15 @@ public:
 #include "VkEncoder.h"
 #include "AddressSpaceStream.h"
 #else
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 struct VkEncoder {
     VkEncoder(IOStream* stream, HealthMonitor<>* healthMonitor = nullptr) { }
     void decRef() { }
     int placeholder;
 };
-} // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
 class QemuPipeStream;
 typedef QemuPipeStream AddressSpaceStream;
 AddressSpaceStream* createAddressSpaceStream(size_t bufSize, HealthMonitor<>* healthMonitor) {
@@ -87,7 +89,7 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMon
 }
 #endif
 
-using goldfish_vk::VkEncoder;
+using gfxstream::vk::VkEncoder;
 
 #include "ProcessPipe.h"
 #include "QemuPipeStream.h"

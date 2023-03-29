@@ -27,7 +27,8 @@
 #include "vk_util.h"
 #include <assert.h>
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 // From Intel ANV implementation.
 /* Construct ahw usage mask from image usage bits, see
@@ -342,4 +343,5 @@ VkResult createAndroidHardwareBuffer(
     return VK_SUCCESS;
 }
 
-} // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

@@ -22,6 +22,9 @@
 
 #include "IOStream.h"
 
+namespace gfxstream {
+namespace vk {
+
 class CommandBufferStagingStream : public IOStream {
 public:
  // host will write kSyncDataReadComplete to the sync bytes to indicate memory is no longer being
@@ -109,5 +112,8 @@ private:
  // \return pointer to data start
  unsigned char* getDataPtr();
 };
+
+}  // namespace vk
+}  // namespace gfxstream
 
 #endif
