@@ -784,7 +784,6 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
     // blockPostWorker resolves the race condition in AEMU but we still need to
     // verify it after turning on guest ANGLE and Vulkan swapchain.
     // TODO: b/264458932
-    AutoLock mutex(m_lock);
     class ScopedPromise {
        public:
         ~ScopedPromise() { mPromise.set_value(); }
@@ -810,6 +809,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                 .build();
         blockPostWorker(std::move(postWorkerContinueSignalFuture)).wait();
     }
+    AutoLock mutex(m_lock);
     if (m_displayVk) {
         auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Draining the VkQueue")
                             .setTimeoutMs(6000)
@@ -2392,8 +2392,12 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
                            Post::CompletionCallback callback,
                            bool needLockAndBind,
                            bool repaint) {
+    std::unique_ptr<RecursiveScopedContextBind> bind;
     if (needLockAndBind) {
         m_lock.lock();
+        if (m_emulationGl) {
+            bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
+        }
     }
     AsyncResult ret = AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
 
@@ -2489,6 +2493,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
 
 EXIT:
     if (needLockAndBind) {
+        bind.reset();
         m_lock.unlock();
     }
     return ret;
@@ -2775,19 +2780,16 @@ bool FrameBuffer::compose(uint32_t bufferSize, void* buffer, bool needPost) {
     if (needPost) {
         // AEMU with -no-window mode uses this code path.
         ComposeDevice* composeDevice = (ComposeDevice*)buffer;
-        AutoLock mutex(m_lock);
 
         switch (composeDevice->version) {
             case 1: {
-                RecursiveScopedContextBind scopedBind(getPbufferSurfaceContextHelper());
-                post(composeDevice->targetHandle, false);
+                post(composeDevice->targetHandle, true);
                 break;
             }
             case 2: {
                 ComposeDevice_v2* composeDeviceV2 = (ComposeDevice_v2*)buffer;
                 if (composeDeviceV2->displayId == 0) {
-                    RecursiveScopedContextBind scopedBind(getPbufferSurfaceContextHelper());
-                    post(composeDeviceV2->targetHandle, false);
+                    post(composeDeviceV2->targetHandle, true);
                 }
                 break;
             }
