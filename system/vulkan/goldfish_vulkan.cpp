@@ -367,7 +367,7 @@ int CloseDevice(struct hw_device_t* /*device*/) {
         ALOGE("vulkan: Failed to get renderControl encoder context\n"); \
         return ret; \
     } \
-    gfxstream::vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = { \
+    goldfish_vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = { \
         [] { \
           auto hostCon = HostConnection::get(); \
           hostCon->rcEncoder(); \
@@ -375,11 +375,11 @@ int CloseDevice(struct hw_device_t* /*device*/) {
         }, \
         [](HostConnection* hostCon) { return hostCon->vkEncoder(); }, \
     }; \
-    gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks); \
-    gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
-    gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess()); \
-    auto hostSupportsVulkan = gfxstream::vk::ResourceTracker::get()->hostSupportsVulkan(); \
-    gfxstream::vk::VkEncoder *vkEnc = hostCon->vkEncoder(); \
+    goldfish_vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks); \
+    goldfish_vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
+    goldfish_vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess()); \
+    auto hostSupportsVulkan = goldfish_vk::ResourceTracker::get()->hostSupportsVulkan(); \
+    goldfish_vk::VkEncoder *vkEnc = hostCon->vkEncoder(); \
     if (!vkEnc) { \
         ALOGE("vulkan: Failed to get Vulkan encoder\n"); \
         return ret; \
@@ -405,7 +405,7 @@ VkResult EnumerateInstanceExtensionProperties(
             layer_name);
     }
 
-    VkResult res = gfxstream::vk::ResourceTracker::get()->on_vkEnumerateInstanceExtensionProperties(
+    VkResult res = goldfish_vk::ResourceTracker::get()->on_vkEnumerateInstanceExtensionProperties(
         vkEnc, VK_SUCCESS, layer_name, count, properties);
 
     return res;
@@ -442,7 +442,7 @@ VkResult GetMemoryZirconHandleFUCHSIA(
         return vkstubhal::GetMemoryZirconHandleFUCHSIA(device, pInfo, pHandle);
     }
 
-    VkResult res = gfxstream::vk::ResourceTracker::get()->
+    VkResult res = goldfish_vk::ResourceTracker::get()->
         on_vkGetMemoryZirconHandleFUCHSIA(
             vkEnc, VK_SUCCESS,
             device, pInfo, pHandle);
@@ -465,7 +465,7 @@ VkResult GetMemoryZirconHandlePropertiesFUCHSIA(
             device, handleType, handle, pProperties);
     }
 
-    VkResult res = gfxstream::vk::ResourceTracker::get()->
+    VkResult res = goldfish_vk::ResourceTracker::get()->
         on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
             vkEnc, VK_SUCCESS, device, handleType, handle, pProperties);
 
@@ -485,7 +485,7 @@ VkResult GetSemaphoreZirconHandleFUCHSIA(
         return vkstubhal::GetSemaphoreZirconHandleFUCHSIA(device, pInfo, pHandle);
     }
 
-    VkResult res = gfxstream::vk::ResourceTracker::get()->
+    VkResult res = goldfish_vk::ResourceTracker::get()->
         on_vkGetSemaphoreZirconHandleFUCHSIA(
             vkEnc, VK_SUCCESS, device, pInfo, pHandle);
 
@@ -504,7 +504,7 @@ VkResult ImportSemaphoreZirconHandleFUCHSIA(
         return vkstubhal::ImportSemaphoreZirconHandleFUCHSIA(device, pInfo);
     }
 
-    VkResult res = gfxstream::vk::ResourceTracker::get()->
+    VkResult res = goldfish_vk::ResourceTracker::get()->
         on_vkImportSemaphoreZirconHandleFUCHSIA(
             vkEnc, VK_SUCCESS, device, pInfo);
 
@@ -527,7 +527,7 @@ VkResult CreateBufferCollectionFUCHSIA(
     }
 
     VkResult res =
-        gfxstream::vk::ResourceTracker::get()->on_vkCreateBufferCollectionFUCHSIA(
+        goldfish_vk::ResourceTracker::get()->on_vkCreateBufferCollectionFUCHSIA(
             vkEnc, VK_SUCCESS, device, pInfo, pAllocator, pCollection);
 
     return res;
@@ -547,7 +547,7 @@ void DestroyBufferCollectionFUCHSIA(VkDevice device,
         return;
     }
 
-    gfxstream::vk::ResourceTracker::get()->on_vkDestroyBufferCollectionFUCHSIA(
+    goldfish_vk::ResourceTracker::get()->on_vkDestroyBufferCollectionFUCHSIA(
         vkEnc, VK_SUCCESS, device, collection, pAllocator);
 }
 
@@ -567,7 +567,7 @@ VkResult SetBufferCollectionBufferConstraintsFUCHSIA(
     }
 
     VkResult res =
-        gfxstream::vk::ResourceTracker::get()
+        goldfish_vk::ResourceTracker::get()
             ->on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
                 vkEnc, VK_SUCCESS, device, collection, pBufferConstraintsInfo);
 
@@ -590,7 +590,7 @@ VkResult SetBufferCollectionImageConstraintsFUCHSIA(
     }
 
     VkResult res =
-        gfxstream::vk::ResourceTracker::get()
+        goldfish_vk::ResourceTracker::get()
             ->on_vkSetBufferCollectionImageConstraintsFUCHSIA(
                 vkEnc, VK_SUCCESS, device, collection, pImageConstraintsInfo);
 
@@ -611,7 +611,7 @@ VkResult GetBufferCollectionPropertiesFUCHSIA(
             device, collection, pProperties);
     }
 
-    VkResult res = gfxstream::vk::ResourceTracker::get()
+    VkResult res = goldfish_vk::ResourceTracker::get()
                        ->on_vkGetBufferCollectionPropertiesFUCHSIA(
                            vkEnc, VK_SUCCESS, device, collection, pProperties);
 
@@ -716,7 +716,7 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
         if (!sQueueSignalReleaseImageAndroidImpl) {
             sQueueSignalReleaseImageAndroidImpl =
                 (PFN_vkVoidFunction)(
-                    gfxstream::vk::goldfish_vulkan_get_device_proc_address(device, "vkQueueSignalReleaseImageANDROID"));
+                    goldfish_vk::goldfish_vulkan_get_device_proc_address(device, "vkQueueSignalReleaseImageANDROID"));
         }
         return (PFN_vkVoidFunction)QueueSignalReleaseImageANDROID;
     }
@@ -724,7 +724,7 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     if (!strcmp(name, "vkGetDeviceProcAddr")) {
         return (PFN_vkVoidFunction)(GetDeviceProcAddr);
     }
-    return (PFN_vkVoidFunction)(gfxstream::vk::goldfish_vulkan_get_device_proc_address(device, name));
+    return (PFN_vkVoidFunction)(goldfish_vk::goldfish_vulkan_get_device_proc_address(device, name));
 }
 
 VKAPI_ATTR
@@ -751,12 +751,12 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
         if (!sQueueSignalReleaseImageAndroidImpl) {
             sQueueSignalReleaseImageAndroidImpl =
                 (PFN_vkVoidFunction)(
-                    gfxstream::vk::goldfish_vulkan_get_instance_proc_address(instance, "vkQueueSignalReleaseImageANDROID"));
+                    goldfish_vk::goldfish_vulkan_get_instance_proc_address(instance, "vkQueueSignalReleaseImageANDROID"));
         }
         return (PFN_vkVoidFunction)QueueSignalReleaseImageANDROID;
     }
 #endif
-    return (PFN_vkVoidFunction)(gfxstream::vk::goldfish_vulkan_get_instance_proc_address(instance, name));
+    return (PFN_vkVoidFunction)(goldfish_vk::goldfish_vulkan_get_instance_proc_address(instance, name));
 }
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
@@ -780,7 +780,7 @@ int OpenDevice(const hw_module_t* /*module*/,
 
     if (strcmp(id, HWVULKAN_DEVICE_0) == 0) {
         *device = &goldfish_vulkan_device.common;
-        gfxstream::vk::ResourceTracker::get();
+        goldfish_vk::ResourceTracker::get();
         return 0;
     }
     return -ENOENT;
@@ -793,7 +793,7 @@ public:
     VulkanDevice() : mHostSupportsGoldfish(IsAccessible(QEMU_PIPE_PATH)) {
         InitLogger();
         InitTraceProvider();
-        gfxstream::vk::ResourceTracker::get();
+        goldfish_vk::ResourceTracker::get();
     }
 
     static void InitLogger();
@@ -915,7 +915,7 @@ vk_icdInitializeOpenInNamespaceCallback(PFN_vkOpenInNamespaceAddr callback) {
 class VulkanDevice {
 public:
     VulkanDevice() {
-        gfxstream::vk::ResourceTracker::get();
+        goldfish_vk::ResourceTracker::get();
     }
 
     static VulkanDevice& GetInstance() {

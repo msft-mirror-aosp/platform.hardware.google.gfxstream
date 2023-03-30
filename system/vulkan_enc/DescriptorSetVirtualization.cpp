@@ -15,8 +15,7 @@
 #include "DescriptorSetVirtualization.h"
 #include "Resources.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 void clearReifiedDescriptorSet(ReifiedDescriptorSet* set) {
     set->pool = VK_NULL_HANDLE;
@@ -495,5 +494,4 @@ std::vector<VkDescriptorSet> clearDescriptorPool(VkDescriptorPool pool, bool use
     return toClear;
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+} // namespace goldfish_vk

@@ -22,14 +22,12 @@
 
 #include <functional>
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 class VkEncoder;
 struct DescriptorPoolAllocationInfo;
 struct ReifiedDescriptorSet;
 struct DescriptorSetLayoutInfo;
-}  // namespace vk
-}  // namespace gfxstream
+} // namespace goldfish_vk
 
 class IOStream;
 
@@ -44,9 +42,9 @@ struct goldfish_vk_object_list {
     struct goldfish_##type { \
         hwvulkan_dispatch_t dispatch; \
         uint64_t underlying; \
-        gfxstream::vk::VkEncoder* lastUsedEncoder; \
+        goldfish_vk::VkEncoder* lastUsedEncoder; \
         uint32_t sequenceNumber; \
-        gfxstream::vk::VkEncoder* privateEncoder; \
+        goldfish_vk::VkEncoder* privateEncoder; \
         IOStream* privateStream; \
         uint32_t flags; \
         struct goldfish_vk_object_list* poolObjects; \
@@ -105,25 +103,25 @@ GOLDFISH_VK_LIST_AUTODEFINED_STRUCT_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DE
 
 struct goldfish_VkDescriptorPool {
     uint64_t underlying;
-    gfxstream::vk::DescriptorPoolAllocationInfo* allocInfo;
+    goldfish_vk::DescriptorPoolAllocationInfo* allocInfo;
 };
 
 struct goldfish_VkDescriptorSet {
     uint64_t underlying;
-    gfxstream::vk::ReifiedDescriptorSet* reified;
+    goldfish_vk::ReifiedDescriptorSet* reified;
 };
 
 struct goldfish_VkDescriptorSetLayout {
     uint64_t underlying;
-    gfxstream::vk::DescriptorSetLayoutInfo* layoutInfo;
+    goldfish_vk::DescriptorSetLayoutInfo* layoutInfo;
 };
 
 struct goldfish_VkCommandBuffer {
     hwvulkan_dispatch_t dispatch;
     uint64_t underlying;
-    gfxstream::vk::VkEncoder* lastUsedEncoder;
+    goldfish_vk::VkEncoder* lastUsedEncoder;
     uint32_t sequenceNumber;
-    gfxstream::vk::VkEncoder* privateEncoder;
+    goldfish_vk::VkEncoder* privateEncoder;
     IOStream* privateStream;
     uint32_t flags;
     struct goldfish_vk_object_list* poolObjects;
@@ -136,13 +134,11 @@ struct goldfish_VkCommandBuffer {
 
 } // extern "C"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 void appendObject(struct goldfish_vk_object_list** begin, void* val);
 void eraseObject(struct goldfish_vk_object_list** begin, void* val);
 void eraseObjects(struct goldfish_vk_object_list** begin);
 void forAllObjects(struct goldfish_vk_object_list* begin, std::function<void(void*)> func);
 
-}  // namespace vk
-}  // namespace gfxstream
+} // namespace goldfish_vk

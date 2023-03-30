@@ -44,9 +44,7 @@
 #undef VK_KHR_android_surface
 #undef VK_ANDROID_external_memory_android_hardware_buffer
 
-namespace gfxstream {
-namespace vk {
-
+namespace goldfish_vk {
 #ifdef VK_VERSION_1_0
 void marshal_VkExtent2D(VulkanStreamGuest* vkStream, VkStructureType rootType,
                         const VkExtent2D* forMarshaling);
@@ -7023,5 +7021,4 @@ const char* api_opcode_to_string(const uint32_t opcode);
 #define OP_vkFirst 200000000
 #define OP_vkLast 300000000
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk
