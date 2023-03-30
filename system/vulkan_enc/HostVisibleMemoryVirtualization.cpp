@@ -26,8 +26,7 @@
 
 using android::base::guest::SubAllocator;
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 bool isHostVisible(const VkPhysicalDeviceMemoryProperties* memoryProps, uint32_t index) {
     return memoryProps->memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
@@ -69,5 +68,4 @@ bool CoherentMemory::release(uint8_t* ptr) {
     return true;
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

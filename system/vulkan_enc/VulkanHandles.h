@@ -16,9 +16,6 @@
 
 #include <vulkan/vulkan.h>
 
-namespace gfxstream {
-namespace vk {
-
 #define GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkPhysicalDevice) \
 
@@ -168,5 +165,3 @@ namespace vk {
     f(VkDescriptorSetLayout) \
     f(VkDescriptorSet) \
 
-}  // namespace vk
-}  // namespace gfxstream

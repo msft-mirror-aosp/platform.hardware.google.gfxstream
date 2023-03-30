@@ -37,8 +37,7 @@
 #include "goldfish_vk_extension_structs_guest.h"
 #include "goldfish_vk_private_defs.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 void transform_tohost_extension_struct(ResourceTracker* resourceTracker, void* structExtension_out);
 
@@ -20988,5 +20987,4 @@ void transform_fromhost_extension_struct(ResourceTracker* resourceTracker,
     }
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

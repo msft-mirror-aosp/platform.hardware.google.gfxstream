@@ -34,8 +34,7 @@
 
 class IOStream;
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 class VulkanStreamGuest : public android::base::Stream {
 public:
@@ -59,7 +58,7 @@ public:
 
     ssize_t read(void *buffer, size_t size) override;
     ssize_t write(const void *buffer, size_t size) override;
-
+    
     void writeLarge(const void* buffer, size_t size);
 
     // Frees everything that got alloc'ed.
@@ -103,5 +102,4 @@ private:
     size_t m_read = 0;
 };
 
-}  // namespace vk
-}  // namespace gfxstream
+} // namespace goldfish_vk
