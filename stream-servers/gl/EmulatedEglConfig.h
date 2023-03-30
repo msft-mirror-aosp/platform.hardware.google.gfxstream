@@ -23,6 +23,9 @@
 
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 
+namespace gfxstream {
+namespace gl {
+
 // A class used to model an EGL config that is exposed to the guest.
 //
 // This really wraps a host EGLConfig handle, and provides a few cached
@@ -161,3 +164,6 @@ class EmulatedEglConfigList {
     EGLDisplay mDisplay = 0;
     GLESDispatchMaxVersion mGlesDispatchMaxVersion;
 };
+
+}  // namespace gl
+}  // namespace gfxstream

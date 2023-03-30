@@ -30,7 +30,7 @@ namespace android_studio {
 class EmulatorGLESUsages;
 }
 
-namespace emugl {
+namespace gfxstream {
 
 typedef struct {
     int x, y;
@@ -319,4 +319,4 @@ protected:
 
 using RendererPtr = std::shared_ptr<Renderer>;
 
-}  // namespace emugl
+}  // namespace gfxstream

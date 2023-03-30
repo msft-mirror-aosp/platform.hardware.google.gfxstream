@@ -23,6 +23,9 @@
 
 #include "BorrowedImage.h"
 
+namespace gfxstream {
+namespace gl {
+
 struct BorrowedImageInfoGl : public BorrowedImageInfo {
     GLuint texture = 0;
 
@@ -30,3 +33,6 @@ struct BorrowedImageInfoGl : public BorrowedImageInfo {
     // issued (useful for setting a GL sync).
     std::function<void()> onCommandsIssued;
 };
+
+}  // namespace gl
+}  // namespace gfxstream

@@ -14,8 +14,8 @@
 
 #include "AstcCpuDecompressor.h"
 
-namespace goldfish_vk {
-
+namespace gfxstream {
+namespace vk {
 namespace {
 
 class AstcCpuDecompressorNoOp : public AstcCpuDecompressor {
@@ -40,4 +40,5 @@ AstcCpuDecompressor& AstcCpuDecompressor::get() {
     return instance;
 }
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

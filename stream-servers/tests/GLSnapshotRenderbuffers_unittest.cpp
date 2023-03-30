@@ -16,7 +16,9 @@
 
 #include <gtest/gtest.h>
 
-namespace emugl {
+namespace gfxstream {
+namespace gl {
+namespace {
 
 struct GlRenderbufferFormat {
     GLenum name;
@@ -205,4 +207,6 @@ INSTANTIATE_TEST_SUITE_P(GLES2SnapshotRenderbuffers,
                          SnapshotGlRenderbufferFormatTest,
                          ::testing::ValuesIn(kGLES2TestRenderbufferStates));
 
-}  // namespace emugl
+}  // namespace
+}  // namespace gl
+}  // namespace gfxstream

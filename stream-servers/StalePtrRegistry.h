@@ -25,6 +25,8 @@
 #include <cstdint>
 #include <unordered_map>
 
+namespace gfxstream {
+
 // The purpose of StalePtrRegistry is to track integers corresponding to
 // host-side pointers that may be invalidated after snapshots.
 template <class T>
@@ -140,3 +142,5 @@ private:
 
     DISALLOW_COPY_AND_ASSIGN(StalePtrRegistry);
 };
+
+}  // namespace gfxstream

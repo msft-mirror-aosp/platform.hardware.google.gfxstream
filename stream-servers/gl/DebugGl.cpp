@@ -20,6 +20,9 @@
 
 #include "OpenGLESDispatch/DispatchTables.h"
 
+namespace gfxstream {
+namespace gl {
+
 std::string formatString(const char* format, ...) {
     char buf[1024];
     va_list args;
@@ -58,3 +61,6 @@ ScopedDebugGroup::~ScopedDebugGroup() {
         groupPopped = s_gles2.glGetError() == GL_NO_ERROR;
     }
 }
+
+}  // namespace gl
+}  // namespace gfxstream

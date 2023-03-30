@@ -19,7 +19,8 @@
 
 #include "aemu/base/testing/TestUtils.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 namespace {
 using ::testing::_;
 using ::testing::InSequence;
@@ -143,4 +144,5 @@ TEST_F(VkDecoderGlobalStateExternalFenceDeathTest, undestroyedFences) {
 }
 
 }  // namespace
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

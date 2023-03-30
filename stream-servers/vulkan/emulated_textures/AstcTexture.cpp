@@ -24,7 +24,8 @@
 #include "host-common/logging.h"
 #include "stream-servers/vulkan/vk_util.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 namespace {
 
 using std::chrono::milliseconds;
@@ -257,4 +258,5 @@ void AstcTexture::on_vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, uint8
     }
 }
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

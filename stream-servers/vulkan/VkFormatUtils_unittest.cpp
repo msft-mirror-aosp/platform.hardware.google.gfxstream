@@ -17,6 +17,8 @@
 
 #include "VkFormatUtils.h"
 
+namespace gfxstream {
+namespace vk {
 namespace {
 
 using ::testing::AllOf;
@@ -257,3 +259,5 @@ TEST(VkFormatUtilsTest, GetTransferInfoYV12OrYV21) {
 }
 
 }  // namespace
+}  // namespace vk
+}  // namespace gfxstream

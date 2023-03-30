@@ -18,7 +18,9 @@
 #include "stream-servers/vulkan/cereal/common/goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 
-namespace goldfish_vk::testing {
+namespace gfxstream {
+namespace vk {
+namespace testing {
 
 // TODO(gregschlom): This class should be auto-generated
 class VkDecoderTestDispatch {
@@ -288,4 +290,6 @@ class VkDecoderTestDispatch {
     VkDecoderContext* mDecoderContext;
 };
 
-}  // namespace goldfish_vk::testing
+}  // namespace testing
+}  // namespace vk
+}  // namespace gfxstream

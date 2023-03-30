@@ -55,11 +55,11 @@
 
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 
+namespace gfxstream {
+namespace vk {
+
 using android::base::MetricEventBadPacketLength;
 using android::base::MetricEventDuplicateSequenceNum;
-using emugl::vkDispatch;
-
-using namespace goldfish_vk;
 
 class VkDecoder::Impl {
    public:
@@ -34543,3 +34543,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
     return ptr - (unsigned char*)buf;
     ;
 }
+
+}  // namespace vk
+}  // namespace gfxstream

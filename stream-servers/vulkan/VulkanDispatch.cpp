@@ -24,7 +24,8 @@ using android::base::AutoLock;
 using android::base::Lock;
 using android::base::pj;
 
-namespace emugl {
+namespace gfxstream {
+namespace vk {
 
 static void setIcdPath(const std::string& path) {
     if (android::base::pathExists(path.c_str())) {
@@ -276,7 +277,7 @@ class VulkanDispatchImpl {
     }
 
     void* dlsym(void* lib, const char* name) {
-        return (void*)((emugl::SharedLibraries*)(lib))->dlsym(name);
+        return (void*)((SharedLibraries*)(lib))->dlsym(name);
     }
 
     VulkanDispatch* dispatch() { return &mDispatch; }
@@ -310,8 +311,8 @@ void VulkanDispatchImpl::initialize(bool forTesting) {
     mForTesting = forTesting;
     initIcdPaths(mForTesting);
 
-    goldfish_vk::init_vulkan_dispatch_from_system_loader(sVulkanDispatchDlOpen,
-                                                         sVulkanDispatchDlSym, &mDispatch);
+    init_vulkan_dispatch_from_system_loader(sVulkanDispatchDlOpen, sVulkanDispatchDlSym,
+                                            &mDispatch);
 
     mInitialized = true;
 }
@@ -326,4 +327,5 @@ bool vkDispatchValid(const VulkanDispatch* vk) {
            vk->vkGetInstanceProcAddr != nullptr || vk->vkGetDeviceProcAddr != nullptr;
 }
 
-}  // namespace emugl
+}  // namespace vk
+}  // namespace gfxstream

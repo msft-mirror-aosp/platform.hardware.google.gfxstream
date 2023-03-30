@@ -37,7 +37,9 @@
 #include "vk_android_native_buffer.h"
 #include "vulkan_gfxstream.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
+
 #ifdef VK_VERSION_1_0
 void reservedunmarshal_VkExtent2D(VulkanStream* vkStream, VkStructureType rootType,
                                   VkExtent2D* forUnmarshaling, uint8_t** ptr);
@@ -3799,4 +3801,5 @@ void reservedunmarshal_VkPhysicalDeviceRayQueryFeaturesKHR(
 
 #endif
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

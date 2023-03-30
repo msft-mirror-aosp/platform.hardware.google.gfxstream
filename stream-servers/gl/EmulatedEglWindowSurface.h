@@ -29,6 +29,7 @@
 #include "gl/EmulatedEglContext.h"
 
 namespace gfxstream {
+namespace gl {
 
 // A class used to model a guest-side window surface. The implementation
 // uses a host Pbuffer to act as the EGL rendering surface instead.
@@ -126,4 +127,5 @@ typedef std::shared_ptr<EmulatedEglWindowSurface> EmulatedEglWindowSurfacePtr;
 typedef std::unordered_map<HandleType, std::pair<EmulatedEglWindowSurfacePtr, HandleType>> EmulatedEglWindowSurfaceMap;
 typedef std::unordered_set<HandleType> EmulatedEglWindowSurfaceSet;
 
-}
+}  // namespace gl
+}  // namespace gfxstream

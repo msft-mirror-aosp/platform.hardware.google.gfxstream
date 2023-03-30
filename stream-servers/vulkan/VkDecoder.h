@@ -43,8 +43,13 @@ class BumpPool;
 }  // namespace base
 }  // namespace android
 
-class ProcessResources;
+namespace gfxstream {
 class IOStream;
+class ProcessResources;
+}  // namespace gfxstream
+
+namespace gfxstream {
+namespace vk {
 
 class VkDecoder {
    public:
@@ -58,6 +63,10 @@ class VkDecoder {
     class Impl;
     std::unique_ptr<Impl> mImpl;
 };
+
+}  // namespace vk
+}  // namespace gfxstream
+
 #ifdef VK_VERSION_1_0
 #endif
 #ifdef VK_VERSION_1_1

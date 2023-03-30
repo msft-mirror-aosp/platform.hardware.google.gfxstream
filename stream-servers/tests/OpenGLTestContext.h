@@ -28,7 +28,8 @@
 #include <GLES2/gl2.h>
 #include <GLES3/gl31.h>
 
-namespace emugl {
+namespace gfxstream {
+namespace gl {
 
 // Dimensions for test surface
 static const int kTestSurfaceSize[] = {32, 32};
@@ -65,4 +66,6 @@ protected:
             return;                                     \
         }                                               \
     } while (0)
-}  // namespace emugl
+
+}  // namespace gl
+}  // namespace gfxstream

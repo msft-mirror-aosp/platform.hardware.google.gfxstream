@@ -25,6 +25,9 @@
 #include <cstring>
 #include <vector>
 
+namespace gfxstream {
+namespace gl {
+
 enum class YUVPlane {
     Y = 0,
     U = 1,
@@ -133,3 +136,6 @@ private:
     GLint mCurrVbo = 0;
     GLint mCurrIbo = 0;
 };
+
+}  // namespace gl
+}  // namespace gfxstream

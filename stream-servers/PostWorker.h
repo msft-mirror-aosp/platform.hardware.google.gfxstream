@@ -31,16 +31,27 @@
 #include "gl/DisplayGl.h"
 #include "host-common/window_agent.h"
 
-class ColorBuffer;
+namespace gfxstream {
+namespace gl {
 class DisplayGl;
+}  // namespace gl
+}  // namespace gfxstream
+
+namespace gfxstream {
+namespace vk {
 class DisplayVk;
+}  // namespace vk
+}  // namespace gfxstream
+
+namespace gfxstream {
+class ColorBuffer;
 class FrameBuffer;
 struct RenderThreadInfo;
 
 class PostWorker {
    public:
-    PostWorker(bool mainThreadPostingOnly, Compositor* compositor,
-               DisplayGl* displayGl, DisplayVk* displayVk);
+    PostWorker(bool mainThreadPostingOnly, Compositor* compositor, gl::DisplayGl* displayGl,
+               vk::DisplayVk* displayVk);
     ~PostWorker();
 
     // post: posts the next color buffer.
@@ -64,7 +75,7 @@ class PostWorker {
     void clear();
 
     void screenshot(ColorBuffer* cb, int screenwidth, int screenheight, GLenum format, GLenum type,
-                    int skinRotation, void* pixels, emugl::Rect rect);
+                    int skinRotation, void* pixels, Rect rect);
 
     // The block task will set the scheduledSignal promise when the task is scheduled, and wait
     // until continueSignal is ready before completes.
@@ -73,7 +84,7 @@ class PostWorker {
    private:
     // Impl versions of the above, so we can run it from separate threads
     std::shared_future<void> postImpl(ColorBuffer* cb);
-    DisplayGl::PostLayer postWithOverlay(ColorBuffer* cb);
+    gl::DisplayGl::PostLayer postWithOverlay(ColorBuffer* cb);
     void viewportImpl(int width, int height);
     std::shared_future<void> composeImpl(const FlatComposeRequest& composeRequest);
     void clearImpl();
@@ -97,14 +108,16 @@ class PostWorker {
 
     // TODO(b/233939967): conslidate DisplayGl and DisplayVk into
     // `Display* const m_display`.
-    DisplayGl* const m_displayGl;
+    gl::DisplayGl* const m_displayGl;
     // The implementation for Vulkan native swapchain. Only initialized when
     // useVulkan is set when calling FrameBuffer::initialize(). PostWorker
     // doesn't take the ownership of this DisplayVk object.
-    DisplayVk* const m_displayVk;
+    vk::DisplayVk* const m_displayVk;
     std::unordered_map<uint32_t, std::shared_future<void>> m_composeTargetToComposeFuture;
 
     bool isComposeTargetReady(uint32_t targetHandle);
 
     DISALLOW_COPY_AND_ASSIGN(PostWorker);
 };
+
+}  // namespace gfxstream

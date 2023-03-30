@@ -10,6 +10,8 @@
 #include "Handle.h"
 #include "render-utils/Renderer.h"
 
+namespace gfxstream {
+
 class ColorBuffer;
 
 // Posting
@@ -52,7 +54,9 @@ struct Post {
             GLenum type;
             int rotation;
             void* pixels;
-            emugl::Rect rect;
+            Rect rect;
         } screenshot;
     };
 };
+
+}  // namespace gfxstream

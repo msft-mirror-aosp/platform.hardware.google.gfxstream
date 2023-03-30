@@ -9,6 +9,9 @@
 #include "vulkan/VkFormatUtils.h"
 #include "vulkan/vk_enum_string_helper.h"
 
+namespace gfxstream {
+namespace vk {
+
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -45,7 +48,7 @@ bool shouldRecreateSwapchain(VkResult result) {
 
 }  // namespace
 
-DisplayVk::DisplayVk(const goldfish_vk::VulkanDispatch& vk, VkPhysicalDevice vkPhysicalDevice,
+DisplayVk::DisplayVk(const VulkanDispatch& vk, VkPhysicalDevice vkPhysicalDevice,
                      uint32_t swapChainQueueFamilyIndex, uint32_t compositorQueueFamilyIndex,
                      VkDevice vkDevice, VkQueue compositorVkQueue,
                      std::shared_ptr<android::base::Lock> compositorVkQueueLock,
@@ -235,7 +238,7 @@ DisplayVk::PostResult DisplayVk::postImpl(
     // borrowed image.
     const auto* sourceImageInfoVk = static_cast<const BorrowedImageInfoVk*>(sourceImageInfo);
     struct ImageBorrower {
-        ImageBorrower(const goldfish_vk::VulkanDispatch& vk, VkQueue queue,
+        ImageBorrower(const VulkanDispatch& vk, VkQueue queue,
                       std::shared_ptr<android::base::Lock> queueLock, uint32_t usedQueueFamilyIndex,
                       const BorrowedImageInfoVk& image, const ImageBorrowResource& acquireResource,
                       const ImageBorrowResource& releaseResource)
@@ -322,7 +325,7 @@ DisplayVk::PostResult DisplayVk::postImpl(
             }
         }
 
-        const goldfish_vk::VulkanDispatch& m_vk;
+        const VulkanDispatch& m_vk;
         const VkQueue m_vkQueue;
         std::shared_ptr<android::base::Lock> m_queueLock;
         const ImageBorrowResource& m_releaseResource;
@@ -678,7 +681,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
 }
 
 std::shared_ptr<DisplayVk::PostResource> DisplayVk::PostResource::create(
-    const goldfish_vk::VulkanDispatch& vk, VkDevice vkDevice, VkCommandPool vkCommandPool) {
+    const VulkanDispatch& vk, VkDevice vkDevice, VkCommandPool vkCommandPool) {
     VkFenceCreateInfo fenceCi = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
     };
@@ -710,7 +713,7 @@ DisplayVk::PostResource::~PostResource() {
     m_vk.vkDestroySemaphore(m_vkDevice, m_swapchainImageReleaseSemaphore, nullptr);
 }
 
-DisplayVk::PostResource::PostResource(const goldfish_vk::VulkanDispatch& vk, VkDevice vkDevice,
+DisplayVk::PostResource::PostResource(const VulkanDispatch& vk, VkDevice vkDevice,
                                       VkCommandPool vkCommandPool,
                                       VkFence swapchainImageReleaseFence,
                                       VkSemaphore swapchainImageAcquireSemaphore,
@@ -725,7 +728,7 @@ DisplayVk::PostResource::PostResource(const goldfish_vk::VulkanDispatch& vk, VkD
       m_vkCommandPool(vkCommandPool) {}
 
 std::unique_ptr<DisplayVk::ImageBorrowResource> DisplayVk::ImageBorrowResource::create(
-    const goldfish_vk::VulkanDispatch& vk, VkDevice device, VkCommandPool commandPool) {
+    const VulkanDispatch& vk, VkDevice device, VkCommandPool commandPool) {
     const VkCommandBufferAllocateInfo allocInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .pNext = nullptr,
@@ -750,11 +753,14 @@ DisplayVk::ImageBorrowResource::~ImageBorrowResource() {
     m_vk.vkFreeCommandBuffers(m_vkDevice, m_vkCommandPool, 1, &m_vkCommandBuffer);
 }
 
-DisplayVk::ImageBorrowResource::ImageBorrowResource(const goldfish_vk::VulkanDispatch& vk,
-                                                    VkDevice device, VkCommandPool commandPool,
-                                                    VkFence fence, VkCommandBuffer commandBuffer)
+DisplayVk::ImageBorrowResource::ImageBorrowResource(const VulkanDispatch& vk, VkDevice device,
+                                                    VkCommandPool commandPool, VkFence fence,
+                                                    VkCommandBuffer commandBuffer)
     : m_completeFence(fence),
       m_vkCommandBuffer(commandBuffer),
       m_vk(vk),
       m_vkDevice(device),
       m_vkCommandPool(commandPool) {}
+
+}  // namespace vk
+}  // namespace gfxstream

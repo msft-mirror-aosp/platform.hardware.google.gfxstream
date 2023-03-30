@@ -15,6 +15,8 @@
 
 #include "aemu/base/system/System.h"
 
+namespace gfxstream {
+
 VsyncThread::VsyncThread(uint64_t vsyncPeriodNs) :
     mPeriodNs(vsyncPeriodNs),
     mThread([this] { threadFunc(); }) {
@@ -76,3 +78,5 @@ void VsyncThread::threadFunc() {
         ++mCount;
     }
 }
+
+}  // namespace gfxstream

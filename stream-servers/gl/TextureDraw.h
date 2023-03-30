@@ -23,6 +23,9 @@
 
 #include <vector>
 
+namespace gfxstream {
+namespace gl {
+
 // Helper class used to draw a simple texture to the current framebuffer.
 // Usage is pretty simple:
 //
@@ -94,5 +97,8 @@ private:
     std::vector<unsigned char> mMaskPixels;
     bool   mBlendResetNeeded = false;
 };
+
+}  // namespace gl
+}  // namespace gfxstream
 
 #endif  // TEXTURE_DRAW_H

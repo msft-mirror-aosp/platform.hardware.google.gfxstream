@@ -15,6 +15,8 @@
 */
 #include "NativeSubWindow.h"
 
+namespace gfxstream {
+
 struct SubWindowUserData {
     SubWindowRepaintCallback repaint_callback;
     void* repaint_callback_param;
@@ -89,3 +91,5 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
                           TRUE);
     return ret;
 }
+
+}  // namespace gfxstream

@@ -17,6 +17,10 @@
 #include <cstdint>
 #include <unordered_set>
 
-typedef uint32_t HandleType;
-typedef std::unordered_set<HandleType> ThreadContextSet;
-typedef std::unordered_set<HandleType> WindowSurfaceSet;
+namespace gfxstream {
+
+using HandleType = uint32_t;
+using ThreadContextSet = std::unordered_set<HandleType>;
+using WindowSurfaceSet = std::unordered_set<HandleType>;
+
+}  // namespace gfxstream

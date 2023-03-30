@@ -43,12 +43,17 @@
 #include "X11TestingSupport.h"
 #endif
 
+namespace gfxstream {
+namespace {
+
 using android::base::StdioStream;
 using android::snapshot::TextureLoader;
 using android::snapshot::TextureSaver;
-using gfxstream::GLESApi_3_0;
-
-namespace emugl {
+using gl::EGLDispatch;
+using gl::EmulatedEglConfigList;
+using gl::GLESApi_3_0;
+using gl::LazyLoadedEGLDispatch;
+using gl::LazyLoadedGLESv2Dispatch;
 
 class FrameBufferTest : public ::testing::Test {
 public:
@@ -981,4 +986,6 @@ TEST_F(FrameBufferTest, PixmapImport_Blit) {
     freeNativePixmap(pixmap);
 }
 #endif
-}  // namespace emugl
+
+}  // namespace
+}  // namespace gfxstream

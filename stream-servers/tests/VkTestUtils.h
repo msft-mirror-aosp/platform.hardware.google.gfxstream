@@ -5,7 +5,8 @@
 #include "vulkan/VulkanDispatch.h"
 #include "vulkan/vk_util.h"
 
-namespace emugl {
+namespace gfxstream {
+namespace vk {
 
 inline std::string libDir() {
     using android::base::pj;
@@ -37,7 +38,7 @@ struct RenderResourceVkBase
                                 vk_util::FindMemoryType,                      //
                                 vk_util::RecordImageLayoutTransformCommands,  //
                                 vk_util::RunSingleTimeCommand> {
-    const goldfish_vk::VulkanDispatch &m_vk;
+    const VulkanDispatch& m_vk;
     VkDevice m_vkDevice;
     VkPhysicalDevice m_vkPhysicalDevice;
     VkQueue m_vkQueue;
@@ -57,7 +58,7 @@ struct RenderResourceVkBase
     VkCommandBuffer m_readCommandBuffer;
     VkCommandBuffer m_writeCommandBuffer;
 
-    explicit RenderResourceVkBase(const goldfish_vk::VulkanDispatch &vk)
+    explicit RenderResourceVkBase(const VulkanDispatch& vk)
         : m_vk(vk),
           m_vkImageCreateInfo({}),
           m_vkImage(VK_NULL_HANDLE),
@@ -77,10 +78,9 @@ struct RenderResourceVk : public RenderResourceVkBase {
     static constexpr uint32_t k_bpp = 4;
     static constexpr VkImageLayout k_vkImageLayout = imageLayout;
 
-    static std::unique_ptr<const RenderResourceVk<imageLayout, imageUsage>>
-    create(const goldfish_vk::VulkanDispatch &vk, VkDevice device,
-           VkPhysicalDevice physicalDevice, VkQueue queue,
-           VkCommandPool commandPool, uint32_t width, uint32_t height) {
+    static std::unique_ptr<const RenderResourceVk<imageLayout, imageUsage>> create(
+        const VulkanDispatch& vk, VkDevice device, VkPhysicalDevice physicalDevice, VkQueue queue,
+        VkCommandPool commandPool, uint32_t width, uint32_t height) {
         std::unique_ptr<RenderResourceVk<imageLayout, imageUsage>> res(
             new RenderResourceVk<imageLayout, imageUsage>(vk));
         res->m_vkDevice = device;
@@ -145,8 +145,7 @@ struct RenderResourceVk : public RenderResourceVkBase {
     }
 
    private:
-    RenderResourceVk(const goldfish_vk::VulkanDispatch &vk)
-        : RenderResourceVkBase(vk) {}
+    RenderResourceVk(const VulkanDispatch& vk) : RenderResourceVkBase(vk) {}
 
     bool setUpImage() {
         VkImageCreateInfo imageCi{
@@ -339,12 +338,12 @@ struct RenderResourceVk : public RenderResourceVkBase {
         }
         return true;
     }
-};  // namespace emugl
+};
 
 using RenderTextureVk =
-    emugl::RenderResourceVk<VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                            VK_IMAGE_USAGE_SAMPLED_BIT>;
+    RenderResourceVk<VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT>;
 
-}  // namespace emugl
+}  // namespace vk
+}  // namespace gfxstream
 
 #endif

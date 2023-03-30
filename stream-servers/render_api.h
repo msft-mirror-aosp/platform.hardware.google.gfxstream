@@ -28,6 +28,8 @@
 ANDROID_BEGIN_HEADER
 #endif
 
+namespace gfxstream {
+
 // Use KHRONOS_APICALL to control visibility, but do not use KHRONOS_APIENTRY
 // because we don't need the functions to be __stdcall on Win32.
 #define RENDER_APICALL  KHRONOS_APICALL
@@ -39,7 +41,9 @@ ANDROID_BEGIN_HEADER
 
 LIST_RENDER_API_FUNCTIONS(RENDER_API_DECLARE)
 
-RENDER_APICALL emugl::RenderLibPtr RENDER_APIENTRY initLibrary();
+RENDER_APICALL RenderLibPtr RENDER_APIENTRY initLibrary();
+
+}  // namespace gfxstream
 
 #ifndef USING_ANDROID_BP
 ANDROID_END_HEADER

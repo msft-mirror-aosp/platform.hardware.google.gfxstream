@@ -36,7 +36,7 @@
 #include "VulkanHandleMapping.h"
 #include "aemu/base/synchronization/Lock.h"
 
-using namespace goldfish_vk;
+using namespace gfxstream::vk;
 using emugl::GfxApiLogger;
 using emugl::HealthMonitor;
 

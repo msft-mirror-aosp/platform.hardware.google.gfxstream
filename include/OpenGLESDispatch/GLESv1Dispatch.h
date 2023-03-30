@@ -28,6 +28,9 @@
 
 #include <stdint.h>
 
+namespace gfxstream {
+namespace gl {
+
 // Define function pointer types.
 #define GLES1_DISPATCH_DEFINE_TYPE(return_type,func_name,signature,callargs) \
     typedef return_type (KHRONOS_APIENTRY * func_name ## _t) signature;
@@ -54,3 +57,6 @@ void* gles1_dispatch_get_proc_func(const char* name, void* userData);
 
 // Used to check for unimplemented.
 void gles1_unimplemented();
+
+}  // namespace gl
+}  // namespace gfxstream

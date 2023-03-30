@@ -26,15 +26,18 @@
 
 #define E(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
 
-class IOStream;
-
 namespace android {
 namespace base {
 class BumpPool;
 }  // namespace base
 }  // namespace android
 
-namespace goldfish_vk {
+namespace gfxstream {
+class IOStream;
+}  // namespace gfxstream
+
+namespace gfxstream {
+namespace vk {
 
 class VulkanStream : public android::base::Stream {
    public:
@@ -109,4 +112,5 @@ class VulkanMemReadingStream : public VulkanStream {
     uintptr_t mReadPos = 0;
 };
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
