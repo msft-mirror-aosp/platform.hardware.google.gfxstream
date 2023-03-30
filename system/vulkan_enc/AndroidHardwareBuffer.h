@@ -24,7 +24,8 @@
 
 class Gralloc;
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 uint64_t
 getAndroidHardwareBufferUsageFromVkUsage(
@@ -58,4 +59,5 @@ VkResult createAndroidHardwareBuffer(
     VkDeviceSize allocationInfoAllocSize,
     struct AHardwareBuffer **out);
 
-} // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

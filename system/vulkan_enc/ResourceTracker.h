@@ -29,7 +29,8 @@ struct EmulatorFeatureInfo;
 
 class HostConnection;
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 class VkEncoder;
 
@@ -679,4 +680,5 @@ private:
     std::unique_ptr<Impl> mImpl;
 };
 
-} // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
