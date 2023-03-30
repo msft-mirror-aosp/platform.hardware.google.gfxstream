@@ -31,6 +31,9 @@
 using android::base::AutoLock;
 using android::base::StaticLock;
 
+namespace gfxstream {
+namespace gl {
+
 static inline void* SafePointerFromUInt(GLuint value) {
   return (void*)(uintptr_t)value;
 }
@@ -382,3 +385,6 @@ void *GLESv1Decoder::s_getProc(const char *name, void *userData)
     }
     return func;
 }
+
+}  // namespace gl
+}  // namespace gfxstream

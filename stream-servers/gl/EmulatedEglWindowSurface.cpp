@@ -32,6 +32,7 @@ using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
 namespace gfxstream {
+namespace gl {
 
 EmulatedEglWindowSurface::EmulatedEglWindowSurface(EGLDisplay display,
                                                    EGLConfig config,
@@ -257,4 +258,5 @@ std::unique_ptr<EmulatedEglWindowSurface> EmulatedEglWindowSurface::onLoad(
     return surface;
 }
 
+}  // namespace gl
 }  // namespace gfxstream

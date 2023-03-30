@@ -43,7 +43,7 @@ class GLObjectCounter;
 } // namespace base
 } // namespace android
 
-namespace emugl {
+namespace gfxstream {
 
 struct RenderOpt {
     void* display;
@@ -117,4 +117,4 @@ public:
 
 using RenderLibPtr = std::unique_ptr<RenderLib>;
 
-}  // namespace emugl
+}  // namespace gfxstream

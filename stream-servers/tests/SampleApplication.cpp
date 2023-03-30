@@ -30,18 +30,18 @@
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
 
+namespace gfxstream {
+
 using android::base::AutoLock;
 using android::base::ConditionVariable;
 using android::base::FunctorThread;
 using android::base::Lock;
 using android::base::MessageChannel;
 using android::base::TestSystem;
-using gfxstream::EmulatedEglFenceSync;
-using gfxstream::GLESApi;
-using gfxstream::GLESApi_3_0;
-using gfxstream::GLESApi_CM;
-
-namespace emugl {
+using gl::EmulatedEglFenceSync;
+using gl::GLESApi;
+using gl::GLESApi_3_0;
+using gl::GLESApi_CM;
 
 // Class holding the persistent test window.
 class TestWindow {
@@ -244,9 +244,9 @@ SampleApplication::SampleApplication(int windowWidth, int windowHeight, int refr
     emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
     emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);;
     emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
-    LazyLoadedEGLDispatch::get();
-    if (glVersion == GLESApi_CM) LazyLoadedGLESv1Dispatch::get();
-    LazyLoadedGLESv2Dispatch::get();
+    gl::LazyLoadedEGLDispatch::get();
+    if (glVersion == GLESApi_CM) gl::LazyLoadedGLESv1Dispatch::get();
+    gl::LazyLoadedGLESv2Dispatch::get();
 
     bool useHostGpu = shouldUseHostGpu();
     mWindow = createOrGetTestWindow(mXOffset, mYOffset, mWidth, mHeight);
@@ -556,8 +556,8 @@ void SampleApplication::drawOnce() {
     }
 }
 
-const GLESv2Dispatch* SampleApplication::getGlDispatch() {
-    return LazyLoadedGLESv2Dispatch::get();
+const gl::GLESv2Dispatch* SampleApplication::getGlDispatch() {
+    return gl::LazyLoadedGLESv2Dispatch::get();
 }
 
 bool SampleApplication::isSwANGLE() {
@@ -568,4 +568,4 @@ bool SampleApplication::isSwANGLE() {
     return strstr(renderer, "ANGLE") && strstr(renderer, "SwiftShader");
 }
 
-} // namespace emugl
+}  // namespace gfxstream

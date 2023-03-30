@@ -12,22 +12,26 @@
 
 using gfxstream::DisplaySurface;
 
+namespace gfxstream {
+namespace vk {
+namespace {
+
 class DisplayVkTest : public ::testing::Test {
    protected:
-    using RenderTexture = emugl::RenderTextureVk;
+    using RenderTexture = RenderTextureVk;
 
-    static void SetUpTestCase() { k_vk = emugl::vkDispatch(false); }
+    static void SetUpTestCase() { k_vk = vkDispatch(false); }
 
     void SetUp() override {
         // skip the test when testing without a window
-        if (!emugl::shouldUseWindow()) {
+        if (!shouldUseWindow()) {
             GTEST_SKIP();
         }
         ASSERT_NE(k_vk, nullptr);
 
         createInstance();
         createWindowAndSurface();
-        m_window = emugl::createOrGetTestWindow(0, 0, k_width, k_height);
+        m_window = createOrGetTestWindow(0, 0, k_width, k_height);
         pickPhysicalDevice();
         createLogicalDevice();
         k_vk->vkGetDeviceQueue(m_vkDevice, m_compositorQueueFamilyIndex, 0, &m_compositorVkQueue);
@@ -51,7 +55,7 @@ class DisplayVkTest : public ::testing::Test {
     }
 
     void TearDown() override {
-        if (emugl::shouldUseWindow()) {
+        if (shouldUseWindow()) {
             ASSERT_EQ(k_vk->vkQueueWaitIdle(m_compositorVkQueue), VK_SUCCESS);
             ASSERT_EQ(k_vk->vkQueueWaitIdle(m_swapChainVkQueue), VK_SUCCESS);
 
@@ -80,7 +84,7 @@ class DisplayVkTest : public ::testing::Test {
         return info;
     }
 
-    static const goldfish_vk::VulkanDispatch *k_vk;
+    static const VulkanDispatch* k_vk;
     static constexpr uint32_t k_width = 0x100;
     static constexpr uint32_t k_height = 0x100;
 
@@ -119,7 +123,7 @@ class DisplayVkTest : public ::testing::Test {
     }
 
     void createWindowAndSurface() {
-        m_window = emugl::createOrGetTestWindow(0, 0, k_width, k_height);
+        m_window = createOrGetTestWindow(0, 0, k_width, k_height);
         ASSERT_NE(m_window, nullptr);
         // TODO(kaiyili, b/179477624): add support for other platforms
 #ifdef _WIN32
@@ -205,7 +209,7 @@ class DisplayVkTest : public ::testing::Test {
     }
 };
 
-const goldfish_vk::VulkanDispatch *DisplayVkTest::k_vk = nullptr;
+const VulkanDispatch* DisplayVkTest::k_vk = nullptr;
 
 TEST_F(DisplayVkTest, Init) {}
 
@@ -282,3 +286,7 @@ TEST_F(DisplayVkTest, PostTwoColorBuffers) {
         waitForGpuFuture.wait();
     }
 }
+
+}  // namespace
+}  // namespace vk
+}  // namespace gfxstream

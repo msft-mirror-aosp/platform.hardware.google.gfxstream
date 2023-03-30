@@ -27,9 +27,8 @@ using emugl::FatalError;
 Buffer::Buffer(HandleType handle, uint64_t size) : mHandle(handle), mSize(size) {}
 
 /*static*/
-std::shared_ptr<Buffer> Buffer::create(gfxstream::EmulationGl* emulationGl,
-                                       goldfish_vk::VkEmulation* emulationVk, uint64_t size,
-                                       HandleType handle) {
+std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk,
+                                       uint64_t size, HandleType handle) {
     std::shared_ptr<Buffer> buffer(new Buffer(handle, size));
 
     if (emulationGl) {
@@ -43,7 +42,7 @@ std::shared_ptr<Buffer> Buffer::create(gfxstream::EmulationGl* emulationGl,
     if (emulationVk && emulationVk->live) {
         const bool vulkanOnly = emulationGl == nullptr;
 
-        buffer->mBufferVk = BufferVk::create(handle, size, vulkanOnly);
+        buffer->mBufferVk = vk::BufferVk::create(handle, size, vulkanOnly);
         if (!buffer->mBufferVk) {
             ERR("Failed to initialize BufferVk.");
             return nullptr;
@@ -62,8 +61,8 @@ std::shared_ptr<Buffer> Buffer::create(gfxstream::EmulationGl* emulationGl,
 }
 
 /*static*/
-std::shared_ptr<Buffer> Buffer::onLoad(gfxstream::EmulationGl* emulationGl,
-                                       goldfish_vk::VkEmulation*, android::base::Stream* stream) {
+std::shared_ptr<Buffer> Buffer::onLoad(gl::EmulationGl* emulationGl, vk::VkEmulation*,
+                                       android::base::Stream* stream) {
     const auto handle = static_cast<HandleType>(stream->getBe32());
     const auto size = static_cast<uint64_t>(stream->getBe64());
 

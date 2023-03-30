@@ -20,6 +20,9 @@
 #include "host-common/logging.h"
 #include "vulkan/vk_enum_string_helper.h"
 
+namespace gfxstream {
+namespace vk {
+
 // Header library that captures common patterns when working with
 // Vulkan formats:
 // - Macros to iterate over categories of formats
@@ -655,3 +658,6 @@ constexpr bool formatRequiresSamplerYcbcrConversion(VkFormat format) {
 bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
                            VkDeviceSize* outStagingBufferCopySize,
                            std::vector<VkBufferImageCopy>* outBufferImageCopies);
+
+}  // namespace vk
+}  // namespace gfxstream

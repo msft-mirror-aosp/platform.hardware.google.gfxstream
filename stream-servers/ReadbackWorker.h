@@ -15,9 +15,9 @@
 */
 #pragma once
 
-class ColorBuffer;
-
 namespace gfxstream {
+
+class ColorBuffer;
 
 // This class implements async readback of ColorBuffers on both the FrameBuffer
 // posting thread and a separate worker thread.

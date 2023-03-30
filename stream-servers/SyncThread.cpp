@@ -30,10 +30,13 @@
 #endif
 #include <memory>
 
+namespace gfxstream {
+
 using android::base::EventHangMetadata;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
-using gfxstream::EmulatedEglFenceSync;
+using gl::EGLDispatch;
+using gl::EmulatedEglFenceSync;
 
 #define DEBUG 0
 
@@ -183,7 +186,7 @@ void SyncThread::triggerWaitVkQsriWithCompletionCallback(VkImage vkImage, FenceC
        << reinterpret_cast<uintptr_t>(vkImage);
     sendAsync(
         [vkImage, cb = std::move(cb)](WorkerId) {
-            auto decoder = goldfish_vk::VkDecoderGlobalState::get();
+            auto decoder = vk::VkDecoderGlobalState::get();
             auto res = decoder->registerQsriCallback(vkImage, cb);
             // If registerQsriCallback does not schedule the callback, we still need to complete
             // the task, otherwise we may hit deadlocks on tasks on the same ring.
@@ -204,7 +207,7 @@ void SyncThread::cleanup() {
     sendAndWaitForResult(
         [this](WorkerId workerId) {
             if (mHasGl) {
-                const EGLDispatch* egl = emugl::LazyLoadedEGLDispatch::get();
+                const EGLDispatch* egl = gl::LazyLoadedEGLDispatch::get();
 
                 egl->eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 
@@ -289,7 +292,7 @@ void SyncThread::initSyncEGLContext() {
                 // without GL enabled.
                 SYNC_THREAD_CHECK(mHasGl);
 
-                const EGLDispatch* egl = emugl::LazyLoadedEGLDispatch::get();
+                const EGLDispatch* egl = gl::LazyLoadedEGLDispatch::get();
 
                 mDisplay = egl->eglGetDisplay(EGL_DEFAULT_DISPLAY);
                 int eglMaj, eglMin;
@@ -357,7 +360,7 @@ void SyncThread::doSyncWait(EmulatedEglFenceSync* fenceSync, std::function<void(
            wait_result);
 
     if (wait_result != EGL_CONDITION_SATISFIED_KHR) {
-        EGLint error = s_egl.eglGetError();
+        EGLint error = gl::s_egl.eglGetError();
         DPRINT("error: eglClientWaitSync abnormal exit 0x%x. sync handle 0x%llx. egl error = %#x\n",
                wait_result, (unsigned long long)fenceSync, error);
         (void)error;
@@ -402,7 +405,7 @@ void SyncThread::doSyncWait(EmulatedEglFenceSync* fenceSync, std::function<void(
 int SyncThread::doSyncWaitVk(VkFence vkFence, std::function<void()> onComplete) {
     DPRINT("enter");
 
-    auto decoder = goldfish_vk::VkDecoderGlobalState::get();
+    auto decoder = vk::VkDecoderGlobalState::get();
     auto result = decoder->waitForFence(vkFence, kDefaultTimeoutNsecs);
     if (result == VK_TIMEOUT) {
         DPRINT("SYNC_WAIT_VK timeout: vkFence=%p", vkFence);
@@ -437,3 +440,5 @@ void SyncThread::initialize(bool hasGl, HealthMonitor<>* healthMonitor) {
 }
 
 void SyncThread::destroy() { sGlobalSyncThread()->destroy(); }
+
+}  // namespace gfxstream

@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 
+namespace gfxstream {
+namespace gl {
 namespace {
 
 #ifndef EGL_PRESERVED_RESOURCES
@@ -289,3 +291,6 @@ EGLint EmulatedEglConfigList::packConfigs(GLuint bufferByteSize, GLuint* buffer)
     }
     return mConfigs.size();
 }
+
+}  // namespace gl
+}  // namespace gfxstream

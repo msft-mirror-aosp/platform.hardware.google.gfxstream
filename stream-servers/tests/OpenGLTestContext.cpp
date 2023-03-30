@@ -18,7 +18,8 @@
 #include "host-common/testing/MockGraphicsAgentFactory.h"
 #include "Standalone.h"
 
-namespace emugl {
+namespace gfxstream {
+namespace gl {
 
 static bool sDisplayNeedsInit = true;
 
@@ -152,4 +153,5 @@ void GLTest::TearDown() {
             << "GLTest TearDown found EGL error";
 }
 
-} // namespace emugl
+}  // namespace gl
+}  // namespace gfxstream

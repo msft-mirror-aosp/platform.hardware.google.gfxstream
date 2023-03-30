@@ -39,7 +39,9 @@
 #include "vulkan_gfxstream.h"
 using OnFailCompareFunc = std::function<void(const char*)>;
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
+
 #ifdef VK_VERSION_1_0
 void checkEqual_VkExtent2D(const VkExtent2D* a, const VkExtent2D* b, OnFailCompareFunc onFail);
 
@@ -3687,4 +3689,5 @@ void checkEqual_VkPhysicalDeviceRayQueryFeaturesKHR(const VkPhysicalDeviceRayQue
 
 #endif
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

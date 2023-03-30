@@ -22,12 +22,13 @@
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/feature_control.h"
 
+namespace gfxstream {
+namespace vk {
+
 #define E(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
 
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
-
-namespace goldfish_vk {
 
 VulkanStream::VulkanStream(IOStream* stream) : mStream(stream) {
     unsetHandleMapping();
@@ -219,4 +220,5 @@ size_t VulkanMemReadingStream::endTrace() {
 
 void VulkanMemReadingStream::resetTrace() { mTraceStart = mStart + mReadPos; }
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

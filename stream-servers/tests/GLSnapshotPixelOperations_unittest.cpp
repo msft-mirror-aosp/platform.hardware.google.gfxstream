@@ -18,7 +18,9 @@
 #include <gtest/gtest.h>
 #include <array>
 
-namespace emugl {
+namespace gfxstream {
+namespace gl {
+namespace {
 
 struct GlStencilFunc {
     GLenum func;
@@ -410,4 +412,6 @@ TEST_P(SnapshotGlBlendFunciTest, BlendFunci) {
 INSTANTIATE_TEST_SUITE_P(GLES2SnapshotPixelOps, SnapshotGlBlendFunciTest,
                         ::testing::Values(kGLES2TestBlendFunci));
 
-}  // namespace emugl
+}  // namespace
+}  // namespace gl
+}  // namespace gfxstream

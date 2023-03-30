@@ -19,6 +19,8 @@
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
 
+namespace gfxstream {
+namespace gl {
 namespace {
 
 using emugl::ABORT_REASON_OTHER;
@@ -176,3 +178,6 @@ DisplaySurfaceGl::~DisplaySurfaceGl() {
         }
     }
 }
+
+}  // namespace gl
+}  // namespace gfxstream

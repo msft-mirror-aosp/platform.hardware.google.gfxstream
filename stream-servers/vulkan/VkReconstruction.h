@@ -21,6 +21,9 @@
 #include "common/goldfish_vk_marshaling.h"
 #include "utils/GfxApiLogger.h"
 
+namespace gfxstream {
+namespace vk {
+
 // A class that captures all important data structures for
 // reconstructing a Vulkan system state via trimmed API record and replay.
 class VkReconstruction {
@@ -93,3 +96,6 @@ class VkReconstruction {
 
     std::vector<uint8_t> mLoadedTrace;
 };
+
+}  // namespace vk
+}  // namespace gfxstream

@@ -66,6 +66,9 @@
 
 #include <climits>
 
+namespace gfxstream {
+namespace vk {
+
 using android::base::AutoLock;
 using android::base::ConditionVariable;
 using android::base::DescriptorType;
@@ -108,8 +111,6 @@ void validateRequiredHandle(const char* api_name, const char* parameter_name, T 
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << api_name << ":" << parameter_name;
     }
 }
-
-namespace goldfish_vk {
 
 // A list of device extensions that should not be passed to the host driver.
 // These will mainly include Vulkan features that we emulate ourselves.
@@ -294,7 +295,7 @@ static ReadStreamRegistry sReadStreamRegistry;
 class VkDecoderGlobalState::Impl {
    public:
     Impl()
-        : m_vk(emugl::vkDispatch()),
+        : m_vk(vkDispatch()),
           m_emu(getGlobalVkEmulation()),
           mRenderDocWithMultipleVkInstances(m_emu->guestRenderDoc.get()) {
         mSnapshotsEnabled = feature_is_enabled(kFeature_VulkanSnapshots);
@@ -4955,14 +4956,13 @@ class VkDecoderGlobalState::Impl {
                 // For AHardwareBufferImage binding, we can't know which ColorBuffer this
                 // to-be-created VkImage will bind to, so we try our best to infer the creation
                 // parameters.
-                colorBufferVkImageCi = goldfish_vk::generateColorBufferVkImageCreateInfo(
+                colorBufferVkImageCi = generateColorBufferVkImageCreateInfo(
                     resolvedFormat, imageCreateInfo.extent.width, imageCreateInfo.extent.height,
                     imageCreateInfo.tiling);
                 importSource = "AHardwareBuffer";
             } else if (pNativeBufferANDROID) {
                 // For native buffer binding, we can query the creation parameters from handle.
-                auto colorBufferInfo =
-                    goldfish_vk::getColorBufferInfo(*pNativeBufferANDROID->handle);
+                auto colorBufferInfo = getColorBufferInfo(*pNativeBufferANDROID->handle);
                 if (colorBufferInfo.handle == *pNativeBufferANDROID->handle) {
                     colorBufferVkImageCi =
                         std::make_unique<VkImageCreateInfo>(colorBufferInfo.imageCreateInfoShallow);
@@ -5383,7 +5383,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     // Whether the VkInstance associated with this physical device was created by ANGLE
-    bool isAngleInstance(VkPhysicalDevice physicalDevice, goldfish_vk::VulkanDispatch* vk) {
+    bool isAngleInstance(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         VkInstance* instance = android::base::find(mPhysicalDeviceToInstance, physicalDevice);
         if (!instance) return false;
@@ -5392,14 +5392,14 @@ class VkDecoderGlobalState::Impl {
         return instanceInfo->isAngle;
     }
 
-    bool enableEmulatedEtc2(VkPhysicalDevice physicalDevice, goldfish_vk::VulkanDispatch* vk) {
+    bool enableEmulatedEtc2(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) {
         if (!m_emu->enableEtc2Emulation) return false;
 
         // Don't enable ETC2 emulation for ANGLE, let it do its own emulation.
         return !isAngleInstance(physicalDevice, vk);
     }
 
-    bool enableEmulatedAstc(VkPhysicalDevice physicalDevice, goldfish_vk::VulkanDispatch* vk) {
+    bool enableEmulatedAstc(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) {
         if (m_emu->astcLdrEmulationMode == AstcEmulationMode::Disabled) {
             return false;
         }
@@ -5408,7 +5408,7 @@ class VkDecoderGlobalState::Impl {
         return !isAngleInstance(physicalDevice, vk);
     }
 
-    bool needEmulatedEtc2(VkPhysicalDevice physicalDevice, goldfish_vk::VulkanDispatch* vk) {
+    bool needEmulatedEtc2(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) {
         if (!enableEmulatedEtc2(physicalDevice, vk)) {
             return false;
         }
@@ -5417,7 +5417,7 @@ class VkDecoderGlobalState::Impl {
         return !feature.textureCompressionETC2;
     }
 
-    bool needEmulatedAstc(VkPhysicalDevice physicalDevice, goldfish_vk::VulkanDispatch* vk) {
+    bool needEmulatedAstc(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) {
         if (!enableEmulatedAstc(physicalDevice, vk)) {
             return false;
         }
@@ -5427,7 +5427,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     bool isEmulatedCompressedTexture(VkFormat format, VkPhysicalDevice physicalDevice,
-                                     goldfish_vk::VulkanDispatch* vk) {
+                                     VulkanDispatch* vk) {
         return (CompressedImageInfo::isEtc2(format) && needEmulatedEtc2(physicalDevice, vk)) ||
                (CompressedImageInfo::isAstc(format) && needEmulatedAstc(physicalDevice, vk));
     }
@@ -5462,7 +5462,7 @@ class VkDecoderGlobalState::Impl {
     void getPhysicalDeviceFormatPropertiesCore(
         std::function<void(VkPhysicalDevice, VkFormat, VkFormatProperties1or2*)>
             getPhysicalDeviceFormatPropertiesFunc,
-        goldfish_vk::VulkanDispatch* vk, VkPhysicalDevice physicalDevice, VkFormat format,
+        VulkanDispatch* vk, VkPhysicalDevice physicalDevice, VkFormat format,
         VkFormatProperties1or2* pFormatProperties) {
         if (isEmulatedCompressedTexture(format, physicalDevice, vk)) {
             getPhysicalDeviceFormatPropertiesFunc(
@@ -7415,4 +7415,5 @@ GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(
     BOXED_NON_DISPATCHABLE_HANDLE_UNWRAP_AND_DELETE_PRESERVE_BOXED_IMPL)
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

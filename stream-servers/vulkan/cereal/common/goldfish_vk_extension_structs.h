@@ -35,7 +35,9 @@
 #include "vk_android_native_buffer.h"
 #include "vulkan_gfxstream.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
+
 uint32_t goldfish_vk_struct_type(const void* structExtension);
 
 size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* structExtension);
@@ -587,4 +589,5 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
 #ifdef VK_KHR_ray_query
 #endif
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

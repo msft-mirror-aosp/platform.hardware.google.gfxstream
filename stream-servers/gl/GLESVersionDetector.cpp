@@ -25,6 +25,9 @@
 
 #include <algorithm>
 
+namespace gfxstream {
+namespace gl {
+
 // Config + context attributes to query the underlying OpenGL if it is
 // a OpenGL ES backend. Only try for OpenGL ES 3, and assume OpenGL ES 2
 // exists (if it doesn't, this is the least of our problems).
@@ -247,3 +250,6 @@ std::string filterExtensionsBasedOnMaxVersion(GLESDispatchMaxVersion ver,
 
     return filteredExtensions;
 }
+
+}  // namespace gl
+}  // namespace gfxstream

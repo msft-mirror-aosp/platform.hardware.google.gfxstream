@@ -28,6 +28,7 @@
 #include "aemu/base/synchronization/Lock.h"
 
 namespace gfxstream {
+namespace gl {
 namespace {
 
 using android::base::AutoLock;
@@ -212,4 +213,5 @@ EmulatedEglFenceSync* EmulatedEglFenceSync::getFromHandle(uint64_t handle) {
     return sFenceRegistry()->getPtr(handle);
 }
 
+}  // namespace gl
 }  // namespace gfxstream

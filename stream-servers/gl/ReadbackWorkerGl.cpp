@@ -27,6 +27,7 @@
 #include "host-common/misc.h"
 
 namespace gfxstream {
+namespace gl {
 
 ReadbackWorkerGl::TrackedDisplay::TrackedDisplay(uint32_t displayId, uint32_t w, uint32_t h)
     : mBufferSize(4 * w * h /* RGBA8 (4 bpp) */),
@@ -243,4 +244,5 @@ void ReadbackWorkerGl::getPixels(uint32_t displayId, void* buf, uint32_t bytes) 
     lock.unlock();
 }
 
+}  // namespace gl
 }  // namespace gfxstream

@@ -33,7 +33,7 @@ namespace android_studio {
     class EmulatorGLESUsages;
 }
 
-namespace emugl {
+namespace gfxstream {
 
 class RendererImpl final : public Renderer {
 public:
@@ -148,4 +148,4 @@ private:
     std::vector<RenderThread*> mAdditionalPostLoadRenderThreads;
 };
 
-}  // namespace emugl
+}  // namespace gfxstream
