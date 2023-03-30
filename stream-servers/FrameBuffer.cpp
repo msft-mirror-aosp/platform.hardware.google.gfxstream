@@ -818,7 +818,6 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                 .build();
         blockPostWorker(std::move(postWorkerContinueSignalFuture)).wait();
     }
-    AutoLock mutex(m_lock);
     if (m_displayVk) {
         auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Draining the VkQueue")
                             .setTimeoutMs(6000)
@@ -828,6 +827,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
     auto lockWatchdog =
         WATCHDOG_BUILDER(m_healthMonitor.get(), "Wait for the FrameBuffer global lock").build();
     auto lockWatchdogId = lockWatchdog->release();
+    AutoLock mutex(m_lock);
     if (lockWatchdogId.has_value()) {
         m_healthMonitor->stopMonitoringTask(lockWatchdogId.value());
     }
