@@ -44,9 +44,7 @@
 #undef VK_KHR_android_surface
 #undef VK_ANDROID_external_memory_android_hardware_buffer
 
-namespace gfxstream {
-namespace vk {
-
+namespace goldfish_vk {
 #ifdef VK_VERSION_1_0
 void reservedmarshal_VkExtent2D(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                 const VkExtent2D* forMarshaling, uint8_t** ptr);
@@ -3865,5 +3863,4 @@ void reservedmarshal_VkPhysicalDeviceRayQueryFeaturesKHR(
 
 #endif
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk
