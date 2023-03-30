@@ -3884,43 +3884,6 @@ public:
         // no-op
     }
 
-uint32_t transformNonExternalResourceMemoryTypeBitsForGuest(
-        uint32_t hostBits) {
-        uint32_t res = 0;
-        for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-            if (hostBits & (1 << i)) {
-                res |= (1 << i);
-            }
-        }
-        return res;
-    }
-
-    uint32_t transformExternalResourceMemoryTypeBitsForGuest(
-        uint32_t normalBits) {
-        uint32_t res = 0;
-        for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-            bool shouldAcceptMemoryIndex = normalBits & (1 << i);
-            if (shouldAcceptMemoryIndex) {
-                res |= (1 << i);
-            }
-        }
-        return res;
-    }
-
-    void transformNonExternalResourceMemoryRequirementsForGuest(
-        VkMemoryRequirements* reqs) {
-        reqs->memoryTypeBits =
-            transformNonExternalResourceMemoryTypeBitsForGuest(
-                reqs->memoryTypeBits);
-    }
-
-    void transformExternalResourceMemoryRequirementsForGuest(
-        VkMemoryRequirements* reqs) {
-        reqs->memoryTypeBits =
-            transformExternalResourceMemoryTypeBitsForGuest(
-                reqs->memoryTypeBits);
-    }
-
     void transformExternalResourceMemoryDedicatedRequirementsForGuest(
         VkMemoryDedicatedRequirements* dedicatedReqs) {
         dedicatedReqs->prefersDedicatedAllocation = VK_TRUE;
@@ -3931,36 +3894,7 @@ uint32_t transformNonExternalResourceMemoryTypeBitsForGuest(
         VkImage image,
         VkMemoryRequirements* reqs) {
 
-        auto it = info_VkImage.find(image);
-        if (it == info_VkImage.end()) return;
-
-        auto& info = it->second;
-
-        if (!info.external ||
-            !info.externalCreateInfo.handleTypes) {
-            transformNonExternalResourceMemoryRequirementsForGuest(reqs);
-        } else {
-            transformExternalResourceMemoryRequirementsForGuest(reqs);
-        }
         setMemoryRequirementsForSysmemBackedImage(image, reqs);
-    }
-
-    void transformBufferMemoryRequirementsForGuestLocked(
-        VkBuffer buffer,
-        VkMemoryRequirements* reqs) {
-
-        auto it = info_VkBuffer.find(buffer);
-        if (it == info_VkBuffer.end()) return;
-
-        auto& info = it->second;
-
-        if (!info.external ||
-            !info.externalCreateInfo.handleTypes) {
-            transformNonExternalResourceMemoryRequirementsForGuest(reqs);
-            return;
-        }
-
-        transformExternalResourceMemoryRequirementsForGuest(reqs);
     }
 
     void transformImageMemoryRequirements2ForGuest(
@@ -3976,13 +3910,9 @@ uint32_t transformNonExternalResourceMemoryTypeBitsForGuest(
 
         if (!info.external ||
             !info.externalCreateInfo.handleTypes) {
-            transformNonExternalResourceMemoryRequirementsForGuest(
-                &reqs2->memoryRequirements);
             setMemoryRequirementsForSysmemBackedImage(image, &reqs2->memoryRequirements);
             return;
         }
-
-        transformExternalResourceMemoryRequirementsForGuest(&reqs2->memoryRequirements);
 
         setMemoryRequirementsForSysmemBackedImage(image, &reqs2->memoryRequirements);
 
@@ -4008,12 +3938,8 @@ uint32_t transformNonExternalResourceMemoryTypeBitsForGuest(
 
         if (!info.external ||
             !info.externalCreateInfo.handleTypes) {
-            transformNonExternalResourceMemoryRequirementsForGuest(
-                &reqs2->memoryRequirements);
             return;
         }
-
-        transformExternalResourceMemoryRequirementsForGuest(&reqs2->memoryRequirements);
 
         VkMemoryDedicatedRequirements* dedicatedReqs =
             vk_find_struct<VkMemoryDedicatedRequirements>(reqs2);
@@ -5268,6 +5194,7 @@ uint32_t transformNonExternalResourceMemoryTypeBitsForGuest(
 
         if (supportsCreateResourcesWithRequirements()) {
             info.baseRequirementsKnown = true;
+            info.baseRequirements = memReqs;
         }
 
         if (extBufCiPtr) {
@@ -5280,11 +5207,6 @@ uint32_t transformNonExternalResourceMemoryTypeBitsForGuest(
             info.isSysmemBackedMemory = true;
         }
 #endif
-
-        if (info.baseRequirementsKnown) {
-            transformBufferMemoryRequirementsForGuestLocked(*pBuffer, &memReqs);
-            info.baseRequirements = memReqs;
-        }
 
         return res;
     }
@@ -5319,8 +5241,6 @@ uint32_t transformNonExternalResourceMemoryTypeBitsForGuest(
 
         lock.lock();
 
-        transformBufferMemoryRequirementsForGuestLocked(
-            buffer, pMemoryRequirements);
         info.baseRequirementsKnown = true;
         info.baseRequirements = *pMemoryRequirements;
     }
