@@ -56,10 +56,9 @@
 #include "goldfish_vk_reserved_marshaling_guest.h"
 #include "goldfish_vk_transform_guest.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
-using namespace gfxstream::vk;
+using namespace goldfish_vk;
 
 using android::base::BumpPool;
 using android::base::guest::AutoLock;
@@ -64119,5 +64118,4 @@ void VkEncoder::vkCmdSetRayTracingPipelineStackSizeKHR(VkCommandBuffer commandBu
 #ifdef VK_KHR_ray_query
 #endif
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

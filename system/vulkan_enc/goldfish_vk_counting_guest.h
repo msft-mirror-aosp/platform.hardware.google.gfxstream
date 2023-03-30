@@ -35,9 +35,7 @@
 #include "vk_platform_compat.h"
 #include "vulkan_gfxstream.h"
 
-namespace gfxstream {
-namespace vk {
-
+namespace goldfish_vk {
 #ifdef VK_VERSION_1_0
 void count_VkExtent2D(uint32_t featureBits, VkStructureType rootType, const VkExtent2D* toCount,
                       size_t* count);
@@ -3572,5 +3570,4 @@ void count_VkPhysicalDeviceRayQueryFeaturesKHR(uint32_t featureBits, VkStructure
 
 #endif
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk
