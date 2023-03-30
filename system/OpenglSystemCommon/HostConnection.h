@@ -43,9 +43,11 @@ struct gl_client_context_t;
 class GL2Encoder;
 struct gl2_client_context_t;
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 class VkEncoder;
-}
+}  // namespace vk
+}  // namespace gfxstream
 
 // ExtendedRCEncoderContext is an extended version of renderControl_encoder_context_t
 // that will be used to track available emulator features.
@@ -186,7 +188,7 @@ public:
 
     GLEncoder *glEncoder();
     GL2Encoder *gl2Encoder();
-    goldfish_vk::VkEncoder *vkEncoder();
+    gfxstream::vk::VkEncoder *vkEncoder();
     ExtendedRCEncoderContext *rcEncoder();
 
     int getRendernodeFd() { return m_rendernodeFd; }
@@ -272,7 +274,7 @@ private:
     std::unique_ptr<GL2Encoder> m_gl2Enc;
 
     // intrusively refcounted
-    goldfish_vk::VkEncoder* m_vkEnc = nullptr;
+    gfxstream::vk::VkEncoder* m_vkEnc = nullptr;
     std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
     ChecksumCalculator m_checksumHelper;
