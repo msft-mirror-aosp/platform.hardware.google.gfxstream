@@ -17,7 +17,7 @@
 #include "render-utils/RenderChannel.h"
 #include "RendererImpl.h"
 
-namespace gfxstream {
+namespace emugl {
 
 class RenderThread;
 
@@ -113,4 +113,4 @@ private:
     BufferQueue<RenderChannel::Buffer> mToGuest;
 };
 
-}  // namespace gfxstream
+}  // namespace emugl

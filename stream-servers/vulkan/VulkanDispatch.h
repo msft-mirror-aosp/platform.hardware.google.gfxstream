@@ -15,11 +15,11 @@
 
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 
-namespace gfxstream {
-namespace vk {
+using goldfish_vk::VulkanDispatch;
+
+namespace emugl {
 
 VulkanDispatch* vkDispatch(bool forTesting = false);
 bool vkDispatchValid(const VulkanDispatch* vk);
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace emugl

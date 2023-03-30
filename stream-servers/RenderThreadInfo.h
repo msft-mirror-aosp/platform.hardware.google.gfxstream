@@ -26,8 +26,6 @@
 #include "RenderThreadInfoMagma.h"
 #include "RenderThreadInfoVk.h"
 
-namespace gfxstream {
-
 // A class used to model the state of each RenderThread related
 struct RenderThreadInfo {
     // Create new instance. Only call this once per thread.
@@ -52,8 +50,8 @@ struct RenderThreadInfo {
     uint64_t                        m_puid = 0;
     std::optional<std::string>      m_processName;
 
-    std::optional<gl::RenderThreadInfoGl> m_glInfo;
-    std::optional<vk::RenderThreadInfoVk> m_vkInfo;
+    std::optional<RenderThreadInfoGl> m_glInfo;
+    std::optional<goldfish_vk::RenderThreadInfoVk> m_vkInfo;
     std::optional<RenderThreadInfoMagma> m_magmaInfo;
 
     // Whether this thread was used to perform composition.
@@ -68,7 +66,5 @@ struct RenderThreadInfo {
     // FrameBuffer repopulates the contexts.
     void postLoadRefreshCurrentContextSurfacePtrs();
 };
-
-}  // namespace gfxstream
 
 #endif

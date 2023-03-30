@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-namespace gfxstream {
+namespace emugl {
 
 GLuint compileShader(GLenum shaderType, const char* src);
 GLint compileAndLinkShaderProgram(const char* vshaderSrc, const char* fshaderSrc);
@@ -31,4 +31,4 @@ android::base::Optional<std::string> compileSpirvFromGLSL(
 
 android::base::Optional<std::vector<char>> readSpirv(const char* path);
 
-}  // namespace gfxstream
+} // namespace emugl

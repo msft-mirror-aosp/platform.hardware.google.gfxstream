@@ -26,9 +26,6 @@
 #include "DisplaySurface.h"
 #include "render-utils/render_api_platform_types.h"
 
-namespace gfxstream {
-namespace gl {
-
 class DisplaySurfaceGl : public gfxstream::DisplaySurfaceImpl {
   public:
     static std::unique_ptr<DisplaySurfaceGl> createPbufferSurface(EGLDisplay display,
@@ -65,6 +62,3 @@ class DisplaySurfaceGl : public gfxstream::DisplaySurfaceImpl {
 
     std::unique_ptr<ContextHelper> mContextHelper;
 };
-
-}  // namespace gl
-}  // namespace gfxstream

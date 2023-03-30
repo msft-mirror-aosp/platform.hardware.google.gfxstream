@@ -26,9 +26,6 @@
 #include "Display.h"
 #include "Hwc2.h"
 
-namespace gfxstream {
-namespace gl {
-
 class DisplayGl : public gfxstream::Display {
   public:
     DisplayGl(TextureDraw* textureDraw): mTextureDraw(textureDraw) {}
@@ -79,6 +76,3 @@ class DisplayGl : public gfxstream::Display {
     std::atomic_bool mUseBoundSurfaceContext{true};
     TextureDraw* mTextureDraw = nullptr;
 };
-
-}  // namespace gl
-}  // namespace gfxstream

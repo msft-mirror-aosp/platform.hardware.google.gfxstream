@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace gfxstream {
+namespace emugl {
 
 // A helper template to extract values form the wire protocol stream
 // and convert them to appropriate host values.
@@ -178,4 +178,4 @@ private:
 using InputBuffer = GenericInputBuffer<>;
 using OutputBuffer = GenericOutputBuffer<>;
 
-}  // namespace gfxstream
+}  // namespace emugl

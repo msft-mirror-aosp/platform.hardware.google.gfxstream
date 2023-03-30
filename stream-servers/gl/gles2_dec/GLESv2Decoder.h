@@ -23,9 +23,6 @@
 
 #include "GLSnapshot.h"
 
-namespace gfxstream {
-namespace gl {
-
 typedef void (gles2_APIENTRY *glVertexAttribPointerWithDataSize_server_proc_t) (GLuint, GLint, GLenum, GLboolean, GLsizei, const GLvoid*, GLsizei);
 typedef void (gles2_APIENTRY *glVertexAttribIPointerWithDataSize_server_proc_t) (GLuint, GLint, GLenum, GLsizei, const GLvoid*, GLsizei);
 
@@ -48,8 +45,7 @@ public:
     int initGL(get_proc_func_t getProcFunc, void *getProcFuncData);
     void setContextData(GLDecoderContextData *contextData) { m_contextData = contextData; }
 protected:
- snapshot::GLSnapshotState* m_snapshot;
-
+    GLSnapshot::GLSnapshotState *m_snapshot;
 private:
     GLDecoderContextData *m_contextData;
     android::base::SharedLibrary* m_GL2library;
@@ -117,7 +113,7 @@ private:
     //============================================================
 
     // All generations============================================
-
+    
     static GLuint gles2_APIENTRY s_glCreateShader(void* self, GLenum shaderType);
     static GLuint gles2_APIENTRY s_glCreateProgram(void* self);
 
@@ -273,8 +269,4 @@ private:
                                   GLboolean blue, GLboolean alpha);
     static GLboolean gles2_APIENTRY s_glIsEnablediEXT(void* self, GLenum cap, GLuint index);
 };
-
-}  // namespace gl
-}  // namespace gfxstream
-
 #endif

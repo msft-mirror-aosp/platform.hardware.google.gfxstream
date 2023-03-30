@@ -23,7 +23,7 @@
 #include <string.h>
 #include <limits.h>
 
-namespace gfxstream {
+namespace emugl {
 
 ReadBuffer::ReadBuffer(size_t bufsize) {
     m_size = bufsize;
@@ -135,4 +135,4 @@ void ReadBuffer::printStats() {
             (float)m_tailMoveTimeUs / 1000.0f);
     m_tailMoveTimeUs = 0;
 }
-}  // namespace gfxstream
+}  // namespace emugl

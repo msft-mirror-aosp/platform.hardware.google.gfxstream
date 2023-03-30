@@ -11,12 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-#include <stdio.h>
-
 #include "../apigen-codec-common/X11Support.h"
-
-namespace gfxstream {
+#include <stdio.h>
 
 struct X11State {
     X11State() :
@@ -51,5 +47,3 @@ void* createNativePixmap(int width, int height, int bytesPerPixel) {
 }
 
 void freeNativePixmap(void* pixmap) { XFreePixmap(x11()->display, (Pixmap)pixmap); }
-
-}  // namespace gfxstream

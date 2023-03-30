@@ -27,12 +27,9 @@
 #include "DisplaySurfaceGl.h"
 #include "ReadbackWorker.h"
 
-namespace gfxstream {
 class ColorBuffer;
-}  // namespace gfxstream
 
 namespace gfxstream {
-namespace gl {
 
 // This class implements async readback of emugl ColorBuffers.
 // It is meant to run on both the emugl framebuffer posting thread
@@ -108,5 +105,4 @@ class ReadbackWorkerGl : public ReadbackWorker {
     DISALLOW_COPY_AND_ASSIGN(ReadbackWorkerGl);
 };
 
-}  // namespace gl
 }  // namespace gfxstream

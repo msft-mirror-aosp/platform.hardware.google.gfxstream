@@ -14,9 +14,6 @@
 
 #include "BorrowedImageVk.h"
 
-namespace gfxstream {
-namespace vk {
-
 void addNeededBarriersToUseBorrowedImage(
     const BorrowedImageInfoVk& borrowedImageInfo, uint32_t usedQueueFamilyIndex,
     VkImageLayout usedInitialImageLayout, VkImageLayout usedFinalImageLayout,
@@ -114,6 +111,3 @@ void addNeededBarriersToUseBorrowedImage(
         postUseQueueTransferBarriers->emplace_back(queueTransferBarrier);
     }
 }
-
-}  // namespace vk
-}  // namespace gfxstream

@@ -21,8 +21,6 @@
 #include "BorrowedImage.h"
 #include "Hwc2.h"
 
-namespace gfxstream {
-
 //  Thread hostile and should only be called from the same single thread.
 class Compositor {
    public:
@@ -44,5 +42,3 @@ class Compositor {
 
     virtual void onImageDestroyed(uint32_t imageId) {}
 };
-
-}  // namespace gfxstream

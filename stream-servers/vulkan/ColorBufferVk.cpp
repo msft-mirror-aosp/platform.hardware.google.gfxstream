@@ -17,15 +17,14 @@
 #include "VkCommonOperations.h"
 
 namespace gfxstream {
-namespace vk {
 
 /*static*/
 std::unique_ptr<ColorBufferVk> ColorBufferVk::create(uint32_t handle, uint32_t width,
                                                      uint32_t height, GLenum format,
                                                      FrameworkFormat frameworkFormat,
                                                      bool vulkanOnly, uint32_t memoryProperty) {
-    if (!setupVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
-                            memoryProperty)) {
+    if (!goldfish_vk::setupVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
+                                         memoryProperty)) {
         GL_LOG("Failed to create ColorBufferVk:%d", handle);
         return nullptr;
     }
@@ -36,27 +35,26 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(uint32_t handle, uint32_t w
 ColorBufferVk::ColorBufferVk(uint32_t handle) : mHandle(handle) {}
 
 ColorBufferVk::~ColorBufferVk() {
-    if (!teardownVkColorBuffer(mHandle)) {
+    if (!goldfish_vk::teardownVkColorBuffer(mHandle)) {
         ERR("Failed to destroy ColorBufferVk:%d", mHandle);
     }
 }
 
 bool ColorBufferVk::readToBytes(std::vector<uint8_t>* outBytes) {
-    return readColorBufferToBytes(mHandle, outBytes);
+    return goldfish_vk::readColorBufferToBytes(mHandle, outBytes);
 }
 
 bool ColorBufferVk::readToBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, void* outBytes) {
-    return readColorBufferToBytes(mHandle, x, y, w, h, outBytes);
+    return goldfish_vk::readColorBufferToBytes(mHandle, x, y, w, h, outBytes);
 }
 
 bool ColorBufferVk::updateFromBytes(const std::vector<uint8_t>& bytes) {
-    return updateColorBufferFromBytes(mHandle, bytes);
+    return goldfish_vk::updateColorBufferFromBytes(mHandle, bytes);
 }
 
 bool ColorBufferVk::updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h,
                                     const void* bytes) {
-    return updateColorBufferFromBytes(mHandle, x, y, w, h, bytes);
+    return goldfish_vk::updateColorBufferFromBytes(mHandle, x, y, w, h, bytes);
 }
 
-}  // namespace vk
 }  // namespace gfxstream

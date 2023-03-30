@@ -20,9 +20,7 @@
 
 #include <map>
 
-namespace gfxstream {
-namespace gl {
-namespace {
+namespace emugl {
 
 static const GLenum kGLES2GlobalBufferBindings[] = {
         GL_ARRAY_BUFFER_BINDING, GL_ELEMENT_ARRAY_BUFFER_BINDING};
@@ -145,6 +143,4 @@ TEST_F(SnapshotGlBufferObjectsTest, BindArrayAndElementBuffers) {
     doCheckedSnapshot();
 }
 
-}  // namespace
-}  // namespace gl
-}  // namespace gfxstream
+}  // namespace emugl

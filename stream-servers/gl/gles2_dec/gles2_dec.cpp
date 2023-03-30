@@ -16,8 +16,6 @@
 
 #include <stdio.h>
 
-namespace gfxstream {
-
 typedef unsigned int tsize_t; // Target "size_t", which is 32-bit for now. It may or may not be the same as host's size_t when emugen is compiled.
 
 #ifdef CHECK_GL_ERRORS
@@ -25,6 +23,8 @@ typedef unsigned int tsize_t; // Target "size_t", which is 32-bit for now. It ma
 #else
 #  define SET_LASTCALL(name)
 #endif
+using namespace emugl;
+
 size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, ChecksumCalculator* checksumCalc) {
 	if (len < 8) return 0;
 #ifdef CHECK_GL_ERRORS
@@ -9755,4 +9755,3 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 	} // while
 	return ptr - (unsigned char*)buf;
 }
-}  // namespace gfxstream

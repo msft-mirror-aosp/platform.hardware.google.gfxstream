@@ -10,9 +10,6 @@
 #include "vulkan/vk_enum_string_helper.h"
 #include "vulkan/vk_util.h"
 
-namespace gfxstream {
-namespace vk {
-
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -82,7 +79,7 @@ static const std::vector<Vertex> k_vertices = {
 
 static const std::vector<uint16_t> k_indices = {0, 1, 2, 2, 3, 0};
 
-static VkShaderModule createShaderModule(const VulkanDispatch& vk, VkDevice device,
+static VkShaderModule createShaderModule(const goldfish_vk::VulkanDispatch& vk, VkDevice device,
                                          const std::vector<uint32_t>& code) {
     const VkShaderModuleCreateInfo shaderModuleCi = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -96,7 +93,7 @@ static VkShaderModule createShaderModule(const VulkanDispatch& vk, VkDevice devi
 
 }  // namespace
 
-CompositorVk::RenderTarget::RenderTarget(const VulkanDispatch& vk, VkDevice vkDevice,
+CompositorVk::RenderTarget::RenderTarget(const goldfish_vk::VulkanDispatch& vk, VkDevice vkDevice,
                                          VkImage vkImage, VkImageView vkImageView, uint32_t width,
                                          uint32_t height, VkRenderPass vkRenderPass)
     : m_vk(vk),
@@ -129,12 +126,10 @@ CompositorVk::RenderTarget::~RenderTarget() {
     }
 }
 
-std::unique_ptr<CompositorVk> CompositorVk::create(const VulkanDispatch& vk, VkDevice vkDevice,
-                                                   VkPhysicalDevice vkPhysicalDevice,
-                                                   VkQueue vkQueue,
-                                                   std::shared_ptr<android::base::Lock> queueLock,
-                                                   uint32_t queueFamilyIndex,
-                                                   uint32_t maxFramesInFlight) {
+std::unique_ptr<CompositorVk> CompositorVk::create(
+    const goldfish_vk::VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice,
+    VkQueue vkQueue, std::shared_ptr<android::base::Lock> queueLock, uint32_t queueFamilyIndex,
+    uint32_t maxFramesInFlight) {
     auto res = std::unique_ptr<CompositorVk>(new CompositorVk(
         vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex, maxFramesInFlight));
     res->setUpCommandPool();
@@ -148,7 +143,7 @@ std::unique_ptr<CompositorVk> CompositorVk::create(const VulkanDispatch& vk, VkD
     return res;
 }
 
-CompositorVk::CompositorVk(const VulkanDispatch& vk, VkDevice vkDevice,
+CompositorVk::CompositorVk(const goldfish_vk::VulkanDispatch& vk, VkDevice vkDevice,
                            VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
                            std::shared_ptr<android::base::Lock> queueLock,
                            uint32_t queueFamilyIndex, uint32_t maxFramesInFlight)
@@ -1115,6 +1110,3 @@ void CompositorVk::updateDescriptorSetsIfChanged(
 
     frameResources->m_vkDescriptorSetsContents = descriptorSetsContents;
 }
-
-}  // namespace vk
-}  // namespace gfxstream

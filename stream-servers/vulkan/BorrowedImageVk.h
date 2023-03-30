@@ -20,9 +20,6 @@
 #include "BorrowedImage.h"
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 
-namespace gfxstream {
-namespace vk {
-
 struct BorrowedImageInfoVk : public BorrowedImageInfo {
     VkImage image = VK_NULL_HANDLE;
     VkImageView imageView = VK_NULL_HANDLE;
@@ -61,6 +58,3 @@ void addNeededBarriersToUseBorrowedImage(
     std::vector<VkImageMemoryBarrier>* preUseLayoutTransitionBarriers,
     std::vector<VkImageMemoryBarrier>* postUseLayoutTransitionBarriers,
     std::vector<VkImageMemoryBarrier>* postUseQueueTransferBarriers);
-
-}  // namespace vk
-}  // namespace gfxstream

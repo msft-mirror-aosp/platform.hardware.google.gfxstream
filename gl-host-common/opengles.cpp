@@ -69,8 +69,6 @@ using android::emulation::asg::ConsumerCallbacks;
 using android::emulation::asg::ConsumerInterface;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
-using gfxstream::gl::EGLDispatch;
-using gfxstream::gl::GLESv2Dispatch;
 
 /* Name of the GLES rendering library we're going to use */
 #define RENDERER_LIB_NAME "libOpenglRender"
@@ -87,8 +85,8 @@ LIST_RENDER_API_FUNCTIONS(FUNCTION_)
 static bool sOpenglLoggerInitialized = false;
 static bool sRendererUsesSubWindow = false;
 static bool sEgl2egl = false;
-static gfxstream::RenderLib* sRenderLib = nullptr;
-static gfxstream::RendererPtr sRenderer = nullptr;
+static emugl::RenderLib* sRenderLib = nullptr;
+static emugl::RendererPtr sRenderer = nullptr;
 
 static const EGLDispatch* sEgl = nullptr;
 static const GLESv2Dispatch* sGlesv2 = nullptr;
@@ -118,7 +116,7 @@ int android_prepareOpenglesEmulation() {
 }
 
 int android_setOpenglesEmulation(void* renderLib, void* eglDispatch, void* glesv2Dispatch) {
-    sRenderLib = (gfxstream::RenderLib*)renderLib;
+    sRenderLib = (emugl::RenderLib*)renderLib;
     sEgl = (EGLDispatch*)eglDispatch;
     sGlesv2 = (GLESv2Dispatch*)glesv2Dispatch;
     sEgl2egl = false;
@@ -338,7 +336,8 @@ void android_getOpenglesHardwareStrings(char** vendor,
         return;
     }
 
-    const gfxstream::Renderer::HardwareStrings strings = sRenderer->getHardwareStrings();
+    const emugl::Renderer::HardwareStrings strings =
+            sRenderer->getHardwareStrings();
     D("OpenGL Vendor=[%s]", strings.vendor.c_str());
     D("OpenGL Renderer=[%s]", strings.renderer.c_str());
     D("OpenGL Version=[%s]", strings.version.c_str());
@@ -382,7 +381,7 @@ android_finishOpenglesRenderer()
     }
 }
 
-static gfxstream::RenderOpt sOpt;
+static emugl::RenderOpt sOpt;
 static int sWidth, sHeight;
 static int sNewWidth, sNewHeight;
 
@@ -475,7 +474,9 @@ bool android_screenShot(const char* dirname, uint32_t displayId)
     return false;
 }
 
-const gfxstream::RendererPtr& android_getOpenglesRenderer() { return sRenderer; }
+const emugl::RendererPtr& android_getOpenglesRenderer() {
+    return sRenderer;
+}
 
 void android_onGuestGraphicsProcessCreate(uint64_t puid) {
     if (sRenderer) {

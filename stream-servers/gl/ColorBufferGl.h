@@ -37,6 +37,10 @@
 // From ANGLE "src/common/angleutils.h"
 #define GL_BGR10_A2_ANGLEX 0x6AF9
 
+class TextureDraw;
+class TextureResize;
+class YUVConverter;
+
 // A class used to model a guest color buffer, and used to implement several
 // related things:
 //
@@ -66,11 +70,6 @@
 // As an additional twist.
 
 namespace gfxstream {
-namespace gl {
-
-class TextureDraw;
-class TextureResize;
-class YUVConverter;
 
 class ColorBufferGl {
    public:
@@ -120,7 +119,7 @@ class ColorBufferGl {
     // to the size of width x height, then clipping a |rect| from the
     // screen defined by width x height.
     void readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type, int skinRotation,
-                          Rect rect, void* pixels);
+                          emugl::Rect rect, void* pixels);
 
     // Read cached YUV pixel values into host memory.
     void readPixelsYUVCached(int x,
@@ -292,5 +291,4 @@ private:
 
 typedef std::shared_ptr<ColorBufferGl> ColorBufferGlPtr;
 
-}  // namespace gl
 }  // namespace gfxstream

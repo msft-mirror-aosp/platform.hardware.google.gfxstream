@@ -21,7 +21,7 @@
 
 #include <memory>
 
-namespace gfxstream {
+namespace emugl {
 
 class RenderLibImpl final : public RenderLib {
 public:
@@ -74,4 +74,4 @@ private:
     std::weak_ptr<Renderer> mRenderer;
 };
 
-}  // namespace gfxstream
+}  // namespace emugl

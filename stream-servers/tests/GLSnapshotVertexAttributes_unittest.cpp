@@ -20,9 +20,7 @@
 
 #include <algorithm>
 
-namespace gfxstream {
-namespace gl {
-namespace {
+namespace emugl {
 
 enum class GlVertexAttribMode { SingleValue = 0, Array = 1, Buffer = 2 };
 
@@ -304,6 +302,4 @@ TEST_F(SnapshotGlVertexAttribBufferTest, AttachArrayBuffer) {
     doCheckedSnapshot();
 }
 
-}  // namespace
-}  // namespace gl
-}  // namespace gfxstream
+}  // namespace emugl

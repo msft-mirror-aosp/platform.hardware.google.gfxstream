@@ -17,9 +17,7 @@
 
 #include <gtest/gtest.h>
 
-namespace gfxstream {
-namespace gl {
-namespace {
+namespace emugl {
 
 // Line width settings to attempt
 static const GLfloat kGLES2TestLineWidths[] = {2.0f};
@@ -103,6 +101,5 @@ TEST_F(SnapshotGlPolygonOffsetTest, SetPolygonOffset) {
     doCheckedSnapshot();
 }
 
-}  // namespace
-}  // namespace gl
-}  // namespace gfxstream
+
+}  // namespace emugl

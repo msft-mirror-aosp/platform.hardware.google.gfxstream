@@ -16,9 +16,7 @@
 
 #include <gtest/gtest.h>
 
-namespace gfxstream {
-namespace gl {
-namespace {
+namespace emugl {
 
 class SnapshotGlUnpackAlignmentTest
     : public SnapshotSetValueTest<GLuint>,
@@ -60,6 +58,4 @@ INSTANTIATE_TEST_SUITE_P(GLES2SnapshotPixels,
                          SnapshotGlPackAlignmentTest,
                          ::testing::Values(1, 2, 4, 8));
 
-}  // namespace
-}  // namespace gl
-}  // namespace gfxstream
+}  // namespace emugl

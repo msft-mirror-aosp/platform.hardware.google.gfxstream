@@ -18,8 +18,7 @@
 
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 class DebugUtilsHelper {
    public:
@@ -74,5 +73,4 @@ class DebugUtilsHelper {
     const VulkanDispatch* m_vk = nullptr;
 };
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

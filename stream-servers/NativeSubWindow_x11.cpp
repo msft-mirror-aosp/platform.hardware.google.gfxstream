@@ -18,9 +18,6 @@
 
 #include <stdio.h>
 
-namespace gfxstream {
-namespace {
-
 static Bool WaitForMapNotify(Display *d, XEvent *e, char *arg) {
     if (e->type == MapNotify && e->xmap.window == (Window)arg) {
         return 1;
@@ -36,8 +33,6 @@ static Bool WaitForConfigureNotify(Display *d, XEvent *e, char *arg) {
 }
 
 static Display *s_display = NULL;
-
-}  // namespace
 
 EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
                                     int x,
@@ -129,5 +124,3 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
 
     return ret;
 }
-
-}  // namespace gfxstream

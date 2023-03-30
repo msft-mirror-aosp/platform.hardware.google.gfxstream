@@ -16,8 +16,6 @@
 #include "vulkan/VulkanDispatch.h"
 #include "vulkan/vk_util.h"
 
-namespace gfxstream {
-namespace vk {
 namespace {
 
 static constexpr const bool kDefaultSaveImageIfComparisonFailed = false;
@@ -35,11 +33,13 @@ static constexpr const uint32_t kDefaultImageHeight = 256;
 
 class CompositorVkTest : public ::testing::Test {
    protected:
-    using TargetImage = RenderResourceVk<VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT>;
-    using SourceImage = RenderTextureVk;
+    using TargetImage = emugl::RenderResourceVk<VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT>;
+    using SourceImage = emugl::RenderTextureVk;
 
-    static void SetUpTestCase() { k_vk = vkDispatch(false); }
+    static void SetUpTestCase() {
+        k_vk = emugl::vkDispatch(false);
+    }
 
     void SetUp() override {
 #if defined(__APPLE__) && defined(__arm64__)
@@ -258,7 +258,7 @@ class CompositorVkTest : public ::testing::Test {
         checkImageFilledWith(image, color);
     }
 
-    static const VulkanDispatch* k_vk;
+    static const goldfish_vk::VulkanDispatch *k_vk;
     VkInstance m_vkInstance = VK_NULL_HANDLE;
     VkPhysicalDevice m_vkPhysicalDevice = VK_NULL_HANDLE;
     uint32_t m_compositorQueueFamilyIndex = 0;
@@ -355,7 +355,7 @@ class CompositorVkTest : public ::testing::Test {
     }
 };
 
-const VulkanDispatch* CompositorVkTest::k_vk = nullptr;
+const goldfish_vk::VulkanDispatch *CompositorVkTest::k_vk = nullptr;
 
 TEST_F(CompositorVkTest, QueueSupportsComposition) {
     VkQueueFamilyProperties properties = {};
@@ -820,5 +820,3 @@ TEST_F(CompositorVkTest, MultipleLayers) {
 }
 
 }  // namespace
-}  // namespace vk
-}  // namespace gfxstream

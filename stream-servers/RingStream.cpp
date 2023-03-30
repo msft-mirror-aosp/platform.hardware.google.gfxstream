@@ -28,7 +28,7 @@
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
-namespace gfxstream {
+namespace emugl {
 
 RingStream::RingStream(
     struct asg_context context,
@@ -334,10 +334,12 @@ void RingStream::type3Read(
 }
 
 void* RingStream::getDmaForReading(uint64_t guest_paddr) {
-    return emugl::g_emugl_dma_get_host_addr(guest_paddr);
+    return g_emugl_dma_get_host_addr(guest_paddr);
 }
 
-void RingStream::unlockDma(uint64_t guest_paddr) { emugl::g_emugl_dma_unlock(guest_paddr); }
+void RingStream::unlockDma(uint64_t guest_paddr) {
+    g_emugl_dma_unlock(guest_paddr);
+}
 
 int RingStream::writeFully(const void* buf, size_t len) {
     void* dstBuf = alloc(len);
@@ -364,4 +366,4 @@ unsigned char* RingStream::onLoad(android::base::Stream* stream) {
     return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
 }
 
-}  // namespace gfxstream
+}  // namespace emugl

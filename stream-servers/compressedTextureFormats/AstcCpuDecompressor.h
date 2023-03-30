@@ -16,8 +16,7 @@
 #include <memory>
 #include <string>
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 // This class is responsible for decompressing ASTC textures on the CPU.
 // This class is thread-safe and all its methods can be called by any thread.
@@ -53,5 +52,4 @@ class AstcCpuDecompressor {
     virtual const char* getStatusString(int32_t statusCode) const = 0;
 };
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

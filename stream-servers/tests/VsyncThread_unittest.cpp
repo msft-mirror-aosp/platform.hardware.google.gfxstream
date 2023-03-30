@@ -19,9 +19,6 @@
 #include <unistd.h>
 #endif
 
-namespace gfxstream {
-namespace {
-
 // Tests scheduling some basic task, and that they are processed
 // before the thread completely exits.
 TEST(VsyncThread, Basic) {
@@ -69,6 +66,3 @@ TEST(VsyncThread, ChangePeriod) {
         EXPECT_EQ(2, count);
     }
 }
-
-}  // namespace
-}  // namespace gfxstream

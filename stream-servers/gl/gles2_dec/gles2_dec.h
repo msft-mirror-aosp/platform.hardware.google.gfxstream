@@ -8,14 +8,12 @@
 #include "ChecksumCalculator.h"
 #include "gles2_server_context.h"
 
-namespace gfxstream {
+
 
 struct gles2_decoder_context_t : public gles2_server_context_t {
 
 	size_t decode(void *buf, size_t bufsize, IOStream *stream, ChecksumCalculator* checksumCalc);
 
 };
-
-}  // namespace gfxstream
 
 #endif  // GUARD_gles2_decoder_context_t

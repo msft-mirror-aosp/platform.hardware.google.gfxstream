@@ -26,7 +26,6 @@
 #include "host-common/misc.h"
 
 namespace gfxstream {
-namespace gl {
 
 std::unique_ptr<EmulatedEglContext> EmulatedEglContext::create(
         EGLDisplay display,
@@ -124,5 +123,4 @@ GLESApi EmulatedEglContext::clientVersion() const {
     return mVersion;
 }
 
-}  // namespace gl
-}  // namespace gfxstream
+}

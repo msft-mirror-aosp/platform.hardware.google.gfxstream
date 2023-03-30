@@ -23,7 +23,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace gfxstream {
+namespace emugl {
 
 class HelloTriangle : public SampleApplication {
 protected:
@@ -40,4 +40,4 @@ private:
     float mTime = 0.0f;
 };
 
-}  // namespace gfxstream
+}  // namespace emugl

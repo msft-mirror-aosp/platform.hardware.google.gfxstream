@@ -21,8 +21,7 @@
 #include "VulkanDispatch.h"
 #include "VulkanHandles.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 class VkDecoderGlobalState;
 
@@ -75,5 +74,4 @@ GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_GLOB
 
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_GLOBAL_API_DECL)
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

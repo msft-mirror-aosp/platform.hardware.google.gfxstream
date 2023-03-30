@@ -26,7 +26,6 @@
 #include "aemu/base/files/Stream.h"
 
 namespace gfxstream {
-namespace gl {
 
 class BufferGl {
    public:
@@ -59,5 +58,4 @@ class BufferGl {
     ContextHelper* mContextHelper = nullptr;
 };
 
-}  // namespace gl
 }  // namespace gfxstream

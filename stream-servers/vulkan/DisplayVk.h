@@ -22,15 +22,12 @@
 // The DisplayVk class holds the Vulkan and other states required to draw a
 // frame in a host window.
 
-namespace gfxstream {
-namespace vk {
-
 class DisplayVk : public gfxstream::Display {
    public:
-    DisplayVk(const VulkanDispatch&, VkPhysicalDevice, uint32_t swapChainQueueFamilyIndex,
-              uint32_t compositorQueueFamilyIndex, VkDevice, VkQueue compositorVkQueue,
-              std::shared_ptr<android::base::Lock> compositorVkQueueLock, VkQueue swapChainVkQueue,
-              std::shared_ptr<android::base::Lock> swapChainVkQueueLock);
+    DisplayVk(const goldfish_vk::VulkanDispatch&, VkPhysicalDevice,
+              uint32_t swapChainQueueFamilyIndex, uint32_t compositorQueueFamilyIndex, VkDevice,
+              VkQueue compositorVkQueue, std::shared_ptr<android::base::Lock> compositorVkQueueLock,
+              VkQueue swapChainVkQueue, std::shared_ptr<android::base::Lock> swapChainVkQueueLock);
     ~DisplayVk();
 
     PostResult post(const BorrowedImageInfo* info);
@@ -56,7 +53,7 @@ class DisplayVk : public gfxstream::Display {
     VkFormatFeatureFlags getFormatFeatures(VkFormat, VkImageTiling);
     bool canPost(const VkImageCreateInfo&);
 
-    const VulkanDispatch& m_vk;
+    const goldfish_vk::VulkanDispatch& m_vk;
     VkPhysicalDevice m_vkPhysicalDevice;
     uint32_t m_swapChainQueueFamilyIndex;
     uint32_t m_compositorQueueFamilyIndex;
@@ -73,15 +70,16 @@ class DisplayVk : public gfxstream::Display {
         const VkSemaphore m_swapchainImageAcquireSemaphore;
         const VkSemaphore m_swapchainImageReleaseSemaphore;
         const VkCommandBuffer m_vkCommandBuffer;
-        static std::shared_ptr<PostResource> create(const VulkanDispatch&, VkDevice, VkCommandPool);
+        static std::shared_ptr<PostResource> create(const goldfish_vk::VulkanDispatch&, VkDevice,
+                                                    VkCommandPool);
         ~PostResource();
         DISALLOW_COPY_ASSIGN_AND_MOVE(PostResource);
 
        private:
-        PostResource(const VulkanDispatch&, VkDevice, VkCommandPool,
+        PostResource(const goldfish_vk::VulkanDispatch&, VkDevice, VkCommandPool,
                      VkFence swapchainImageReleaseFence, VkSemaphore swapchainImageAcquireSemaphore,
                      VkSemaphore swapchainImageReleaseSemaphore, VkCommandBuffer);
-        const VulkanDispatch& m_vk;
+        const goldfish_vk::VulkanDispatch& m_vk;
         const VkDevice m_vkDevice;
         const VkCommandPool m_vkCommandPool;
     };
@@ -95,15 +93,15 @@ class DisplayVk : public gfxstream::Display {
        public:
         const VkFence m_completeFence;
         const VkCommandBuffer m_vkCommandBuffer;
-        static std::unique_ptr<ImageBorrowResource> create(const VulkanDispatch&, VkDevice,
-                                                           VkCommandPool);
+        static std::unique_ptr<ImageBorrowResource> create(const goldfish_vk::VulkanDispatch&,
+                                                           VkDevice, VkCommandPool);
         ~ImageBorrowResource();
         DISALLOW_COPY_ASSIGN_AND_MOVE(ImageBorrowResource);
 
        private:
-        ImageBorrowResource(const VulkanDispatch&, VkDevice, VkCommandPool, VkFence,
+        ImageBorrowResource(const goldfish_vk::VulkanDispatch&, VkDevice, VkCommandPool, VkFence,
                             VkCommandBuffer);
-        const VulkanDispatch& m_vk;
+        const goldfish_vk::VulkanDispatch& m_vk;
         const VkDevice m_vkDevice;
         const VkCommandPool m_vkCommandPool;
     };
@@ -114,8 +112,4 @@ class DisplayVk : public gfxstream::Display {
 
     std::unordered_map<VkFormat, VkFormatProperties> m_vkFormatProperties;
 };
-
-}  // namespace vk
-}  // namespace gfxstream
-
 #endif

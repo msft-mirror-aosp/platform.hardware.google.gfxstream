@@ -18,8 +18,7 @@
 #include "OpenGLESDispatch/GLESv1Dispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 
-namespace gfxstream {
-namespace gl {
+namespace emugl {
 
 // Helper classes to hold global EGLDispatch, GLESv1Dispatch and GLESv2Dispatch
 // objects, initialized lazily in a thread-safe way. The instances are leaked on
@@ -60,5 +59,4 @@ private:
     bool mValid;
 };
 
-}  // namespace gl
-}  // namespace gfxstream
+}  // namespace emugl

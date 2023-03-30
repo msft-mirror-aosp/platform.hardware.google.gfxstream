@@ -27,7 +27,6 @@
 #include "aemu/base/files/Stream.h"
 
 namespace gfxstream {
-namespace gl {
 
 // Tracks all the possible OpenGL ES API versions.
 enum GLESApi {
@@ -102,5 +101,4 @@ typedef std::shared_ptr<EmulatedEglContext> EmulatedEglContextPtr;
 typedef std::unordered_map<HandleType, EmulatedEglContextPtr> EmulatedEglContextMap;
 typedef std::unordered_set<HandleType> EmulatedEglContextSet;
 
-}  // namespace gl
 }  // namespace gfxstream

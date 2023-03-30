@@ -49,10 +49,6 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-namespace gfxstream {
-namespace vk {
-namespace {
-
 #define VK_COMMON_ERROR(fmt, ...) \
     fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
 #define VK_COMMON_LOG(fmt, ...) \
@@ -62,13 +58,18 @@ namespace {
         fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
 
 using android::base::AutoLock;
-using android::base::kNullopt;
 using android::base::ManagedDescriptor;
 using android::base::Optional;
 using android::base::StaticLock;
 using android::base::StaticMap;
+
+using android::base::kNullopt;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
+
+namespace goldfish_vk {
+
+namespace {
 
 constexpr size_t kPageBits = 12;
 constexpr size_t kPageSize = 1u << kPageBits;
@@ -508,7 +509,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
 
     if (sVkEmulation) return sVkEmulation;
 
-    if (!vkDispatchValid(vk)) {
+    if (!emugl::vkDispatchValid(vk)) {
         VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(ABORT_REASON_OTHER, "Dispatch is invalid.");
     }
 
@@ -3225,5 +3226,4 @@ std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForDisplay(uint32_t colorB
     return compositorInfo;
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

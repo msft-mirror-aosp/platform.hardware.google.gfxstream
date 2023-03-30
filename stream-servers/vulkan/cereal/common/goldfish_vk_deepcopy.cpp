@@ -37,8 +37,7 @@
 #include "goldfish_vk_private_defs.h"
 #include "vk_util.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                                const void* structExtension, void* structExtension_out);
@@ -21022,5 +21021,4 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
     }
 }
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

@@ -28,8 +28,7 @@
 #include "aemu/base/synchronization/Lock.h"
 #include "cereal/common/goldfish_vk_private_defs.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 struct AndroidNativeBufferInfo;
 struct VulkanDispatch;
@@ -168,5 +167,4 @@ VkResult syncImageToColorBuffer(VulkanDispatch* vk, uint32_t queueFamilyIndex, V
                                 const VkSemaphore* pWaitSemaphores, int* pNativeFenceFd,
                                 std::shared_ptr<AndroidNativeBufferInfo> anbInfo);
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

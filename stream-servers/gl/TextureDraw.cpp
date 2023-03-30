@@ -25,8 +25,6 @@
 #include <stdio.h>
 #define ERR(...)  fprintf(stderr, __VA_ARGS__)
 
-namespace gfxstream {
-namespace gl {
 namespace {
 
 // Helper function to create a new shader.
@@ -688,6 +686,3 @@ void TextureDraw::cleanupForDrawLayer() {
     s_gles2.glUniform2f(mCoordTranslation, 0.0, 0.0);
     s_gles2.glUniform2f(mCoordScale, 1.0, 1.0);
 }
-
-}  // namespace gl
-}  // namespace gfxstream

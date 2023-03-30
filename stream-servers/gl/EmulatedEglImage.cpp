@@ -21,7 +21,6 @@
 #include "host-common/logging.h"
 
 namespace gfxstream {
-namespace gl {
 
 /*static*/
 std::unique_ptr<EmulatedEglImage> EmulatedEglImage::create(EGLDisplay display,
@@ -66,5 +65,4 @@ EGLBoolean EmulatedEglImage::destroy() {
     return EGL_TRUE;
 }
 
-}  // namespace gl
 }  // namespace gfxstream

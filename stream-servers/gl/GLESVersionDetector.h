@@ -21,10 +21,6 @@
 #include <EGL/eglext.h>
 
 #include <string>
-
-namespace gfxstream {
-namespace gl {
-
 // Used to determine maximum supported GLES version.
 GLESDispatchMaxVersion calcMaxVersionFromDispatch(EGLDisplay dpy);
 
@@ -33,5 +29,3 @@ bool shouldEnableCoreProfile();
 
 std::string filterExtensionsBasedOnMaxVersion(GLESDispatchMaxVersion ver, const std::string& exts);
 
-}  // namespace gl
-}  // namespace gfxstream

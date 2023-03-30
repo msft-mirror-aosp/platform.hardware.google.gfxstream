@@ -34,8 +34,7 @@
 #include "utils/GfxApiLogger.h"
 #include "utils/RenderDoc.h"
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 struct VulkanDispatch;
 
@@ -492,5 +491,4 @@ std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForComposition(uint32_t co
                                                                      bool colorBufferIsTarget);
 std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForDisplay(uint32_t colorBufferHandle);
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

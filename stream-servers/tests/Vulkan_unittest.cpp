@@ -47,9 +47,7 @@ using android::base::arraySize;
 using android::base::pj;
 using android::base::TestSystem;
 
-namespace gfxstream {
-namespace vk {
-namespace {
+namespace emugl {
 
 static constexpr const HandleType kArbitraryColorBufferHandle = 5;
 
@@ -97,9 +95,11 @@ static std::string queueFlagsToString(VkQueueFlags queueFlags) {
     return ss.str();
 }
 
-static std::string getPhysicalDevicePropertiesString(const VulkanDispatch* vk,
-                                                     VkPhysicalDevice physicalDevice,
-                                                     const VkPhysicalDeviceProperties& props) {
+static std::string getPhysicalDevicePropertiesString(
+    const goldfish_vk::VulkanDispatch* vk,
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceProperties& props) {
+
     std::stringstream ss;
 
     uint16_t apiMaj = (uint16_t)(props.apiVersion >> 22);
@@ -397,7 +397,7 @@ protected:
     static void TearDownTestSuite() { }
 
     void SetUp() override {
-        auto dispatch = vkDispatch(false);
+        auto dispatch = emugl::vkDispatch(false);
         ASSERT_NE(dispatch, nullptr);
         mVk = *dispatch;
 
@@ -425,7 +425,8 @@ TEST_F(VulkanTest, StagingMemoryQuery) {
 
     mVk.vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memProps);
 
-    EXPECT_TRUE(getStagingMemoryTypeIndex(&mVk, mDevice, &memProps, &typeIndex));
+    EXPECT_TRUE(goldfish_vk::getStagingMemoryTypeIndex(
+        &mVk, mDevice, &memProps, &typeIndex));
 }
 
 #ifndef _WIN32 // TODO: Get this working w/ Swiftshader vk on Windows
@@ -446,8 +447,9 @@ protected:
         emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
         emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
         emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
-        ASSERT_NE(nullptr, gl::LazyLoadedEGLDispatch::get());
-        ASSERT_NE(nullptr, gl::LazyLoadedGLESv2Dispatch::get());
+        const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
+        ASSERT_NE(nullptr, egl);
+        ASSERT_NE(nullptr, LazyLoadedGLESv2Dispatch::get());
 
         bool useHostGpu = false;
         EXPECT_TRUE(FrameBuffer::initialize(mWidth, mHeight, false,
@@ -472,15 +474,16 @@ protected:
 
 TEST_F(VulkanFrameBufferTest, VkColorBufferWithoutMemoryProperties) {
     // Create a color buffer without any memory properties restriction.
-    EXPECT_TRUE(setupVkColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE,
-                                   kArbitraryColorBufferHandle, true, /* vulkanOnly */
-                                   0                                  /* memoryProperty */
-                                   ));
-    EXPECT_TRUE(teardownVkColorBuffer(kArbitraryColorBufferHandle));
+    EXPECT_TRUE(goldfish_vk::setupVkColorBuffer(mWidth, mHeight, GL_RGBA,
+                                                FRAMEWORK_FORMAT_GL_COMPATIBLE,
+                                                kArbitraryColorBufferHandle, true, /* vulkanOnly */
+                                                0 /* memoryProperty */
+                                                ));
+    EXPECT_TRUE(goldfish_vk::teardownVkColorBuffer(kArbitraryColorBufferHandle));
 }
 
 TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
-    auto* vkEmulation = getGlobalVkEmulation();
+    auto* vkEmulation = goldfish_vk::getGlobalVkEmulation();
     VkMemoryPropertyFlags kTargetMemoryPropertyFlags =
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
@@ -537,23 +540,22 @@ TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
     }
 
     // Create a color buffer with the target memory property flags.
-    EXPECT_TRUE(setupVkColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE,
-                                   kArbitraryColorBufferHandle, true, /* vulkanOnly */
-                                   static_cast<uint32_t>(kTargetMemoryPropertyFlags)));
+    EXPECT_TRUE(goldfish_vk::setupVkColorBuffer(mWidth, mHeight, GL_RGBA,
+                                                FRAMEWORK_FORMAT_GL_COMPATIBLE,
+                                                kArbitraryColorBufferHandle, true, /* vulkanOnly */
+                                                static_cast<uint32_t>(kTargetMemoryPropertyFlags)));
 
     uint32_t allocatedTypeIndex = 0u;
-    EXPECT_TRUE(getColorBufferAllocationInfo(kArbitraryColorBufferHandle, nullptr,
-                                             &allocatedTypeIndex, nullptr, nullptr));
+    EXPECT_TRUE(goldfish_vk::getColorBufferAllocationInfo(kArbitraryColorBufferHandle, nullptr,
+                                                          &allocatedTypeIndex, nullptr, nullptr));
 
     EXPECT_TRUE(vkEmulation->deviceInfo.memProps.memoryTypes[allocatedTypeIndex]
                         .propertyFlags &
                 kTargetMemoryPropertyFlags);
 
-    EXPECT_TRUE(teardownVkColorBuffer(kArbitraryColorBufferHandle));
+    EXPECT_TRUE(goldfish_vk::teardownVkColorBuffer(kArbitraryColorBufferHandle));
 }
 
 #endif // !_WIN32
 
-}  // namespace
-}  // namespace vk
-}  // namespace gfxstream
+} // namespace emugl

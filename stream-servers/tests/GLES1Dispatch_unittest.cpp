@@ -18,10 +18,7 @@
 #include "GLTestUtils.h"
 #include "OpenGLTestContext.h"
 
-namespace gfxstream {
-namespace gl {
-namespace {
-
+namespace emugl {
 // b/233094475: GLES1 frustumf crash on cmcontext should not crash when
 // core profile is not enabled.
 TEST_F(GLTest, TestGlFrustumNoCoreProfile) {
@@ -35,6 +32,4 @@ TEST_F(GLTest, TestGlFrustumNoCoreProfile) {
     context.frustumf(0, 0, 0, 0, 0, 0);
 }
 
-}  // namespace
-}  // namespace gl
-}  // namespace gfxstream
+}  // namespace emugl

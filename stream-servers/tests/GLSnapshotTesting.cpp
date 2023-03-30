@@ -29,8 +29,7 @@
 #include <GLES2/gl2.h>
 #include <GLES3/gl31.h>
 
-namespace gfxstream {
-namespace gl {
+namespace emugl {
 
 using android::base::StdioStream;
 using android::snapshot::TextureLoader;
@@ -345,5 +344,4 @@ void SnapshotPreserveTest::doCheckedSnapshot() {
     }
 }
 
-}  // namespace gl
-}  // namespace gfxstream
+}  // namespace emugl

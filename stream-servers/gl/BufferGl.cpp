@@ -15,7 +15,6 @@
 #include "BufferGl.h"
 
 namespace gfxstream {
-namespace gl {
 
 BufferGl::BufferGl(uint64_t size, HandleType handle, ContextHelper* helper)
     : mSize(size), mHandle(handle), mContextHelper(helper) {}
@@ -101,5 +100,4 @@ void BufferGl::onSave(android::base::Stream* stream) {
     stream->putBe32(mHandle);
 }
 
-}  // namespace gl
 }  // namespace gfxstream

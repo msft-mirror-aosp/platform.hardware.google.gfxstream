@@ -24,9 +24,7 @@
 #include "stream-servers/vulkan/testing/VkDecoderTestDispatch.h"
 #include "utils/include/utils/GfxApiLogger.h"
 
-namespace gfxstream {
-namespace vk {
-namespace testing {
+namespace goldfish_vk::testing {
 
 // This class provides facilities to write tests that call into the Vulkan API through VkDecoder and
 // VkDecoderGlobalState.
@@ -117,6 +115,4 @@ class VulkanTestHelper {
     VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
 };
 
-}  // namespace testing
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk::testing

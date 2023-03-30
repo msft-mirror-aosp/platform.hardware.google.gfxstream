@@ -34,9 +34,6 @@
 
 #include <string.h>
 
-namespace gfxstream {
-namespace gl {
-
 using android::base::AutoLock;
 using android::base::StaticLock;
 
@@ -716,7 +713,7 @@ GLboolean GLESv2Decoder::s_glBufferDataSyncAEMU(void* self, GLenum target, GLsiz
 GLuint GLESv2Decoder::s_glCreateShader(void* self, GLenum shaderType) {
     GLESv2Decoder *ctx = (GLESv2Decoder *)self;
     GLuint shader = ctx->glCreateShader(shaderType);
-
+    
     if (ctx->m_snapshot) {
         GLuint emuName = ctx->m_snapshot->createShader(shader, shaderType);
         return emuName;
@@ -1068,6 +1065,3 @@ SNAPSHOT_PROGRAM_CALL(glGetProgramResourceiv, (void* self,  GLuint program, GLen
 SNAPSHOT_PROGRAM_CALL_RET(GLuint, glGetProgramResourceIndex, (void* self, GLuint program, GLenum programInterface, const char * name), (program, programInterface, name))
 SNAPSHOT_PROGRAM_CALL_RET(GLint, glGetProgramResourceLocation, (void* self, GLuint program, GLenum programInterface, const char * name), (program, programInterface, name))
 SNAPSHOT_PROGRAM_CALL(glGetProgramResourceName, (void* self,  GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei* length, char* name), (program, programInterface, index, bufSize, length, name))
-
-}  // namespace gl
-}  // namespace gfxstream

@@ -10,9 +10,6 @@
 
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 
-namespace gfxstream {
-namespace vk {
-
 struct SwapchainCreateInfoWrapper {
     VkSwapchainCreateInfoKHR mCreateInfo;
     std::vector<uint32_t> mQueueFamilyIndices;
@@ -37,18 +34,18 @@ class SwapChainStateVk {
    public:
     static std::vector<const char*> getRequiredInstanceExtensions();
     static std::vector<const char*> getRequiredDeviceExtensions();
-    static bool validateQueueFamilyProperties(const VulkanDispatch&, VkPhysicalDevice, VkSurfaceKHR,
-                                              uint32_t queueFamilyIndex);
+    static bool validateQueueFamilyProperties(const goldfish_vk::VulkanDispatch&, VkPhysicalDevice,
+                                              VkSurfaceKHR, uint32_t queueFamilyIndex);
     static std::optional<SwapchainCreateInfoWrapper> createSwapChainCi(
-        const VulkanDispatch&, VkSurfaceKHR, VkPhysicalDevice, uint32_t width, uint32_t height,
-        const std::unordered_set<uint32_t>& queueFamilyIndices);
+        const goldfish_vk::VulkanDispatch&, VkSurfaceKHR, VkPhysicalDevice, uint32_t width,
+        uint32_t height, const std::unordered_set<uint32_t>& queueFamilyIndices);
 
     SwapChainStateVk() = delete;
     SwapChainStateVk(const SwapChainStateVk&) = delete;
     SwapChainStateVk& operator = (const SwapChainStateVk&) = delete;
 
-    static std::unique_ptr<SwapChainStateVk> createSwapChainVk(const VulkanDispatch&, VkDevice,
-                                                               const VkSwapchainCreateInfoKHR&);
+    static std::unique_ptr<SwapChainStateVk> createSwapChainVk(const goldfish_vk::VulkanDispatch&,
+                                                        VkDevice, const VkSwapchainCreateInfoKHR&);
 
     ~SwapChainStateVk();
     VkFormat getFormat();
@@ -58,21 +55,18 @@ class SwapChainStateVk {
     VkSwapchainKHR getSwapChain() const;
 
    private:
-    explicit SwapChainStateVk(const VulkanDispatch&, VkDevice);
+    explicit SwapChainStateVk(const goldfish_vk::VulkanDispatch&, VkDevice);
 
     VkResult initSwapChainStateVk(const VkSwapchainCreateInfoKHR& swapChainCi);
     const static VkFormat k_vkFormat = VK_FORMAT_B8G8R8A8_UNORM;
     const static VkColorSpaceKHR k_vkColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
-    const VulkanDispatch& m_vk;
+    const goldfish_vk::VulkanDispatch& m_vk;
     VkDevice m_vkDevice;
     VkSwapchainKHR m_vkSwapChain;
     VkExtent2D m_vkImageExtent;
     std::vector<VkImage> m_vkImages;
     std::vector<VkImageView> m_vkImageViews;
 };
-
-}  // namespace vk
-}  // namespace gfxstream
 
 #endif
