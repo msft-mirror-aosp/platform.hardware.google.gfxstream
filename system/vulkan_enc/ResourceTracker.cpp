@@ -908,6 +908,11 @@ public:
         return offset + size <= info.allocationSize;
     }
 
+    void setupCaps(void) {
+        VirtGpuDevice& instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
+        mCaps = instance.getCaps();
+    }
+
     void setupFeatures(const EmulatorFeatureInfo* features) {
         if (!features || mFeatureInfo) return;
         mFeatureInfo.reset(new EmulatorFeatureInfo);
@@ -2971,11 +2976,12 @@ public:
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&hostAllocationInfo);
 
         if (dedicated) {
+            // Over-aligning to kLargestSize to some Windows drivers (b:152769369).  Can likely
+            // have host report the desired alignment.
             hostAllocationInfo.allocationSize =
-                ((pAllocateInfo->allocationSize + kLargestPageSize - 1) / kLargestPageSize);
+                ALIGN(pAllocateInfo->allocationSize, kLargestPageSize);
         } else {
-            VkDeviceSize roundedUpAllocSize =
-                kMegaBtye * ((pAllocateInfo->allocationSize + kMegaBtye - 1) / kMegaBtye);
+            VkDeviceSize roundedUpAllocSize = ALIGN(pAllocateInfo->allocationSize, kMegaByte);
             hostAllocationInfo.allocationSize = std::max(roundedUpAllocSize,
                                                          kDefaultHostMemBlockSize);
         }
@@ -7250,6 +7256,7 @@ private:
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 
+    struct VirtGpuCaps mCaps;
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
     std::vector<VkExtensionProperties> mHostDeviceExtensions;
 
@@ -7321,6 +7328,8 @@ bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) const
 void ResourceTracker::setupFeatures(const EmulatorFeatureInfo* features) {
     mImpl->setupFeatures(features);
 }
+
+void ResourceTracker::setupCaps(void) { mImpl->setupCaps(); }
 
 void ResourceTracker::setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {
     mImpl->setThreadingCallbacks(callbacks);

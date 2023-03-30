@@ -21,15 +21,15 @@
 
 #include "virtgpu_gfxstream_protocol.h"
 
-enum VirtGpuParamId {
-    kParam3D,
-    kParamCapsetFix,
-    kParamResourceBlob,
-    kParamHostVisible,
-    kParamCrossDevice,
-    kParamContextInit,
-    kParamSupportedCapsetIds,
-    kParamMax
+enum VirtGpuParamId : uint32_t {
+    kParam3D = 1,
+    kParamCapsetFix = 2,
+    kParamResourceBlob = 3,
+    kParamHostVisible = 4,
+    kParamCrossDevice = 5,
+    kParamContextInit = 6,
+    kParamSupportedCapsetIds = 7,
+    kParamMax = 8,
 };
 
 enum VirtGpuExecBufferFlags : uint32_t {
@@ -97,6 +97,11 @@ struct VirtGpuCreateBlob {
     uint64_t blobId;
 };
 
+struct VirtGpuCaps {
+    uint64_t params[kParamMax];
+    struct gfxstreamCapset gfxstreamCapset;
+};
+
 class VirtGpuBlobMapping;
 class VirtGpuBlob;
 using VirtGpuBlobPtr = std::shared_ptr<VirtGpuBlob>;
@@ -142,7 +147,7 @@ class VirtGpuDevice {
     static VirtGpuDevice& getInstance(enum VirtGpuCapset capset = kCapsetNone);
     int64_t getDeviceHandle(void);
 
-    uint64_t getParam(enum VirtGpuParamId param);
+    struct VirtGpuCaps getCaps(void);
 
     VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate);
     VirtGpuBlobPtr createPipeBlob(uint32_t size);
@@ -158,8 +163,8 @@ class VirtGpuDevice {
 
     static VirtGpuDevice mInstance;
     int64_t mDeviceHandle;
-    struct VirtGpuParam mParams[kParamMax];
-    struct gfxstreamCapset mGfxstreamCapset;
+
+    struct VirtGpuCaps mCaps;
 };
 
 // HACK: We can use android::base::EnumFlags, but we'll have to do more guest
