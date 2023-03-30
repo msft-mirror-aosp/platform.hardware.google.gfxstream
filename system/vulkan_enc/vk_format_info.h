@@ -38,6 +38,9 @@ enum {
 #include <vulkan/vulkan.h>
 #include <vndk/hardware_buffer.h>
 
+namespace gfxstream {
+namespace vk {
+
 /* See i915_private_android_types.h in minigbm. */
 #define HAL_PIXEL_FORMAT_NV12_Y_TILED_INTEL 0x100
 
@@ -212,5 +215,8 @@ vk_format_has_depth(VkFormat format)
    const VkImageAspectFlags aspects = vk_format_aspects(format);
    return aspects & VK_IMAGE_ASPECT_DEPTH_BIT;
 }
+
+}  // namespace vk
+}  // namespace gfxstream
 
 #endif /* VK_FORMAT_INFO_H */

@@ -7712,7 +7712,6 @@ void glTexStorage2D_enc(void *self , GLenum target, GLsizei levels, GLenum inter
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
-        stream->flush();
 
 }
 

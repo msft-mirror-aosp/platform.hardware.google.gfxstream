@@ -44,7 +44,9 @@ using android::base::BumpPool;
 #undef VK_KHR_android_surface
 #undef VK_ANDROID_external_memory_android_hardware_buffer
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
+
 #ifdef VK_VERSION_1_0
 void deepcopy_VkExtent2D(Allocator* alloc, VkStructureType rootType, const VkExtent2D* from,
                          VkExtent2D* to);
@@ -3951,4 +3953,5 @@ void deepcopy_VkPhysicalDeviceRayQueryFeaturesKHR(Allocator* alloc, VkStructureT
 
 #endif
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
