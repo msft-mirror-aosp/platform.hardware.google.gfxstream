@@ -42,9 +42,7 @@
 #undef VK_KHR_android_surface
 #undef VK_ANDROID_external_memory_android_hardware_buffer
 
-namespace gfxstream {
-namespace vk {
-
+namespace goldfish_vk {
 #ifdef VK_VERSION_1_0
 void handlemap_VkExtent2D(VulkanHandleMapping* handlemap, VkExtent2D* toMap);
 
@@ -3007,5 +3005,4 @@ void handlemap_VkPhysicalDeviceRayQueryFeaturesKHR(VulkanHandleMapping* handlema
 
 #endif
 
-}  // namespace vk
-}  // namespace gfxstream
+}  // namespace goldfish_vk

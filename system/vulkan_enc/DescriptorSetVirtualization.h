@@ -21,8 +21,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace gfxstream {
-namespace vk {
+namespace goldfish_vk {
 
 enum DescriptorWriteType {
     Empty = 0,
@@ -149,5 +148,4 @@ bool removeDescriptorSetFromPool(VkDescriptorSet set, bool usePoolIds);
 
 std::vector<VkDescriptorSet> clearDescriptorPool(VkDescriptorPool pool, bool usePoolIds);
 
-}  // namespace vk
-}  // namespace gfxstream
+} // namespace goldfish_vk
