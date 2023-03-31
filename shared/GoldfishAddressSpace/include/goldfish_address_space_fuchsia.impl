@@ -133,6 +133,8 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
         return false;
     }
     m_phys_addr = result->paddr;
+    // TODO(fxbug.dev/124700): Instead of storing raw handles we should
+    // consider using RAII zx::object instead.
     m_vmo = result->vmo.release();
 
     m_size = size;
@@ -361,6 +363,8 @@ bool goldfish_address_space_allocate(
 
     *offset = 0;
 
+    // TODO(fxbug.dev/124700): Instead of storing raw handles we should
+    // consider using RAII zx::object instead.
     VmoStore::Info info = {
         vmo.release(),
         *phys_addr,
@@ -404,6 +408,8 @@ bool goldfish_address_space_claim_shared(
     }
     vmo = std::move(result->vmo);
 
+    // TODO(fxbug.dev/124700): Instead of storing raw handles we should
+    // consider using RAII zx::object instead.
     VmoStore::Info info = {
         vmo.release(),
     };
@@ -415,6 +421,12 @@ bool goldfish_address_space_claim_shared(
 
 bool goldfish_address_space_unclaim_shared(
     address_space_handle_t handle, uint64_t offset) {
+    auto info = getVmoStore()->get(offset);
+    if (info.vmo == ZX_HANDLE_INVALID) {
+        return false;
+    }
+    zx_handle_close(info.vmo);
+
     const auto& deviceSync =
         *reinterpret_cast<
             fidl::WireSyncClient<AddressSpaceChildDriver>*>(handle);
