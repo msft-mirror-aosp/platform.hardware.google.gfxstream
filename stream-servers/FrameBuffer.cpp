@@ -3702,11 +3702,6 @@ const int FrameBuffer::getDisplayActiveConfig() {
 }
 
 bool FrameBuffer::flushColorBufferFromGl(HandleType colorBufferHandle) {
-    AutoLock mutex(m_lock);
-    return flushColorBufferFromGlLocked(colorBufferHandle);
-}
-
-bool FrameBuffer::flushColorBufferFromGlLocked(HandleType colorBufferHandle) {
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
@@ -3716,8 +3711,6 @@ bool FrameBuffer::flushColorBufferFromGlLocked(HandleType colorBufferHandle) {
 }
 
 bool FrameBuffer::flushColorBufferFromVk(HandleType colorBufferHandle) {
-    AutoLock mutex(m_lock);
-
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
@@ -3727,8 +3720,6 @@ bool FrameBuffer::flushColorBufferFromVk(HandleType colorBufferHandle) {
 }
 
 bool FrameBuffer::flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes, size_t bytesSize) {
-    AutoLock mutex(m_lock);
-
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
@@ -3738,8 +3729,6 @@ bool FrameBuffer::flushColorBufferFromVkBytes(HandleType colorBufferHandle, cons
 }
 
 bool FrameBuffer::invalidateColorBufferForGl(HandleType colorBufferHandle) {
-    AutoLock mutex(m_lock);
-
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
@@ -3749,8 +3738,6 @@ bool FrameBuffer::invalidateColorBufferForGl(HandleType colorBufferHandle) {
 }
 
 bool FrameBuffer::invalidateColorBufferForVk(HandleType colorBufferHandle) {
-    AutoLock mutex(m_lock);
-
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
