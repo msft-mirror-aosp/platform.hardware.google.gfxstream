@@ -3221,13 +3221,13 @@ public:
             !importBufferCollectionInfoPtr &&
             !importVmoInfoPtr;
 
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProps
             = getPhysicalDeviceMemoryProperties(context, device, VK_NULL_HANDLE);
 
         const bool requestedMemoryIsHostVisible =
             isHostVisible(&physicalDeviceMemoryProps, pAllocateInfo->memoryTypeIndex);
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         shouldPassThroughDedicatedAllocInfo &= !requestedMemoryIsHostVisible;
 
         if (!exportAllocateInfoPtr &&
