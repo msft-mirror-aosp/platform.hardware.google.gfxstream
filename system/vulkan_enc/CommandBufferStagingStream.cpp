@@ -56,7 +56,7 @@ CommandBufferStagingStream::CommandBufferStagingStream(const Alloc& allocFn, con
 
     // \param size to allocate
     // \return ptr starting at data
-    m_alloc = [&allocFn, this](size_t size) -> Memory {
+    m_alloc = [&allocFn](size_t size) -> Memory {
         // allocation requested size + sync data size
 
         // <---sync bytes--><----Data--->
