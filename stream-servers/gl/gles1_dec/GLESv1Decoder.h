@@ -21,6 +21,9 @@
 #include "GLDecoderContextData.h"
 #include "aemu/base/SharedLibrary.h"
 
+namespace gfxstream {
+namespace gl {
+
 typedef void (gles1_APIENTRY *glColorPointerWithDataSize_server_proc_t) (GLint, GLenum, GLsizei, const GLvoid*, GLsizei);
 typedef void (gles1_APIENTRY *glNormalPointerWithDataSize_server_proc_t) (GLenum, GLsizei, const GLvoid*, GLsizei);
 typedef void (gles1_APIENTRY *glTexCoordPointerWithDataSize_server_proc_t) (GLint, GLenum, GLsizei, const GLvoid*, GLsizei);
@@ -91,5 +94,8 @@ private:
     GLDecoderContextData *m_contextData;
     android::base::SharedLibrary* m_glesDso;
 };
+
+}  // namespace gl
+}  // namespace gfxstream
 
 #endif

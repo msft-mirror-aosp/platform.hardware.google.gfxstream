@@ -29,6 +29,9 @@
 #include "OpenGLESDispatch/gles3_extensions_static_translator_namespaced_header.h"
 #include "OpenGLESDispatch/gles3_only_static_translator_namespaced_header.h"
 
+namespace gfxstream {
+namespace gl {
+
 // Define function pointer types.
 #define GLES2_DISPATCH_DEFINE_TYPE(return_type,func_name,signature,callargs) \
     typedef return_type (KHRONOS_APIENTRY * func_name ## _t) signature;
@@ -66,3 +69,6 @@ enum GLESDispatchMaxVersion {
 };
 
 GLESDispatchMaxVersion gles2_dispatch_get_max_version();
+
+}  // namespace gl
+}  // namespace gfxstream

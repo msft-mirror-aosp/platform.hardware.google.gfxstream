@@ -8,6 +8,9 @@
 #include "vulkan/vk_enum_string_helper.h"
 #include "vulkan/vk_util.h"
 
+namespace gfxstream {
+namespace vk {
+
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -72,11 +75,8 @@ void SwapchainCreateInfoWrapper::setQueueFamilyIndices(
     }
 }
 
-
-
 std::unique_ptr<SwapChainStateVk> SwapChainStateVk::createSwapChainVk(
-    const goldfish_vk::VulkanDispatch& vk,
-    VkDevice vkDevice, const VkSwapchainCreateInfoKHR& swapChainCi) {
+    const VulkanDispatch& vk, VkDevice vkDevice, const VkSwapchainCreateInfoKHR& swapChainCi) {
     std::unique_ptr<SwapChainStateVk> swapChainVk(new SwapChainStateVk(vk, vkDevice));
     if (swapChainVk->initSwapChainStateVk(swapChainCi) != VK_SUCCESS) {
         return nullptr;
@@ -84,13 +84,12 @@ std::unique_ptr<SwapChainStateVk> SwapChainStateVk::createSwapChainVk(
     return swapChainVk;
 }
 
-SwapChainStateVk::SwapChainStateVk(const goldfish_vk::VulkanDispatch& vk, VkDevice vkDevice)
+SwapChainStateVk::SwapChainStateVk(const VulkanDispatch& vk, VkDevice vkDevice)
     : m_vk(vk),
       m_vkDevice(vkDevice),
       m_vkSwapChain(VK_NULL_HANDLE),
       m_vkImages(0),
-      m_vkImageViews(0) {
-}
+      m_vkImageViews(0) {}
 
 VkResult SwapChainStateVk::initSwapChainStateVk(const VkSwapchainCreateInfoKHR& swapChainCi) {
     VkResult res = m_vk.vkCreateSwapchainKHR(m_vkDevice, &swapChainCi, nullptr, &m_vkSwapChain);
@@ -154,7 +153,7 @@ std::vector<const char*> SwapChainStateVk::getRequiredDeviceExtensions() {
     };
 }
 
-bool SwapChainStateVk::validateQueueFamilyProperties(const goldfish_vk::VulkanDispatch& vk,
+bool SwapChainStateVk::validateQueueFamilyProperties(const VulkanDispatch& vk,
                                                      VkPhysicalDevice physicalDevice,
                                                      VkSurfaceKHR surface,
                                                      uint32_t queueFamilyIndex) {
@@ -165,8 +164,8 @@ bool SwapChainStateVk::validateQueueFamilyProperties(const goldfish_vk::VulkanDi
 }
 
 std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
-    const goldfish_vk::VulkanDispatch& vk, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice,
-    uint32_t width, uint32_t height, const std::unordered_set<uint32_t>& queueFamilyIndices) {
+    const VulkanDispatch& vk, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, uint32_t width,
+    uint32_t height, const std::unordered_set<uint32_t>& queueFamilyIndices) {
     uint32_t formatCount = 0;
     VK_CHECK(
         vk.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr));
@@ -305,3 +304,6 @@ const std::vector<VkImage>& SwapChainStateVk::getVkImages() const { return m_vkI
 const std::vector<VkImageView>& SwapChainStateVk::getVkImageViews() const { return m_vkImageViews; }
 
 VkSwapchainKHR SwapChainStateVk::getSwapChain() const { return m_vkSwapChain; }
+
+}  // namespace vk
+}  // namespace gfxstream

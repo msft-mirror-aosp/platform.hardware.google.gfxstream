@@ -25,6 +25,9 @@
 #include "aemu/base/files/StreamSerializing.h"
 #include "host-common/GfxstreamFatalError.h"
 
+namespace gfxstream {
+namespace gl {
+
 using android::base::AutoLock;
 using android::base::Lock;
 using android::base::Stream;
@@ -129,3 +132,6 @@ void RenderThreadInfoGl::postLoadRefreshCurrentContextSurfacePtrs() {
     const HandleType read = currReadSurf ? currReadSurf->getHndl() : 0;
     fb->bindContext(ctx, draw, read);
 }
+
+}  // namespace gl
+}  // namespace gfxstream

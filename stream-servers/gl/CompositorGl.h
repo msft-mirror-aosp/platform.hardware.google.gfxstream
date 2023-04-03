@@ -25,6 +25,9 @@
 #include "DisplaySurfaceUser.h"
 #include "TextureDraw.h"
 
+namespace gfxstream {
+namespace gl {
+
 class CompositorGl : public Compositor, public gfxstream::DisplaySurfaceUser {
   public:
     CompositorGl(TextureDraw* textureDraw);
@@ -42,9 +45,12 @@ class CompositorGl : public Compositor, public gfxstream::DisplaySurfaceUser {
 
   private:
     GLuint m_composeFbo = 0;
- 
+
     // Owned by FrameBuffer.
     TextureDraw* m_textureDraw = nullptr;
 
     std::atomic_bool mUseBoundSurfaceContext{true};
 };
+
+}  // namespace gl
+}  // namespace gfxstream

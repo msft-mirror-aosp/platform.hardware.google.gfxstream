@@ -36,7 +36,8 @@
 #include "goldfish_vk_extension_structs.h"
 #include "goldfish_vk_private_defs.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 void handlemap_extension_struct(VulkanHandleMapping* handlemap, void* structExtension_out);
 
@@ -10574,4 +10575,5 @@ void handlemap_extension_struct(VulkanHandleMapping* handlemap, void* structExte
     }
 }
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

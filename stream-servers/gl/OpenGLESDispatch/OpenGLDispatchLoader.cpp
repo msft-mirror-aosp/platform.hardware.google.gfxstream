@@ -16,12 +16,11 @@
 
 #include "OpenGLESDispatch/DispatchTables.h"
 
+namespace gfxstream {
+namespace gl {
+
 GLESv1Dispatch s_gles1;
 GLESv2Dispatch s_gles2;
-
-using emugl::LazyLoadedGLESv1Dispatch;
-using emugl::LazyLoadedGLESv2Dispatch;
-using emugl::LazyLoadedEGLDispatch;
 
 // Must be declared outside of LazyLoaded*Dispatch scope due to the use of
 // sizeof(T) within the template definition.
@@ -79,3 +78,6 @@ const EGLDispatch* LazyLoadedEGLDispatch::get() {
 }
 
 LazyLoadedEGLDispatch::LazyLoadedEGLDispatch() { mValid = init_egl_dispatch(); }
+
+}  // namespace gl
+}  // namespace gfxstream

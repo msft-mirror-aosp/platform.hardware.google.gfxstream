@@ -22,23 +22,28 @@
 #include "snapshot/LazySnapshotObj.h"
 
 namespace gfxstream {
-class BufferVk;
+namespace gl {
 class EmulationGl;
+}  // namespace gl
 }  // namespace gfxstream
-namespace goldfish_vk {
+
+namespace gfxstream {
+namespace vk {
+class BufferVk;
 struct VkEmulation;
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
 
 namespace gfxstream {
 
 class Buffer : public android::snapshot::LazySnapshotObj<Buffer> {
    public:
-    static std::shared_ptr<Buffer> create(gfxstream::EmulationGl* emulationGl,
-                                          goldfish_vk::VkEmulation* emulationVk, uint64_t size,
+    static std::shared_ptr<Buffer> create(gl::EmulationGl* emulationGl,
+                                          vk::VkEmulation* emulationVk, uint64_t size,
                                           HandleType handle);
 
-    static std::shared_ptr<Buffer> onLoad(gfxstream::EmulationGl* emulationGl,
-                                          goldfish_vk::VkEmulation* emulationVk,
+    static std::shared_ptr<Buffer> onLoad(gl::EmulationGl* emulationGl,
+                                          vk::VkEmulation* emulationVk,
                                           android::base::Stream* stream);
 
     void onSave(android::base::Stream* stream);
@@ -57,10 +62,10 @@ class Buffer : public android::snapshot::LazySnapshotObj<Buffer> {
     const HandleType mHandle;
 
     // If GL emulation is enabled.
-    std::unique_ptr<gfxstream::BufferGl> mBufferGl;
+    std::unique_ptr<gl::BufferGl> mBufferGl;
 
     // If Vk emulation is enabled.
-    std::unique_ptr<BufferVk> mBufferVk;
+    std::unique_ptr<vk::BufferVk> mBufferVk;
 };
 
 typedef std::shared_ptr<Buffer> BufferPtr;

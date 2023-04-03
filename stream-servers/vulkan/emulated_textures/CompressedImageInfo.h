@@ -23,7 +23,8 @@
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 class CompressedImageInfo {
    public:
@@ -60,8 +61,7 @@ class CompressedImageInfo {
     VkImageCreateInfo getDecompressedCreateInfo(const VkImageCreateInfo& createInfo) const;
 
     // Creates the compressed mipmap images, that is the VkImages holding the compressed data
-    void createCompressedMipmapImages(goldfish_vk::VulkanDispatch* vk,
-                                      const VkImageCreateInfo& createInfo);
+    void createCompressedMipmapImages(VulkanDispatch* vk, const VkImageCreateInfo& createInfo);
 
     // Initializes the resources needed to perform CPU decompression of ASTC textures
     void initAstcCpuDecompression(VulkanDispatch* vk, VkPhysicalDevice physicalDevice);
@@ -73,7 +73,7 @@ class CompressedImageInfo {
     // outputBarriers: any barrier that needs to be passed to the vkCmdPipelineBarrier call will be
     // added to this vector.
     // Returns whether image decompression happened.
-    bool decompressIfNeeded(goldfish_vk::VulkanDispatch* vk, VkCommandBuffer commandBuffer,
+    bool decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
                             VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
                             const VkImageMemoryBarrier& targetBarrier,
                             std::vector<VkImageMemoryBarrier>& outputBarriers);
@@ -84,7 +84,7 @@ class CompressedImageInfo {
 
     VkMemoryRequirements getMemoryRequirements() const;
 
-    VkResult bindCompressedMipmapsMemory(goldfish_vk::VulkanDispatch* vk, VkDeviceMemory memory,
+    VkResult bindCompressedMipmapsMemory(VulkanDispatch* vk, VkDeviceMemory memory,
                                          VkDeviceSize memoryOffset);
 
     // Given a VkBufferImageCopy object for the original image, returns a new
@@ -110,7 +110,7 @@ class CompressedImageInfo {
    private:
     // Returns the size in bytes needed for the storage of a given image.
     // Also updates the alignment field of this class.
-    VkDeviceSize getImageSize(goldfish_vk::VulkanDispatch* vk, VkImage image);
+    VkDeviceSize getImageSize(VulkanDispatch* vk, VkImage image);
 
     // Returns a vector of image barriers for the compressed mipmap images and the decompressed
     // image.
@@ -120,10 +120,10 @@ class CompressedImageInfo {
 
     // Initializes the compute shader pipeline to decompress the image.
     // No-op if this was already called successfully.
-    VkResult initializeDecompressionPipeline(goldfish_vk::VulkanDispatch* vk, VkDevice device);
+    VkResult initializeDecompressionPipeline(VulkanDispatch* vk, VkDevice device);
 
     // Runs the decompression shader
-    void decompress(goldfish_vk::VulkanDispatch* vk, VkCommandBuffer commandBuffer,
+    void decompress(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
                     const VkImageSubresourceRange& range);
 
     // Returns the size of the image at a given mip level
@@ -175,4 +175,5 @@ class CompressedImageInfo {
     std::vector<VkImageView> mDecompImageViews;
 };
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include <vector>
 
+namespace gfxstream {
+
 /* Copied from Android source */
 
 // Should be identical to graphics-base-v1.0.h
@@ -119,5 +121,7 @@ typedef struct FlatComposeRequest {
 } FlatComposeRequest;
 std::unique_ptr<FlatComposeRequest> ToFlatComposeRequest(const ComposeDevice* in);
 std::unique_ptr<FlatComposeRequest> ToFlatComposeRequest(const ComposeDevice_v2* in);
+
+}  // namespace gfxstream
 
 #endif

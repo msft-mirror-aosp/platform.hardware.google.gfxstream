@@ -22,7 +22,7 @@
 #include <functional>
 #include <vector>
 
-namespace emugl {
+namespace gfxstream {
 
 // An IOStream instance that can be used by the host RenderThread to process
 // messages from a pair of ring buffers (to host and from host).  It also takes
@@ -91,4 +91,4 @@ protected:
     bool mInSnapshotOperation = false;
 };
 
-}  // namespace emugl
+}  // namespace gfxstream

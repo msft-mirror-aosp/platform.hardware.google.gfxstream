@@ -19,10 +19,12 @@
 
 #include "VkDecoder.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 struct RenderThreadInfoVk {
     VkDecoder m_vkDec;
 };
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

@@ -36,7 +36,8 @@
 #include "goldfish_vk_extension_structs.h"
 #include "goldfish_vk_private_defs.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 void checkEqual_extension_struct(const void* structExtension, const void* structExtension2,
                                  OnFailCompareFunc onFail);
@@ -21015,4 +21016,5 @@ void checkEqual_extension_struct(const void* structExtension, const void* struct
     }
 }
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

@@ -19,6 +19,9 @@
 #include <GLES2/gl2.h>
 #include <memory>
 
+namespace gfxstream {
+namespace gl {
+
 class TextureResize {
 public:
     TextureResize(GLuint width, GLuint height);
@@ -73,5 +76,8 @@ private:
     GLenum mTextureFilteringMode = GL_LINEAR;
     std::unique_ptr<GenericResizer> mGenericResizer;
 };
+
+}  // namespace gl
+}  // namespace gfxstream
 
 #endif

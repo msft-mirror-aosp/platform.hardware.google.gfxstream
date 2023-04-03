@@ -18,7 +18,8 @@
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 // Holds the resources necessary to perform CPU ASTC decompression of a single texture.
 class AstcTexture {
@@ -58,4 +59,5 @@ class AstcTexture {
     AstcCpuDecompressor* mDecompressor;
 };
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

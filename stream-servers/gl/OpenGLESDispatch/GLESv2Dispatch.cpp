@@ -24,6 +24,9 @@
 
 #define DEFAULT_GLES_V2_LIB EMUGL_LIBNAME("GLES_V2_translator")
 
+namespace gfxstream {
+namespace gl {
+
 // An unimplemented function which prints out an error message.
 // To make it consistent with the guest, all GLES2 functions not supported by
 // the driver should be redirected to this function.
@@ -32,18 +35,18 @@ void gles2_unimplemented() {
     fprintf(stderr, "Called unimplemented GLES API\n");
 }
 
-#define LOOKUP_SYMBOL_STATIC(return_type,function_name,signature,callargs) \
-    dispatch_table-> function_name = reinterpret_cast< function_name ## _t >( \
-            translator::gles2::function_name); \
-    if ((!dispatch_table-> function_name) && s_egl.eglGetProcAddress) \
-        dispatch_table-> function_name = reinterpret_cast< function_name ## _t >( \
-            s_egl.eglGetProcAddress(#function_name)); \
+#define LOOKUP_SYMBOL_STATIC(return_type, function_name, signature, callargs)    \
+    dispatch_table->function_name =                                              \
+        reinterpret_cast<function_name##_t>(::translator::gles2::function_name); \
+    if ((!dispatch_table->function_name) && s_egl.eglGetProcAddress)             \
+        dispatch_table->function_name =                                          \
+            reinterpret_cast<function_name##_t>(s_egl.eglGetProcAddress(#function_name));
 
 bool gles2_dispatch_init(GLESv2Dispatch* dispatch_table) {
     if (dispatch_table->initialized) return true;
 
     LIST_GLES2_FUNCTIONS(LOOKUP_SYMBOL_STATIC,LOOKUP_SYMBOL_STATIC)
-   
+
     dispatch_table->initialized = true;
     return true;
 }
@@ -61,3 +64,6 @@ void *gles2_dispatch_get_proc_func(const char *name, void *userData)
     }
     return func;
 }
+
+}  // namespace gl
+}  // namespace gfxstream

@@ -19,6 +19,9 @@
 
 #include "host-common/logging.h"
 
+namespace gfxstream {
+namespace gl {
+
 std::string formatString(const char* format, ...);
 
 class ScopedDebugGroup {
@@ -32,3 +35,6 @@ class ScopedDebugGroup {
 #else
 #define GL_SCOPED_DEBUG_GROUP(...) (void(0))
 #endif
+
+}  // namespace gl
+}  // namespace gfxstream

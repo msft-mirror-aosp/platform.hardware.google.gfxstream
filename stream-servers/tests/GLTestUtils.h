@@ -21,7 +21,7 @@
 
 #include <gtest/gtest.h>
 
-namespace emugl {
+namespace gfxstream {
 
 using TestTexture = android::AlignedBuf<uint8_t, 4>;
 
@@ -45,4 +45,4 @@ TestTexture createTestTextureRGBA8888SingleColor(int width, int height, float r,
 // Return the name associated with |v| as a string.
 const char* getEnumString(GLenum v);
 
-} // namespace emugl
+}  // namespace gfxstream

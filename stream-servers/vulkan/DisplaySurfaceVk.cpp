@@ -18,13 +18,15 @@
 #include "host-common/logging.h"
 #include "vk_util.h"
 
+namespace gfxstream {
+namespace vk {
+
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
-std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(
-        const goldfish_vk::VulkanDispatch& vk,
-        VkInstance instance,
-        FBNativeWindowType window) {
+std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch& vk,
+                                                           VkInstance instance,
+                                                           FBNativeWindowType window) {
     VkSurfaceKHR surface = VK_NULL_HANDLE;
 #ifdef _WIN32
     const VkWin32SurfaceCreateInfoKHR surfaceCi = {
@@ -47,15 +49,15 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(
     return std::unique_ptr<DisplaySurfaceVk>(new DisplaySurfaceVk(vk, instance, surface));
 }
 
-DisplaySurfaceVk::DisplaySurfaceVk(const goldfish_vk::VulkanDispatch& vk,
-                                   VkInstance instance,
+DisplaySurfaceVk::DisplaySurfaceVk(const VulkanDispatch& vk, VkInstance instance,
                                    VkSurfaceKHR surface)
-    : mVk(vk),
-      mInstance(instance),
-      mSurface(surface) {}
+    : mVk(vk), mInstance(instance), mSurface(surface) {}
 
 DisplaySurfaceVk::~DisplaySurfaceVk() {
     if (mSurface != VK_NULL_HANDLE) {
         mVk.vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
     }
 }
+
+}  // namespace vk
+}  // namespace gfxstream

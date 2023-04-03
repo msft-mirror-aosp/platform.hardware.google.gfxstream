@@ -25,6 +25,9 @@
 #include "gl/gles1_dec/GLESv1Decoder.h"
 #include "gl/gles2_dec/GLESv2Decoder.h"
 
+namespace gfxstream {
+namespace gl {
+
 struct RenderThreadInfoGl {
     // Create new instance. Only call this once per thread.
     // Future calls to get() will return this instance until
@@ -62,11 +65,14 @@ struct RenderThreadInfoGl {
     HandleType currDrawSurfHandleFromLoad;
     HandleType currReadSurfHandleFromLoad;
 
-    gfxstream::EmulatedEglContextPtr currContext;
-    gfxstream::EmulatedEglWindowSurfacePtr currDrawSurf;
-    gfxstream::EmulatedEglWindowSurfacePtr currReadSurf;
+    EmulatedEglContextPtr currContext;
+    EmulatedEglWindowSurfacePtr currDrawSurf;
+    EmulatedEglWindowSurfacePtr currReadSurf;
 
     // Decoder states.
     GLESv1Decoder                   m_glDec;
     GLESv2Decoder                   m_gl2Dec;
 };
+
+}  // namespace gl
+}  // namespace gfxstream

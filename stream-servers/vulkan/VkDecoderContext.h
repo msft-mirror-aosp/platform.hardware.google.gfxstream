@@ -21,9 +21,15 @@
 #include "aemu/base/Metrics.h"
 #include "utils/GfxApiLogger.h"
 
+namespace gfxstream {
+namespace vk {
+
 struct VkDecoderContext {
     const char* processName = nullptr;
     emugl::GfxApiLogger* gfxApiLogger = nullptr;
     emugl::HealthMonitor<>* healthMonitor = nullptr;
     emugl::MetricsLogger* metricsLogger = nullptr;
 };
+
+}  // namespace vk
+}  // namespace gfxstream

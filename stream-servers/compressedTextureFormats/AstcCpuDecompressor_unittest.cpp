@@ -16,7 +16,8 @@
 
 #include "AstcCpuDecompressor.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 namespace {
 
 using ::testing::ElementsAreArray;
@@ -73,4 +74,5 @@ TEST(AstcCpuDecompressor, getStatusStringAlwaysNonNull) {
 }
 
 }  // namespace
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

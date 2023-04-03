@@ -17,6 +17,8 @@
 
 #include <stdint.h>
 
+namespace gfxstream {
+
 // Address Space Graphics contexts
 #define GFXSTREAM_CONTEXT_CREATE                0x1001
 #define GFXSTREAM_CONTEXT_PING                  0x1002
@@ -74,5 +76,7 @@ struct gfxstreamCapset {
 
     uint32_t pad;
 };
+
+}  // namespace gfxstream
 
 #endif

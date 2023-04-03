@@ -16,6 +16,8 @@
 
 #include "vk_util.h"
 
+namespace gfxstream {
+namespace vk {
 namespace vk_util {
 namespace {
 
@@ -45,3 +47,5 @@ std::optional<uint32_t> findMemoryType(const VulkanDispatch* ivk, VkPhysicalDevi
 }
 
 }  // namespace vk_util
+}  // namespace vk
+}  // namespace gfxstream

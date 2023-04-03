@@ -48,6 +48,9 @@
 #include "vk_fn_info.h"
 #include "vulkan/cereal/common/vk_struct_id.h"
 
+namespace gfxstream {
+namespace vk {
+
 struct vk_struct_common {
     VkStructureType sType;
     struct vk_struct_common* pNext;
@@ -274,34 +277,34 @@ void vk_struct_chain_remove(S* unwanted, T* vk_struct) {
     }
 }
 
-#define VK_CHECK(x)                                                                               \
-    do {                                                                                          \
-        VkResult err = x;                                                                         \
-        if (err != VK_SUCCESS) {                                                                  \
-            if (err == VK_ERROR_DEVICE_LOST) {                                                    \
-                ::vk_util::getVkCheckCallbacks().callIfExists(                                    \
-                    &::vk_util::VkCheckCallbacks::onVkErrorDeviceLost);                           \
-            }                                                                                     \
-            if (err == VK_ERROR_OUT_OF_HOST_MEMORY || err == VK_ERROR_OUT_OF_DEVICE_MEMORY ||     \
-                err == VK_ERROR_OUT_OF_POOL_MEMORY) {                                             \
-                ::vk_util::getVkCheckCallbacks().callIfExists(                                    \
-                    &::vk_util::VkCheckCallbacks::onVkErrorOutOfMemory, err, __func__, __LINE__); \
-            }                                                                                     \
-            GFXSTREAM_ABORT(::emugl::FatalError(err));                                            \
-        }                                                                                         \
+#define VK_CHECK(x)                                                                             \
+    do {                                                                                        \
+        VkResult err = x;                                                                       \
+        if (err != VK_SUCCESS) {                                                                \
+            if (err == VK_ERROR_DEVICE_LOST) {                                                  \
+                vk_util::getVkCheckCallbacks().callIfExists(                                    \
+                    &vk_util::VkCheckCallbacks::onVkErrorDeviceLost);                           \
+            }                                                                                   \
+            if (err == VK_ERROR_OUT_OF_HOST_MEMORY || err == VK_ERROR_OUT_OF_DEVICE_MEMORY ||   \
+                err == VK_ERROR_OUT_OF_POOL_MEMORY) {                                           \
+                vk_util::getVkCheckCallbacks().callIfExists(                                    \
+                    &vk_util::VkCheckCallbacks::onVkErrorOutOfMemory, err, __func__, __LINE__); \
+            }                                                                                   \
+            GFXSTREAM_ABORT(::emugl::FatalError(err));                                          \
+        }                                                                                       \
     } while (0)
 
-#define VK_CHECK_MEMALLOC(x, allocateInfo)                                                           \
-    do {                                                                                           \
-        VkResult err = x;                                                                          \
-        if (err != VK_SUCCESS) {                                                                   \
-            if (err == VK_ERROR_OUT_OF_HOST_MEMORY || err == VK_ERROR_OUT_OF_DEVICE_MEMORY) {      \
-                ::vk_util::getVkCheckCallbacks().callIfExists(                                     \
-                    &::vk_util::VkCheckCallbacks::onVkErrorOutOfMemoryOnAllocation, err, __func__, \
-                    __LINE__, allocateInfo.allocationSize);                                        \
-            }                                                                                      \
-            GFXSTREAM_ABORT(::emugl::FatalError(err));                                             \
-        }                                                                                          \
+#define VK_CHECK_MEMALLOC(x, allocateInfo)                                                       \
+    do {                                                                                         \
+        VkResult err = x;                                                                        \
+        if (err != VK_SUCCESS) {                                                                 \
+            if (err == VK_ERROR_OUT_OF_HOST_MEMORY || err == VK_ERROR_OUT_OF_DEVICE_MEMORY) {    \
+                vk_util::getVkCheckCallbacks().callIfExists(                                     \
+                    &vk_util::VkCheckCallbacks::onVkErrorOutOfMemoryOnAllocation, err, __func__, \
+                    __LINE__, allocateInfo.allocationSize);                                      \
+            }                                                                                    \
+            GFXSTREAM_ABORT(::emugl::FatalError(err));                                           \
+        }                                                                                        \
     } while (0)
 
 typedef void* MTLTextureRef;
@@ -494,6 +497,9 @@ typename vk_fn_info::GetVkFnInfo<T>::type getVkInstanceProcAddrWithFallback(
     }
     return nullptr;
 }
+
 }  // namespace vk_util
+}  // namespace vk
+}  // namespace gfxstream
 
 #endif /* VK_UTIL_H */

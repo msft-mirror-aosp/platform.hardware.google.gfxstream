@@ -21,6 +21,9 @@
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 #include "vulkan/vk_util.h"
 
+namespace gfxstream {
+namespace vk {
+
 // We do see a composition requests with 12 layers. (b/222700096)
 // Inside hwc2, we will ask for surfaceflinger to
 // do the composition, if the layers more than 16.
@@ -33,7 +36,7 @@ static const uint64_t kVkWaitForFencesTimeoutNsecs = 5ULL * 1000ULL * 1000ULL * 
 struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
                                                     vk_util::FindMemoryType,  //
                                                     vk_util::RunSingleTimeCommand> {
-    const goldfish_vk::VulkanDispatch& m_vk;
+    const VulkanDispatch& m_vk;
     const VkDevice m_vkDevice;
     const VkPhysicalDevice m_vkPhysicalDevice;
     const VkQueue m_vkQueue;
@@ -98,7 +101,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     std::vector<PerFrameResources> m_frameResources;
     std::deque<std::shared_future<PerFrameResources*>> m_availableFrameResources;
 
-    explicit CompositorVkBase(const goldfish_vk::VulkanDispatch& vk, VkDevice device,
+    explicit CompositorVkBase(const VulkanDispatch& vk, VkDevice device,
                               VkPhysicalDevice physicalDevice, VkQueue queue,
                               std::shared_ptr<android::base::Lock> queueLock,
                               uint32_t queueFamilyIndex, uint32_t maxFramesInFlight)
@@ -124,8 +127,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
 
 class CompositorVk : protected CompositorVkBase, public Compositor {
    public:
-    static std::unique_ptr<CompositorVk> create(const goldfish_vk::VulkanDispatch& vk,
-                                                VkDevice vkDevice,
+    static std::unique_ptr<CompositorVk> create(const VulkanDispatch& vk, VkDevice vkDevice,
                                                 VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
                                                 std::shared_ptr<android::base::Lock> queueLock,
                                                 uint32_t queueFamilyIndex,
@@ -142,7 +144,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     }
 
    private:
-    explicit CompositorVk(const goldfish_vk::VulkanDispatch&, VkDevice, VkPhysicalDevice, VkQueue,
+    explicit CompositorVk(const VulkanDispatch&, VkDevice, VkPhysicalDevice, VkQueue,
                           std::shared_ptr<android::base::Lock> queueLock, uint32_t queueFamilyIndex,
                           uint32_t maxFramesInFlight);
 
@@ -203,11 +205,11 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
 
        private:
         friend class CompositorVk;
-        RenderTarget(const goldfish_vk::VulkanDispatch& vk, VkDevice vkDevice, VkImage vkImage,
+        RenderTarget(const VulkanDispatch& vk, VkDevice vkDevice, VkImage vkImage,
                      VkImageView vkImageView, uint32_t width, uint32_t height,
                      VkRenderPass vkRenderPass);
 
-        const goldfish_vk::VulkanDispatch& m_vk;
+        const VulkanDispatch& m_vk;
         VkDevice m_vkDevice;
         VkImage m_vkImage;
         VkFramebuffer m_vkFramebuffer;
@@ -230,5 +232,8 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     // Maps from borrowed image ids to render target info.
     android::base::LruCache<uint32_t, std::unique_ptr<RenderTarget>> m_renderTargetCache;
 };
+
+}  // namespace vk
+}  // namespace gfxstream
 
 #endif /* COMPOSITOR_VK_H */
