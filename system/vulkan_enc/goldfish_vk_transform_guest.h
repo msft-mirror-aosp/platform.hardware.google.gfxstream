@@ -35,7 +35,9 @@
 #include "vk_platform_compat.h"
 #include "vulkan_gfxstream.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
+
 class ResourceTracker;
 #define LIST_TRIVIAL_TRANSFORMED_TYPES(f)      \
     f(VkPhysicalDeviceExternalImageFormatInfo) \
@@ -5802,4 +5804,5 @@ void transform_fromhost_VkPhysicalDeviceRayQueryFeaturesKHR(
 
 #endif
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

@@ -38,7 +38,8 @@
 #include "vulkan_gfxstream.h"
 class IOStream;
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 using android::base::guest::HealthMonitor;
 
@@ -2149,4 +2150,5 @@ class VkEncoder {
     HealthMonitor<>* mHealthMonitor;
 };
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

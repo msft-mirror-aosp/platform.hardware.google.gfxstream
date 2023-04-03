@@ -32,7 +32,8 @@ constexpr uint64_t kHostVisibleHeapSize = 512 * kMegaBtye;     // 512 mb
 
 #include "VirtGpu.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 bool isHostVisible(const VkPhysicalDeviceMemoryProperties* memoryProps, uint32_t index);
 
@@ -66,4 +67,5 @@ class CoherentMemory {
 
 using CoherentMemoryPtr = std::shared_ptr<CoherentMemory>;
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
