@@ -20,8 +20,6 @@ endif ()
 add_subdirectory(renderdoc)
 add_subdirectory(stb)
 
-set(PROJECT_TO_FETCH)
-
 if(ENABLE_VKCEREAL_TESTS)
     set(AEMU_BASE_USE_LZ4 ON CACHE BOOL "" FORCE)
 endif()
@@ -47,7 +45,7 @@ if(NOT TARGET lz4_static AND AEMU_BASE_USE_LZ4)
             GIT_PROGRESS TRUE
             SOURCE_SUBDIR build/cmake
         )
-        list(APPEND PROJECT_TO_FETCH lz4)
+        FetchContent_MakeAvailable(lz4)
     endif()
 endif()
 
@@ -78,7 +76,7 @@ if(NOT TARGET gtest_main AND ENABLE_VKCEREAL_TESTS)
             GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
             GIT_PROGRESS TRUE
         )
-        list(APPEND PROJECT_TO_FETCH googletest)
+        FetchContent_MakeAvailable(googletest)
     endif()
 endif()
 
@@ -167,7 +165,7 @@ if(NOT TARGET aemu_common)
             GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
             GIT_PROGRESS TRUE
         )
-        list(APPEND PROJECT_TO_FETCH aemu_common)
+        FetchContent_MakeAvailable(aemu_common)
     endif()
 endif()
 
@@ -192,7 +190,7 @@ if(NOT TARGET gfxstream_vulkan_headers)
             GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
             GIT_PROGRESS TRUE
         )
-        list(APPEND PROJECT_TO_FETCH gfxstream_protocols)
+        FetchContent_MakeAvailable(gfxstream_protocols)
     endif()
 endif()
 
@@ -221,7 +219,7 @@ if(NOT TARGET flatbuffers)
             GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
             GIT_PROGRESS TRUE
         )
-        list(APPEND PROJECT_TO_FETCH flatbuffers)
+        FetchContent_MakeAvailable(flatbuffers)
     endif()
 endif()
 
@@ -246,7 +244,7 @@ if(NOT TARGET gfxstream_egl_headers)
             GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
             GIT_PROGRESS TRUE
         )
-        list(APPEND PROJECT_TO_FETCH egl)
+        FetchContent_MakeAvailable(egl)
         add_library(gfxstream_egl_headers INTERFACE)
         target_include_directories(gfxstream_egl_headers INTERFACE ${egl_SOURCE_DIR}/api)
     endif()
@@ -272,12 +270,8 @@ if(WITH_BENCHMARK)
             GIT_TAG v1.7.0
             GIT_PROGRESS TRUE
         )
-        list(APPEND PROJECT_TO_FETCH google_benchmark)
+        FetchContent_MakeAvailable(google_benchmark)
     endif()
-endif()
-
-if(PROJECT_TO_FETCH)
-    FetchContent_MakeAvailable(${PROJECT_TO_FETCH})
 endif()
 
 if(NOT TARGET aemu_common)
