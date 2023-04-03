@@ -144,7 +144,8 @@ using android::base::guest::RecursiveLock;
 using android::base::guest::Lock;
 using android::base::guest::WorkPool;
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 #define MAKE_HANDLE_MAPPING_FOREACH(type_name, map_impl, map_to_u64_impl, map_from_u64_impl) \
     void mapHandles_##type_name(type_name* handles, size_t count) override { \
@@ -8375,4 +8376,5 @@ void ResourceTracker::transformImpl_VkImageCreateInfo_tohost(const VkImageCreate
 
 LIST_TRIVIAL_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
 
-} // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
