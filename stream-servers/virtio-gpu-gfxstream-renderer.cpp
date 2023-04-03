@@ -832,6 +832,10 @@ class PipeVirglRenderer {
                 });
                 break;
             }
+            case GFXSTREAM_PLACEHOLDER_COMMAND_VK: {
+                // Do nothing, this is a placeholder command
+                break;
+            }
             default:
                 return -1;
         }
@@ -1483,16 +1487,26 @@ class PipeVirglRenderer {
                 return ret;
             }
         } else if (feature_is_enabled(kFeature_ExternalBlob)) {
-            auto descriptorInfoOpt =
-                HostmemIdMapping::get()->removeDescriptorInfo(create_blob->blob_id);
-            if (descriptorInfoOpt) {
-                e.descriptorInfo =
-                    std::make_shared<ManagedDescriptorInfo>(std::move(*descriptorInfoOpt));
-            } else {
-                return -EINVAL;
-            }
+            if (create_blob->blob_mem == STREAM_BLOB_MEM_GUEST &&
+                (create_blob->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
+                ManagedDescriptor managedHandle(handle->os_handle);
+                HostmemIdMapping::get()->addDescriptorInfo(create_blob->blob_id,
+                                                           std::move(managedHandle),
+                                                           handle->handle_type, 0, std::nullopt);
 
-            e.caching = e.descriptorInfo->caching;
+                e.caching = STREAM_RENDERER_MAP_CACHE_CACHED;
+            } else {
+                auto descriptorInfoOpt =
+                    HostmemIdMapping::get()->removeDescriptorInfo(create_blob->blob_id);
+                if (descriptorInfoOpt) {
+                    e.descriptorInfo =
+                        std::make_shared<ManagedDescriptorInfo>(std::move(*descriptorInfoOpt));
+                } else {
+                    return -EINVAL;
+                }
+
+                e.caching = e.descriptorInfo->caching;
+            }
         } else {
             auto entry = HostmemIdMapping::get()->get(create_blob->blob_id);
             e.hva = entry.hva;
