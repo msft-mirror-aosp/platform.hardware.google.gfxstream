@@ -3846,13 +3846,7 @@ class VkDecoderGlobalState::Impl {
         if (VK_SUCCESS == result) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto& bufferInfo = mCmdBufferInfo[commandBuffer];
-            bufferInfo.preprocessFuncs.clear();
-            bufferInfo.subCmds.clear();
-            bufferInfo.computePipeline = VK_NULL_HANDLE;
-            bufferInfo.firstSet = 0;
-            bufferInfo.descriptorLayout = VK_NULL_HANDLE;
-            bufferInfo.descriptorSets.clear();
-            bufferInfo.dynamicOffsets.clear();
+            bufferInfo.reset();
         }
         return result;
     }
@@ -4146,8 +4140,8 @@ class VkDecoderGlobalState::Impl {
         }
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        mCmdBufferInfo[commandBuffer].preprocessFuncs.clear();
-        mCmdBufferInfo[commandBuffer].subCmds.clear();
+        auto& bufferInfo = mCmdBufferInfo[commandBuffer];
+        bufferInfo.reset();
         return VK_SUCCESS;
     }
 
@@ -5645,6 +5639,16 @@ class VkDecoderGlobalState::Impl {
         VkPipelineLayout descriptorLayout = VK_NULL_HANDLE;
         std::vector<VkDescriptorSet> descriptorSets;
         std::vector<uint32_t> dynamicOffsets;
+
+        void reset() {
+            preprocessFuncs.clear();
+            subCmds.clear();
+            computePipeline = VK_NULL_HANDLE;
+            firstSet = 0;
+            descriptorLayout = VK_NULL_HANDLE;
+            descriptorSets.clear();
+            dynamicOffsets.clear();
+        }
     };
 
     struct CommandPoolInfo {
