@@ -26,8 +26,13 @@ global_state_prefix = "m_state->on_"
 
 decoder_decl_preamble = """
 
-class ProcessResources;
+namespace gfxstream {
 class IOStream;
+class ProcessResources;
+}  // namespace gfxstream
+
+namespace gfxstream {
+namespace vk {
 
 class VkDecoder {
 public:
@@ -40,14 +45,18 @@ private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
 };
+
+}  // namespace vk
+}  // namespace gfxstream
+
 """
 
 decoder_impl_preamble ="""
+namespace gfxstream {
+namespace vk {
+
 using android::base::MetricEventBadPacketLength;
 using android::base::MetricEventDuplicateSequenceNum;
-using emugl::vkDispatch;
-
-using namespace goldfish_vk;
 
 class VkDecoder::Impl {
 public:
@@ -103,6 +112,13 @@ size_t VkDecoder::decode(void* buf, size_t bufsize, IOStream* stream,
 
 // VkDecoder::Impl::decode to follow
 """ % (VULKAN_STREAM_TYPE, VULKAN_STREAM_TYPE)
+
+decoder_impl_postamble = """
+
+}  // namespace vk
+}  // namespace gfxstream
+
+"""
 
 READ_STREAM = "vkReadStream"
 WRITE_STREAM = "vkStream"
@@ -898,3 +914,4 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
         self.cgen.stmt("return ptr - (unsigned char*)buf;")
         self.cgen.endBlock() # function body
         self.module.appendImpl(self.cgen.swapCode())
+        self.module.appendImpl(decoder_impl_postamble)

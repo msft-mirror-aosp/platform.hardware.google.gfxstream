@@ -38,7 +38,7 @@ private:
 
 encoder_impl_preamble ="""
 
-using namespace goldfish_vk;
+using namespace gfxstream::vk;
 
 using android::base::guest::AutoLock;
 using android::base::guest::Lock;
