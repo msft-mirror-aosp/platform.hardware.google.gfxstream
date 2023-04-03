@@ -9,6 +9,9 @@
 #include <string_view>
 #include <thread>
 
+namespace gfxstream {
+namespace vk {
+
 using ::testing::A;
 using ::testing::ElementsAre;
 using ::testing::Eq;
@@ -722,3 +725,6 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, AllocBufferFailsIfReadPendi
     EXPECT_DEATH({ (void)stream.allocBuffer(kTestBufferSize); }, "")
         << "allocBuffer() should not be called while previous data is being flushed";
 }
+
+}  // namespace vk
+}  // namespace gfxstream

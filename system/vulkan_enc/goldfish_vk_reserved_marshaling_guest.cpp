@@ -37,7 +37,8 @@
 #include "goldfish_vk_extension_structs_guest.h"
 #include "goldfish_vk_private_defs.h"
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                       const void* structExtension, uint8_t** ptr);
@@ -20280,4 +20281,5 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
     }
 }
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream

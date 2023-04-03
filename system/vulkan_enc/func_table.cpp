@@ -46,7 +46,8 @@
 // implement them completely on the guest side.
 #undef VK_KHR_android_surface
 
-namespace goldfish_vk {
+namespace gfxstream {
+namespace vk {
 
 static void sOnInvalidDynamicallyCheckedCall(const char* apiname, const char* neededFeature) {
     ALOGE("invalid call to %s: %s not supported", apiname, neededFeature);
@@ -15397,4 +15398,5 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     return nullptr;
 }
 
-}  // namespace goldfish_vk
+}  // namespace vk
+}  // namespace gfxstream
