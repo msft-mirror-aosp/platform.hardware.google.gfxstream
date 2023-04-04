@@ -16,10 +16,13 @@
 
 #include <vulkan/vulkan.h>
 
+#include "VirtGpu.h"
 #include "aemu/base/AndroidSubAllocator.h"
 #include "goldfish_address_space.h"
 
-constexpr uint64_t kMegaBtye = 1048576;
+#define ALIGN(A, B) (((A) + (B)-1) & ~((B)-1))
+
+constexpr uint64_t kMegaByte = 1048576;
 
 // This needs to be a power of 2 that is at least the min alignment needed
 // in HostVisibleMemoryVirtualization.cpp.
@@ -27,10 +30,8 @@ constexpr uint64_t kMegaBtye = 1048576;
 // images.
 constexpr uint64_t kLargestPageSize = 65536;
 
-constexpr uint64_t kDefaultHostMemBlockSize = 16 * kMegaBtye;  // 16 mb
-constexpr uint64_t kHostVisibleHeapSize = 512 * kMegaBtye;     // 512 mb
-
-#include "VirtGpu.h"
+constexpr uint64_t kDefaultHostMemBlockSize = 16 * kMegaByte;  // 16 mb
+constexpr uint64_t kHostVisibleHeapSize = 512 * kMegaByte;     // 512 mb
 
 namespace gfxstream {
 namespace vk {

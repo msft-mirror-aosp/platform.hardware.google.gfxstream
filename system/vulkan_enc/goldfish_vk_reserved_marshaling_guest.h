@@ -3707,6 +3707,9 @@ void reservedmarshal_VkImportColorBufferGOOGLE(VulkanStreamGuest* vkStream,
 void reservedmarshal_VkImportBufferGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                           const VkImportBufferGOOGLE* forMarshaling, uint8_t** ptr);
 
+void reservedmarshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                        const VkCreateBlobGOOGLE* forMarshaling, uint8_t** ptr);
+
 #endif
 #ifdef VK_EXT_global_priority_query
 void reservedmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(
