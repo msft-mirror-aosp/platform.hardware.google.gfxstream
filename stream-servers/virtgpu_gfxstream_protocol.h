@@ -33,6 +33,11 @@ namespace gfxstream {
 #define GFXSTREAM_CREATE_IMPORT_SYNC_VK         0xa001
 #define GFXSTREAM_CREATE_QSRI_EXPORT_VK         0xa002
 
+// clang-format off
+// A placeholder command to ensure virtio-gpu completes
+#define GFXSTREAM_PLACEHOLDER_COMMAND_VK        0xf002
+// clang-format on
+
 struct gfxstreamHeader {
     uint32_t opCode;
 };
@@ -67,6 +72,12 @@ struct gfxstreamCreateQSRIExportVK {
     uint32_t imageHandleHi;
 };
 
+struct gfxstreamPlaceholderCommandVk {
+    struct gfxstreamHeader hdr;
+    uint32_t pad;
+    uint32_t padding;
+};
+
 struct gfxstreamCapset {
     uint32_t protocolVersion;
 
@@ -75,6 +86,8 @@ struct gfxstreamCapset {
     uint32_t bufferSize;
 
     uint32_t pad;
+    uint32_t padding[16];
+    uint32_t deferredMapping;
 };
 
 }  // namespace gfxstream
