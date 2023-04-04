@@ -3008,9 +3008,6 @@ class VkDecoderGlobalState::Impl {
         const VkImportBufferGOOGLE* importBufferInfoPtr =
             vk_find_struct<VkImportBufferGOOGLE>(pAllocateInfo);
 
-        const VkCreateBlobGOOGLE* createBlobInfoPtr =
-            vk_find_struct<VkCreateBlobGOOGLE>(pAllocateInfo);
-
 #ifdef _WIN32
         VkImportMemoryWin32HandleInfoKHR importInfo{
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR,
@@ -3264,8 +3261,7 @@ class VkDecoderGlobalState::Impl {
         // When external blobs are on, we want to map memory only if a workaround is using it in
         // the gfxstream process. This happens when ASTC CPU emulation is on.
         bool needToMap =
-            (!feature_is_enabled(kFeature_ExternalBlob) || instanceInfo->useAstcCpuDecompression) &&
-            !createBlobInfoPtr;
+            !feature_is_enabled(kFeature_ExternalBlob) || instanceInfo->useAstcCpuDecompression;
 
         // Some cases provide a mappedPtr, so we only map if we still don't have a pointer here.
         if (!mappedPtr && needToMap) {
@@ -3281,11 +3277,6 @@ class VkDecoderGlobalState::Impl {
             // Since we didn't call vkMapMemory, unmapping is not needed (don't own mappedPtr).
             memoryInfo.needUnmap = false;
             memoryInfo.ptr = mappedPtr;
-
-            if (createBlobInfoPtr) {
-                memoryInfo.blobId = createBlobInfoPtr->blobId;
-            }
-
             // Always assign the shared memory into memoryInfo. If it was used, then it will have
             // ownership transferred.
             memoryInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
@@ -3578,23 +3569,32 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    VkResult vkGetBlobInternal(VkDevice boxed_device, VkDeviceMemory memory, uint64_t hostBlobId) {
+    VkResult on_vkGetBlobGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
+                                VkDeviceMemory memory) {
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkGetMemoryHostAddressInfoGOOGLE(android::base::BumpPool* pool,
+                                                 VkDevice boxed_device, VkDeviceMemory memory,
+                                                 uint64_t* pAddress, uint64_t* pSize,
+                                                 uint64_t* pHostmemId) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         struct MemEntry entry = {0};
 
         auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-        hostBlobId = (info->blobId && !hostBlobId) ? info->blobId : hostBlobId;
-
+        hostBlobId++;
         if (feature_is_enabled(kFeature_SystemBlob) && info->sharedMemory.has_value()) {
             uint32_t handleType = STREAM_MEM_HANDLE_TYPE_SHM;
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
             HostmemIdMapping::get()->addDescriptorInfo(hostBlobId,
-                                                       info->sharedMemory->releaseHandle(),
-                                                       handleType, info->caching, std::nullopt);
+                info->sharedMemory->releaseHandle(), handleType, info->caching, std::nullopt);
+            *pHostmemId = hostBlobId;
+            *pSize = info->size;
+            *pAddress = 0;
         } else if (feature_is_enabled(kFeature_ExternalBlob)) {
             VkResult result;
             auto device = unbox_VkDevice(boxed_device);
@@ -3650,23 +3650,13 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             ManagedDescriptor managedHandle(handle);
-            HostmemIdMapping::get()->addDescriptorInfo(hostBlobId, std::move(managedHandle),
-                                                       handleType, info->caching,
-                                                       std::optional<VulkanInfo>(vulkanInfo));
-        } else if (!info->needUnmap) {
-            auto device = unbox_VkDevice(boxed_device);
-            auto vk = dispatch_VkDevice(boxed_device);
-
-            VkResult mapResult = vk->vkMapMemory(device, memory, 0, info->size, 0, &info->ptr);
-            if (mapResult != VK_SUCCESS) {
-                return VK_ERROR_OUT_OF_HOST_MEMORY;
-            }
-
-            info->needUnmap = true;
-        }
-
-        if (info->needUnmap) {
-            struct MemEntry entry = {0};
+            HostmemIdMapping::get()->addDescriptorInfo(hostBlobId,
+                std::move(managedHandle), handleType, info->caching,
+                std::optional<VulkanInfo>(vulkanInfo));
+            *pHostmemId = hostBlobId;
+            *pSize = info->size;
+            *pAddress = 0;
+        } else {
             uint64_t hva = (uint64_t)(uintptr_t)(info->ptr);
             uint64_t size = (uint64_t)(uintptr_t)(info->size);
 
@@ -3678,26 +3668,17 @@ class VkDecoderGlobalState::Impl {
             entry.size = alignedSize;
             entry.caching = info->caching;
 
-            HostmemIdMapping::get()->addMapping(hostBlobId, &entry);
+            auto id = get_emugl_vm_operations().hostmemRegister(&entry);
+
+            *pAddress = hva & (0xfff);  // Don't expose exact hva to guest
+            *pSize = alignedSize;
+            *pHostmemId = id;
+
             info->virtioGpuMapped = true;
-            info->hostmemId = hostBlobId;
+            info->hostmemId = id;
         }
 
         return VK_SUCCESS;
-    }
-
-    VkResult on_vkGetBlobGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
-                                VkDeviceMemory memory) {
-        return vkGetBlobInternal(boxed_device, memory, 0);
-    }
-
-    VkResult on_vkGetMemoryHostAddressInfoGOOGLE(android::base::BumpPool* pool,
-                                                 VkDevice boxed_device, VkDeviceMemory memory,
-                                                 uint64_t* pAddress, uint64_t* pSize,
-                                                 uint64_t* pHostmemId) {
-        hostBlobId++;
-        *pHostmemId = hostBlobId;
-        return vkGetBlobInternal(boxed_device, memory, hostBlobId);
     }
 
     VkResult on_vkFreeMemorySyncGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -5839,9 +5820,6 @@ class VkDecoderGlobalState::Impl {
         uint32_t memoryIndex = 0;
         // Set if the memory is backed by shared memory.
         std::optional<SharedMemory> sharedMemory;
-
-        // virtio-gpu blobs
-        uint64_t blobId = 0;
     };
 
     struct InstanceInfo {
