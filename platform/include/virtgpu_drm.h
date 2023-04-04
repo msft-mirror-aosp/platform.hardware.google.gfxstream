@@ -82,7 +82,6 @@ struct drm_virtgpu_execbuffer {
 #define VIRTGPU_PARAM_CROSS_DEVICE 5 /* Cross virtio-device resource sharing  */
 #define VIRTGPU_PARAM_CONTEXT_INIT 6 /* DRM_VIRTGPU_CONTEXT_INIT */
 #define VIRTGPU_PARAM_SUPPORTED_CAPSET_IDs 7 /* Bitmask of supported capability set ids */
-#define VIRTGPU_PARAM_CREATE_GUEST_HANDLE 8  /* Host OS handle can be created from guest memory. */
 
 struct drm_virtgpu_getparam {
 	__u64 param;
@@ -164,22 +163,21 @@ struct drm_virtgpu_resource_create_blob {
 #define VIRTGPU_BLOB_FLAG_USE_MAPPABLE     0x0001
 #define VIRTGPU_BLOB_FLAG_USE_SHAREABLE    0x0002
 #define VIRTGPU_BLOB_FLAG_USE_CROSS_DEVICE 0x0004
-#define VIRTGPU_BLOB_FLAG_CREATE_GUEST_HANDLE 0x0008
-    /* zero is invalid blob_mem */
-    __u32 blob_mem;
-    __u32 blob_flags;
-    __u32 bo_handle;
-    __u32 res_handle;
-    __u64 size;
+	/* zero is invalid blob_mem */
+	__u32 blob_mem;
+	__u32 blob_flags;
+	__u32 bo_handle;
+	__u32 res_handle;
+	__u64 size;
 
-    /*
-     * for 3D contexts with VIRTGPU_BLOB_MEM_HOST3D_GUEST and
-     * VIRTGPU_BLOB_MEM_HOST3D otherwise, must be zero.
-     */
-    __u32 pad;
-    __u32 cmd_size;
-    __u64 cmd;
-    __u64 blob_id;
+	/*
+	 * for 3D contexts with VIRTGPU_BLOB_MEM_HOST3D_GUEST and
+	 * VIRTGPU_BLOB_MEM_HOST3D otherwise, must be zero.
+	 */
+	__u32 pad;
+	__u32 cmd_size;
+	__u64 cmd;
+	__u64 blob_id;
 };
 
 #define VIRTGPU_CONTEXT_PARAM_CAPSET_ID       0x0001
