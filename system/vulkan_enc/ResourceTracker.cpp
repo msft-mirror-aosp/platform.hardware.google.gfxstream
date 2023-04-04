@@ -301,6 +301,7 @@ public:
 
         uint8_t* ptr = nullptr;
 
+        uint64_t blobId = 0;
         uint64_t allocationSize = 0;
         uint32_t memoryTypeIndex = 0;
         uint64_t coherentMemorySize = 0;
@@ -906,6 +907,11 @@ public:
         }
 
         return offset + size <= info.allocationSize;
+    }
+
+    void setupCaps(void) {
+        VirtGpuDevice& instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
+        mCaps = instance.getCaps();
     }
 
     void setupFeatures(const EmulatorFeatureInfo* features) {
@@ -2950,10 +2956,16 @@ public:
 
     VkResult allocateCoherentMemory(VkDevice device, const VkMemoryAllocateInfo* pAllocateInfo,
                                     VkEncoder* enc, VkDeviceMemory* pMemory) {
+        uint64_t blobId = 0;
         uint64_t offset = 0;
         uint8_t *ptr = nullptr;
         VkMemoryAllocateFlagsInfo allocFlagsInfo;
         VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
+        VkCreateBlobGOOGLE createBlobInfo;
+        VirtGpuBlobPtr guestBlob = nullptr;
+
+        memset(&createBlobInfo, 0, sizeof(struct VkCreateBlobGOOGLE));
+        createBlobInfo.sType = VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE;
 
         const VkMemoryAllocateFlagsInfo* allocFlagsInfoPtr =
             vk_find_struct<VkMemoryAllocateFlagsInfo>(pAllocateInfo);
@@ -2967,15 +2979,21 @@ public:
 
         bool dedicated = deviceAddressMemoryAllocation;
 
+        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle])
+            dedicated = true;
+
         VkMemoryAllocateInfo hostAllocationInfo = vk_make_orphan_copy(*pAllocateInfo);
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&hostAllocationInfo);
 
-        if (dedicated) {
+        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
+            hostAllocationInfo.allocationSize = ALIGN(pAllocateInfo->allocationSize, 4096);
+        } else if (dedicated) {
+            // Over-aligning to kLargestSize to some Windows drivers (b:152769369).  Can likely
+            // have host report the desired alignment.
             hostAllocationInfo.allocationSize =
-                ((pAllocateInfo->allocationSize + kLargestPageSize - 1) / kLargestPageSize);
+                ALIGN(pAllocateInfo->allocationSize, kLargestPageSize);
         } else {
-            VkDeviceSize roundedUpAllocSize =
-                kMegaBtye * ((pAllocateInfo->allocationSize + kMegaBtye - 1) / kMegaBtye);
+            VkDeviceSize roundedUpAllocSize = ALIGN(pAllocateInfo->allocationSize, kMegaByte);
             hostAllocationInfo.allocationSize = std::max(roundedUpAllocSize,
                                                          kDefaultHostMemBlockSize);
         }
@@ -2995,6 +3013,39 @@ public:
             }
         }
 
+        if (mCaps.params[kParamCreateGuestHandle]) {
+            struct VirtGpuCreateBlob createBlob = {0};
+            struct VirtGpuExecBuffer exec = {};
+            VirtGpuDevice& instance = VirtGpuDevice::getInstance();
+            struct gfxstreamPlaceholderCommandVk placeholderCmd = {};
+
+            createBlobInfo.blobId = ++mBlobId;
+            createBlobInfo.blobMem = kBlobMemGuest;
+            createBlobInfo.blobFlags = kBlobFlagCreateGuestHandle;
+            vk_append_struct(&structChainIter, &createBlobInfo);
+
+            createBlob.blobMem = kBlobMemGuest;
+            createBlob.flags = kBlobFlagCreateGuestHandle;
+            createBlob.blobId = createBlobInfo.blobId;
+            createBlob.size = hostAllocationInfo.allocationSize;
+
+            guestBlob = instance.createBlob(createBlob);
+            if (!guestBlob) return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+
+            placeholderCmd.hdr.opCode = GFXSTREAM_PLACEHOLDER_COMMAND_VK;
+            exec.command = static_cast<void*>(&placeholderCmd);
+            exec.command_size = sizeof(placeholderCmd);
+            exec.flags = kRingIdx;
+            exec.ring_idx = 1;
+            if (instance.execBuffer(exec, guestBlob)) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+            guestBlob->wait();
+        } else if (mCaps.gfxstreamCapset.deferredMapping) {
+            createBlobInfo.blobId = ++mBlobId;
+            createBlobInfo.blobMem = kBlobMemHost3d;
+            vk_append_struct(&structChainIter, &createBlobInfo);
+        }
+
         VkDeviceMemory mem = VK_NULL_HANDLE;
         VkResult host_res =
         enc->vkAllocateMemory(device, &hostAllocationInfo, nullptr,
@@ -3002,7 +3053,26 @@ public:
         if(host_res != VK_SUCCESS) {
             return host_res;
         }
+
         struct VkDeviceMemory_Info info;
+        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
+            info.allocationSize = pAllocateInfo->allocationSize;
+            info.blobId = createBlobInfo.blobId;
+        }
+
+        if (guestBlob) {
+            auto mapping = guestBlob->createMapping();
+            if (!mapping) return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+
+            auto coherentMemory = std::make_shared<CoherentMemory>(
+                mapping, hostAllocationInfo.allocationSize, device, mem);
+
+            coherentMemory->subAllocate(pAllocateInfo->allocationSize, &ptr, offset);
+            info.coherentMemoryOffset = offset;
+            info.coherentMemory = coherentMemory;
+            info.ptr = ptr;
+        }
+
         info.coherentMemorySize = hostAllocationInfo.allocationSize;
         info.memoryTypeIndex = hostAllocationInfo.memoryTypeIndex;
         info.device = device;
@@ -3013,6 +3083,12 @@ public:
             AutoLock<RecursiveLock> lock(mLock);
             info_VkDeviceMemory[mem] = info;
         }
+
+        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
+            *pMemory = mem;
+            return host_res;
+        }
+
         auto coherentMemory = createCoherentMemory(device, mem, hostAllocationInfo, enc, host_res);
         if(coherentMemory) {
             AutoLock<RecursiveLock> lock(mLock);
@@ -3044,6 +3120,9 @@ public:
         bool dedicated = allocFlagsInfoPtr &&
                          ((allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT) ||
                           (allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT));
+
+        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle])
+            dedicated = true;
 
         CoherentMemoryPtr coherentMemory = nullptr;
         uint8_t *ptr = nullptr;
@@ -3833,16 +3912,9 @@ public:
         coherentMemory = nullptr;
     }
 
-    VkResult on_vkMapMemory(
-        void*,
-        VkResult host_result,
-        VkDevice,
-        VkDeviceMemory memory,
-        VkDeviceSize offset,
-        VkDeviceSize size,
-        VkMemoryMapFlags,
-        void** ppData) {
-
+    VkResult on_vkMapMemory(void* context, VkResult host_result, VkDevice device,
+                            VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size,
+                            VkMemoryMapFlags, void** ppData) {
         if (host_result != VK_SUCCESS) {
             ALOGE("%s: Host failed to map\n", __func__);
             return host_result;
@@ -3857,6 +3929,39 @@ public:
         }
 
         auto& info = it->second;
+
+        if (info.blobId && !info.coherentMemory && !mCaps.params[kParamCreateGuestHandle]) {
+            VkEncoder* enc = (VkEncoder*)context;
+            VirtGpuBlobMappingPtr mapping;
+            VirtGpuDevice& instance = VirtGpuDevice::getInstance();
+
+            uint64_t offset;
+            uint8_t* ptr;
+
+            VkResult vkResult = enc->vkGetBlobGOOGLE(device, memory, false);
+            if (vkResult != VK_SUCCESS) return vkResult;
+
+            struct VirtGpuCreateBlob createBlob = {};
+            createBlob.blobMem = kBlobMemHost3d;
+            createBlob.flags = kBlobFlagMappable;
+            createBlob.blobId = info.blobId;
+            createBlob.size = info.coherentMemorySize;
+
+            auto blob = instance.createBlob(createBlob);
+            if (!blob) return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+
+            mapping = blob->createMapping();
+            if (!mapping) return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+
+            auto coherentMemory =
+                std::make_shared<CoherentMemory>(mapping, createBlob.size, device, memory);
+
+            coherentMemory->subAllocate(info.allocationSize, &ptr, offset);
+
+            info.coherentMemoryOffset = offset;
+            info.coherentMemory = coherentMemory;
+            info.ptr = ptr;
+        }
 
         if (!info.ptr) {
             ALOGE("%s: ptr null\n", __func__);
@@ -7250,9 +7355,12 @@ private:
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 
+    struct VirtGpuCaps mCaps;
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
     std::vector<VkExtensionProperties> mHostDeviceExtensions;
 
+    // 32 bits only for now, upper bits may be used later.
+    std::atomic<uint32_t> mBlobId = 0;
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
     int mSyncDeviceFd = -1;
 #endif
@@ -7321,6 +7429,8 @@ bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) const
 void ResourceTracker::setupFeatures(const EmulatorFeatureInfo* features) {
     mImpl->setupFeatures(features);
 }
+
+void ResourceTracker::setupCaps(void) { mImpl->setupCaps(); }
 
 void ResourceTracker::setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {
     mImpl->setThreadingCallbacks(callbacks);
