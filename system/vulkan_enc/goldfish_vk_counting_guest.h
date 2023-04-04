@@ -3417,9 +3417,6 @@ void count_VkImportColorBufferGOOGLE(uint32_t featureBits, VkStructureType rootT
 void count_VkImportBufferGOOGLE(uint32_t featureBits, VkStructureType rootType,
                                 const VkImportBufferGOOGLE* toCount, size_t* count);
 
-void count_VkCreateBlobGOOGLE(uint32_t featureBits, VkStructureType rootType,
-                              const VkCreateBlobGOOGLE* toCount, size_t* count);
-
 #endif
 #ifdef VK_EXT_global_priority_query
 void count_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(

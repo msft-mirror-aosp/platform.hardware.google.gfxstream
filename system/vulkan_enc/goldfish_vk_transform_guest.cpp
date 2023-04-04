@@ -15255,24 +15255,6 @@ void transform_fromhost_VkImportBufferGOOGLE(ResourceTracker* resourceTracker,
     }
 }
 
-void transform_tohost_VkCreateBlobGOOGLE(ResourceTracker* resourceTracker,
-                                         VkCreateBlobGOOGLE* toTransform) {
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext) {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkCreateBlobGOOGLE(ResourceTracker* resourceTracker,
-                                           VkCreateBlobGOOGLE* toTransform) {
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext) {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
 #endif
 #ifdef VK_EXT_global_priority_query
 void transform_tohost_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(
@@ -18413,11 +18395,6 @@ void transform_tohost_extension_struct(ResourceTracker* resourceTracker,
                 resourceTracker, reinterpret_cast<VkImportBufferGOOGLE*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
-            transform_tohost_VkCreateBlobGOOGLE(
-                resourceTracker, reinterpret_cast<VkCreateBlobGOOGLE*>(structExtension_out));
-            break;
-        }
 #endif
 #ifdef VK_EXT_global_priority_query
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_EXT: {
@@ -20906,11 +20883,6 @@ void transform_fromhost_extension_struct(ResourceTracker* resourceTracker,
         case VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE: {
             transform_fromhost_VkImportBufferGOOGLE(
                 resourceTracker, reinterpret_cast<VkImportBufferGOOGLE*>(structExtension_out));
-            break;
-        }
-        case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
-            transform_fromhost_VkCreateBlobGOOGLE(
-                resourceTracker, reinterpret_cast<VkCreateBlobGOOGLE*>(structExtension_out));
             break;
         }
 #endif
