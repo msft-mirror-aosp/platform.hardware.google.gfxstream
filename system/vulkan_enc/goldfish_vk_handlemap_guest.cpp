@@ -7795,14 +7795,6 @@ void handlemap_VkImportBufferGOOGLE(VulkanHandleMapping* handlemap, VkImportBuff
     }
 }
 
-void handlemap_VkCreateBlobGOOGLE(VulkanHandleMapping* handlemap, VkCreateBlobGOOGLE* toMap) {
-    (void)handlemap;
-    (void)toMap;
-    if (toMap->pNext) {
-        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
-    }
-}
-
 #endif
 #ifdef VK_EXT_global_priority_query
 void handlemap_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(
@@ -10482,11 +10474,6 @@ void handlemap_extension_struct(VulkanHandleMapping* handlemap, void* structExte
         case VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE: {
             handlemap_VkImportBufferGOOGLE(
                 handlemap, reinterpret_cast<VkImportBufferGOOGLE*>(structExtension_out));
-            break;
-        }
-        case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
-            handlemap_VkCreateBlobGOOGLE(
-                handlemap, reinterpret_cast<VkCreateBlobGOOGLE*>(structExtension_out));
             break;
         }
 #endif
