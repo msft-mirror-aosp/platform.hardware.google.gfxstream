@@ -17146,6 +17146,25 @@ void checkEqual_VkImportBufferGOOGLE(const VkImportBufferGOOGLE* a, const VkImpo
     };
 }
 
+void checkEqual_VkCreateBlobGOOGLE(const VkCreateBlobGOOGLE* a, const VkCreateBlobGOOGLE* b,
+                                   OnFailCompareFunc onFail) {
+    if (!((a->sType) == (b->sType))) {
+        onFail("a->sType (Error: Value not equal)");
+    };
+    if (a->pNext) {
+        checkEqual_extension_struct(a->pNext, b->pNext, onFail);
+    }
+    if (!((a->blobMem) == (b->blobMem))) {
+        onFail("a->blobMem (Error: Value not equal)");
+    };
+    if (!((a->blobFlags) == (b->blobFlags))) {
+        onFail("a->blobFlags (Error: Value not equal)");
+    };
+    if (!((a->blobId) == (b->blobId))) {
+        onFail("a->blobId (Error: Value not equal)");
+    };
+}
+
 #endif
 #ifdef VK_EXT_global_priority_query
 void checkEqual_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(
@@ -20884,6 +20903,12 @@ void checkEqual_extension_struct(const void* structExtension, const void* struct
             checkEqual_VkImportBufferGOOGLE(
                 reinterpret_cast<const VkImportBufferGOOGLE*>(structExtension),
                 reinterpret_cast<const VkImportBufferGOOGLE*>(structExtension2), onFail);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
+            checkEqual_VkCreateBlobGOOGLE(
+                reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension),
+                reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension2), onFail);
             break;
         }
 #endif
