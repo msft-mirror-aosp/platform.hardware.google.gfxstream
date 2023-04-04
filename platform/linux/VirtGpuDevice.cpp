@@ -42,10 +42,10 @@ VirtGpuDevice& VirtGpuDevice::getInstance(enum VirtGpuCapset capset) {
 
 VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
     struct VirtGpuParam params[] = {
-        PARAM(VIRTGPU_PARAM_3D_FEATURES),          PARAM(VIRTGPU_PARAM_CAPSET_QUERY_FIX),
-        PARAM(VIRTGPU_PARAM_RESOURCE_BLOB),        PARAM(VIRTGPU_PARAM_HOST_VISIBLE),
-        PARAM(VIRTGPU_PARAM_CROSS_DEVICE),         PARAM(VIRTGPU_PARAM_CONTEXT_INIT),
-        PARAM(VIRTGPU_PARAM_SUPPORTED_CAPSET_IDs), PARAM(VIRTGPU_PARAM_CREATE_GUEST_HANDLE),
+            PARAM(VIRTGPU_PARAM_3D_FEATURES),          PARAM(VIRTGPU_PARAM_CAPSET_QUERY_FIX),
+            PARAM(VIRTGPU_PARAM_RESOURCE_BLOB),        PARAM(VIRTGPU_PARAM_HOST_VISIBLE),
+            PARAM(VIRTGPU_PARAM_CROSS_DEVICE),         PARAM(VIRTGPU_PARAM_CONTEXT_INIT),
+            PARAM(VIRTGPU_PARAM_SUPPORTED_CAPSET_IDs),
     };
 
     int ret;
@@ -69,7 +69,6 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
         ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_GETPARAM, &get_param);
         if (ret) {
             ALOGE("virtgpu backend not enabling %s", params[i].name);
-            continue;
         }
 
         mCaps.params[i] = params[i].value;
@@ -90,7 +89,7 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
 
 
     ctx_set_params[0].param = VIRTGPU_CONTEXT_PARAM_NUM_RINGS;
-    ctx_set_params[0].value = 2;
+    ctx_set_params[0].value = 1;
     init.num_params = 1;
 
     if (capset != kCapsetNone) {
@@ -185,7 +184,6 @@ int VirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobP
 
     exec.flags = execbuffer.flags;
     exec.size = execbuffer.command_size;
-    exec.ring_idx = execbuffer.ring_idx;
     exec.command = (uint64_t)(uintptr_t)(execbuffer.command);
     exec.fence_fd = -1;
 
