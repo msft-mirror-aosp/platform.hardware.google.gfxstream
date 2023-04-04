@@ -29,7 +29,8 @@ enum VirtGpuParamId : uint32_t {
     kParamCrossDevice = 5,
     kParamContextInit = 6,
     kParamSupportedCapsetIds = 7,
-    kParamMax = 8,
+    kParamCreateGuestHandle = 8,
+    kParamMax = 9,
 };
 
 enum VirtGpuExecBufferFlags : uint32_t {
@@ -63,7 +64,8 @@ enum VirtGpuHandleType {
 enum VirtGpuBlobFlags : uint32_t {
     kBlobFlagMappable = 0x0001,
     kBlobFlagShareable = 0x0002,
-    kBlobFlagCrossDevice = 0x0004
+    kBlobFlagCrossDevice = 0x0004,
+    kBlobFlagCreateGuestHandle = 0x0008,
 };
 
 enum VirtGpuBlobMem {
@@ -80,6 +82,7 @@ struct VirtGpuExternalHandle {
 struct VirtGpuExecBuffer {
     void* command;
     uint32_t command_size;
+    uint32_t ring_idx;
     enum VirtGpuExecBufferFlags flags;
     struct VirtGpuExternalHandle handle;
 };
