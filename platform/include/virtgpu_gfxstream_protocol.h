@@ -73,8 +73,6 @@ struct gfxstreamCapset {
     uint32_t bufferSize;
 
     uint32_t pad;
-    uint32_t padding[16];
-    uint32_t deferredMapping;
 };
 
 #endif
