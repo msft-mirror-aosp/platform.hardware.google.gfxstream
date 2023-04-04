@@ -414,9 +414,8 @@ class VkDecoderGlobalState {
     VkResult on_vkGetMemoryHostAddressInfoGOOGLE(android::base::BumpPool* pool, VkDevice device,
                                                  VkDeviceMemory memory, uint64_t* pAddress,
                                                  uint64_t* pSize, uint64_t* pHostmemId);
-    VkResult on_vkGetBlobGOOGLE(android::base::BumpPool* pool, VkDevice device,
-                                VkDeviceMemory memory);
 
+    // VK_GOOGLE_gfxstream
     VkResult on_vkFreeMemorySyncGOOGLE(android::base::BumpPool* pool, VkDevice device,
                                        VkDeviceMemory memory,
                                        const VkAllocationCallbacks* pAllocator);
