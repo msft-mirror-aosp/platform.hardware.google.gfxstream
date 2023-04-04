@@ -3569,11 +3569,6 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    VkResult on_vkGetBlobGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
-                                VkDeviceMemory memory) {
-        return VK_SUCCESS;
-    }
-
     VkResult on_vkGetMemoryHostAddressInfoGOOGLE(android::base::BumpPool* pool,
                                                  VkDevice boxed_device, VkDeviceMemory memory,
                                                  uint64_t* pAddress, uint64_t* pSize,
@@ -6783,7 +6778,6 @@ VkResult VkDecoderGlobalState::on_vkMapMemoryIntoAddressSpaceGOOGLE(android::bas
                                                                     uint64_t* pAddress) {
     return mImpl->on_vkMapMemoryIntoAddressSpaceGOOGLE(pool, device, memory, pAddress);
 }
-
 VkResult VkDecoderGlobalState::on_vkGetMemoryHostAddressInfoGOOGLE(
     android::base::BumpPool* pool, VkDevice device, VkDeviceMemory memory, uint64_t* pAddress,
     uint64_t* pSize, uint64_t* pHostmemId) {
@@ -6791,11 +6785,7 @@ VkResult VkDecoderGlobalState::on_vkGetMemoryHostAddressInfoGOOGLE(
                                                       pHostmemId);
 }
 
-VkResult VkDecoderGlobalState::on_vkGetBlobGOOGLE(android::base::BumpPool* pool, VkDevice device,
-                                                  VkDeviceMemory memory) {
-    return mImpl->on_vkGetBlobGOOGLE(pool, device, memory);
-}
-
+// VK_GOOGLE_gfxstream
 VkResult VkDecoderGlobalState::on_vkFreeMemorySyncGOOGLE(android::base::BumpPool* pool,
                                                          VkDevice device, VkDeviceMemory memory,
                                                          const VkAllocationCallbacks* pAllocator) {

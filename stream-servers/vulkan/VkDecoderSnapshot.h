@@ -2682,9 +2682,6 @@ class VkDecoderSnapshot {
                                                  VkCommandBuffer commandBuffer,
                                                  VkDeviceMemory deviceMemory,
                                                  VkDeviceSize dataOffset, VkDeviceSize dataSize);
-    void vkGetBlobGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                         VkDeviceMemory memory);
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
