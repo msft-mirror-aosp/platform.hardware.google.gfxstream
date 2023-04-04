@@ -377,7 +377,6 @@ int CloseDevice(struct hw_device_t* /*device*/) {
     }; \
     gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks); \
     gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
-    gfxstream::vk::ResourceTracker::get()->setupCaps();                                    \
     gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess()); \
     auto hostSupportsVulkan = gfxstream::vk::ResourceTracker::get()->hostSupportsVulkan(); \
     gfxstream::vk::VkEncoder *vkEnc = hostCon->vkEncoder(); \
