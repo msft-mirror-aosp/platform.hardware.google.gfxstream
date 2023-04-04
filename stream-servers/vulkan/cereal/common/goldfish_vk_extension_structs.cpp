@@ -1554,6 +1554,10 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
                     return sizeof(VkPhysicalDeviceFragmentDensityMapPropertiesEXT);
                     break;
                 }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    return sizeof(VkCreateBlobGOOGLE);
+                    break;
+                }
                 default: {
                     return sizeof(VkPhysicalDeviceFragmentDensityMapPropertiesEXT);
                     break;
@@ -1939,6 +1943,9 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         }
         case VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE: {
             return sizeof(VkImportBufferGOOGLE);
+        }
+        case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
+            return sizeof(VkCreateBlobGOOGLE);
         }
 #endif
 #ifdef VK_EXT_global_priority_query
@@ -2979,6 +2986,10 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
                     return sizeof(VkPhysicalDeviceFragmentDensityMapPropertiesEXT);
                     break;
                 }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    return sizeof(VkCreateBlobGOOGLE);
+                    break;
+                }
                 default: {
                     return sizeof(VkPhysicalDeviceFragmentDensityMapPropertiesEXT);
                     break;
@@ -3364,6 +3375,9 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE: {
             return sizeof(VkImportBufferGOOGLE);
+        }
+        case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
+            return sizeof(VkCreateBlobGOOGLE);
         }
 #endif
 #ifdef VK_EXT_global_priority_query

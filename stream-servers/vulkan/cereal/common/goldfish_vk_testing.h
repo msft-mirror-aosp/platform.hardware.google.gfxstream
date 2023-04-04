@@ -3532,6 +3532,9 @@ void checkEqual_VkImportColorBufferGOOGLE(const VkImportColorBufferGOOGLE* a,
 void checkEqual_VkImportBufferGOOGLE(const VkImportBufferGOOGLE* a, const VkImportBufferGOOGLE* b,
                                      OnFailCompareFunc onFail);
 
+void checkEqual_VkCreateBlobGOOGLE(const VkCreateBlobGOOGLE* a, const VkCreateBlobGOOGLE* b,
+                                   OnFailCompareFunc onFail);
+
 #endif
 #ifdef VK_EXT_global_priority_query
 void checkEqual_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(

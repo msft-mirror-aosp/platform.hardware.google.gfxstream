@@ -3770,6 +3770,9 @@ void deepcopy_VkImportColorBufferGOOGLE(Allocator* alloc, VkStructureType rootTy
 void deepcopy_VkImportBufferGOOGLE(Allocator* alloc, VkStructureType rootType,
                                    const VkImportBufferGOOGLE* from, VkImportBufferGOOGLE* to);
 
+void deepcopy_VkCreateBlobGOOGLE(Allocator* alloc, VkStructureType rootType,
+                                 const VkCreateBlobGOOGLE* from, VkCreateBlobGOOGLE* to);
+
 #endif
 #ifdef VK_EXT_global_priority_query
 void deepcopy_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(
