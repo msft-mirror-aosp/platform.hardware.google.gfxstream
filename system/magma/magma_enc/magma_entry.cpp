@@ -22,16 +22,19 @@ extern "C" {
 	magma_status_t magma_connection_perform_buffer_op(magma_connection_t connection, magma_buffer_t buffer, uint32_t options, uint64_t start_offset, uint64_t length);
 	magma_status_t magma_connection_map_buffer(magma_connection_t connection, uint64_t hw_va, magma_buffer_t buffer, uint64_t offset, uint64_t length, uint64_t map_flags);
 	void magma_connection_unmap_buffer(magma_connection_t connection, uint64_t hw_va, magma_buffer_t buffer);
-	magma_status_t magma_connection_execute_command(uint64_t* parameters, uint64_t parameter_count);
-	magma_status_t magma_connection_execute_immediate_commands(uint64_t* parameters, uint64_t parameter_count);
+	magma_status_t magma_connection_execute_command(magma_connection_t connection, uint32_t context_id, magma_command_descriptor_t* descriptor);
+	magma_status_t magma_connection_execute_command_fudge(magma_connection_t connection, uint32_t context_id, void* descriptor, uint64_t descriptor_size);
+	magma_status_t magma_connection_execute_immediate_commands(magma_connection_t connection, uint32_t context_id, uint64_t command_count, magma_inline_command_buffer_t* command_buffers);
+	magma_status_t magma_connection_execute_immediate_commands_fudge(magma_connection_t connection, uint32_t context_id, uint64_t command_count, void* command_buffers, uint64_t command_buffers_size, uint64_t* command_buffer_offsets);
 	magma_status_t magma_connection_flush(magma_connection_t connection);
 	magma_handle_t magma_connection_get_notification_channel_handle(magma_connection_t connection);
 	magma_status_t magma_connection_read_notification_channel(magma_connection_t connection, void* buffer, uint64_t buffer_size, uint64_t* buffer_size_out, magma_bool_t* more_data_out);
 	magma_status_t magma_buffer_clean_cache(magma_buffer_t buffer, uint64_t offset, uint64_t size, magma_cache_operation_t operation);
 	magma_status_t magma_buffer_set_cache_policy(magma_buffer_t buffer, magma_cache_policy_t policy);
 	magma_status_t magma_buffer_get_cache_policy(magma_buffer_t buffer, magma_cache_policy_t* cache_policy_out);
-	magma_status_t magma_buffer_set_name(magma_buffer_t buffer, void* name, uint64_t name_size);
-	magma_status_t magma_buffer_get_info(uint64_t* parameters, uint64_t parameter_count);
+	magma_status_t magma_buffer_set_name(magma_buffer_t buffer, const char* name);
+	magma_status_t magma_buffer_set_name_fudge(magma_buffer_t buffer, void* name, uint64_t name_size);
+	magma_status_t magma_buffer_get_info(magma_buffer_t buffer, magma_buffer_info_t* info_out);
 	magma_status_t magma_buffer_get_handle(magma_buffer_t buffer, magma_handle_t* handle_out);
 	magma_status_t magma_buffer_export(magma_buffer_t buffer, magma_handle_t* buffer_handle_out);
 	void magma_semaphore_signal(magma_semaphore_t semaphore);
@@ -44,13 +47,13 @@ extern "C" {
 	magma_status_t magma_connection_enable_performance_counters(magma_connection_t connection, uint64_t* counters, uint64_t counters_count);
 	magma_status_t magma_connection_create_performance_counter_buffer_pool(magma_connection_t connection, magma_perf_count_pool_t* pool_id_out, magma_handle_t* notification_handle_out);
 	magma_status_t magma_connection_release_performance_counter_buffer_pool(magma_connection_t connection, magma_perf_count_pool_t pool_id);
-	magma_status_t magma_connection_add_performance_counter_buffer_offsets_to_pool(uint64_t* parameters, uint64_t parameter_count);
+	magma_status_t magma_connection_add_performance_counter_buffer_offsets_to_pool(magma_connection_t connection, magma_perf_count_pool_t pool_id, const magma_buffer_offset_t* offsets, uint64_t offsets_count);
 	magma_status_t magma_connection_remove_performance_counter_buffer_from_pool(magma_connection_t connection, magma_perf_count_pool_t pool_id, magma_buffer_t buffer);
 	magma_status_t magma_connection_dump_performance_counters(magma_connection_t connection, magma_perf_count_pool_t pool_id, uint32_t trigger_id);
 	magma_status_t magma_connection_clear_performance_counters(magma_connection_t connection, uint64_t* counters, uint64_t counters_count);
 	magma_status_t magma_connection_read_performance_counter_completion(magma_connection_t connection, magma_perf_count_pool_t pool_id, uint32_t* trigger_id_out, uint64_t* buffer_id_out, uint32_t* buffer_offset_out, uint64_t* time_out, uint32_t* result_flags_out);
-	magma_status_t magma_virt_connection_create_image(uint64_t* parameters, uint64_t parameter_count);
-	magma_status_t magma_virt_connection_get_image_info(uint64_t* parameters, uint64_t parameter_count);
+	magma_status_t magma_virt_connection_create_image(magma_connection_t connection, magma_image_create_info_t* create_info, uint64_t* size_out, magma_buffer_t* image_out, magma_buffer_id_t* buffer_id_out);
+	magma_status_t magma_virt_connection_get_image_info(magma_connection_t connection, magma_buffer_t image, magma_image_info_t* image_info_out);
 };
 
 #ifndef GET_CONTEXT
@@ -161,16 +164,28 @@ void magma_connection_unmap_buffer(magma_connection_t connection, uint64_t hw_va
 	ctx->magma_connection_unmap_buffer(ctx, connection, hw_va, buffer);
 }
 
-magma_status_t magma_connection_execute_command(uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_connection_execute_command(magma_connection_t connection, uint32_t context_id, magma_command_descriptor_t* descriptor)
 {
 	GET_CONTEXT;
-	return ctx->magma_connection_execute_command(ctx, parameters, parameter_count);
+	return ctx->magma_connection_execute_command(ctx, connection, context_id, descriptor);
 }
 
-magma_status_t magma_connection_execute_immediate_commands(uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_connection_execute_command_fudge(magma_connection_t connection, uint32_t context_id, void* descriptor, uint64_t descriptor_size)
 {
 	GET_CONTEXT;
-	return ctx->magma_connection_execute_immediate_commands(ctx, parameters, parameter_count);
+	return ctx->magma_connection_execute_command_fudge(ctx, connection, context_id, descriptor, descriptor_size);
+}
+
+magma_status_t magma_connection_execute_immediate_commands(magma_connection_t connection, uint32_t context_id, uint64_t command_count, magma_inline_command_buffer_t* command_buffers)
+{
+	GET_CONTEXT;
+	return ctx->magma_connection_execute_immediate_commands(ctx, connection, context_id, command_count, command_buffers);
+}
+
+magma_status_t magma_connection_execute_immediate_commands_fudge(magma_connection_t connection, uint32_t context_id, uint64_t command_count, void* command_buffers, uint64_t command_buffers_size, uint64_t* command_buffer_offsets)
+{
+	GET_CONTEXT;
+	return ctx->magma_connection_execute_immediate_commands_fudge(ctx, connection, context_id, command_count, command_buffers, command_buffers_size, command_buffer_offsets);
 }
 
 magma_status_t magma_connection_flush(magma_connection_t connection)
@@ -209,16 +224,22 @@ magma_status_t magma_buffer_get_cache_policy(magma_buffer_t buffer, magma_cache_
 	return ctx->magma_buffer_get_cache_policy(ctx, buffer, cache_policy_out);
 }
 
-magma_status_t magma_buffer_set_name(magma_buffer_t buffer, void* name, uint64_t name_size)
+magma_status_t magma_buffer_set_name(magma_buffer_t buffer, const char* name)
 {
 	GET_CONTEXT;
-	return ctx->magma_buffer_set_name(ctx, buffer, name, name_size);
+	return ctx->magma_buffer_set_name(ctx, buffer, name);
 }
 
-magma_status_t magma_buffer_get_info(uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_buffer_set_name_fudge(magma_buffer_t buffer, void* name, uint64_t name_size)
 {
 	GET_CONTEXT;
-	return ctx->magma_buffer_get_info(ctx, parameters, parameter_count);
+	return ctx->magma_buffer_set_name_fudge(ctx, buffer, name, name_size);
+}
+
+magma_status_t magma_buffer_get_info(magma_buffer_t buffer, magma_buffer_info_t* info_out)
+{
+	GET_CONTEXT;
+	return ctx->magma_buffer_get_info(ctx, buffer, info_out);
 }
 
 magma_status_t magma_buffer_get_handle(magma_buffer_t buffer, magma_handle_t* handle_out)
@@ -293,10 +314,10 @@ magma_status_t magma_connection_release_performance_counter_buffer_pool(magma_co
 	return ctx->magma_connection_release_performance_counter_buffer_pool(ctx, connection, pool_id);
 }
 
-magma_status_t magma_connection_add_performance_counter_buffer_offsets_to_pool(uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_connection_add_performance_counter_buffer_offsets_to_pool(magma_connection_t connection, magma_perf_count_pool_t pool_id, const magma_buffer_offset_t* offsets, uint64_t offsets_count)
 {
 	GET_CONTEXT;
-	return ctx->magma_connection_add_performance_counter_buffer_offsets_to_pool(ctx, parameters, parameter_count);
+	return ctx->magma_connection_add_performance_counter_buffer_offsets_to_pool(ctx, connection, pool_id, offsets, offsets_count);
 }
 
 magma_status_t magma_connection_remove_performance_counter_buffer_from_pool(magma_connection_t connection, magma_perf_count_pool_t pool_id, magma_buffer_t buffer)
@@ -323,15 +344,15 @@ magma_status_t magma_connection_read_performance_counter_completion(magma_connec
 	return ctx->magma_connection_read_performance_counter_completion(ctx, connection, pool_id, trigger_id_out, buffer_id_out, buffer_offset_out, time_out, result_flags_out);
 }
 
-magma_status_t magma_virt_connection_create_image(uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_virt_connection_create_image(magma_connection_t connection, magma_image_create_info_t* create_info, uint64_t* size_out, magma_buffer_t* image_out, magma_buffer_id_t* buffer_id_out)
 {
 	GET_CONTEXT;
-	return ctx->magma_virt_connection_create_image(ctx, parameters, parameter_count);
+	return ctx->magma_virt_connection_create_image(ctx, connection, create_info, size_out, image_out, buffer_id_out);
 }
 
-magma_status_t magma_virt_connection_get_image_info(uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_virt_connection_get_image_info(magma_connection_t connection, magma_buffer_t image, magma_image_info_t* image_info_out)
 {
 	GET_CONTEXT;
-	return ctx->magma_virt_connection_get_image_info(ctx, parameters, parameter_count);
+	return ctx->magma_virt_connection_get_image_info(ctx, connection, image, image_info_out);
 }
 
