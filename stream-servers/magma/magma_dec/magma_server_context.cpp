@@ -28,7 +28,9 @@ int magma_server_context_t::initDispatchByName(void *(*getProc)(const char *, vo
 	magma_connection_map_buffer = (magma_connection_map_buffer_server_proc_t) getProc("magma_connection_map_buffer", userData);
 	magma_connection_unmap_buffer = (magma_connection_unmap_buffer_server_proc_t) getProc("magma_connection_unmap_buffer", userData);
 	magma_connection_execute_command = (magma_connection_execute_command_server_proc_t) getProc("magma_connection_execute_command", userData);
+	magma_connection_execute_command_fudge = (magma_connection_execute_command_fudge_server_proc_t) getProc("magma_connection_execute_command_fudge", userData);
 	magma_connection_execute_immediate_commands = (magma_connection_execute_immediate_commands_server_proc_t) getProc("magma_connection_execute_immediate_commands", userData);
+	magma_connection_execute_immediate_commands_fudge = (magma_connection_execute_immediate_commands_fudge_server_proc_t) getProc("magma_connection_execute_immediate_commands_fudge", userData);
 	magma_connection_flush = (magma_connection_flush_server_proc_t) getProc("magma_connection_flush", userData);
 	magma_connection_get_notification_channel_handle = (magma_connection_get_notification_channel_handle_server_proc_t) getProc("magma_connection_get_notification_channel_handle", userData);
 	magma_connection_read_notification_channel = (magma_connection_read_notification_channel_server_proc_t) getProc("magma_connection_read_notification_channel", userData);
@@ -36,6 +38,7 @@ int magma_server_context_t::initDispatchByName(void *(*getProc)(const char *, vo
 	magma_buffer_set_cache_policy = (magma_buffer_set_cache_policy_server_proc_t) getProc("magma_buffer_set_cache_policy", userData);
 	magma_buffer_get_cache_policy = (magma_buffer_get_cache_policy_server_proc_t) getProc("magma_buffer_get_cache_policy", userData);
 	magma_buffer_set_name = (magma_buffer_set_name_server_proc_t) getProc("magma_buffer_set_name", userData);
+	magma_buffer_set_name_fudge = (magma_buffer_set_name_fudge_server_proc_t) getProc("magma_buffer_set_name_fudge", userData);
 	magma_buffer_get_info = (magma_buffer_get_info_server_proc_t) getProc("magma_buffer_get_info", userData);
 	magma_buffer_get_handle = (magma_buffer_get_handle_server_proc_t) getProc("magma_buffer_get_handle", userData);
 	magma_buffer_export = (magma_buffer_export_server_proc_t) getProc("magma_buffer_export", userData);
