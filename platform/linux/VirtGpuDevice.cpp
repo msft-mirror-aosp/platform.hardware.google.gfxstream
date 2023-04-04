@@ -53,8 +53,6 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
     struct drm_virtgpu_context_init init = {0};
     struct drm_virtgpu_context_set_param ctx_set_params[2] = {{0}};
 
-    memset(&mCaps, 0, sizeof(struct VirtGpuCaps));
-
     mDeviceHandle = static_cast<int64_t>(drmOpenRender(128));
     if (mDeviceHandle < 0) {
         ALOGE("Failed to open rendernode: %s", strerror(errno));
@@ -71,13 +69,13 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
             ALOGE("virtgpu backend not enabling %s", params[i].name);
         }
 
-        mCaps.params[i] = params[i].value;
+        mParams[i] = params[i];
     }
 
     get_caps.cap_set_id = static_cast<uint32_t>(capset);
     if (capset == kCapsetGfxStream) {
         get_caps.size = sizeof(struct gfxstreamCapset);
-        get_caps.addr = (unsigned long long)&mCaps.gfxstreamCapset;
+        get_caps.addr = (unsigned long long)&mGfxstreamCapset;
     }
 
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_GET_CAPS, &get_caps);
@@ -106,7 +104,14 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
     }
 }
 
-struct VirtGpuCaps VirtGpuDevice::getCaps(void) { return mCaps; }
+uint64_t VirtGpuDevice::getParam(enum VirtGpuParamId param) {
+    if (param >= kParamMax) {
+        ALOGE("Invalid parameter");
+        return false;
+    }
+
+    return mParams[param].value;
+}
 
 int64_t VirtGpuDevice::getDeviceHandle(void) {
     return mDeviceHandle;

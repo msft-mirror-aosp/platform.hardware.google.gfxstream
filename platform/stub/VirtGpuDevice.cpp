@@ -25,7 +25,9 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
     // Unimplemented stub
 }
 
-struct VirtGpuCaps VirtGpuDevice::getCaps(void) { return mCaps; }
+uint64_t VirtGpuDevice::getParam(enum VirtGpuParamId param) {
+    return 0;
+}
 
 int64_t VirtGpuDevice::getDeviceHandle(void) {
     return mDeviceHandle;
