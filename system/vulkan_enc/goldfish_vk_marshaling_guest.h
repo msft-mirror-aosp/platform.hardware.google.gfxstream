@@ -6682,6 +6682,12 @@ void marshal_VkImportBufferGOOGLE(VulkanStreamGuest* vkStream, VkStructureType r
 void unmarshal_VkImportBufferGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                     VkImportBufferGOOGLE* forUnmarshaling);
 
+void marshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                const VkCreateBlobGOOGLE* forMarshaling);
+
+void unmarshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                  VkCreateBlobGOOGLE* forUnmarshaling);
+
 #define OP_vkMapMemoryIntoAddressSpaceGOOGLE 20317
 #define OP_vkUpdateDescriptorSetWithTemplateSizedGOOGLE 20320
 #define OP_vkBeginCommandBufferAsyncGOOGLE 20321
@@ -6703,6 +6709,7 @@ void unmarshal_VkImportBufferGOOGLE(VulkanStreamGuest* vkStream, VkStructureType
 #define OP_vkCollectDescriptorPoolIdsGOOGLE 213659202
 #define OP_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE 243985229
 #define OP_vkQueueFlushCommandsFromAuxMemoryGOOGLE 290633483
+#define OP_vkGetBlobGOOGLE 20341
 #endif
 #ifdef VK_EXT_global_priority_query
 void marshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(

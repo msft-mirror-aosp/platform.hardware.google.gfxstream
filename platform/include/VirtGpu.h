@@ -21,15 +21,16 @@
 
 #include "virtgpu_gfxstream_protocol.h"
 
-enum VirtGpuParamId {
-    kParam3D,
-    kParamCapsetFix,
-    kParamResourceBlob,
-    kParamHostVisible,
-    kParamCrossDevice,
-    kParamContextInit,
-    kParamSupportedCapsetIds,
-    kParamMax
+enum VirtGpuParamId : uint32_t {
+    kParam3D = 1,
+    kParamCapsetFix = 2,
+    kParamResourceBlob = 3,
+    kParamHostVisible = 4,
+    kParamCrossDevice = 5,
+    kParamContextInit = 6,
+    kParamSupportedCapsetIds = 7,
+    kParamCreateGuestHandle = 8,
+    kParamMax = 9,
 };
 
 enum VirtGpuExecBufferFlags : uint32_t {
@@ -63,7 +64,8 @@ enum VirtGpuHandleType {
 enum VirtGpuBlobFlags : uint32_t {
     kBlobFlagMappable = 0x0001,
     kBlobFlagShareable = 0x0002,
-    kBlobFlagCrossDevice = 0x0004
+    kBlobFlagCrossDevice = 0x0004,
+    kBlobFlagCreateGuestHandle = 0x0008,
 };
 
 enum VirtGpuBlobMem {
@@ -80,6 +82,7 @@ struct VirtGpuExternalHandle {
 struct VirtGpuExecBuffer {
     void* command;
     uint32_t command_size;
+    uint32_t ring_idx;
     enum VirtGpuExecBufferFlags flags;
     struct VirtGpuExternalHandle handle;
 };
@@ -95,6 +98,11 @@ struct VirtGpuCreateBlob {
     enum VirtGpuBlobFlags flags;
     enum VirtGpuBlobMem blobMem;
     uint64_t blobId;
+};
+
+struct VirtGpuCaps {
+    uint64_t params[kParamMax];
+    struct gfxstreamCapset gfxstreamCapset;
 };
 
 class VirtGpuBlobMapping;
@@ -142,7 +150,7 @@ class VirtGpuDevice {
     static VirtGpuDevice& getInstance(enum VirtGpuCapset capset = kCapsetNone);
     int64_t getDeviceHandle(void);
 
-    uint64_t getParam(enum VirtGpuParamId param);
+    struct VirtGpuCaps getCaps(void);
 
     VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate);
     VirtGpuBlobPtr createPipeBlob(uint32_t size);
@@ -158,8 +166,8 @@ class VirtGpuDevice {
 
     static VirtGpuDevice mInstance;
     int64_t mDeviceHandle;
-    struct VirtGpuParam mParams[kParamMax];
-    struct gfxstreamCapset mGfxstreamCapset;
+
+    struct VirtGpuCaps mCaps;
 };
 
 // HACK: We can use android::base::EnumFlags, but we'll have to do more guest

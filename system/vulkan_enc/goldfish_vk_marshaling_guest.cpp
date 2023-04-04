@@ -24877,6 +24877,33 @@ void unmarshal_VkImportBufferGOOGLE(VulkanStreamGuest* vkStream, VkStructureType
     vkStream->read((uint32_t*)&forUnmarshaling->buffer, sizeof(uint32_t));
 }
 
+void marshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                const VkCreateBlobGOOGLE* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((uint32_t*)&forMarshaling->blobMem, sizeof(uint32_t));
+    vkStream->write((uint32_t*)&forMarshaling->blobFlags, sizeof(uint32_t));
+    vkStream->write((uint64_t*)&forMarshaling->blobId, sizeof(uint64_t));
+}
+
+void unmarshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                  VkCreateBlobGOOGLE* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    forUnmarshaling->sType = VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    vkStream->read((uint32_t*)&forUnmarshaling->blobMem, sizeof(uint32_t));
+    vkStream->read((uint32_t*)&forUnmarshaling->blobFlags, sizeof(uint32_t));
+    vkStream->read((uint64_t*)&forUnmarshaling->blobId, sizeof(uint64_t));
+}
+
 #endif
 #ifdef VK_EXT_global_priority_query
 void marshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(
@@ -27988,6 +28015,12 @@ void marshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType rootT
                             structExtension));
                     break;
                 }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    marshal_VkCreateBlobGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension));
+                    break;
+                }
                 default: {
                     marshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
                         vkStream, rootType,
@@ -28705,6 +28738,11 @@ void marshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType rootT
         case VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE: {
             marshal_VkImportBufferGOOGLE(
                 vkStream, rootType, reinterpret_cast<const VkImportBufferGOOGLE*>(structExtension));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
+            marshal_VkCreateBlobGOOGLE(
+                vkStream, rootType, reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension));
             break;
         }
 #endif
@@ -30665,6 +30703,12 @@ void unmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType roo
                             structExtension_out));
                     break;
                 }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    unmarshal_VkCreateBlobGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<VkCreateBlobGOOGLE*>(structExtension_out));
+                    break;
+                }
                 default: {
                     unmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
                         vkStream, rootType,
@@ -31373,6 +31417,11 @@ void unmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType roo
         case VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE: {
             unmarshal_VkImportBufferGOOGLE(
                 vkStream, rootType, reinterpret_cast<VkImportBufferGOOGLE*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
+            unmarshal_VkCreateBlobGOOGLE(
+                vkStream, rootType, reinterpret_cast<VkCreateBlobGOOGLE*>(structExtension_out));
             break;
         }
 #endif
@@ -32596,6 +32645,9 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_GOOGLE_gfxstream
         case OP_vkQueueFlushCommandsGOOGLE: {
             return "OP_vkQueueFlushCommandsGOOGLE";
+        }
+        case OP_vkGetBlobGOOGLE: {
+            return "OP_vkGetBlobGOOGLE";
         }
 #endif
 #ifdef VK_KHR_dynamic_rendering
