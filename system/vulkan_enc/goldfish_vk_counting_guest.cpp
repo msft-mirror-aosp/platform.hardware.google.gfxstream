@@ -13756,6 +13756,22 @@ void count_VkImportBufferGOOGLE(uint32_t featureBits, VkStructureType rootType,
     *count += sizeof(uint32_t);
 }
 
+void count_VkCreateBlobGOOGLE(uint32_t featureBits, VkStructureType rootType,
+                              const VkCreateBlobGOOGLE* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+    *count += sizeof(uint32_t);
+    *count += sizeof(uint64_t);
+}
+
 #endif
 #ifdef VK_EXT_global_priority_query
 void count_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(
@@ -16462,6 +16478,12 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
                         count);
                     break;
                 }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    count_VkCreateBlobGOOGLE(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension), count);
+                    break;
+                }
                 default: {
                     count_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
                         featureBits, rootType,
@@ -17257,6 +17279,12 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
             count_VkImportBufferGOOGLE(
                 featureBits, rootType,
                 reinterpret_cast<const VkImportBufferGOOGLE*>(structExtension), count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
+            count_VkCreateBlobGOOGLE(featureBits, rootType,
+                                     reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension),
+                                     count);
             break;
         }
 #endif

@@ -60930,6 +60930,99 @@ void VkEncoder::vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
+VkResult VkEncoder::vkGetBlobGOOGLE(VkDevice device, VkDeviceMemory memory, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkGetBlobGOOGLE in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG("vkGetBlobGOOGLE(device:%p, memory:%p)", device, memory);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkDeviceMemory local_memory;
+    local_device = device;
+    local_memory = memory;
+    sResourceTracker->deviceMemoryTransform_tohost(
+        (VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0,
+        (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+    }
+    uint32_t packetSize_vkGetBlobGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkGetBlobGOOGLE);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkGetBlobGOOGLE);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkGetBlobGOOGLE = OP_vkGetBlobGOOGLE;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkGetBlobGOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkGetBlobGOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkDeviceMemory((*&local_memory));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    if (watchdog) {
+        size_t watchdogBufSize =
+            std::min<size_t>(static_cast<size_t>(packetSize_vkGetBlobGOOGLE), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    VkResult vkGetBlobGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkGetBlobGOOGLE_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkGetBlobGOOGLE_VkResult_return;
+}
+
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif

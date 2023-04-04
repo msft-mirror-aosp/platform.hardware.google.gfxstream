@@ -2885,6 +2885,8 @@ void handlemap_VkImportColorBufferGOOGLE(VulkanHandleMapping* handlemap,
 
 void handlemap_VkImportBufferGOOGLE(VulkanHandleMapping* handlemap, VkImportBufferGOOGLE* toMap);
 
+void handlemap_VkCreateBlobGOOGLE(VulkanHandleMapping* handlemap, VkCreateBlobGOOGLE* toMap);
+
 #endif
 #ifdef VK_EXT_global_priority_query
 void handlemap_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(
