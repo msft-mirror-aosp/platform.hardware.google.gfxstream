@@ -10,6 +10,16 @@
 # Top-level for all modules
 GOLDFISH_OPENGL_PATH := $(call my-dir)
 
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+ENABLE_GOLDFISH_OPENGL_FOLDER := true
+else
+ifneq ($(filter $(GOLDFISH_OPENGL_PATH),$(PRODUCT_SOONG_NAMESPACES)),)
+ENABLE_GOLDFISH_OPENGL_FOLDER := true
+endif
+endif
+
+ifeq (true,$(ENABLE_GOLDFISH_OPENGL_FOLDER))
+
 # There are two kinds of builds for goldfish-opengl:
 # 1. The standard guest build, denoted by BUILD_EMULATOR_OPENGL
 # 2. The host-side build, denoted by GOLDFISH_OPENGL_BUILD_FOR_HOST
@@ -181,3 +191,5 @@ endif
 ifeq (true,$(GFXSTREAM)) # Vulkan lib tests
     include $(GOLDFISH_OPENGL_PATH)/system/vulkan_enc_unit_tests/Android.mk
 endif
+
+endif # ENABLE_GOLDFISH_OPENGL_FOLDER
