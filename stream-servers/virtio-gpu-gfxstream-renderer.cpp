@@ -602,7 +602,6 @@ class PipeVirglRenderer {
 
     int createContext(VirtioGpuCtxId ctx_id, uint32_t nlen, const char* name,
                       uint32_t context_init) {
-        AutoLock lock(mLock);
 
         std::string contextName(name, nlen);
 
@@ -634,7 +633,6 @@ class PipeVirglRenderer {
     }
 
     int destroyContext(VirtioGpuCtxId handle) {
-        AutoLock lock(mLock);
         VGPLOG("ctxid: %u", handle);
 
         auto it = mContexts.find(handle);
@@ -734,14 +732,11 @@ class PipeVirglRenderer {
                 };
 
                 mAddressSpaceDeviceControlOps->create_instance(createInfo);
-                AutoLock lock(mLock);
                 setContextAddressSpaceHandleLocked(ctxId, handle, contextCreate.resourceId);
                 break;
             }
             case GFXSTREAM_CONTEXT_PING: {
                 DECODE(contextPing, gfxstream::gfxstreamContextPing, dwords)
-
-                AutoLock lock(mLock);
 
                 struct android::emulation::AddressSpaceDevicePingInfo ping = {0};
                 ping.metadata = ASG_NOTIFY_AVAILABLE;
@@ -876,7 +871,6 @@ class PipeVirglRenderer {
             // VIRGL_RENDERER_UNSTABLE_APIS defined.
             return -EINVAL;
         }
-        AutoLock lock(mLock);
         mVirtioGpuTimelines->enqueueFence(ring, fence_id, callback);
 
         return 0;
@@ -991,13 +985,11 @@ class PipeVirglRenderer {
         e.type = resType;
         allocResource(e, iov, num_iovs);
 
-        AutoLock lock(mLock);
         mResources[args->handle] = e;
         return 0;
     }
 
     void unrefResource(uint32_t toUnrefId) {
-        AutoLock lock(mLock);
         VGPLOG("handle: %u", toUnrefId);
 
         auto it = mResources.find(toUnrefId);
@@ -1047,7 +1039,6 @@ class PipeVirglRenderer {
     }
 
     int attachIov(int resId, iovec* iov, int num_iovs) {
-        AutoLock lock(mLock);
 
         VGPLOG("resid: %d numiovs: %d", resId, num_iovs);
 
@@ -1063,7 +1054,6 @@ class PipeVirglRenderer {
     }
 
     void detachIov(int resId, iovec** iov, int* num_iovs) {
-        AutoLock lock(mLock);
 
         auto it = mResources.find(resId);
         if (it == mResources.end()) return;
@@ -1233,7 +1223,6 @@ class PipeVirglRenderer {
 
     int transferReadIov(int resId, uint64_t offset, virgl_box* box, struct iovec* iov,
                         int iovec_cnt) {
-        AutoLock lock(mLock);
 
         VGPLOG("resid: %d offset: 0x%llx. box: %u %u %u %u", resId, (unsigned long long)offset,
                box->x, box->y, box->w, box->h);
@@ -1277,7 +1266,6 @@ class PipeVirglRenderer {
 
     int transferWriteIov(int resId, uint64_t offset, virgl_box* box, struct iovec* iov,
                          int iovec_cnt) {
-        AutoLock lock(mLock);
         VGPLOG("resid: %d offset: 0x%llx", resId, (unsigned long long)offset);
         auto it = mResources.find(resId);
         if (it == mResources.end()) return EINVAL;
@@ -1332,7 +1320,6 @@ class PipeVirglRenderer {
     }
 
     void attachResource(uint32_t ctxId, uint32_t resId) {
-        AutoLock lock(mLock);
         VGPLOG("ctxid: %u resid: %u", ctxId, resId);
 
         auto resourcesIt = mContextResources.find(ctxId);
@@ -1373,7 +1360,6 @@ class PipeVirglRenderer {
     }
 
     void detachResource(uint32_t ctxId, uint32_t toUnrefId) {
-        AutoLock lock(mLock);
         VGPLOG("ctxid: %u resid: %u", ctxId, toUnrefId);
         detachResourceLocked(ctxId, toUnrefId);
     }
@@ -1382,7 +1368,6 @@ class PipeVirglRenderer {
         VGPLOG("resid: %u", resId);
         if (!info) return EINVAL;
 
-        AutoLock lock(mLock);
         auto it = mResources.find(resId);
         if (it == mResources.end()) return ENOENT;
 
@@ -1527,13 +1512,11 @@ class PipeVirglRenderer {
         e.linear = 0;
         e.linearSize = 0;
 
-        AutoLock lock(mLock);
         mResources[res_handle] = e;
         return 0;
     }
 
     int resourceMap(uint32_t res_handle, void** hvaOut, uint64_t* sizeOut) {
-        AutoLock lock(mLock);
 
         if (feature_is_enabled(kFeature_ExternalBlob)) return -EINVAL;
 
@@ -1552,7 +1535,6 @@ class PipeVirglRenderer {
     }
 
     int resourceUnmap(uint32_t res_handle) {
-        AutoLock lock(mLock);
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) {
             return -1;
@@ -1564,7 +1546,6 @@ class PipeVirglRenderer {
     }
 
     int platformImportResource(int res_handle, int res_info, void* resource) {
-        AutoLock lock(mLock);
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -1;
         bool success = mVirtioGpuOps->platform_import_resource(res_handle, res_info, resource);
@@ -1572,7 +1553,6 @@ class PipeVirglRenderer {
     }
 
     int platformResourceInfo(int res_handle, int* width, int* height, int* internal_format) {
-        AutoLock lock(mLock);
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -1;
         bool success =
@@ -1590,7 +1570,6 @@ class PipeVirglRenderer {
     }
 
     int resourceMapInfo(uint32_t res_handle, uint32_t* map_info) {
-        AutoLock lock(mLock);
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -1;
 
@@ -1600,7 +1579,6 @@ class PipeVirglRenderer {
     }
 
     int exportBlob(uint32_t res_handle, struct stream_renderer_handle* handle) {
-        AutoLock lock(mLock);
 
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) {
@@ -1653,7 +1631,6 @@ class PipeVirglRenderer {
     }
 
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info) {
-        AutoLock lock(mLock);
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -EINVAL;
 
@@ -1738,8 +1715,6 @@ class PipeVirglRenderer {
         mServiceOps = goldfish_pipe_get_service_ops();
         return mServiceOps;
     }
-
-    Lock mLock;
 
     void* mCookie = nullptr;
     virgl_renderer_callbacks mVirglRendererCallbacks;
