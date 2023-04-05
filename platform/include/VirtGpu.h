@@ -22,15 +22,15 @@
 #include "virtgpu_gfxstream_protocol.h"
 
 enum VirtGpuParamId : uint32_t {
-    kParam3D = 1,
-    kParamCapsetFix = 2,
-    kParamResourceBlob = 3,
-    kParamHostVisible = 4,
-    kParamCrossDevice = 5,
-    kParamContextInit = 6,
-    kParamSupportedCapsetIds = 7,
-    kParamCreateGuestHandle = 8,
-    kParamMax = 9,
+    kParam3D = 0,
+    kParamCapsetFix = 1,
+    kParamResourceBlob = 2,
+    kParamHostVisible = 3,
+    kParamCrossDevice = 4,
+    kParamContextInit = 5,
+    kParamSupportedCapsetIds = 6,
+    kParamCreateGuestHandle = 7,
+    kParamMax = 8,
 };
 
 enum VirtGpuExecBufferFlags : uint32_t {
