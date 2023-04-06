@@ -41,12 +41,9 @@ IntelDrmDecoder::IntelDrmDecoder() : Decoder() {
     MAGMA_DECODER_BIND_METHOD(magma_connection_release);
     MAGMA_DECODER_BIND_METHOD(magma_connection_create_buffer);
     MAGMA_DECODER_BIND_METHOD(magma_connection_release_buffer);
-    MAGMA_DECODER_BIND_METHOD(magma_buffer_get_id);
-    MAGMA_DECODER_BIND_METHOD(magma_buffer_get_size);
-    MAGMA_DECODER_BIND_METHOD(magma_connection_export_buffer);
     MAGMA_DECODER_BIND_METHOD(magma_connection_create_semaphore);
-    MAGMA_DECODER_BIND_METHOD(magma_semaphore_get_id);
     MAGMA_DECODER_BIND_METHOD(magma_connection_release_semaphore);
+    MAGMA_DECODER_BIND_METHOD(magma_buffer_export);
     MAGMA_DECODER_BIND_METHOD(magma_semaphore_signal);
     MAGMA_DECODER_BIND_METHOD(magma_semaphore_reset);
     MAGMA_DECODER_BIND_METHOD(magma_poll);
@@ -92,9 +89,11 @@ magma_status_t IntelDrmDecoder::magma_connection_create_buffer(
     magma_connection_t connection,
     uint64_t size,
     uint64_t* size_out,
-    magma_buffer_t* buffer_out) {
+    magma_buffer_t* buffer_out,
+    magma_buffer_id_t* id_out) {
     *size_out = 0;
     *buffer_out = MAGMA_INVALID_OBJECT_ID;
+    *id_out = MAGMA_INVALID_OBJECT_ID;
     return MAGMA_STATUS_UNIMPLEMENTED;
 }
 
@@ -103,39 +102,25 @@ void IntelDrmDecoder::magma_connection_release_buffer(
     magma_buffer_t buffer) {
 }
 
-uint64_t IntelDrmDecoder::magma_buffer_get_id(
-    magma_buffer_t buffer) {
-    return MAGMA_INVALID_OBJECT_ID;
-}
-
-uint64_t IntelDrmDecoder::magma_buffer_get_size(
-    magma_buffer_t buffer) {
-    return 0;
-}
-
-magma_status_t IntelDrmDecoder::magma_connection_export_buffer(
-    magma_connection_t connection,
-    magma_buffer_t buffer,
-    magma_handle_t* buffer_handle_out) {
-    *buffer_handle_out = MAGMA_INVALID_OBJECT_ID;
-    return MAGMA_STATUS_UNIMPLEMENTED;
-}
-
 magma_status_t IntelDrmDecoder::magma_connection_create_semaphore(
     magma_connection_t magma_connection,
-    magma_semaphore_t* semaphore_out) {
+    magma_semaphore_t* semaphore_out,
+    magma_semaphore_id_t* id_out) {
     *semaphore_out = MAGMA_INVALID_OBJECT_ID;
+    *id_out = MAGMA_INVALID_OBJECT_ID;
     return MAGMA_STATUS_UNIMPLEMENTED;
-}
-
-uint64_t IntelDrmDecoder::magma_semaphore_get_id(
-    magma_semaphore_t semaphore) {
-    return MAGMA_INVALID_OBJECT_ID;
 }
 
 void IntelDrmDecoder::magma_connection_release_semaphore(
     magma_connection_t connection,
     magma_semaphore_t semaphore) {
+}
+
+magma_status_t IntelDrmDecoder::magma_buffer_export(
+    magma_buffer_t buffer,
+    magma_handle_t* buffer_handle_out) {
+    *buffer_handle_out = MAGMA_INVALID_OBJECT_ID;
+    return MAGMA_STATUS_UNIMPLEMENTED;
 }
 
 void IntelDrmDecoder::magma_semaphore_signal(

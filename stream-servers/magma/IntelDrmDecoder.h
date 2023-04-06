@@ -31,14 +31,11 @@ class IntelDrmDecoder : public Decoder {
     magma_status_t magma_device_query(magma_device_t device, uint64_t id, magma_handle_t* result_buffer_out, uint64_t* result_out) override;
     magma_status_t magma_device_create_connection(magma_device_t device, magma_connection_t* connection_out) override;
     void magma_connection_release(magma_connection_t connection) override;
-    magma_status_t magma_connection_create_buffer(magma_connection_t connection, uint64_t size, uint64_t* size_out, magma_buffer_t* buffer_out) override;
+    magma_status_t magma_connection_create_buffer(magma_connection_t connection, uint64_t size, uint64_t* size_out, magma_buffer_t* buffer_out, magma_buffer_id_t* id_out) override;
     void magma_connection_release_buffer(magma_connection_t connection, magma_buffer_t buffer) override;
-    uint64_t magma_buffer_get_id(magma_buffer_t buffer) override;
-    uint64_t magma_buffer_get_size(magma_buffer_t buffer) override;
-    magma_status_t magma_connection_export_buffer(magma_connection_t connection, magma_buffer_t buffer, magma_handle_t* buffer_handle_out) override;
-    magma_status_t magma_connection_create_semaphore(magma_connection_t magma_connection, magma_semaphore_t* semaphore_out) override;
-    uint64_t magma_semaphore_get_id(magma_semaphore_t semaphore) override;
+    magma_status_t magma_connection_create_semaphore(magma_connection_t magma_connection, magma_semaphore_t* semaphore_out, magma_semaphore_id_t* id_out) override;
     void magma_connection_release_semaphore(magma_connection_t connection, magma_semaphore_t semaphore) override;
+    magma_status_t magma_buffer_export(magma_buffer_t buffer, magma_handle_t* buffer_handle_out) override;
     void magma_semaphore_signal(magma_semaphore_t semaphore) override;
     void magma_semaphore_reset(magma_semaphore_t semaphore) override;
     magma_status_t magma_poll(magma_poll_item_t* items, uint32_t count, uint64_t timeout_ns) override;

@@ -32,14 +32,11 @@ class Decoder : public magma_decoder_context_t {
     virtual magma_status_t magma_device_query(magma_device_t device, uint64_t id, magma_handle_t* result_buffer_out, uint64_t* result_out) = 0;
     virtual magma_status_t magma_device_create_connection(magma_device_t device, magma_connection_t* connection_out) = 0;
     virtual void magma_connection_release(magma_connection_t connection) = 0;
-    virtual magma_status_t magma_connection_create_buffer(magma_connection_t connection, uint64_t size, uint64_t* size_out, magma_buffer_t* buffer_out) = 0;
+    virtual magma_status_t magma_connection_create_buffer(magma_connection_t connection, uint64_t size, uint64_t* size_out, magma_buffer_t* buffer_out, magma_buffer_id_t* id_out) = 0;
     virtual void magma_connection_release_buffer(magma_connection_t connection, magma_buffer_t buffer) = 0;
-    virtual uint64_t magma_buffer_get_id(magma_buffer_t buffer) = 0;
-    virtual uint64_t magma_buffer_get_size(magma_buffer_t buffer) = 0;
-    virtual magma_status_t magma_connection_export_buffer(magma_connection_t connection, magma_buffer_t buffer, magma_handle_t* buffer_handle_out) = 0;
-    virtual magma_status_t magma_connection_create_semaphore(magma_connection_t magma_connection, magma_semaphore_t* semaphore_out) = 0;
-    virtual uint64_t magma_semaphore_get_id(magma_semaphore_t semaphore) = 0;
+    virtual magma_status_t magma_connection_create_semaphore(magma_connection_t magma_connection, magma_semaphore_t* semaphore_out, magma_semaphore_id_t* id_out) = 0;
     virtual void magma_connection_release_semaphore(magma_connection_t connection, magma_semaphore_t semaphore) = 0;
+    virtual magma_status_t magma_buffer_export(magma_buffer_t buffer, magma_handle_t* buffer_handle_out) = 0;
     virtual void magma_semaphore_signal(magma_semaphore_t semaphore) = 0;
     virtual void magma_semaphore_reset(magma_semaphore_t semaphore) = 0;
     virtual magma_status_t magma_poll(magma_poll_item_t* items, uint32_t count, uint64_t timeout_ns) = 0;

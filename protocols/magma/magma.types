@@ -33,6 +33,10 @@ magma_sysmem_connection_t* 64 %p true
 magma_handle_t 32 0x%x false
 magma_handle_t* 64 %p true
 magma_poll_item_t* 64 %p true
+magma_buffer_id_t 64 %lu false
+magma_buffer_id_t* 64 %p true
+magma_semaphore_id_t 64 %lu false
+magma_semaphore_id_t* 64 %p true
 
 # complex types are manually serialized:
 # magma_exec_resource_t

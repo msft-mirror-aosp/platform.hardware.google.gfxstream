@@ -12,5 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <magma/magma_common_defs.h>
-#include "magma_intel_gen_defs.h"
+#include <lib/magma/magma_common_defs.h>

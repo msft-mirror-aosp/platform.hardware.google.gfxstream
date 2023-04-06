@@ -28,26 +28,28 @@ magma_connection_create_buffer
 	len size_out sizeof(uint64_t)
 	dir buffer_out out
 	len buffer_out sizeof(magma_buffer_t)
-
-magma_connection_export_buffer
-	dir buffer_handle_out out
-	len buffer_handle_out sizeof(magma_handle_t)
+	dir id_out out
+	len id_out sizeof(magma_buffer_id_t)
 
 magma_connection_import_buffer
+	dir size_out out
+	len size_out sizeof(uint64_t)
 	dir buffer_out out
 	len buffer_out sizeof(magma_buffer_t)
+	dir id_out out
+	len id_out sizeof(magma_buffer_id_t)
 
 magma_connection_create_semaphore
 	dir semaphore_out out
 	len semaphore_out sizeof(magma_semaphore_t)
-
-magma_connection_export_semaphore
-	dir semaphore_handle_out out
-	len semaphore_handle_out sizeof(magma_handle_t)
+	dir id_out out
+	len id_out sizeof(magma_semaphore_id_t)
 
 magma_connection_import_semaphore
 	dir semaphore_out out
 	len semaphore_out sizeof(magma_semaphore_t)
+	dir id_out out
+	len id_out sizeof(magma_semaphore_id_t)
 
 magma_connection_read_notification_channel
 	dir buffer out
@@ -68,6 +70,14 @@ magma_buffer_get_info
 magma_buffer_get_handle
 	dir handle_out out
 	len handle_out sizeof(magma_handle_t)
+
+magma_buffer_export
+	dir buffer_handle_out out
+	len buffer_handle_out sizeof(magma_handle_t)
+
+magma_semaphore_export
+	dir semaphore_handle_out out
+	len semaphore_handle_out sizeof(magma_handle_t)
 
 magma_connection_create_performance_counter_buffer_pool
 	dir pool_id_out out
