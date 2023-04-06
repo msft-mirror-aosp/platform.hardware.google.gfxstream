@@ -423,13 +423,17 @@ intptr_t RenderThread::main() {
         do {
             std::unique_ptr<EventHangMetadata::HangAnnotations> renderThreadData =
                 std::make_unique<EventHangMetadata::HangAnnotations>();
+
             const char* processName = nullptr;
+            if (tInfo.m_processName) {
+                processName = tInfo.m_processName.value().c_str();
+            }
+
             auto* healthMonitor = FrameBuffer::getFB()->getHealthMonitor();
             if (healthMonitor) {
-                if (tInfo.m_processName) {
+                if (processName) {
                     renderThreadData->insert(
-                        {{"renderthread_guest_process", tInfo.m_processName.value()}});
-                    processName = tInfo.m_processName.value().c_str();
+                        {{"renderthread_guest_process", processName}});
                 }
                 if (readBuf.validData() >= 4) {
                     renderThreadData->insert(
