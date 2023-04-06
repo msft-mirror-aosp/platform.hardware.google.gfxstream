@@ -1657,18 +1657,14 @@ public:
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
-            void* context, VkResult,
-            VkDevice device,
+            void*, VkResult,
+            VkDevice,
             const AHardwareBuffer* buffer,
             VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
-        const VkPhysicalDeviceMemoryProperties& memoryProperties =
-            getPhysicalDeviceMemoryProperties(context, device, VK_NULL_HANDLE);
         auto grallocHelper =
             ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
         return getAndroidHardwareBufferPropertiesANDROID(
-            grallocHelper,
-            &memoryProperties,
-            device, buffer, pProperties);
+            grallocHelper, buffer, pProperties);
     }
 
     VkResult on_vkGetMemoryAndroidHardwareBufferANDROID(
@@ -4252,6 +4248,13 @@ public:
             info.isSysmemBackedMemory = true;
         }
 #endif
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        if (extImgCiPtr &&
+            (extImgCiPtr->handleTypes &
+             VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
+            updateMemoryTypeBitsForAndroidHardwareBuffers(&memReqs.memoryTypeBits);
+        }
+#endif
 
         if (info.baseRequirementsKnown) {
             transformImageMemoryRequirementsForGuestLocked(*pImage, &memReqs);
@@ -5287,6 +5290,14 @@ public:
         }
 
         if (res != VK_SUCCESS) return res;
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        if (extBufCiPtr &&
+            (extBufCiPtr->handleTypes &
+             VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
+            updateMemoryTypeBitsForAndroidHardwareBuffers(&memReqs.memoryTypeBits);
+        }
+#endif
 
         AutoLock<RecursiveLock> lock(mLock);
 
