@@ -3305,16 +3305,6 @@ public:
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         shouldPassThroughDedicatedAllocInfo &= !requestedMemoryIsHostVisible;
-
-        if (!exportAllocateInfoPtr &&
-            (importBufferCollectionInfoPtr || importVmoInfoPtr) &&
-            dedicatedAllocInfoPtr &&
-            requestedMemoryIsHostVisible) {
-            ALOGE(
-                "FATAL: It is not yet supported to import-allocate "
-                "external memory that is both host visible and dedicated.");
-            abort();
-        }
 #endif  // VK_USE_PLATFORM_FUCHSIA
 
         if (shouldPassThroughDedicatedAllocInfo &&
@@ -3785,16 +3775,6 @@ public:
                 vmo_handle);
 
             _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
-        }
-
-        // Device-local memory dealing is over. What follows:
-        // host-visible memory.
-
-        if (ahw) {
-            ALOGE("%s: Host visible export/import allocation "
-                  "of Android hardware buffers is not supported.",
-                  __func__);
-            abort();
         }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
