@@ -38,6 +38,7 @@
 #include "EmulatedEglFenceSync.h"
 #include "EmulatedEglImage.h"
 #include "EmulatedEglWindowSurface.h"
+#include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "ReadbackWorkerGl.h"
 #include "TextureDraw.h"
@@ -55,9 +56,12 @@ namespace gl {
 class EmulationGl {
    public:
     static std::unique_ptr<EmulationGl> create(uint32_t width, uint32_t height,
-                                               bool allowWindowSurface);
+                                               bool allowWindowSurface, bool egl2egl);
 
     ~EmulationGl();
+
+    const EGLDispatch* getEglDispatch();
+    const GLESv2Dispatch* getGles2Dispatch();
 
     GLESDispatchMaxVersion getGlesMaxDispatchVersion() const;
 

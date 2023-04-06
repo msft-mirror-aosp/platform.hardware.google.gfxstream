@@ -667,6 +667,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     bool invalidateColorBufferForGl(HandleType colorBufferHandle);
     bool invalidateColorBufferForVk(HandleType colorBufferHandle);
 
+    const gl::EGLDispatch* getEglDispatch();
+    const gl::GLESv2Dispatch* getGles2Dispatch();
+
    private:
     FrameBuffer(int p_width, int p_height, bool useSubWindow);
     // Requires the caller to hold the m_colorBufferMapLock until the new handle is inserted into of

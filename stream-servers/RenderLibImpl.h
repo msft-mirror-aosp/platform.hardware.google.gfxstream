@@ -54,10 +54,6 @@ public:
                                  android::base::MemoryTracker* memUsage) override;
     virtual void setGrallocImplementation(GrallocImplementation gralloc) override;
 
-    virtual void* getGLESv2Dispatch(void) override;
-
-    virtual void* getEGLDispatch(void) override;
-
     virtual bool getOpt(RenderOpt* opt) override;
 
     virtual RendererPtr initRenderer(int width,

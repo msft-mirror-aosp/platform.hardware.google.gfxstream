@@ -262,18 +262,9 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
         }
     }
 
-    // Use ANGLE's EGL null backend to prevent from accidentally calling into EGL.
-    if (s_egl.eglUseOsEglApi) {
-        EGLBoolean useNullBackend = EGL_FALSE;
-        if (egl2egl && feature_is_enabled(kFeature_VulkanNativeSwapchain)) {
-            useNullBackend = EGL_TRUE;
-        }
-        s_egl.eglUseOsEglApi(egl2egl, useNullBackend);
-    }
-
     // Do not initialize GL emulation if the guest is using ANGLE.
     if (!feature_is_enabled(kFeature_GuestUsesAngle)) {
-        fb->m_emulationGl = EmulationGl::create(width, height, useSubWindow);
+        fb->m_emulationGl = EmulationGl::create(width, height, useSubWindow, egl2egl);
         if (!fb->m_emulationGl) {
             ERR("Failed to initialize GL emulation.");
             return false;
@@ -3744,6 +3735,24 @@ bool FrameBuffer::invalidateColorBufferForVk(HandleType colorBufferHandle) {
         return false;
     }
     return colorBuffer->invalidateForVk();
+}
+
+const gl::EGLDispatch* FrameBuffer::getEglDispatch() {
+    if (!m_emulationGl) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            << "EGL emulation not enabled.";
+    }
+
+    return m_emulationGl->getEglDispatch();
+}
+
+const gl::GLESv2Dispatch* FrameBuffer::getGles2Dispatch() {
+    if (!m_emulationGl) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            << "EGL emulation not enabled.";
+    }
+
+    return m_emulationGl->getGles2Dispatch();
 }
 
 }  // namespace gfxstream

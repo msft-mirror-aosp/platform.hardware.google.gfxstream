@@ -2348,9 +2348,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
 
     {
         static gfxstream::RenderLibPtr renderLibPtr = gfxstream::initLibrary();
-        void* egldispatch = renderLibPtr->getEGLDispatch();
-        void* glesv2Dispatch = renderLibPtr->getGLESv2Dispatch();
-        android_setOpenglesEmulation(renderLibPtr.get(), egldispatch, glesv2Dispatch);
+        android_setOpenglesEmulation(renderLibPtr.get(), nullptr, nullptr);
     }
 
     int maj;
@@ -2381,6 +2379,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     sGetPixelsFunc = android_getReadPixelsFunc();
 
     pipe_virgl_renderer_init(renderer_cookie, renderer_flags, &virglrenderer_callbacks);
+
+    gfxstream::FrameBuffer::waitUntilInitialized();
 
     GFXS_LOG("Started renderer");
 
