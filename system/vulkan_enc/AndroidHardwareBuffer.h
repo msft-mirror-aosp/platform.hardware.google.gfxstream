@@ -32,10 +32,11 @@ getAndroidHardwareBufferUsageFromVkUsage(
     const VkImageCreateFlags vk_create,
     const VkImageUsageFlags vk_usage);
 
+void updateMemoryTypeBitsForAndroidHardwareBuffers(
+    uint32_t* memoryTypeBits);
+
 VkResult getAndroidHardwareBufferPropertiesANDROID(
     Gralloc* grallocHelper,
-    const VkPhysicalDeviceMemoryProperties* memProps,
-    VkDevice,
     const AHardwareBuffer* buffer,
     VkAndroidHardwareBufferPropertiesANDROID* pProperties);
 
