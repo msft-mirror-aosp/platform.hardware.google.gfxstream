@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_GRAPHICS_LIB_MAGMA_INCLUDE_MAGMA_MAGMA_COMMON_DEFS_H_
-#define SRC_GRAPHICS_LIB_MAGMA_INCLUDE_MAGMA_MAGMA_COMMON_DEFS_H_
+#ifndef LIB_MAGMA_CLIENT_INCLUDE_LIB_MAGMA_MAGMA_COMMON_DEFS_H_
+#define LIB_MAGMA_CLIENT_INCLUDE_LIB_MAGMA_MAGMA_COMMON_DEFS_H_
 
 #include <stdint.h>
 
@@ -36,7 +36,8 @@ typedef uint64_t magma_query_t;
 #define MAGMA_QUERY_VENDOR_ID ((magma_query_t)0)
 // Returns the hardware device ID (simple result)
 #define MAGMA_QUERY_DEVICE_ID ((magma_query_t)1)
-// 2 was MAGMA_QUERY_IS_TEST_RESTART_SUPPORTED
+// Returns the version of the vendor interfaces supported by the system driver (simple result).
+#define MAGMA_QUERY_VENDOR_VERSION ((magma_query_t)2)
 // Returns true if MAGMA_QUERY_TOTAL_TIME is supported (simple result)
 #define MAGMA_QUERY_IS_TOTAL_TIME_SUPPORTED ((magma_query_t)3)
 // 4 was MAGMA_QUERY_MINIMUM_MAPPABLE_ADDRESS
@@ -221,6 +222,12 @@ typedef uint64_t magma_sysmem_connection_t;
 // Corresponds to a zx_handle_t on Fuchsia.
 typedef uint32_t magma_handle_t;
 
+// An ID for a buffer that can be used to refer to it when submitting command buffers. Only valid
+// within a single connection.
+typedef uint64_t magma_buffer_id_t;
+
+typedef uint64_t magma_semaphore_id_t;
+
 typedef struct magma_poll_item {
   union {
     magma_semaphore_t semaphore;
@@ -234,7 +241,7 @@ typedef struct magma_poll_item {
 
 // A buffer referenced by a command buffer descriptor
 typedef struct magma_exec_resource {
-  uint64_t buffer_id;
+  magma_buffer_id_t buffer_id;
   uint64_t offset;
   uint64_t length;
 } magma_exec_resource_t;
@@ -329,4 +336,4 @@ typedef struct magma_image_info {
 }
 #endif
 
-#endif  // SRC_GRAPHICS_LIB_MAGMA_INCLUDE_MAGMA_MAGMA_COMMON_DEFS_H_
+#endif  // LIB_MAGMA_CLIENT_INCLUDE_LIB_MAGMA_MAGMA_COMMON_DEFS_H_
