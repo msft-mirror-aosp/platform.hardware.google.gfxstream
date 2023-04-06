@@ -513,16 +513,16 @@ class VkDecoderGlobalState {
 
     VkResult on_vkBeginCommandBuffer(android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
                                      const VkCommandBufferBeginInfo* pBeginInfo,
-                                     emugl::GfxApiLogger& gfxLogger);
+                                     const VkDecoderContext& context);
     void on_vkBeginCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
                                             VkCommandBuffer commandBuffer,
                                             const VkCommandBufferBeginInfo* pBeginInfo,
-                                            emugl::GfxApiLogger& gfxLogger);
+                                            const VkDecoderContext& context);
     VkResult on_vkEndCommandBuffer(android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                   emugl::GfxApiLogger& gfxLogger);
+                                   const VkDecoderContext& context);
     void on_vkEndCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
                                           VkCommandBuffer commandBuffer,
-                                          emugl::GfxApiLogger& gfxLogger);
+                                          const VkDecoderContext& context);
     void on_vkResetCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
                                             VkCommandBuffer commandBuffer,
                                             VkCommandBufferResetFlags flags);
