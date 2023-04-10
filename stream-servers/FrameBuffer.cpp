@@ -1635,11 +1635,8 @@ void FrameBuffer::cleanupProcGLObjects(uint64_t puid) {
 
 
     AutoLock mutex(m_lock);
-    if (!hasEmulationGl() || !getDisplay()) {
-        return;
-    }
 
-    auto colorBuffersToCleanup = cleanupProcGLObjects_locked(puid);
+    cleanupProcGLObjects_locked(puid);
 
     // Run other cleanup callbacks
     // Avoid deadlock by first storing a separate list of callbacks
@@ -1670,7 +1667,7 @@ std::vector<HandleType> FrameBuffer::cleanupProcGLObjects_locked(uint64_t puid, 
             bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
         }
         // Clean up window surfaces
-        {
+        if (m_emulationGl) {
             auto procIte = m_procOwnedEmulatedEglWindowSurfaces.find(puid);
             if (procIte != m_procOwnedEmulatedEglWindowSurfaces.end()) {
                 for (auto whndl : procIte->second) {
@@ -1714,7 +1711,7 @@ std::vector<HandleType> FrameBuffer::cleanupProcGLObjects_locked(uint64_t puid, 
         }
 
         // Clean up EGLImage handles
-        {
+        if (m_emulationGl) {
             auto procImagesIt = m_procOwnedEmulatedEglImages.find(puid);
             if (procImagesIt != m_procOwnedEmulatedEglImages.end()) {
                 for (auto image : procImagesIt->second) {
@@ -1726,7 +1723,7 @@ std::vector<HandleType> FrameBuffer::cleanupProcGLObjects_locked(uint64_t puid, 
     }
     // Unbind before cleaning up contexts
     // Cleanup render contexts
-    {
+    if (m_emulationGl) {
         auto procIte = m_procOwnedEmulatedEglContexts.find(puid);
         if (procIte != m_procOwnedEmulatedEglContexts.end()) {
             for (auto ctx : procIte->second) {
