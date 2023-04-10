@@ -49,7 +49,7 @@ class VkDecoderTestDispatch {
     VkResult vkBeginCommandBuffer(VkCommandBuffer commandBuffer,
                                   const VkCommandBufferBeginInfo* pBeginInfo) {
         return mDgs->on_vkBeginCommandBuffer(mBp, commandBuffer, pBeginInfo,
-                                             *mDecoderContext->gfxApiLogger);
+                                             *mDecoderContext);
     }
 
     VkResult vkBindBufferMemory(VkDevice device, VkBuffer buffer, VkDeviceMemory memory,
@@ -197,7 +197,7 @@ class VkDecoderTestDispatch {
     }
 
     VkResult vkEndCommandBuffer(VkCommandBuffer commandBuffer) {
-        return mDgs->on_vkEndCommandBuffer(mBp, commandBuffer, *mDecoderContext->gfxApiLogger);
+        return mDgs->on_vkEndCommandBuffer(mBp, commandBuffer, *mDecoderContext);
     }
 
     VkResult vkEnumerateInstanceLayerProperties(uint32_t* pPropertyCount,

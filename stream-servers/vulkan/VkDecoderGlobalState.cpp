@@ -4266,7 +4266,7 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkBeginCommandBuffer(android::base::BumpPool* pool,
                                      VkCommandBuffer boxed_commandBuffer,
                                      const VkCommandBufferBeginInfo* pBeginInfo,
-                                     GfxApiLogger& gfxLogger) {
+                                     const VkDecoderContext& context) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
         VkResult result = vk->vkBeginCommandBuffer(commandBuffer, pBeginInfo);
@@ -4284,12 +4284,13 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkBeginCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
                                                 VkCommandBuffer boxed_commandBuffer,
                                                 const VkCommandBufferBeginInfo* pBeginInfo,
-                                                GfxApiLogger& gfxLogger) {
-        return this->on_vkBeginCommandBuffer(pool, boxed_commandBuffer, pBeginInfo, gfxLogger);
+                                                const VkDecoderContext& context) {
+        return this->on_vkBeginCommandBuffer(pool, boxed_commandBuffer, pBeginInfo, context);
     }
 
     VkResult on_vkEndCommandBuffer(android::base::BumpPool* pool,
-                                   VkCommandBuffer boxed_commandBuffer, GfxApiLogger& gfxLogger) {
+                                   VkCommandBuffer boxed_commandBuffer,
+                                   const VkDecoderContext& context) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
@@ -4298,8 +4299,8 @@ class VkDecoderGlobalState::Impl {
 
     void on_vkEndCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
                                           VkCommandBuffer boxed_commandBuffer,
-                                          GfxApiLogger& gfxLogger) {
-        on_vkEndCommandBuffer(pool, boxed_commandBuffer, gfxLogger);
+                                          const VkDecoderContext& context) {
+        on_vkEndCommandBuffer(pool, boxed_commandBuffer, context);
     }
 
     void on_vkResetCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
@@ -7053,26 +7054,26 @@ void VkDecoderGlobalState::on_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
 VkResult VkDecoderGlobalState::on_vkBeginCommandBuffer(android::base::BumpPool* pool,
                                                        VkCommandBuffer commandBuffer,
                                                        const VkCommandBufferBeginInfo* pBeginInfo,
-                                                       GfxApiLogger& gfxLogger) {
-    return mImpl->on_vkBeginCommandBuffer(pool, commandBuffer, pBeginInfo, gfxLogger);
+                                                       const VkDecoderContext& context) {
+    return mImpl->on_vkBeginCommandBuffer(pool, commandBuffer, pBeginInfo, context);
 }
 
 void VkDecoderGlobalState::on_vkBeginCommandBufferAsyncGOOGLE(
     android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-    const VkCommandBufferBeginInfo* pBeginInfo, GfxApiLogger& gfxLogger) {
-    mImpl->on_vkBeginCommandBuffer(pool, commandBuffer, pBeginInfo, gfxLogger);
+    const VkCommandBufferBeginInfo* pBeginInfo, const VkDecoderContext& context) {
+    mImpl->on_vkBeginCommandBuffer(pool, commandBuffer, pBeginInfo, context);
 }
 
 VkResult VkDecoderGlobalState::on_vkEndCommandBuffer(android::base::BumpPool* pool,
                                                      VkCommandBuffer commandBuffer,
-                                                     GfxApiLogger& gfxLogger) {
-    return mImpl->on_vkEndCommandBuffer(pool, commandBuffer, gfxLogger);
+                                                     const VkDecoderContext& context) {
+    return mImpl->on_vkEndCommandBuffer(pool, commandBuffer, context);
 }
 
 void VkDecoderGlobalState::on_vkEndCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
                                                             VkCommandBuffer commandBuffer,
-                                                            GfxApiLogger& gfxLogger) {
-    mImpl->on_vkEndCommandBufferAsyncGOOGLE(pool, commandBuffer, gfxLogger);
+                                                            const VkDecoderContext& context) {
+    mImpl->on_vkEndCommandBufferAsyncGOOGLE(pool, commandBuffer, context);
 }
 
 void VkDecoderGlobalState::on_vkResetCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
