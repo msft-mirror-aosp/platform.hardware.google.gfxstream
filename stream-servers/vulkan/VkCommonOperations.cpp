@@ -558,6 +558,13 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
 
     std::unordered_set<const char*> enabledExtensions;
 
+    const bool debugUtilsSupported = extensionsSupported(exts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
+    const bool debugUtilsRequested = false; // TODO: enable via a feature or env var?
+    const bool debugUtilsAvailableAndRequested = debugUtilsSupported && debugUtilsRequested;
+    if (debugUtilsAvailableAndRequested) {
+        enabledExtensions.emplace(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+
     if (externalMemoryCapabilitiesSupported) {
         for (auto extension : externalMemoryInstanceExtNames) {
             enabledExtensions.emplace(extension);
@@ -1160,6 +1167,12 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
         VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(stagingBufferBindRes,
                                              "Failed to bind memory for staging buffer. Error %s.",
                                              string_VkResult(stagingBufferBindRes));
+    }
+
+    sVkEmulation->debugUtilsAvailableAndRequested = debugUtilsAvailableAndRequested;
+    if (sVkEmulation->debugUtilsAvailableAndRequested) {
+        sVkEmulation->debugUtilsHelper =
+            DebugUtilsHelper::withUtilsEnabled(sVkEmulation->device, sVkEmulation->ivk);
     }
 
     // LOG(VERBOSE) << "Vulkan global emulation state successfully initialized.";

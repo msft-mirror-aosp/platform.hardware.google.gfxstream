@@ -25,6 +25,7 @@
 
 #include "BorrowedImageVk.h"
 #include "CompositorVk.h"
+#include "DebugUtilsHelper.h"
 #include "DisplayVk.h"
 #include "FrameworkFormats.h"
 #include "aemu/base/ManagedDescriptor.hpp"
@@ -131,6 +132,9 @@ struct VkEmulation {
     PFN_vkSetMTLTextureMVK setMTLTextureFunc = nullptr;
     PFN_vkGetMTLTextureMVK getMTLTextureFunc = nullptr;
 #endif
+
+    bool debugUtilsAvailableAndRequested = false;
+    DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
 
     // Queue, command pool, and command buffer
     // for running commands to sync stuff system-wide.

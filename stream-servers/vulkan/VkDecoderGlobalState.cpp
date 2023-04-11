@@ -1305,9 +1305,14 @@ class VkDecoderGlobalState::Impl {
             fprintf(stderr, "%s: init vulkan dispatch from device\n", __func__);
         }
 
-        init_vulkan_dispatch_from_device(vk, *pDevice, dispatch_VkDevice(boxed));
+        VulkanDispatch* dispatch = dispatch_VkDevice(boxed);
+        init_vulkan_dispatch_from_device(vk, *pDevice, dispatch);
+        if (m_emu->debugUtilsAvailableAndRequested) {
+            deviceInfo.debugUtilsHelper = DebugUtilsHelper::withUtilsEnabled(*pDevice, dispatch);
+        }
+
         deviceInfo.externalFencePool =
-            std::make_unique<ExternalFencePool<VulkanDispatch>>(dispatch_VkDevice(boxed), *pDevice);
+            std::make_unique<ExternalFencePool<VulkanDispatch>>(dispatch, *pDevice);
 
         if (mLogging) {
             fprintf(stderr, "%s: init vulkan dispatch from device (end)\n", __func__);
@@ -5453,6 +5458,10 @@ class VkDecoderGlobalState::Impl {
             res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME);
         }
 
+        if (m_emu->debugUtilsAvailableAndRequested) {
+            res.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        }
+
         return res;
     }
 
@@ -5974,6 +5983,7 @@ class VkDecoderGlobalState::Impl {
         bool emulateTextureAstc = false;
         VkPhysicalDevice physicalDevice;
         VkDevice boxed = nullptr;
+        DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
         std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
 
         // True if this is a compressed image that needs to be decompressed on the GPU (with our
