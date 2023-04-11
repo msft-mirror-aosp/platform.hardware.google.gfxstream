@@ -36,6 +36,7 @@ bool IsCuttlefishFoldable() {
              std::string::npos;
 }
 
+
 bool IsInNoOpCompositionMode() {
   const std::string mode = ::android::base::GetProperty("ro.vendor.hwcomposer.mode", "");
   DEBUG_LOG("%s: sysprop ro.vendor.hwcomposer.mode is %s", __FUNCTION__, mode.c_str());
@@ -46,6 +47,14 @@ bool IsInClientCompositionMode() {
   const std::string mode = ::android::base::GetProperty("ro.vendor.hwcomposer.mode", "");
   DEBUG_LOG("%s: sysprop ro.vendor.hwcomposer.mode is %s", __FUNCTION__, mode.c_str());
   return mode == "client";
+}
+
+bool IsInGem5DisplayFinderMode() {
+  const std::string mode =
+    ::android::base::GetProperty("ro.vendor.hwcomposer.display_finder_mode", "");
+  DEBUG_LOG("%s: sysprop ro.vendor.hwcomposer.display_finder_mode is %s",
+            __FUNCTION__, mode.c_str());
+  return mode == "gem5";
 }
 
 bool IsInNoOpDisplayFinderMode() {
