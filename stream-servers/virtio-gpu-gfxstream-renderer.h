@@ -25,8 +25,6 @@ void virgl_write_fence(void* opaque, uint32_t fence);
 #define VG_EXPORT __attribute__((visibility("default")))
 #endif
 
-VG_EXPORT void virtio_goldfish_pipe_reset(void* hwpipe, void* hostpipe);
-
 #define VIRTIO_GOLDFISH_EXPORT_API
 #ifdef VIRTIO_GOLDFISH_EXPORT_API
 

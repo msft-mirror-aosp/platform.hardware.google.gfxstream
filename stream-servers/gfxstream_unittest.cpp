@@ -172,7 +172,6 @@ TEST_F(GfxStreamBackendTest, DISABLED_ApiCallLinkTest) {
     stream_renderer_flush_resource_and_readback(res_id, 0, 0, width, height,
             fb.get(), width * height);
 
-    virtio_goldfish_pipe_reset(0, 0);
     pipe_virgl_renderer_init(0, 0, 0);
     pipe_virgl_renderer_poll();
     pipe_virgl_renderer_get_cursor_data(0, 0, 0);

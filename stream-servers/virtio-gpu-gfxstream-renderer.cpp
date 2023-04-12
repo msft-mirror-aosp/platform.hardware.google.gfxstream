@@ -2506,9 +2506,6 @@ struct virgl_renderer_virtio_interface* get_goldfish_pipe_virgl_renderer_virtio_
     return &s_virtio_interface;
 }
 
-void virtio_goldfish_pipe_reset(void* pipe, void* host_pipe) {
-    sRenderer()->resetPipe((GoldfishHwPipe*)pipe, (GoldfishHostPipe*)host_pipe);
-}
 
 static_assert(sizeof(struct stream_renderer_device_id) == 32,
               "stream_renderer_device_id must be 32 bytes");
@@ -2544,5 +2541,4 @@ static_assert(offsetof(struct stream_renderer_param, key) == 0,
               "stream_renderer_param.key must be at offset 0");
 static_assert(offsetof(struct stream_renderer_param, value) == 8,
               "stream_renderer_param.value must be at offset 8");
-
 }  // extern "C"
