@@ -2223,9 +2223,6 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                         fb->logVulkanOutOfMemory(result, function, line, allocationSize);
                     }}));
 
-    gfxstream_backend_init_product_override();
-    // First we make some agents available.
-
     GFXS_LOG("start. display dimensions: width %u height %u, renderer flags: 0x%x", display_width,
              display_height, renderer_flags);
 

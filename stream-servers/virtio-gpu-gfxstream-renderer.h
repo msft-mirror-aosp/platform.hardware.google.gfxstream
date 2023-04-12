@@ -292,10 +292,6 @@ VG_EXPORT void gfxstream_backend_teardown(void);
 // if bufSize is less or equal the render string length, only bufSize-1 char copied.
 VG_EXPORT void gfxstream_backend_getrender(char* buf, size_t bufSize, size_t* size);
 
-// A customization point that allows the downstream to call their own functions when
-// gfxstream_backend_init is called.
-void gfxstream_backend_init_product_override();
-
 #else
 
 #define VG_EXPORT
