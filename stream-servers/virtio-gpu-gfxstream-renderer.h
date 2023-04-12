@@ -5,7 +5,6 @@
  * implement an actual virtio goldfish pipe, but this hijacking of virgl  is
  * done in order to avoid any guest kernel changes. */
 
-#include <assert.h>
 #include <stddef.h>
 
 #include "virgl_hw.h"
@@ -149,24 +148,10 @@ struct stream_renderer_device_id {
     uint8_t driver_uuid[16];
 };
 
-static_assert(sizeof(stream_renderer_device_id) == 32,
-              "stream_renderer_device_id must be 32 bytes");
-static_assert(offsetof(stream_renderer_device_id, device_uuid) == 0,
-              "stream_renderer_device_id.device_uuid must be at offset 0");
-static_assert(offsetof(stream_renderer_device_id, driver_uuid) == 16,
-              "stream_renderer_device_id.driver_uuid must be at offset 16");
-
 struct stream_renderer_vulkan_info {
     uint32_t memory_index;
     struct stream_renderer_device_id device_id;
 };
-
-static_assert(sizeof(stream_renderer_vulkan_info) == 36,
-              "stream_renderer_vulkan_info must be 36 bytes");
-static_assert(offsetof(stream_renderer_vulkan_info, memory_index) == 0,
-              "stream_renderer_vulkan_info.memory_index must be at offset 0");
-static_assert(offsetof(stream_renderer_vulkan_info, device_id) == 4,
-              "stream_renderer_vulkan_info.device_id must be at offset 4");
 
 VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
                                           struct stream_renderer_vulkan_info* vulkan_info);
@@ -216,14 +201,6 @@ struct stream_renderer_param_host_visible_memory_mask_entry {
     uint32_t memory_type_mask;
 };
 
-static_assert(sizeof(stream_renderer_param_host_visible_memory_mask_entry) == 36,
-              "stream_renderer_param_host_visible_memory_mask_entry must be 36 bytes");
-static_assert(offsetof(stream_renderer_param_host_visible_memory_mask_entry, device_id) == 0,
-              "stream_renderer_param_host_visible_memory_mask_entry.device_id must be at offset 0");
-static_assert(
-    offsetof(stream_renderer_param_host_visible_memory_mask_entry, memory_type_mask) == 32,
-    "stream_renderer_param_host_visible_memory_mask_entry.memory_type_mask must be at offset 32");
-
 // Information about the devices in the system with host visible memory type constraints.
 struct stream_renderer_param_host_visible_memory_mask {
     // Points to a stream_renderer_param_host_visible_memory_mask_entry array.
@@ -231,13 +208,6 @@ struct stream_renderer_param_host_visible_memory_mask {
     // Length of the entries array.
     uint64_t num_entries;
 };
-
-static_assert(sizeof(stream_renderer_param_host_visible_memory_mask) == 16,
-              "stream_renderer_param_host_visible_memory_mask must be 16 bytes");
-static_assert(offsetof(stream_renderer_param_host_visible_memory_mask, entries) == 0,
-              "stream_renderer_param_host_visible_memory_mask.entries must be at offset 0");
-static_assert(offsetof(stream_renderer_param_host_visible_memory_mask, num_entries) == 8,
-              "stream_renderer_param_host_visible_memory_mask.num_entries must be at offset 8");
 
 // Enables the host to control which GPU is used for rendering.
 #define STREAM_RENDERER_PARAM_RENDERING_GPU 9
@@ -275,12 +245,6 @@ struct stream_renderer_param {
     // parameter needs to pass data bigger than a single uint64_t.
     uint64_t value;
 };
-
-static_assert(sizeof(stream_renderer_param) == 16, "stream_renderer_param must be 16 bytes");
-static_assert(offsetof(stream_renderer_param, key) == 0,
-              "stream_renderer_param.key must be at offset 0");
-static_assert(offsetof(stream_renderer_param, value) == 8,
-              "stream_renderer_param.value must be at offset 8");
 
 // Entry point for the stream renderer.
 // Pass a list of parameters to configure the renderer. The available ones are listed above. If a

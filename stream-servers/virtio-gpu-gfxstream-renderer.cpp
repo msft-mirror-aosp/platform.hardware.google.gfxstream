@@ -2509,4 +2509,39 @@ void virtio_goldfish_pipe_reset(void* pipe, void* host_pipe) {
     sRenderer()->resetPipe((GoldfishHwPipe*)pipe, (GoldfishHostPipe*)host_pipe);
 }
 
+static_assert(sizeof(struct stream_renderer_device_id) == 32,
+              "stream_renderer_device_id must be 32 bytes");
+static_assert(offsetof(struct stream_renderer_device_id, device_uuid) == 0,
+              "stream_renderer_device_id.device_uuid must be at offset 0");
+static_assert(offsetof(struct stream_renderer_device_id, driver_uuid) == 16,
+              "stream_renderer_device_id.driver_uuid must be at offset 16");
+
+static_assert(sizeof(struct stream_renderer_vulkan_info) == 36,
+              "stream_renderer_vulkan_info must be 36 bytes");
+static_assert(offsetof(struct stream_renderer_vulkan_info, memory_index) == 0,
+              "stream_renderer_vulkan_info.memory_index must be at offset 0");
+static_assert(offsetof(struct stream_renderer_vulkan_info, device_id) == 4,
+              "stream_renderer_vulkan_info.device_id must be at offset 4");
+
+static_assert(sizeof(struct stream_renderer_param_host_visible_memory_mask_entry) == 36,
+              "stream_renderer_param_host_visible_memory_mask_entry must be 36 bytes");
+static_assert(offsetof(struct stream_renderer_param_host_visible_memory_mask_entry, device_id) == 0,
+              "stream_renderer_param_host_visible_memory_mask_entry.device_id must be at offset 0");
+static_assert(
+    offsetof(struct stream_renderer_param_host_visible_memory_mask_entry, memory_type_mask) == 32,
+    "stream_renderer_param_host_visible_memory_mask_entry.memory_type_mask must be at offset 32");
+
+static_assert(sizeof(struct stream_renderer_param_host_visible_memory_mask) == 16,
+              "stream_renderer_param_host_visible_memory_mask must be 16 bytes");
+static_assert(offsetof(struct stream_renderer_param_host_visible_memory_mask, entries) == 0,
+              "stream_renderer_param_host_visible_memory_mask.entries must be at offset 0");
+static_assert(offsetof(struct stream_renderer_param_host_visible_memory_mask, num_entries) == 8,
+              "stream_renderer_param_host_visible_memory_mask.num_entries must be at offset 8");
+
+static_assert(sizeof(struct stream_renderer_param) == 16, "stream_renderer_param must be 16 bytes");
+static_assert(offsetof(struct stream_renderer_param, key) == 0,
+              "stream_renderer_param.key must be at offset 0");
+static_assert(offsetof(struct stream_renderer_param, value) == 8,
+              "stream_renderer_param.value must be at offset 8");
+
 }  // extern "C"
