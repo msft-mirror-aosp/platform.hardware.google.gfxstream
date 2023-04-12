@@ -2475,23 +2475,6 @@ VG_EXPORT void get_pixels(void* pixels, uint32_t bytes) {
     sGetPixelsFunc(pixels, bytes, 0);
 }
 
-VG_EXPORT void gfxstream_backend_getrender(char* buf, size_t bufSize, size_t* size) {
-    const char* render = "";
-    auto* pFB = gfxstream::FrameBuffer::getFB();
-    if (pFB) {
-        const char* vendor = nullptr;
-        const char* version = nullptr;
-        pFB->getGLStrings(&vendor, &render, &version);
-    }
-    if (!buf || bufSize == 0) {
-        if (size) *size = strlen(render);
-        return;
-    }
-    *buf = '\0';
-    strncat(buf, render, bufSize - 1);
-    if (size) *size = strlen(buf);
-}
-
 const GoldfishPipeServiceOps* goldfish_pipe_get_service_ops() { return &goldfish_pipe_service_ops; }
 
 #define VIRGLRENDERER_API_PIPE_STRUCT_DEF(api) pipe_##api,
