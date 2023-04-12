@@ -125,10 +125,13 @@ if(NOT TARGET aemu_common)
             INTERFACE
             PkgConfig::aemu_base
             logging-base
-            lz4_static
-            perfetto-tracing-only
             ${aemu-base-platform-deps})
-
+        if(TARGET lz4_static)
+            target_link_libraries(aemu-base INTERFACE lz4_static)
+        endif()
+        if(TARGET perfetto-tracing-only)
+            target_link_libraries(aemu-base INTERFACE perfetto-tracing-only)
+        endif()
         add_library(aemu-host-common INTERFACE)
         target_link_libraries(aemu-host-common INTERFACE PkgConfig::aemu_host_common aemu-base)
 
@@ -149,10 +152,15 @@ if(NOT TARGET aemu_common)
             PkgConfig::aemu_host_common
             PkgConfig::aemu_base
             PkgConfig::logging_base
-            lz4_static
-            perfetto-tracing-only
             gmock
             gtest)
+        if(TARGET lz4_static)
+            target_link_libraries(aemu-host-common-testing-support INTERFACE lz4_static)
+        endif()
+
+        if(TARGET perfetto-tracing-only)
+            target_link_libraries(aemu-host-common-testing-support INTERFACE perfetto-tracing-only)
+        endif()
         add_library(aemu_common INTERFACE)
         target_link_libraries(aemu_common INTERFACE aemu-base aemu-host-common)
         target_include_directories(aemu_common INTERFACE aemu-base.headers aemu-host-common.headers)
