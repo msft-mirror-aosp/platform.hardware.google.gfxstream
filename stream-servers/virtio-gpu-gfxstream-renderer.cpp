@@ -40,6 +40,7 @@
 #include "host-common/opengles.h"
 #include "host-common/refcount-pipe.h"
 #include "host-common/vm_operations.h"
+#include "virgl_hw.h"
 #include "virtgpu_gfxstream_protocol.h"
 #include "vk_util.h"
 

@@ -7,7 +7,6 @@
 
 #include <stddef.h>
 
-#include "virgl_hw.h"
 #include "virglrenderer.h"
 
 #ifdef __cplusplus

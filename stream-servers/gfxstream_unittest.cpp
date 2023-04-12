@@ -13,12 +13,14 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
+
 #include <vector>
 
-#include "virtio-gpu-gfxstream-renderer.h"
-#include "host-common/testing/MockGraphicsAgentFactory.h"
 #include "OSWindow.h"
 #include "aemu/base/system/System.h"
+#include "host-common/testing/MockGraphicsAgentFactory.h"
+#include "virgl_hw.h"
+#include "virtio-gpu-gfxstream-renderer.h"
 
 using android::base::sleepMs;
 
