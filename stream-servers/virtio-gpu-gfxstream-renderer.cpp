@@ -2391,66 +2391,6 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     return 0;
 }
 
-VG_EXPORT void gfxstream_backend_init(uint32_t display_width, uint32_t display_height,
-                                      uint32_t display_type, void* renderer_cookie,
-                                      int renderer_flags,
-                                      struct virgl_renderer_callbacks* virglrenderer_callbacks,
-                                      struct gfxstream_callbacks* gfxstreamcallbacks) {
-    std::vector<stream_renderer_param> streamRendererParams{
-        {STREAM_RENDERER_PARAM_USER_DATA,
-         static_cast<uint64_t>(reinterpret_cast<uintptr_t>(renderer_cookie))},
-        {STREAM_RENDERER_PARAM_RENDERER_FLAGS, static_cast<uint64_t>(renderer_flags)},
-        {STREAM_RENDERER_PARAM_WRITE_FENCE_CALLBACK,
-         static_cast<uint64_t>(reinterpret_cast<uintptr_t>(virglrenderer_callbacks->write_fence))},
-#ifdef VIRGL_RENDERER_UNSTABLE_APIS
-        {STREAM_RENDERER_PARAM_WRITE_CONTEXT_FENCE_CALLBACK,
-         static_cast<uint64_t>(
-             reinterpret_cast<uintptr_t>(virglrenderer_callbacks->write_context_fence))},
-#endif
-        {STREAM_RENDERER_PARAM_WIN0_WIDTH, display_width},
-        {STREAM_RENDERER_PARAM_WIN0_HEIGHT, display_height}};
-
-    // Convert metrics callbacks.
-    if (gfxstreamcallbacks) {
-        if (gfxstreamcallbacks->add_instant_event) {
-            streamRendererParams.push_back(
-                {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT,
-                 static_cast<uint64_t>(
-                     reinterpret_cast<uintptr_t>(gfxstreamcallbacks->add_instant_event))});
-        }
-        if (gfxstreamcallbacks->add_instant_event_with_descriptor) {
-            streamRendererParams.push_back(
-                {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR,
-                 static_cast<uint64_t>(reinterpret_cast<uintptr_t>(
-                     gfxstreamcallbacks->add_instant_event_with_descriptor))});
-        }
-        if (gfxstreamcallbacks->add_instant_event_with_metric) {
-            streamRendererParams.push_back(
-                {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC,
-                 static_cast<uint64_t>(reinterpret_cast<uintptr_t>(
-                     gfxstreamcallbacks->add_instant_event_with_metric))});
-        }
-        if (gfxstreamcallbacks->add_vulkan_out_of_memory_event) {
-            streamRendererParams.push_back(
-                {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT,
-                 static_cast<uint64_t>(reinterpret_cast<uintptr_t>(
-                     gfxstreamcallbacks->add_vulkan_out_of_memory_event))});
-        }
-        if (gfxstreamcallbacks->set_annotation) {
-            streamRendererParams.push_back({STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION,
-                                            static_cast<uint64_t>(reinterpret_cast<uintptr_t>(
-                                                gfxstreamcallbacks->set_annotation))});
-        }
-        if (gfxstreamcallbacks->abort) {
-            streamRendererParams.push_back(
-                {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT,
-                 static_cast<uint64_t>(reinterpret_cast<uintptr_t>(gfxstreamcallbacks->abort))});
-        }
-    }
-
-    stream_renderer_init(streamRendererParams.data(), streamRendererParams.size());
-}
-
 VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_t window_x,
                                               int32_t window_y, int32_t window_width,
                                               int32_t window_height, int32_t fb_width,
