@@ -1916,14 +1916,6 @@ VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
     return sRenderer()->vulkanInfo(res_handle, vulkan_info);
 }
 
-struct renderer_display_info;
-typedef void (*get_pixels_t)(void*, uint32_t, uint32_t);
-static get_pixels_t sGetPixelsFunc = 0;
-typedef void (*post_callback_t)(void*, uint32_t, int, int, int, int, int, unsigned char*);
-
-// For reading back rendered contents to display
-VG_EXPORT void get_pixels(void* pixels, uint32_t bytes);
-
 static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
     // guest_open()
     [](GoldfishHwPipe* hwPipe) -> GoldfishHostPipe* {
@@ -2024,20 +2016,6 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
     // dma_load_mappings()
     [](QEMUFile* file) { (void)file; },
 };
-
-extern const QAndroidVmOperations* const gQAndroidVmOperations;
-
-static void default_post_callback(void* context, uint32_t displayId, int width, int height,
-                                  int ydir, int format, int frame_type, unsigned char* pixels) {
-    (void)context;
-    (void)width;
-    (void)height;
-    (void)ydir;
-    (void)format;
-    (void)frame_type;
-    (void)pixels;
-    // no-op
-}
 
 VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer_params,
                                    uint64_t num_params) {
@@ -2380,8 +2358,6 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     android_opengles_pipe_set_recv_mode(2 /* virtio-gpu */);
     android_init_refcount_pipe();
 
-    sGetPixelsFunc = android_getReadPixelsFunc();
-
     pipe_virgl_renderer_init(renderer_cookie, renderer_flags, &virglrenderer_callbacks);
 
     gfxstream::FrameBuffer::waitUntilInitialized();
@@ -2408,11 +2384,6 @@ VG_EXPORT void gfxstream_backend_teardown() {
 VG_EXPORT void gfxstream_backend_set_screen_mask(int width, int height,
                                                  const unsigned char* rgbaData) {
     android_setOpenglesScreenMask(width, height, rgbaData);
-}
-
-VG_EXPORT void get_pixels(void* pixels, uint32_t bytes) {
-    // TODO: support display > 0
-    sGetPixelsFunc(pixels, bytes, 0);
 }
 
 const GoldfishPipeServiceOps* goldfish_pipe_get_service_ops() { return &goldfish_pipe_service_ops; }
