@@ -55,7 +55,8 @@ VirtGpuBlobPtr RutabagaVirtGpuDevice::createVirglBlob(uint32_t width, uint32_t h
         *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kPipe, mContextId));
 }
 
-int RutabagaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob) {
+int RutabagaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
+                                      const VirtGpuBlob* blob) {
     std::optional<uint32_t> blobResourceId;
     if (blob) {
         blobResourceId = blob->getResourceHandle();
