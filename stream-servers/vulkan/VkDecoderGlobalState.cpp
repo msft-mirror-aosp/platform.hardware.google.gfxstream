@@ -3068,15 +3068,6 @@ class VkDecoderGlobalState::Impl {
         VkMemoryAllocateInfo localAllocInfo = vk_make_orphan_copy(*pAllocateInfo);
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localAllocInfo);
 
-        // handle type should already be converted in unmarshaling
-        const VkExportMemoryAllocateInfo* exportAllocInfoPtr =
-            vk_find_struct<VkExportMemoryAllocateInfo>(pAllocateInfo);
-
-        if (exportAllocInfoPtr) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Export allocs are to be handled on the guest side / VkCommonOperations.";
-        }
-
         const VkMemoryDedicatedAllocateInfo* dedicatedAllocInfoPtr =
             vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo);
         VkMemoryDedicatedAllocateInfo localDedicatedAllocInfo;
