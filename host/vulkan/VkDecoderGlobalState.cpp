@@ -531,20 +531,11 @@ class VkDecoderGlobalState::Impl {
         }
 #endif
 
-        std::string_view appName = appInfo.pApplicationName ? appInfo.pApplicationName : "";
-        std::string_view engineName = appInfo.pEngineName ? appInfo.pEngineName : "";
-
-        // TODO(gregschlom) Use a better criteria to determine when to use ASTC CPU decompression.
-        //   The goal is to only enable ASTC CPU decompression for specific applications.
-        //   Theoretically the pApplicationName field would be exactly what we want, unfortunately
-        //   it looks like Unity apps always set this to "Unity" instead of the actual application.
-        //   Eventually we will want to use https://r.android.com/2163499 for this purpose.
-        const bool isUnity = appName == "Unity" && engineName == "Unity";
         if (m_emu->astcLdrEmulationMode == AstcEmulationMode::CpuOnly ||
-            (m_emu->astcLdrEmulationMode == AstcEmulationMode::Auto && isUnity)) {
+            m_emu->astcLdrEmulationMode == AstcEmulationMode::Auto) {
             info.useAstcCpuDecompression = true;
         }
-
+        std::string_view engineName = appInfo.pEngineName ? appInfo.pEngineName : "";
         info.isAngle = (engineName == "ANGLE");
 
         mInstanceInfo[*pInstance] = info;
