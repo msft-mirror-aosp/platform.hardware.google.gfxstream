@@ -307,6 +307,10 @@ void PostWorker::clearImpl() {
 }
 
 std::shared_future<void> PostWorker::composeImpl(const FlatComposeRequest& composeRequest) {
+    std::shared_future<void> completedFuture =
+        std::async(std::launch::deferred, [] {}).share();
+    completedFuture.wait();
+
     if (!isComposeTargetReady(composeRequest.targetHandle)) {
         ERR("The last composition on the target buffer hasn't completed.");
     }
@@ -314,16 +318,25 @@ std::shared_future<void> PostWorker::composeImpl(const FlatComposeRequest& compo
     Compositor::CompositionRequest compositorRequest = {};
     compositorRequest.target = mFb->borrowColorBufferForComposition(composeRequest.targetHandle,
                                                                     /*colorBufferIsTarget=*/true);
+    if (!compositorRequest.target) {
+        ERR("Compose target is null (cb=0x%x).", composeRequest.targetHandle);
+        return completedFuture;
+    }
+
     for (const ComposeLayer& guestLayer : composeRequest.layers) {
         // Skip the ColorBuffer whose id is 0.
         if (!guestLayer.cbHandle) {
             continue;
         }
+        auto source = mFb->borrowColorBufferForComposition(guestLayer.cbHandle,
+                                                           /*colorBufferIsTarget=*/false);
+        if (!source) {
+            continue;
+        }
+
         auto& compositorLayer = compositorRequest.layers.emplace_back();
         compositorLayer.props = guestLayer;
-        compositorLayer.source =
-            mFb->borrowColorBufferForComposition(guestLayer.cbHandle,
-                                                 /*colorBufferIsTarget=*/false);
+        compositorLayer.source = std::move(source);
     }
 
     return m_compositor->compose(compositorRequest);
