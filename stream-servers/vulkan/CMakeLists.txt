@@ -16,7 +16,6 @@ add_library(gfxstream-vulkan-server
             VkDecoderGlobalState.cpp
             VkDecoderSnapshot.cpp
             VkFormatUtils.cpp
-            VkGuestMemoryUtils.cpp
             VkReconstruction.cpp
             VulkanDispatch.cpp
             VulkanHandleMapping.cpp

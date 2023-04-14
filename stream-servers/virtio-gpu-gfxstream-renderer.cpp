@@ -20,6 +20,7 @@
 #include "FrameBuffer.h"
 #include "GfxStreamAgents.h"
 #include "VirtioGpuTimelines.h"
+#include "VkCommonOperations.h"
 #include "aemu/base/AlignedBuf.h"
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Metrics.h"
@@ -1316,6 +1317,11 @@ class PipeVirglRenderer {
             capset->protocolVersion = 1;
             capset->ringSize = 12288;
             capset->bufferSize = 1048576;
+
+            auto vk_emu = gfxstream::vk::getGlobalVkEmulation();
+            if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeIndex) {
+                capset->colorBufferMemoryIndex = *vk_emu->representativeColorBufferMemoryTypeIndex;
+            }
         }
     }
 
