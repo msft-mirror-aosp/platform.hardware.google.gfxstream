@@ -2222,6 +2222,9 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
         if (native_buffer->common.version != sizeof(android_native_buffer_t))
             setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
 
+        if (native_buffer->handle == NULL)
+            setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+
         DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
         int format = grallocHelper->getFormat(native_buffer->handle);
         switch (format) {
