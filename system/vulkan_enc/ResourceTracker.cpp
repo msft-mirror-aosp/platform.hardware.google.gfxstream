@@ -912,6 +912,11 @@ public:
     void setupCaps(void) {
         VirtGpuDevice& instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
         mCaps = instance.getCaps();
+
+        // Delete once goldfish Linux drivers are gone
+        if (mCaps.gfxstreamCapset.protocolVersion == 0) {
+            mCaps.gfxstreamCapset.colorBufferMemoryIndex = 0xFFFFFFFF;
+        }
     }
 
     void setupFeatures(const EmulatorFeatureInfo* features) {
@@ -1657,12 +1662,25 @@ public:
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
-            void*, VkResult,
-            VkDevice,
+            void* context, VkResult,
+            VkDevice device,
             const AHardwareBuffer* buffer,
             VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
         auto grallocHelper =
             ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
+
+        // Delete once goldfish Linux drivers are gone
+	if (mCaps.gfxstreamCapset.colorBufferMemoryIndex == 0xFFFFFFFF) {
+            const VkPhysicalDeviceMemoryProperties& memProps =
+                getPhysicalDeviceMemoryProperties(context, device, VK_NULL_HANDLE);
+
+            mCaps.gfxstreamCapset.colorBufferMemoryIndex =
+                (1u << memProps.memoryTypeCount) - 1;
+        }
+
+        updateMemoryTypeBits(&pProperties->memoryTypeBits,
+                             mCaps.gfxstreamCapset.colorBufferMemoryIndex);
+
         return getAndroidHardwareBufferPropertiesANDROID(
             grallocHelper, buffer, pProperties);
     }
@@ -4228,11 +4246,15 @@ public:
             info.isSysmemBackedMemory = true;
         }
 #endif
+
+// Delete `protocolVersion` check goldfish drivers are gone.
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (extImgCiPtr &&
+            mCaps.gfxstreamCapset.protocolVersion &&
             (extImgCiPtr->handleTypes &
              VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
-            updateMemoryTypeBitsForAndroidHardwareBuffers(&memReqs.memoryTypeBits);
+            updateMemoryTypeBits(&memReqs.memoryTypeBits,
+                                 mCaps.gfxstreamCapset.colorBufferMemoryIndex);
         }
 #endif
 
@@ -5271,11 +5293,14 @@ public:
 
         if (res != VK_SUCCESS) return res;
 
+// Delete `protocolVersion` check goldfish drivers are gone.
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (extBufCiPtr &&
+            mCaps.gfxstreamCapset.protocolVersion &&
             (extBufCiPtr->handleTypes &
              VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
-            updateMemoryTypeBitsForAndroidHardwareBuffers(&memReqs.memoryTypeBits);
+            updateMemoryTypeBits(&memReqs.memoryTypeBits,
+                                 mCaps.gfxstreamCapset.colorBufferMemoryIndex);
         }
 #endif
 

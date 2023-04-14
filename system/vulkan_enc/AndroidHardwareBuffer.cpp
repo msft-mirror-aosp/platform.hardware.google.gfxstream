@@ -62,9 +62,8 @@ getAndroidHardwareBufferUsageFromVkUsage(const VkImageCreateFlags vk_create,
    return ahw_usage;
 }
 
-void updateMemoryTypeBitsForAndroidHardwareBuffers(uint32_t* memoryTypeBits) {
-    constexpr const uint32_t kReservedAndroidHardwareBufferMemoryTypeIndex = 0;
-    *memoryTypeBits = 1u << kReservedAndroidHardwareBufferMemoryTypeIndex;
+void updateMemoryTypeBits(uint32_t* memoryTypeBits, uint32_t colorBufferMemoryIndex) {
+   *memoryTypeBits = 1u << colorBufferMemoryIndex;
 }
 
 VkResult getAndroidHardwareBufferPropertiesANDROID(
@@ -235,8 +234,6 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
     if (!colorBufferHandle) {
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
-
-    updateMemoryTypeBitsForAndroidHardwareBuffers(&pProperties->memoryTypeBits);
 
     pProperties->allocationSize =
         grallocHelper->getAllocatedSize(handle);
