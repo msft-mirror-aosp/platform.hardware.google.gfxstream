@@ -2698,8 +2698,8 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     Post scrCmd;
     scrCmd.cmd = PostCmd::Screenshot;
     scrCmd.screenshot.cb = colorBuffer.get();
-    scrCmd.screenshot.screenwidth = *width;
-    scrCmd.screenshot.screenheight = *height;
+    scrCmd.screenshot.screenwidth = screenWidth;
+    scrCmd.screenshot.screenheight = screenHeight;
     scrCmd.screenshot.format = format;
     scrCmd.screenshot.type = GL_UNSIGNED_BYTE;
     scrCmd.screenshot.rotation = desiredRotation;

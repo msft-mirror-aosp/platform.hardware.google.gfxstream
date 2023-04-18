@@ -432,6 +432,8 @@ void ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLe
         if (useSnipping) {
             s_gles2.glReadPixels(rect.pos.x, rect.pos.y, rect.size.w,
                                  rect.size.h, p_format, p_type, readPixelsDst);
+            width = rect.size.w;
+            height = rect.size.h;
         } else {
             s_gles2.glReadPixels(0, 0, width, height, p_format, p_type,
                                  readPixelsDst);
