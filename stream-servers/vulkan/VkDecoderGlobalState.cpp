@@ -3756,9 +3756,14 @@ class VkDecoderGlobalState::Impl {
         }
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) return VK_ERROR_UNKNOWN;
+
         for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; i++) {
             mCmdBufferInfo[pCommandBuffers[i]] = CommandBufferInfo();
             mCmdBufferInfo[pCommandBuffers[i]].device = device;
+            mCmdBufferInfo[pCommandBuffers[i]].debugUtilsHelper = deviceInfo->debugUtilsHelper;
             mCmdBufferInfo[pCommandBuffers[i]].cmdPool = pAllocateInfo->commandPool;
             auto boxed = new_boxed_VkCommandBuffer(pCommandBuffers[i], vk,
                                                    false /* does not own dispatch */);
@@ -4199,8 +4204,16 @@ class VkDecoderGlobalState::Impl {
         }
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        auto& bufferInfo = mCmdBufferInfo[commandBuffer];
-        bufferInfo.reset();
+
+        auto* commandBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        if (!commandBufferInfo) return VK_ERROR_UNKNOWN;
+        commandBufferInfo->reset();
+
+        if (context.processName) {
+            commandBufferInfo->debugUtilsHelper.cmdBeginDebugLabel(commandBuffer, "Process %s",
+                                                                   context.processName);
+        }
+
         return VK_SUCCESS;
     }
 
@@ -4216,6 +4229,15 @@ class VkDecoderGlobalState::Impl {
                                    const VkDecoderContext& context) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        auto* commandBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        if (!commandBufferInfo) return VK_ERROR_UNKNOWN;
+
+        if (context.processName) {
+            commandBufferInfo->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
+        }
 
         return vk->vkEndCommandBuffer(commandBuffer);
     }
@@ -5696,6 +5718,7 @@ class VkDecoderGlobalState::Impl {
         VkDevice device = VK_NULL_HANDLE;
         VkCommandPool cmdPool = VK_NULL_HANDLE;
         VkCommandBuffer boxed = VK_NULL_HANDLE;
+        DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
 
         // Most recently bound compute pipeline and descriptor sets. We save it here so that we can
         // restore it after doing emulated texture decompression.
