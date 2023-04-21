@@ -2161,6 +2161,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
 
     android::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
     bool enableVk = !(renderer_flags & GFXSTREAM_RENDERER_FLAGS_NO_VK_BIT);
+    bool enableGles = (renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_GLES_BIT);
 
     bool egl2eglByEnv = android::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
     bool egl2eglByFlag = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_EGL_BIT;
@@ -2174,10 +2175,11 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     bool enableGlEs31Flag = renderer_flags & GFXSTREAM_RENDERER_FLAGS_ENABLE_GLES31_BIT;
     bool useExternalBlob = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB;
     bool useSystemBlob = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB;
-    bool guestUsesAngle = renderer_flags & GFXSTREAM_RENDERER_FLAGS_GUEST_USES_ANGLE;
+    bool guestUsesAngle = enableVk && !enableGles;
     bool useVulkanNativeSwapchain =
         renderer_flags & GFXSTREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT;
 
+    GFXS_LOG("GLES enabled? %d", enableGles);
     GFXS_LOG("Vulkan enabled? %d", enableVk);
     GFXS_LOG("egl2egl enabled? %d", enable_egl2egl);
     GFXS_LOG("surfaceless? %d", surfaceless);
