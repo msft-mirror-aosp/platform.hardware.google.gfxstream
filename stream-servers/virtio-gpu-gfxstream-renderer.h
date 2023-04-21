@@ -1,23 +1,51 @@
-#ifndef VIRTIO_GOLDFISH_PIPE
-#define VIRTIO_GOLDFISH_PIPE
+// Copyright 2023 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-/* An override of virtio-gpu-3d (virgl) that runs goldfish pipe.  One could
- * implement an actual virtio goldfish pipe, but this hijacking of virgl  is
- * done in order to avoid any guest kernel changes. */
+#ifndef VIRTGPU_GFXSTREAM_RENDERER_H
+#define VIRTGPU_GFXSTREAM_RENDERER_H
+
+/* An implementation of virtio-gpu-3d that streams rendering commands. */
 
 #include <stddef.h>
 
-#include "virglrenderer.h"
+#if defined(_WIN32)
+struct iovec {
+    void* iov_base; /* Starting address */
+    size_t iov_len; /* Length in bytes */
+};
+#else
+#include <sys/uio.h>
+#endif
+
+struct stream_renderer_box {
+    uint32_t x, y, z;
+    uint32_t w, h, d;
+};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * Versioning
+ */
+#define STREAM_RENDERER_VERSION_MAJOR 0
+#define STREAM_RENDERER_VERSION_MINOR 1
+#define STREAM_RENDERER_VERSION_PATCH 1
+
 typedef uint32_t VirtioGpuCtxId;
 typedef uint8_t VirtioGpuRingIdx;
-struct virgl_renderer_virtio_interface* get_goldfish_pipe_virgl_renderer_virtio_interface(void);
-
-/* Needed for goldfish pipe */
-void virgl_write_fence(void* opaque, uint32_t fence);
 
 #ifdef _WIN32
 #define VG_EXPORT __declspec(dllexport)
@@ -25,42 +53,107 @@ void virgl_write_fence(void* opaque, uint32_t fence);
 #define VG_EXPORT __attribute__((visibility("default")))
 #endif
 
-#define VIRTIO_GOLDFISH_EXPORT_API
-#ifdef VIRTIO_GOLDFISH_EXPORT_API
+struct stream_renderer_resource_create_args {
+    uint32_t handle;
+    uint32_t target;
+    uint32_t format;
+    uint32_t bind;
+    uint32_t width;
+    uint32_t height;
+    uint32_t depth;
+    uint32_t array_size;
+    uint32_t last_level;
+    uint32_t nr_samples;
+    uint32_t flags;
+};
 
-VG_EXPORT int pipe_virgl_renderer_init(void* cookie, int flags,
-                                       struct virgl_renderer_callbacks* cb);
-VG_EXPORT void pipe_virgl_renderer_poll(void);
-VG_EXPORT void* pipe_virgl_renderer_get_cursor_data(uint32_t resource_id, uint32_t* width,
-                                                    uint32_t* height);
-VG_EXPORT int pipe_virgl_renderer_resource_create(struct virgl_renderer_resource_create_args* args,
-                                                  struct iovec* iov, uint32_t num_iovs);
-VG_EXPORT void pipe_virgl_renderer_resource_unref(uint32_t res_handle);
-VG_EXPORT int pipe_virgl_renderer_context_create(uint32_t handle, uint32_t nlen, const char* name);
-VG_EXPORT void pipe_virgl_renderer_context_destroy(uint32_t handle);
-VG_EXPORT int pipe_virgl_renderer_submit_cmd(void* buffer, int ctx_id, int bytes);
-VG_EXPORT int pipe_virgl_renderer_transfer_read_iov(uint32_t handle, uint32_t ctx_id,
-                                                    uint32_t level, uint32_t stride,
-                                                    uint32_t layer_stride, struct virgl_box* box,
-                                                    uint64_t offset, struct iovec* iov,
-                                                    int iovec_cnt);
-VG_EXPORT int pipe_virgl_renderer_transfer_write_iov(uint32_t handle, uint32_t ctx_id, int level,
-                                                     uint32_t stride, uint32_t layer_stride,
-                                                     struct virgl_box* box, uint64_t offset,
-                                                     struct iovec* iovec, unsigned int iovec_cnt);
-VG_EXPORT void pipe_virgl_renderer_get_cap_set(uint32_t set, uint32_t* max_ver, uint32_t* max_size);
-VG_EXPORT void pipe_virgl_renderer_fill_caps(uint32_t set, uint32_t version, void* caps);
+struct stream_renderer_resource_info {
+    uint32_t handle;
+    uint32_t virgl_format;
+    uint32_t width;
+    uint32_t height;
+    uint32_t depth;
+    uint32_t flags;
+    uint32_t tex_id;
+    uint32_t stride;
+    int drm_fourcc;
+};
 
-VG_EXPORT int pipe_virgl_renderer_resource_attach_iov(int res_handle, struct iovec* iov,
-                                                      int num_iovs);
-VG_EXPORT void pipe_virgl_renderer_resource_detach_iov(int res_handle, struct iovec** iov,
-                                                       int* num_iovs);
-VG_EXPORT int pipe_virgl_renderer_create_fence(int client_fence_id, uint32_t cmd_type);
-VG_EXPORT void pipe_virgl_renderer_force_ctx_0(void);
-VG_EXPORT void pipe_virgl_renderer_ctx_attach_resource(int ctx_id, int res_handle);
-VG_EXPORT void pipe_virgl_renderer_ctx_detach_resource(int ctx_id, int res_handle);
-VG_EXPORT int pipe_virgl_renderer_resource_get_info(int res_handle,
-                                                    struct virgl_renderer_resource_info* info);
+#define STREAM_RENDERER_FLAG_FENCE (1 << 0)
+#define STREAM_RENDERER_FLAG_FENCE_RING_IDX (1 << 1)
+struct stream_renderer_fence {
+    uint32_t flags;
+    uint64_t fence_id;
+    uint32_t ctx_id;
+    uint8_t ring_idx;
+};
+
+// Callback for writing a fence.
+typedef void (*stream_renderer_fence_callback)(void* user_data,
+                                               struct stream_renderer_fence* fence_data);
+
+// Parameters - data passed to initialize the renderer, with the goal of avoiding FFI breakages.
+// To change the data a parameter is passing safely, you should create a new parameter and
+// deprecate the old one. The old parameter may be removed after sufficient time.
+//
+// STREAM_RENDERER_PARAM_NULL: Reserved value
+//
+// The following are required for correct operation:
+// STREAM_RENDERER_PARAM_USER_DATA: User data, for custom use by renderer.
+// STREAM_RENDERER_PARAM_RENDERER_FLAGS: Bitwise flags for the renderer.
+// STREAM_RENDERER_PARAM_FENCE_CALLBACK: A function of the type `stream_renderer_fence_callback`
+
+// The following are optional:
+// STREAM_RENDERER_PARAM_WIN0_WIDTH: The width of window[0], when using surface-based rendering
+// STREAM_RENDERER_PARAM_WIN0_HEIGHT: The height of window[0], when using surface-based rendering
+#define STREAM_RENDERER_PARAM_NULL 0
+#define STREAM_RENDERER_PARAM_USER_DATA 1
+#define STREAM_RENDERER_PARAM_RENDERER_FLAGS 2
+#define STREAM_RENDERER_PARAM_FENCE_CALLBACK 3
+#define STREAM_RENDERER_PARAM_WIN0_WIDTH 4
+#define STREAM_RENDERER_PARAM_WIN0_HEIGHT 5
+
+// An entry in the stream renderer parameters list.
+// The key should be one of STREAM_RENDERER_PARAM_*
+// The value can be either a uint64_t or cast to a pointer to a struct, depending on if the
+// parameter needs to pass data bigger than a single uint64_t.
+struct stream_renderer_param {
+    uint64_t key;
+    uint64_t value;
+};
+
+// Entry point for the stream renderer.
+// Pass a list of parameters to configure the renderer. The available ones are listed above. If a
+// parameter is not supported, the renderer will ignore it and warn in stderr.
+// Return value 0 indicates success, and a negative number indicates failure.
+VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer_params,
+                                   uint64_t num_params);
+
+VG_EXPORT void stream_renderer_teardown(void);
+
+VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_create_args* args,
+                                              struct iovec* iov, uint32_t num_iovs);
+VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle);
+VG_EXPORT void stream_renderer_context_destroy(uint32_t handle);
+VG_EXPORT int stream_renderer_submit_cmd(void* buffer, int ctx_id, int bytes);
+VG_EXPORT int stream_renderer_transfer_read_iov(uint32_t handle, uint32_t ctx_id, uint32_t level,
+                                                uint32_t stride, uint32_t layer_stride,
+                                                struct stream_renderer_box* box, uint64_t offset,
+                                                struct iovec* iov, int iovec_cnt);
+VG_EXPORT int stream_renderer_transfer_write_iov(uint32_t handle, uint32_t ctx_id, int level,
+                                                 uint32_t stride, uint32_t layer_stride,
+                                                 struct stream_renderer_box* box, uint64_t offset,
+                                                 struct iovec* iovec, unsigned int iovec_cnt);
+VG_EXPORT void stream_renderer_get_cap_set(uint32_t set, uint32_t* max_ver, uint32_t* max_size);
+VG_EXPORT void stream_renderer_fill_caps(uint32_t set, uint32_t version, void* caps);
+
+VG_EXPORT int stream_renderer_resource_attach_iov(int res_handle, struct iovec* iov, int num_iovs);
+VG_EXPORT void stream_renderer_resource_detach_iov(int res_handle, struct iovec** iov,
+                                                   int* num_iovs);
+VG_EXPORT void stream_renderer_ctx_attach_resource(int ctx_id, int res_handle);
+VG_EXPORT void stream_renderer_ctx_detach_resource(int ctx_id, int res_handle);
+VG_EXPORT int stream_renderer_resource_get_info(int res_handle,
+                                                struct stream_renderer_resource_info* info);
 
 VG_EXPORT void stream_renderer_flush_resource_and_readback(uint32_t res_handle, uint32_t x,
                                                            uint32_t y, uint32_t width,
@@ -111,8 +204,7 @@ VG_EXPORT int stream_renderer_resource_unmap(uint32_t res_handle);
 VG_EXPORT int stream_renderer_context_create(uint32_t ctx_id, uint32_t nlen, const char* name,
                                              uint32_t context_init);
 
-VG_EXPORT int stream_renderer_context_create_fence(uint64_t fence_id, uint32_t ctx_id,
-                                                   uint8_t ring_idx);
+VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* fence);
 
 // Platform resources and contexts support
 #define STREAM_RENDERER_PLATFORM_RESOURCE_USE_MASK 0xF0
@@ -152,116 +244,6 @@ struct stream_renderer_vulkan_info {
 
 VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
                                           struct stream_renderer_vulkan_info* vulkan_info);
-
-// Parameters - data passed to initialize the renderer, with the goal of avoiding FFI breakages.
-// To change the data a parameter is passing safely, you should create a new parameter and
-// deprecate the old one. The old parameter may be removed after sufficient time.
-
-// Reserved.
-#define STREAM_RENDERER_PARAM_NULL 0
-
-// User data, for custom use by renderer. An example is VirglCookie which includes a fence
-// handler and render server descriptor.
-#define STREAM_RENDERER_PARAM_USER_DATA 1
-
-// Bitwise flags for the renderer.
-#define STREAM_RENDERER_PARAM_RENDERER_FLAGS 2
-
-// Reserved to replace write_fence / write_context_fence.
-#define STREAM_RENDERER_PARAM_FENCE_CALLBACK 3
-
-// Callback for writing a fence.
-#define STREAM_RENDERER_PARAM_WRITE_FENCE_CALLBACK 4
-typedef void (*stream_renderer_param_write_fence_callback)(void* user_data, uint32_t fence);
-
-// Callback for writing a fence with context.
-#define STREAM_RENDERER_PARAM_WRITE_CONTEXT_FENCE_CALLBACK 5
-typedef void (*stream_renderer_param_write_context_fence_callback)(void* user_data, uint64_t fence,
-                                                                   uint32_t ctx_id,
-                                                                   uint8_t ring_idx);
-
-// Window 0's width.
-#define STREAM_RENDERER_PARAM_WIN0_WIDTH 6
-
-// Window 0's height.
-#define STREAM_RENDERER_PARAM_WIN0_HEIGHT 7
-
-// Enables the host to control which memory types the guest will be allowed to map. For types not
-// in the mask, the bits HOST_VISIBLE and HOST_COHERENT will be removed.
-#define STREAM_RENDERER_PARAM_HOST_VISIBLE_MEMORY_MASK 8
-
-// Information about one device's memory mask.
-struct stream_renderer_param_host_visible_memory_mask_entry {
-    // Which device the mask applies to.
-    struct stream_renderer_device_id device_id;
-    // Memory types allowed to be host visible are 1, otherwise 0.
-    uint32_t memory_type_mask;
-};
-
-// Information about the devices in the system with host visible memory type constraints.
-struct stream_renderer_param_host_visible_memory_mask {
-    // Points to a stream_renderer_param_host_visible_memory_mask_entry array.
-    uint64_t entries;
-    // Length of the entries array.
-    uint64_t num_entries;
-};
-
-// Enables the host to control which GPU is used for rendering.
-#define STREAM_RENDERER_PARAM_RENDERING_GPU 9
-
-// External callbacks for tracking metrics.
-// Separating each function to a parameter allows new functions to be added later.
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT 1024
-typedef void (*stream_renderer_param_metrics_callback_add_instant_event)(int64_t event_code);
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR 1025
-typedef void (*stream_renderer_param_metrics_callback_add_instant_event_with_descriptor)(
-    int64_t event_code, int64_t descriptor);
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC 1026
-typedef void (*stream_renderer_param_metrics_callback_add_instant_event_with_metric)(
-    int64_t event_code, int64_t metric_value);
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT 1027
-typedef void (*stream_renderer_param_metrics_callback_add_vulkan_out_of_memory_event)(
-    int64_t result_code, uint32_t op_code, const char* function, uint32_t line,
-    uint64_t allocation_size, bool is_host_side_result, bool is_allocation);
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION 1028
-typedef void (*stream_renderer_param_metrics_callback_set_annotation)(const char* key,
-                                                                      const char* value);
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT 1029
-typedef void (*stream_renderer_param_metrics_callback_abort)();
-
-// An entry in the stream renderer parameters list.
-struct stream_renderer_param {
-    // The key should be one of STREAM_RENDERER_PARAM_*
-    uint64_t key;
-    // The value can be either a uint64_t or cast to a pointer to a struct, depending on if the
-    // parameter needs to pass data bigger than a single uint64_t.
-    uint64_t value;
-};
-
-// Entry point for the stream renderer.
-// Pass a list of parameters to configure the renderer. The available ones are listed above. If a
-// parameter is not supported, the renderer will ignore it and warn in stderr.
-// Return value 0 indicates success, and a negative number indicates failure.
-VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer_params,
-                                   uint64_t num_params);
-
-VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_t window_x,
-                                              int32_t window_y, int32_t window_width,
-                                              int32_t window_height, int32_t fb_width,
-                                              int32_t fb_height);
-
-VG_EXPORT void gfxstream_backend_teardown(void);
-
-#else
-
-#define VG_EXPORT
-
-#endif  // !VIRTIO_GOLDFISH_EXPORT_API
 
 #ifdef __cplusplus
 }  // extern "C"
