@@ -52,7 +52,7 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			OutputBuffer outptr_device_out(&tmpBuf[0], size_device_out);
-			DECODER_DEBUG_LOG("magma(%p): magma_device_import(device_channel:0x%x device_out:%p(%u) )", stream, var_device_channel, (magma_device_t*)(outptr_device_out.get()), size_device_out);
+			DECODER_DEBUG_LOG("magma(%p): magma_device_import(device_channel:%u device_out:%p(%u) )", stream, var_device_channel, (magma_device_t*)(outptr_device_out.get()), size_device_out);
 			*(magma_status_t *)(&tmpBuf[0 + size_device_out]) = 			this->magma_device_import(var_device_channel, (magma_device_t*)(outptr_device_out.get()));
 			outptr_device_out.flush();
 			if (useChecksum) {
@@ -267,7 +267,7 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			OutputBuffer outptr_size_out(&tmpBuf[0], size_size_out);
 			OutputBuffer outptr_buffer_out(&tmpBuf[0 + size_size_out], size_buffer_out);
 			OutputBuffer outptr_id_out(&tmpBuf[0 + size_size_out + size_buffer_out], size_id_out);
-			DECODER_DEBUG_LOG("magma(%p): magma_connection_import_buffer(connection:%lu buffer_handle:0x%x size_out:%p(%u) buffer_out:%p(%u) id_out:%p(%u) )", stream, var_connection, var_buffer_handle, (uint64_t*)(outptr_size_out.get()), size_size_out, (magma_buffer_t*)(outptr_buffer_out.get()), size_buffer_out, (magma_buffer_id_t*)(outptr_id_out.get()), size_id_out);
+			DECODER_DEBUG_LOG("magma(%p): magma_connection_import_buffer(connection:%lu buffer_handle:%u size_out:%p(%u) buffer_out:%p(%u) id_out:%p(%u) )", stream, var_connection, var_buffer_handle, (uint64_t*)(outptr_size_out.get()), size_size_out, (magma_buffer_t*)(outptr_buffer_out.get()), size_buffer_out, (magma_buffer_id_t*)(outptr_id_out.get()), size_id_out);
 			*(magma_status_t *)(&tmpBuf[0 + size_size_out + size_buffer_out + size_id_out]) = 			this->magma_connection_import_buffer(var_connection, var_buffer_handle, (uint64_t*)(outptr_size_out.get()), (magma_buffer_t*)(outptr_buffer_out.get()), (magma_buffer_id_t*)(outptr_id_out.get()));
 			outptr_size_out.flush();
 			outptr_buffer_out.flush();
@@ -339,7 +339,7 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			OutputBuffer outptr_semaphore_out(&tmpBuf[0], size_semaphore_out);
 			OutputBuffer outptr_id_out(&tmpBuf[0 + size_semaphore_out], size_id_out);
-			DECODER_DEBUG_LOG("magma(%p): magma_connection_import_semaphore(connection:%lu semaphore_handle:0x%x semaphore_out:%p(%u) id_out:%p(%u) )", stream, var_connection, var_semaphore_handle, (magma_semaphore_t*)(outptr_semaphore_out.get()), size_semaphore_out, (magma_semaphore_id_t*)(outptr_id_out.get()), size_id_out);
+			DECODER_DEBUG_LOG("magma(%p): magma_connection_import_semaphore(connection:%lu semaphore_handle:%u semaphore_out:%p(%u) id_out:%p(%u) )", stream, var_connection, var_semaphore_handle, (magma_semaphore_t*)(outptr_semaphore_out.get()), size_semaphore_out, (magma_semaphore_id_t*)(outptr_id_out.get()), size_id_out);
 			*(magma_status_t *)(&tmpBuf[0 + size_semaphore_out + size_id_out]) = 			this->magma_connection_import_semaphore(var_connection, var_semaphore_handle, (magma_semaphore_t*)(outptr_semaphore_out.get()), (magma_semaphore_id_t*)(outptr_id_out.get()));
 			outptr_semaphore_out.flush();
 			outptr_id_out.flush();
@@ -417,22 +417,19 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 		}
 		case OP_magma_connection_execute_command: {
 			android::base::beginTrace("magma_connection_execute_command decode");
-			uint32_t size_parameters __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
-			InputBuffer inptr_parameters(ptr + 8 + 4, size_parameters);
-			uint64_t var_parameter_count = Unpack<uint64_t,uint64_t>(ptr + 8 + 4 + size_parameters);
+			magma_connection_t var_connection = Unpack<magma_connection_t,uint64_t>(ptr + 8);
+			uint32_t var_context_id = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
+			uint32_t size_descriptor __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 4);
+			InputBuffer inptr_descriptor(ptr + 8 + 8 + 4 + 4, size_descriptor);
 			if (useChecksum) {
-				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4 + size_parameters + 8, ptr + 8 + 4 + size_parameters + 8, checksumSize,
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 4 + 4 + size_descriptor, ptr + 8 + 8 + 4 + 4 + size_descriptor, checksumSize,
 					"magma_decoder_context_t::decode, OP_magma_connection_execute_command: GL checksumCalculator failure\n");
 			}
-			size_t totalTmpSize = size_parameters;
-			totalTmpSize += sizeof(magma_status_t);
+			size_t totalTmpSize = sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			OutputBuffer outptr_parameters(&tmpBuf[0], size_parameters);
-			memcpy(outptr_parameters.get(), inptr_parameters.get(), size_parameters);
-			DECODER_DEBUG_LOG("magma(%p): magma_connection_execute_command(parameters:%p(%u) parameter_count:%lu )", stream, (uint64_t*)(outptr_parameters.get()), size_parameters, var_parameter_count);
-			*(magma_status_t *)(&tmpBuf[0 + size_parameters]) = 			this->magma_connection_execute_command((uint64_t*)(outptr_parameters.get()), var_parameter_count);
-			outptr_parameters.flush();
+			DECODER_DEBUG_LOG("magma(%p): magma_connection_execute_command(connection:%lu context_id:%u descriptor:%p(%u) )", stream, var_connection, var_context_id, (magma_command_descriptor_t*)(inptr_descriptor.get()), size_descriptor);
+			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_connection_execute_command(var_connection, var_context_id, (magma_command_descriptor_t*)(inptr_descriptor.get()));
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
@@ -441,29 +438,78 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			android::base::endTrace();
 			break;
 		}
-		case OP_magma_connection_execute_immediate_commands: {
-			android::base::beginTrace("magma_connection_execute_immediate_commands decode");
-			uint32_t size_parameters __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
-			InputBuffer inptr_parameters(ptr + 8 + 4, size_parameters);
-			uint64_t var_parameter_count = Unpack<uint64_t,uint64_t>(ptr + 8 + 4 + size_parameters);
+		case OP_magma_connection_execute_command_fudge: {
+			android::base::beginTrace("magma_connection_execute_command_fudge decode");
+			magma_connection_t var_connection = Unpack<magma_connection_t,uint64_t>(ptr + 8);
+			uint32_t var_context_id = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
+			uint32_t size_descriptor __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 4);
+			InputBuffer inptr_descriptor(ptr + 8 + 8 + 4 + 4, size_descriptor);
+			uint64_t var_descriptor_size = Unpack<uint64_t,uint64_t>(ptr + 8 + 8 + 4 + 4 + size_descriptor);
 			if (useChecksum) {
-				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4 + size_parameters + 8, ptr + 8 + 4 + size_parameters + 8, checksumSize,
-					"magma_decoder_context_t::decode, OP_magma_connection_execute_immediate_commands: GL checksumCalculator failure\n");
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 4 + 4 + size_descriptor + 8, ptr + 8 + 8 + 4 + 4 + size_descriptor + 8, checksumSize,
+					"magma_decoder_context_t::decode, OP_magma_connection_execute_command_fudge: GL checksumCalculator failure\n");
 			}
-			size_t totalTmpSize = size_parameters;
-			totalTmpSize += sizeof(magma_status_t);
+			size_t totalTmpSize = sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			OutputBuffer outptr_parameters(&tmpBuf[0], size_parameters);
-			memcpy(outptr_parameters.get(), inptr_parameters.get(), size_parameters);
-			DECODER_DEBUG_LOG("magma(%p): magma_connection_execute_immediate_commands(parameters:%p(%u) parameter_count:%lu )", stream, (uint64_t*)(outptr_parameters.get()), size_parameters, var_parameter_count);
-			*(magma_status_t *)(&tmpBuf[0 + size_parameters]) = 			this->magma_connection_execute_immediate_commands((uint64_t*)(outptr_parameters.get()), var_parameter_count);
-			outptr_parameters.flush();
+			DECODER_DEBUG_LOG("magma(%p): magma_connection_execute_command_fudge(connection:%lu context_id:%u descriptor:%p(%u) descriptor_size:%lu )", stream, var_connection, var_context_id, (void*)(inptr_descriptor.get()), size_descriptor, var_descriptor_size);
+			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_connection_execute_command_fudge(var_connection, var_context_id, (void*)(inptr_descriptor.get()), var_descriptor_size);
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
+			}
+			stream->flush();
+			SET_LASTCALL("magma_connection_execute_command_fudge");
+			android::base::endTrace();
+			break;
+		}
+		case OP_magma_connection_execute_immediate_commands: {
+			android::base::beginTrace("magma_connection_execute_immediate_commands decode");
+			magma_connection_t var_connection = Unpack<magma_connection_t,uint64_t>(ptr + 8);
+			uint32_t var_context_id = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
+			uint64_t var_command_count = Unpack<uint64_t,uint64_t>(ptr + 8 + 8 + 4);
+			uint32_t size_command_buffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 4 + 8);
+			InputBuffer inptr_command_buffers(ptr + 8 + 8 + 4 + 8 + 4, size_command_buffers);
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 4 + 8 + 4 + size_command_buffers, ptr + 8 + 8 + 4 + 8 + 4 + size_command_buffers, checksumSize,
+					"magma_decoder_context_t::decode, OP_magma_connection_execute_immediate_commands: GL checksumCalculator failure\n");
+			}
+			size_t totalTmpSize = sizeof(magma_status_t);
+			totalTmpSize += checksumSize;
+			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
+			DECODER_DEBUG_LOG("magma(%p): magma_connection_execute_immediate_commands(connection:%lu context_id:%u command_count:%lu command_buffers:%p(%u) )", stream, var_connection, var_context_id, var_command_count, (magma_inline_command_buffer_t*)(inptr_command_buffers.get()), size_command_buffers);
+			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_connection_execute_immediate_commands(var_connection, var_context_id, var_command_count, (magma_inline_command_buffer_t*)(inptr_command_buffers.get()));
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
 			stream->flush();
 			SET_LASTCALL("magma_connection_execute_immediate_commands");
+			android::base::endTrace();
+			break;
+		}
+		case OP_magma_connection_execute_immediate_commands_fudge: {
+			android::base::beginTrace("magma_connection_execute_immediate_commands_fudge decode");
+			magma_connection_t var_connection = Unpack<magma_connection_t,uint64_t>(ptr + 8);
+			uint32_t var_context_id = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
+			uint64_t var_command_count = Unpack<uint64_t,uint64_t>(ptr + 8 + 8 + 4);
+			uint32_t size_command_buffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 4 + 8);
+			InputBuffer inptr_command_buffers(ptr + 8 + 8 + 4 + 8 + 4, size_command_buffers);
+			uint64_t var_command_buffers_size = Unpack<uint64_t,uint64_t>(ptr + 8 + 8 + 4 + 8 + 4 + size_command_buffers);
+			uint32_t size_command_buffer_offsets __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 4 + 8 + 4 + size_command_buffers + 8);
+			InputBuffer inptr_command_buffer_offsets(ptr + 8 + 8 + 4 + 8 + 4 + size_command_buffers + 8 + 4, size_command_buffer_offsets);
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 4 + 8 + 4 + size_command_buffers + 8 + 4 + size_command_buffer_offsets, ptr + 8 + 8 + 4 + 8 + 4 + size_command_buffers + 8 + 4 + size_command_buffer_offsets, checksumSize,
+					"magma_decoder_context_t::decode, OP_magma_connection_execute_immediate_commands_fudge: GL checksumCalculator failure\n");
+			}
+			size_t totalTmpSize = sizeof(magma_status_t);
+			totalTmpSize += checksumSize;
+			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
+			DECODER_DEBUG_LOG("magma(%p): magma_connection_execute_immediate_commands_fudge(connection:%lu context_id:%u command_count:%lu command_buffers:%p(%u) command_buffers_size:%lu command_buffer_offsets:%p(%u) )", stream, var_connection, var_context_id, var_command_count, (void*)(inptr_command_buffers.get()), size_command_buffers, var_command_buffers_size, (uint64_t*)(inptr_command_buffer_offsets.get()), size_command_buffer_offsets);
+			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_connection_execute_immediate_commands_fudge(var_connection, var_context_id, var_command_count, (void*)(inptr_command_buffers.get()), var_command_buffers_size, (uint64_t*)(inptr_command_buffer_offsets.get()));
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
+			}
+			stream->flush();
+			SET_LASTCALL("magma_connection_execute_immediate_commands_fudge");
 			android::base::endTrace();
 			break;
 		}
@@ -553,7 +599,7 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			size_t totalTmpSize = sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			DECODER_DEBUG_LOG("magma(%p): magma_buffer_clean_cache(buffer:%lu offset:%lu size:%lu operation:%d )", stream, var_buffer, var_offset, var_size, var_operation);
+			DECODER_DEBUG_LOG("magma(%p): magma_buffer_clean_cache(buffer:%lu offset:%lu size:%lu operation:%u )", stream, var_buffer, var_offset, var_size, var_operation);
 			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_buffer_clean_cache(var_buffer, var_offset, var_size, var_operation);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
@@ -574,7 +620,7 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			size_t totalTmpSize = sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			DECODER_DEBUG_LOG("magma(%p): magma_buffer_set_cache_policy(buffer:%lu policy:%d )", stream, var_buffer, var_policy);
+			DECODER_DEBUG_LOG("magma(%p): magma_buffer_set_cache_policy(buffer:%lu policy:%u )", stream, var_buffer, var_policy);
 			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_buffer_set_cache_policy(var_buffer, var_policy);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
@@ -613,16 +659,15 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			magma_buffer_t var_buffer = Unpack<magma_buffer_t,uint64_t>(ptr + 8);
 			uint32_t size_name __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
 			InputBuffer inptr_name(ptr + 8 + 8 + 4, size_name);
-			uint64_t var_name_size = Unpack<uint64_t,uint64_t>(ptr + 8 + 8 + 4 + size_name);
 			if (useChecksum) {
-				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 4 + size_name + 8, ptr + 8 + 8 + 4 + size_name + 8, checksumSize,
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 4 + size_name, ptr + 8 + 8 + 4 + size_name, checksumSize,
 					"magma_decoder_context_t::decode, OP_magma_buffer_set_name: GL checksumCalculator failure\n");
 			}
 			size_t totalTmpSize = sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			DECODER_DEBUG_LOG("magma(%p): magma_buffer_set_name(buffer:%lu name:%p(%u) name_size:%lu )", stream, var_buffer, (void*)(inptr_name.get()), size_name, var_name_size);
-			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_buffer_set_name(var_buffer, (void*)(inptr_name.get()), var_name_size);
+			DECODER_DEBUG_LOG("magma(%p): magma_buffer_set_name(buffer:%lu name:%p(%u) )", stream, var_buffer, (const char*)(inptr_name.get()), size_name);
+			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_buffer_set_name(var_buffer, (const char*)(inptr_name.get()));
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
@@ -631,24 +676,45 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			android::base::endTrace();
 			break;
 		}
+		case OP_magma_buffer_set_name_fudge: {
+			android::base::beginTrace("magma_buffer_set_name_fudge decode");
+			magma_buffer_t var_buffer = Unpack<magma_buffer_t,uint64_t>(ptr + 8);
+			uint32_t size_name __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
+			InputBuffer inptr_name(ptr + 8 + 8 + 4, size_name);
+			uint64_t var_name_size = Unpack<uint64_t,uint64_t>(ptr + 8 + 8 + 4 + size_name);
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 4 + size_name + 8, ptr + 8 + 8 + 4 + size_name + 8, checksumSize,
+					"magma_decoder_context_t::decode, OP_magma_buffer_set_name_fudge: GL checksumCalculator failure\n");
+			}
+			size_t totalTmpSize = sizeof(magma_status_t);
+			totalTmpSize += checksumSize;
+			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
+			DECODER_DEBUG_LOG("magma(%p): magma_buffer_set_name_fudge(buffer:%lu name:%p(%u) name_size:%lu )", stream, var_buffer, (void*)(inptr_name.get()), size_name, var_name_size);
+			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_buffer_set_name_fudge(var_buffer, (void*)(inptr_name.get()), var_name_size);
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
+			}
+			stream->flush();
+			SET_LASTCALL("magma_buffer_set_name_fudge");
+			android::base::endTrace();
+			break;
+		}
 		case OP_magma_buffer_get_info: {
 			android::base::beginTrace("magma_buffer_get_info decode");
-			uint32_t size_parameters __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
-			InputBuffer inptr_parameters(ptr + 8 + 4, size_parameters);
-			uint64_t var_parameter_count = Unpack<uint64_t,uint64_t>(ptr + 8 + 4 + size_parameters);
+			magma_buffer_t var_buffer = Unpack<magma_buffer_t,uint64_t>(ptr + 8);
+			uint32_t size_info_out __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
 			if (useChecksum) {
-				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4 + size_parameters + 8, ptr + 8 + 4 + size_parameters + 8, checksumSize,
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 4, ptr + 8 + 8 + 4, checksumSize,
 					"magma_decoder_context_t::decode, OP_magma_buffer_get_info: GL checksumCalculator failure\n");
 			}
-			size_t totalTmpSize = size_parameters;
+			size_t totalTmpSize = size_info_out;
 			totalTmpSize += sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			OutputBuffer outptr_parameters(&tmpBuf[0], size_parameters);
-			memcpy(outptr_parameters.get(), inptr_parameters.get(), size_parameters);
-			DECODER_DEBUG_LOG("magma(%p): magma_buffer_get_info(parameters:%p(%u) parameter_count:%lu )", stream, (uint64_t*)(outptr_parameters.get()), size_parameters, var_parameter_count);
-			*(magma_status_t *)(&tmpBuf[0 + size_parameters]) = 			this->magma_buffer_get_info((uint64_t*)(outptr_parameters.get()), var_parameter_count);
-			outptr_parameters.flush();
+			OutputBuffer outptr_info_out(&tmpBuf[0], size_info_out);
+			DECODER_DEBUG_LOG("magma(%p): magma_buffer_get_info(buffer:%lu info_out:%p(%u) )", stream, var_buffer, (magma_buffer_info_t*)(outptr_info_out.get()), size_info_out);
+			*(magma_status_t *)(&tmpBuf[0 + size_info_out]) = 			this->magma_buffer_get_info(var_buffer, (magma_buffer_info_t*)(outptr_info_out.get()));
+			outptr_info_out.flush();
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
@@ -792,7 +858,7 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			size_t totalTmpSize = sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			DECODER_DEBUG_LOG("magma(%p): magma_initialize_tracing(channel:0x%x )", stream, var_channel);
+			DECODER_DEBUG_LOG("magma(%p): magma_initialize_tracing(channel:%u )", stream, var_channel);
 			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_initialize_tracing(var_channel);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
@@ -812,7 +878,7 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			size_t totalTmpSize = sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			DECODER_DEBUG_LOG("magma(%p): magma_initialize_logging(channel:0x%x )", stream, var_channel);
+			DECODER_DEBUG_LOG("magma(%p): magma_initialize_logging(channel:%u )", stream, var_channel);
 			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_initialize_logging(var_channel);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
@@ -833,7 +899,7 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			size_t totalTmpSize = sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			DECODER_DEBUG_LOG("magma(%p): magma_connection_enable_performance_counter_access(connection:%lu channel:0x%x )", stream, var_connection, var_channel);
+			DECODER_DEBUG_LOG("magma(%p): magma_connection_enable_performance_counter_access(connection:%lu channel:%u )", stream, var_connection, var_channel);
 			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_connection_enable_performance_counter_access(var_connection, var_channel);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
@@ -917,22 +983,20 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 		}
 		case OP_magma_connection_add_performance_counter_buffer_offsets_to_pool: {
 			android::base::beginTrace("magma_connection_add_performance_counter_buffer_offsets_to_pool decode");
-			uint32_t size_parameters __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
-			InputBuffer inptr_parameters(ptr + 8 + 4, size_parameters);
-			uint64_t var_parameter_count = Unpack<uint64_t,uint64_t>(ptr + 8 + 4 + size_parameters);
+			magma_connection_t var_connection = Unpack<magma_connection_t,uint64_t>(ptr + 8);
+			magma_perf_count_pool_t var_pool_id = Unpack<magma_perf_count_pool_t,uint64_t>(ptr + 8 + 8);
+			uint32_t size_offsets __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 8);
+			InputBuffer inptr_offsets(ptr + 8 + 8 + 8 + 4, size_offsets);
+			uint64_t var_offsets_count = Unpack<uint64_t,uint64_t>(ptr + 8 + 8 + 8 + 4 + size_offsets);
 			if (useChecksum) {
-				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4 + size_parameters + 8, ptr + 8 + 4 + size_parameters + 8, checksumSize,
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 8 + 4 + size_offsets + 8, ptr + 8 + 8 + 8 + 4 + size_offsets + 8, checksumSize,
 					"magma_decoder_context_t::decode, OP_magma_connection_add_performance_counter_buffer_offsets_to_pool: GL checksumCalculator failure\n");
 			}
-			size_t totalTmpSize = size_parameters;
-			totalTmpSize += sizeof(magma_status_t);
+			size_t totalTmpSize = sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			OutputBuffer outptr_parameters(&tmpBuf[0], size_parameters);
-			memcpy(outptr_parameters.get(), inptr_parameters.get(), size_parameters);
-			DECODER_DEBUG_LOG("magma(%p): magma_connection_add_performance_counter_buffer_offsets_to_pool(parameters:%p(%u) parameter_count:%lu )", stream, (uint64_t*)(outptr_parameters.get()), size_parameters, var_parameter_count);
-			*(magma_status_t *)(&tmpBuf[0 + size_parameters]) = 			this->magma_connection_add_performance_counter_buffer_offsets_to_pool((uint64_t*)(outptr_parameters.get()), var_parameter_count);
-			outptr_parameters.flush();
+			DECODER_DEBUG_LOG("magma(%p): magma_connection_add_performance_counter_buffer_offsets_to_pool(connection:%lu pool_id:%lu offsets:%p(%u) offsets_count:%lu )", stream, var_connection, var_pool_id, (const magma_buffer_offset_t*)(inptr_offsets.get()), size_offsets, var_offsets_count);
+			*(magma_status_t *)(&tmpBuf[0]) = 			this->magma_connection_add_performance_counter_buffer_offsets_to_pool(var_connection, var_pool_id, (const magma_buffer_offset_t*)(inptr_offsets.get()), var_offsets_count);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
@@ -1051,22 +1115,30 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 		}
 		case OP_magma_virt_connection_create_image: {
 			android::base::beginTrace("magma_virt_connection_create_image decode");
-			uint32_t size_parameters __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
-			InputBuffer inptr_parameters(ptr + 8 + 4, size_parameters);
-			uint64_t var_parameter_count = Unpack<uint64_t,uint64_t>(ptr + 8 + 4 + size_parameters);
+			magma_connection_t var_connection = Unpack<magma_connection_t,uint64_t>(ptr + 8);
+			uint32_t size_create_info __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
+			InputBuffer inptr_create_info(ptr + 8 + 8 + 4, size_create_info);
+			uint32_t size_size_out __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 4 + size_create_info);
+			uint32_t size_image_out __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 4 + size_create_info + 4);
+			uint32_t size_buffer_id_out __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 4 + size_create_info + 4 + 4);
 			if (useChecksum) {
-				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4 + size_parameters + 8, ptr + 8 + 4 + size_parameters + 8, checksumSize,
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 4 + size_create_info + 4 + 4 + 4, ptr + 8 + 8 + 4 + size_create_info + 4 + 4 + 4, checksumSize,
 					"magma_decoder_context_t::decode, OP_magma_virt_connection_create_image: GL checksumCalculator failure\n");
 			}
-			size_t totalTmpSize = size_parameters;
+			size_t totalTmpSize = size_size_out;
+			totalTmpSize += size_image_out;
+			totalTmpSize += size_buffer_id_out;
 			totalTmpSize += sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			OutputBuffer outptr_parameters(&tmpBuf[0], size_parameters);
-			memcpy(outptr_parameters.get(), inptr_parameters.get(), size_parameters);
-			DECODER_DEBUG_LOG("magma(%p): magma_virt_connection_create_image(parameters:%p(%u) parameter_count:%lu )", stream, (uint64_t*)(outptr_parameters.get()), size_parameters, var_parameter_count);
-			*(magma_status_t *)(&tmpBuf[0 + size_parameters]) = 			this->magma_virt_connection_create_image((uint64_t*)(outptr_parameters.get()), var_parameter_count);
-			outptr_parameters.flush();
+			OutputBuffer outptr_size_out(&tmpBuf[0], size_size_out);
+			OutputBuffer outptr_image_out(&tmpBuf[0 + size_size_out], size_image_out);
+			OutputBuffer outptr_buffer_id_out(&tmpBuf[0 + size_size_out + size_image_out], size_buffer_id_out);
+			DECODER_DEBUG_LOG("magma(%p): magma_virt_connection_create_image(connection:%lu create_info:%p(%u) size_out:%p(%u) image_out:%p(%u) buffer_id_out:%p(%u) )", stream, var_connection, (magma_image_create_info_t*)(inptr_create_info.get()), size_create_info, (uint64_t*)(outptr_size_out.get()), size_size_out, (magma_buffer_t*)(outptr_image_out.get()), size_image_out, (magma_buffer_id_t*)(outptr_buffer_id_out.get()), size_buffer_id_out);
+			*(magma_status_t *)(&tmpBuf[0 + size_size_out + size_image_out + size_buffer_id_out]) = 			this->magma_virt_connection_create_image(var_connection, (magma_image_create_info_t*)(inptr_create_info.get()), (uint64_t*)(outptr_size_out.get()), (magma_buffer_t*)(outptr_image_out.get()), (magma_buffer_id_t*)(outptr_buffer_id_out.get()));
+			outptr_size_out.flush();
+			outptr_image_out.flush();
+			outptr_buffer_id_out.flush();
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
@@ -1077,22 +1149,21 @@ size_t magma_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 		}
 		case OP_magma_virt_connection_get_image_info: {
 			android::base::beginTrace("magma_virt_connection_get_image_info decode");
-			uint32_t size_parameters __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
-			InputBuffer inptr_parameters(ptr + 8 + 4, size_parameters);
-			uint64_t var_parameter_count = Unpack<uint64_t,uint64_t>(ptr + 8 + 4 + size_parameters);
+			magma_connection_t var_connection = Unpack<magma_connection_t,uint64_t>(ptr + 8);
+			magma_buffer_t var_image = Unpack<magma_buffer_t,uint64_t>(ptr + 8 + 8);
+			uint32_t size_image_info_out __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 8 + 8);
 			if (useChecksum) {
-				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4 + size_parameters + 8, ptr + 8 + 4 + size_parameters + 8, checksumSize,
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8 + 8 + 4, ptr + 8 + 8 + 8 + 4, checksumSize,
 					"magma_decoder_context_t::decode, OP_magma_virt_connection_get_image_info: GL checksumCalculator failure\n");
 			}
-			size_t totalTmpSize = size_parameters;
+			size_t totalTmpSize = size_image_info_out;
 			totalTmpSize += sizeof(magma_status_t);
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
-			OutputBuffer outptr_parameters(&tmpBuf[0], size_parameters);
-			memcpy(outptr_parameters.get(), inptr_parameters.get(), size_parameters);
-			DECODER_DEBUG_LOG("magma(%p): magma_virt_connection_get_image_info(parameters:%p(%u) parameter_count:%lu )", stream, (uint64_t*)(outptr_parameters.get()), size_parameters, var_parameter_count);
-			*(magma_status_t *)(&tmpBuf[0 + size_parameters]) = 			this->magma_virt_connection_get_image_info((uint64_t*)(outptr_parameters.get()), var_parameter_count);
-			outptr_parameters.flush();
+			OutputBuffer outptr_image_info_out(&tmpBuf[0], size_image_info_out);
+			DECODER_DEBUG_LOG("magma(%p): magma_virt_connection_get_image_info(connection:%lu image:%lu image_info_out:%p(%u) )", stream, var_connection, var_image, (magma_image_info_t*)(outptr_image_info_out.get()), size_image_info_out);
+			*(magma_status_t *)(&tmpBuf[0 + size_image_info_out]) = 			this->magma_virt_connection_get_image_info(var_connection, var_image, (magma_image_info_t*)(outptr_image_info_out.get()));
+			outptr_image_info_out.flush();
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
