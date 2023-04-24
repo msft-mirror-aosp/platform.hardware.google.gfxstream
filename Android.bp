@@ -80,6 +80,8 @@ cc_library_headers {
     host_supported: true,
     export_include_dirs: [
         "third-party/fuchsia/magma/include",
+        // TODO(b/274956288): use consistent header paths
+        "third-party/fuchsia/magma/include/lib",
     ],
     apex_available: [
         "//apex_available:platform",

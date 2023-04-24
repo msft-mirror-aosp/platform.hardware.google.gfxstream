@@ -30,5 +30,5 @@ struct RenderThreadInfoMagma {
 
     // Decoder state.
     // TODO(b/271593488): Support dynamic detection of host device.
-    std::unique_ptr<gfxstream::magma::Decoder> m_magmaDec;
+    std::unique_ptr<gfxstream::magma::Decoder> mMagmaDec;
 };

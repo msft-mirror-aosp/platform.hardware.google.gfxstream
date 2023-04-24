@@ -24,7 +24,7 @@ namespace magma {
 // Generic magma decoder.
 class Decoder : public magma_decoder_context_t {
    public:
-    static std::unique_ptr<Decoder> Create();
+    static std::unique_ptr<Decoder> create();
 
    protected:
     Decoder();

@@ -23,6 +23,10 @@ cc_library_static {
         android: {
             srcs: [
                 "IntelDrmDecoder.cpp",
+                "DrmDevice.cpp",
+            ],
+            header_libs: [
+                "libdrm_headers",
             ],
             cflags: [
                 "-DGFXSTREAM_MAGMA_USE_INTEL_DRM=1",
@@ -31,6 +35,10 @@ cc_library_static {
         not_windows: {
             srcs: [
                 "IntelDrmDecoder.cpp",
+                "DrmDevice.cpp",
+            ],
+            header_libs: [
+                "libdrm_headers",
             ],
             cflags: [
                 "-DGFXSTREAM_MAGMA_USE_INTEL_DRM=1",
