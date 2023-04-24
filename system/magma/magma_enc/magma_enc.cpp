@@ -27,7 +27,7 @@ void enc_unsupported()
 
 magma_status_t magma_device_import_enc(void *self , magma_handle_t device_channel, magma_device_t* device_out)
 {
-	ENCODER_DEBUG_LOG("magma_device_import(device_channel:0x%x, device_out:%p)", device_channel, device_out);
+	ENCODER_DEBUG_LOG("magma_device_import(device_channel:%u, device_out:%p)", device_channel, device_out);
 	AEMU_SCOPED_TRACE("magma_device_import encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -423,7 +423,7 @@ void magma_connection_release_buffer_enc(void *self , magma_connection_t connect
 
 magma_status_t magma_connection_import_buffer_enc(void *self , magma_connection_t connection, magma_handle_t buffer_handle, uint64_t* size_out, magma_buffer_t* buffer_out, magma_buffer_id_t* id_out)
 {
-	ENCODER_DEBUG_LOG("magma_connection_import_buffer(connection:%lu, buffer_handle:0x%x, size_out:%p, buffer_out:%p, id_out:%p)", connection, buffer_handle, size_out, buffer_out, id_out);
+	ENCODER_DEBUG_LOG("magma_connection_import_buffer(connection:%lu, buffer_handle:%u, size_out:%p, buffer_out:%p, id_out:%p)", connection, buffer_handle, size_out, buffer_out, id_out);
 	AEMU_SCOPED_TRACE("magma_connection_import_buffer encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -556,7 +556,7 @@ void magma_connection_release_semaphore_enc(void *self , magma_connection_t conn
 
 magma_status_t magma_connection_import_semaphore_enc(void *self , magma_connection_t connection, magma_handle_t semaphore_handle, magma_semaphore_t* semaphore_out, magma_semaphore_id_t* id_out)
 {
-	ENCODER_DEBUG_LOG("magma_connection_import_semaphore(connection:%lu, semaphore_handle:0x%x, semaphore_out:%p, id_out:%p)", connection, semaphore_handle, semaphore_out, id_out);
+	ENCODER_DEBUG_LOG("magma_connection_import_semaphore(connection:%lu, semaphore_handle:%u, semaphore_out:%p, id_out:%p)", connection, semaphore_handle, semaphore_out, id_out);
 	AEMU_SCOPED_TRACE("magma_connection_import_semaphore encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -727,9 +727,9 @@ void magma_connection_unmap_buffer_enc(void *self , magma_connection_t connectio
 
 }
 
-magma_status_t magma_connection_execute_command_enc(void *self , uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_connection_execute_command_enc(void *self , magma_connection_t connection, uint32_t context_id, magma_command_descriptor_t* descriptor)
 {
-	ENCODER_DEBUG_LOG("magma_connection_execute_command(parameters:%p, parameter_count:%lu)", parameters, parameter_count);
+	ENCODER_DEBUG_LOG("magma_connection_execute_command(connection:%lu, context_id:%u, descriptor:%p)", connection, context_id, descriptor);
 	AEMU_SCOPED_TRACE("magma_connection_execute_command encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -737,10 +737,10 @@ magma_status_t magma_connection_execute_command_enc(void *self , uint64_t* param
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_parameters =  parameter_count * sizeof(uint64_t);
+	const unsigned int __size_descriptor =  sizeof(magma_command_descriptor_t);
 	 unsigned char *ptr;
 	 unsigned char *buf;
-	 const size_t sizeWithoutChecksum = 8 + __size_parameters + 8 + 1*4;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 4 + __size_descriptor + 1*4;
 	 const size_t checksumSize = checksumCalculator->checksumByteSize();
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
@@ -748,15 +748,14 @@ magma_status_t magma_connection_execute_command_enc(void *self , uint64_t* param
 	int tmp = OP_magma_connection_execute_command;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	memcpy(ptr, &__size_parameters, 4); ptr += 4;
-	memcpy(ptr, parameters, __size_parameters);ptr += __size_parameters;
-		memcpy(ptr, &parameter_count, 8); ptr += 8;
+		memcpy(ptr, &connection, 8); ptr += 8;
+		memcpy(ptr, &context_id, 4); ptr += 4;
+	memcpy(ptr, &__size_descriptor, 4); ptr += 4;
+	memcpy(ptr, descriptor, __size_descriptor);ptr += __size_descriptor;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	stream->readback(parameters, __size_parameters);
-	if (useChecksum) checksumCalculator->addBuffer(parameters, __size_parameters);
 
 	magma_status_t retval;
 	stream->readback(&retval, 4);
@@ -774,9 +773,56 @@ magma_status_t magma_connection_execute_command_enc(void *self , uint64_t* param
 	return retval;
 }
 
-magma_status_t magma_connection_execute_immediate_commands_enc(void *self , uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_connection_execute_command_fudge_enc(void *self , magma_connection_t connection, uint32_t context_id, void* descriptor, uint64_t descriptor_size)
 {
-	ENCODER_DEBUG_LOG("magma_connection_execute_immediate_commands(parameters:%p, parameter_count:%lu)", parameters, parameter_count);
+	ENCODER_DEBUG_LOG("magma_connection_execute_command_fudge(connection:%lu, context_id:%u, descriptor:%p, descriptor_size:%lu)", connection, context_id, descriptor, descriptor_size);
+	AEMU_SCOPED_TRACE("magma_connection_execute_command_fudge encode");
+
+	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_descriptor =  descriptor_size;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 4 + __size_descriptor + 8 + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_magma_connection_execute_command_fudge;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &connection, 8); ptr += 8;
+		memcpy(ptr, &context_id, 4); ptr += 4;
+	memcpy(ptr, &__size_descriptor, 4); ptr += 4;
+	memcpy(ptr, descriptor, __size_descriptor);ptr += __size_descriptor;
+		memcpy(ptr, &descriptor_size, 8); ptr += 8;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	magma_status_t retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("magma_connection_execute_command_fudge: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
+magma_status_t magma_connection_execute_immediate_commands_enc(void *self , magma_connection_t connection, uint32_t context_id, uint64_t command_count, magma_inline_command_buffer_t* command_buffers)
+{
+	ENCODER_DEBUG_LOG("magma_connection_execute_immediate_commands(connection:%lu, context_id:%u, command_count:%lu, command_buffers:%p)", connection, context_id, command_count, command_buffers);
 	AEMU_SCOPED_TRACE("magma_connection_execute_immediate_commands encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -784,10 +830,10 @@ magma_status_t magma_connection_execute_immediate_commands_enc(void *self , uint
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_parameters =  parameter_count * sizeof(uint64_t);
+	const unsigned int __size_command_buffers =  command_count * sizeof(magma_inline_command_buffer_t);
 	 unsigned char *ptr;
 	 unsigned char *buf;
-	 const size_t sizeWithoutChecksum = 8 + __size_parameters + 8 + 1*4;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 4 + 8 + __size_command_buffers + 1*4;
 	 const size_t checksumSize = checksumCalculator->checksumByteSize();
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
@@ -795,15 +841,15 @@ magma_status_t magma_connection_execute_immediate_commands_enc(void *self , uint
 	int tmp = OP_magma_connection_execute_immediate_commands;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	memcpy(ptr, &__size_parameters, 4); ptr += 4;
-	memcpy(ptr, parameters, __size_parameters);ptr += __size_parameters;
-		memcpy(ptr, &parameter_count, 8); ptr += 8;
+		memcpy(ptr, &connection, 8); ptr += 8;
+		memcpy(ptr, &context_id, 4); ptr += 4;
+		memcpy(ptr, &command_count, 8); ptr += 8;
+	memcpy(ptr, &__size_command_buffers, 4); ptr += 4;
+	memcpy(ptr, command_buffers, __size_command_buffers);ptr += __size_command_buffers;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	stream->readback(parameters, __size_parameters);
-	if (useChecksum) checksumCalculator->addBuffer(parameters, __size_parameters);
 
 	magma_status_t retval;
 	stream->readback(&retval, 4);
@@ -815,6 +861,57 @@ magma_status_t magma_connection_execute_immediate_commands_enc(void *self , uint
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
 			ALOGE("magma_connection_execute_immediate_commands: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
+magma_status_t magma_connection_execute_immediate_commands_fudge_enc(void *self , magma_connection_t connection, uint32_t context_id, uint64_t command_count, void* command_buffers, uint64_t command_buffers_size, uint64_t* command_buffer_offsets)
+{
+	ENCODER_DEBUG_LOG("magma_connection_execute_immediate_commands_fudge(connection:%lu, context_id:%u, command_count:%lu, command_buffers:%p, command_buffers_size:%lu, command_buffer_offsets:%p)", connection, context_id, command_count, command_buffers, command_buffers_size, command_buffer_offsets);
+	AEMU_SCOPED_TRACE("magma_connection_execute_immediate_commands_fudge encode");
+
+	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_command_buffers =  command_buffers_size;
+	const unsigned int __size_command_buffer_offsets =  command_count * sizeof(uint64_t);
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 4 + 8 + __size_command_buffers + 8 + __size_command_buffer_offsets + 2*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_magma_connection_execute_immediate_commands_fudge;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &connection, 8); ptr += 8;
+		memcpy(ptr, &context_id, 4); ptr += 4;
+		memcpy(ptr, &command_count, 8); ptr += 8;
+	memcpy(ptr, &__size_command_buffers, 4); ptr += 4;
+	memcpy(ptr, command_buffers, __size_command_buffers);ptr += __size_command_buffers;
+		memcpy(ptr, &command_buffers_size, 8); ptr += 8;
+	memcpy(ptr, &__size_command_buffer_offsets, 4); ptr += 4;
+	memcpy(ptr, command_buffer_offsets, __size_command_buffer_offsets);ptr += __size_command_buffer_offsets;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	magma_status_t retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("magma_connection_execute_immediate_commands_fudge: GL communication error, please report this issue to b.android.com.\n");
 			abort();
 		}
 	}
@@ -962,7 +1059,7 @@ magma_status_t magma_connection_read_notification_channel_enc(void *self , magma
 
 magma_status_t magma_buffer_clean_cache_enc(void *self , magma_buffer_t buffer, uint64_t offset, uint64_t size, magma_cache_operation_t operation)
 {
-	ENCODER_DEBUG_LOG("magma_buffer_clean_cache(buffer:%lu, offset:%lu, size:%lu, operation:%d)", buffer, offset, size, operation);
+	ENCODER_DEBUG_LOG("magma_buffer_clean_cache(buffer:%lu, offset:%lu, size:%lu, operation:%u)", buffer, offset, size, operation);
 	AEMU_SCOPED_TRACE("magma_buffer_clean_cache encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1007,7 +1104,7 @@ magma_status_t magma_buffer_clean_cache_enc(void *self , magma_buffer_t buffer, 
 
 magma_status_t magma_buffer_set_cache_policy_enc(void *self , magma_buffer_t buffer, magma_cache_policy_t policy)
 {
-	ENCODER_DEBUG_LOG("magma_buffer_set_cache_policy(buffer:%lu, policy:%d)", buffer, policy);
+	ENCODER_DEBUG_LOG("magma_buffer_set_cache_policy(buffer:%lu, policy:%u)", buffer, policy);
 	AEMU_SCOPED_TRACE("magma_buffer_set_cache_policy encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1094,9 +1191,9 @@ magma_status_t magma_buffer_get_cache_policy_enc(void *self , magma_buffer_t buf
 	return retval;
 }
 
-magma_status_t magma_buffer_set_name_enc(void *self , magma_buffer_t buffer, void* name, uint64_t name_size)
+magma_status_t magma_buffer_set_name_enc(void *self , magma_buffer_t buffer, const char* name)
 {
-	ENCODER_DEBUG_LOG("magma_buffer_set_name(buffer:%lu, name:%p, name_size:%lu)", buffer, name, name_size);
+	ENCODER_DEBUG_LOG("magma_buffer_set_name(buffer:%lu, name:%p)", buffer, name);
 	AEMU_SCOPED_TRACE("magma_buffer_set_name encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1104,10 +1201,10 @@ magma_status_t magma_buffer_set_name_enc(void *self , magma_buffer_t buffer, voi
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_name =  name_size;
+	const unsigned int __size_name =  1;
 	 unsigned char *ptr;
 	 unsigned char *buf;
-	 const size_t sizeWithoutChecksum = 8 + 8 + __size_name + 8 + 1*4;
+	 const size_t sizeWithoutChecksum = 8 + 8 + __size_name + 1*4;
 	 const size_t checksumSize = checksumCalculator->checksumByteSize();
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
@@ -1118,7 +1215,6 @@ magma_status_t magma_buffer_set_name_enc(void *self , magma_buffer_t buffer, voi
 		memcpy(ptr, &buffer, 8); ptr += 8;
 	memcpy(ptr, &__size_name, 4); ptr += 4;
 	memcpy(ptr, name, __size_name);ptr += __size_name;
-		memcpy(ptr, &name_size, 8); ptr += 8;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1140,9 +1236,55 @@ magma_status_t magma_buffer_set_name_enc(void *self , magma_buffer_t buffer, voi
 	return retval;
 }
 
-magma_status_t magma_buffer_get_info_enc(void *self , uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_buffer_set_name_fudge_enc(void *self , magma_buffer_t buffer, void* name, uint64_t name_size)
 {
-	ENCODER_DEBUG_LOG("magma_buffer_get_info(parameters:%p, parameter_count:%lu)", parameters, parameter_count);
+	ENCODER_DEBUG_LOG("magma_buffer_set_name_fudge(buffer:%lu, name:%p, name_size:%lu)", buffer, name, name_size);
+	AEMU_SCOPED_TRACE("magma_buffer_set_name_fudge encode");
+
+	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_name =  name_size;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 8 + __size_name + 8 + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_magma_buffer_set_name_fudge;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &buffer, 8); ptr += 8;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
+	memcpy(ptr, name, __size_name);ptr += __size_name;
+		memcpy(ptr, &name_size, 8); ptr += 8;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	magma_status_t retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("magma_buffer_set_name_fudge: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
+magma_status_t magma_buffer_get_info_enc(void *self , magma_buffer_t buffer, magma_buffer_info_t* info_out)
+{
+	ENCODER_DEBUG_LOG("magma_buffer_get_info(buffer:%lu, info_out:%p)", buffer, info_out);
 	AEMU_SCOPED_TRACE("magma_buffer_get_info encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1150,10 +1292,10 @@ magma_status_t magma_buffer_get_info_enc(void *self , uint64_t* parameters, uint
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_parameters =  parameter_count * sizeof(uint64_t);
+	const unsigned int __size_info_out =  sizeof(magma_buffer_info);
 	 unsigned char *ptr;
 	 unsigned char *buf;
-	 const size_t sizeWithoutChecksum = 8 + __size_parameters + 8 + 1*4;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 0 + 1*4;
 	 const size_t checksumSize = checksumCalculator->checksumByteSize();
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
@@ -1161,15 +1303,14 @@ magma_status_t magma_buffer_get_info_enc(void *self , uint64_t* parameters, uint
 	int tmp = OP_magma_buffer_get_info;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	memcpy(ptr, &__size_parameters, 4); ptr += 4;
-	memcpy(ptr, parameters, __size_parameters);ptr += __size_parameters;
-		memcpy(ptr, &parameter_count, 8); ptr += 8;
+		memcpy(ptr, &buffer, 8); ptr += 8;
+	memcpy(ptr, &__size_info_out, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	stream->readback(parameters, __size_parameters);
-	if (useChecksum) checksumCalculator->addBuffer(parameters, __size_parameters);
+	stream->readback(info_out, __size_info_out);
+	if (useChecksum) checksumCalculator->addBuffer(info_out, __size_info_out);
 
 	magma_status_t retval;
 	stream->readback(&retval, 4);
@@ -1429,7 +1570,7 @@ magma_status_t magma_poll_enc(void *self , magma_poll_item_t* items, uint32_t co
 
 magma_status_t magma_initialize_tracing_enc(void *self , magma_handle_t channel)
 {
-	ENCODER_DEBUG_LOG("magma_initialize_tracing(channel:0x%x)", channel);
+	ENCODER_DEBUG_LOG("magma_initialize_tracing(channel:%u)", channel);
 	AEMU_SCOPED_TRACE("magma_initialize_tracing encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1471,7 +1612,7 @@ magma_status_t magma_initialize_tracing_enc(void *self , magma_handle_t channel)
 
 magma_status_t magma_initialize_logging_enc(void *self , magma_handle_t channel)
 {
-	ENCODER_DEBUG_LOG("magma_initialize_logging(channel:0x%x)", channel);
+	ENCODER_DEBUG_LOG("magma_initialize_logging(channel:%u)", channel);
 	AEMU_SCOPED_TRACE("magma_initialize_logging encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1513,7 +1654,7 @@ magma_status_t magma_initialize_logging_enc(void *self , magma_handle_t channel)
 
 magma_status_t magma_connection_enable_performance_counter_access_enc(void *self , magma_connection_t connection, magma_handle_t channel)
 {
-	ENCODER_DEBUG_LOG("magma_connection_enable_performance_counter_access(connection:%lu, channel:0x%x)", connection, channel);
+	ENCODER_DEBUG_LOG("magma_connection_enable_performance_counter_access(connection:%lu, channel:%u)", connection, channel);
 	AEMU_SCOPED_TRACE("magma_connection_enable_performance_counter_access encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1693,9 +1834,9 @@ magma_status_t magma_connection_release_performance_counter_buffer_pool_enc(void
 	return retval;
 }
 
-magma_status_t magma_connection_add_performance_counter_buffer_offsets_to_pool_enc(void *self , uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_connection_add_performance_counter_buffer_offsets_to_pool_enc(void *self , magma_connection_t connection, magma_perf_count_pool_t pool_id, const magma_buffer_offset_t* offsets, uint64_t offsets_count)
 {
-	ENCODER_DEBUG_LOG("magma_connection_add_performance_counter_buffer_offsets_to_pool(parameters:%p, parameter_count:%lu)", parameters, parameter_count);
+	ENCODER_DEBUG_LOG("magma_connection_add_performance_counter_buffer_offsets_to_pool(connection:%lu, pool_id:%lu, offsets:%p, offsets_count:%lu)", connection, pool_id, offsets, offsets_count);
 	AEMU_SCOPED_TRACE("magma_connection_add_performance_counter_buffer_offsets_to_pool encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1703,10 +1844,10 @@ magma_status_t magma_connection_add_performance_counter_buffer_offsets_to_pool_e
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_parameters =  parameter_count * sizeof(uint64_t);
+	const unsigned int __size_offsets =  offsets_count * sizeof(magma_buffer_offset_t);
 	 unsigned char *ptr;
 	 unsigned char *buf;
-	 const size_t sizeWithoutChecksum = 8 + __size_parameters + 8 + 1*4;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 8 + __size_offsets + 8 + 1*4;
 	 const size_t checksumSize = checksumCalculator->checksumByteSize();
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
@@ -1714,15 +1855,15 @@ magma_status_t magma_connection_add_performance_counter_buffer_offsets_to_pool_e
 	int tmp = OP_magma_connection_add_performance_counter_buffer_offsets_to_pool;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	memcpy(ptr, &__size_parameters, 4); ptr += 4;
-	memcpy(ptr, parameters, __size_parameters);ptr += __size_parameters;
-		memcpy(ptr, &parameter_count, 8); ptr += 8;
+		memcpy(ptr, &connection, 8); ptr += 8;
+		memcpy(ptr, &pool_id, 8); ptr += 8;
+	memcpy(ptr, &__size_offsets, 4); ptr += 4;
+	memcpy(ptr, offsets, __size_offsets);ptr += __size_offsets;
+		memcpy(ptr, &offsets_count, 8); ptr += 8;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	stream->readback(parameters, __size_parameters);
-	if (useChecksum) checksumCalculator->addBuffer(parameters, __size_parameters);
 
 	magma_status_t retval;
 	stream->readback(&retval, 4);
@@ -1937,9 +2078,9 @@ magma_status_t magma_connection_read_performance_counter_completion_enc(void *se
 	return retval;
 }
 
-magma_status_t magma_virt_connection_create_image_enc(void *self , uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_virt_connection_create_image_enc(void *self , magma_connection_t connection, magma_image_create_info_t* create_info, uint64_t* size_out, magma_buffer_t* image_out, magma_buffer_id_t* buffer_id_out)
 {
-	ENCODER_DEBUG_LOG("magma_virt_connection_create_image(parameters:%p, parameter_count:%lu)", parameters, parameter_count);
+	ENCODER_DEBUG_LOG("magma_virt_connection_create_image(connection:%lu, create_info:%p, size_out:%p, image_out:%p, buffer_id_out:%p)", connection, create_info, size_out, image_out, buffer_id_out);
 	AEMU_SCOPED_TRACE("magma_virt_connection_create_image encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1947,10 +2088,13 @@ magma_status_t magma_virt_connection_create_image_enc(void *self , uint64_t* par
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_parameters =  parameter_count * sizeof(uint64_t);
+	const unsigned int __size_create_info =  sizeof(magma_image_create_info_t);
+	const unsigned int __size_size_out =  sizeof(uint64_t);
+	const unsigned int __size_image_out =  sizeof(magma_buffer_t);
+	const unsigned int __size_buffer_id_out =  sizeof(magma_buffer_id_t);
 	 unsigned char *ptr;
 	 unsigned char *buf;
-	 const size_t sizeWithoutChecksum = 8 + __size_parameters + 8 + 1*4;
+	 const size_t sizeWithoutChecksum = 8 + 8 + __size_create_info + 0 + 0 + 0 + 4*4;
 	 const size_t checksumSize = checksumCalculator->checksumByteSize();
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
@@ -1958,15 +2102,22 @@ magma_status_t magma_virt_connection_create_image_enc(void *self , uint64_t* par
 	int tmp = OP_magma_virt_connection_create_image;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	memcpy(ptr, &__size_parameters, 4); ptr += 4;
-	memcpy(ptr, parameters, __size_parameters);ptr += __size_parameters;
-		memcpy(ptr, &parameter_count, 8); ptr += 8;
+		memcpy(ptr, &connection, 8); ptr += 8;
+	memcpy(ptr, &__size_create_info, 4); ptr += 4;
+	memcpy(ptr, create_info, __size_create_info);ptr += __size_create_info;
+	memcpy(ptr, &__size_size_out, 4); ptr += 4;
+	memcpy(ptr, &__size_image_out, 4); ptr += 4;
+	memcpy(ptr, &__size_buffer_id_out, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	stream->readback(parameters, __size_parameters);
-	if (useChecksum) checksumCalculator->addBuffer(parameters, __size_parameters);
+	stream->readback(size_out, __size_size_out);
+	if (useChecksum) checksumCalculator->addBuffer(size_out, __size_size_out);
+	stream->readback(image_out, __size_image_out);
+	if (useChecksum) checksumCalculator->addBuffer(image_out, __size_image_out);
+	stream->readback(buffer_id_out, __size_buffer_id_out);
+	if (useChecksum) checksumCalculator->addBuffer(buffer_id_out, __size_buffer_id_out);
 
 	magma_status_t retval;
 	stream->readback(&retval, 4);
@@ -1984,9 +2135,9 @@ magma_status_t magma_virt_connection_create_image_enc(void *self , uint64_t* par
 	return retval;
 }
 
-magma_status_t magma_virt_connection_get_image_info_enc(void *self , uint64_t* parameters, uint64_t parameter_count)
+magma_status_t magma_virt_connection_get_image_info_enc(void *self , magma_connection_t connection, magma_buffer_t image, magma_image_info_t* image_info_out)
 {
-	ENCODER_DEBUG_LOG("magma_virt_connection_get_image_info(parameters:%p, parameter_count:%lu)", parameters, parameter_count);
+	ENCODER_DEBUG_LOG("magma_virt_connection_get_image_info(connection:%lu, image:%lu, image_info_out:%p)", connection, image, image_info_out);
 	AEMU_SCOPED_TRACE("magma_virt_connection_get_image_info encode");
 
 	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
@@ -1994,10 +2145,10 @@ magma_status_t magma_virt_connection_get_image_info_enc(void *self , uint64_t* p
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_parameters =  parameter_count * sizeof(uint64_t);
+	const unsigned int __size_image_info_out =  sizeof(magma_image_info_t);
 	 unsigned char *ptr;
 	 unsigned char *buf;
-	 const size_t sizeWithoutChecksum = 8 + __size_parameters + 8 + 1*4;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 8 + 0 + 1*4;
 	 const size_t checksumSize = checksumCalculator->checksumByteSize();
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
@@ -2005,15 +2156,15 @@ magma_status_t magma_virt_connection_get_image_info_enc(void *self , uint64_t* p
 	int tmp = OP_magma_virt_connection_get_image_info;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	memcpy(ptr, &__size_parameters, 4); ptr += 4;
-	memcpy(ptr, parameters, __size_parameters);ptr += __size_parameters;
-		memcpy(ptr, &parameter_count, 8); ptr += 8;
+		memcpy(ptr, &connection, 8); ptr += 8;
+		memcpy(ptr, &image, 8); ptr += 8;
+	memcpy(ptr, &__size_image_info_out, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	stream->readback(parameters, __size_parameters);
-	if (useChecksum) checksumCalculator->addBuffer(parameters, __size_parameters);
+	stream->readback(image_info_out, __size_image_info_out);
+	if (useChecksum) checksumCalculator->addBuffer(image_info_out, __size_image_info_out);
 
 	magma_status_t retval;
 	stream->readback(&retval, 4);
@@ -2056,7 +2207,9 @@ magma_encoder_context_t::magma_encoder_context_t(IOStream *stream, ChecksumCalcu
 	this->magma_connection_map_buffer = &magma_connection_map_buffer_enc;
 	this->magma_connection_unmap_buffer = &magma_connection_unmap_buffer_enc;
 	this->magma_connection_execute_command = &magma_connection_execute_command_enc;
+	this->magma_connection_execute_command_fudge = &magma_connection_execute_command_fudge_enc;
 	this->magma_connection_execute_immediate_commands = &magma_connection_execute_immediate_commands_enc;
+	this->magma_connection_execute_immediate_commands_fudge = &magma_connection_execute_immediate_commands_fudge_enc;
 	this->magma_connection_flush = &magma_connection_flush_enc;
 	this->magma_connection_get_notification_channel_handle = &magma_connection_get_notification_channel_handle_enc;
 	this->magma_connection_read_notification_channel = &magma_connection_read_notification_channel_enc;
@@ -2064,6 +2217,7 @@ magma_encoder_context_t::magma_encoder_context_t(IOStream *stream, ChecksumCalcu
 	this->magma_buffer_set_cache_policy = &magma_buffer_set_cache_policy_enc;
 	this->magma_buffer_get_cache_policy = &magma_buffer_get_cache_policy_enc;
 	this->magma_buffer_set_name = &magma_buffer_set_name_enc;
+	this->magma_buffer_set_name_fudge = &magma_buffer_set_name_fudge_enc;
 	this->magma_buffer_get_info = &magma_buffer_get_info_enc;
 	this->magma_buffer_get_handle = &magma_buffer_get_handle_enc;
 	this->magma_buffer_export = &magma_buffer_export_enc;
