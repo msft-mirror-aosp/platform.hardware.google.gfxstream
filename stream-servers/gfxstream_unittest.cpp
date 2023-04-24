@@ -40,9 +40,8 @@ protected:
     static constexpr uint32_t width = 256;
     static constexpr uint32_t height = 256;
     static std::unique_ptr<OSWindow> window;
-    static constexpr int rendererFlags = GFXSTREAM_RENDERER_FLAGS_NO_VK_BIT;
-    static constexpr int surfacelessFlags = GFXSTREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT |
-                                            GFXSTREAM_RENDERER_FLAGS_NO_VK_BIT;
+    static constexpr int rendererFlags = STREAM_RENDERER_FLAGS_USE_GLES_BIT;
+    static constexpr int surfacelessFlags = STREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT;
 
     GfxStreamBackendTest()
         : cookie(0),

@@ -547,7 +547,7 @@ class PipeVirglRenderer {
                 << "Could not get address space device control ops!";
         }
         mVirtioGpuTimelines =
-            VirtioGpuTimelines::create(flags & GFXSTREAM_RENDERER_FLAGS_ASYNC_FENCE_CB);
+            VirtioGpuTimelines::create(true);
         VGPLOG("done");
         return 0;
     }
@@ -2148,7 +2148,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     // Flags processing
 
     // TODO: hook up "gfxstream egl" to the renderer flags
-    // GFXSTREAM_RENDERER_FLAGS_USE_EGL_BIT in crosvm
+    // STREAM_RENDERER_FLAGS_USE_EGL_BIT in crosvm
     // as it's specified from launch_cvd.
     // At the moment, use ANDROID_GFXSTREAM_EGL=1
     // For test on GCE
@@ -2160,24 +2160,24 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     // end for test on GCE
 
     android::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
-    bool enableVk = !(renderer_flags & GFXSTREAM_RENDERER_FLAGS_NO_VK_BIT);
-    bool enableGles = (renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_GLES_BIT);
+    bool enableVk = (renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT);
+    bool enableGles = (renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT);
 
     bool egl2eglByEnv = android::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
-    bool egl2eglByFlag = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_EGL_BIT;
+    bool egl2eglByFlag = renderer_flags & STREAM_RENDERER_FLAGS_USE_EGL_BIT;
     bool enable_egl2egl = egl2eglByFlag || egl2eglByEnv;
     if (enable_egl2egl) {
         android::base::setEnvironmentVariable("ANDROID_GFXSTREAM_EGL", "1");
         android::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
     }
 
-    bool surfaceless = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT;
-    bool enableGlEs31Flag = renderer_flags & GFXSTREAM_RENDERER_FLAGS_ENABLE_GLES31_BIT;
-    bool useExternalBlob = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB;
-    bool useSystemBlob = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB;
+    bool surfaceless = renderer_flags & STREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT;
+    bool enableGlEs31Flag = enableGles;
+    bool useExternalBlob = renderer_flags & STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB;
+    bool useSystemBlob = renderer_flags & STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB;
     bool guestUsesAngle = enableVk && !enableGles;
     bool useVulkanNativeSwapchain =
-        renderer_flags & GFXSTREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT;
+        renderer_flags & STREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT;
 
     GFXS_LOG("GLES enabled? %d", enableGles);
     GFXS_LOG("Vulkan enabled? %d", enableVk);
@@ -2221,10 +2221,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     feature_set_enabled_override(kFeature_VulkanQueueSubmitWithCommands, true);
     feature_set_enabled_override(kFeature_VulkanNativeSwapchain, useVulkanNativeSwapchain);
     feature_set_enabled_override(kFeature_VulkanBatchedDescriptorSetUpdate, true);
-    // TODO: Strictly speaking, renderer_flags check is insufficient because
-    // fence contexts require us to be running a new-enough guest kernel.
-    feature_set_enabled_override(kFeature_VirtioGpuFenceContexts,
-                                 (renderer_flags & GFXSTREAM_RENDERER_FLAGS_ASYNC_FENCE_CB));
+    feature_set_enabled_override(kFeature_VirtioGpuFenceContexts, true);
     feature_set_enabled_override(kFeature_ExternalBlob, useExternalBlob);
     feature_set_enabled_override(kFeature_SystemBlob, useSystemBlob);
 
