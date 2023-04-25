@@ -8,6 +8,7 @@ extern "C" {
 	magma_status_t magma_device_import(magma_handle_t device_channel, magma_device_t* device_out);
 	void magma_device_release(magma_device_t device);
 	magma_status_t magma_device_query(magma_device_t device, uint64_t id, magma_handle_t* result_buffer_out, uint64_t* result_out);
+	magma_status_t magma_device_query_fudge(magma_device_t device, uint64_t id, magma_bool_t host_allocate, uint64_t* result_buffer_mapping_id_inout, uint64_t* result_buffer_size_inout, uint64_t* result_out);
 	magma_status_t magma_device_create_connection(magma_device_t device, magma_connection_t* connection_out);
 	void magma_connection_release(magma_connection_t connection);
 	magma_status_t magma_connection_get_error(magma_connection_t connection);
@@ -78,6 +79,12 @@ magma_status_t magma_device_query(magma_device_t device, uint64_t id, magma_hand
 {
 	GET_CONTEXT;
 	return ctx->magma_device_query(ctx, device, id, result_buffer_out, result_out);
+}
+
+magma_status_t magma_device_query_fudge(magma_device_t device, uint64_t id, magma_bool_t host_allocate, uint64_t* result_buffer_mapping_id_inout, uint64_t* result_buffer_size_inout, uint64_t* result_out)
+{
+	GET_CONTEXT;
+	return ctx->magma_device_query_fudge(ctx, device, id, host_allocate, result_buffer_mapping_id_inout, result_buffer_size_inout, result_out);
 }
 
 magma_status_t magma_device_create_connection(magma_device_t device, magma_connection_t* connection_out)

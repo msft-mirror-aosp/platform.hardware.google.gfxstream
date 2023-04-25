@@ -11,6 +11,7 @@ static const struct _magma_funcs_by_name {
 	{"magma_device_import", (void*)magma_device_import},
 	{"magma_device_release", (void*)magma_device_release},
 	{"magma_device_query", (void*)magma_device_query},
+	{"magma_device_query_fudge", (void*)magma_device_query_fudge},
 	{"magma_device_create_connection", (void*)magma_device_create_connection},
 	{"magma_connection_release", (void*)magma_connection_release},
 	{"magma_connection_get_error", (void*)magma_connection_get_error},
