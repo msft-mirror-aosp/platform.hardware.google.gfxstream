@@ -61,7 +61,7 @@
 #include "gl/TextureDraw.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/virtio_gpu_ops.h"
-#include "render_api.h"
+#include "render-utils/render_api.h"
 #include "snapshot/common.h"
 #include "utils/RenderDoc.h"
 #include "vulkan/vk_util.h"

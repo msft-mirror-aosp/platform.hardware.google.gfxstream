@@ -22,7 +22,10 @@
 #include "host-common/vm_operations.h"
 #include "host-common/window_agent.h"
 #include "render-utils/virtio_gpu_ops.h"
+
+#ifdef __cplusplus
 #include "render-utils/RenderLib.h"
+#endif
 
 #ifndef USING_ANDROID_BP
 ANDROID_BEGIN_HEADER
@@ -139,11 +142,13 @@ AEMU_EXPORT void android_cleanupProcGLObjects(uint64_t puid);
 
 AEMU_EXPORT void android_waitForOpenglesProcessCleanup();
 
+#ifdef __cplusplus
 namespace gfxstream {
 class Renderer;
 }
 
 AEMU_EXPORT const gfxstream::RendererPtr& android_getOpenglesRenderer();
+#endif
 
 AEMU_EXPORT struct AndroidVirtioGpuOps* android_getVirtioGpuOps(void);
 
