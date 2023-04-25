@@ -39,7 +39,6 @@ cc_library_shared {
         ".",
     ],
     cflags: [
-        "-DENABLE_ANDROID_HEALTH_MONITOR",
         "-DLOG_TAG=\"androidemu\"",
         "-Wno-missing-field-initializers",
         "-fvisibility=default",
