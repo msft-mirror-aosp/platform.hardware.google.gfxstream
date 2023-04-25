@@ -8,6 +8,8 @@
 #include "ChecksumCalculator.h"
 #include "magma_server_context.h"
 
+
+
 namespace gfxstream {
 
 struct magma_decoder_context_t : public magma_server_context_t {

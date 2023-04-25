@@ -15,6 +15,14 @@ magma_device_query
 	dir result_out out
 	len result_out sizeof(uint64_t)
 
+magma_device_query_fudge
+	dir result_buffer_mapping_id_inout inout
+	len result_buffer_mapping_id_inout sizeof(uint64_t)
+	dir result_buffer_size_inout inout
+	len result_buffer_size_inout sizeof(uint64_t)
+	dir result_out out
+	len result_out sizeof(uint64_t)
+
 magma_device_create_connection
 	dir connection_out out
 	len connection_out sizeof(magma_connection_t)

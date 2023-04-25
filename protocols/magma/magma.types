@@ -1,4 +1,5 @@
 # Magma types.
+magma_bool_t 8 %hhu false
 magma_buffer_t 64 %lu false
 magma_cache_operation_t 32 %u false
 magma_cache_policy_t 32 %u false
