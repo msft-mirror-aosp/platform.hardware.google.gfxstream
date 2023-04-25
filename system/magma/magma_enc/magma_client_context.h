@@ -13,6 +13,7 @@ struct magma_client_context_t {
 	magma_device_import_client_proc_t magma_device_import;
 	magma_device_release_client_proc_t magma_device_release;
 	magma_device_query_client_proc_t magma_device_query;
+	magma_device_query_fudge_client_proc_t magma_device_query_fudge;
 	magma_device_create_connection_client_proc_t magma_device_create_connection;
 	magma_connection_release_client_proc_t magma_connection_release;
 	magma_connection_get_error_client_proc_t magma_connection_get_error;

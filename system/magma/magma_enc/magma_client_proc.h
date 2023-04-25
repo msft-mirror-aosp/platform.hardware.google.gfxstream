@@ -15,6 +15,7 @@
 typedef magma_status_t (magma_APIENTRY *magma_device_import_client_proc_t) (void * ctx, magma_handle_t, magma_device_t*);
 typedef void (magma_APIENTRY *magma_device_release_client_proc_t) (void * ctx, magma_device_t);
 typedef magma_status_t (magma_APIENTRY *magma_device_query_client_proc_t) (void * ctx, magma_device_t, uint64_t, magma_handle_t*, uint64_t*);
+typedef magma_status_t (magma_APIENTRY *magma_device_query_fudge_client_proc_t) (void * ctx, magma_device_t, uint64_t, magma_bool_t, uint64_t*, uint64_t*, uint64_t*);
 typedef magma_status_t (magma_APIENTRY *magma_device_create_connection_client_proc_t) (void * ctx, magma_device_t, magma_connection_t*);
 typedef void (magma_APIENTRY *magma_connection_release_client_proc_t) (void * ctx, magma_connection_t);
 typedef magma_status_t (magma_APIENTRY *magma_connection_get_error_client_proc_t) (void * ctx, magma_connection_t);

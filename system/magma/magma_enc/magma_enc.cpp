@@ -151,6 +151,64 @@ magma_status_t magma_device_query_enc(void *self , magma_device_t device, uint64
 	return retval;
 }
 
+magma_status_t magma_device_query_fudge_enc(void *self , magma_device_t device, uint64_t id, magma_bool_t host_allocate, uint64_t* result_buffer_mapping_id_inout, uint64_t* result_buffer_size_inout, uint64_t* result_out)
+{
+	ENCODER_DEBUG_LOG("magma_device_query_fudge(device:%lu, id:%lu, host_allocate:%hhu, result_buffer_mapping_id_inout:%p, result_buffer_size_inout:%p, result_out:%p)", device, id, host_allocate, result_buffer_mapping_id_inout, result_buffer_size_inout, result_out);
+	AEMU_SCOPED_TRACE("magma_device_query_fudge encode");
+
+	magma_encoder_context_t *ctx = (magma_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_result_buffer_mapping_id_inout =  sizeof(uint64_t);
+	const unsigned int __size_result_buffer_size_inout =  sizeof(uint64_t);
+	const unsigned int __size_result_out =  sizeof(uint64_t);
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 8 + 1 + __size_result_buffer_mapping_id_inout + __size_result_buffer_size_inout + 0 + 3*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_magma_device_query_fudge;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &device, 8); ptr += 8;
+		memcpy(ptr, &id, 8); ptr += 8;
+		memcpy(ptr, &host_allocate, 1); ptr += 1;
+	memcpy(ptr, &__size_result_buffer_mapping_id_inout, 4); ptr += 4;
+	memcpy(ptr, result_buffer_mapping_id_inout, __size_result_buffer_mapping_id_inout);ptr += __size_result_buffer_mapping_id_inout;
+	memcpy(ptr, &__size_result_buffer_size_inout, 4); ptr += 4;
+	memcpy(ptr, result_buffer_size_inout, __size_result_buffer_size_inout);ptr += __size_result_buffer_size_inout;
+	memcpy(ptr, &__size_result_out, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->readback(result_buffer_mapping_id_inout, __size_result_buffer_mapping_id_inout);
+	if (useChecksum) checksumCalculator->addBuffer(result_buffer_mapping_id_inout, __size_result_buffer_mapping_id_inout);
+	stream->readback(result_buffer_size_inout, __size_result_buffer_size_inout);
+	if (useChecksum) checksumCalculator->addBuffer(result_buffer_size_inout, __size_result_buffer_size_inout);
+	stream->readback(result_out, __size_result_out);
+	if (useChecksum) checksumCalculator->addBuffer(result_out, __size_result_out);
+
+	magma_status_t retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("magma_device_query_fudge: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
 magma_status_t magma_device_create_connection_enc(void *self , magma_device_t device, magma_connection_t* connection_out)
 {
 	ENCODER_DEBUG_LOG("magma_device_create_connection(device:%lu, connection_out:%p)", device, connection_out);
@@ -2194,6 +2252,7 @@ magma_encoder_context_t::magma_encoder_context_t(IOStream *stream, ChecksumCalcu
 	this->magma_device_import = &magma_device_import_enc;
 	this->magma_device_release = &magma_device_release_enc;
 	this->magma_device_query = &magma_device_query_enc;
+	this->magma_device_query_fudge = &magma_device_query_fudge_enc;
 	this->magma_device_create_connection = &magma_device_create_connection_enc;
 	this->magma_connection_release = &magma_connection_release_enc;
 	this->magma_connection_get_error = &magma_connection_get_error_enc;
