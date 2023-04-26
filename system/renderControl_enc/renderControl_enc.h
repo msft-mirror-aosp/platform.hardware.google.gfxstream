@@ -15,10 +15,10 @@
 
 struct renderControl_encoder_context_t : public renderControl_client_context_t {
 
-	IOStream *m_stream;
+	gfxstream::IOStream *m_stream;
 	ChecksumCalculator *m_checksumCalculator;
 
-	renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator);
+	renderControl_encoder_context_t(gfxstream::IOStream *stream, ChecksumCalculator *checksumCalculator);
 	virtual uint64_t lockAndWriteDma(void*, uint32_t) { return 0; }
 };
 

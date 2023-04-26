@@ -20,6 +20,8 @@
 
 #include <GLES3/gl31.h>
 
+using gfxstream::IOStream;
+
 bool isSamplerType(GLenum type) {
     switch (type) {
         case GL_SAMPLER_2D:

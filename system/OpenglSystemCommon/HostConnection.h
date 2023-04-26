@@ -53,7 +53,7 @@ class VkEncoder;
 // that will be used to track available emulator features.
 class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
-    ExtendedRCEncoderContext(IOStream *stream, ChecksumCalculator *checksumCalculator)
+    ExtendedRCEncoderContext(gfxstream::IOStream *stream, ChecksumCalculator *checksumCalculator)
         : renderControl_encoder_context_t(stream, checksumCalculator),
           m_dmaCxt(NULL), m_dmaPtr(NULL), m_dmaPhysAddr(0) { }
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
@@ -268,7 +268,7 @@ private:
     GrallocType m_grallocType;
 
     // intrusively refcounted
-    IOStream* m_stream = nullptr;
+    gfxstream::IOStream* m_stream = nullptr;
 
     std::unique_ptr<GLEncoder> m_glEnc;
     std::unique_ptr<GL2Encoder> m_gl2Enc;

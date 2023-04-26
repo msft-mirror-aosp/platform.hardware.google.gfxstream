@@ -22,6 +22,8 @@
 
 #include "ErrorLog.h"
 
+namespace gfxstream {
+
 class IOStream {
 public:
 
@@ -133,6 +135,7 @@ private:
     uint32_t m_refcount;
 };
 
+}  // namespace gfxstream
 //
 // When a client opens a connection to the renderer, it should
 // send unsigned int value indicating the "clientFlags".
