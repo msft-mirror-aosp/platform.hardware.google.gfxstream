@@ -282,6 +282,32 @@ if(WITH_BENCHMARK)
     endif()
 endif()
 
+if(NOT TARGET libdrm_headers)
+    if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
+        set(LIBDRM_PATH ${PROJECT_SOURCE_DIR}/../../../external/libdrm)
+        if(NOT EXISTS ${LIBDRM_PATH})
+            message(FATAL_ERROR "LIBDRM is not found.")
+        endif()
+        add_library(libdrm_headers INTERFACE)
+        target_include_directories(libdrm_headers INTERFACE ${LIBDRM_PATH}/include/drm)
+    elseif(DEPENDENCY_RESOLUTION STREQUAL "SYSTEM")
+        find_package(PkgConfig REQUIRED)
+        pkg_search_module(drm REQUIRED IMPORTED_TARGET GLOBAL libdrm)
+        add_library(libdrm_headers ALIAS PkgConfig::drm)
+    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
+        FetchContent_Declare(
+            drm
+            GIT_REPOSITORY https://gitlab.freedesktop.org/mesa/drm.git
+            GIT_TAG main
+            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+            GIT_PROGRESS TRUE
+        )
+        FetchContent_MakeAvailable(drm)
+        add_library(libdrm_headers INTERFACE)
+        target_include_directories(libdrm_headers INTERFACE ${drm_SOURCE_DIR}/include/drm)
+    endif()
+endif()
+
 if(NOT TARGET aemu_common)
     message(FATAL_ERROR "The dependency aemu_common not found")
 endif()
