@@ -178,7 +178,10 @@ target_include_directories(OpenglRender_vulkan_cereal
 #include "{self.guestBaseLibDirPrefix}/AndroidHealthMonitor.h"
 #include "goldfish_vk_private_defs.h"
 #include <memory>
+
+namespace gfxstream {{
 class IOStream;
+}}
 """
         encoderImplInclude = f"""
 #include "EncoderDebug.h"
@@ -413,8 +416,8 @@ class BumpPool;
 #include "{self.baseLibDirPrefix}/system/System.h"
 #include "{self.baseLibDirPrefix}/Tracing.h"
 #include "{self.baseLibDirPrefix}/Metrics.h"
+#include "render-utils/IOStream.h"
 #include "stream-servers/FrameBuffer.h"
-#include "stream-servers/IOStream.h"
 #include "host-common/feature_control.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
