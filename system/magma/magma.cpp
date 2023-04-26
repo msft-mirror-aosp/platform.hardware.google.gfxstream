@@ -71,7 +71,6 @@ class MagmaClientContext : public magma_encoder_context_t {
     static std::unique_lock<std::mutex>* get_thread_local_context_lock() { return t_lock; }
 
     magma_device_import_client_proc_t magma_device_import_enc_;
-    magma_device_query_client_proc_t magma_device_query_enc_;
     magma_poll_client_proc_t magma_poll_enc_;
     magma_connection_create_buffer_client_proc_t magma_connection_create_buffer_enc_;
     magma_connection_release_buffer_client_proc_t magma_connection_release_buffer_enc_;
@@ -111,7 +110,6 @@ thread_local std::unique_lock<std::mutex>* MagmaClientContext::t_lock;
 MagmaClientContext::MagmaClientContext(AddressSpaceStream* stream)
     : magma_encoder_context_t(stream, new ChecksumCalculator) {
     magma_device_import_enc_ = magma_client_context_t::magma_device_import;
-    magma_device_query_enc_ = magma_client_context_t::magma_device_query;
     magma_poll_enc_ = magma_client_context_t::magma_poll;
     magma_connection_create_buffer_enc_ = magma_client_context_t::magma_connection_create_buffer;
 
@@ -177,39 +175,55 @@ magma_status_t MagmaClientContext::magma_device_query(void* self, magma_device_t
                                                       uint64_t* value_out) {
     auto context = reinterpret_cast<MagmaClientContext*>(self);
 
-    magma_buffer_t buffer = 0;
+    // TODO(b/277219980): Support guest-allocated buffers.
+    constexpr magma_bool_t kHostAllocate = 1;
+
     uint64_t value = 0;
-    {
-        magma_handle_t handle;
-        magma_status_t status = context->magma_device_query_enc_(self, device, id, &handle, &value);
-        if (status != MAGMA_STATUS_OK) {
-            ALOGE("magma_device_query_enc failed: %d\n", status);
-            return status;
-        }
-        // magma_buffer_t and magma_handle_t are both gem_handles on the server.
-        buffer = handle;
+    uint64_t result_buffer_mapping_id = 0;
+    uint64_t result_buffer_size = 0;
+    magma_status_t status = context->magma_device_query_fudge(
+        self, device, id, kHostAllocate, &result_buffer_mapping_id, &result_buffer_size, &value);
+    if (status != MAGMA_STATUS_OK) {
+        ALOGE("magma_device_query_fudge failed: %d\n", status);
+        return status;
     }
 
-    if (!buffer) {
-        if (!value_out) return MAGMA_STATUS_INVALID_ARGS;
-
-        *value_out = value;
-
-        if (handle_out) {
-            *handle_out = -1;
+    // For non-buffer queries, just return the value.
+    if (result_buffer_size == 0) {
+        if (!value_out) {
+            ALOGE("MAGMA_STATUS_INVALID_ARGS\n");
+            return MAGMA_STATUS_INVALID_ARGS;
         }
-
+        *value_out = value;
+        ALOGE("MAGMA_STATUS_OK (value = %lu)\n", value);
         return MAGMA_STATUS_OK;
     }
 
-    if (!handle_out) return MAGMA_STATUS_INVALID_ARGS;
+    // Otherwise, create and return a fd for the host-allocated buffer.
+    if (!handle_out) {
+        ALOGE("MAGMA_STATUS_INVALID_ARGS\n");
+        return MAGMA_STATUS_INVALID_ARGS;
+    }
 
-    int fd;
-    magma_status_t status = context->get_fd_for_buffer(buffer, &fd);
-    if (status != MAGMA_STATUS_OK) return status;
+    ALOGI("opening blob id %lu size %lu\n", result_buffer_mapping_id, result_buffer_size);
+    auto blob = VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStream)
+                    .createBlob({.size = result_buffer_size,
+                                 .flags = kBlobFlagMappable | kBlobFlagShareable,
+                                 .blobMem = kBlobMemHost3d,
+                                 .blobId = result_buffer_mapping_id});
+    if (!blob) {
+        ALOGE("VirtGpuDevice::createBlob failed\n");
+        return MAGMA_STATUS_INTERNAL_ERROR;
+    }
 
-    *handle_out = fd;
+    VirtGpuExternalHandle handle{};
+    int result = blob->exportBlob(handle);
+    if (result != 0 || handle.osHandle < 0) {
+        ALOGE("VirtGpuBlob::exportBlob failed\n");
+        return MAGMA_STATUS_INTERNAL_ERROR;
+    }
 
+    *handle_out = handle.osHandle;
     return MAGMA_STATUS_OK;
 }
 
