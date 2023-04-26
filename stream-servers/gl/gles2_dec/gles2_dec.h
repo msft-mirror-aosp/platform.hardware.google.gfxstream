@@ -4,9 +4,11 @@
 #ifndef GUARD_gles2_decoder_context_t
 #define GUARD_gles2_decoder_context_t
 
-#include "IOStream.h"
+#include "render-utils/IOStream.h"
 #include "ChecksumCalculator.h"
 #include "gles2_server_context.h"
+
+
 
 namespace gfxstream {
 

@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include "IOStream.h"
+#include "render-utils/IOStream.h"
 #include "render-utils/RenderChannel.h"
 
 #include "aemu/base/ring_buffer.h"

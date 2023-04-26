@@ -18,7 +18,7 @@
 #include <string.h>
 #include <vulkan.h>
 
-#include "IOStream.h"
+#include "render-utils/IOStream.h"
 #include "android/base/ArraySize.h"
 #include "android/base/BumpPool.h"
 #include "common/goldfish_vk_deepcopy.h"

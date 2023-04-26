@@ -18,7 +18,7 @@
 #include <unordered_map>
 
 #include "FrameBuffer.h"
-#include "IOStream.h"
+#include "render-utils/IOStream.h"
 #include "VkDecoder.h"
 #include "aemu/base/containers/EntityManager.h"
 
