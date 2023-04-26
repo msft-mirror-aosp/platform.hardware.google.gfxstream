@@ -45,6 +45,7 @@ cc_library_static {
         "VkCommonOperations.cpp",
         "VkDecoder.cpp",
         "VkDecoderGlobalState.cpp",
+        "RenderThreadInfoVk.cpp",
         "VkDecoderSnapshot.cpp",
         "VkFormatUtils.cpp",
         "VkReconstruction.cpp",

@@ -21,7 +21,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "BlobManager.h"
 #include "FrameBuffer.h"
+#include "RenderThreadInfoVk.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
 #include "VkDecoderContext.h"
@@ -80,12 +82,12 @@ using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Optional;
 using android::base::SharedMemory;
 using android::base::StaticLock;
-using android::emulation::HostmemIdMapping;
 using android::emulation::ManagedDescriptorInfo;
-using android::emulation::VulkanInfo;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 using emugl::GfxApiLogger;
+using gfxstream::BlobManager;
+using gfxstream::VulkanInfo;
 
 // TODO(b/261477138): Move to a shared aemu definition
 #define __ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
@@ -2985,6 +2987,7 @@ class VkDecoderGlobalState::Impl {
                                  const VkAllocationCallbacks* pAllocator, VkDeviceMemory* pMemory) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
+        auto* tInfo = RenderThreadInfoVk::get();
 
         if (!pAllocateInfo) return VK_ERROR_INITIALIZATION_FAILED;
 
@@ -3182,7 +3185,7 @@ class VkDecoderGlobalState::Impl {
             (createBlobInfoPtr->blobFlags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
             DescriptorType rawDescriptor;
             auto descriptorInfoOpt =
-                HostmemIdMapping::get()->removeDescriptorInfo(createBlobInfoPtr->blobId);
+                BlobManager::get()->removeDescriptorInfo(tInfo->ctx_id, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
                 auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
                 if (rawDescriptorOpt) {
@@ -3363,8 +3366,6 @@ class VkDecoderGlobalState::Impl {
                 fprintf(stderr, "%s: unmap hostmem %p id 0x%llx\n", __func__, info->ptr,
                         (unsigned long long)info->hostmemId);
             }
-
-            get_emugl_vm_operations().hostmemUnregister(info->hostmemId);
         }
 
         if (info->needUnmap && info->ptr) {
@@ -3615,7 +3616,7 @@ class VkDecoderGlobalState::Impl {
 
     VkResult vkGetBlobInternal(VkDevice boxed_device, VkDeviceMemory memory, uint64_t hostBlobId) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        struct MemEntry entry = {0};
+        auto* tInfo = RenderThreadInfoVk::get();
 
         auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -3627,9 +3628,9 @@ class VkDecoderGlobalState::Impl {
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
-            HostmemIdMapping::get()->addDescriptorInfo(hostBlobId,
-                                                       info->sharedMemory->releaseHandle(),
-                                                       handleType, info->caching, std::nullopt);
+            BlobManager::get()->addDescriptorInfo(tInfo->ctx_id, hostBlobId,
+                                                  info->sharedMemory->releaseHandle(), handleType,
+                                                  info->caching, std::nullopt);
         } else if (feature_is_enabled(kFeature_ExternalBlob)) {
             VkResult result;
             auto device = unbox_VkDevice(boxed_device);
@@ -3685,9 +3686,9 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             ManagedDescriptor managedHandle(handle);
-            HostmemIdMapping::get()->addDescriptorInfo(hostBlobId, std::move(managedHandle),
-                                                       handleType, info->caching,
-                                                       std::optional<VulkanInfo>(vulkanInfo));
+            BlobManager::get()->addDescriptorInfo(
+                tInfo->ctx_id, hostBlobId, std::move(managedHandle), handleType, info->caching,
+                std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
             auto device = unbox_VkDevice(boxed_device);
             auto vk = dispatch_VkDevice(boxed_device);
@@ -3701,7 +3702,6 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (info->needUnmap) {
-            struct MemEntry entry = {0};
             uint64_t hva = (uint64_t)(uintptr_t)(info->ptr);
             uint64_t size = (uint64_t)(uintptr_t)(info->size);
 
@@ -3717,11 +3717,8 @@ class VkDecoderGlobalState::Impl {
                     kPageSizeforBlob, hva, alignedHva);
             }
 
-            entry.hva = (void*)(uintptr_t)alignedHva;
-            entry.size = alignedSize;
-            entry.caching = info->caching;
-
-            HostmemIdMapping::get()->addMapping(hostBlobId, &entry);
+            BlobManager::get()->addMapping(tInfo->ctx_id, hostBlobId, (void*)(uintptr_t)alignedHva,
+                                           info->caching);
             info->virtioGpuMapped = true;
             info->hostmemId = hostBlobId;
         }

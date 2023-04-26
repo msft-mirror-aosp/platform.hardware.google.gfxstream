@@ -10,6 +10,7 @@ add_library(gfxstream-vulkan-server
             DisplaySurfaceVk.cpp
             DebugUtilsHelper.cpp
             SwapChainStateVk.cpp
+            RenderThreadInfoVk.cpp
             VkAndroidNativeBuffer.cpp
             VkCommonOperations.cpp
             VkDecoder.cpp

@@ -1,4 +1,4 @@
-// Copyright 2022 The Android Open Source Project
+// Copyright 2023 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,31 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "RenderThreadInfoVk.h"
 
-#include <optional>
-#include <string>
-
-#include "VkDecoder.h"
+#include "host-common/GfxstreamFatalError.h"
 
 namespace gfxstream {
 namespace vk {
 
-struct RenderThreadInfoVk {
-    // Create new instance. Only call this once per thread.
-    // Future calls to get() will return this instance until
-    // it is destroyed.
-    RenderThreadInfoVk();
+static thread_local RenderThreadInfoVk* tlThreadInfo = nullptr;
 
-    // Destructor.
-    ~RenderThreadInfoVk();
+RenderThreadInfoVk::RenderThreadInfoVk() {
+    if (tlThreadInfo != nullptr) {
+        GFXSTREAM_ABORT(emugl::FatalError(emugl::ABORT_REASON_OTHER))
+            << "Attempted to set thread local Vk render thread info twice.";
+    }
+    tlThreadInfo = this;
+}
 
-    // Return the current thread's instance, if any, or NULL.
-    static RenderThreadInfoVk* get();
+RenderThreadInfoVk::~RenderThreadInfoVk() { tlThreadInfo = nullptr; }
 
-    uint32_t ctx_id;
-    VkDecoder m_vkDec;
-};
+RenderThreadInfoVk* RenderThreadInfoVk::get() { return tlThreadInfo; }
 
 }  // namespace vk
 }  // namespace gfxstream
