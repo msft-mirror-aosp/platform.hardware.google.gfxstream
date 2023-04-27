@@ -66,6 +66,10 @@ IntelDrmDecoder::IntelDrmDecoder() : Decoder() {
     MAGMA_DECODER_BIND_METHOD(magma_connection_unmap_buffer);
 }
 
+// TODO(b/279936417): Make objects and their IDs orthogonal.
+#define MAGMA_OBJECT_TO_ID(x) ((x) << 32ull)
+#define MAGMA_ID_TO_OBJECT(x) ((x) >> 32ull)
+
 magma_status_t IntelDrmDecoder::magma_device_import(magma_handle_t device_channel,
                                                     magma_device_t* device_out) {
     *device_out = 0;
@@ -223,7 +227,8 @@ magma_status_t IntelDrmDecoder::magma_device_query_fudge(magma_device_t device, 
                 WARN("Guest-allocated buffers are not currently supported.");
                 return MAGMA_STATUS_UNIMPLEMENTED;
             }
-            auto buffer = DrmBuffer::create(*dev, mContextId, sizeof(magma_intel_gen_timestamp_query));
+            auto buffer =
+                DrmBuffer::create(*dev, mContextId, sizeof(magma_intel_gen_timestamp_query));
             if (!buffer) {
                 return MAGMA_STATUS_MEMORY_ERROR;
             }
@@ -340,13 +345,38 @@ magma_status_t IntelDrmDecoder::magma_connection_create_buffer(magma_connection_
                                                                uint64_t size, uint64_t* size_out,
                                                                magma_buffer_t* buffer_out,
                                                                magma_buffer_id_t* id_out) {
-    WARN("%s not implemented", __FUNCTION__);
-    return MAGMA_STATUS_UNIMPLEMENTED;
+    *size_out = 0;
+    *buffer_out = MAGMA_INVALID_OBJECT_ID;
+    *id_out = MAGMA_INVALID_OBJECT_ID;
+    auto con = mConnections.get(connection);
+    if (!con) {
+        return MAGMA_STATUS_INVALID_ARGS;
+    }
+    auto buffer = DrmBuffer::create(con->getDevice(), mContextId, size);
+    if (!buffer) {
+        return MAGMA_STATUS_MEMORY_ERROR;
+    }
+    auto gem_handle = buffer->getHandle();
+    auto magma_handle = mBuffers.create(std::move(*buffer));
+    mGemHandleToBuffer.emplace(gem_handle, magma_handle);
+    *size_out = buffer->size();
+    *buffer_out = magma_handle;
+    *id_out = MAGMA_OBJECT_TO_ID(magma_handle);
+    return MAGMA_STATUS_OK;
 }
 
 void IntelDrmDecoder::magma_connection_release_buffer(magma_connection_t connection,
                                                       magma_buffer_t buffer) {
-    WARN("%s not implemented", __FUNCTION__);
+    auto con = mConnections.get(connection);
+    if (!con) {
+        return;
+    }
+    auto buf = mBuffers.get(buffer);
+    if (!buf) {
+        return;
+    }
+    mGemHandleToBuffer.erase(buf->getHandle());
+    mBuffers.erase(buffer);
 }
 
 magma_status_t IntelDrmDecoder::magma_connection_create_semaphore(
@@ -363,7 +393,8 @@ void IntelDrmDecoder::magma_connection_release_semaphore(magma_connection_t conn
     WARN("%s not implemented", __FUNCTION__);
 }
 
-magma_status_t IntelDrmDecoder::magma_buffer_get_info(magma_buffer_t buffer, magma_buffer_info_t* info_out) {
+magma_status_t IntelDrmDecoder::magma_buffer_get_info(magma_buffer_t buffer,
+                                                      magma_buffer_info_t* info_out) {
     auto buf = mBuffers.get(buffer);
     if (!buf) {
         return MAGMA_STATUS_INVALID_ARGS;
