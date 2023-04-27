@@ -300,22 +300,6 @@ void EglDisplay::addReservedConfigs() {
                 kCommonCfgs[i][2],
                 kCommonCfgs[i][3],
                 kCommonCfgs[i][4]);
-        if (!cfg) { // if multi-sample fails, fall back to the basic ones
-            int fallbackCfg = 2;
-            do {
-                cfg = addSimplePixelFormat(kCommonCfgs[fallbackCfg][0],
-                        kCommonCfgs[fallbackCfg][1],
-                        kCommonCfgs[fallbackCfg][2],
-                        kCommonCfgs[fallbackCfg][3],
-                        kCommonCfgs[fallbackCfg][4]);
-                fallbackCfg --;
-            } while (!cfg && fallbackCfg >= 0);
-            if (cfg) {
-                // Clone the basic cfg, and give it a different ID later
-                cfg = new EglConfig(*cfg);
-                m_configs.emplace_back(cfg);
-            }
-        }
         // ID starts with 1
         if (cfg) {
             cfg->setId(i + 1);
@@ -620,14 +604,13 @@ void EglDisplay::addConfig(void* opaque, const EglOS::ConfigInfo* info) {
     // or having no depth/stencil causes some
     // unexpected behavior in real usage, such
     // as frame corruption and wrong drawing order.
-    // Also, disallow high MSAA.
     // Just don't use those configs.
     if (info->red_size > 8 ||
         info->green_size > 8 ||
         info->blue_size > 8 ||
         info->depth_size < 24 ||
         info->stencil_size < 8 ||
-        info->samples_per_pixel > 0) {
+        info->samples_per_pixel > 2) {
         return;
     }
 
