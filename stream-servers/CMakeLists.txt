@@ -17,6 +17,7 @@ add_subdirectory(magma)
 # Stream server core
 set(stream-server-core-sources
     Buffer.cpp
+    BlobManager.cpp
     ColorBuffer.cpp
     GfxStreamAgents.cpp
     VirtioGpuTimelines.cpp
