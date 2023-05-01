@@ -14,6 +14,14 @@ class X11FunctionGetter {
     public:
         X11FunctionGetter() :
             mX11Lib(android::base::SharedLibrary::open("libX11")) {
+            if (!mX11Lib) {
+                fprintf(stderr, "WARNING: could not open libX11.so, try libX11.so.6\n");
+                mX11Lib = (android::base::SharedLibrary::open("libX11.so.6"));
+                if (!mX11Lib) {
+                    fprintf(stderr, "ERROR: could not open libX11.so.6, give up\n");
+                    return;
+                }
+            }
 
 #define X11_ASSIGN_DUMMY_IMPL(funcname) mApi.funcname = dummy_##funcname;
 
