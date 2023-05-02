@@ -50,8 +50,8 @@
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/feature_control.h"
 #include "host-common/logging.h"
+#include "render-utils/IOStream.h"
 #include "stream-servers/FrameBuffer.h"
-#include "stream-servers/IOStream.h"
 
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 

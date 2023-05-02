@@ -1470,3 +1470,4 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 	return ptr - (unsigned char*)buf;
 }
 }  // namespace gfxstream
+

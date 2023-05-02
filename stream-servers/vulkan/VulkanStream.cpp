@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "IOStream.h"
+#include "render-utils/IOStream.h"
 #include "aemu/base/BumpPool.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/feature_control.h"

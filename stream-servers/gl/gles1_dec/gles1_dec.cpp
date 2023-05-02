@@ -6186,3 +6186,4 @@ size_t gles1_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 	return ptr - (unsigned char*)buf;
 }
 }  // namespace gfxstream
+
