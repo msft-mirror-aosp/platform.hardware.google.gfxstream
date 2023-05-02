@@ -23,6 +23,7 @@
 #include "goldfish_address_space.h"
 
 using android::base::guest::HealthMonitor;
+using gfxstream::IOStream;
 
 class AddressSpaceStream;
 

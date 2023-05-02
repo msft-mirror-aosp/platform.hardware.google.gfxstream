@@ -8,6 +8,8 @@
 
 #include <assert.h>
 
+namespace gfxstream {
+
 void IOStream::readbackPixels(void* context, int width, int height, unsigned int format, unsigned int type, void* pixels) {
     GL2Encoder *ctx = (GL2Encoder *)context;
     assert (ctx->state() != NULL);
@@ -200,3 +202,5 @@ void IOStream::uploadPixels(void* context, int width, int height, int depth, uns
         }
     }
 }
+
+}  // namespace gfxstream

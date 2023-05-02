@@ -37,6 +37,7 @@
 using android::base::guest::CreateHealthMonitor;
 using android::base::guest::HealthMonitor;
 using android::base::guest::HealthMonitorConsumerBasic;
+using gfxstream::IOStream;
 
 #ifdef GOLDFISH_NO_GL
 struct gl_client_context_t {

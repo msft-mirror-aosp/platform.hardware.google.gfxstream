@@ -31,6 +31,8 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
 
+using gfxstream::IOStream;
+
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
