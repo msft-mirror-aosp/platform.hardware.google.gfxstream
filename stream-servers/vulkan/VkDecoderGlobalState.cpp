@@ -3709,6 +3709,14 @@ class VkDecoderGlobalState::Impl {
             uint64_t alignedSize =
                 kPageSizeforBlob * ((size + kPageSizeforBlob - 1) / kPageSizeforBlob);
 
+            if (hva != alignedHva) {
+                ERR("Mapping non page-size (0x%" PRIx64
+                    ") aligned host virtual address:%p "
+                    "using the aligned host virtual address:%p. The underlying resources "
+                    "using this blob may be corrupted/offset.",
+                    kPageSizeforBlob, hva, alignedHva);
+            }
+
             entry.hva = (void*)(uintptr_t)alignedHva;
             entry.size = alignedSize;
             entry.caching = info->caching;
