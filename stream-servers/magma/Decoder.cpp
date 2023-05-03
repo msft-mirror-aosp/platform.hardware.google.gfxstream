@@ -23,17 +23,17 @@
 namespace gfxstream {
 namespace magma {
 
-std::unique_ptr<Decoder> Decoder::Create() {
+std::unique_ptr<Decoder> Decoder::create() {
 #if GFXSTREAM_MAGMA_USE_INTEL_DRM
-    return IntelDrmDecoder::Create();
+    return IntelDrmDecoder::create();
 #endif
     return nullptr;
 }
 
-#define MAGMA_DECODER_BIND_METHOD(method)                                \
-    magma_server_context_t::method = [](auto... args) {                  \
-        auto decoder = RenderThreadInfoMagma::get() -> m_magmaDec.get(); \
-        return static_cast<decltype(this)>(decoder)->method(args...);    \
+#define MAGMA_DECODER_BIND_METHOD(method)                               \
+    magma_server_context_t::method = [](auto... args) {                 \
+        auto decoder = RenderThreadInfoMagma::get() -> mMagmaDec.get(); \
+        return static_cast<decltype(this)>(decoder)->method(args...);   \
     }
 
 Decoder::Decoder() {

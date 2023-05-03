@@ -228,3 +228,18 @@ cc_test_host {
         "general-tests",
     ],
 }
+
+cc_test_host {
+    name: "gfxstream_magma_tests",
+    defaults: [ "gfxstream_defaults" ],
+    srcs: [
+        "tests/Magma_unittest.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "libgfxstream_backend",
+    ],
+    test_suites: [
+        "general-tests",
+    ],
+}

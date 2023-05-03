@@ -1,11 +1,14 @@
 if (LINUX AND DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
     set(
         gfxstream-magma-server-backend-sources
+        DrmDevice.cpp
         IntelDrmDecoder.cpp)
     set(
         gfxstream-magma-server-backend-defines
-        GFXSTREAM_MAGMA_USE_INTEL_DRM=1
-    )
+        GFXSTREAM_MAGMA_USE_INTEL_DRM=1)
+    set(
+        gfxstream-magma-server-backend-libs
+        libdrm_headers)
 endif()
 add_library(
     gfxstream-magma-server
@@ -20,7 +23,8 @@ target_compile_definitions(
 target_link_libraries(
     gfxstream-magma-server
     PRIVATE
-    apigen-codec-common)
+    apigen-codec-common
+    ${gfxstream-magma-server-backend-libs})
 target_include_directories(
     gfxstream-magma-server
     PRIVATE
@@ -30,4 +34,5 @@ target_include_directories(
     ${GFXSTREAM_REPO_ROOT}/stream-servers/apigen-codec-common
     ${GFXSTREAM_REPO_ROOT}/stream-servers/magma
     ${GFXSTREAM_REPO_ROOT}/stream-servers/magma/magma_dec
-    ${GFXSTREAM_REPO_ROOT}/third-party/fuchsia/magma/include)
+    ${GFXSTREAM_REPO_ROOT}/third-party/fuchsia/magma/include
+    ${GFXSTREAM_REPO_ROOT}/third-party/fuchsia/magma/include/lib)

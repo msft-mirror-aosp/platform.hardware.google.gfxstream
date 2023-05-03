@@ -24,7 +24,7 @@ RenderThreadInfoMagma::RenderThreadInfoMagma() {
         << "Attempted to set thread local Magma render thread info twice.";
     }
     tlThreadInfo = this;
-    m_magmaDec = gfxstream::magma::Decoder::Create();
+    mMagmaDec = gfxstream::magma::Decoder::create();
 }
 
 RenderThreadInfoMagma::~RenderThreadInfoMagma() {

@@ -15,6 +15,8 @@
 #pragma once
 
 #include "Decoder.h"
+#include "MonotonicMap.h"
+#include "DrmDevice.h"
 
 namespace gfxstream {
 namespace magma {
@@ -22,7 +24,7 @@ namespace magma {
 // Magma decoder for running on an Intel DRM backend.
 class IntelDrmDecoder : public Decoder {
   public:
-    static std::unique_ptr<IntelDrmDecoder> Create();
+    static std::unique_ptr<IntelDrmDecoder> create();
 
   private:
     IntelDrmDecoder();
@@ -44,6 +46,8 @@ class IntelDrmDecoder : public Decoder {
     void magma_connection_release_context(magma_connection_t connection, uint32_t context_id) override;
     magma_status_t magma_connection_map_buffer(magma_connection_t connection, uint64_t hw_va, magma_buffer_t buffer, uint64_t offset, uint64_t length, uint64_t map_flags) override;
     void magma_connection_unmap_buffer(magma_connection_t connection, uint64_t hw_va, magma_buffer_t buffer) override;
+
+    MonotonicMap<magma_device_t, DrmDevice> mDevices;
 };
 
 } // namespace magma

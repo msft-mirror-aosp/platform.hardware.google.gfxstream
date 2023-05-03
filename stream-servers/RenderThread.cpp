@@ -543,10 +543,10 @@ intptr_t RenderThread::main() {
             // try to process some of the command buffer using the Magma
             // decoder
             //
-            if (tInfo.m_magmaInfo && tInfo.m_magmaInfo->m_magmaDec)
+            if (tInfo.m_magmaInfo && tInfo.m_magmaInfo->mMagmaDec)
             {
-                last = tInfo.m_magmaInfo->m_magmaDec->decode(readBuf.buf(), readBuf.validData(),
-                                            ioStream, &checksumCalc);
+                last = tInfo.m_magmaInfo->mMagmaDec->decode(readBuf.buf(), readBuf.validData(),
+                                                            ioStream, &checksumCalc);
                 if (last > 0) {
                     readBuf.consume(last);
                     progress = true;
