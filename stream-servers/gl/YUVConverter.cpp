@@ -329,21 +329,23 @@ static void getYUVOffsets(int width,
             *yWidth = width;
             *yHeight = height;
             *yOffsetBytes = 0;
-            // Luma stride is 32 bytes aligned.
-            *yStridePixels = alignToPower2(width, 32);
+            // Luma stride is 32 bytes aligned in minigbm, 16 in goldfish
+            // gralloc.
+            *yStridePixels = alignToPower2(width, emugl::getGrallocImplementation() == MINIGBM
+                    ? 32 : 16);
             *yStrideBytes = *yStridePixels;
 
             // Chroma stride is 16 bytes aligned.
             *vWidth = width / 2;
             *vHeight = height / 2;
             *vOffsetBytes = (*yStrideBytes) * (*yHeight);
-            *vStridePixels = (*yStridePixels) / 2;
+            *vStridePixels = alignToPower2((*yStridePixels) / 2, 16);
             *vStrideBytes = (*vStridePixels);
 
             *uWidth = width / 2;
             *uHeight = height / 2;
             *uOffsetBytes = (*vOffsetBytes) + ((*vStrideBytes) * (*vHeight));
-            *uStridePixels = (*yStridePixels) / 2;
+            *uStridePixels = alignToPower2((*yStridePixels) / 2, 16);
             *uStrideBytes = *uStridePixels;
             break;
         }
