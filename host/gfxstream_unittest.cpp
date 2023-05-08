@@ -20,8 +20,8 @@
 #include "aemu/base/system/System.h"
 #include "host-common/testing/MockGraphicsAgentFactory.h"
 #include "virgl_hw.h"
-#include "virtio-gpu-gfxstream-renderer-unstable.h"
-#include "virtio-gpu-gfxstream-renderer.h"
+#include "render-utils/virtio-gpu-gfxstream-renderer-unstable.h"
+#include "render-utils/virtio-gpu-gfxstream-renderer.h"
 
 using android::base::sleepMs;
 

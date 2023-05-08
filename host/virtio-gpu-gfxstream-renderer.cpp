@@ -47,8 +47,8 @@ extern "C" {
 #include "drm_fourcc.h"
 #include "host-common/goldfish_pipe.h"
 #include "virgl_hw.h"
-#include "virtio-gpu-gfxstream-renderer-unstable.h"
-#include "virtio-gpu-gfxstream-renderer.h"
+#include "render-utils/virtio-gpu-gfxstream-renderer-unstable.h"
+#include "render-utils/virtio-gpu-gfxstream-renderer.h"
 }  // extern "C"
 
 #define DEBUG_VIRTIO_GOLDFISH_PIPE 0

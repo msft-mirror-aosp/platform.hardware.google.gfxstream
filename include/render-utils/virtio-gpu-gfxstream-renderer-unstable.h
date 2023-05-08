@@ -1,7 +1,7 @@
 #ifndef VIRTGPU_GFXSTREAM_RENDERER_UNSTABLE_H
 #define VIRTGPU_GFXSTREAM_RENDERER_UNSTABLE_H
 
-#include "virtio-gpu-gfxstream-renderer.h"
+#include "render-utils/virtio-gpu-gfxstream-renderer.h"
 
 #ifdef __cplusplus
 extern "C" {
