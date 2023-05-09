@@ -16,6 +16,7 @@
 #include <inttypes.h>
 
 #include <atomic>
+#include <mutex>
 #include <optional>
 #include <unordered_map>
 #include <utility>
@@ -103,6 +104,7 @@ class BlobManager {
         }
     };
 
+    std::mutex mLock;
     std::unordered_map<std::pair<uint32_t, uint64_t>, HostMemInfo, pair_hash> mHostMemInfos;
     std::unordered_map<std::pair<uint32_t, uint64_t>, ManagedDescriptorInfo, pair_hash>
         mDescriptorInfos;
