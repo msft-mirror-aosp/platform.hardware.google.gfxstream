@@ -51,6 +51,13 @@ extern "C" {
 #include "render-utils/virtio-gpu-gfxstream-renderer.h"
 }  // extern "C"
 
+#if defined(_WIN32)
+struct iovec {
+    void* iov_base; /* Starting address */
+    size_t iov_len; /* Length in bytes */
+};
+#endif  // _WIN32
+
 #define DEBUG_VIRTIO_GOLDFISH_PIPE 0
 
 #if DEBUG_VIRTIO_GOLDFISH_PIPE
@@ -1647,6 +1654,11 @@ class PipeVirglRenderer {
         return -EINVAL;
     }
 
+#ifdef CONFIG_AEMU
+    void setServiceOps(const GoldfishPipeServiceOps* ops) {
+        mServiceOps = ops;
+    }
+#endif  // CONFIG_AEMU
    private:
     void allocResource(PipeResEntry& entry, iovec* iov, int num_iovs) {
         VGPLOG("entry linear: %p", entry.linear);
@@ -1973,178 +1985,7 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
     [](QEMUFile* file) { (void)file; },
 };
 
-VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer_params,
-                                   uint64_t num_params) {
-    // Required parameters.
-    std::unordered_set<uint64_t> required_params{STREAM_RENDERER_PARAM_USER_DATA,
-                                                 STREAM_RENDERER_PARAM_RENDERER_FLAGS,
-                                                 STREAM_RENDERER_PARAM_FENCE_CALLBACK};
-
-    // String names of the parameters.
-    std::unordered_map<uint64_t, std::string> param_strings{
-        {STREAM_RENDERER_PARAM_USER_DATA, "USER_DATA"},
-        {STREAM_RENDERER_PARAM_RENDERER_FLAGS, "RENDERER_FLAGS"},
-        {STREAM_RENDERER_PARAM_FENCE_CALLBACK, "FENCE_CALLBACK"},
-        {STREAM_RENDERER_PARAM_WIN0_WIDTH, "WIN0_WIDTH"},
-        {STREAM_RENDERER_PARAM_WIN0_HEIGHT, "WIN0_HEIGHT"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT,
-         "METRICS_CALLBACK_ADD_INSTANT_EVENT"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR,
-         "METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC,
-         "METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT,
-         "METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION, "METRICS_CALLBACK_SET_ANNOTATION"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT, "METRICS_CALLBACK_ABORT"}};
-
-    // Print full values for these parameters:
-    // Values here must not be pointers (e.g. callback functions), to avoid potentially identifying
-    // someone via ASLR. Pointers in ASLR are randomized on boot, which means pointers may be
-    // different between users but similar across a single user's sessions.
-    // As a convenience, any value <= 4096 is also printed, to catch small or null pointer errors.
-    std::unordered_set<uint64_t> printed_param_values{STREAM_RENDERER_PARAM_RENDERER_FLAGS,
-                                                      STREAM_RENDERER_PARAM_WIN0_WIDTH,
-                                                      STREAM_RENDERER_PARAM_WIN0_HEIGHT};
-
-    // We may have unknown parameters, so this function is lenient.
-    auto get_param_string = [&](uint64_t key) -> std::string {
-        auto param_string = param_strings.find(key);
-        if (param_string != param_strings.end()) {
-            return param_string->second;
-        } else {
-            return "Unknown param with key=" + std::to_string(key);
-        }
-    };
-
-    // Initialization data.
-    uint32_t display_width = 0;
-    uint32_t display_height = 0;
-    void* renderer_cookie = nullptr;
-    int renderer_flags = 0;
-    stream_renderer_fence_callback fence_callback = NULL;
-
-    // Iterate all parameters that we support.
-    GFXS_LOG("Reading stream renderer parameters:");
-    for (uint64_t i = 0; i < num_params; ++i) {
-        stream_renderer_param& param = stream_renderer_params[i];
-
-        // Print out parameter we are processing. See comment above `printed_param_values` before
-        // adding new prints.
-        if (printed_param_values.find(param.key) != printed_param_values.end() ||
-            param.value <= 4096) {
-            GFXS_LOG("%s - %llu", get_param_string(param.key).c_str(),
-                     static_cast<unsigned long long>(param.value));
-        } else {
-            // If not full value, print that it was passed.
-            GFXS_LOG("%s", get_param_string(param.key).c_str());
-        }
-
-        // Removing every param we process will leave required_params empty if all provided.
-        required_params.erase(param.key);
-
-        switch (param.key) {
-            case STREAM_RENDERER_PARAM_USER_DATA: {
-                renderer_cookie = reinterpret_cast<void*>(static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_RENDERER_FLAGS: {
-                renderer_flags = static_cast<int>(param.value);
-                break;
-            }
-            case STREAM_RENDERER_PARAM_FENCE_CALLBACK: {
-                fence_callback = reinterpret_cast<stream_renderer_fence_callback>(
-                    static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_WIN0_WIDTH: {
-                display_width = static_cast<uint32_t>(param.value);
-                break;
-            }
-            case STREAM_RENDERER_PARAM_WIN0_HEIGHT: {
-                display_height = static_cast<uint32_t>(param.value);
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT: {
-                MetricsLogger::add_instant_event_callback =
-                    reinterpret_cast<stream_renderer_param_metrics_callback_add_instant_event>(
-                        static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR: {
-                MetricsLogger::add_instant_event_with_descriptor_callback = reinterpret_cast<
-                    stream_renderer_param_metrics_callback_add_instant_event_with_descriptor>(
-                    static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC: {
-                MetricsLogger::add_instant_event_with_metric_callback = reinterpret_cast<
-                    stream_renderer_param_metrics_callback_add_instant_event_with_metric>(
-                    static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT: {
-                MetricsLogger::add_vulkan_out_of_memory_event = reinterpret_cast<
-                    stream_renderer_param_metrics_callback_add_vulkan_out_of_memory_event>(
-                    static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION: {
-                MetricsLogger::set_crash_annotation_callback =
-                    reinterpret_cast<stream_renderer_param_metrics_callback_set_annotation>(
-                        static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT: {
-                emugl::setDieFunction(
-                    reinterpret_cast<stream_renderer_param_metrics_callback_abort>(
-                        static_cast<uintptr_t>(param.value)));
-                break;
-            }
-            default: {
-                // We skip any parameters we don't recognize.
-                ERR("Skipping unknown parameter key: %llu. May need to upgrade gfxstream.",
-                    static_cast<unsigned long long>(param.key));
-                break;
-            }
-        }
-    }
-    GFXS_LOG("Finished reading parameters");
-
-    // Some required params not found.
-    if (required_params.size() > 0) {
-        ERR("Missing required parameters:");
-        for (uint64_t param : required_params) {
-            ERR("%s", get_param_string(param).c_str());
-        }
-        ERR("Failing initialization intentionally");
-        return -1;
-    }
-
-    // Set non product-specific callbacks
-    gfxstream::vk::vk_util::setVkCheckCallbacks(
-        std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
-            gfxstream::vk::vk_util::VkCheckCallbacks{
-                .onVkErrorOutOfMemory =
-                    [](VkResult result, const char* function, int line) {
-                        auto fb = gfxstream::FrameBuffer::getFB();
-                        if (!fb) {
-                            ERR("FrameBuffer not yet initialized. Dropping out of memory event");
-                            return;
-                        }
-                        fb->logVulkanOutOfMemory(result, function, line);
-                    },
-                .onVkErrorOutOfMemoryOnAllocation =
-                    [](VkResult result, const char* function, int line,
-                       std::optional<uint64_t> allocationSize) {
-                        auto fb = gfxstream::FrameBuffer::getFB();
-                        if (!fb) {
-                            ERR("FrameBuffer not yet initialized. Dropping out of memory event");
-                            return;
-                        }
-                        fb->logVulkanOutOfMemory(result, function, line, allocationSize);
-                    }}));
-
+static int stream_renderer_opengles_init(uint32_t display_width, uint32_t display_height, int renderer_flags) {
     GFXS_LOG("start. display dimensions: width %u height %u, renderer flags: 0x%x", display_width,
              display_height, renderer_flags);
 
@@ -2290,6 +2131,196 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     android_opengles_pipe_set_recv_mode(2 /* virtio-gpu */);
     android_init_refcount_pipe();
 
+    return 0;
+}
+
+VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer_params,
+                                   uint64_t num_params) {
+    // Required parameters.
+    std::unordered_set<uint64_t> required_params{STREAM_RENDERER_PARAM_USER_DATA,
+                                                 STREAM_RENDERER_PARAM_RENDERER_FLAGS,
+                                                 STREAM_RENDERER_PARAM_FENCE_CALLBACK};
+
+    // String names of the parameters.
+    std::unordered_map<uint64_t, std::string> param_strings{
+        {STREAM_RENDERER_PARAM_USER_DATA, "USER_DATA"},
+        {STREAM_RENDERER_PARAM_RENDERER_FLAGS, "RENDERER_FLAGS"},
+        {STREAM_RENDERER_PARAM_FENCE_CALLBACK, "FENCE_CALLBACK"},
+        {STREAM_RENDERER_PARAM_WIN0_WIDTH, "WIN0_WIDTH"},
+        {STREAM_RENDERER_PARAM_WIN0_HEIGHT, "WIN0_HEIGHT"},
+        {STREAM_RENDERER_SKIP_OPENGLES_INIT, "SKIP_OPENGLES_INIT"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT,
+         "METRICS_CALLBACK_ADD_INSTANT_EVENT"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR,
+         "METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC,
+         "METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT,
+         "METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION, "METRICS_CALLBACK_SET_ANNOTATION"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT, "METRICS_CALLBACK_ABORT"}};
+
+    // Print full values for these parameters:
+    // Values here must not be pointers (e.g. callback functions), to avoid potentially identifying
+    // someone via ASLR. Pointers in ASLR are randomized on boot, which means pointers may be
+    // different between users but similar across a single user's sessions.
+    // As a convenience, any value <= 4096 is also printed, to catch small or null pointer errors.
+    std::unordered_set<uint64_t> printed_param_values{STREAM_RENDERER_PARAM_RENDERER_FLAGS,
+                                                      STREAM_RENDERER_PARAM_WIN0_WIDTH,
+                                                      STREAM_RENDERER_PARAM_WIN0_HEIGHT};
+
+    // We may have unknown parameters, so this function is lenient.
+    auto get_param_string = [&](uint64_t key) -> std::string {
+        auto param_string = param_strings.find(key);
+        if (param_string != param_strings.end()) {
+            return param_string->second;
+        } else {
+            return "Unknown param with key=" + std::to_string(key);
+        }
+    };
+
+    // Initialization data.
+    uint32_t display_width = 0;
+    uint32_t display_height = 0;
+    void* renderer_cookie = nullptr;
+    int renderer_flags = 0;
+    stream_renderer_fence_callback fence_callback = NULL;
+    bool skip_opengles = false;
+
+    // Iterate all parameters that we support.
+    GFXS_LOG("Reading stream renderer parameters:");
+    for (uint64_t i = 0; i < num_params; ++i) {
+        stream_renderer_param& param = stream_renderer_params[i];
+
+        // Print out parameter we are processing. See comment above `printed_param_values` before
+        // adding new prints.
+        if (printed_param_values.find(param.key) != printed_param_values.end() ||
+            param.value <= 4096) {
+            GFXS_LOG("%s - %llu", get_param_string(param.key).c_str(),
+                     static_cast<unsigned long long>(param.value));
+        } else {
+            // If not full value, print that it was passed.
+            GFXS_LOG("%s", get_param_string(param.key).c_str());
+        }
+
+        // Removing every param we process will leave required_params empty if all provided.
+        required_params.erase(param.key);
+
+        switch (param.key) {
+            case STREAM_RENDERER_PARAM_USER_DATA: {
+                renderer_cookie = reinterpret_cast<void*>(static_cast<uintptr_t>(param.value));
+                break;
+            }
+            case STREAM_RENDERER_PARAM_RENDERER_FLAGS: {
+                renderer_flags = static_cast<int>(param.value);
+                break;
+            }
+            case STREAM_RENDERER_PARAM_FENCE_CALLBACK: {
+                fence_callback = reinterpret_cast<stream_renderer_fence_callback>(
+                    static_cast<uintptr_t>(param.value));
+                break;
+            }
+            case STREAM_RENDERER_PARAM_WIN0_WIDTH: {
+                display_width = static_cast<uint32_t>(param.value);
+                break;
+            }
+            case STREAM_RENDERER_PARAM_WIN0_HEIGHT: {
+                display_height = static_cast<uint32_t>(param.value);
+                break;
+            }
+            case STREAM_RENDERER_SKIP_OPENGLES_INIT: {
+                skip_opengles = static_cast<bool>(param.value);
+                break;
+            }
+            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT: {
+                MetricsLogger::add_instant_event_callback =
+                    reinterpret_cast<stream_renderer_param_metrics_callback_add_instant_event>(
+                        static_cast<uintptr_t>(param.value));
+                break;
+            }
+            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR: {
+                MetricsLogger::add_instant_event_with_descriptor_callback = reinterpret_cast<
+                    stream_renderer_param_metrics_callback_add_instant_event_with_descriptor>(
+                    static_cast<uintptr_t>(param.value));
+                break;
+            }
+            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC: {
+                MetricsLogger::add_instant_event_with_metric_callback = reinterpret_cast<
+                    stream_renderer_param_metrics_callback_add_instant_event_with_metric>(
+                    static_cast<uintptr_t>(param.value));
+                break;
+            }
+            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT: {
+                MetricsLogger::add_vulkan_out_of_memory_event = reinterpret_cast<
+                    stream_renderer_param_metrics_callback_add_vulkan_out_of_memory_event>(
+                    static_cast<uintptr_t>(param.value));
+                break;
+            }
+            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION: {
+                MetricsLogger::set_crash_annotation_callback =
+                    reinterpret_cast<stream_renderer_param_metrics_callback_set_annotation>(
+                        static_cast<uintptr_t>(param.value));
+                break;
+            }
+            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT: {
+                emugl::setDieFunction(
+                    reinterpret_cast<stream_renderer_param_metrics_callback_abort>(
+                        static_cast<uintptr_t>(param.value)));
+                break;
+            }
+            default: {
+                // We skip any parameters we don't recognize.
+                ERR("Skipping unknown parameter key: %llu. May need to upgrade gfxstream.",
+                    static_cast<unsigned long long>(param.key));
+                break;
+            }
+        }
+    }
+    GFXS_LOG("Finished reading parameters");
+
+    // Some required params not found.
+    if (required_params.size() > 0) {
+        ERR("Missing required parameters:");
+        for (uint64_t param : required_params) {
+            ERR("%s", get_param_string(param).c_str());
+        }
+        ERR("Failing initialization intentionally");
+        return -1;
+    }
+
+    // Set non product-specific callbacks
+    gfxstream::vk::vk_util::setVkCheckCallbacks(
+        std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
+            gfxstream::vk::vk_util::VkCheckCallbacks{
+                .onVkErrorOutOfMemory =
+                    [](VkResult result, const char* function, int line) {
+                        auto fb = gfxstream::FrameBuffer::getFB();
+                        if (!fb) {
+                            ERR("FrameBuffer not yet initialized. Dropping out of memory event");
+                            return;
+                        }
+                        fb->logVulkanOutOfMemory(result, function, line);
+                    },
+                .onVkErrorOutOfMemoryOnAllocation =
+                    [](VkResult result, const char* function, int line,
+                       std::optional<uint64_t> allocationSize) {
+                        auto fb = gfxstream::FrameBuffer::getFB();
+                        if (!fb) {
+                            ERR("FrameBuffer not yet initialized. Dropping out of memory event");
+                            return;
+                        }
+                        fb->logVulkanOutOfMemory(result, function, line, allocationSize);
+                    }}));
+
+    if (!skip_opengles) {
+        // aemu currently does its own opengles initialization in
+        // qemu/android/android-emu/android/opengles.cpp.
+        int ret = stream_renderer_opengles_init(display_width, display_height, renderer_flags);
+        if (ret) {
+            return ret;
+        }
+    }
+
     sRenderer()->init(renderer_cookie, renderer_flags, fence_callback);
     gfxstream::FrameBuffer::waitUntilInitialized();
 
@@ -2353,4 +2384,13 @@ static_assert(offsetof(struct stream_renderer_param, key) == 0,
               "stream_renderer_param.key must be at offset 0");
 static_assert(offsetof(struct stream_renderer_param, value) == 8,
               "stream_renderer_param.value must be at offset 8");
+
+#ifdef CONFIG_AEMU
+
+VG_EXPORT void stream_renderer_set_service_ops(const GoldfishPipeServiceOps* ops) {
+    sRenderer()->setServiceOps(ops);
+}
+
+#endif  // CONFIG_AEMU
+
 }  // extern "C"

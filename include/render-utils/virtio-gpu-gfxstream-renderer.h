@@ -20,10 +20,7 @@
 #include <stddef.h>
 
 #if defined(_WIN32)
-struct iovec {
-    void* iov_base; /* Starting address */
-    size_t iov_len; /* Length in bytes */
-};
+struct iovec;
 #else
 #include <sys/uio.h>
 #endif
