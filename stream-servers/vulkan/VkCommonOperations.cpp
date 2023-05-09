@@ -583,6 +583,13 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
     for (auto extension : SwapChainStateVk::getRequiredInstanceExtensions()) {
         enabledExtensions.emplace(extension);
     }
+
+#ifdef VK_MVK_moltenvk
+    if (moltenVKSupported) {
+        enabledExtensions.emplace(VK_MVK_MOLTENVK_EXTENSION_NAME);
+    }
+#endif
+
     std::vector<const char*> enabledExtensions_(enabledExtensions.begin(), enabledExtensions.end());
     instCi.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions_.size());
     instCi.ppEnabledExtensionNames = enabledExtensions_.data();
