@@ -150,7 +150,7 @@ add_subdirectory(protocols)
 
 # Fake Android guest#########################3##################################
 
-if (NOT WIN32 AND NOT APPLE)
+if (NOT WIN32)
     add_subdirectory(fake-android-guest)
 endif()
 
