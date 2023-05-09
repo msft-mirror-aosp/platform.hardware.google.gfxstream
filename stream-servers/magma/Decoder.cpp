@@ -86,6 +86,7 @@ Decoder::Decoder() {
     MAGMA_DECODER_BIND_METHOD(magma_virt_connection_get_image_info);
 
     // Bind fudged methods.
+    MAGMA_DECODER_BIND_METHOD(magma_device_query_fudge);
     MAGMA_DECODER_BIND_METHOD(magma_connection_execute_command_fudge);
     MAGMA_DECODER_BIND_METHOD(magma_connection_execute_immediate_commands_fudge);
     MAGMA_DECODER_BIND_METHOD(magma_buffer_set_name_fudge);
@@ -364,6 +365,15 @@ magma_status_t Decoder::magma_virt_connection_create_image(magma_connection_t co
 magma_status_t Decoder::magma_virt_connection_get_image_info(magma_connection_t connection,
                                                              magma_buffer_t image,
                                                              magma_image_info_t* image_info_out) {
+    MAGMA_NOTIMPL();
+    return MAGMA_STATUS_UNIMPLEMENTED;
+}
+
+magma_status_t Decoder::magma_device_query_fudge(magma_device_t device, uint64_t id,
+                                                 magma_bool_t host_allocate,
+                                                 uint64_t* result_buffer_mapping_id_inout,
+                                                 uint64_t* result_buffer_size_inout,
+                                                 uint64_t* result_out) {
     MAGMA_NOTIMPL();
     return MAGMA_STATUS_UNIMPLEMENTED;
 }

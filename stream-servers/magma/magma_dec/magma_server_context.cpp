@@ -13,6 +13,7 @@ int magma_server_context_t::initDispatchByName(void *(*getProc)(const char *, vo
 	magma_device_import = (magma_device_import_server_proc_t) getProc("magma_device_import", userData);
 	magma_device_release = (magma_device_release_server_proc_t) getProc("magma_device_release", userData);
 	magma_device_query = (magma_device_query_server_proc_t) getProc("magma_device_query", userData);
+	magma_device_query_fudge = (magma_device_query_fudge_server_proc_t) getProc("magma_device_query_fudge", userData);
 	magma_device_create_connection = (magma_device_create_connection_server_proc_t) getProc("magma_device_create_connection", userData);
 	magma_connection_release = (magma_connection_release_server_proc_t) getProc("magma_connection_release", userData);
 	magma_connection_get_error = (magma_connection_get_error_server_proc_t) getProc("magma_connection_get_error", userData);

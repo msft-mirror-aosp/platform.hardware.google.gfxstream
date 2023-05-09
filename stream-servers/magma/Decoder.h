@@ -35,6 +35,7 @@ class Decoder : public magma_decoder_context_t {
     virtual magma_status_t magma_device_import(magma_handle_t device_channel, magma_device_t* device_out);
     virtual void magma_device_release(magma_device_t device);
     virtual magma_status_t magma_device_query(magma_device_t device, uint64_t id, magma_handle_t* result_buffer_out, uint64_t* result_out);
+    virtual magma_status_t magma_device_query_fudge(magma_device_t device, uint64_t id, magma_bool_t host_allocate, uint64_t* result_buffer_mapping_id_inout, uint64_t* result_buffer_size_inout, uint64_t* result_out);
     virtual magma_status_t magma_device_create_connection(magma_device_t device, magma_connection_t* connection_out);
     virtual void magma_connection_release(magma_connection_t connection);
     virtual magma_status_t magma_connection_get_error(magma_connection_t connection);
