@@ -80,13 +80,12 @@ void zx_event_create(int, zx_handle_t*) { }
 #include "HostVisibleMemoryVirtualization.h"
 #include "Resources.h"
 #include "VkEncoder.h"
-
 #include "aemu/base/AlignedBuf.h"
 #include "aemu/base/synchronization/AndroidLock.h"
-#include "virtgpu_gfxstream_protocol.h"
-
 #include "goldfish_address_space.h"
 #include "goldfish_vk_private_defs.h"
+#include "util.h"
+#include "virtgpu_gfxstream_protocol.h"
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include "vk_format_info.h"
 #endif
@@ -3000,7 +2999,8 @@ public:
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&hostAllocationInfo);
 
         if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
-            hostAllocationInfo.allocationSize = ALIGN(pAllocateInfo->allocationSize, 4096);
+            hostAllocationInfo.allocationSize =
+                ALIGN(pAllocateInfo->allocationSize, mCaps.gfxstreamCapset.blobAlignment);
         } else if (dedicated) {
             // Over-aligning to kLargestSize to some Windows drivers (b:152769369).  Can likely
             // have host report the desired alignment.

@@ -20,8 +20,6 @@
 #include "aemu/base/AndroidSubAllocator.h"
 #include "goldfish_address_space.h"
 
-#define ALIGN(A, B) (((A) + (B)-1) & ~((B)-1))
-
 constexpr uint64_t kMegaByte = 1048576;
 
 // This needs to be a power of 2 that is at least the min alignment needed

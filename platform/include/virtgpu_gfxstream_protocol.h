@@ -31,8 +31,10 @@
 #define GFXSTREAM_CREATE_IMPORT_SYNC_VK         0xa001
 #define GFXSTREAM_CREATE_QSRI_EXPORT_VK         0xa002
 
+// clang-format off
 // A placeholder command to ensure virtio-gpu completes
-#define GFXSTREAM_PLACEHOLDER_COMMAND_VK 0xf002
+#define GFXSTREAM_PLACEHOLDER_COMMAND_VK        0xf002
+// clang-format on
 
 struct gfxstreamHeader {
     uint32_t opCode;
@@ -82,8 +84,9 @@ struct gfxstreamCapset {
     uint32_t bufferSize;
 
     uint32_t colorBufferMemoryIndex;
-    uint32_t padding[16];
     uint32_t deferredMapping;
+    uint32_t blobAlignment;
+    uint32_t padding[15];
 };
 
 #endif

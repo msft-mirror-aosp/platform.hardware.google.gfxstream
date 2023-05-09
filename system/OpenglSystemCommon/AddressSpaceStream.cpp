@@ -17,6 +17,7 @@
 
 #include "VirtGpu.h"
 #include "aemu/base/Tracing.h"
+#include "util.h"
 #include "virtgpu_gfxstream_protocol.h"
 
 #if PLATFORM_SDK_VERSION < 26
@@ -185,17 +186,14 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMon
     char* blobAddr, *bufferPtr;
     int ret;
 
-    // HACK: constants that are currently used.
-    // Ideal solution would use virtio-gpu capabilities to report both ringSize and bufferSize
-    uint32_t ringSize = 12288;
-    uint32_t bufferSize = 1048576;
-
     VirtGpuDevice& instance = VirtGpuDevice::getInstance();
+    VirtGpuCaps caps = instance.getCaps();
 
     blobCreate.blobId = 0;
     blobCreate.blobMem = kBlobMemHost3d;
     blobCreate.flags = kBlobFlagMappable;
-    blobCreate.size = ringSize + bufferSize;
+    blobCreate.size = ALIGN(caps.gfxstreamCapset.ringSize + caps.gfxstreamCapset.bufferSize,
+                            caps.gfxstreamCapset.blobAlignment);
     blob = instance.createBlob(blobCreate);
     if (!blob)
         return nullptr;
@@ -224,7 +222,7 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMon
 
     bufferPtr = blobAddr + sizeof(struct asg_ring_storage);
     struct asg_context context =
-        asg_context_create(blobAddr, bufferPtr, bufferSize);
+        asg_context_create(blobAddr, bufferPtr, caps.gfxstreamCapset.bufferSize);
 
     context.ring_config->transfer_mode = 1;
     context.ring_config->host_consumed_pos = 0;
