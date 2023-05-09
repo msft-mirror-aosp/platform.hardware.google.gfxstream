@@ -1307,6 +1307,15 @@ class PipeVirglRenderer {
             if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeIndex) {
                 capset->colorBufferMemoryIndex = *vk_emu->representativeColorBufferMemoryTypeIndex;
             }
+
+            if (vk_emu && vk_emu->live) {
+                capset->deferredMapping = 1;
+#if defined(__APPLE__) && defined(__arm64__)
+		capset->blobAlignment = 16384;
+#else
+		capset->blobAlignment = 4096;
+#endif
+            }
         }
     }
 

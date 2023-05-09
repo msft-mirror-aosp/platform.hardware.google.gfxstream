@@ -86,8 +86,9 @@ struct gfxstreamCapset {
     uint32_t bufferSize;
 
     uint32_t colorBufferMemoryIndex;
-    uint32_t padding[16];
     uint32_t deferredMapping;
+    uint32_t blobAlignment;
+    uint32_t padding[15];
 };
 
 }  // namespace gfxstream
