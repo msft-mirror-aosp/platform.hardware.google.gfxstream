@@ -774,6 +774,15 @@ class PipeVirglRenderer {
             }
             case GFXSTREAM_CREATE_EXPORT_SYNC_VK:
             case GFXSTREAM_CREATE_IMPORT_SYNC_VK: {
+                // The guest sync export assumes fence context support and always uses
+                // VIRTGPU_EXECBUF_RING_IDX. With this, the task created here must use
+                // the same ring as the fence created for the virtio gpu command or the
+                // fence may be signaled without properly waiting for the task to complete.
+                ring = VirtioGpuRingContextSpecific{
+                    .mCtxId = ctxId,
+                    .mRingIdx = 0,
+                };
+
                 DECODE(exportSyncVK, gfxstream::gfxstreamCreateExportSyncVK, buffer)
 
                 uint64_t device_handle =
