@@ -15,6 +15,7 @@
 #pragma once
 
 #include <optional>
+#include <memory>
 
 #include "aemu/base/Compiler.h"
 #include "aemu/base/ManagedDescriptor.hpp"
