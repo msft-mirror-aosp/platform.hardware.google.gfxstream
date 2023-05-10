@@ -64,7 +64,8 @@ inline std::string to_string(const VirtioGpuRing& ring) {
         std::string operator()(const VirtioGpuRingGlobal&) { return "global"; }
         std::string operator()(const VirtioGpuRingContextSpecific& ring) {
             std::stringstream ss;
-            ss << "context specific {ctx = " << ring.mCtxId << ", ring = " << ring.mRingIdx << "}";
+            ss << "context specific {ctx = " << ring.mCtxId << ", ring = " << (int)ring.mRingIdx
+               << "}";
             return ss.str();
         }
     } visitor;
@@ -86,10 +87,11 @@ class VirtioGpuTimelines {
    private:
     VirtioGpuTimelines(bool withAsyncCallback);
     struct Fence {
+        FenceId mId;
         std::unique_ptr<FenceCompletionCallback> mCompletionCallback;
-        Fence(FenceCompletionCallback completionCallback)
-            : mCompletionCallback(std::make_unique<FenceCompletionCallback>(
-                  completionCallback)) {}
+        Fence(FenceId id, FenceCompletionCallback completionCallback)
+            : mId(id),
+              mCompletionCallback(std::make_unique<FenceCompletionCallback>(completionCallback)) {}
     };
     struct Task {
         TaskId mId;

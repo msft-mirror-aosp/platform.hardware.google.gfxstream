@@ -45,11 +45,11 @@ TaskId VirtioGpuTimelines::enqueueTask(const Ring& ring) {
     return id;
 }
 
-void VirtioGpuTimelines::enqueueFence(const Ring& ring, FenceId,
+void VirtioGpuTimelines::enqueueFence(const Ring& ring, FenceId fenceId,
                                       FenceCompletionCallback fenceCompletionCallback) {
     AutoLock lock(mLock);
 
-    auto fence = std::make_unique<Fence>(fenceCompletionCallback);
+    auto fence = std::make_unique<Fence>(fenceId, fenceCompletionCallback);
     mTimelineQueues[ring].emplace_back(std::move(fence));
     if (mWithAsyncCallback) {
         poll_locked(ring);
