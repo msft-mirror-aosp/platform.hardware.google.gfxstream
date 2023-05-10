@@ -34,11 +34,13 @@ void BlobManager::addMapping(uint32_t ctxId, uint64_t blobId, void* addr, uint32
     };
 
     auto key = std::make_pair(ctxId, blobId);
+    std::lock_guard<std::mutex> lock(mLock);
     mHostMemInfos.insert(std::make_pair(key, info));
 }
 
 std::optional<HostMemInfo> BlobManager::removeMapping(uint32_t ctxId, uint64_t blobId) {
     auto key = std::make_pair(ctxId, blobId);
+    std::lock_guard<std::mutex> lock(mLock);
     auto found = mHostMemInfos.find(key);
     if (found != mHostMemInfos.end()) {
         std::optional<HostMemInfo> ret = found->second;
@@ -60,12 +62,14 @@ void BlobManager::addDescriptorInfo(uint32_t ctxId, uint64_t blobId, ManagedDesc
     };
 
     auto key = std::make_pair(ctxId, blobId);
+    std::lock_guard<std::mutex> lock(mLock);
     mDescriptorInfos.insert(std::make_pair(key, std::move(info)));
 }
 
 std::optional<ManagedDescriptorInfo> BlobManager::removeDescriptorInfo(uint32_t ctxId,
                                                                        uint64_t blobId) {
     auto key = std::make_pair(ctxId, blobId);
+    std::lock_guard<std::mutex> lock(mLock);
     auto found = mDescriptorInfos.find(key);
     if (found != mDescriptorInfos.end()) {
         std::optional<ManagedDescriptorInfo> ret = std::move(found->second);
