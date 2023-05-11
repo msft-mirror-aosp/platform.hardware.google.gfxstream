@@ -629,6 +629,7 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
                                 std::move(post.block->continueSignal));
             break;
         case PostCmd::Exit:
+            m_postWorker->exit();
             return WorkerProcessingResult::Stop;
         default:
             break;

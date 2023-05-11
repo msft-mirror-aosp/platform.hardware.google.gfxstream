@@ -81,6 +81,8 @@ class PostWorker {
     // until continueSignal is ready before completes.
     void block(std::promise<void> scheduledSignal, std::future<void> continueSignal);
 
+    // Exit post worker, unbind gl context if necessary.
+    void exit();
    private:
     // Impl versions of the above, so we can run it from separate threads
     std::shared_future<void> postImpl(ColorBuffer* cb);

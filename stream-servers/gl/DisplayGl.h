@@ -67,9 +67,12 @@ class DisplayGl : public gfxstream::Display {
 
     void clear();
 
+    void exit();
+
+    void setupContext();
   protected:
     void bindToSurfaceImpl(gfxstream::DisplaySurface* surface) override {}
-    void surfaceUpdated(gfxstream::DisplaySurface* surface) override{} ;
+    void surfaceUpdated(gfxstream::DisplaySurface* surface) override {}
     void unbindFromSurfaceImpl() override {}
 
   private:
@@ -78,6 +81,8 @@ class DisplayGl : public gfxstream::Display {
 
     std::atomic_bool mUseBoundSurfaceContext{true};
     TextureDraw* mTextureDraw = nullptr;
+    bool mContextBound = false;
+    EGLDisplay mDisplay = {};
 };
 
 }  // namespace gl

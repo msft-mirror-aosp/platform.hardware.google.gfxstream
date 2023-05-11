@@ -33,20 +33,33 @@ std::shared_future<void> getCompletedFuture() {
 
 }  // namespace
 
+void DisplayGl::setupContext() {
+    if (!mUseBoundSurfaceContext) {
+        return;
+    }
+    const auto* surface = getBoundSurface();
+    if (!surface) {
+        ERR("Surface not set in DisplayGl.");
+        return;
+    }
+    const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
+
+    // It will be no-op if it rebinds to the same context.
+    // We need to retry just in case the surface is reset.
+    if (!surfaceGl->getContextHelper()->setupContext()) {
+        ERR("Failed to bind to post worker context.");
+        return;
+    }
+    mDisplay = surfaceGl->mDisplay;
+    mContextBound = true;
+}
+
 std::shared_future<void> DisplayGl::post(const Post& post) {
     const auto* surface = getBoundSurface();
     if (!surface) {
         return getCompletedFuture();
     }
     const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
-
-    std::optional<RecursiveScopedContextBind> contextBind;
-    if (mUseBoundSurfaceContext) {
-        contextBind.emplace(surfaceGl->getContextHelper());
-        if (!contextBind->isOk()) {
-            return getCompletedFuture();
-        }
-    }
 
     bool hasDrawLayer = false;
     for (const PostLayer& layer : post.layers) {
@@ -74,24 +87,16 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
     return getCompletedFuture();
 }
 
+void DisplayGl::exit() {
+    if (mContextBound) {
+        s_egl.eglMakeCurrent(mDisplay, nullptr, nullptr, nullptr);
+        mContextBound = false;
+    }
+}
+
 void DisplayGl::viewport(int width, int height) {
     mViewportWidth = width;
     mViewportHeight = height;
-
-    const auto* surface = getBoundSurface();
-    if (!surface) {
-        return;
-    }
-
-    std::optional<RecursiveScopedContextBind> contextBind;
-    if (mUseBoundSurfaceContext) {
-        const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
-        contextBind.emplace(surfaceGl->getContextHelper());
-        if (!contextBind->isOk()) {
-            return;
-        }
-    }
-
     s_gles2.glViewport(0, 0, mViewportWidth, mViewportHeight);
 }
 
@@ -101,15 +106,6 @@ void DisplayGl::clear() {
         return;
     }
     const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
-
-    std::optional<RecursiveScopedContextBind> contextBind;
-    if (mUseBoundSurfaceContext) {
-        contextBind.emplace(surfaceGl->getContextHelper());
-        if (!contextBind->isOk()) {
-            return;
-        }
-    }
-
 #ifndef __linux__
     s_gles2.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     s_egl.eglSwapBuffers(surfaceGl->mDisplay, surfaceGl->mSurface);

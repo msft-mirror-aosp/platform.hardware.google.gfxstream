@@ -379,6 +379,12 @@ void PostWorker::post(ColorBuffer* cb, std::unique_ptr<Post::CompletionCallback>
         }));
 }
 
+void PostWorker::exit() {
+    if (m_displayGl) {
+        runTask(std::packaged_task<void()>([this] { m_displayGl->exit(); }));
+    }
+}
+
 void PostWorker::viewport(int width, int height) {
     runTask(std::packaged_task<void()>(
         [width, height, this] { viewportImpl(width, height); }));
@@ -405,17 +411,25 @@ void PostWorker::clear() {
 }
 
 void PostWorker::runTask(std::packaged_task<void()> task) {
-    using Task = std::packaged_task<void()>;
-    auto taskPtr = std::make_unique<Task>(std::move(task));
     if (m_mainThreadPostingOnly) {
+        auto displayGl = m_displayGl;
+        using Task = std::packaged_task<void()>;
+        using RunParameters = std::pair<PostWorker*, std::unique_ptr<Task>>;
+        auto parameters = new RunParameters(this,
+            std::make_unique<Task>(std::move(task)));
         m_runOnUiThread(
             [](void* data) {
-                std::unique_ptr<Task> taskPtr(reinterpret_cast<Task*>(data));
-                (*taskPtr)();
+                std::unique_ptr<RunParameters> package(
+                    reinterpret_cast<RunParameters*>(data));
+                package->first->m_displayGl->setupContext();
+                (*package->second.get())();
             },
-            taskPtr.release(), false);
+            parameters, false);
     } else {
-        (*taskPtr)();
+        // Binds to context once for the whole lifecycle of post thread.
+        // all setupContext after the first one are no-op.
+        m_displayGl->setupContext();
+        task();
     }
 }
 
