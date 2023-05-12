@@ -24,7 +24,7 @@ namespace magma {
 // Magma decoder for running on an Intel DRM backend.
 class IntelDrmDecoder : public Decoder {
   public:
-    static std::unique_ptr<IntelDrmDecoder> create();
+    static std::unique_ptr<IntelDrmDecoder> create(uint32_t context_id);
 
   private:
     IntelDrmDecoder();
@@ -47,6 +47,7 @@ class IntelDrmDecoder : public Decoder {
     magma_status_t magma_connection_map_buffer(magma_connection_t connection, uint64_t hw_va, magma_buffer_t buffer, uint64_t offset, uint64_t length, uint64_t map_flags) override;
     void magma_connection_unmap_buffer(magma_connection_t connection, uint64_t hw_va, magma_buffer_t buffer) override;
 
+    uint32_t mContextId;
     MonotonicMap<magma_device_t, DrmDevice> mDevices;
 };
 

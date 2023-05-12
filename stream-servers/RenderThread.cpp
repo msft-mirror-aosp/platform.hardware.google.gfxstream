@@ -298,7 +298,7 @@ intptr_t RenderThread::main() {
         tInfo.m_vkInfo.emplace();
     }
 
-    tInfo.m_magmaInfo.emplace();
+    tInfo.m_magmaInfo.emplace(mContextId);
 
     // This is the only place where we try loading from snapshot.
     // But the context bind / restoration will be delayed after receiving

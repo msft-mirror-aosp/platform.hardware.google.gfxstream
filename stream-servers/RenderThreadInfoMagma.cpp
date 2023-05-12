@@ -18,13 +18,13 @@
 
 static thread_local RenderThreadInfoMagma* tlThreadInfo = nullptr;
 
-RenderThreadInfoMagma::RenderThreadInfoMagma() {
+RenderThreadInfoMagma::RenderThreadInfoMagma(uint32_t context_id) {
     if (tlThreadInfo != nullptr) {
       GFXSTREAM_ABORT(emugl::FatalError(emugl::ABORT_REASON_OTHER))
         << "Attempted to set thread local Magma render thread info twice.";
     }
     tlThreadInfo = this;
-    mMagmaDec = gfxstream::magma::Decoder::create();
+    mMagmaDec = gfxstream::magma::Decoder::create(context_id);
 }
 
 RenderThreadInfoMagma::~RenderThreadInfoMagma() {

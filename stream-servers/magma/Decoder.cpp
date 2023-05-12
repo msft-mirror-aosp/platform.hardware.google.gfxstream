@@ -23,9 +23,9 @@
 namespace gfxstream {
 namespace magma {
 
-std::unique_ptr<Decoder> Decoder::create() {
+std::unique_ptr<Decoder> Decoder::create(uint32_t context_id) {
 #if GFXSTREAM_MAGMA_USE_INTEL_DRM
-    return IntelDrmDecoder::create();
+    return IntelDrmDecoder::create(context_id);
 #endif
     return nullptr;
 }
