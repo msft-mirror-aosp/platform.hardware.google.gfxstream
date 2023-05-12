@@ -865,7 +865,7 @@ class PipeVirglRenderer {
         if (!callback) {
             return -EINVAL;
         }
-        mVirtioGpuTimelines->enqueueFence(ring, fence_id, callback);
+        mVirtioGpuTimelines->enqueueFence(ring, fence_id, std::move(callback));
 
         return 0;
     }

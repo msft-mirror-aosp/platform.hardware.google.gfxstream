@@ -88,10 +88,9 @@ class VirtioGpuTimelines {
     VirtioGpuTimelines(bool withAsyncCallback);
     struct Fence {
         FenceId mId;
-        std::unique_ptr<FenceCompletionCallback> mCompletionCallback;
+        FenceCompletionCallback mCompletionCallback;
         Fence(FenceId id, FenceCompletionCallback completionCallback)
-            : mId(id),
-              mCompletionCallback(std::make_unique<FenceCompletionCallback>(completionCallback)) {}
+            : mId(id), mCompletionCallback(std::move(completionCallback)) {}
     };
     struct Task {
         TaskId mId;

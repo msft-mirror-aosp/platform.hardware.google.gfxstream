@@ -49,7 +49,7 @@ void VirtioGpuTimelines::enqueueFence(const Ring& ring, FenceId fenceId,
                                       FenceCompletionCallback fenceCompletionCallback) {
     AutoLock lock(mLock);
 
-    auto fence = std::make_unique<Fence>(fenceId, fenceCompletionCallback);
+    auto fence = std::make_unique<Fence>(fenceId, std::move(fenceCompletionCallback));
     mTimelineQueues[ring].emplace_back(std::move(fence));
     if (mWithAsyncCallback) {
         poll_locked(ring);
@@ -106,7 +106,7 @@ void VirtioGpuTimelines::poll_locked(const Ring& ring) {
         // item is an incompleted task.
         struct {
             bool operator()(std::unique_ptr<Fence> &fence) {
-                (*fence->mCompletionCallback)();
+                fence->mCompletionCallback();
                 return false;
             }
             bool operator()(std::shared_ptr<Task> &task) {
