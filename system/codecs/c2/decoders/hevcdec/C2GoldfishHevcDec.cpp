@@ -563,6 +563,9 @@ void C2GoldfishHevcDec::resetPlugin() {
     mSignalledOutputEos = false;
     gettimeofday(&mTimeStart, nullptr);
     gettimeofday(&mTimeEnd, nullptr);
+    if (mOutBlock) {
+        mOutBlock.reset();
+    }
 }
 
 void C2GoldfishHevcDec::deleteContext() {
@@ -693,8 +696,8 @@ C2GoldfishHevcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) 
 void C2GoldfishHevcDec::checkMode(const std::shared_ptr<C2BlockPool> &pool) {
     mWidth = mIntf->width();
     mHeight = mIntf->height();
-    const bool isGraphic = (pool->getAllocatorId() & C2Allocator::GRAPHIC);
-    DDD("buffer id %d", (int)(pool->getAllocatorId()));
+    const bool isGraphic = (pool->getLocalId() == C2PlatformAllocatorStore::GRALLOC);
+    DDD("buffer pool id %x",  (int)(pool->getLocalId()));
     if (isGraphic) {
         DDD("decoding to host color buffer");
         mEnableAndroidNativeBuffers = true;
