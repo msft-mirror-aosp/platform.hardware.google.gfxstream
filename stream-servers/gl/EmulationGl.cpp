@@ -225,6 +225,9 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
 
     std::unique_ptr<EmulationGl> emulationGl(new EmulationGl());
 
+    emulationGl->mWidth = width;
+    emulationGl->mHeight = height;
+
     emulationGl->mEglDisplay = s_egl.eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (emulationGl->mEglDisplay == EGL_NO_DISPLAY) {
         ERR("Failed to get EGL display.");
@@ -350,6 +353,8 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
         /*height=*/1,
         std::move(pbufferSurfaceGl));
 
+    // b/283491732: we could skip the creation of subwindow if we know we will create a real
+    // window.
     auto fakeWindowSurfaceGl = DisplaySurfaceGl::createPbufferSurface(emulationGl->mEglDisplay,
                                                                       emulationGl->mEglConfig,
                                                                       emulationGl->mEglContext,
@@ -465,10 +470,8 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     }
 
     emulationGl->mCompositorGl = std::make_unique<CompositorGl>(emulationGl->mTextureDraw.get());
-    emulationGl->mCompositorGl->bindToSurface(emulationGl->mFakeWindowSurface.get());
 
     emulationGl->mDisplayGl = std::make_unique<DisplayGl>(emulationGl->mTextureDraw.get());
-    emulationGl->mDisplayGl->bindToSurface(emulationGl->mFakeWindowSurface.get());
 
     {
         auto surface1 = DisplaySurfaceGl::createPbufferSurface(emulationGl->mEglDisplay,
@@ -501,13 +504,6 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
 }
 
 EmulationGl::~EmulationGl() {
-    if (mCompositorGl) {
-        mCompositorGl->unbindFromSurface();
-    }
-    if (mDisplayGl) {
-        mDisplayGl->unbindFromSurface();
-    }
-
     if (mPbufferSurface) {
         // TODO(b/267349580): remove after Mac issue fixed.
         mTextureDraw.release();
@@ -530,6 +526,8 @@ EmulationGl::~EmulationGl() {
         mEglDisplay = EGL_NO_DISPLAY;
     }
 }
+
+gfxstream::DisplaySurface* EmulationGl::getFakeWindowSurface() { return mFakeWindowSurface.get(); }
 
 /*static*/ const GLint* EmulationGl::getGlesMaxContextAttribs() {
     int glesMaj, glesMin;
@@ -613,15 +611,6 @@ std::unique_ptr<DisplaySurface> EmulationGl::createWindowSurface(
     return std::make_unique<DisplaySurface>(width,
                                             height,
                                             std::move(surfaceGl));
-}
-
-void EmulationGl::setUseBoundSurfaceContextForDisplay(bool use) {
-    if (mDisplayGl) {
-        mDisplayGl->setUseBoundSurfaceContext(use);
-    }
-    if (mCompositorGl) {
-        mCompositorGl->setUseBoundSurfaceContext(use);
-    }
 }
 
 ContextHelper* EmulationGl::getColorBufferContextHelper() {

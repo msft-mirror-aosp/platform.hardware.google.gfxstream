@@ -16,6 +16,8 @@
 
 #include <stdint.h>
 
+#include "aemu/base/synchronization/Lock.h"
+
 namespace gfxstream {
 
 class DisplaySurface;
@@ -39,7 +41,10 @@ class DisplaySurfaceUser {
 
     const DisplaySurface* getBoundSurface() const { return mBoundSurface; }
 
-  private:
+   protected:
+    android::base::Lock mMutex;
+
+   private:
     friend class DisplaySurface;
     DisplaySurface* mBoundSurface = nullptr;
 };

@@ -40,6 +40,7 @@ cc_library_static {
         "DebugUtilsHelper.cpp",
         "DisplayVk.cpp",
         "DisplaySurfaceVk.cpp",
+        "PostWorkerVk.cpp",
         "SwapChainStateVk.cpp",
         "VkAndroidNativeBuffer.cpp",
         "VkCommonOperations.cpp",

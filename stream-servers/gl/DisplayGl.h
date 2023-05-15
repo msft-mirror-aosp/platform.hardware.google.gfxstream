@@ -34,10 +34,6 @@ class DisplayGl : public gfxstream::Display {
     DisplayGl(TextureDraw* textureDraw): mTextureDraw(textureDraw) {}
     ~DisplayGl() {}
 
-    // If false, this display will use the existing bound context when
-    // performing display ops.
-    void setUseBoundSurfaceContext(bool use) { mUseBoundSurfaceContext = use; }
-
     struct PostLayer {
       ColorBuffer* colorBuffer = nullptr;
 
@@ -79,10 +75,7 @@ class DisplayGl : public gfxstream::Display {
     int mViewportWidth = 0;
     int mViewportHeight = 0;
 
-    std::atomic_bool mUseBoundSurfaceContext{true};
     TextureDraw* mTextureDraw = nullptr;
-    bool mContextBound = false;
-    EGLDisplay mDisplay = {};
 };
 
 }  // namespace gl

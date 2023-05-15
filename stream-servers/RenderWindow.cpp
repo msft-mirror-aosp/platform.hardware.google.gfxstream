@@ -446,7 +446,6 @@ RenderWindow::RenderWindow(int width,
     } else {
         mRepostThread.start();
     }
-
     RenderWindowMessage msg = {};
     msg.cmd = CMD_INITIALIZE;
     msg.init.width = width;

@@ -49,12 +49,6 @@ CompositorGl::CompositorGl(TextureDraw* textureDraw) : m_textureDraw(textureDraw
 
 CompositorGl::~CompositorGl() {}
 
-void CompositorGl::bindToSurfaceImpl(gfxstream::DisplaySurface* surface) {
-}
-
-void CompositorGl::unbindFromSurfaceImpl() {
-}
-
 Compositor::CompositionFinishedWaitable CompositorGl::compose(
         const CompositionRequest& composeRequest) {
     const auto* targetImage = getInfoOrAbort(composeRequest.target);

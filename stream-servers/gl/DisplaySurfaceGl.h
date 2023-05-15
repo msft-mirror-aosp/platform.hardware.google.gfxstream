@@ -52,7 +52,9 @@ class DisplaySurfaceGl : public gfxstream::DisplaySurfaceImpl {
 
     EGLSurface getSurface() const { return mSurface; }
 
-  private:
+    bool bindContext() const;
+
+   private:
     friend class DisplayGl;
 
     DisplaySurfaceGl(EGLDisplay display,

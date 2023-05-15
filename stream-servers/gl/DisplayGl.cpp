@@ -33,27 +33,6 @@ std::shared_future<void> getCompletedFuture() {
 
 }  // namespace
 
-void DisplayGl::setupContext() {
-    if (!mUseBoundSurfaceContext) {
-        return;
-    }
-    const auto* surface = getBoundSurface();
-    if (!surface) {
-        ERR("Surface not set in DisplayGl.");
-        return;
-    }
-    const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
-
-    // It will be no-op if it rebinds to the same context.
-    // We need to retry just in case the surface is reset.
-    if (!surfaceGl->getContextHelper()->setupContext()) {
-        ERR("Failed to bind to post worker context.");
-        return;
-    }
-    mDisplay = surfaceGl->mDisplay;
-    mContextBound = true;
-}
-
 std::shared_future<void> DisplayGl::post(const Post& post) {
     const auto* surface = getBoundSurface();
     if (!surface) {
@@ -85,13 +64,6 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
     s_egl.eglSwapBuffers(surfaceGl->mDisplay, surfaceGl->mSurface);
 
     return getCompletedFuture();
-}
-
-void DisplayGl::exit() {
-    if (mContextBound) {
-        s_egl.eglMakeCurrent(mDisplay, nullptr, nullptr, nullptr);
-        mContextBound = false;
-    }
 }
 
 void DisplayGl::viewport(int width, int height) {
