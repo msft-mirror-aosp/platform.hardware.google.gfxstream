@@ -88,6 +88,10 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
         ALOGE("DRM_IOCTL_VIRTGPU_GET_CAPS failed with %s", strerror(errno));
     }
 
+    // We always need an ASG blob in some cases, so always define blobAlignment
+    if (!mCaps.gfxstreamCapset.blobAlignment) {
+        mCaps.gfxstreamCapset.blobAlignment = 4096;
+    }
 
     ctx_set_params[0].param = VIRTGPU_CONTEXT_PARAM_NUM_RINGS;
     ctx_set_params[0].value = 2;
