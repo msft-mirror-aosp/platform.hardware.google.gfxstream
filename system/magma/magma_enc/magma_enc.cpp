@@ -18,6 +18,8 @@
 
 #include "EncoderDebug.h"
 
+using gfxstream::IOStream;
+
 namespace {
 
 void enc_unsupported()
