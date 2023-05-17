@@ -20,7 +20,7 @@ struct RenderThreadInfoMagma {
     // Create new instance. Only call this once per thread.
     // Future calls to get() will return this instance until
     // it is destroyed.
-    RenderThreadInfoMagma();
+    RenderThreadInfoMagma(uint32_t context_id);
 
     // Destructor.
     ~RenderThreadInfoMagma();

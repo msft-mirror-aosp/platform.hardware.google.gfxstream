@@ -28,8 +28,10 @@
 namespace gfxstream {
 namespace magma {
 
-std::unique_ptr<IntelDrmDecoder> IntelDrmDecoder::create() {
+std::unique_ptr<IntelDrmDecoder> IntelDrmDecoder::create(uint32_t context_id) {
     std::unique_ptr<IntelDrmDecoder> decoder(new IntelDrmDecoder());
+    decoder->mContextId = context_id;
+    INFO("IntelDrmDecoder created for context %" PRIu32, context_id);
     return decoder;
 }
 
