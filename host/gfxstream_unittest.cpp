@@ -132,8 +132,7 @@ TEST_F(GfxStreamBackendTest, SimpleFlush) {
     // R8G8B8A8 is used, so 4 bytes per pixel
     auto fb = std::make_unique<uint32_t[]>(width * height);
     EXPECT_NE(fb, nullptr);
-    stream_renderer_flush_resource_and_readback(res_id, 0, 0, width, height,
-                                                fb.get(), width * height);
+    stream_renderer_flush(res_id);
 }
 
 // Tests compile and link only.
@@ -158,8 +157,7 @@ TEST_F(GfxStreamBackendTest, DISABLED_ApiCallLinkTest) {
     // R8G8B8A8 is used, so 4 bytes per pixel
     auto fb = std::make_unique<uint32_t[]>(width * height);
     EXPECT_NE(fb, nullptr);
-    stream_renderer_flush_resource_and_readback(res_id, 0, 0, width, height,
-            fb.get(), width * height);
+    stream_renderer_flush(res_id);
     stream_renderer_resource_unref(0);
     stream_renderer_context_create(0, 0, NULL, 0);
     stream_renderer_context_destroy(0);

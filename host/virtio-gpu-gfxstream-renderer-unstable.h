@@ -60,6 +60,8 @@ VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_
                                               int32_t window_height, int32_t fb_width,
                                               int32_t fb_height);
 
+VG_EXPORT void stream_renderer_flush(uint32_t res_handle);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
