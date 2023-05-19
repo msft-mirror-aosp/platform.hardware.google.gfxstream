@@ -15,13 +15,3 @@ license {
         "LICENSE",
     ],
 }
-
-cc_library_headers {
-    name: "gfxstream_vulkan_headers",
-    export_include_dirs: ["include/vulkan/include"],
-    host_supported: true,
-    apex_available: [
-        "//apex_available:platform",
-        "com.android.virt",
-    ],
-}
