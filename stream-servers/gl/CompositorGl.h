@@ -28,28 +28,18 @@
 namespace gfxstream {
 namespace gl {
 
-class CompositorGl : public Compositor, public gfxstream::DisplaySurfaceUser {
-  public:
+class CompositorGl : public Compositor {
+   public:
     CompositorGl(TextureDraw* textureDraw);
     virtual ~CompositorGl();
 
-    // If false, this display will use the existing bound context when performing compositions.
-    void setUseBoundSurfaceContext(bool use) { mUseBoundSurfaceContext = use; }
-
     CompositionFinishedWaitable compose(const CompositionRequest& compositionRequest) override;
-
-  protected:
-    void bindToSurfaceImpl(gfxstream::DisplaySurface* surface) override;
-    void surfaceUpdated(gfxstream::DisplaySurface* surface) override {};
-    void unbindFromSurfaceImpl() override;
 
   private:
     GLuint m_composeFbo = 0;
 
     // Owned by FrameBuffer.
     TextureDraw* m_textureDraw = nullptr;
-
-    std::atomic_bool mUseBoundSurfaceContext{true};
 };
 
 }  // namespace gl

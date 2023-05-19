@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Display.h"
+#include <memory>
 
+#include "Display.h"
 #include "DisplaySurface.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
 
 namespace gfxstream {
 
+using android::base::AutoLock;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -31,6 +33,7 @@ DisplaySurfaceUser::~DisplaySurfaceUser() {
 }
 
 void DisplaySurfaceUser::bindToSurface(DisplaySurface* surface) {
+    AutoLock lock(mMutex);
     if (mBoundSurface != nullptr) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Attempting to bind a DisplaySurface while another is already bound.";
@@ -42,6 +45,7 @@ void DisplaySurfaceUser::bindToSurface(DisplaySurface* surface) {
 }
 
 void DisplaySurfaceUser::unbindFromSurface() {
+    AutoLock lock(mMutex);
     this->unbindFromSurfaceImpl();
     if (mBoundSurface != nullptr) {
         mBoundSurface->unregisterUser(this);

@@ -28,22 +28,23 @@
 #include "NativeSubWindow.h"
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
+#include "PostWorkerGl.h"
 #include "RenderControl.h"
 #include "RenderThreadInfo.h"
 #include "RenderThreadInfoGl.h"
 #include "SyncThread.h"
 #include "aemu/base/LayoutResolver.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/containers/Lookup.h"
-#include "aemu/base/memory/MemoryTracker.h"
 #include "aemu/base/Metrics.h"
 #include "aemu/base/SharedLibrary.h"
-#include "aemu/base/files/StreamSerializing.h"
-#include "aemu/base/system/System.h"
 #include "aemu/base/Tracing.h"
+#include "aemu/base/containers/Lookup.h"
+#include "aemu/base/files/StreamSerializing.h"
+#include "aemu/base/memory/MemoryTracker.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "aemu/base/system/System.h"
 #include "gl/YUVConverter.h"
-#include "gl/glestranslator/EGL/EglGlobalInfo.h"
 #include "gl/gles2_dec/gles2_dec.h"
+#include "gl/glestranslator/EGL/EglGlobalInfo.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
 #include "host-common/feature_control.h"
@@ -53,6 +54,7 @@
 #include "host-common/vm_operations.h"
 #include "render-utils/MediaNative.h"
 #include "vulkan/DisplayVk.h"
+#include "vulkan/PostWorkerVk.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderGlobalState.h"
 
@@ -411,7 +413,6 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
         GL_LOG("Performing composition using CompositorGl.");
         auto compositorGl = fb->m_emulationGl->getCompositor();
         fb->m_compositor = compositorGl;
-        fb->m_displaySurfaceUsers.push_back(compositorGl);
     }
 
     if (fb->m_emulationGl) {
@@ -425,6 +426,17 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     INFO("Graphics API Version %s", fb->m_graphicsApiVersion.c_str());
     INFO("Graphics API Extensions %s", fb->m_graphicsApiExtensions.c_str());
     INFO("Graphics Device Extensions %s", fb->m_graphicsDeviceExtensions.c_str());
+
+    bool shouldPostOnlyOnMainThread = postOnlyOnMainThread();
+    if (fb->m_displayVk) {
+        fb->m_postWorker.reset(new PostWorkerVk(fb.get(), fb->m_compositor, fb->m_displayVk));
+    } else {
+        PostWorkerGl* postWorkerGl =
+            new PostWorkerGl(shouldPostOnlyOnMainThread, fb.get(), fb->m_compositor,
+                             fb->m_emulationGl->getFakeWindowSurface(), fb->m_displayGl);
+        fb->m_postWorker.reset(postWorkerGl);
+        fb->m_displaySurfaceUsers.push_back(postWorkerGl);
+    }
 
     // Start up the single sync thread. If we are using Vulkan native
     // swapchain, then don't initialize SyncThread worker threads with EGL
@@ -629,6 +641,7 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
                                 std::move(post.block->continueSignal));
             break;
         case PostCmd::Exit:
+            m_postWorker->exit();
             return WorkerProcessingResult::Stop;
         default:
             break;
@@ -637,18 +650,12 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
 }
 
 std::future<void> FrameBuffer::sendPostWorkerCmd(Post post) {
-    bool shouldPostOnlyOnMainThread = postOnlyOnMainThread();
     bool expectedPostThreadStarted = false;
     if (m_postThreadStarted.compare_exchange_strong(expectedPostThreadStarted, true)) {
-        if (m_emulationGl) {
-            m_emulationGl->setUseBoundSurfaceContextForDisplay(true);
-        }
-
-        m_postWorker.reset(
-            new PostWorker(shouldPostOnlyOnMainThread, m_compositor, m_displayGl, m_displayVk));
         m_postThread.start();
     }
 
+    bool shouldPostOnlyOnMainThread = postOnlyOnMainThread();
     // If we want to run only in the main thread and we are actually running
     // in the main thread already, don't use the PostWorker thread. Ideally,
     // PostWorker should handle this and dispatch directly, but we'll need to

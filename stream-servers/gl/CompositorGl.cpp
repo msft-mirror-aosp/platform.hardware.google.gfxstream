@@ -49,57 +49,8 @@ CompositorGl::CompositorGl(TextureDraw* textureDraw) : m_textureDraw(textureDraw
 
 CompositorGl::~CompositorGl() {}
 
-void CompositorGl::bindToSurfaceImpl(gfxstream::DisplaySurface* surface) {
-    const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
-
-    std::optional<RecursiveScopedContextBind> contextBind;
-    if (mUseBoundSurfaceContext) {
-        contextBind.emplace(surfaceGl->getContextHelper());
-        if (!contextBind->isOk()) {
-            return;
-        }
-    }
-
-    s_gles2.glGenFramebuffers(1, &m_composeFbo);
-}
-
-void CompositorGl::unbindFromSurfaceImpl() {
-    const auto* surface = getBoundSurface();
-    if (!surface) {
-        return;
-    }
-    const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
-
-    std::optional<RecursiveScopedContextBind> contextBind;
-    if (mUseBoundSurfaceContext) {
-        contextBind.emplace(surfaceGl->getContextHelper());
-        if (!contextBind->isOk()) {
-            return;
-        }
-    }
-
-    if (m_composeFbo) {
-        s_gles2.glDeleteFramebuffers(1, &m_composeFbo);
-        m_composeFbo = 0;
-    }
-}
-
 Compositor::CompositionFinishedWaitable CompositorGl::compose(
         const CompositionRequest& composeRequest) {
-    const auto* surface = getBoundSurface();
-    if (!surface) {
-        return getCompletedFuture();
-    }
-    const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
-
-    std::optional<RecursiveScopedContextBind> contextBind;
-    if (mUseBoundSurfaceContext) {
-        contextBind.emplace(surfaceGl->getContextHelper());
-        if (!contextBind->isOk()) {
-            return getCompletedFuture();
-        }
-    }
-
     const auto* targetImage = getInfoOrAbort(composeRequest.target);
     const uint32_t targetWidth = targetImage->width;
     const uint32_t targetHeight = targetImage->height;
@@ -110,6 +61,9 @@ Compositor::CompositionFinishedWaitable CompositorGl::compose(
     s_gles2.glGetIntegerv(GL_VIEWPORT, restoredViewport);
 
     s_gles2.glViewport(0, 0, targetWidth, targetHeight);
+    if (!m_composeFbo) {
+        s_gles2.glGenFramebuffers(1, &m_composeFbo);
+    }
     s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, m_composeFbo);
     s_gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0_OES, GL_TEXTURE_2D,
                                    targetTexture,

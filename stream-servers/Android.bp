@@ -67,6 +67,7 @@ cc_library_shared {
         "DisplaySurfaceUser.cpp",
         "Hwc2.cpp",
         "PostWorker.cpp",
+        "PostWorkerGl.cpp",
         "ReadBuffer.cpp",
         "render_api.cpp",
         "RenderChannelImpl.cpp",

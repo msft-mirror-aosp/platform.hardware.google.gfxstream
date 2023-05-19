@@ -28,20 +28,7 @@
 #include "aemu/base/Compiler.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/synchronization/MessageChannel.h"
-#include "gl/DisplayGl.h"
 #include "host-common/window_agent.h"
-
-namespace gfxstream {
-namespace gl {
-class DisplayGl;
-}  // namespace gl
-}  // namespace gfxstream
-
-namespace gfxstream {
-namespace vk {
-class DisplayVk;
-}  // namespace vk
-}  // namespace gfxstream
 
 namespace gfxstream {
 class ColorBuffer;
@@ -50,9 +37,8 @@ struct RenderThreadInfo;
 
 class PostWorker {
    public:
-    PostWorker(bool mainThreadPostingOnly, Compositor* compositor, gl::DisplayGl* displayGl,
-               vk::DisplayVk* displayVk);
-    ~PostWorker();
+    PostWorker(bool mainThreadPostingOnly, FrameBuffer* fb, Compositor* compositor);
+    virtual ~PostWorker();
 
     // post: posts the next color buffer.
     // Assumes framebuffer lock is held.
@@ -74,45 +60,39 @@ class PostWorker {
     // if there is no last posted color buffer to show yet.
     void clear();
 
-    void screenshot(ColorBuffer* cb, int screenwidth, int screenheight, GLenum format, GLenum type,
-                    int skinRotation, void* pixels, Rect rect);
+    virtual void screenshot(ColorBuffer* cb, int screenwidth, int screenheight, GLenum format,
+                            GLenum type, int skinRotation, void* pixels, Rect rect) = 0;
 
     // The block task will set the scheduledSignal promise when the task is scheduled, and wait
     // until continueSignal is ready before completes.
     void block(std::promise<void> scheduledSignal, std::future<void> continueSignal);
 
-   private:
-    // Impl versions of the above, so we can run it from separate threads
-    std::shared_future<void> postImpl(ColorBuffer* cb);
-    gl::DisplayGl::PostLayer postWithOverlay(ColorBuffer* cb);
-    void viewportImpl(int width, int height);
-    std::shared_future<void> composeImpl(const FlatComposeRequest& composeRequest);
-    void clearImpl();
+    // Exit post worker, unbind gl context if necessary.
+    void exit();
 
+   protected:
+    void runTask(std::packaged_task<void()>);
+    // Impl versions of the above, so we can run it from separate threads
+    virtual std::shared_future<void> postImpl(ColorBuffer* cb) = 0;
+    virtual void viewportImpl(int width, int height) = 0;
+    virtual void clearImpl() = 0;
+    virtual void exitImpl() = 0;
+    virtual std::shared_future<void> composeImpl(const FlatComposeRequest& composeRequest);
+
+   protected:
+    FrameBuffer* mFb;
+    Compositor* m_compositor = nullptr;
+
+   private:
     // If m_mainThreadPostingOnly is true, schedule the task to UI thread by
     // using m_runOnUiThread. Otherwise, execute the task on the current thread.
-    void runTask(std::packaged_task<void()>);
 
    private:
     using UiThreadRunner = std::function<void(UiUpdateFunc, void*, bool)>;
 
-    FrameBuffer* mFb;
-
-    Compositor* m_compositor = nullptr;
-
-    int m_viewportWidth = 0;
-    int m_viewportHeight = 0;
-
     bool m_mainThreadPostingOnly = false;
     UiThreadRunner m_runOnUiThread = 0;
 
-    // TODO(b/233939967): conslidate DisplayGl and DisplayVk into
-    // `Display* const m_display`.
-    gl::DisplayGl* const m_displayGl;
-    // The implementation for Vulkan native swapchain. Only initialized when
-    // useVulkan is set when calling FrameBuffer::initialize(). PostWorker
-    // doesn't take the ownership of this DisplayVk object.
-    vk::DisplayVk* const m_displayVk;
     std::unordered_map<uint32_t, std::shared_future<void>> m_composeTargetToComposeFuture;
 
     bool isComposeTargetReady(uint32_t targetHandle);

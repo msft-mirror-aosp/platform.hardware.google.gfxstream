@@ -40,14 +40,6 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
     }
     const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
 
-    std::optional<RecursiveScopedContextBind> contextBind;
-    if (mUseBoundSurfaceContext) {
-        contextBind.emplace(surfaceGl->getContextHelper());
-        if (!contextBind->isOk()) {
-            return getCompletedFuture();
-        }
-    }
-
     bool hasDrawLayer = false;
     for (const PostLayer& layer : post.layers) {
         if (layer.layerOptions) {
@@ -77,21 +69,6 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
 void DisplayGl::viewport(int width, int height) {
     mViewportWidth = width;
     mViewportHeight = height;
-
-    const auto* surface = getBoundSurface();
-    if (!surface) {
-        return;
-    }
-
-    std::optional<RecursiveScopedContextBind> contextBind;
-    if (mUseBoundSurfaceContext) {
-        const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
-        contextBind.emplace(surfaceGl->getContextHelper());
-        if (!contextBind->isOk()) {
-            return;
-        }
-    }
-
     s_gles2.glViewport(0, 0, mViewportWidth, mViewportHeight);
 }
 
@@ -101,15 +78,6 @@ void DisplayGl::clear() {
         return;
     }
     const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
-
-    std::optional<RecursiveScopedContextBind> contextBind;
-    if (mUseBoundSurfaceContext) {
-        contextBind.emplace(surfaceGl->getContextHelper());
-        if (!contextBind->isOk()) {
-            return;
-        }
-    }
-
 #ifndef __linux__
     s_gles2.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     s_egl.eglSwapBuffers(surfaceGl->mDisplay, surfaceGl->mSurface);

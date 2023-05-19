@@ -160,6 +160,14 @@ std::unique_ptr<DisplaySurfaceGl> DisplaySurfaceGl::createWindowSurface(
     return std::unique_ptr<DisplaySurfaceGl>(new DisplaySurfaceGl(display, surface, context));
 }
 
+bool DisplaySurfaceGl::bindContext() const {
+    if (!s_egl.eglMakeCurrent(mDisplay, mSurface, mSurface, mContext)) {
+        ERR("Failed to make display surface context current: %d", s_egl.eglGetError());
+        return false;
+    }
+    return true;
+}
+
 DisplaySurfaceGl::DisplaySurfaceGl(EGLDisplay display,
                                    EGLSurface surface,
                                    EGLContext context)

@@ -99,8 +99,6 @@ class EmulationGl {
     using GlesUuid = std::array<uint8_t, GL_UUID_SIZE_EXT>;
     const std::optional<GlesUuid> getGlesDeviceUuid() const { return mGlesDeviceUuid; }
 
-    void setUseBoundSurfaceContextForDisplay(bool use);
-
     std::unique_ptr<BufferGl> createBuffer(uint64_t size, HandleType handle);
 
     std::unique_ptr<BufferGl> loadBuffer(android::base::Stream* stream);
@@ -141,7 +139,9 @@ class EmulationGl {
         const ColorBufferMap& colorBuffers,
         const EmulatedEglContextMap& contexts);
 
-  private:
+    gfxstream::DisplaySurface* getFakeWindowSurface();
+
+   private:
     // TODO(b/233939967): Remove this after fully transitioning to EmulationGl.
    friend class gfxstream::FrameBuffer;
 
@@ -185,6 +185,9 @@ class EmulationGl {
    std::unique_ptr<ReadbackWorkerGl> mReadbackWorkerGl;
 
    std::unique_ptr<TextureDraw> mTextureDraw;
+
+   uint32_t mWidth = 0;
+   uint32_t mHeight = 0;
 };
 
 }  // namespace gl
