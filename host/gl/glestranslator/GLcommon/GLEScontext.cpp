@@ -2274,10 +2274,11 @@ void GLEScontext::initDefaultFBO(
         GLuint* eglSurfaceRBColorId, GLuint* eglSurfaceRBDepthId,
         GLuint readWidth, GLint readHeight, GLint readColorFormat, GLint readDepthStencilFormat, GLint readMultisamples,
         GLuint* eglReadSurfaceRBColorId, GLuint* eglReadSurfaceRBDepthId) {
-
+    bool needUpdateDefaultFbo = false;
     if (!m_defaultFBO) {
         dispatcher().glGenFramebuffers(1, &m_defaultFBO);
         m_defaultReadFBO = m_defaultFBO;
+        needUpdateDefaultFbo = true;
     }
 
     bool needReallocateRbo = false;
@@ -2325,18 +2326,32 @@ void GLEScontext::initDefaultFBO(
     if (needReallocateRbo) {
         initEmulatedEGLSurface(width, height, colorFormat, depthstencilFormat, multisamples,
                                 *eglSurfaceRBColorId, *eglSurfaceRBDepthId);
+        needUpdateDefaultFbo = true;
     }
 
     if (needReallocateReadRbo) {
         initEmulatedEGLSurface(readWidth, readHeight, readColorFormat, readDepthStencilFormat, readMultisamples,
                                 *eglReadSurfaceRBColorId, *eglReadSurfaceRBDepthId);
+        needUpdateDefaultFbo = true;
     }
 
+    needUpdateDefaultFbo |=
+        m_defaultFboRBColor != *eglSurfaceRBColorId || m_defaultFboRBDepth != *eglSurfaceRBDepthId;
+    needUpdateDefaultFbo |=
+        separateReadRbo && (m_defaultReadFboRBColor != *eglReadSurfaceRBColorId ||
+                            m_defaultReadFboRBDepth != *eglReadSurfaceRBDepthId);
+
+    if (!needUpdateDefaultFbo) {
+        return;
+    }
     dispatcher().glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFBO);
 
     dispatcher().glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *eglSurfaceRBColorId);
     dispatcher().glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, *eglSurfaceRBDepthId);
     dispatcher().glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, *eglSurfaceRBDepthId);
+
+    m_defaultFboRBColor = *eglSurfaceRBColorId;
+    m_defaultFboRBDepth = *eglSurfaceRBDepthId;
 
     if (m_defaultFBODrawBuffer != GL_COLOR_ATTACHMENT0) {
         dispatcher().glDrawBuffers(1, &m_defaultFBODrawBuffer);
@@ -2350,6 +2365,8 @@ void GLEScontext::initDefaultFBO(
         dispatcher().glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *eglReadSurfaceRBColorId);
         dispatcher().glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, *eglReadSurfaceRBDepthId);
         dispatcher().glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, *eglReadSurfaceRBDepthId);
+        m_defaultReadFboRBColor = *eglReadSurfaceRBColorId;
+        m_defaultReadFboRBDepth = *eglReadSurfaceRBDepthId;
     }
 
     dispatcher().glBindRenderbuffer(GL_RENDERBUFFER, prevRbo);
