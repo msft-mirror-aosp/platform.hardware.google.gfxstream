@@ -142,7 +142,7 @@ add_subdirectory(third-party)
 
 add_subdirectory(utils)
 add_subdirectory(gl-host-common)
-add_subdirectory(stream-servers)
+add_subdirectory(host)
 
 # Protocols and associated code generators######################################
 

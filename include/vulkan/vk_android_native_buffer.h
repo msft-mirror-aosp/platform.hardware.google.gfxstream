@@ -22,7 +22,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "stream-servers/vulkan/vk_android_native_buffer.h"
+#include "host/vulkan/vk_android_native_buffer.h"
 
 #ifdef __cplusplus
 extern "C" {

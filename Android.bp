@@ -41,10 +41,10 @@ cc_library_headers {
         ".",
         "include",
         "gl-host-common/include",
-        "stream-servers",
-        "stream-servers/gl",
-        "stream-servers/gl/glestranslator/include",
-        "stream-servers/vulkan",
+        "host",
+        "host/gl",
+        "host/gl/glestranslator/include",
+        "host/vulkan",
         "utils/include",
     ],
     header_libs: [
@@ -67,7 +67,7 @@ cc_library_headers {
     name: "gfxstream_x11_headers",
     host_supported: true,
     export_include_dirs: [
-        "stream-servers/apigen-codec-common",
+        "host/apigen-codec-common",
     ],
     apex_available: [
         "//apex_available:platform",
