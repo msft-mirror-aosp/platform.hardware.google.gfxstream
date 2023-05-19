@@ -417,7 +417,7 @@ class BumpPool;
 #include "{self.baseLibDirPrefix}/Tracing.h"
 #include "{self.baseLibDirPrefix}/Metrics.h"
 #include "render-utils/IOStream.h"
-#include "stream-servers/FrameBuffer.h"
+#include "host/FrameBuffer.h"
 #include "host-common/feature_control.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
