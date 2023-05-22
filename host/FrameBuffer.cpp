@@ -427,10 +427,11 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     INFO("Graphics API Extensions %s", fb->m_graphicsApiExtensions.c_str());
     INFO("Graphics Device Extensions %s", fb->m_graphicsDeviceExtensions.c_str());
 
-    bool shouldPostOnlyOnMainThread = postOnlyOnMainThread();
-    if (fb->m_displayVk) {
+    if (fb->m_useVulkanComposition) {
         fb->m_postWorker.reset(new PostWorkerVk(fb.get(), fb->m_compositor, fb->m_displayVk));
     } else {
+        const bool shouldPostOnlyOnMainThread = postOnlyOnMainThread();
+
         PostWorkerGl* postWorkerGl =
             new PostWorkerGl(shouldPostOnlyOnMainThread, fb.get(), fb->m_compositor,
                              fb->m_emulationGl->getFakeWindowSurface(), fb->m_displayGl);
