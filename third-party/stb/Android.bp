@@ -1,12 +1,12 @@
 package {
     default_applicable_licenses: [
-        "device_generic_vulkan-cereal_third-party_stb_license",
+        "hardware_google_gfxstream_third_party_stb_encoder_license",
     ],
 }
 
 // See: http://go/android-license-faq
 license {
-    name: "device_generic_vulkan-cereal_third-party_stb_license",
+    name: "hardware_google_gfxstream_third_party_stb_encoder_license",
     visibility: [":__subpackages__"],
     license_kinds: [
         "SPDX-license-identifier-Apache-2.0",

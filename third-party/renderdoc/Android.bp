@@ -1,11 +1,11 @@
 package {
     default_applicable_licenses: [
-        "device_generic_vulkan-cereal_third-party_renderdoc_license",
+        "hardware_google_gfxstream_third_party_renderdoc_license",
     ],
 }
 
 license {
-    name: "device_generic_vulkan-cereal_third-party_renderdoc_license",
+    name: "hardware_google_gfxstream_third_party_renderdoc_license",
     visibility: [":__subpackages__"],
     license_kinds: [
         "SPDX-license-identifier-MIT",
