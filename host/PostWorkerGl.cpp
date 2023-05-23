@@ -64,8 +64,10 @@ void PostWorkerGl::screenshot(ColorBuffer* cb, int screenwidth, int screenheight
 }
 
 std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
-    if (!mContextBound) {
+    if (!mContextBound || m_mainThreadPostingOnly) {
         // This might happen on headless mode
+        // Also if posting on main thread, the context binding can get polluted easily, which
+        // requires frequent rebinds.
         setupContext();
     }
     std::shared_future<void> completedFuture = std::async(std::launch::deferred, [] {}).share();
@@ -246,7 +248,7 @@ void PostWorkerGl::viewportImpl(int width, int height) {
 // displaying whatever happens to be in the back buffer,
 // clear() is useful for outputting consistent colors.
 void PostWorkerGl::clearImpl() {
-    if (!mContextBound) {
+    if (!mContextBound || m_mainThreadPostingOnly) {
         // This might happen on headless mode
         setupContext();
     }
@@ -254,7 +256,7 @@ void PostWorkerGl::clearImpl() {
 }
 
 std::shared_future<void> PostWorkerGl::composeImpl(const FlatComposeRequest& composeRequest) {
-    if (!mContextBound) {
+    if (!mContextBound || m_mainThreadPostingOnly) {
         // This might happen on headless mode
         setupContext();
     }
