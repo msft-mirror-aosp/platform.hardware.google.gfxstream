@@ -537,10 +537,6 @@ class PipeVirglRenderer {
         if (!mVirtioGpuOps) {
             GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Could not get virtio gpu ops!";
         }
-        mReadPixelsFunc = android_getReadPixelsFunc();
-        if (!mReadPixelsFunc) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Could not get read pixels func!";
-        }
         mAddressSpaceDeviceControlOps = get_address_space_device_control_ops();
         if (!mAddressSpaceDeviceControlOps) {
             GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
@@ -1416,23 +1412,13 @@ class PipeVirglRenderer {
         return 0;
     }
 
-    void flushResourceAndReadback(uint32_t res_handle, uint32_t x, uint32_t y, uint32_t width,
-                                  uint32_t height, void* pixels, uint32_t max_bytes) {
-        (void)x;
-        (void)y;
-        (void)width;
-        (void)height;
+    void flushResource(uint32_t res_handle) {
         auto taskId = mVirtioGpuTimelines->enqueueTask(VirtioGpuRingGlobal{});
         mVirtioGpuOps->async_post_color_buffer(
             res_handle, [this, taskId](std::shared_future<void> waitForGpu) {
                 waitForGpu.wait();
                 mVirtioGpuTimelines->notifyTaskCompletion(taskId);
             });
-        // TODO: displayId > 0 ?
-        uint32_t displayId = 0;
-        if (pixels) {
-            mReadPixelsFunc(pixels, max_bytes, displayId);
-        }
     }
 
     int createRingBlob(PipeResEntry& entry, uint32_t res_handle,
@@ -1731,7 +1717,6 @@ class PipeVirglRenderer {
     void* mCookie = nullptr;
     stream_renderer_fence_callback mFenceCallback;
     AndroidVirtioGpuOps* mVirtioGpuOps = nullptr;
-    ReadPixelsFunc mReadPixelsFunc = nullptr;
     struct address_space_device_control_ops* mAddressSpaceDeviceControlOps = nullptr;
 
     const GoldfishPipeServiceOps* mServiceOps = nullptr;
@@ -1817,11 +1802,8 @@ VG_EXPORT int stream_renderer_resource_get_info(int res_handle,
     return sRenderer()->getResourceInfo(res_handle, info);
 }
 
-VG_EXPORT void stream_renderer_flush_resource_and_readback(uint32_t res_handle, uint32_t x,
-                                                           uint32_t y, uint32_t width,
-                                                           uint32_t height, void* pixels,
-                                                           uint32_t max_bytes) {
-    sRenderer()->flushResourceAndReadback(res_handle, x, y, width, height, pixels, max_bytes);
+VG_EXPORT void stream_renderer_flush(uint32_t res_handle) {
+    sRenderer()->flushResource(res_handle);
 }
 
 VG_EXPORT int stream_renderer_create_blob(uint32_t ctx_id, uint32_t res_handle,
