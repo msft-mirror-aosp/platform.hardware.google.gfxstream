@@ -83,14 +83,14 @@ class PostWorker {
     FrameBuffer* mFb;
     Compositor* m_compositor = nullptr;
 
-   private:
+   protected:
     // If m_mainThreadPostingOnly is true, schedule the task to UI thread by
     // using m_runOnUiThread. Otherwise, execute the task on the current thread.
+    bool m_mainThreadPostingOnly = false;
 
    private:
     using UiThreadRunner = std::function<void(UiUpdateFunc, void*, bool)>;
 
-    bool m_mainThreadPostingOnly = false;
     UiThreadRunner m_runOnUiThread = 0;
 
     std::unordered_map<uint32_t, std::shared_future<void>> m_composeTargetToComposeFuture;

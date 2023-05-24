@@ -636,8 +636,10 @@ protected:
     // Default FBO per-context state
     GLuint m_defaultFBO = 0;
     GLuint m_defaultReadFBO = 0;
-    GLuint m_defaultRBColor = 0;
-    GLuint m_defaultRBDepth = 0;
+    GLuint m_defaultFboRBColor = 0;
+    GLuint m_defaultFboRBDepth = 0;
+    GLuint m_defaultReadFboRBColor = 0;
+    GLuint m_defaultReadFboRBDepth = 0;
     GLint m_defaultFBOWidth = 0;
     GLint m_defaultFBOHeight = 0;
     GLint m_defaultFBOColorFormat = 0;

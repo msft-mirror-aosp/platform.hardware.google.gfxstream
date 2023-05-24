@@ -3703,6 +3703,12 @@ bool FrameBuffer::invalidateColorBufferForGl(HandleType colorBufferHandle) {
 }
 
 bool FrameBuffer::invalidateColorBufferForVk(HandleType colorBufferHandle) {
+    // It reads contents from GL, which requires a context lock.
+    // Also we should not do this in PostWorkerGl, otherwise it will deadlock.
+    //
+    // b/283524158
+    // b/273986739
+    AutoLock mutex(m_lock);
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
