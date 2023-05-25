@@ -176,6 +176,7 @@ android_startOpenglesRenderer(int width, int height, bool guestPhoneApi, int gue
     //                             android::base::MemoryTracker::get());
 
     sRenderer = sRenderLib->initRenderer(width, height, sRendererUsesSubWindow, sEgl2egl);
+    android_setOpenglesRenderer(&sRenderer);
 
     // android::snapshot::Snapshotter::get().addOperationCallback(
     //         [](android::snapshot::Snapshotter::Operation op,
@@ -460,6 +461,10 @@ bool android_screenShot(const char* dirname, uint32_t displayId)
 }
 
 const gfxstream::RendererPtr& android_getOpenglesRenderer() { return sRenderer; }
+
+void android_setOpenglesRenderer(gfxstream::RendererPtr* renderer) {
+    sRenderer = *renderer;
+}
 
 void android_onGuestGraphicsProcessCreate(uint64_t puid) {
     if (sRenderer) {

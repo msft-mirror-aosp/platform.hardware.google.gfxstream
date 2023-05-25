@@ -24,6 +24,7 @@
 #include "render-utils/virtio_gpu_ops.h"
 
 #ifdef __cplusplus
+#include "host-common/opengl/misc.h"
 #include "render-utils/RenderLib.h"
 #endif
 
@@ -148,6 +149,7 @@ class Renderer;
 }
 
 AEMU_EXPORT const gfxstream::RendererPtr& android_getOpenglesRenderer();
+EMUGL_COMMON_API void android_setOpenglesRenderer(gfxstream::RendererPtr* renderer);
 #endif
 
 AEMU_EXPORT struct AndroidVirtioGpuOps* android_getVirtioGpuOps(void);
