@@ -12,6 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "virtio-gpu-gfxstream-renderer.h"
+#include "render-utils/virtio-gpu-gfxstream-renderer.h"
 
 void gfxstream_backend_init_product_override() {}

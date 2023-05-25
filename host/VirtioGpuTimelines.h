@@ -24,7 +24,7 @@
 #include <variant>
 
 #include "aemu/base/synchronization/Lock.h"
-#include "virtio-gpu-gfxstream-renderer.h"
+#include "render-utils/virtio-gpu-gfxstream-renderer.h"
 #include "render-utils/virtio_gpu_ops.h"
 
 struct VirtioGpuRingGlobal {};

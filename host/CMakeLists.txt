@@ -14,6 +14,10 @@ add_subdirectory(renderControl_dec)
 # Magma decoder
 add_subdirectory(magma)
 
+if(CONFIG_AEMU)
+    add_compile_definitions(CONFIG_AEMU)
+endif()
+
 # Stream server core
 set(stream-server-core-sources
     Buffer.cpp
@@ -29,7 +33,6 @@ set(stream-server-core-sources
     PostWorker.cpp
     PostWorkerGl.cpp
     ReadBuffer.cpp
-    render_api.cpp
     RenderChannelImpl.cpp
     RenderThreadInfo.cpp
     RenderThreadInfoGl.cpp
@@ -107,6 +110,7 @@ target_compile_options(
 add_library(
     gfxstream_backend
     SHARED
+    render_api.cpp
     virtio-gpu-gfxstream-renderer.cpp)
 
 target_link_libraries(

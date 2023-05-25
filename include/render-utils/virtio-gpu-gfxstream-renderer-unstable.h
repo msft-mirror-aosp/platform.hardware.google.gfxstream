@@ -1,7 +1,7 @@
 #ifndef VIRTGPU_GFXSTREAM_RENDERER_UNSTABLE_H
 #define VIRTGPU_GFXSTREAM_RENDERER_UNSTABLE_H
 
-#include "virtio-gpu-gfxstream-renderer.h"
+#include "render-utils/virtio-gpu-gfxstream-renderer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,6 +10,12 @@ extern "C" {
 // Enables the host to control which memory types the guest will be allowed to map. For types not
 // in the mask, the bits HOST_VISIBLE and HOST_COHERENT will be removed.
 #define STREAM_RENDERER_PARAM_HOST_VISIBLE_MEMORY_MASK 8
+
+// Skip android opengles initiation. Used by aemu to skip android opengles initiation.
+// aemu does its own initialization in qemu/android/android/android-emu/android/opengles.cpp.
+// TODO(joshuaduong): Migrate aemu to use stream_renderer_init without this hack. This will
+// require adding more options to customize the feature flags, etc.
+#define STREAM_RENDERER_SKIP_OPENGLES_INIT 10
 
 // Information about one device's memory mask.
 struct stream_renderer_param_host_visible_memory_mask_entry {
@@ -61,6 +67,10 @@ VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_
                                               int32_t fb_height);
 
 VG_EXPORT void stream_renderer_flush(uint32_t res_handle);
+
+// Override the default GoldfishPipeServiceOps
+struct GoldfishPipeServiceOps;
+VG_EXPORT void stream_renderer_set_service_ops(const struct GoldfishPipeServiceOps* ops);
 
 #ifdef __cplusplus
 }  // extern "C"
