@@ -334,6 +334,13 @@ ColorBufferGl::ColorBufferGl(EGLDisplay display, HandleType hndl, GLuint width, 
 ColorBufferGl::~ColorBufferGl() {
     RecursiveScopedContextBind context(m_helper);
 
+    // b/284523053
+    // Swiftshader logspam on exit. But it doesn't happen with SwANGLE.
+    if (!context.isOk()) {
+        GL_LOG("Failed to bind context when releasing color buffers\n");
+        return;
+    }
+
     if (m_blitEGLImage) {
         s_egl.eglDestroyImageKHR(m_display, m_blitEGLImage);
     }
