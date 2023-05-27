@@ -51,7 +51,8 @@ void TestTextureDrawBasic(const GLESv2Dispatch* gl, GLenum internalformat,
             pixels[i * width * bpp + j * bpp + 0] = (0xaa + i) % 0x100;
             pixels[i * width * bpp + j * bpp + 1] = (0x00 + j) % 0x100;
             pixels[i * width * bpp + j * bpp + 2] = (0x11 + i) % 0x100;
-            pixels[i * width * bpp + j * bpp + 3] = (0xff + j) % 0x100;
+            // Use 0xff for alpha blending.
+            pixels[i * width * bpp + j * bpp + 3] = 0xff;
         }
     }
     GLenum err = gl->glGetError();
