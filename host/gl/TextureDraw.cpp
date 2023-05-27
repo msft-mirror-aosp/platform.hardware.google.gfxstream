@@ -280,6 +280,8 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
 
     s_gles2.glUseProgram(mProgram);
 
+    s_gles2.glEnable(GL_BLEND);
+    s_gles2.glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 #ifndef NDEBUG
     GLenum err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
