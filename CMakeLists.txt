@@ -147,7 +147,7 @@ add_subdirectory(host)
 
 # Protocols and associated code generators######################################
 
-add_subdirectory(protocols)
+add_subdirectory(codegen)
 
 # Fake Android guest#########################3##################################
 
