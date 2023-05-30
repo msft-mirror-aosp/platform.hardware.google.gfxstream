@@ -134,6 +134,7 @@ include(android.cmake)
 
 set(EXTRA_SUBDIR_TEST_INCLUDE_FILES)
 
+add_subdirectory(common)
 
 # Third party dependencies
 add_subdirectory(third-party)
