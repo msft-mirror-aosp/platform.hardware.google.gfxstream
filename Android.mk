@@ -62,7 +62,7 @@ IS_AT_LEAST_OPD1:=true
 # The host-side Android framework implementation
 HOST_EMUGL_PATH := $(GOLDFISH_OPENGL_PATH)/../../../external/qemu/android/android-emugl
 EMUGL_COMMON_INCLUDES += $(HOST_EMUGL_PATH)/guest
-GFXSTREAM_PROTOCOLS_PATH := $(HOST_EMUGL_PATH)/../../../gfxstream-protocols
+GFXSTREAM_PROTOCOLS_PATH := $(GOLDFISH_OPENGL_PATH)/../../../hardware/google/gfxstream
 
 EMUGL_COMMON_CFLAGS += \
     -DPLATFORM_SDK_VERSION=29 \
