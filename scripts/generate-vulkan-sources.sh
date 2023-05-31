@@ -1,5 +1,6 @@
-#!/bin/sh
-# Copyright 2019 The Android Open Source Project
+#!/bin/bash
+
+# Copyright 2022 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,33 +14,106 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo ""
-echo ""
-echo "DEPRECATED: Please regenerate the Vulkan codegen using the "
-echo "external/gfxstream-protocols project!"
-echo ""
-echo ""
+PROJECT_ROOT=$(pwd)
 
-echo "To be run in the vulkan-cereal repo root directory."
-echo "Note: This needs to be in an AOSP checkout to generate guest encoder files."
+WHICH=which
+if [[ "$OSTYPE" == "msys" ]]; then
+    WHICH=where
+fi
 
-REPO_DIR=`pwd`
-VULKAN_REGISTRY_XML_DIR=$REPO_DIR/protocols/vulkan/xml
-VULKAN_SRC_DIR=$REPO_DIR/stream-servers/vulkan
-CEREAL_OUTPUT_DIR=$VULKAN_SRC_DIR/cereal
+if [ -z "$1" ] || [ -z "$2" ];
+then
+    AOSP_DIR=$(pwd)/../../..
+    export GOLDFISH_OPENGL_DIR=$AOSP_DIR/device/generic/goldfish-opengl
+    export VULKAN_CEREAL_DIR=$AOSP_DIR/hardware/google/gfxstream
+    export VULKAN_REGISTRY_DIR=$AOSP_DIR/hardware/google/gfxstream/codegen/vulkan
+else
+    export GOLDFISH_OPENGL_DIR=$1
+    export VULKAN_CEREAL_DIR=$2
+    export VULKAN_REGISTRY_DIR=codegen/vulkan
+fi
 
-export VK_CEREAL_GUEST_ENCODER_DIR=$REPO_DIR/../goldfish-opengl/system/vulkan_enc
-export VK_CEREAL_GUEST_HAL_DIR=$REPO_DIR/../goldfish-opengl/system/vulkan
-export VK_CEREAL_HOST_DECODER_DIR=$REPO_DIR/stream-servers/vulkan
-export VK_CEREAL_HOST_PROTO_DIR=$REPO_DIR/stream-servers/vulkan/cereal/proto
-export VK_CEREAL_HOST_INCLUDE_DIR=$REPO_DIR/include
-export VK_CEREAL_BASELIB_PREFIX=base
+# Detect clang-format
+if ! $WHICH clang-format > /dev/null; then
+    echo "Failed to find clang-format." 1>&2
+    exit 1
+fi
+
+# Generate Vulkan headers
+VULKAN_HEADERS_ROOT=$PROJECT_ROOT/common/vulkan
+rm -rf $VULKAN_HEADERS_ROOT && mkdir -p $VULKAN_HEADERS_ROOT
+if [ $? -ne 0 ]; then
+    echo "Failed to clear the old Vulkan headers." 1>&2
+    exit 1
+fi
+
+cd $VULKAN_REGISTRY_DIR/xml && make GENOPTS="-removeExtensions VK_GOOGLE_gfxstream" GENERATED=$VULKAN_HEADERS_ROOT
+if [ $? -ne 0 ]; then
+    echo "Failed to generate Vulkan headers." 1>&2
+    exit 1
+fi
+
+cd $PROJECT_ROOT
+
+export VK_CEREAL_GUEST_ENCODER_DIR=$GOLDFISH_OPENGL_DIR/system/vulkan_enc
+export VK_CEREAL_GUEST_HAL_DIR=$GOLDFISH_OPENGL_DIR/system/vulkan
+export VK_CEREAL_HOST_DECODER_DIR=$VULKAN_CEREAL_DIR/host/vulkan
+export VK_CEREAL_HOST_INCLUDE_DIR=$VULKAN_CEREAL_DIR/host
+export VK_CEREAL_HOST_SCRIPTS_DIR=$VULKAN_CEREAL_DIR/scripts
+export VK_CEREAL_BASELIB_PREFIX=aemu/base
 export VK_CEREAL_BASELIB_LINKNAME=aemu-base.headers
-export VK_CEREAL_HOST_COMMON_LIB_LINKNAME=aemu-host-common.headers
+export VK_CEREAL_VK_HEADER_TARGET=gfxstream_vulkan_headers
+export VK_CEREAL_UTILS_LINKNAME=gfxstream_utils.headers
+export VK_CEREAL_UTILS_PREFIX=utils
 
-mkdir -p $CEREAL_OUTPUT_DIR
+VK_CEREAL_OUTPUT_DIR=$VK_CEREAL_HOST_DECODER_DIR/cereal
+if [ -d "$VK_CEREAL_GUEST_DIR" ]; then
+    mkdir -p $VK_CEREAL_GUEST_ENCODER_DIR
+    mkdir -p $VK_CEREAL_GUEST_HAL_DIR
+fi
+if [ -d "$VK_CEREAL_HOST_DIR" ]; then
+    mkdir -p $VK_CEREAL_HOST_DECODER_DIR
+    mkdir -p $VK_CEREAL_OUTPUT_DIR
+fi
 
-python3 $VULKAN_REGISTRY_XML_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml cereal -o $CEREAL_OUTPUT_DIR
+VULKAN_REGISTRY_XML_DIR=$VULKAN_REGISTRY_DIR/xml
+VULKAN_REGISTRY_SCRIPTS_DIR=$VULKAN_REGISTRY_DIR/scripts
 
-echo "Done generating Vulkan driver."
+python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml cereal -o $VK_CEREAL_OUTPUT_DIR
 
+
+# Generate VK_ANDROID_native_buffer specific Vulkan definitions.
+if [ -d $VK_CEREAL_HOST_DECODER_DIR ]; then
+    OUT_DIR=$VK_CEREAL_HOST_DECODER_DIR
+    OUT_FILE_BASENAME="vk_android_native_buffer.h"
+
+    python3 codegen/vulkan/scripts/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml -o $OUT_DIR \
+        $OUT_FILE_BASENAME
+
+    if [ $? -ne 0 ]; then
+        echo "Failed to generate vk_android_native_buffer.h" 1>&2
+        exit 1
+    fi
+    if ! clang-format -i $OUT_DIR/$OUT_FILE_BASENAME; then
+        echo "Failed to reformat vk_android_native_buffer.h" 1>&2
+        exit 1
+    fi
+fi
+
+# Generate gfxstream specific Vulkan definitions.
+for OUT_DIR in $VK_CEREAL_HOST_DECODER_DIR $VK_CEREAL_GUEST_ENCODER_DIR; do
+    if [ -d "$OUT_DIR" ]; then
+        OUT_FILE_BASENAME=vulkan_gfxstream.h
+        python3 codegen/vulkan/scripts/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml -o $OUT_DIR \
+            $OUT_FILE_BASENAME
+
+        if [ $? -ne 0 ]; then
+            echo "Failed to generate gfxstream specific vulkan headers." 1>&2
+            exit 1
+        fi
+        if ! clang-format -i $OUT_DIR/$OUT_FILE_BASENAME; then
+            echo "Failed to reformat gfxstream specific vulkan headers." 1>&2
+            exit 1
+        fi
+    fi
+done
