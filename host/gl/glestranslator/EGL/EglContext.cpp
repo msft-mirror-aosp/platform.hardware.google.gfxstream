@@ -21,6 +21,7 @@
 #include "ThreadInfo.h"
 
 #include <GLcommon/GLEScontext.h>
+#include <memory>
 
 unsigned int EglContext::s_nextContextHndl = 0;
 
@@ -101,30 +102,38 @@ EglContext::~EglContext()
 {
     ThreadInfo* thread = getThreadInfo();
     // get the current context
-    ContextPtr currentCtx = thread->eglContext;
-    if (currentCtx && !m_dpy->getContext((EGLContext)SafePointerFromUInt(
-                        currentCtx->getHndl()))) {
-        currentCtx.reset();
-    }
-    SurfacePtr currentRead = currentCtx ? currentCtx->read() : nullptr;
-    SurfacePtr currentDraw = currentCtx ? currentCtx->draw() : nullptr;
-    // we need to make the context current before releasing GL resources.
-    // create a dummy surface first
-    EglPbufferSurface pbSurface(m_dpy, m_config);
-    pbSurface.setAttrib(EGL_WIDTH, 1);
-    pbSurface.setAttrib(EGL_HEIGHT, 1);
-    EglOS::PbufferInfo pbInfo;
-    pbSurface.getDim(&pbInfo.width, &pbInfo.height, &pbInfo.largest);
-    pbSurface.getTexInfo(&pbInfo.target, &pbInfo.format);
-    pbInfo.hasMipmap = false;
-    EglOS::Surface* pb = m_dpy->nativeType()->createPbufferSurface(
-            m_config->nativeFormat(), &pbInfo);
-    assert(pb);
-    if (pb) {
-        const bool res = m_dpy->nativeType()->makeCurrent(pb, pb, m_native.get());
-        assert(res);
-        (void)res;
-        pbSurface.setNativePbuffer(pb);
+    EglContext* rebindCtx = thread->eglContext.get();
+    SurfacePtr rebindRead = nullptr;
+    SurfacePtr rebindDraw = nullptr;
+    std::unique_ptr<EglPbufferSurface> pbSurface;
+    if (rebindCtx == this) {
+        // this context is current, no need to rebind.
+        rebindCtx = nullptr;
+    } else {
+        if (rebindCtx && !m_dpy->getContext((EGLContext)SafePointerFromUInt(
+                            rebindCtx->getHndl()))) {
+            rebindCtx = nullptr;
+        }
+        rebindRead = rebindCtx ? rebindCtx->read() : nullptr;
+        rebindDraw = rebindCtx ? rebindCtx->draw() : nullptr;
+        // we need to make the context current before releasing GL resources.
+        // create a dummy surface first
+        pbSurface.reset(new EglPbufferSurface(m_dpy, m_config));
+        pbSurface->setAttrib(EGL_WIDTH, 1);
+        pbSurface->setAttrib(EGL_HEIGHT, 1);
+        EglOS::PbufferInfo pbInfo;
+        pbSurface->getDim(&pbInfo.width, &pbInfo.height, &pbInfo.largest);
+        pbSurface->getTexInfo(&pbInfo.target, &pbInfo.format);
+        pbInfo.hasMipmap = false;
+        EglOS::Surface* pb = m_dpy->nativeType()->createPbufferSurface(
+                m_config->nativeFormat(), &pbInfo);
+        assert(pb);
+        if (pb) {
+            const bool res = m_dpy->nativeType()->makeCurrent(pb, pb, m_native.get());
+            assert(res);
+            (void)res;
+            pbSurface->setNativePbuffer(pb);
+        }
     }
     //
     // release GL resources. m_shareGroup, m_mngr and m_glesContext hold
@@ -142,12 +151,12 @@ EglContext::~EglContext()
     //
     g_eglInfo->getIface(version())->deleteGLESContext(m_glesContext);
     //
-    // restore the current context
+    // restore the previous context
     //
-    if (currentCtx) {
-        m_dpy->nativeType()->makeCurrent(currentRead->native(),
-                                         currentDraw->native(),
-                                         currentCtx->nativeType());
+    if (rebindCtx) {
+        m_dpy->nativeType()->makeCurrent(rebindRead->native(),
+                                         rebindDraw->native(),
+                                         rebindCtx->nativeType());
     } else {
         m_dpy->nativeType()->makeCurrent(nullptr, nullptr, nullptr);
     }
