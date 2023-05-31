@@ -134,6 +134,7 @@ include(android.cmake)
 
 set(EXTRA_SUBDIR_TEST_INCLUDE_FILES)
 
+add_subdirectory(common)
 
 # Third party dependencies
 add_subdirectory(third-party)
@@ -146,7 +147,7 @@ add_subdirectory(host)
 
 # Protocols and associated code generators######################################
 
-add_subdirectory(protocols)
+add_subdirectory(codegen)
 
 # Fake Android guest#########################3##################################
 
