@@ -17,8 +17,8 @@
 #include "aemu/base/ArraySize.h"
 #include "host/vulkan/VkFormatUtils.h"
 #include "host/vulkan/emulated_textures/shaders/DecompressionShaders.h"
-#include "vulkan/vk_enum_string_helper.h"
 #include "host/vulkan/VkFormatUtils.h"
+#include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
 namespace vk {
@@ -35,8 +35,8 @@ VkImageView createDefaultImageView(VulkanDispatch* vk, VkDevice device, VkImage 
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = image,
         .format = format,
-        .components = {VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B,
-                       VK_COMPONENT_SWIZZLE_A},
+        .components = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+                       VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
         .subresourceRange =
             {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -130,12 +130,52 @@ VkExtent2D getBlockSize(VkFormat format) {
     }
 }
 
+bool isReadableImageLayout(VkImageLayout layout) {
+    switch (layout) {
+        case VK_IMAGE_LAYOUT_GENERAL:
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+        case VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool isWritableImageLayout(VkImageLayout layout) {
+    switch (layout) {
+        case VK_IMAGE_LAYOUT_GENERAL:
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+            return true;
+        default:
+            return false;
+    }
+}
+
 // Returns whether a given memory barrier puts the image in a layout where it can be read from.
 bool imageWillBecomeReadable(const VkImageMemoryBarrier& barrier) {
-    return barrier.oldLayout != VK_IMAGE_LAYOUT_UNDEFINED &&
-           (barrier.newLayout == VK_IMAGE_LAYOUT_GENERAL ||
-            barrier.newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL ||
-            barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    bool fromReadable = isReadableImageLayout(barrier.oldLayout);
+    bool toReadable = isReadableImageLayout(barrier.newLayout);
+    bool toWritable = isWritableImageLayout(barrier.newLayout);
+
+    // TODO(gregschlom) This doesn't take into account that the GENERAL layout is both readable and
+    //  writable, so this warning could incorrectly trigger some times.
+    if (fromReadable && toWritable) {
+        WARN(
+            "Compressed image is being transitioned from readable (%s) to writable (%s). This may "
+            "lead to unexpected results.",
+            string_VkImageLayout(barrier.oldLayout), string_VkImageLayout(barrier.newLayout));
+    }
+
+    // If we're transitioning from UNDEFINED, the image content is undefined, so don't try to
+    // decompress it.
+    if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED) return false;
+
+    // TODO(gregschlom): Address the corner case of GENERAL, which is both readable and writable.
+    // For example, the image could be transitioned only once, from UNDEFINED to GENERAL.
+    // Currently, there is no way to perform decompression in this case.
+
+    return toReadable;
 }
 
 bool isCompressedFormat(VkFormat format) {
@@ -694,6 +734,9 @@ VkExtent3D CompressedImageInfo::compressedMipmapPortion(const VkExtent3D& origEx
     return {
         .width = std::min(ceil_div(origExtent.width, mBlock.width), maxExtent.width),
         .height = std::min(ceil_div(origExtent.height, mBlock.height), maxExtent.height),
+        // TODO(gregschlom): this is correct for 2DArrays, but incorrect for 3D images. We should
+        // take the image type into account to do the right thing here. See also
+        // https://android-review.git.corp.google.com/c/device/generic/vulkan-cereal/+/2458549/comment/cfc7480f_912dd378/
         .depth = origExtent.depth,
     };
 }
