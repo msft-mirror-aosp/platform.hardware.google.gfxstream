@@ -873,12 +873,6 @@ uvec4[144] astc_decode_block(const uvec4 u) {
     return ret;
 }
 
-ivec2 getPos1DArray(ivec3 pos) { return ivec2(pos.x, pos.z); }
-
-ivec3 getPos2DArray(ivec3 pos) { return pos; }
-
-ivec3 getPos3D(ivec3 pos) { return pos; }
-
 uint block_y_size_1DArray() { return 1; }
 
 uint block_y_size_2DArray() { return u_pushConstant.blockSize.y; }
