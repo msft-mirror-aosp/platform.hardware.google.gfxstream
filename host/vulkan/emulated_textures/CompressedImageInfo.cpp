@@ -24,6 +24,9 @@ namespace gfxstream {
 namespace vk {
 namespace {
 
+using emugl::ABORT_REASON_OTHER;
+using emugl::FatalError;
+
 // Returns x / y, rounded up. E.g. ceil_div(7, 2) == 4
 // Note the potential integer overflow for large numbers.
 inline constexpr uint32_t ceil_div(uint32_t x, uint32_t y) { return (x + y - 1) / y; }
@@ -196,6 +199,28 @@ VkFormat getShaderFormat(VkFormat outputFormat) {
             return VK_FORMAT_R32G32B32A32_UINT;
         default:
             return VK_FORMAT_R8G8B8A8_UINT;
+    }
+}
+
+// Returns the next memory offset on a given alignment.
+// Will divide by zero if alignment is zero.
+VkDeviceSize nextAlignedOffset(VkDeviceSize offset, VkDeviceSize alignment) {
+    return ceil_div(offset, alignment) * alignment;
+}
+
+// Check that the alignment is valid:
+// - sets the alignment to 1 if it's 0
+// - aborts if it's not a power of 2
+void checkValidAlignment(VkDeviceSize& n) {
+    if (n == 0) {
+        n = 1;
+        return;
+    }
+
+    // Check that the alignment is a power of 2
+    // http://www.graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
+    if ((n & (n - 1))) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "vkGetImageMemoryRequirements returned non-power-of-two alignment: " + std::to_string(n);
     }
 }
 
@@ -379,26 +404,41 @@ void CompressedImageInfo::createCompressedMipmapImages(VulkanDispatch* vk,
     createInfoCopy.mipLevels = 1;
 
     mCompressedMipmaps.resize(mMipLevels);
-    for (uint32_t i = 0; i < mMipLevels; i++) {
+    for (uint32_t i = 0; i < mMipLevels; ++i) {
         createInfoCopy.extent = compressedMipmapExtent(i);
-        vk->vkCreateImage(mDevice, &createInfoCopy, nullptr, mCompressedMipmaps.data() + i);
+        vk->vkCreateImage(mDevice, &createInfoCopy, nullptr, &mCompressedMipmaps[i]);
     }
 
-    // Get the size of all images (output image and compressed mipmaps)
-    std::vector<VkDeviceSize> memSizes(mMipLevels + 1);
-    memSizes[0] = getImageSize(vk, mOutputImage);
-    for (size_t i = 0; i < mMipLevels; i++) {
-        memSizes[i + 1] = getImageSize(vk, mCompressedMipmaps[i]);
+    // Compute the memory requirements for all the images (output image + compressed mipmaps)
+
+    vk->vkGetImageMemoryRequirements(mDevice, mOutputImage, &mMemoryRequirements);
+    checkValidAlignment(mMemoryRequirements.alignment);
+    std::vector<VkMemoryRequirements> mipmapsMemReqs(mMipLevels);
+    for (size_t i = 0; i < mMipLevels; ++i) {
+        vk->vkGetImageMemoryRequirements(mDevice, mCompressedMipmaps[i], &mipmapsMemReqs[i]);
+        checkValidAlignment(mipmapsMemReqs[i].alignment);
     }
 
-    // Initialize the memory offsets
-    mMemoryOffsets.resize(mMipLevels + 1);
-    for (size_t i = 0; i < mMipLevels + 1; i++) {
-        VkDeviceSize alignedSize = memSizes[i];
-        if (mAlignment != 0) {
-            alignedSize = ceil_div(alignedSize, mAlignment) * mAlignment;
+    for (const auto& r : mipmapsMemReqs) {
+        // What we want here is the least common multiple of all the alignments. However, since
+        // alignments are always powers of 2, the lcm is simply the largest value.
+        if (r.alignment > mMemoryRequirements.alignment) {
+            mMemoryRequirements.alignment = r.alignment;
         }
-        mMemoryOffsets[i] = (i == 0 ? 0 : mMemoryOffsets[i - 1]) + alignedSize;
+        mMemoryRequirements.memoryTypeBits &= r.memoryTypeBits;
+    }
+
+    // At this point, we have the following:
+    //   - mMemoryRequirements.size is the size of the output image
+    //   - mMemoryRequirements.alignment is the least common multiple of all alignments
+    //   - mMemoryRequirements.memoryTypeBits is the intersection of all the memoryTypeBits
+    // Now, compute the offsets of each mipmap image as well as the total memory size we need.
+    mMipmapOffsets.resize(mMipLevels);
+    for (size_t i = 0; i < mMipLevels; ++i) {
+        // This works because the alignment we request is the lcm of all alignments
+        mMipmapOffsets[i] =
+            nextAlignedOffset(mMemoryRequirements.size, mipmapsMemReqs[i].alignment);
+        mMemoryRequirements.size = mMipmapOffsets[i] + mipmapsMemReqs[i].size;
     }
 }
 
@@ -474,10 +514,7 @@ void CompressedImageInfo::decompressOnCpu(VkCommandBuffer commandBuffer, uint8_t
 }
 
 VkMemoryRequirements CompressedImageInfo::getMemoryRequirements() const {
-    return {
-        .size = mMemoryOffsets.back(),
-        .alignment = mAlignment,
-    };
+    return mMemoryRequirements;
 }
 
 VkResult CompressedImageInfo::bindCompressedMipmapsMemory(VulkanDispatch* vk, VkDeviceMemory memory,
@@ -485,7 +522,7 @@ VkResult CompressedImageInfo::bindCompressedMipmapsMemory(VulkanDispatch* vk, Vk
     VkResult result = VK_SUCCESS;
     for (size_t i = 0; i < mCompressedMipmaps.size(); i++) {
         VkResult res = vk->vkBindImageMemory(mDevice, mCompressedMipmaps[i], memory,
-                                             memoryOffset + mMemoryOffsets[i]);
+                                             memoryOffset + mMipmapOffsets[i]);
         if (res != VK_SUCCESS) result = res;
     }
     return result;
@@ -538,13 +575,6 @@ void CompressedImageInfo::destroy(VulkanDispatch* vk) {
         vk->vkDestroyImageView(mDevice, imageView, nullptr);
     }
     vk->vkDestroyImage(mDevice, mOutputImage, nullptr);
-}
-
-VkDeviceSize CompressedImageInfo::getImageSize(VulkanDispatch* vk, VkImage image) {
-    VkMemoryRequirements memRequirements;
-    vk->vkGetImageMemoryRequirements(mDevice, image, &memRequirements);
-    mAlignment = std::max(mAlignment, memRequirements.alignment);
-    return memRequirements.size;
 }
 
 std::vector<VkImageMemoryBarrier> CompressedImageInfo::getImageBarriers(
