@@ -5469,9 +5469,7 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
             return;
         }
-        VkMemoryRequirements cmpReq = cmpInfo.getMemoryRequirements();
-        pMemoryRequirements->alignment = std::max(pMemoryRequirements->alignment, cmpReq.alignment);
-        pMemoryRequirements->size += cmpReq.size;
+        *pMemoryRequirements = cmpInfo.getMemoryRequirements();
     }
 
     // Whether the VkInstance associated with this physical device was created by ANGLE
