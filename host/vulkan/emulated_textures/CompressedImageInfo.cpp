@@ -865,7 +865,8 @@ void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer command
                                     mDecompPipelineLayout, 0, 1, mDecompDescriptorSets.data() + i,
                                     0, nullptr);
         VkExtent3D compExtent = compressedMipmapExtent(i);
-        vk->vkCmdDispatch(commandBuffer, compExtent.width, compExtent.height, dispatchZ);
+        vk->vkCmdDispatch(commandBuffer, ceil_div(compExtent.width, 8),
+                          ceil_div(compExtent.height, 8), dispatchZ);
     }
 }
 
