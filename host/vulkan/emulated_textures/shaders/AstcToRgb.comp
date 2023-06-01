@@ -16,11 +16,6 @@ u_pushConstant;
 layout(binding = 0, rgba32ui) readonly uniform WITH_TYPE(uimage) srcImage;
 layout(binding = 1, rgba8ui) writeonly uniform WITH_TYPE(uimage) dstImage;
 
-// TODO(gregschlom): do we actually use 1DArray images?
-ivec2 getPos1DArray(ivec3 pos) { return pos.xz; }
-ivec3 getPos2DArray(ivec3 pos) { return pos; }
-ivec3 getPos3D(ivec3 pos) { return pos; }
-
 void main() {
     uvec2 texelPos = gl_GlobalInvocationID.xy;
     uint layer = u_pushConstant.baseLayer + gl_GlobalInvocationID.z;
