@@ -1550,6 +1550,11 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
+        if (deviceInfo->imageFormats.find(pCreateInfo->format) == deviceInfo->imageFormats.end()) {
+            INFO("gfxstream_texture_format_manifest: %s", string_VkFormat(pCreateInfo->format));
+            deviceInfo->imageFormats.insert(pCreateInfo->format);
+        }
+
         const bool needDecompression = deviceInfo->needEmulatedDecompression(pCreateInfo->format);
         CompressedImageInfo cmpInfo = needDecompression ? CompressedImageInfo(device, *pCreateInfo)
                                                         : CompressedImageInfo(device);
@@ -5942,6 +5947,7 @@ class VkDecoderGlobalState::Impl {
         VkDevice boxed = nullptr;
         DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
         std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
+        std::set<VkFormat> imageFormats = {};  // image formats used on this device
 
         // True if this is a compressed image that needs to be decompressed on the GPU (with our
         // compute shader)
