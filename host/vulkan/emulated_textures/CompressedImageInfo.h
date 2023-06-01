@@ -36,8 +36,6 @@ class CompressedImageInfo {
     // mipmaps will hold an entire compressed block.
     static VkFormat getCompressedMipmapsFormat(VkFormat compFmt);
 
-    static bool isEtc2(VkFormat format);
-    static bool isAstc(VkFormat format);
     static bool needEmulatedAlpha(VkFormat format);
 
     // Returns a VkImageCopy to copy to/from the compressed data
