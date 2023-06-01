@@ -60,6 +60,8 @@
 //   - TODO(gregschlom): Check if the results are correct for image sizes that aren't multiples of 4
 
 #version 450 core
+#include "AstcDecompressor.glsl"
+#include "Common.comp"
 
 // TODO(gregschlom): Check how widespread is support for these extensions.
 #extension GL_KHR_shader_subgroup_clustered : enable
@@ -71,8 +73,8 @@ layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
 // Using 2DArray textures for compatibility with the old ASTC decoder.
 // TODO(gregschlom): Once we have texture metrics, check if we want to keep supporting array text.
-layout(binding = 0, rgba32ui) readonly uniform uimage2DArray srcImage;
-layout(binding = 1, rgba32ui) writeonly uniform uimage2DArray dstImage;
+layout(binding = 0, rgba32ui) readonly uniform WITH_TYPE(uimage) srcImage;
+layout(binding = 1, rgba32ui) writeonly uniform WITH_TYPE(uimage) dstImage;
 
 layout(push_constant) uniform imagInfo {
     uvec2 blockSize;
@@ -81,14 +83,12 @@ layout(push_constant) uniform imagInfo {
 }
 u_pushConstant;
 
-#include "AstcDecompressor.glsl"
-
 // Decodes an ASTC-encoded pixel at `texelPos` to RGBA
 uvec4 decodeRGBA(uvec2 texelPos, uint layer) {
     uvec2 blockPos = texelPos / u_pushConstant.blockSize;
     uvec2 posInBlock = texelPos % u_pushConstant.blockSize;
 
-    astcBlock = imageLoad(srcImage, ivec3(blockPos, layer)).wzyx;
+    astcBlock = imageLoad(srcImage, WITH_TYPE(getPos)(ivec3(blockPos, layer))).wzyx;
     astcDecoderInitialize(astcBlock, u_pushConstant.blockSize);
     return astcDecodeTexel(posInBlock);
 }
@@ -255,6 +255,6 @@ void main() {
     result.a = subgroupClusteredOr(index << (2 * texelId), 16);
 
     if (texelId == 0) {
-        imageStore(dstImage, ivec3(texelCoord / 4, layer), result);
+        imageStore(dstImage, WITH_TYPE(getPos)(ivec3(texelCoord / 4, layer)), result);
     }
 }
