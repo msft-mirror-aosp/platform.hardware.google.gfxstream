@@ -2868,13 +2868,6 @@ class VkDecoderGlobalState::Impl {
                 imageBarriers.push_back(srcBarrier);
                 continue;
             }
-            if (srcBarrier.newLayout != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                srcBarrier.newLayout != VK_IMAGE_LAYOUT_GENERAL) {
-                fprintf(stderr,
-                        "WARNING: unexpected usage to transfer "
-                        "compressed image layout from %d to %d\n",
-                        srcBarrier.oldLayout, srcBarrier.newLayout);
-            }
 
             // Otherwise, decompress the image, if we're going to read from it.
             needRebind |= imageInfo->cmpInfo.decompressIfNeeded(
