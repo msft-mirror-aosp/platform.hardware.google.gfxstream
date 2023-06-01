@@ -24,7 +24,10 @@ namespace vk {
 
 namespace {
 
-static AstcDecoder activeAstcDecoder = AstcDecoder::Old;
+// Which GPU decoder we use for ASTC textures.
+// Note: we currently only enable ASTC decompression for native vulkan apps, and we try CPU
+// decompression first, before falling back to GPU decompression.
+static AstcDecoder activeAstcDecoder = AstcDecoder::NewRgb;
 
 struct ShaderGroup {
     ShaderData shader1D;
