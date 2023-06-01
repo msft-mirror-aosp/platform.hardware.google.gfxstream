@@ -44,6 +44,8 @@ class CompressedImageInfo {
                                                      const CompressedImageInfo& dstImg,
                                                      bool needEmulatedSrc, bool needEmulatedDst);
 
+    static void useNewAstcDecoder(bool value);
+
     // Constructors
 
     // TODO(gregschlom) Delete these constructors once we switch to holding a
