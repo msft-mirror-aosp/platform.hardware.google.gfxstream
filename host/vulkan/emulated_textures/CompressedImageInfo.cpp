@@ -31,9 +31,22 @@ inline constexpr uint32_t ceil_div(uint32_t x, uint32_t y) { return (x + y - 1) 
 VkImageView createDefaultImageView(VulkanDispatch* vk, VkDevice device, VkImage image,
                                    VkFormat format, VkImageType imageType, uint32_t mipLevel,
                                    uint32_t layerCount) {
-    VkImageViewCreateInfo imageViewInfo = {};
-    imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    imageViewInfo.image = image;
+    VkImageViewCreateInfo imageViewInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = image,
+        .format = format,
+        .components = {VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B,
+                       VK_COMPONENT_SWIZZLE_A},
+        .subresourceRange =
+            {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = mipLevel,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = layerCount,
+            },
+    };
+
     switch (imageType) {
         case VK_IMAGE_TYPE_1D:
             imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
@@ -48,19 +61,10 @@ VkImageView createDefaultImageView(VulkanDispatch* vk, VkDevice device, VkImage 
             imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
             break;
     }
-    imageViewInfo.format = format;
-    imageViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
-    imageViewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
-    imageViewInfo.components.b = VK_COMPONENT_SWIZZLE_B;
-    imageViewInfo.components.a = VK_COMPONENT_SWIZZLE_A;
-    imageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    imageViewInfo.subresourceRange.baseMipLevel = mipLevel;
-    imageViewInfo.subresourceRange.levelCount = 1;
-    imageViewInfo.subresourceRange.baseArrayLayer = 0;
-    imageViewInfo.subresourceRange.layerCount = layerCount;
     VkImageView imageView;
-    if (vk->vkCreateImageView(device, &imageViewInfo, nullptr, &imageView) != VK_SUCCESS) {
-        WARN("Warning: %s %s:%d failure", __func__, __FILE__, __LINE__);
+    VkResult result = vk->vkCreateImageView(device, &imageViewInfo, nullptr, &imageView);
+    if (result != VK_SUCCESS) {
+        WARN("GPU decompression: createDefaultImageView failed: %d", result);
         return VK_NULL_HANDLE;
     }
     return imageView;
@@ -134,6 +138,11 @@ bool imageWillBecomeReadable(const VkImageMemoryBarrier& barrier) {
             barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 }
 
+bool isCompressedFormat(VkFormat format) {
+    return gfxstream::vk::isAstc(format) || gfxstream::vk::isEtc2(format) ||
+           gfxstream::vk::isBc(format);
+}
+
 }  // namespace
 
 CompressedImageInfo::CompressedImageInfo(VkDevice device) : mDevice(device) {}
@@ -141,7 +150,7 @@ CompressedImageInfo::CompressedImageInfo(VkDevice device) : mDevice(device) {}
 CompressedImageInfo::CompressedImageInfo(VkDevice device, const VkImageCreateInfo& createInfo,
                                          GpuDecompressionPipelineManager* pipelineManager)
     : mCompressedFormat(createInfo.format),
-      mDecompressedFormat(getDecompressedFormat(mCompressedFormat)),
+      mOutputFormat(getOutputFormat(mCompressedFormat)),
       mCompressedMipmapsFormat(getCompressedMipmapsFormat(mCompressedFormat)),
       mImageType(createInfo.imageType),
       mMipLevels(createInfo.mipLevels),
@@ -152,7 +161,7 @@ CompressedImageInfo::CompressedImageInfo(VkDevice device, const VkImageCreateInf
       mPipelineManager(pipelineManager) {}
 
 // static
-VkFormat CompressedImageInfo::getDecompressedFormat(VkFormat compFmt) {
+VkFormat CompressedImageInfo::getOutputFormat(VkFormat compFmt) {
     switch (compFmt) {
         case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
         case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
@@ -269,12 +278,26 @@ bool CompressedImageInfo::isEtc2() const { return gfxstream::vk::isEtc2(mCompres
 
 bool CompressedImageInfo::isAstc() const { return gfxstream::vk::isAstc(mCompressedFormat); }
 
-VkImageCreateInfo CompressedImageInfo::getDecompressedCreateInfo(
+VkImageCreateInfo CompressedImageInfo::getOutputCreateInfo(
     const VkImageCreateInfo& createInfo) const {
     VkImageCreateInfo result = createInfo;
-    result.format = mDecompressedFormat;
-    result.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
-    result.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+    result.format = mOutputFormat;
+
+    result.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT |
+                    // Needed for ASTC->BC3 transcoding so that we can create a BC3 image with
+                    // VK_IMAGE_USAGE_STORAGE_BIT
+                    VK_IMAGE_CREATE_EXTENDED_USAGE_BIT;
+
+    if (!isCompressedFormat(mOutputFormat)) {
+        // Need to clear this flag since the application might have specified it, but it's invalid
+        // on non-compressed formats
+        result.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
+    } else {
+        // Need to set this flag so that we can cast the output image into a non-compressed format
+        // so that the decompression shader can write to it.
+        result.flags |= VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
+    }
+
     result.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
     return result;
 }
@@ -287,8 +310,11 @@ void CompressedImageInfo::createCompressedMipmapImages(VulkanDispatch* vk,
 
     VkImageCreateInfo createInfoCopy = createInfo;
     createInfoCopy.format = mCompressedMipmapsFormat;
+    // Note: if you change the flags here, you must also change both versions of
+    // on_vkGetPhysicalDeviceImageFormatProperties in VkDecoderGlobalState
+    // TODO(gregschlom): Remove duplicated logic.
     createInfoCopy.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-    createInfoCopy.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
+    createInfoCopy.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
     createInfoCopy.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
     createInfoCopy.mipLevels = 1;
 
@@ -298,9 +324,9 @@ void CompressedImageInfo::createCompressedMipmapImages(VulkanDispatch* vk,
         vk->vkCreateImage(mDevice, &createInfoCopy, nullptr, mCompressedMipmaps.data() + i);
     }
 
-    // Get the size of all images (decompressed image and compressed mipmaps)
+    // Get the size of all images (output image and compressed mipmaps)
     std::vector<VkDeviceSize> memSizes(mMipLevels + 1);
-    memSizes[0] = getImageSize(vk, mDecompressedImage);
+    memSizes[0] = getImageSize(vk, mOutputImage);
     for (size_t i = 0; i < mMipLevels; i++) {
         memSizes[i + 1] = getImageSize(vk, mCompressedMipmaps[i]);
     }
@@ -348,7 +374,7 @@ bool CompressedImageInfo::decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer
         barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
     }
 
-    // Transition the layout of the decompressed image so that we can write to it.
+    // Transition the layout of the output image so that we can write to it.
     imageBarriers.back().srcAccessMask = 0;
     imageBarriers.back().oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageBarriers.back().dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
@@ -368,7 +394,7 @@ bool CompressedImageInfo::decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer
         barrier.dstAccessMask = targetBarrier.dstAccessMask;
         barrier.newLayout = targetBarrier.newLayout;
     }
-    // (adjust the last barrier since it's for the decompressed image)
+    // (adjust the last barrier since it's for the output image)
     imageBarriers.back().srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 
     // Do the layout transitions
@@ -448,10 +474,10 @@ void CompressedImageInfo::destroy(VulkanDispatch* vk) {
     for (const auto& imageView : mCompressedMipmapsImageViews) {
         vk->vkDestroyImageView(mDevice, imageView, nullptr);
     }
-    for (const auto& imageView : mDecompImageViews) {
+    for (const auto& imageView : mOutputImageViews) {
         vk->vkDestroyImageView(mDevice, imageView, nullptr);
     }
-    vk->vkDestroyImage(mDevice, mDecompressedImage, nullptr);
+    vk->vkDestroyImage(mDevice, mOutputImage, nullptr);
 }
 
 VkDeviceSize CompressedImageInfo::getImageSize(VulkanDispatch* vk, VkImage image) {
@@ -477,9 +503,9 @@ std::vector<VkImageMemoryBarrier> CompressedImageInfo::getImageBarriers(
         imageBarriers[j].image = mCompressedMipmaps[range.baseMipLevel + j];
     }
 
-    // Add a barrier for the decompressed image
+    // Add a barrier for the output image
     imageBarriers.push_back(srcBarrier);
-    imageBarriers.back().image = mDecompressedImage;
+    imageBarriers.back().image = mOutputImage;
 
     return imageBarriers;
 }
@@ -546,14 +572,14 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
         case VK_FORMAT_EAC_R11_SNORM_BLOCK:
         case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
         case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-            intermediateFormat = mDecompressedFormat;
+            intermediateFormat = mOutputFormat;
             break;
         default:
             break;
     }
 
     mCompressedMipmapsImageViews.resize(mMipLevels);
-    mDecompImageViews.resize(mMipLevels);
+    mOutputImageViews.resize(mMipLevels);
 
     VkDescriptorImageInfo compressedMipmapsDescriptorImageInfo = {.imageLayout =
                                                                       VK_IMAGE_LAYOUT_GENERAL};
@@ -578,10 +604,10 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
         mCompressedMipmapsImageViews[i] =
             createDefaultImageView(vk, device, mCompressedMipmaps[i], mCompressedMipmapsFormat,
                                    mImageType, 0, mLayerCount);
-        mDecompImageViews[i] = createDefaultImageView(
-            vk, device, mDecompressedImage, intermediateFormat, mImageType, i, mLayerCount);
+        mOutputImageViews[i] = createDefaultImageView(vk, device, mOutputImage, intermediateFormat,
+                                                      mImageType, i, mLayerCount);
         compressedMipmapsDescriptorImageInfo.imageView = mCompressedMipmapsImageViews[i];
-        mDecompDescriptorImageInfo.imageView = mDecompImageViews[i];
+        mDecompDescriptorImageInfo.imageView = mOutputImageViews[i];
         writeDescriptorSets[0].dstSet = mDecompDescriptorSets[i];
         writeDescriptorSets[1].dstSet = mDecompDescriptorSets[i];
         vk->vkUpdateDescriptorSets(device, 2, writeDescriptorSets, 0, nullptr);
