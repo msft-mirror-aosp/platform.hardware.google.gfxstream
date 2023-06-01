@@ -113,10 +113,6 @@ class CompressedImageInfo {
     }
 
    private:
-    // Returns the size in bytes needed for the storage of a given image.
-    // Also updates the alignment field of this class.
-    VkDeviceSize getImageSize(VulkanDispatch* vk, VkImage image);
-
     // Returns a vector of image barriers for the compressed mipmap images and the decompressed
     // image.
     std::vector<VkImageMemoryBarrier> getImageBarriers(const VkImageMemoryBarrier& srcBarrier);
@@ -163,8 +159,10 @@ class CompressedImageInfo {
     // each pixel in those images contains an entire compressed block.
     std::vector<VkImage> mCompressedMipmaps;
 
-    VkDeviceSize mAlignment = 0;
-    std::vector<VkDeviceSize> mMemoryOffsets;
+    // The memory offset that we will use for each compressed mipmap.
+    std::vector<VkDeviceSize> mMipmapOffsets;
+
+    VkMemoryRequirements mMemoryRequirements;
 
     // Used to perform CPU decompression of ASTC textures. Null for non-ASTC images.
     std::unique_ptr<AstcTexture> mAstcTexture = nullptr;
