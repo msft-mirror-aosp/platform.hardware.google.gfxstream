@@ -32,7 +32,9 @@ class CompressedImageInfo {
    public:
     // Static methods
 
-    static VkFormat getDecompressedFormat(VkFormat compFmt);
+    // Returns the format that this image will be converted to, if the original format isn't
+    // natively supported by the GPU.
+    static VkFormat getOutputFormat(VkFormat compFmt);
 
     // Returns the image format used to store the compressed data. Each pixel in the compressed
     // mipmaps will hold an entire compressed block.
@@ -58,8 +60,8 @@ class CompressedImageInfo {
 
     // Public methods
 
-    // Returns the VkImageCreateInfo needed to create the decompressed image
-    VkImageCreateInfo getDecompressedCreateInfo(const VkImageCreateInfo& createInfo) const;
+    // Returns the VkImageCreateInfo needed to create the output image
+    VkImageCreateInfo getOutputCreateInfo(const VkImageCreateInfo& createInfo) const;
 
     // Creates the compressed mipmap images, that is the VkImages holding the compressed data
     void createCompressedMipmapImages(VulkanDispatch* vk, const VkImageCreateInfo& createInfo);
@@ -103,8 +105,8 @@ class CompressedImageInfo {
     bool isAstc() const;
     VkDevice device() const { return mDevice; }
     VkImage compressedMipmap(uint32_t level) { return mCompressedMipmaps[level]; }
-    VkImage decompressedImage() { return mDecompressedImage; }
-    void setDecompressedImage(VkImage image) { mDecompressedImage = image; }
+    VkImage outputImage() { return mOutputImage; }
+    void setOutputImage(VkImage image) { mOutputImage = image; }
     bool canDecompressOnCpu() { return mAstcTexture && mAstcTexture->canDecompressOnCpu(); }
     bool successfullyDecompressedOnCpu() const {
         return mAstcTexture && mAstcTexture->successfullyDecompressed();
@@ -143,7 +145,7 @@ class CompressedImageInfo {
     // The original compressed format of this image. E.g.: VK_FORMAT_ASTC_4x4_UNORM_BLOCK
     VkFormat mCompressedFormat = VK_FORMAT_UNDEFINED;
     // The format that we decompressed the image to. E.g.: VK_FORMAT_R8G8B8A8_UINT
-    VkFormat mDecompressedFormat = VK_FORMAT_UNDEFINED;
+    VkFormat mOutputFormat = VK_FORMAT_UNDEFINED;
     // The format that we use to store the compressed data, since the original compressed format
     // isn't available. This holds one compressed block per pixel. E.g.: VK_FORMAT_R32G32B32A32_UINT
     VkFormat mCompressedMipmapsFormat = VK_FORMAT_UNDEFINED;
@@ -155,7 +157,7 @@ class CompressedImageInfo {
     uint32_t mLayerCount = 1;
 
     VkDevice mDevice = VK_NULL_HANDLE;
-    VkImage mDecompressedImage = VK_NULL_HANDLE;
+    VkImage mOutputImage = VK_NULL_HANDLE;
 
     // Compressed data. Each mip level of the original image is stored as a separate VkImage, and
     // each pixel in those images contains an entire compressed block.
@@ -173,7 +175,7 @@ class CompressedImageInfo {
     std::vector<VkDescriptorSet> mDecompDescriptorSets;
     VkDescriptorPool mDecompDescriptorPool = VK_NULL_HANDLE;
     std::vector<VkImageView> mCompressedMipmapsImageViews;
-    std::vector<VkImageView> mDecompImageViews;
+    std::vector<VkImageView> mOutputImageViews;
     bool mDecompPipelineInitialized = false;
 };
 
