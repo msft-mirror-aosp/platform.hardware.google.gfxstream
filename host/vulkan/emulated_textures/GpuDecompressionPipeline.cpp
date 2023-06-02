@@ -24,7 +24,7 @@ namespace vk {
 
 namespace {
 
-static bool useAstcNew = false;
+static AstcDecoder activeAstcDecoder = AstcDecoder::Old;
 
 struct ShaderGroup {
     ShaderData shader1D;
@@ -45,6 +45,7 @@ struct ShaderGroup {
 
 DECLARE_SHADER_GROUP(Astc);
 DECLARE_SHADER_GROUP(AstcToRgb);
+DECLARE_SHADER_GROUP(AstcToBc3);
 DECLARE_SHADER_GROUP(EacR11Snorm);
 DECLARE_SHADER_GROUP(EacR11Unorm);
 DECLARE_SHADER_GROUP(EacRG11Snorm);
@@ -85,8 +86,14 @@ const ShaderGroup* getShaderGroup(VkFormat format) {
         case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-            return useAstcNew ? &kShaderAstcToRgb : &kShaderAstc;
-
+            switch (activeAstcDecoder) {
+                case AstcDecoder::Old:
+                    return &kShaderAstc;
+                case AstcDecoder::NewRgb:
+                    return &kShaderAstcToRgb;
+                case AstcDecoder::NewBc3:
+                    return &kShaderAstcToBc3;
+            }
         case VK_FORMAT_EAC_R11_SNORM_BLOCK:
             return &kShaderEacR11Snorm;
 
@@ -204,8 +211,10 @@ GpuDecompressionPipeline::~GpuDecompressionPipeline() {
 }
 
 // static
-void GpuDecompressionPipelineManager::setUseNewAstcDecoder(bool value) { useAstcNew = value; }
-bool GpuDecompressionPipelineManager::useNewAstcDecoder() { return useAstcNew; }
+void GpuDecompressionPipelineManager::setAstcDecoder(AstcDecoder value) {
+    activeAstcDecoder = value;
+}
+AstcDecoder GpuDecompressionPipelineManager::astcDecoder() { return activeAstcDecoder; }
 
 GpuDecompressionPipelineManager::GpuDecompressionPipelineManager(VulkanDispatch* vk,
                                                                  VkDevice device)
