@@ -39,3 +39,8 @@
 
 // Appends the correct image type ("1DArray", "2DArray", or "3D") to x
 #define WITH_TYPE(x) CONCAT(x, IMG_TYPE)
+
+// TODO(gregschlom): do we actually use 1DArray images?
+ivec2 getPos1DArray(ivec3 pos) { return pos.xz; }
+ivec3 getPos2DArray(ivec3 pos) { return pos; }
+ivec3 getPos3D(ivec3 pos) { return pos; }
