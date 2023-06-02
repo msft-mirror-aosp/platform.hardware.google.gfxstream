@@ -143,6 +143,22 @@ bool isCompressedFormat(VkFormat format) {
            gfxstream::vk::isBc(format);
 }
 
+// Returns the format that the shader uses to write the output image
+VkFormat getShaderFormat(VkFormat outputFormat) {
+    switch (outputFormat) {
+        case VK_FORMAT_R16_UNORM:
+        case VK_FORMAT_R16_SNORM:
+        case VK_FORMAT_R16G16_UNORM:
+        case VK_FORMAT_R16G16_SNORM:
+            return outputFormat;
+        case VK_FORMAT_BC3_UNORM_BLOCK:
+        case VK_FORMAT_BC3_SRGB_BLOCK:
+            return VK_FORMAT_R32G32B32A32_UINT;
+        default:
+            return VK_FORMAT_R8G8B8A8_UINT;
+    }
+}
+
 }  // namespace
 
 CompressedImageInfo::CompressedImageInfo(VkDevice device) : mDevice(device) {}
@@ -193,7 +209,9 @@ VkFormat CompressedImageInfo::getOutputFormat(VkFormat compFmt) {
         case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
         case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
         case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-            return VK_FORMAT_R8G8B8A8_UNORM;
+            return GpuDecompressionPipelineManager::astcDecoder() == AstcDecoder::NewBc3
+                       ? VK_FORMAT_BC3_UNORM_BLOCK
+                       : VK_FORMAT_R8G8B8A8_UNORM;
         case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
         case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
         case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
@@ -208,7 +226,9 @@ VkFormat CompressedImageInfo::getOutputFormat(VkFormat compFmt) {
         case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-            return VK_FORMAT_R8G8B8A8_SRGB;
+            return GpuDecompressionPipelineManager::astcDecoder() == AstcDecoder::NewBc3
+                       ? VK_FORMAT_BC3_SRGB_BLOCK
+                       : VK_FORMAT_R8G8B8A8_SRGB;
         default:
             return compFmt;
     }
@@ -566,18 +586,7 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
         return result;
     }
 
-    VkFormat intermediateFormat = VK_FORMAT_R8G8B8A8_UINT;
-    switch (mCompressedFormat) {
-        case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-        case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-        case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-        case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-            intermediateFormat = mOutputFormat;
-            break;
-        default:
-            break;
-    }
-
+    VkFormat shaderFormat = getShaderFormat(mOutputFormat);
     mCompressedMipmapsImageViews.resize(mMipLevels);
     mOutputImageViews.resize(mMipLevels);
 
@@ -604,7 +613,7 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
         mCompressedMipmapsImageViews[i] =
             createDefaultImageView(vk, device, mCompressedMipmaps[i], mCompressedMipmapsFormat,
                                    mImageType, 0, mLayerCount);
-        mOutputImageViews[i] = createDefaultImageView(vk, device, mOutputImage, intermediateFormat,
+        mOutputImageViews[i] = createDefaultImageView(vk, device, mOutputImage, shaderFormat,
                                                       mImageType, i, mLayerCount);
         compressedMipmapsDescriptorImageInfo.imageView = mCompressedMipmapsImageViews[i];
         mDecompDescriptorImageInfo.imageView = mOutputImageViews[i];
@@ -622,7 +631,7 @@ void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer command
     vk->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                           mDecompPipeline->pipeline());
     uint32_t dispatchZ = mExtent.depth == 1 ? range.layerCount : mExtent.depth;
-
+    bool perPixel = false;  // Whether the shader operates per compressed block or per pixel
     if (isEtc2()) {
         const Etc2PushConstant pushConstant = {
             .compFormat = (uint32_t)mCompressedFormat,
@@ -651,14 +660,14 @@ void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer command
             .smallBlock = smallBlock};
         vk->vkCmdPushConstants(commandBuffer, mDecompPipeline->pipelineLayout(),
                                VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pushConstant), &pushConstant);
+        // The old shader is per-block, the new shaders are per-pixel
+        perPixel = GpuDecompressionPipelineManager::astcDecoder() != AstcDecoder::Old;
     }
     for (uint32_t i = range.baseMipLevel; i < range.baseMipLevel + range.levelCount; i++) {
         vk->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                                     mDecompPipeline->pipelineLayout(), 0, 1,
                                     mDecompDescriptorSets.data() + i, 0, nullptr);
-        VkExtent3D extent = GpuDecompressionPipelineManager::useNewAstcDecoder() && isAstc()
-                                ? mipmapExtent(i)
-                                : compressedMipmapExtent(i);
+        VkExtent3D extent = perPixel ? mipmapExtent(i) : compressedMipmapExtent(i);
         vk->vkCmdDispatch(commandBuffer, ceil_div(extent.width, 8), ceil_div(extent.height, 8),
                           dispatchZ);
     }
