@@ -141,6 +141,18 @@ const ShaderData* getDecompressionShader(VkFormat format, VkImageType imageType)
     }
 }
 
+const char* string_AstcDecoder(AstcDecoder decoder) {
+    switch (decoder) {
+        case AstcDecoder::Old:
+            return "Old";
+        case AstcDecoder::NewRgb:
+            return "NewRgb";
+        case AstcDecoder::NewBc3:
+            return "NewBc3";
+    }
+    return "Unknown";
+}
+
 }  // namespace
 
 // static
@@ -166,8 +178,9 @@ GpuDecompressionPipeline::GpuDecompressionPipeline(VulkanDispatch* vk, VkDevice 
       mImageType(imageType),
       mDescriptorSetLayout(descriptorSetLayout),
       mPipelineLayout(pipelineLayout) {
-    INFO("Created GPU decompression pipeline for format %s %s", string_VkFormat(mCompressedFormat),
-         string_VkImageType(imageType));
+    INFO("Created GPU decompression pipeline for format %s %s. ASTC decoder: %s",
+         string_VkFormat(mCompressedFormat), string_VkImageType(imageType),
+         string_AstcDecoder(activeAstcDecoder));
 }
 
 bool GpuDecompressionPipeline::initialize() {
