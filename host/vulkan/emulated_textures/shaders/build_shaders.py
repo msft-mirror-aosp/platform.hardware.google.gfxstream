@@ -20,7 +20,7 @@ import os
 # The list of shaders to compile, without the .comp extension
 shaders = [
     "Astc",
-    "AstcNew",
+    "AstcToRgb",
     "EacR11Snorm",
     "EacR11Unorm",
     "EacRG11Snorm",
@@ -55,7 +55,7 @@ def main():
     print("Compiling shaders in", os.getcwd())
 
     # Make sure the shaders are all properly formatted
-    ret = os.system("clang-format -i *.comp")
+    ret = os.system("clang-format -i *.comp *.glsl")
     if ret != 0:
         print("Running clang-format failed. Make sure it is available in your PATH.")
         exit(ret)

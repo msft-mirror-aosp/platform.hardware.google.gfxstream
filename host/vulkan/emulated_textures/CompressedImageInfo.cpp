@@ -659,7 +659,6 @@ void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer command
         VkExtent3D extent = GpuDecompressionPipelineManager::useNewAstcDecoder() && isAstc()
                                 ? mipmapExtent(i)
                                 : compressedMipmapExtent(i);
-        // TODO(gregschlom) - use the block size as the local group size for AstcNew
         vk->vkCmdDispatch(commandBuffer, ceil_div(extent.width, 8), ceil_div(extent.height, 8),
                           dispatchZ);
     }
