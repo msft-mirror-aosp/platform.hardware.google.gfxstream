@@ -23,6 +23,8 @@ namespace gfxstream {
 namespace vk {
 namespace {
 
+static bool useAstcNew = false;
+
 #define _RETURN_ON_FAILURE(cmd)                                                                \
     {                                                                                          \
         VkResult result = cmd;                                                                 \
@@ -67,6 +69,7 @@ struct ShaderGroup {
                      .size = sizeof(decompression_shaders::Format##_3D)}, \
     }
 
+DECLARE_SHADER_GROUP(AstcNew);
 DECLARE_SHADER_GROUP(Astc);
 DECLARE_SHADER_GROUP(EacR11Snorm);
 DECLARE_SHADER_GROUP(EacR11Unorm);
@@ -108,7 +111,7 @@ const ShaderGroup* getShaderGroup(VkFormat format) {
         case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-            return &kShaderAstc;
+            return useAstcNew ? &kShaderAstcNew : &kShaderAstc;
 
         case VK_FORMAT_EAC_R11_SNORM_BLOCK:
             return &kShaderEacR11Snorm;
@@ -568,6 +571,9 @@ VkImageCopy CompressedImageInfo::getCompressedMipmapsImageCopy(const VkImageCopy
     return region;
 }
 
+// static
+void CompressedImageInfo::useNewAstcDecoder(bool value) { useAstcNew = value; }
+
 void CompressedImageInfo::destroy(VulkanDispatch* vk) {
     for (const auto& image : mCompressedMipmaps) {
         vk->vkDestroyImage(mDevice, image, nullptr);
@@ -809,9 +815,10 @@ void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer command
         vk->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                                     mDecompPipelineLayout, 0, 1, mDecompDescriptorSets.data() + i,
                                     0, nullptr);
-        VkExtent3D compExtent = compressedMipmapExtent(i);
-        vk->vkCmdDispatch(commandBuffer, ceil_div(compExtent.width, 8),
-                          ceil_div(compExtent.height, 8), dispatchZ);
+        VkExtent3D extent = useAstcNew && isAstc() ? mipmapExtent(i) : compressedMipmapExtent(i);
+        // TODO(gregschlom) - use the block size as the local group size for AstcNew
+        vk->vkCmdDispatch(commandBuffer, ceil_div(extent.width, 8), ceil_div(extent.height, 8),
+                          dispatchZ);
     }
 }
 
