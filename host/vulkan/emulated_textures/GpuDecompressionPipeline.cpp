@@ -44,7 +44,7 @@ struct ShaderGroup {
     }
 
 DECLARE_SHADER_GROUP(Astc);
-DECLARE_SHADER_GROUP(AstcNew);
+DECLARE_SHADER_GROUP(AstcToRgb);
 DECLARE_SHADER_GROUP(EacR11Snorm);
 DECLARE_SHADER_GROUP(EacR11Unorm);
 DECLARE_SHADER_GROUP(EacRG11Snorm);
@@ -85,7 +85,7 @@ const ShaderGroup* getShaderGroup(VkFormat format) {
         case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-            return useAstcNew ? &kShaderAstcNew : &kShaderAstc;
+            return useAstcNew ? &kShaderAstcToRgb : &kShaderAstc;
 
         case VK_FORMAT_EAC_R11_SNORM_BLOCK:
             return &kShaderEacR11Snorm;
