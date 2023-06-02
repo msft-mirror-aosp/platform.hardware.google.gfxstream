@@ -805,7 +805,7 @@ class VkDecoderGlobalState::Impl {
                 memset(pImageFormatProperties, 0, sizeof(VkImageFormatProperties));
                 return VK_ERROR_FORMAT_NOT_SUPPORTED;
             }
-            flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
+            flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
             flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
             usage |= VK_IMAGE_USAGE_STORAGE_BIT;
             format = CompressedImageInfo::getCompressedMipmapsFormat(format);
@@ -841,7 +841,7 @@ class VkDecoderGlobalState::Impl {
             }
             imageFormatInfo = *pImageFormatInfo;
             pImageFormatInfo = &imageFormatInfo;
-            imageFormatInfo.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
+            imageFormatInfo.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
             imageFormatInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
             imageFormatInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
             imageFormatInfo.format = CompressedImageInfo::getCompressedMipmapsFormat(format);
@@ -1567,7 +1567,7 @@ class VkDecoderGlobalState::Impl {
                 : CompressedImageInfo(device);
         VkImageCreateInfo decompInfo;
         if (needDecompression) {
-            decompInfo = cmpInfo.getDecompressedCreateInfo(*pCreateInfo);
+            decompInfo = cmpInfo.getOutputCreateInfo(*pCreateInfo);
             pCreateInfo = &decompInfo;
         }
 
@@ -1593,7 +1593,7 @@ class VkDecoderGlobalState::Impl {
         if (createRes != VK_SUCCESS) return createRes;
 
         if (needDecompression) {
-            cmpInfo.setDecompressedImage(*pImage);
+            cmpInfo.setOutputImage(*pImage);
             cmpInfo.createCompressedMipmapImages(vk, *pCreateInfo);
 
             if (cmpInfo.isAstc()) {
@@ -1621,7 +1621,7 @@ class VkDecoderGlobalState::Impl {
 
         if (!imageInfo->anbInfo) {
             imageInfo->cmpInfo.destroy(deviceDispatch);
-            if (image != imageInfo->cmpInfo.decompressedImage()) {
+            if (image != imageInfo->cmpInfo.outputImage()) {
                 deviceDispatch->vkDestroyImage(device, image, pAllocator);
             }
         }
@@ -1725,11 +1725,11 @@ class VkDecoderGlobalState::Impl {
         VkImageViewCreateInfo createInfo;
         bool needEmulatedAlpha = false;
         if (deviceInfo->needEmulatedDecompression(pCreateInfo->format)) {
-            if (imageInfo->cmpInfo.decompressedImage()) {
+            if (imageInfo->cmpInfo.outputImage()) {
                 createInfo = *pCreateInfo;
-                createInfo.format = CompressedImageInfo::getDecompressedFormat(pCreateInfo->format);
+                createInfo.format = CompressedImageInfo::getOutputFormat(pCreateInfo->format);
                 needEmulatedAlpha = CompressedImageInfo::needEmulatedAlpha(pCreateInfo->format);
-                createInfo.image = imageInfo->cmpInfo.decompressedImage();
+                createInfo.image = imageInfo->cmpInfo.outputImage();
                 pCreateInfo = &createInfo;
             }
         } else if (deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
@@ -4341,7 +4341,7 @@ class VkDecoderGlobalState::Impl {
                                pCreateInfo->pAttachments + pCreateInfo->attachmentCount);
             createInfo.pAttachments = attachments.data();
             for (auto& attachment : attachments) {
-                attachment.format = CompressedImageInfo::getDecompressedFormat(attachment.format);
+                attachment.format = CompressedImageInfo::getOutputFormat(attachment.format);
             }
             pCreateInfo = &createInfo;
         }
@@ -5565,7 +5565,7 @@ class VkDecoderGlobalState::Impl {
         VkFormatProperties1or2* pFormatProperties) {
         if (isEmulatedCompressedTexture(format, physicalDevice, vk)) {
             getPhysicalDeviceFormatPropertiesFunc(
-                physicalDevice, CompressedImageInfo::getDecompressedFormat(format),
+                physicalDevice, CompressedImageInfo::getOutputFormat(format),
                 pFormatProperties);
             maskFormatPropertiesForEmulatedTextures(pFormatProperties);
             return;
