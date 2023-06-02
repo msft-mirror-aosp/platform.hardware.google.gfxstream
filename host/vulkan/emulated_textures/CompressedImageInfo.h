@@ -107,7 +107,7 @@ class CompressedImageInfo {
     VkImage compressedMipmap(uint32_t level) { return mCompressedMipmaps[level]; }
     VkImage outputImage() { return mOutputImage; }
     void setOutputImage(VkImage image) { mOutputImage = image; }
-    bool canDecompressOnCpu() { return mAstcTexture && mAstcTexture->canDecompressOnCpu(); }
+    bool canDecompressOnCpu() { return mAstcTexture != nullptr; }
     bool successfullyDecompressedOnCpu() const {
         return mAstcTexture && mAstcTexture->successfullyDecompressed();
     }
