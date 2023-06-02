@@ -3292,15 +3292,16 @@ class VkDecoderGlobalState::Impl {
 
         VkInstance* instance = deviceToInstanceLocked(device);
         InstanceInfo* instanceInfo = android::base::find(mInstanceInfo, *instance);
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         // If gfxstream needs to be able to read from this memory, needToMap should be true.
         // When external blobs are off, we always want to map HOST_VISIBLE memory. Because, we run
         // in the same process as the guest.
         // When external blobs are on, we want to map memory only if a workaround is using it in
         // the gfxstream process. This happens when ASTC CPU emulation is on.
-        bool needToMap =
-            (!feature_is_enabled(kFeature_ExternalBlob) || instanceInfo->useAstcCpuDecompression) &&
-            !createBlobInfoPtr;
+        bool needToMap = !feature_is_enabled(kFeature_ExternalBlob) ||
+                         (instanceInfo->useAstcCpuDecompression && deviceInfo->emulateTextureAstc);
 
         // Some cases provide a mappedPtr, so we only map if we still don't have a pointer here.
         if (!mappedPtr && needToMap) {
