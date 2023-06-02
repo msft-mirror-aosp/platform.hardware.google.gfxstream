@@ -84,6 +84,8 @@ class GpuDecompressionPipeline {
     VkPipeline mPipeline = VK_NULL_HANDLE;
 };
 
+enum class AstcDecoder{Old, NewRgb, NewBc3};
+
 // Acts as a cache for GpuDecompressionPipeline objects
 // Currently no eviction strategy, but the maximum number of entries is bounded by the number of
 // compressed formats that we emulate.
@@ -91,8 +93,8 @@ class GpuDecompressionPipeline {
 class GpuDecompressionPipelineManager {
    public:
     // TODO(gregschlom) remove this once we fully remove the old decoder
-    static void setUseNewAstcDecoder(bool value);
-    static bool useNewAstcDecoder();
+    static void setAstcDecoder(AstcDecoder value);
+    static AstcDecoder astcDecoder();
 
     GpuDecompressionPipelineManager(VulkanDispatch* vk, VkDevice device);
 

@@ -21,6 +21,7 @@ import os
 shaders = [
     "Astc",
     "AstcToRgb",
+    "AstcToBc3",
     "EacR11Snorm",
     "EacR11Unorm",
     "EacRG11Snorm",
