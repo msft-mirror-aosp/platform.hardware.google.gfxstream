@@ -20,6 +20,8 @@
 #include <vector>
 
 #include "host/vulkan/emulated_textures/AstcTexture.h"
+#include "host/vulkan/emulated_textures/AstcTexture.h"
+#include "host/vulkan/emulated_textures/GpuDecompressionPipeline.h"
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 
@@ -44,8 +46,6 @@ class CompressedImageInfo {
                                                      const CompressedImageInfo& dstImg,
                                                      bool needEmulatedSrc, bool needEmulatedDst);
 
-    static void useNewAstcDecoder(bool value);
-
     // Constructors
 
     // TODO(gregschlom) Delete these constructors once we switch to holding a
@@ -53,7 +53,8 @@ class CompressedImageInfo {
     CompressedImageInfo() = default;
     explicit CompressedImageInfo(VkDevice device);
 
-    CompressedImageInfo(VkDevice device, const VkImageCreateInfo& createInfo);
+    CompressedImageInfo(VkDevice device, const VkImageCreateInfo& createInfo,
+                        GpuDecompressionPipelineManager* pipelineManager);
 
     // Public methods
 
@@ -73,6 +74,8 @@ class CompressedImageInfo {
     // outputBarriers: any barrier that needs to be passed to the vkCmdPipelineBarrier call will be
     // added to this vector.
     // Returns whether image decompression happened.
+    // Note: the global lock must be held when calling this method, because we call into
+    // GpuDecompressionPipelineManager.
     bool decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
                             VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
                             const VkImageMemoryBarrier& targetBarrier,
@@ -165,14 +168,13 @@ class CompressedImageInfo {
     std::unique_ptr<AstcTexture> mAstcTexture = nullptr;
 
     // Vulkan resources used by the decompression pipeline
-    VkShaderModule mDecompShader = VK_NULL_HANDLE;
-    VkPipeline mDecompPipeline = VK_NULL_HANDLE;
-    VkPipelineLayout mDecompPipelineLayout = VK_NULL_HANDLE;
+    GpuDecompressionPipelineManager* mPipelineManager = nullptr;
+    GpuDecompressionPipeline* mDecompPipeline = nullptr;
     std::vector<VkDescriptorSet> mDecompDescriptorSets;
-    VkDescriptorSetLayout mDecompDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool mDecompDescriptorPool = VK_NULL_HANDLE;
     std::vector<VkImageView> mCompressedMipmapsImageViews;
     std::vector<VkImageView> mDecompImageViews;
+    bool mDecompPipelineInitialized = false;
 };
 
 }  // namespace vk
