@@ -3294,8 +3294,10 @@ class VkDecoderGlobalState::Impl {
         // in the same process as the guest.
         // When external blobs are on, we want to map memory only if a workaround is using it in
         // the gfxstream process. This happens when ASTC CPU emulation is on.
-        bool needToMap = !feature_is_enabled(kFeature_ExternalBlob) ||
-                         (deviceInfo->useAstcCpuDecompression && deviceInfo->emulateTextureAstc);
+        bool needToMap =
+            (!feature_is_enabled(kFeature_ExternalBlob) ||
+             (deviceInfo->useAstcCpuDecompression && deviceInfo->emulateTextureAstc)) &&
+            !createBlobInfoPtr;
 
         // Some cases provide a mappedPtr, so we only map if we still don't have a pointer here.
         if (!mappedPtr && needToMap) {
