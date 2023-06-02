@@ -96,8 +96,8 @@ using gl::TextureDraw;
 using gl::YUVConverter;
 using gl::YUVPlane;
 
-using vk::AstcEmulationMode;
-using vk::VkEmulationFeatures;
+using gfxstream::vk::AstcEmulationMode;
+using gfxstream::vk::VkEmulationFeatures;
 
 // static std::string getTimeStampString() {
 //     const time_t timestamp = android::base::getUnixTimeUs();
@@ -168,6 +168,11 @@ bool postOnlyOnMainThread() {
 #else
     return false;
 #endif
+}
+
+AstcEmulationMode getAstcEmulationMode() {
+    return AstcEmulationMode::Gpu;
+//    return AstcEmulationMode::Cpu;
 }
 
 }  // namespace
@@ -350,7 +355,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
             .useVulkanComposition = fb->m_useVulkanComposition,
             .useVulkanNativeSwapchain = feature_is_enabled(kFeature_VulkanNativeSwapchain),
             .guestRenderDoc = std::move(renderDocMultipleVkInstances),
-            .astcLdrEmulationMode = AstcEmulationMode::Auto,
+            .astcLdrEmulationMode = AstcEmulationMode::Gpu,
             .enableEtc2Emulation = true,
             .enableYcbcrEmulation = false,
             .guestUsesAngle = fb->m_guestUsesAngle,
