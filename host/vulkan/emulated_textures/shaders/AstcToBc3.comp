@@ -6,22 +6,27 @@
 #extension GL_KHR_shader_subgroup_shuffle : enable
 
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
-layout(binding = 0) uniform highp usamplerBuffer uInputBuffer;
-layout(binding = 1, rgba32ui) writeonly uniform uimage2D uOutput;
+layout(binding = 0, rgba32ui) readonly uniform uimage2DArray srcImage;
+layout(binding = 1, rgba32ui) writeonly uniform uimage2DArray dstImage;
 
 layout(push_constant) uniform imagInfo {
-    // for transcode to BC the width and height need to be aligned to block size
-    // we need full block data. if decode to RGBA, we don't need to write full
-    // block data out. offsetX, offsetY both need to be multiple of four.
-    uint offsetX;
-    uint offsetY;
-    int texelOffset;
-    uint width;
-    uint height;
-    uint alphaBits;
-    uint isSigned;
-    uint isEacRg;
-};
+    uvec2 blockSize;
+    uint baseLayer;
+    uint smallBlock;  // TODO(gregschlom) Remove this once we remove the old decoder.
+}
+u_pushConstant;
+
+#include "AstcDecompressor.glsl"
+
+// Decodes an ASTC-encoded pixel at `texelPos` to RGBA
+uvec4 decodeRGBA(uvec2 texelPos, uint layer) {
+    uvec2 blockPos = texelPos / u_pushConstant.blockSize;
+    uvec2 posInBlock = texelPos % u_pushConstant.blockSize;
+
+    astcBlock = imageLoad(srcImage, ivec3(blockPos, layer)).wzyx;
+    astcDecoderInitialize(astcBlock, u_pushConstant.blockSize);
+    return astcDecodeTexel(posInBlock);
+}
 
 ivec2 build_coord() {
     uvec2 base = (gl_WorkGroupID.xy) * 8;
@@ -77,13 +82,8 @@ uint GetIndicesRGB(vec3 color, vec3 minColor, vec3 maxColor, int scale) {
 // Select end point using PCA
 void ComputeMaxMinColor(uvec3 rgbColor, inout uvec3 minColor, inout uvec3 maxColor) {
     ivec3 dx;
-    if (alphaBits == 1) {
-        int count = subgroupClusteredAdd(1, 16);
-        ivec3 avg = ivec3((subgroupClusteredAdd(rgbColor, 16) * 2 + count) / (2 * count));
-        dx = ivec3(rgbColor) - avg;
-    } else {
-        dx = ivec3(rgbColor) - ivec3((subgroupClusteredAdd(rgbColor, 16) + 8) >> 4);
-    }
+    dx = ivec3(rgbColor) - ivec3((subgroupClusteredAdd(rgbColor, 16) + 8) >> 4);
+
     float cov0 = float(subgroupClusteredAdd(dx.r * dx.r, 16));
     float cov1 = float(subgroupClusteredAdd(dx.r * dx.g, 16));
     float cov2 = float(subgroupClusteredAdd(dx.r * dx.b, 16));
@@ -187,80 +187,39 @@ void swap(inout uint a, inout uint b) {
 
 void main() {
     ivec2 coord = build_coord();
-    if (any(greaterThanEqual(coord, ivec2(width, height)))) return;
-
-    ivec2 tile_coord = coord >> 2;
     ivec2 pixel_coord = coord & 3;
     int linear_pixel = 4 * pixel_coord.x + pixel_coord.y;
     int pid = 4 * pixel_coord.y + pixel_coord.x;
-    uvec4 payload =
-        texelFetch(uInputBuffer, tile_coord.y * int((width + 3) >> 2) + tile_coord.x + texelOffset);
 
-    ivec4 result;
-    uvec2 color_payload;
-    if (alphaBits == 8) {
-        color_payload = flip_endian(payload.zw);
-    } else {
-        color_payload = flip_endian(payload.xy);
-    }
-    bool nonOpaque = alphaBits == 1 && (color_payload.y & 2u) == 0u;
-    bool punchthrough = nonOpaque;
-    result = DecodeRGB(pixel_coord, color_payload, linear_pixel, punchthrough);
-
+    ivec4 result = ivec4(decodeRGBA(coord, 0));
     uvec4 finalResult;
 
     uvec3 minColor, maxColor;
     uint indices = 0;
     uint color565 = 0;
 
-    bool controlFlag = alphaBits != 1 || result.a > 0;
-    if (controlFlag) {
-        ComputeMaxMinColor(uvec3(result.r, result.g, result.b), minColor, maxColor);
+    ComputeMaxMinColor(uvec3(result.r, result.g, result.b), minColor, maxColor);
 
-        uint minColor565 = packColorToRGB565(minColor);
-        uint maxColor565 = packColorToRGB565(maxColor);
+    uint minColor565 = packColorToRGB565(minColor);
+    uint maxColor565 = packColorToRGB565(maxColor);
 
-        if (minColor565 != maxColor565) {
-            indices = GetIndicesRGB(vec3(result.r, result.g, result.b), vec3(minColor),
-                                    vec3(maxColor), nonOpaque ? 2 : 3);
-        }
-        bool flip = maxColor565 < minColor565;
-        if (flip) {
-            indices ^= 1;
-            // nonOpaque only need flip 0-->1, 1-->0. fix 2-->3.
-            if (nonOpaque && indices == 3) {
-                indices = 2;
-            }
-        }
-        if (flip != nonOpaque) {
-            swap(maxColor565, minColor565);
-        }
-        color565 = maxColor565 | (minColor565 << 16);
+    if (minColor565 != maxColor565) {
+        indices =
+            GetIndicesRGB(vec3(result.r, result.g, result.b), vec3(minColor), vec3(maxColor), 3);
     }
-    if (alphaBits == 1) {
-        int active_lane_index =
-            subgroupClusteredMax(controlFlag ? int(gl_SubgroupInvocationID) : -1, 16);
-        if (active_lane_index != -1) {
-            color565 = subgroupShuffle(color565, active_lane_index);
-        }
-        if (punchthrough && result.a == 0) {
-            indices = 3;
-        }
+    bool flip = maxColor565 < minColor565;
+    if (flip) {
+        indices ^= 1;
+        swap(maxColor565, minColor565);
     }
+    color565 = maxColor565 | (minColor565 << 16);
+
     uint mask = subgroupClusteredOr(indices << (2 * pid), 16);
-    if (alphaBits == 8) {
-        finalResult.b = color565;
-        finalResult.a = mask;
-        uvec2 alpha_payload = flip_endian(payload.xy);
-        result.a = decode_etc2_alpha(alpha_payload, linear_pixel);
-        finalResult.rg = EncodeBC4(result.a, pid);
-    } else {
-        finalResult.r = color565;
-        finalResult.g = mask;
-    }
+    finalResult.b = color565;
+    finalResult.a = mask;
+    finalResult.rg = EncodeBC4(result.a, pid);
 
     if (pid == 0) {
-        tile_coord += ivec2(offsetX / 4, offsetY / 4);
-        imageStore(uOutput, tile_coord, finalResult);
+        imageStore(dstImage, ivec3(coord / 4, 0), finalResult);
     }
 }
