@@ -52,6 +52,7 @@
 #include "host-common/emugl_vm_operations.h"
 #include "host-common/feature_control.h"
 #include "host-common/vm_operations.h"
+#include "vulkan/VkFormatUtils.h"
 #include "utils/RenderDoc.h"
 #include "vk_util.h"
 #include "vulkan/emulated_textures/AstcTexture.h"
@@ -5514,8 +5515,8 @@ class VkDecoderGlobalState::Impl {
 
     bool isEmulatedCompressedTexture(VkFormat format, VkPhysicalDevice physicalDevice,
                                      VulkanDispatch* vk) {
-        return (CompressedImageInfo::isEtc2(format) && needEmulatedEtc2(physicalDevice, vk)) ||
-               (CompressedImageInfo::isAstc(format) && needEmulatedAstc(physicalDevice, vk));
+        return (gfxstream::vk::isEtc2(format) && needEmulatedEtc2(physicalDevice, vk)) ||
+               (gfxstream::vk::isAstc(format) && needEmulatedAstc(physicalDevice, vk));
     }
 
     static const VkFormatFeatureFlags kEmulatedTextureBufferFeatureMask =
@@ -5952,8 +5953,7 @@ class VkDecoderGlobalState::Impl {
                     (imageInfo.isAstc() && emulateTextureAstc));
         }
         bool needEmulatedDecompression(VkFormat format) {
-            return (CompressedImageInfo::isEtc2(format) && emulateTextureEtc2) ||
-                   (CompressedImageInfo::isAstc(format) && emulateTextureAstc);
+            return (gfxstream::vk::isEtc2(format) && emulateTextureEtc2) || (gfxstream::vk::isAstc(format) && emulateTextureAstc);
         }
     };
 

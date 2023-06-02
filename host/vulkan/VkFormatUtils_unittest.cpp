@@ -261,3 +261,4 @@ TEST(VkFormatUtilsTest, GetTransferInfoYV12OrYV21) {
 }  // namespace
 }  // namespace vk
 }  // namespace gfxstream
+
