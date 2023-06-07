@@ -22,6 +22,10 @@
 
 #include <iomanip>
 
+#if defined(__linux__)
+#include <sys/resource.h>
+#endif
+
 #include "ContextHelper.h"
 #include "GLESVersionDetector.h"
 #include "Hwc2.h"
@@ -92,8 +96,8 @@ using gl::TextureDraw;
 using gl::YUVConverter;
 using gl::YUVPlane;
 
-using vk::AstcEmulationMode;
-using vk::VkEmulationFeatures;
+using gfxstream::vk::AstcEmulationMode;
+using gfxstream::vk::VkEmulationFeatures;
 
 // static std::string getTimeStampString() {
 //     const time_t timestamp = android::base::getUnixTimeUs();
@@ -166,6 +170,11 @@ bool postOnlyOnMainThread() {
 #endif
 }
 
+AstcEmulationMode getAstcEmulationMode() {
+    return AstcEmulationMode::Gpu;
+//    return AstcEmulationMode::Cpu;
+}
+
 }  // namespace
 
 // |sInitialized| caches the initialized framebuffer state - this way
@@ -195,11 +204,64 @@ void FrameBuffer::waitUntilInitialized() {
 #endif
 }
 
+void MaybeIncreaseFileDescriptorSoftLimit() {
+#if defined(__linux__)
+    // Cuttlefish with Gfxstream on Nvidia and SwiftShader often hits the default nofile
+    // soft limit (1024) when running large test suites.
+    struct rlimit nofileLimits = {
+        .rlim_cur = 0,
+        .rlim_max = 0,
+    };
+
+    int ret = getrlimit(RLIMIT_NOFILE, &nofileLimits);
+    if (ret) {
+        ERR("Warning: failed to query nofile limits.");
+        return;
+    }
+
+    const auto softLimit = nofileLimits.rlim_cur;
+    const auto hardLimit = nofileLimits.rlim_max;
+
+    constexpr const rlim_t kDesiredNofileSoftLimit = 4096;
+
+    if (softLimit < kDesiredNofileSoftLimit) {
+        if (softLimit == hardLimit) {
+            ERR("Warning: unable to raise nofile soft limit - already at hard limit.");
+            return;
+        }
+
+        if (kDesiredNofileSoftLimit > hardLimit) {
+            ERR("Warning: unable to raise nofile soft limit to desired %d - hard limit is %d.",
+                static_cast<int>(kDesiredNofileSoftLimit), static_cast<int>(hardLimit));
+        }
+
+        const rlim_t requestedSoftLimit = std::min(kDesiredNofileSoftLimit, hardLimit);
+
+        struct rlimit requestedNofileLimits = {
+            .rlim_cur = requestedSoftLimit,
+            .rlim_max = hardLimit,
+        };
+
+        ret = setrlimit(RLIMIT_NOFILE, &requestedNofileLimits);
+        if (ret) {
+            ERR("Warning: failed to raise nofile soft limit to %d: %s (%d)",
+                static_cast<int>(requestedSoftLimit), strerror(errno), errno);
+            return;
+        }
+
+        GL_LOG("Raised nofile soft limit to %d.", static_cast<int>(requestedSoftLimit));
+    }
+#endif
+}
+
 bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2egl) {
     GL_LOG("FrameBuffer::initialize");
+
     if (s_theFrameBuffer != NULL) {
         return true;
     }
+
+    MaybeIncreaseFileDescriptorSoftLimit();
 
     android::base::initializeTracing();
 
@@ -293,7 +355,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
             .useVulkanComposition = fb->m_useVulkanComposition,
             .useVulkanNativeSwapchain = feature_is_enabled(kFeature_VulkanNativeSwapchain),
             .guestRenderDoc = std::move(renderDocMultipleVkInstances),
-            .astcLdrEmulationMode = AstcEmulationMode::Auto,
+            .astcLdrEmulationMode = AstcEmulationMode::Gpu,
             .enableEtc2Emulation = true,
             .enableYcbcrEmulation = false,
             .guestUsesAngle = fb->m_guestUsesAngle,
