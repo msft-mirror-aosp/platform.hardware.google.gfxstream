@@ -6613,7 +6613,7 @@ VkResult VkEncoder::vkCreateImage(VkDevice device, const VkImageCreateInfo* pCre
         deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator,
                                        (VkAllocationCallbacks*)(local_pAllocator));
     }
-    sResourceTracker->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
+    sResourceTracker->unwrap_vkCreateImage_pCreateInfo(pCreateInfo, local_pCreateInfo);
     local_pAllocator = nullptr;
     if (local_pCreateInfo) {
         sResourceTracker->transformImpl_VkImageCreateInfo_tohost(local_pCreateInfo, 1);
@@ -16600,8 +16600,6 @@ VkResult VkEncoder::vkBindImageMemory2(VkDevice device, uint32_t bindInfoCount,
             })
             .build();
 
-    ENCODER_DEBUG_LOG("vkBindImageMemory2(device:%p, bindInfoCount:%d, pBindInfos:%p)", device,
-                      bindInfoCount, pBindInfos);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16622,6 +16620,8 @@ VkResult VkEncoder::vkBindImageMemory2(VkDevice device, uint32_t bindInfoCount,
                                            (VkBindImageMemoryInfo*)(local_pBindInfos + i));
         }
     }
+    sResourceTracker->unwrap_VkBindImageMemory2_pBindInfos(bindInfoCount, pBindInfos,
+                                                           local_pBindInfos);
     if (local_pBindInfos) {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
             transform_tohost_VkBindImageMemoryInfo(sResourceTracker,
@@ -59158,7 +59158,7 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
         deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator,
                                        (VkAllocationCallbacks*)(local_pAllocator));
     }
-    sResourceTracker->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
+    sResourceTracker->unwrap_vkCreateImage_pCreateInfo(pCreateInfo, local_pCreateInfo);
     local_pAllocator = nullptr;
     if (local_pCreateInfo) {
         sResourceTracker->transformImpl_VkImageCreateInfo_tohost(local_pCreateInfo, 1);
