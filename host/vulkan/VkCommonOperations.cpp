@@ -73,6 +73,22 @@ using emugl::FatalError;
 constexpr size_t kPageBits = 12;
 constexpr size_t kPageSize = 1u << kPageBits;
 
+static int kMaxDebugMarkerAnnotations = 10;
+
+static std::optional<std::string> sMemoryLogPath = std::nullopt;
+
+const char* string_AstcEmulationMode(AstcEmulationMode mode) {
+    switch (mode) {
+        case AstcEmulationMode::Disabled:
+            return "Disabled";
+        case AstcEmulationMode::Cpu:
+            return "Cpu";
+        case AstcEmulationMode::Gpu:
+            return "Gpu";
+    }
+    return "Unknown";
+}
+
 }  // namespace
 
 static StaticMap<VkDevice, uint32_t> sKnownStagingTypeIndices;

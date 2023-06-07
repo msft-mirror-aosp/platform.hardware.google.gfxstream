@@ -47,13 +47,7 @@ void ReadbackWorkerGl::init() {
 }
 
 ReadbackWorkerGl::~ReadbackWorkerGl() {
-    s_gles2.glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-    s_gles2.glBindBuffer(GL_COPY_READ_BUFFER, 0);
-    for (auto& r : mTrackedDisplays) {
-        s_gles2.glDeleteBuffers(r.second.mBuffers.size(), &r.second.mBuffers[0]);
-    }
-
-    mFlushSurface->getContextHelper()->teardownContext();
+    // Context not available on exit
 }
 
 void ReadbackWorkerGl::initReadbackForDisplay(uint32_t displayId, uint32_t w, uint32_t h) {

@@ -17,141 +17,15 @@
 #include "aemu/base/ArraySize.h"
 #include "host/vulkan/VkFormatUtils.h"
 #include "host/vulkan/emulated_textures/shaders/DecompressionShaders.h"
+#include "host/vulkan/VkFormatUtils.h"
+#include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
 namespace vk {
 namespace {
 
-#define _RETURN_ON_FAILURE(cmd)                                                                \
-    {                                                                                          \
-        VkResult result = cmd;                                                                 \
-        if (result != VK_SUCCESS) {                                                            \
-            WARN("Warning: %s %s:%d vulkan failure %d", __func__, __FILE__, __LINE__, result); \
-            return result;                                                                     \
-        }                                                                                      \
-    }
-
-using android::base::arraySize;
-
-struct Etc2PushConstant {
-    uint32_t compFormat;
-    uint32_t baseLayer;
-};
-
-struct AstcPushConstant {
-    uint32_t blockSize[2];
-    uint32_t baseLayer;
-    uint32_t smallBlock;
-};
-
-struct ShaderData {
-    const uint32_t* code;  // Pointer to shader's compiled spir-v code
-    const size_t size;     // size of the code in bytes
-};
-
-struct ShaderGroup {
-    ShaderData shader1D;
-    ShaderData shader2D;
-    ShaderData shader3D;
-};
-
-// Helper macro to declare the shader goups
-#define DECLARE_SHADER_GROUP(Format)                                      \
-    constexpr ShaderGroup kShader##Format {                               \
-        .shader1D = {.code = decompression_shaders::Format##_1D,          \
-                     .size = sizeof(decompression_shaders::Format##_1D)}, \
-        .shader2D = {.code = decompression_shaders::Format##_2D,          \
-                     .size = sizeof(decompression_shaders::Format##_2D)}, \
-        .shader3D = {.code = decompression_shaders::Format##_3D,          \
-                     .size = sizeof(decompression_shaders::Format##_3D)}, \
-    }
-
-DECLARE_SHADER_GROUP(Astc);
-DECLARE_SHADER_GROUP(EacR11Snorm);
-DECLARE_SHADER_GROUP(EacR11Unorm);
-DECLARE_SHADER_GROUP(EacRG11Snorm);
-DECLARE_SHADER_GROUP(EacRG11Unorm);
-DECLARE_SHADER_GROUP(Etc2RGB8);
-DECLARE_SHADER_GROUP(Etc2RGBA8);
-
-#undef DECLARE_SHADER_GROUP
-
-// Returns the group of shaders that can decompress a given format, or null if none is found.
-const ShaderGroup* getShaderGroup(VkFormat format) {
-    switch (format) {
-        case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-            return &kShaderAstc;
-
-        case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-            return &kShaderEacR11Snorm;
-
-        case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-            return &kShaderEacR11Unorm;
-
-        case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-            return &kShaderEacRG11Snorm;
-
-        case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-            return &kShaderEacRG11Unorm;
-
-        case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-            return &kShaderEtc2RGB8;
-
-        case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-            return &kShaderEtc2RGBA8;
-
-        default:
-            return nullptr;
-    }
-}
-
-// Returns the shader that can decompress a given image format and type
-const ShaderData* getDecompressionShader(VkFormat format, VkImageType imageType) {
-    const ShaderGroup* group = getShaderGroup(format);
-    if (!group) return nullptr;
-
-    switch (imageType) {
-        case VK_IMAGE_TYPE_1D:
-            return &group->shader1D;
-        case VK_IMAGE_TYPE_2D:
-            return &group->shader2D;
-        case VK_IMAGE_TYPE_3D:
-            return &group->shader3D;
-        default:
-            return nullptr;
-    }
-}
+using emugl::ABORT_REASON_OTHER;
+using emugl::FatalError;
 
 // Returns x / y, rounded up. E.g. ceil_div(7, 2) == 4
 // Note the potential integer overflow for large numbers.
@@ -160,9 +34,22 @@ inline constexpr uint32_t ceil_div(uint32_t x, uint32_t y) { return (x + y - 1) 
 VkImageView createDefaultImageView(VulkanDispatch* vk, VkDevice device, VkImage image,
                                    VkFormat format, VkImageType imageType, uint32_t mipLevel,
                                    uint32_t layerCount) {
-    VkImageViewCreateInfo imageViewInfo = {};
-    imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    imageViewInfo.image = image;
+    VkImageViewCreateInfo imageViewInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = image,
+        .format = format,
+        .components = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+                       VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
+        .subresourceRange =
+            {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = mipLevel,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = layerCount,
+            },
+    };
+
     switch (imageType) {
         case VK_IMAGE_TYPE_1D:
             imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
@@ -177,19 +64,10 @@ VkImageView createDefaultImageView(VulkanDispatch* vk, VkDevice device, VkImage 
             imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
             break;
     }
-    imageViewInfo.format = format;
-    imageViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
-    imageViewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
-    imageViewInfo.components.b = VK_COMPONENT_SWIZZLE_B;
-    imageViewInfo.components.a = VK_COMPONENT_SWIZZLE_A;
-    imageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    imageViewInfo.subresourceRange.baseMipLevel = mipLevel;
-    imageViewInfo.subresourceRange.levelCount = 1;
-    imageViewInfo.subresourceRange.baseArrayLayer = 0;
-    imageViewInfo.subresourceRange.layerCount = layerCount;
     VkImageView imageView;
-    if (vk->vkCreateImageView(device, &imageViewInfo, nullptr, &imageView) != VK_SUCCESS) {
-        WARN("Warning: %s %s:%d failure", __func__, __FILE__, __LINE__);
+    VkResult result = vk->vkCreateImageView(device, &imageViewInfo, nullptr, &imageView);
+    if (result != VK_SUCCESS) {
+        WARN("GPU decompression: createDefaultImageView failed: %d", result);
         return VK_NULL_HANDLE;
     }
     return imageView;
@@ -255,31 +133,116 @@ VkExtent2D getBlockSize(VkFormat format) {
     }
 }
 
+bool isReadableImageLayout(VkImageLayout layout) {
+    switch (layout) {
+        case VK_IMAGE_LAYOUT_GENERAL:
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+        case VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool isWritableImageLayout(VkImageLayout layout) {
+    switch (layout) {
+        case VK_IMAGE_LAYOUT_GENERAL:
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+            return true;
+        default:
+            return false;
+    }
+}
+
 // Returns whether a given memory barrier puts the image in a layout where it can be read from.
 bool imageWillBecomeReadable(const VkImageMemoryBarrier& barrier) {
-    return barrier.oldLayout != VK_IMAGE_LAYOUT_UNDEFINED &&
-           (barrier.newLayout == VK_IMAGE_LAYOUT_GENERAL ||
-            barrier.newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL ||
-            barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    bool fromReadable = isReadableImageLayout(barrier.oldLayout);
+    bool toReadable = isReadableImageLayout(barrier.newLayout);
+    bool toWritable = isWritableImageLayout(barrier.newLayout);
+
+    // TODO(gregschlom) This doesn't take into account that the GENERAL layout is both readable and
+    //  writable, so this warning could incorrectly trigger some times.
+    if (fromReadable && toWritable) {
+        WARN(
+            "Compressed image is being transitioned from readable (%s) to writable (%s). This may "
+            "lead to unexpected results.",
+            string_VkImageLayout(barrier.oldLayout), string_VkImageLayout(barrier.newLayout));
+    }
+
+    // If we're transitioning from UNDEFINED, the image content is undefined, so don't try to
+    // decompress it.
+    if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED) return false;
+
+    // TODO(gregschlom): Address the corner case of GENERAL, which is both readable and writable.
+    // For example, the image could be transitioned only once, from UNDEFINED to GENERAL.
+    // Currently, there is no way to perform decompression in this case.
+
+    return toReadable;
+}
+
+bool isCompressedFormat(VkFormat format) {
+    return gfxstream::vk::isAstc(format) || gfxstream::vk::isEtc2(format) ||
+           gfxstream::vk::isBc(format);
+}
+
+// Returns the format that the shader uses to write the output image
+VkFormat getShaderFormat(VkFormat outputFormat) {
+    switch (outputFormat) {
+        case VK_FORMAT_R16_UNORM:
+        case VK_FORMAT_R16_SNORM:
+        case VK_FORMAT_R16G16_UNORM:
+        case VK_FORMAT_R16G16_SNORM:
+            return outputFormat;
+        case VK_FORMAT_BC3_UNORM_BLOCK:
+        case VK_FORMAT_BC3_SRGB_BLOCK:
+            return VK_FORMAT_R32G32B32A32_UINT;
+        default:
+            return VK_FORMAT_R8G8B8A8_UINT;
+    }
+}
+
+// Returns the next memory offset on a given alignment.
+// Will divide by zero if alignment is zero.
+VkDeviceSize nextAlignedOffset(VkDeviceSize offset, VkDeviceSize alignment) {
+    return ceil_div(offset, alignment) * alignment;
+}
+
+// Check that the alignment is valid:
+// - sets the alignment to 1 if it's 0
+// - aborts if it's not a power of 2
+void checkValidAlignment(VkDeviceSize& n) {
+    if (n == 0) {
+        n = 1;
+        return;
+    }
+
+    // Check that the alignment is a power of 2
+    // http://www.graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
+    if ((n & (n - 1))) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "vkGetImageMemoryRequirements returned non-power-of-two alignment: " + std::to_string(n);
+    }
 }
 
 }  // namespace
 
 CompressedImageInfo::CompressedImageInfo(VkDevice device) : mDevice(device) {}
 
-CompressedImageInfo::CompressedImageInfo(VkDevice device, const VkImageCreateInfo& createInfo)
-    : mDevice(device),
-      mCompressedFormat(createInfo.format),
-      mDecompressedFormat(getDecompressedFormat(mCompressedFormat)),
+CompressedImageInfo::CompressedImageInfo(VkDevice device, const VkImageCreateInfo& createInfo,
+                                         GpuDecompressionPipelineManager* pipelineManager)
+    : mCompressedFormat(createInfo.format),
+      mOutputFormat(getOutputFormat(mCompressedFormat)),
       mCompressedMipmapsFormat(getCompressedMipmapsFormat(mCompressedFormat)),
       mImageType(createInfo.imageType),
+      mMipLevels(createInfo.mipLevels),
       mExtent(createInfo.extent),
       mBlock(getBlockSize(mCompressedFormat)),
       mLayerCount(createInfo.arrayLayers),
-      mMipLevels(createInfo.mipLevels) {}
+      mDevice(device),
+      mPipelineManager(pipelineManager) {}
 
 // static
-VkFormat CompressedImageInfo::getDecompressedFormat(VkFormat compFmt) {
+VkFormat CompressedImageInfo::getOutputFormat(VkFormat compFmt) {
     switch (compFmt) {
         case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
         case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
@@ -311,7 +274,9 @@ VkFormat CompressedImageInfo::getDecompressedFormat(VkFormat compFmt) {
         case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
         case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
         case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-            return VK_FORMAT_R8G8B8A8_UNORM;
+            return GpuDecompressionPipelineManager::astcDecoder() == AstcDecoder::NewBc3
+                       ? VK_FORMAT_BC3_UNORM_BLOCK
+                       : VK_FORMAT_R8G8B8A8_UNORM;
         case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
         case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
         case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
@@ -326,7 +291,9 @@ VkFormat CompressedImageInfo::getDecompressedFormat(VkFormat compFmt) {
         case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
         case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-            return VK_FORMAT_R8G8B8A8_SRGB;
+            return GpuDecompressionPipelineManager::astcDecoder() == AstcDecoder::NewBc3
+                       ? VK_FORMAT_BC3_SRGB_BLOCK
+                       : VK_FORMAT_R8G8B8A8_SRGB;
         default:
             return compFmt;
     }
@@ -382,62 +349,6 @@ VkFormat CompressedImageInfo::getCompressedMipmapsFormat(VkFormat compFmt) {
 }
 
 // static
-bool CompressedImageInfo::isEtc2(VkFormat format) {
-    switch (format) {
-        case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-        case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-        case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-        case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-        case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-            return true;
-        default:
-            return false;
-    }
-}
-
-// static
-bool CompressedImageInfo::isAstc(VkFormat format) {
-    switch (format) {
-        case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-            return true;
-        default:
-            return false;
-    }
-}
-
-// static
 bool CompressedImageInfo::needEmulatedAlpha(VkFormat format) {
     switch (format) {
         case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
@@ -448,16 +359,30 @@ bool CompressedImageInfo::needEmulatedAlpha(VkFormat format) {
     }
 }
 
-bool CompressedImageInfo::isEtc2() const { return isEtc2(mCompressedFormat); }
+bool CompressedImageInfo::isEtc2() const { return gfxstream::vk::isEtc2(mCompressedFormat); }
 
-bool CompressedImageInfo::isAstc() const { return isAstc(mCompressedFormat); }
+bool CompressedImageInfo::isAstc() const { return gfxstream::vk::isAstc(mCompressedFormat); }
 
-VkImageCreateInfo CompressedImageInfo::getDecompressedCreateInfo(
+VkImageCreateInfo CompressedImageInfo::getOutputCreateInfo(
     const VkImageCreateInfo& createInfo) const {
     VkImageCreateInfo result = createInfo;
-    result.format = mDecompressedFormat;
-    result.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
-    result.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+    result.format = mOutputFormat;
+
+    result.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT |
+                    // Needed for ASTC->BC3 transcoding so that we can create a BC3 image with
+                    // VK_IMAGE_USAGE_STORAGE_BIT
+                    VK_IMAGE_CREATE_EXTENDED_USAGE_BIT;
+
+    if (!isCompressedFormat(mOutputFormat)) {
+        // Need to clear this flag since the application might have specified it, but it's invalid
+        // on non-compressed formats
+        result.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
+    } else {
+        // Need to set this flag so that we can cast the output image into a non-compressed format
+        // so that the decompression shader can write to it.
+        result.flags |= VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
+    }
+
     result.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
     return result;
 }
@@ -470,32 +395,50 @@ void CompressedImageInfo::createCompressedMipmapImages(VulkanDispatch* vk,
 
     VkImageCreateInfo createInfoCopy = createInfo;
     createInfoCopy.format = mCompressedMipmapsFormat;
+    // Note: if you change the flags here, you must also change both versions of
+    // on_vkGetPhysicalDeviceImageFormatProperties in VkDecoderGlobalState
+    // TODO(gregschlom): Remove duplicated logic.
     createInfoCopy.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-    createInfoCopy.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
+    createInfoCopy.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
     createInfoCopy.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
     createInfoCopy.mipLevels = 1;
 
     mCompressedMipmaps.resize(mMipLevels);
-    for (uint32_t i = 0; i < mMipLevels; i++) {
+    for (uint32_t i = 0; i < mMipLevels; ++i) {
         createInfoCopy.extent = compressedMipmapExtent(i);
-        vk->vkCreateImage(mDevice, &createInfoCopy, nullptr, mCompressedMipmaps.data() + i);
+        vk->vkCreateImage(mDevice, &createInfoCopy, nullptr, &mCompressedMipmaps[i]);
     }
 
-    // Get the size of all images (decompressed image and compressed mipmaps)
-    std::vector<VkDeviceSize> memSizes(mMipLevels + 1);
-    memSizes[0] = getImageSize(vk, mDecompressedImage);
-    for (size_t i = 0; i < mMipLevels; i++) {
-        memSizes[i + 1] = getImageSize(vk, mCompressedMipmaps[i]);
+    // Compute the memory requirements for all the images (output image + compressed mipmaps)
+
+    vk->vkGetImageMemoryRequirements(mDevice, mOutputImage, &mMemoryRequirements);
+    checkValidAlignment(mMemoryRequirements.alignment);
+    std::vector<VkMemoryRequirements> mipmapsMemReqs(mMipLevels);
+    for (size_t i = 0; i < mMipLevels; ++i) {
+        vk->vkGetImageMemoryRequirements(mDevice, mCompressedMipmaps[i], &mipmapsMemReqs[i]);
+        checkValidAlignment(mipmapsMemReqs[i].alignment);
     }
 
-    // Initialize the memory offsets
-    mMemoryOffsets.resize(mMipLevels + 1);
-    for (size_t i = 0; i < mMipLevels + 1; i++) {
-        VkDeviceSize alignedSize = memSizes[i];
-        if (mAlignment != 0) {
-            alignedSize = ceil_div(alignedSize, mAlignment) * mAlignment;
+    for (const auto& r : mipmapsMemReqs) {
+        // What we want here is the least common multiple of all the alignments. However, since
+        // alignments are always powers of 2, the lcm is simply the largest value.
+        if (r.alignment > mMemoryRequirements.alignment) {
+            mMemoryRequirements.alignment = r.alignment;
         }
-        mMemoryOffsets[i] = (i == 0 ? 0 : mMemoryOffsets[i - 1]) + alignedSize;
+        mMemoryRequirements.memoryTypeBits &= r.memoryTypeBits;
+    }
+
+    // At this point, we have the following:
+    //   - mMemoryRequirements.size is the size of the output image
+    //   - mMemoryRequirements.alignment is the least common multiple of all alignments
+    //   - mMemoryRequirements.memoryTypeBits is the intersection of all the memoryTypeBits
+    // Now, compute the offsets of each mipmap image as well as the total memory size we need.
+    mMipmapOffsets.resize(mMipLevels);
+    for (size_t i = 0; i < mMipLevels; ++i) {
+        // This works because the alignment we request is the lcm of all alignments
+        mMipmapOffsets[i] =
+            nextAlignedOffset(mMemoryRequirements.size, mipmapsMemReqs[i].alignment);
+        mMemoryRequirements.size = mMipmapOffsets[i] + mipmapsMemReqs[i].size;
     }
 }
 
@@ -531,7 +474,7 @@ bool CompressedImageInfo::decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer
         barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
     }
 
-    // Transition the layout of the decompressed image so that we can write to it.
+    // Transition the layout of the output image so that we can write to it.
     imageBarriers.back().srcAccessMask = 0;
     imageBarriers.back().oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageBarriers.back().dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
@@ -551,7 +494,7 @@ bool CompressedImageInfo::decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer
         barrier.dstAccessMask = targetBarrier.dstAccessMask;
         barrier.newLayout = targetBarrier.newLayout;
     }
-    // (adjust the last barrier since it's for the decompressed image)
+    // (adjust the last barrier since it's for the output image)
     imageBarriers.back().srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 
     // Do the layout transitions
@@ -571,10 +514,7 @@ void CompressedImageInfo::decompressOnCpu(VkCommandBuffer commandBuffer, uint8_t
 }
 
 VkMemoryRequirements CompressedImageInfo::getMemoryRequirements() const {
-    return {
-        .size = mMemoryOffsets.back(),
-        .alignment = mAlignment,
-    };
+    return mMemoryRequirements;
 }
 
 VkResult CompressedImageInfo::bindCompressedMipmapsMemory(VulkanDispatch* vk, VkDeviceMemory memory,
@@ -582,7 +522,7 @@ VkResult CompressedImageInfo::bindCompressedMipmapsMemory(VulkanDispatch* vk, Vk
     VkResult result = VK_SUCCESS;
     for (size_t i = 0; i < mCompressedMipmaps.size(); i++) {
         VkResult res = vk->vkBindImageMemory(mDevice, mCompressedMipmaps[i], memory,
-                                             memoryOffset + mMemoryOffsets[i]);
+                                             memoryOffset + mMipmapOffsets[i]);
         if (res != VK_SUCCESS) result = res;
     }
     return result;
@@ -627,25 +567,14 @@ void CompressedImageInfo::destroy(VulkanDispatch* vk) {
     for (const auto& image : mCompressedMipmaps) {
         vk->vkDestroyImage(mDevice, image, nullptr);
     }
-    vk->vkDestroyDescriptorSetLayout(mDevice, mDecompDescriptorSetLayout, nullptr);
     vk->vkDestroyDescriptorPool(mDevice, mDecompDescriptorPool, nullptr);
-    vk->vkDestroyShaderModule(mDevice, mDecompShader, nullptr);
-    vk->vkDestroyPipelineLayout(mDevice, mDecompPipelineLayout, nullptr);
-    vk->vkDestroyPipeline(mDevice, mDecompPipeline, nullptr);
     for (const auto& imageView : mCompressedMipmapsImageViews) {
         vk->vkDestroyImageView(mDevice, imageView, nullptr);
     }
-    for (const auto& imageView : mDecompImageViews) {
+    for (const auto& imageView : mOutputImageViews) {
         vk->vkDestroyImageView(mDevice, imageView, nullptr);
     }
-    vk->vkDestroyImage(mDevice, mDecompressedImage, nullptr);
-}
-
-VkDeviceSize CompressedImageInfo::getImageSize(VulkanDispatch* vk, VkImage image) {
-    VkMemoryRequirements memRequirements;
-    vk->vkGetImageMemoryRequirements(mDevice, image, &memRequirements);
-    mAlignment = std::max(mAlignment, memRequirements.alignment);
-    return memRequirements.size;
+    vk->vkDestroyImage(mDevice, mOutputImage, nullptr);
 }
 
 std::vector<VkImageMemoryBarrier> CompressedImageInfo::getImageBarriers(
@@ -664,9 +593,9 @@ std::vector<VkImageMemoryBarrier> CompressedImageInfo::getImageBarriers(
         imageBarriers[j].image = mCompressedMipmaps[range.baseMipLevel + j];
     }
 
-    // Add a barrier for the decompressed image
+    // Add a barrier for the output image
     imageBarriers.push_back(srcBarrier);
-    imageBarriers.back().image = mDecompressedImage;
+    imageBarriers.back().image = mOutputImage;
 
     return imageBarriers;
 }
@@ -684,45 +613,15 @@ VkImageSubresourceRange CompressedImageInfo::getImageSubresourceRange(
 }
 
 VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk, VkDevice device) {
-    if (mDecompPipeline != nullptr) {
+    if (mDecompPipelineInitialized) {
         return VK_SUCCESS;
     }
 
-    const ShaderData* shader = getDecompressionShader(mCompressedFormat, mImageType);
-    if (!shader) {
-        WARN("No decompression shader found for format %s and img type %s",
-             string_VkFormat(mCompressedFormat), string_VkImageType(mImageType));
-        return VK_ERROR_FORMAT_NOT_SUPPORTED;
+    mDecompPipeline = mPipelineManager->get(mCompressedFormat, mImageType);
+    if (mDecompPipeline == nullptr) {
+        ERR("Failed to initialize GPU decompression pipeline");
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
-
-    VkShaderModuleCreateInfo shaderInfo = {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = shader->size,
-        .pCode = shader->code,
-    };
-    _RETURN_ON_FAILURE(vk->vkCreateShaderModule(device, &shaderInfo, nullptr, &mDecompShader));
-
-    VkDescriptorSetLayoutBinding dsLayoutBindings[] = {
-        {
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-        },
-        {
-            .binding = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-        },
-    };
-    VkDescriptorSetLayoutCreateInfo dsLayoutInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .bindingCount = 2,
-        .pBindings = dsLayoutBindings,
-    };
-    _RETURN_ON_FAILURE(vk->vkCreateDescriptorSetLayout(device, &dsLayoutInfo, nullptr,
-                                                       &mDecompDescriptorSetLayout));
 
     VkDescriptorPoolSize poolSize = {
         .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
@@ -735,10 +634,14 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
         .poolSizeCount = 1,
         .pPoolSizes = &poolSize,
     };
-    _RETURN_ON_FAILURE(
-        vk->vkCreateDescriptorPool(device, &dsPoolInfo, nullptr, &mDecompDescriptorPool));
+    VkResult result =
+        vk->vkCreateDescriptorPool(device, &dsPoolInfo, nullptr, &mDecompDescriptorPool);
+    if (result != VK_SUCCESS) {
+        ERR("GPU decompression error. vkCreateDescriptorPool failed: %d", result);
+        return result;
+    }
 
-    std::vector<VkDescriptorSetLayout> layouts(mMipLevels, mDecompDescriptorSetLayout);
+    std::vector<VkDescriptorSetLayout> layouts(mMipLevels, mDecompPipeline->descriptorSetLayout());
 
     VkDescriptorSetAllocateInfo dsInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -747,50 +650,15 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
         .pSetLayouts = layouts.data(),
     };
     mDecompDescriptorSets.resize(mMipLevels);
-    _RETURN_ON_FAILURE(vk->vkAllocateDescriptorSets(device, &dsInfo, mDecompDescriptorSets.data()));
-
-    VkPushConstantRange pushConstant = {.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT};
-    if (isEtc2()) {
-        pushConstant.size = sizeof(Etc2PushConstant);
-    } else if (isAstc()) {
-        pushConstant.size = sizeof(AstcPushConstant);
+    result = vk->vkAllocateDescriptorSets(device, &dsInfo, mDecompDescriptorSets.data());
+    if (result != VK_SUCCESS) {
+        ERR("GPU decompression error. vkAllocateDescriptorSets failed: %d", result);
+        return result;
     }
 
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 1,
-        .pSetLayouts = &mDecompDescriptorSetLayout,
-        .pushConstantRangeCount = 1,
-        .pPushConstantRanges = &pushConstant,
-    };
-    _RETURN_ON_FAILURE(
-        vk->vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &mDecompPipelineLayout));
-
-    VkComputePipelineCreateInfo computePipelineInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-        .stage = {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                  .stage = VK_SHADER_STAGE_COMPUTE_BIT,
-                  .module = mDecompShader,
-                  .pName = "main"},
-        .layout = mDecompPipelineLayout,
-    };
-    _RETURN_ON_FAILURE(vk->vkCreateComputePipelines(device, nullptr, 1, &computePipelineInfo,
-                                                    nullptr, &mDecompPipeline));
-
-    VkFormat intermediateFormat = VK_FORMAT_R8G8B8A8_UINT;
-    switch (mCompressedFormat) {
-        case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-        case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-        case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-        case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-            intermediateFormat = mDecompressedFormat;
-            break;
-        default:
-            break;
-    }
-
+    VkFormat shaderFormat = getShaderFormat(mOutputFormat);
     mCompressedMipmapsImageViews.resize(mMipLevels);
-    mDecompImageViews.resize(mMipLevels);
+    mOutputImageViews.resize(mMipLevels);
 
     VkDescriptorImageInfo compressedMipmapsDescriptorImageInfo = {.imageLayout =
                                                                       VK_IMAGE_LAYOUT_GENERAL};
@@ -815,28 +683,31 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
         mCompressedMipmapsImageViews[i] =
             createDefaultImageView(vk, device, mCompressedMipmaps[i], mCompressedMipmapsFormat,
                                    mImageType, 0, mLayerCount);
-        mDecompImageViews[i] = createDefaultImageView(
-            vk, device, mDecompressedImage, intermediateFormat, mImageType, i, mLayerCount);
+        mOutputImageViews[i] = createDefaultImageView(vk, device, mOutputImage, shaderFormat,
+                                                      mImageType, i, mLayerCount);
         compressedMipmapsDescriptorImageInfo.imageView = mCompressedMipmapsImageViews[i];
-        mDecompDescriptorImageInfo.imageView = mDecompImageViews[i];
+        mDecompDescriptorImageInfo.imageView = mOutputImageViews[i];
         writeDescriptorSets[0].dstSet = mDecompDescriptorSets[i];
         writeDescriptorSets[1].dstSet = mDecompDescriptorSets[i];
         vk->vkUpdateDescriptorSets(device, 2, writeDescriptorSets, 0, nullptr);
     }
+
+    mDecompPipelineInitialized = true;
     return VK_SUCCESS;
 }
 
 void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
                                      const VkImageSubresourceRange& range) {
-    vk->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mDecompPipeline);
+    vk->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          mDecompPipeline->pipeline());
     uint32_t dispatchZ = mExtent.depth == 1 ? range.layerCount : mExtent.depth;
-
+    bool perPixel = false;  // Whether the shader operates per compressed block or per pixel
     if (isEtc2()) {
         const Etc2PushConstant pushConstant = {
             .compFormat = (uint32_t)mCompressedFormat,
             .baseLayer = mExtent.depth == 1 ? range.baseArrayLayer : 0};
-        vk->vkCmdPushConstants(commandBuffer, mDecompPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-                               sizeof(pushConstant), &pushConstant);
+        vk->vkCmdPushConstants(commandBuffer, mDecompPipeline->pipelineLayout(),
+                               VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pushConstant), &pushConstant);
     } else if (isAstc()) {
         uint32_t smallBlock = false;
         switch (mCompressedFormat) {
@@ -857,15 +728,18 @@ void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer command
             .blockSize = {mBlock.width, mBlock.height},
             .baseLayer = mExtent.depth == 1 ? range.baseArrayLayer : 0,
             .smallBlock = smallBlock};
-        vk->vkCmdPushConstants(commandBuffer, mDecompPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-                               sizeof(pushConstant), &pushConstant);
+        vk->vkCmdPushConstants(commandBuffer, mDecompPipeline->pipelineLayout(),
+                               VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pushConstant), &pushConstant);
+        // The old shader is per-block, the new shaders are per-pixel
+        perPixel = GpuDecompressionPipelineManager::astcDecoder() != AstcDecoder::Old;
     }
     for (uint32_t i = range.baseMipLevel; i < range.baseMipLevel + range.levelCount; i++) {
         vk->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                                    mDecompPipelineLayout, 0, 1, mDecompDescriptorSets.data() + i,
-                                    0, nullptr);
-        VkExtent3D compExtent = compressedMipmapExtent(i);
-        vk->vkCmdDispatch(commandBuffer, compExtent.width, compExtent.height, dispatchZ);
+                                    mDecompPipeline->pipelineLayout(), 0, 1,
+                                    mDecompDescriptorSets.data() + i, 0, nullptr);
+        VkExtent3D extent = perPixel ? mipmapExtent(i) : compressedMipmapExtent(i);
+        vk->vkCmdDispatch(commandBuffer, ceil_div(extent.width, 8), ceil_div(extent.height, 8),
+                          dispatchZ);
     }
 }
 
@@ -890,6 +764,9 @@ VkExtent3D CompressedImageInfo::compressedMipmapPortion(const VkExtent3D& origEx
     return {
         .width = std::min(ceil_div(origExtent.width, mBlock.width), maxExtent.width),
         .height = std::min(ceil_div(origExtent.height, mBlock.height), maxExtent.height),
+        // TODO(gregschlom): this is correct for 2DArrays, but incorrect for 3D images. We should
+        // take the image type into account to do the right thing here. See also
+        // https://android-review.git.corp.google.com/c/device/generic/vulkan-cereal/+/2458549/comment/cfc7480f_912dd378/
         .depth = origExtent.depth,
     };
 }

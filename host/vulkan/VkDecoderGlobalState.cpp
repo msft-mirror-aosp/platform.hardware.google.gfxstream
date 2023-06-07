@@ -52,10 +52,12 @@
 #include "host-common/emugl_vm_operations.h"
 #include "host-common/feature_control.h"
 #include "host-common/vm_operations.h"
+#include "vulkan/VkFormatUtils.h"
 #include "utils/RenderDoc.h"
 #include "vk_util.h"
 #include "vulkan/emulated_textures/AstcTexture.h"
 #include "vulkan/emulated_textures/CompressedImageInfo.h"
+#include "vulkan/emulated_textures/GpuDecompressionPipeline.h"
 #include "vulkan/vk_enum_string_helper.h"
 
 #ifndef _WIN32
@@ -529,20 +531,7 @@ class VkDecoderGlobalState::Impl {
         }
 #endif
 
-        std::string_view appName = appInfo.pApplicationName ? appInfo.pApplicationName : "";
         std::string_view engineName = appInfo.pEngineName ? appInfo.pEngineName : "";
-
-        // TODO(gregschlom) Use a better criteria to determine when to use ASTC CPU decompression.
-        //   The goal is to only enable ASTC CPU decompression for specific applications.
-        //   Theoretically the pApplicationName field would be exactly what we want, unfortunately
-        //   it looks like Unity apps always set this to "Unity" instead of the actual application.
-        //   Eventually we will want to use https://r.android.com/2163499 for this purpose.
-        const bool isUnity = appName == "Unity" && engineName == "Unity";
-        if (m_emu->astcLdrEmulationMode == AstcEmulationMode::CpuOnly ||
-            (m_emu->astcLdrEmulationMode == AstcEmulationMode::Auto && isUnity)) {
-            info.useAstcCpuDecompression = true;
-        }
-
         info.isAngle = (engineName == "ANGLE");
 
         mInstanceInfo[*pInstance] = info;
@@ -803,7 +792,7 @@ class VkDecoderGlobalState::Impl {
                 memset(pImageFormatProperties, 0, sizeof(VkImageFormatProperties));
                 return VK_ERROR_FORMAT_NOT_SUPPORTED;
             }
-            flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
+            flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
             flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
             usage |= VK_IMAGE_USAGE_STORAGE_BIT;
             format = CompressedImageInfo::getCompressedMipmapsFormat(format);
@@ -839,7 +828,7 @@ class VkDecoderGlobalState::Impl {
             }
             imageFormatInfo = *pImageFormatInfo;
             pImageFormatInfo = &imageFormatInfo;
-            imageFormatInfo.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
+            imageFormatInfo.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
             imageFormatInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
             imageFormatInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
             imageFormatInfo.format = CompressedImageInfo::getCompressedMipmapsFormat(format);
@@ -1273,6 +1262,13 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.physicalDevice = physicalDevice;
         deviceInfo.emulateTextureEtc2 = emulateTextureEtc2;
         deviceInfo.emulateTextureAstc = emulateTextureAstc;
+        deviceInfo.useAstcCpuDecompression =
+            m_emu->astcLdrEmulationMode == AstcEmulationMode::Cpu &&
+            AstcCpuDecompressor::get().available();
+        deviceInfo.decompPipelines =
+            std::make_unique<GpuDecompressionPipelineManager>(m_vk, *pDevice);
+        INFO("Created new VkDevice. ASTC emulation? %d. CPU decoding? %d",
+             deviceInfo.emulateTextureAstc, deviceInfo.useAstcCpuDecompression);
 
         for (uint32_t i = 0; i < createInfoFiltered.enabledExtensionCount; ++i) {
             deviceInfo.enabledExtensionNames.push_back(
@@ -1393,6 +1389,8 @@ class VkDecoderGlobalState::Impl {
     void destroyDeviceLocked(VkDevice device, const VkAllocationCallbacks* pAllocator) {
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
         if (!deviceInfo) return;
+
+        deviceInfo->decompPipelines->clear();
 
         auto eraseIt = mQueueInfo.begin();
         for (; eraseIt != mQueueInfo.end();) {
@@ -1549,12 +1547,19 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
+        if (deviceInfo->imageFormats.find(pCreateInfo->format) == deviceInfo->imageFormats.end()) {
+            INFO("gfxstream_texture_format_manifest: %s", string_VkFormat(pCreateInfo->format));
+            deviceInfo->imageFormats.insert(pCreateInfo->format);
+        }
+
         const bool needDecompression = deviceInfo->needEmulatedDecompression(pCreateInfo->format);
-        CompressedImageInfo cmpInfo = needDecompression ? CompressedImageInfo(device, *pCreateInfo)
-                                                        : CompressedImageInfo(device);
+        CompressedImageInfo cmpInfo =
+            needDecompression
+                ? CompressedImageInfo(device, *pCreateInfo, deviceInfo->decompPipelines.get())
+                : CompressedImageInfo(device);
         VkImageCreateInfo decompInfo;
         if (needDecompression) {
-            decompInfo = cmpInfo.getDecompressedCreateInfo(*pCreateInfo);
+            decompInfo = cmpInfo.getOutputCreateInfo(*pCreateInfo);
             pCreateInfo = &decompInfo;
         }
 
@@ -1580,13 +1585,11 @@ class VkDecoderGlobalState::Impl {
         if (createRes != VK_SUCCESS) return createRes;
 
         if (needDecompression) {
-            cmpInfo.setDecompressedImage(*pImage);
+            cmpInfo.setOutputImage(*pImage);
             cmpInfo.createCompressedMipmapImages(vk, *pCreateInfo);
 
             if (cmpInfo.isAstc()) {
-                VkInstance* instance = deviceToInstanceLocked(device);
-                InstanceInfo* instanceInfo = android::base::find(mInstanceInfo, *instance);
-                if (instanceInfo && instanceInfo->useAstcCpuDecompression) {
+                if (deviceInfo->useAstcCpuDecompression) {
                     cmpInfo.initAstcCpuDecompression(m_vk, mDeviceInfo[device].physicalDevice);
                 }
             }
@@ -1608,7 +1611,7 @@ class VkDecoderGlobalState::Impl {
 
         if (!imageInfo->anbInfo) {
             imageInfo->cmpInfo.destroy(deviceDispatch);
-            if (image != imageInfo->cmpInfo.decompressedImage()) {
+            if (image != imageInfo->cmpInfo.outputImage()) {
                 deviceDispatch->vkDestroyImage(device, image, pAllocator);
             }
         }
@@ -1712,11 +1715,11 @@ class VkDecoderGlobalState::Impl {
         VkImageViewCreateInfo createInfo;
         bool needEmulatedAlpha = false;
         if (deviceInfo->needEmulatedDecompression(pCreateInfo->format)) {
-            if (imageInfo->cmpInfo.decompressedImage()) {
+            if (imageInfo->cmpInfo.outputImage()) {
                 createInfo = *pCreateInfo;
-                createInfo.format = CompressedImageInfo::getDecompressedFormat(pCreateInfo->format);
+                createInfo.format = CompressedImageInfo::getOutputFormat(pCreateInfo->format);
                 needEmulatedAlpha = CompressedImageInfo::needEmulatedAlpha(pCreateInfo->format);
-                createInfo.image = imageInfo->cmpInfo.decompressedImage();
+                createInfo.image = imageInfo->cmpInfo.outputImage();
                 pCreateInfo = &createInfo;
             }
         } else if (deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
@@ -2749,17 +2752,14 @@ class VkDecoderGlobalState::Impl {
             return;
         }
         CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
-        if (m_emu->astcLdrEmulationMode != AstcEmulationMode::CpuOnly) {
-            for (uint32_t r = 0; r < regionCount; r++) {
-                uint32_t mipLevel = pRegions[r].imageSubresource.mipLevel;
-                VkBufferImageCopy region = cmpInfo.getBufferImageCopy(pRegions[r]);
-                vk->vkCmdCopyBufferToImage(commandBuffer, srcBuffer,
-                                           cmpInfo.compressedMipmap(mipLevel), dstImageLayout, 1,
-                                           &region);
-            }
+
+        for (uint32_t r = 0; r < regionCount; r++) {
+            uint32_t mipLevel = pRegions[r].imageSubresource.mipLevel;
+            VkBufferImageCopy region = cmpInfo.getBufferImageCopy(pRegions[r]);
+            vk->vkCmdCopyBufferToImage(commandBuffer, srcBuffer, cmpInfo.compressedMipmap(mipLevel),
+                                       dstImageLayout, 1, &region);
         }
 
-        // Perform CPU decompression of ASTC textures, if enabled
         if (cmpInfo.canDecompressOnCpu()) {
             // Get a pointer to the compressed image memory
             const MemoryInfo* memoryInfo = android::base::find(mMemoryInfo, bufferInfo->memory);
@@ -2848,19 +2848,10 @@ class VkDecoderGlobalState::Impl {
             const VkImageMemoryBarrier& srcBarrier = pImageMemoryBarriers[i];
             auto* imageInfo = android::base::find(mImageInfo, srcBarrier.image);
 
-            // If the image was already decompressed on the CPU, or if we disabled GPU
-            // decompression, nothing to do
-            if (!imageInfo || !deviceInfo->needGpuDecompression(imageInfo->cmpInfo) ||
-                m_emu->astcLdrEmulationMode == AstcEmulationMode::CpuOnly) {
+            // If the image doesn't need GPU decompression, nothing to do.
+            if (!imageInfo || !deviceInfo->needGpuDecompression(imageInfo->cmpInfo)) {
                 imageBarriers.push_back(srcBarrier);
                 continue;
-            }
-            if (srcBarrier.newLayout != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                srcBarrier.newLayout != VK_IMAGE_LAYOUT_GENERAL) {
-                fprintf(stderr,
-                        "WARNING: unexpected usage to transfer "
-                        "compressed image layout from %d to %d\n",
-                        srcBarrier.oldLayout, srcBarrier.newLayout);
             }
 
             // Otherwise, decompress the image, if we're going to read from it.
@@ -3295,6 +3286,8 @@ class VkDecoderGlobalState::Impl {
 
         VkInstance* instance = deviceToInstanceLocked(device);
         InstanceInfo* instanceInfo = android::base::find(mInstanceInfo, *instance);
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         // If gfxstream needs to be able to read from this memory, needToMap should be true.
         // When external blobs are off, we always want to map HOST_VISIBLE memory. Because, we run
@@ -3302,7 +3295,8 @@ class VkDecoderGlobalState::Impl {
         // When external blobs are on, we want to map memory only if a workaround is using it in
         // the gfxstream process. This happens when ASTC CPU emulation is on.
         bool needToMap =
-            (!feature_is_enabled(kFeature_ExternalBlob) || instanceInfo->useAstcCpuDecompression) &&
+            (!feature_is_enabled(kFeature_ExternalBlob) ||
+             (deviceInfo->useAstcCpuDecompression && deviceInfo->emulateTextureAstc)) &&
             !createBlobInfoPtr;
 
         // Some cases provide a mappedPtr, so we only map if we still don't have a pointer here.
@@ -4328,7 +4322,7 @@ class VkDecoderGlobalState::Impl {
                                pCreateInfo->pAttachments + pCreateInfo->attachmentCount);
             createInfo.pAttachments = attachments.data();
             for (auto& attachment : attachments) {
-                attachment.format = CompressedImageInfo::getDecompressedFormat(attachment.format);
+                attachment.format = CompressedImageInfo::getOutputFormat(attachment.format);
             }
             pCreateInfo = &createInfo;
         }
@@ -5463,9 +5457,7 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
             return;
         }
-        VkMemoryRequirements cmpReq = cmpInfo.getMemoryRequirements();
-        pMemoryRequirements->alignment = std::max(pMemoryRequirements->alignment, cmpReq.alignment);
-        pMemoryRequirements->size += cmpReq.size;
+        *pMemoryRequirements = cmpInfo.getMemoryRequirements();
     }
 
     // Whether the VkInstance associated with this physical device was created by ANGLE
@@ -5514,8 +5506,8 @@ class VkDecoderGlobalState::Impl {
 
     bool isEmulatedCompressedTexture(VkFormat format, VkPhysicalDevice physicalDevice,
                                      VulkanDispatch* vk) {
-        return (CompressedImageInfo::isEtc2(format) && needEmulatedEtc2(physicalDevice, vk)) ||
-               (CompressedImageInfo::isAstc(format) && needEmulatedAstc(physicalDevice, vk));
+        return (gfxstream::vk::isEtc2(format) && needEmulatedEtc2(physicalDevice, vk)) ||
+               (gfxstream::vk::isAstc(format) && needEmulatedAstc(physicalDevice, vk));
     }
 
     static const VkFormatFeatureFlags kEmulatedTextureBufferFeatureMask =
@@ -5552,7 +5544,7 @@ class VkDecoderGlobalState::Impl {
         VkFormatProperties1or2* pFormatProperties) {
         if (isEmulatedCompressedTexture(format, physicalDevice, vk)) {
             getPhysicalDeviceFormatPropertiesFunc(
-                physicalDevice, CompressedImageInfo::getDecompressedFormat(format),
+                physicalDevice, CompressedImageInfo::getOutputFormat(format),
                 pFormatProperties);
             maskFormatPropertiesForEmulatedTextures(pFormatProperties);
             return;
@@ -5921,7 +5913,6 @@ class VkDecoderGlobalState::Impl {
         std::vector<std::string> enabledExtensionNames;
         uint32_t apiVersion = VK_MAKE_VERSION(1, 0, 0);
         VkInstance boxed = nullptr;
-        bool useAstcCpuDecompression = false;
         bool isAngle = false;
     };
 
@@ -5937,23 +5928,26 @@ class VkDecoderGlobalState::Impl {
         std::vector<std::string> enabledExtensionNames;
         bool emulateTextureEtc2 = false;
         bool emulateTextureAstc = false;
+        bool useAstcCpuDecompression = false;
         VkPhysicalDevice physicalDevice;
         VkDevice boxed = nullptr;
         DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
         std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
+        std::set<VkFormat> imageFormats = {};  // image formats used on this device
+        std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
 
         // True if this is a compressed image that needs to be decompressed on the GPU (with our
         // compute shader)
         bool needGpuDecompression(const CompressedImageInfo& cmpInfo) {
-            return needEmulatedDecompression(cmpInfo) && !cmpInfo.successfullyDecompressedOnCpu();
+            return ((cmpInfo.isEtc2() && emulateTextureEtc2) ||
+                    (cmpInfo.isAstc() && emulateTextureAstc && !useAstcCpuDecompression));
         }
-        bool needEmulatedDecompression(const CompressedImageInfo& imageInfo) {
-            return ((imageInfo.isEtc2() && emulateTextureEtc2) ||
-                    (imageInfo.isAstc() && emulateTextureAstc));
+        bool needEmulatedDecompression(const CompressedImageInfo& cmpInfo) {
+            return ((cmpInfo.isEtc2() && emulateTextureEtc2) ||
+                    (cmpInfo.isAstc() && emulateTextureAstc));
         }
         bool needEmulatedDecompression(VkFormat format) {
-            return (CompressedImageInfo::isEtc2(format) && emulateTextureEtc2) ||
-                   (CompressedImageInfo::isAstc(format) && emulateTextureAstc);
+            return (gfxstream::vk::isEtc2(format) && emulateTextureEtc2) || (gfxstream::vk::isAstc(format) && emulateTextureAstc);
         }
     };
 
