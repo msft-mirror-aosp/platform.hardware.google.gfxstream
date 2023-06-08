@@ -720,7 +720,7 @@ C2GoldfishAvcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
     if (!mOutBlock) {
         const uint32_t format = HAL_PIXEL_FORMAT_YCBCR_420_888;
         const C2MemoryUsage usage = {(uint64_t)(BufferUsage::VIDEO_DECODER),
-                                     C2MemoryUsage::CPU_WRITE};
+                                     C2MemoryUsage::CPU_WRITE | C2MemoryUsage::CPU_READ};
         c2_status_t err = pool->fetchGraphicBlock(ALIGN2(mWidth), mHeight,
                                                   format, usage, &mOutBlock);
         if (err != C2_OK) {
