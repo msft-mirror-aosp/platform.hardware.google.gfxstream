@@ -31,5 +31,5 @@ private:
     static int s_lastErrorCode;
     int (*m_oldErrorHandler)(Display *, XErrorEvent *) = nullptr;
     static android::base::Lock s_lock;
-    static int errorHandlerProc(EGLNativeDisplayType dpy,XErrorEvent* event);
+    static int errorHandlerProc(Display* dpy, XErrorEvent* event);
 };
