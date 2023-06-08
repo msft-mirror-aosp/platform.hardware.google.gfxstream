@@ -23,7 +23,7 @@ android::base::Lock X11ErrorHandler::s_lock;
 
 X11ErrorHandler::X11ErrorHandler(EGLNativeDisplayType dpy) {
     android::base::AutoLock mutex(s_lock);
-    getX11Api()->XSync(dpy,False);
+    getX11Api()->XSync((Display*)dpy, False);
     s_lastErrorCode = 0;
     m_oldErrorHandler = getX11Api()->XSetErrorHandler(errorHandlerProc);
 }
@@ -35,8 +35,7 @@ X11ErrorHandler::~X11ErrorHandler() {
 }
 
 // static
-int X11ErrorHandler::errorHandlerProc(EGLNativeDisplayType dpy,
-                                      XErrorEvent* event) {
+int X11ErrorHandler::errorHandlerProc(Display* dpy, XErrorEvent* event) {
     s_lastErrorCode = event->error_code;
     return 0;
 }
