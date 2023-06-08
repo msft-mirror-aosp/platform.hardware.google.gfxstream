@@ -157,8 +157,9 @@ const char kGenericFragmentShaderSource[] = R"(
 )";
 
 static const float kVertexData[] = {-1, -1, 3, -1, -1, 3};
-static android::base::Lock s_programLock;
+static android::base::Lock s_postContextResources;
 static std::vector<GLuint> s_programsToRelease;
+static std::vector<GLuint> s_framebuffersToRelease;
 
 static GLuint createShader(GLenum type, std::initializer_list<const char*> source) {
     GLint success, infoLength;
@@ -264,9 +265,6 @@ TextureResize::TextureResize(GLuint width, GLuint height) :
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    s_gles2.glGenFramebuffers(1, &mFBWidth.framebuffer);
-    s_gles2.glGenFramebuffers(1, &mFBHeight.framebuffer);
-
     s_gles2.glGenBuffers(1, &mVertexBuffer);
     s_gles2.glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     s_gles2.glBufferData(GL_ARRAY_BUFFER, sizeof(kVertexData), kVertexData, GL_STATIC_DRAW);
@@ -276,22 +274,21 @@ TextureResize::TextureResize(GLuint width, GLuint height) :
     s_gles2.glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-
-
 TextureResize::~TextureResize() {
-    GLuint fb[2] = {mFBWidth.framebuffer, mFBHeight.framebuffer};
-    s_gles2.glDeleteFramebuffers(2, fb);
-
     GLuint tex[2] = {mFBWidth.texture, mFBHeight.texture};
     s_gles2.glDeleteTextures(2, tex);
-
     s_gles2.glDeleteBuffers(1, &mVertexBuffer);
     // b/242245912
     // There seems to be a mesa bug that we have to delete the
     // program in the post thread.
-    android::base::AutoLock lock(s_programLock);
+    android::base::AutoLock lock(s_postContextResources);
     s_programsToRelease.push_back(mFBWidth.program);
     s_programsToRelease.push_back(mFBHeight.program);
+    // b/285421327
+    // We should create, use and destroy framebuffers in the same context.
+    // Framebuffer ownership is driver-dependent.
+    s_framebuffersToRelease.push_back(mFBWidth.framebuffer);
+    s_framebuffersToRelease.push_back(mFBHeight.framebuffer);
 }
 
 GLuint TextureResize::update(GLuint texture) {
@@ -375,6 +372,13 @@ void TextureResize::resize(GLuint texture) {
     s_gles2.glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     s_gles2.glActiveTexture(GL_TEXTURE0);
 
+    if (!mFBWidth.framebuffer) {
+        s_gles2.glGenFramebuffers(1, &mFBWidth.framebuffer);
+    }
+    if (!mFBHeight.framebuffer) {
+        s_gles2.glGenFramebuffers(1, &mFBHeight.framebuffer);
+    }
+
     // First scale the horizontal dimension by rendering the input texture to a scaled framebuffer.
     s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, mFBWidth.framebuffer);
     s_gles2.glFramebufferTexture2D(
@@ -421,10 +425,15 @@ void TextureResize::resize(GLuint texture) {
     s_gles2.glBindTexture(GL_TEXTURE_2D, 0);
     s_gles2.glDisableVertexAttribArray(mFBHeight.aPosition);
     s_gles2.glUseProgram(0);
-    android::base::AutoLock lock(s_programLock);
+    android::base::AutoLock lock(s_postContextResources);
     while (s_programsToRelease.size()) {
         s_gles2.glDeleteProgram(s_programsToRelease.back());
         s_programsToRelease.pop_back();
+    }
+    if (s_framebuffersToRelease.size()) {
+        s_gles2.glDeleteFramebuffers(s_framebuffersToRelease.size(),
+                                     s_framebuffersToRelease.data());
+        s_framebuffersToRelease.clear();
     }
 }
 
