@@ -725,7 +725,7 @@ C2GoldfishVpxDec::outputBuffer(const std::shared_ptr<C2BlockPool> &pool,
     std::shared_ptr<C2GraphicBlock> block;
     uint32_t format = HAL_PIXEL_FORMAT_YCBCR_420_888;
     const C2MemoryUsage usage = {(uint64_t)(BufferUsage::VIDEO_DECODER),
-                                 C2MemoryUsage::CPU_WRITE};
+                                 C2MemoryUsage::CPU_WRITE | C2MemoryUsage::CPU_READ};
 
     c2_status_t err = pool->fetchGraphicBlock(align(mWidth, 2), mHeight, format,
                                               usage, &block);
