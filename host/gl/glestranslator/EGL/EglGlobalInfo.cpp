@@ -119,6 +119,18 @@ bool  EglGlobalInfo::removeDisplay(EGLDisplay dpy) {
     return false;
 }
 
+EglDisplay* EglGlobalInfo::getDisplay(EGLNativeDisplayType dpy) const {
+    android::base::AutoLock mutex(m_lock);
+    for (size_t n = 0; n < m_displays.size(); ++n) {
+        if (m_displays[n]->getEglOsEngineDisplay() == dpy) {
+            return m_displays[n];
+        }
+    }
+    return NULL;
+}
+
+#ifndef ANDROID
+
 EglDisplay* EglGlobalInfo::getDisplay(EGLDisplay dpy) const {
     android::base::AutoLock mutex(m_lock);
     for (size_t n = 0; n < m_displays.size(); ++n) {
@@ -128,6 +140,8 @@ EglDisplay* EglGlobalInfo::getDisplay(EGLDisplay dpy) const {
     }
     return NULL;
 }
+
+#endif
 
 void EglGlobalInfo::initClientExtFuncTable(GLESVersion ver) {
     android::base::AutoLock mutex(m_lock);
