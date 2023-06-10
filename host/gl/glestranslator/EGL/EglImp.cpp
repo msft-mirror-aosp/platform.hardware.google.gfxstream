@@ -279,7 +279,7 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id) {
 
     initGlobalInfo();
 
-    if ((dpy = g_eglInfo->getDisplay(display_id))) {
+    if ((dpy = g_eglInfo->getDisplayFromDisplayType(display_id))) {
         return dpy;
     }
     if (display_id != EGL_DEFAULT_DISPLAY) {
