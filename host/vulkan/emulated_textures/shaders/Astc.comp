@@ -24,7 +24,7 @@
 
 precision highp int;
 
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 layout(push_constant) uniform ImageFormatBlock {
     uvec2 blockSize;
@@ -872,12 +872,6 @@ uvec4[144] astc_decode_block(const uvec4 u) {
     }
     return ret;
 }
-
-ivec2 getPos1DArray(ivec3 pos) { return ivec2(pos.x, pos.z); }
-
-ivec3 getPos2DArray(ivec3 pos) { return pos; }
-
-ivec3 getPos3D(ivec3 pos) { return pos; }
 
 uint block_y_size_1DArray() { return 1; }
 

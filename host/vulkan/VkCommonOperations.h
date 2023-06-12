@@ -68,9 +68,8 @@ VK_EXT_MEMORY_HANDLE dupExternalMemory(VK_EXT_MEMORY_HANDLE);
 
 enum class AstcEmulationMode {
     Disabled,  // No ASTC emulation (ie: ASTC not supported unless the GPU supports it natively)
-    Auto,      // Use either GPU or CPU decompression depending on what's most appropriate
-    CpuOnly,   // Force to use CPU decompression always
-    GpuOnly,   // Force to use GPU decompression always
+    Cpu,       // Decompress ASTC textures on the CPU
+    Gpu,       // Decompress ASTC textures on the GPU
 };
 
 // Global state that holds a global Vulkan instance along with globally

@@ -19,6 +19,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include <cerrno>
 #include <cstring>
 #include <vector>
 
@@ -119,14 +120,28 @@ magma_status_t IntelDrmDecoder::magma_device_query(magma_device_t device, uint64
             return MAGMA_STATUS_OK;
         }
         case kMagmaIntelGenQueryGttSize: {
-            // GTT is synonymous with Aperture
-            drm_i915_gem_get_aperture aperture{};
-            int result = dev->ioctl(DRM_IOCTL_I915_GEM_GET_APERTURE, &aperture);
-            if (result != 0) {
-                ERR("DRM_IOCTL_I915_GEM_GET_APERTURE failed: %d", result);
+            *result_out = 0;
+            drm_i915_gem_context_create_ext create_params{};
+            int create_result = dev->ioctl(DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT, &create_params);
+            if (create_result) {
+                ERR("DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT failed: %d", errno);
                 return MAGMA_STATUS_INTERNAL_ERROR;
             }
-            *result_out = aperture.aper_available_size;
+            drm_i915_gem_context_param query_params{.ctx_id = create_params.ctx_id,
+                                                    .param = I915_CONTEXT_PARAM_GTT_SIZE};
+            int query_result = dev->ioctl(DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM, &query_params);
+            if (query_result) {
+                ERR("DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM failed: %d", errno);
+                return MAGMA_STATUS_INTERNAL_ERROR;
+            }
+            drm_i915_gem_context_destroy destroy_params{.ctx_id = create_params.ctx_id};
+            int destroy_result = dev->ioctl(DRM_IOCTL_I915_GEM_CONTEXT_DESTROY, &destroy_params);
+            if (destroy_result) {
+                ERR("DRM_IOCTL_I915_GEM_CONTEXT_DESTROY failed: %d", errno);
+                return MAGMA_STATUS_INTERNAL_ERROR;
+            }
+            *result_out = query_params.value;
+            ERR("GTT size %" PRIu64, *result_out);
             return MAGMA_STATUS_OK;
         }
         case kMagmaIntelGenQueryExtraPageCount: {

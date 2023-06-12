@@ -84,9 +84,7 @@ uint8_t* AstcTexture::createVkBufferAndMapMemory(size_t bufferSize) {
     bytes_used += bufferSize;
 
     if (mDecompBuffer || mDecompBufferMemory) {
-        WARN(
-            "ASTC CPU decompression failed: tried to decompress same image more than once. Falling"
-            " back to GPU decompression");
+        WARN("ASTC CPU decompression failed: tried to decompress same image more than once.");
         return nullptr;
     }
 
@@ -225,8 +223,7 @@ void AstcTexture::on_vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, uint8
             decompData + decompRegion.bufferOffset);
 
         if (status != 0) {
-            WARN("ASTC CPU decompression failed: %s - will try compute shader instead.",
-                 mDecompressor->getStatusString(status));
+            WARN("ASTC CPU decompression failed: %s.", mDecompressor->getStatusString(status));
             mVk->vkUnmapMemory(mDevice, mDecompBufferMemory);
             destroyVkBuffer();
             return;

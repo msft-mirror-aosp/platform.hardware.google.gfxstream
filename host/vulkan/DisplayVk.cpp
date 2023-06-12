@@ -14,6 +14,10 @@ namespace vk {
 
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
+using gfxstream::vk::formatIsDepthOrStencil;
+using gfxstream::vk::formatIsSInt;
+using gfxstream::vk::formatIsUInt;
+using gfxstream::vk::formatRequiresSamplerYcbcrConversion;
 
 #define DISPLAY_VK_ERROR(fmt, ...)                                                            \
     do {                                                                                      \
@@ -108,9 +112,7 @@ void DisplayVk::surfaceUpdated(gfxstream::DisplaySurface* surface) {
     m_needToRecreateSwapChain = true;
 }
 
-void DisplayVk::unbindFromSurfaceImpl() {
-    destroySwapchain();
-}
+void DisplayVk::unbindFromSurfaceImpl() { destroySwapchain(); }
 
 void DisplayVk::destroySwapchain() {
     drainQueues();
@@ -130,9 +132,8 @@ bool DisplayVk::recreateSwapchain() {
     }
     const auto* surfaceVk = static_cast<const DisplaySurfaceVk*>(surface->getImpl());
 
-    if (!SwapChainStateVk::validateQueueFamilyProperties(m_vk, m_vkPhysicalDevice,
-                                                         surfaceVk->getSurface(),
-                                                         m_swapChainQueueFamilyIndex)) {
+    if (!SwapChainStateVk::validateQueueFamilyProperties(
+            m_vk, m_vkPhysicalDevice, surfaceVk->getSurface(), m_swapChainQueueFamilyIndex)) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "DisplayVk can't create VkSwapchainKHR with given VkDevice and VkSurfaceKHR.";
     }
@@ -194,8 +195,7 @@ DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo) 
         if (retriesRemaining < 0) {
             GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                 << "Failed to create Swapchain."
-                << " w:" << surface->getWidth()
-                << " h:" << surface->getHeight();
+                << " w:" << surface->getWidth() << " h:" << surface->getHeight();
         }
 
         INFO("Recreating swapchain completed.");
@@ -208,8 +208,7 @@ DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo) 
     return result;
 }
 
-DisplayVk::PostResult DisplayVk::postImpl(
-    const BorrowedImageInfo* sourceImageInfo) {
+DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageInfo) {
     auto completedFuture = std::async(std::launch::deferred, [] {}).share();
     completedFuture.wait();
 

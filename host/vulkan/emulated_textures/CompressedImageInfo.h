@@ -20,6 +20,8 @@
 #include <vector>
 
 #include "host/vulkan/emulated_textures/AstcTexture.h"
+#include "host/vulkan/emulated_textures/AstcTexture.h"
+#include "host/vulkan/emulated_textures/GpuDecompressionPipeline.h"
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 
@@ -30,14 +32,14 @@ class CompressedImageInfo {
    public:
     // Static methods
 
-    static VkFormat getDecompressedFormat(VkFormat compFmt);
+    // Returns the format that this image will be converted to, if the original format isn't
+    // natively supported by the GPU.
+    static VkFormat getOutputFormat(VkFormat compFmt);
 
     // Returns the image format used to store the compressed data. Each pixel in the compressed
     // mipmaps will hold an entire compressed block.
     static VkFormat getCompressedMipmapsFormat(VkFormat compFmt);
 
-    static bool isEtc2(VkFormat format);
-    static bool isAstc(VkFormat format);
     static bool needEmulatedAlpha(VkFormat format);
 
     // Returns a VkImageCopy to copy to/from the compressed data
@@ -53,12 +55,13 @@ class CompressedImageInfo {
     CompressedImageInfo() = default;
     explicit CompressedImageInfo(VkDevice device);
 
-    CompressedImageInfo(VkDevice device, const VkImageCreateInfo& createInfo);
+    CompressedImageInfo(VkDevice device, const VkImageCreateInfo& createInfo,
+                        GpuDecompressionPipelineManager* pipelineManager);
 
     // Public methods
 
-    // Returns the VkImageCreateInfo needed to create the decompressed image
-    VkImageCreateInfo getDecompressedCreateInfo(const VkImageCreateInfo& createInfo) const;
+    // Returns the VkImageCreateInfo needed to create the output image
+    VkImageCreateInfo getOutputCreateInfo(const VkImageCreateInfo& createInfo) const;
 
     // Creates the compressed mipmap images, that is the VkImages holding the compressed data
     void createCompressedMipmapImages(VulkanDispatch* vk, const VkImageCreateInfo& createInfo);
@@ -73,6 +76,8 @@ class CompressedImageInfo {
     // outputBarriers: any barrier that needs to be passed to the vkCmdPipelineBarrier call will be
     // added to this vector.
     // Returns whether image decompression happened.
+    // Note: the global lock must be held when calling this method, because we call into
+    // GpuDecompressionPipelineManager.
     bool decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
                             VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
                             const VkImageMemoryBarrier& targetBarrier,
@@ -100,18 +105,14 @@ class CompressedImageInfo {
     bool isAstc() const;
     VkDevice device() const { return mDevice; }
     VkImage compressedMipmap(uint32_t level) { return mCompressedMipmaps[level]; }
-    VkImage decompressedImage() { return mDecompressedImage; }
-    void setDecompressedImage(VkImage image) { mDecompressedImage = image; }
-    bool canDecompressOnCpu() { return mAstcTexture && mAstcTexture->canDecompressOnCpu(); }
+    VkImage outputImage() { return mOutputImage; }
+    void setOutputImage(VkImage image) { mOutputImage = image; }
+    bool canDecompressOnCpu() { return mAstcTexture != nullptr; }
     bool successfullyDecompressedOnCpu() const {
         return mAstcTexture && mAstcTexture->successfullyDecompressed();
     }
 
    private:
-    // Returns the size in bytes needed for the storage of a given image.
-    // Also updates the alignment field of this class.
-    VkDeviceSize getImageSize(VulkanDispatch* vk, VkImage image);
-
     // Returns a vector of image barriers for the compressed mipmap images and the decompressed
     // image.
     std::vector<VkImageMemoryBarrier> getImageBarriers(const VkImageMemoryBarrier& srcBarrier);
@@ -140,7 +141,7 @@ class CompressedImageInfo {
     // The original compressed format of this image. E.g.: VK_FORMAT_ASTC_4x4_UNORM_BLOCK
     VkFormat mCompressedFormat = VK_FORMAT_UNDEFINED;
     // The format that we decompressed the image to. E.g.: VK_FORMAT_R8G8B8A8_UINT
-    VkFormat mDecompressedFormat = VK_FORMAT_UNDEFINED;
+    VkFormat mOutputFormat = VK_FORMAT_UNDEFINED;
     // The format that we use to store the compressed data, since the original compressed format
     // isn't available. This holds one compressed block per pixel. E.g.: VK_FORMAT_R32G32B32A32_UINT
     VkFormat mCompressedMipmapsFormat = VK_FORMAT_UNDEFINED;
@@ -152,27 +153,28 @@ class CompressedImageInfo {
     uint32_t mLayerCount = 1;
 
     VkDevice mDevice = VK_NULL_HANDLE;
-    VkImage mDecompressedImage = VK_NULL_HANDLE;
+    VkImage mOutputImage = VK_NULL_HANDLE;
 
     // Compressed data. Each mip level of the original image is stored as a separate VkImage, and
     // each pixel in those images contains an entire compressed block.
     std::vector<VkImage> mCompressedMipmaps;
 
-    VkDeviceSize mAlignment = 0;
-    std::vector<VkDeviceSize> mMemoryOffsets;
+    // The memory offset that we will use for each compressed mipmap.
+    std::vector<VkDeviceSize> mMipmapOffsets;
+
+    VkMemoryRequirements mMemoryRequirements;
 
     // Used to perform CPU decompression of ASTC textures. Null for non-ASTC images.
     std::unique_ptr<AstcTexture> mAstcTexture = nullptr;
 
     // Vulkan resources used by the decompression pipeline
-    VkShaderModule mDecompShader = VK_NULL_HANDLE;
-    VkPipeline mDecompPipeline = VK_NULL_HANDLE;
-    VkPipelineLayout mDecompPipelineLayout = VK_NULL_HANDLE;
+    GpuDecompressionPipelineManager* mPipelineManager = nullptr;
+    GpuDecompressionPipeline* mDecompPipeline = nullptr;
     std::vector<VkDescriptorSet> mDecompDescriptorSets;
-    VkDescriptorSetLayout mDecompDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool mDecompDescriptorPool = VK_NULL_HANDLE;
     std::vector<VkImageView> mCompressedMipmapsImageViews;
-    std::vector<VkImageView> mDecompImageViews;
+    std::vector<VkImageView> mOutputImageViews;
+    bool mDecompPipelineInitialized = false;
 };
 
 }  // namespace vk

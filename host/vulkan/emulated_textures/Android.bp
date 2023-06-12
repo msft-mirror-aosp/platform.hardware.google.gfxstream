@@ -13,5 +13,6 @@ cc_library_static {
     srcs: [
         "AstcTexture.cpp",
         "CompressedImageInfo.cpp",
+        "GpuDecompressionPipeline.cpp",
     ],
 }

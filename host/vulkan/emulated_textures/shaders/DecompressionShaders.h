@@ -21,6 +21,24 @@ namespace decompression_shaders {
 // We use `inline constexpr` here, as recommended in
 // https://abseil.io/tips/140#constants-in-header-files
 
+inline constexpr uint32_t AstcToBc3_1D[] = {
+#include "compiled/AstcToBc3_1D.inl"
+};
+inline constexpr uint32_t AstcToBc3_2D[] = {
+#include "compiled/AstcToBc3_2D.inl"
+};
+inline constexpr uint32_t AstcToBc3_3D[] = {
+#include "compiled/AstcToBc3_3D.inl"
+};
+inline constexpr uint32_t AstcToRgb_1D[] = {
+#include "compiled/AstcToRgb_1D.inl"
+};
+inline constexpr uint32_t AstcToRgb_2D[] = {
+#include "compiled/AstcToRgb_2D.inl"
+};
+inline constexpr uint32_t AstcToRgb_3D[] = {
+#include "compiled/AstcToRgb_3D.inl"
+};
 inline constexpr uint32_t Astc_1D[] = {
 #include "compiled/Astc_1D.inl"
 };
