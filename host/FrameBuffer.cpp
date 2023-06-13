@@ -1979,7 +1979,7 @@ void FrameBuffer::updateYUVTextures(uint32_t type,
 
 #ifdef __APPLE__
     EGLContext prevContext = s_egl.eglGetCurrentContext();
-    auto mydisp = EglGlobalInfo::getInstance()->getDisplay(EGL_DEFAULT_DISPLAY);
+    auto mydisp = EglGlobalInfo::getInstance()->getDisplayFromDisplayType(EGL_DEFAULT_DISPLAY);
     void* nativecontext = mydisp->getLowLevelContext(prevContext);
     struct MediaNativeCallerData callerdata;
     callerdata.ctx = nativecontext;
