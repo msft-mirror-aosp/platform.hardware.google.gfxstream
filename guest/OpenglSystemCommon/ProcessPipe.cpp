@@ -189,7 +189,14 @@ static void sQemuPipeInit() {
     }
 }
 
-static void processPipeInitOnce() {
+namespace {
+
+static std::mutex sNeedInitMutex;
+static bool sNeedInit = true;
+
+}  // namespace
+
+static void processPipeDoInit() {
     initSeqno();
 
 #if defined(HOST_BUILD) || !defined(GFXSTREAM)
@@ -217,12 +224,26 @@ bool processPipeInit(int streamHandle, HostConnectionType connType, renderContro
 #ifndef __Fuchsia__
     sStreamHandle = streamHandle;
 #endif // !__Fuchsia
-    pthread_once(&sProcPipeOnce, processPipeInitOnce);
-    bool pipeHandleInvalid = !sProcPipe;
-#ifndef __Fuchsia__
-    pipeHandleInvalid = pipeHandleInvalid && !sVirtioGpuPipeStream;
-#endif // !__Fuchsia__
-    if (pipeHandleInvalid) return false;
+
+    {
+        std::lock_guard<std::mutex> lock(sNeedInitMutex);
+
+        if (sNeedInit) {
+            sNeedInit = false;
+            processPipeDoInit();
+
+#ifdef __Fuchsia__
+            if (!sProcPipe) {
+                return false;
+            }
+#else
+            if (!sProcPipe && !sVirtioGpuPipeStream) {
+                return false;
+            }
+#endif
+        }
+    }
+
     rcEnc->rcSetPuid(rcEnc, sProcUID);
     return true;
 }
@@ -232,6 +253,8 @@ uint64_t getPuid() {
 }
 
 void processPipeRestart() {
+    std::lock_guard<std::mutex> lock(sNeedInitMutex);
+
     ALOGW("%s: restarting process pipe\n", __func__);
     bool isPipe = false;
 
@@ -265,7 +288,7 @@ void processPipeRestart() {
     }
 #endif // __Fuchsia__
 
-    processPipeInitOnce();
+    sNeedInit = true;
 }
 
 void refreshHostConnection() {
