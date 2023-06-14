@@ -1911,6 +1911,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint8_t* targetRange = hostPtr + offset;
                         memcpy(targetRange, *readStreamPtrPtr, readStream);
                         *readStreamPtrPtr += readStream;
+                        packetLen += 8 + readStream;
                     }
                 }
                 VkResult vkFlushMappedMemoryRanges_VkResult_return = (VkResult)0;
