@@ -161,7 +161,7 @@ void pixelFormatToConfig(EGLNativeDisplayType dpy,
 
     auto glx = getGlxApi();
 
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(dpy, frmt, GLX_TRANSPARENT_TYPE, &tmp));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_TRANSPARENT_TYPE, &tmp));
     if (tmp == GLX_TRANSPARENT_INDEX) {
         return; // not supporting transparent index
     } else if (tmp == GLX_NONE) {
@@ -172,52 +172,46 @@ void pixelFormatToConfig(EGLNativeDisplayType dpy,
     } else {
         info.transparent_type = EGL_TRANSPARENT_RGB;
 
-        EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-                dpy, frmt, GLX_TRANSPARENT_RED_VALUE, &info.trans_red_val));
-        EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-                dpy, frmt, GLX_TRANSPARENT_GREEN_VALUE, &info.trans_green_val));
-        EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-                dpy, frmt, GLX_TRANSPARENT_BLUE_VALUE, &info.trans_blue_val));
+        EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_TRANSPARENT_RED_VALUE,
+                                                &info.trans_red_val));
+        EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_TRANSPARENT_GREEN_VALUE,
+                                                &info.trans_green_val));
+        EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_TRANSPARENT_BLUE_VALUE,
+                                                &info.trans_blue_val));
     }
 
     //
     // filter out single buffer configurations
     //
     int doubleBuffer = 0;
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy, frmt, GLX_DOUBLEBUFFER, &doubleBuffer));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_DOUBLEBUFFER, &doubleBuffer));
     if (!doubleBuffer) {
         return;
     }
 
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy ,frmt, GLX_RED_SIZE, &info.red_size));
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy ,frmt, GLX_GREEN_SIZE, &info.green_size));
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy ,frmt, GLX_BLUE_SIZE, &info.blue_size));
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy ,frmt, GLX_ALPHA_SIZE, &info.alpha_size));
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy ,frmt, GLX_DEPTH_SIZE, &info.depth_size));
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy ,frmt, GLX_STENCIL_SIZE, &info.stencil_size));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_RED_SIZE, &info.red_size));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_GREEN_SIZE, &info.green_size));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_BLUE_SIZE, &info.blue_size));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_ALPHA_SIZE, &info.alpha_size));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_DEPTH_SIZE, &info.depth_size));
+    EXIT_IF_FALSE(
+        glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_STENCIL_SIZE, &info.stencil_size));
 
     info.renderable_type = renderableType;
     int nativeRenderable = 0;
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy, frmt, GLX_X_RENDERABLE, &nativeRenderable));
+    EXIT_IF_FALSE(
+        glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_X_RENDERABLE, &nativeRenderable));
     info.native_renderable = !!nativeRenderable;
 
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy, frmt, GLX_X_VISUAL_TYPE, &info.native_visual_type));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_X_VISUAL_TYPE,
+                                            &info.native_visual_type));
 
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy, frmt, GLX_VISUAL_ID, &info.native_visual_id));
+    EXIT_IF_FALSE(
+        glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_VISUAL_ID, &info.native_visual_id));
 
     //supported surfaces types
     info.surface_type = 0;
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(dpy, frmt, GLX_DRAWABLE_TYPE, &tmp));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_DRAWABLE_TYPE, &tmp));
     if (tmp & GLX_WINDOW_BIT && info.native_visual_id != 0) {
         info.surface_type |= EGL_WINDOW_BIT;
     } else {
@@ -229,7 +223,7 @@ void pixelFormatToConfig(EGLNativeDisplayType dpy,
     }
 
     info.caveat = 0;
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(dpy, frmt, GLX_CONFIG_CAVEAT, &tmp));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_CONFIG_CAVEAT, &tmp));
     if (tmp == GLX_NONE) {
         info.caveat = EGL_NONE;
     } else if (tmp == GLX_SLOW_CONFIG) {
@@ -237,21 +231,21 @@ void pixelFormatToConfig(EGLNativeDisplayType dpy,
     } else if (tmp == GLX_NON_CONFORMANT_CONFIG) {
         info.caveat = EGL_NON_CONFORMANT_CONFIG;
     }
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy, frmt, GLX_MAX_PBUFFER_WIDTH, &info.max_pbuffer_width));
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy, frmt, GLX_MAX_PBUFFER_HEIGHT, &info.max_pbuffer_height));
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy, frmt, GLX_MAX_PBUFFER_HEIGHT, &info.max_pbuffer_size));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_MAX_PBUFFER_WIDTH,
+                                            &info.max_pbuffer_width));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_MAX_PBUFFER_HEIGHT,
+                                            &info.max_pbuffer_height));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_MAX_PBUFFER_HEIGHT,
+                                            &info.max_pbuffer_size));
 
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy, frmt, GLX_LEVEL, &info.frame_buffer_level));
+    EXIT_IF_FALSE(
+        glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_LEVEL, &info.frame_buffer_level));
 
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(
-            dpy, frmt, GLX_SAMPLES, &info.samples_per_pixel));
+    EXIT_IF_FALSE(
+        glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_SAMPLES, &info.samples_per_pixel));
 
     // Filter out configs that do not support RGBA
-    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib(dpy, frmt, GLX_RENDER_TYPE, &tmp));
+    EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_RENDER_TYPE, &tmp));
     if (!(tmp & GLX_RGBA_BIT)) {
         return;
     }
