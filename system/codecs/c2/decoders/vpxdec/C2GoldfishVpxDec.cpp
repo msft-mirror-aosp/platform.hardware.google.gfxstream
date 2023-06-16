@@ -495,8 +495,9 @@ void C2GoldfishVpxDec::checkContext(const std::shared_ptr<C2BlockPool> &pool) {
     mCtx = new vpx_codec_ctx_t;
     mCtx->vpversion = mMode == MODE_VP8 ? 8 : 9;
 
-    const bool isGraphic = (pool->getLocalId() == C2PlatformAllocatorStore::GRALLOC);
-    DDD("buffer pool id %x",  (int)(pool->getLocalId()));
+    //const bool isGraphic = (pool->getLocalId() == C2PlatformAllocatorStore::GRALLOC);
+    const bool isGraphic = (pool->getAllocatorId() & C2Allocator::GRAPHIC);
+    DDD("buffer pool allocator id %x",  (int)(pool->getAllocatorId()));
     if (isGraphic) {
         DDD("decoding to host color buffer");
         mEnableAndroidNativeBuffers = true;
