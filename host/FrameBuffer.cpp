@@ -496,7 +496,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
 
         PostWorkerGl* postWorkerGl =
             new PostWorkerGl(shouldPostOnlyOnMainThread, fb.get(), fb->m_compositor,
-                             fb->m_emulationGl->getFakeWindowSurface(), fb->m_displayGl);
+                             fb->m_displayGl, fb->m_emulationGl.get());
         fb->m_postWorker.reset(postWorkerGl);
         fb->m_displaySurfaceUsers.push_back(postWorkerGl);
     }
