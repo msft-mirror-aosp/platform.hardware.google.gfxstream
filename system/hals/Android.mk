@@ -42,12 +42,12 @@ LOCAL_STATIC_LIBRARIES += libqemupipe.ranchu libGoldfishAddressSpace$(GOLDFISH_O
 LOCAL_HEADER_LIBRARIES += libgralloc_cb.ranchu
 
 LOCAL_C_INCLUDES += \
-    device/generic/goldfish-opengl/system/include \
-    device/generic/goldfish-opengl/system/OpenglSystemCommon \
     device/generic/goldfish-opengl/shared/GoldfishAddressSpace/include \
     device/generic/goldfish-opengl/shared/OpenglCodecCommon \
     device/generic/goldfish-opengl/host/include/libOpenglRender \
-    device/generic/goldfish-opengl/system/renderControl_enc \
+    hardware/google/gfxstream/guest/include \
+    hardware/google/gfxstream/guest/OpenglSystemCommon \
+    hardware/google/gfxstream/guest/renderControl_enc \
 
 LOCAL_CFLAGS += -DVIRTIO_GPU
 LOCAL_C_INCLUDES += external/libdrm external/minigbm/cros_gralloc
@@ -83,12 +83,12 @@ LOCAL_STATIC_LIBRARIES += libqemupipe.ranchu libGoldfishAddressSpace$(GOLDFISH_O
 LOCAL_HEADER_LIBRARIES += libgralloc_cb.ranchu
 
 LOCAL_C_INCLUDES += \
-    device/generic/goldfish-opengl/system/include \
-    device/generic/goldfish-opengl/system/OpenglSystemCommon \
     device/generic/goldfish-opengl/shared/GoldfishAddressSpace/include \
     device/generic/goldfish-opengl/shared/OpenglCodecCommon \
     device/generic/goldfish-opengl/host/include/libOpenglRender \
-    device/generic/goldfish-opengl/system/renderControl_enc \
+    hardware/google/gfxstream/guest/include \
+    hardware/google/gfxstream/guest/OpenglSystemCommon \
+    hardware/google/gfxstream/guest/renderControl_enc \
 
 LOCAL_CFLAGS += -DVIRTIO_GPU
 LOCAL_C_INCLUDES += external/libdrm external/minigbm/cros_gralloc

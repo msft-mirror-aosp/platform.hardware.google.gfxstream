@@ -209,7 +209,16 @@ def main(argv=None):
 
         # Make sure we handle the case where we have >2 modules in the same dir.
         if location not in cmake:
-            cmake[root].append("add_subdirectory(%s)" % module["path"])
+            path = module["path"]
+            if path.startswith("../"):
+                path_binary_dir = path
+                path_binary_dir = path_binary_dir.replace("../", "")
+                path_binary_dir = path_binary_dir.replace("/", "-")
+                path_binary_dir = path_binary_dir.lower()
+
+                cmake[root].append("add_subdirectory(%s %s)" % (path, path_binary_dir))
+            else:
+                cmake[root].append("add_subdirectory(%s)" % path)
             cmake[location] = []
         cmake[location].extend(generate_module(module))
 
