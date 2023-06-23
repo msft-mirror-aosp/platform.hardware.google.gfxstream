@@ -17,7 +17,7 @@ endif
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH) \
-    $(GFXSTREAM_PROTOCOLS_PATH)/common/vulkan/include
+    $(HARDWARE_GOOGLE_GFXSTREAM_PATH)/common/vulkan/include
 endif
 
 ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))

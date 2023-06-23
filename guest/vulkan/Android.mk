@@ -9,7 +9,7 @@ $(call emugl-import,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX))
 # Vulkan include dir
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
-LOCAL_C_INCLUDES += $(GFXSTREAM_PROTOCOLS_PATH)/common/vulkan/include
+LOCAL_C_INCLUDES += $(HARDWARE_GOOGLE_GFXSTREAM_PATH)/common/vulkan/include
 
 endif
 
