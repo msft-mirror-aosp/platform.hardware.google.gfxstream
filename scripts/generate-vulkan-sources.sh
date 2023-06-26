@@ -16,6 +16,8 @@
 
 PROJECT_ROOT=$(pwd)
 
+set -x
+
 WHICH=which
 if [[ "$OSTYPE" == "msys" ]]; then
     WHICH=where
