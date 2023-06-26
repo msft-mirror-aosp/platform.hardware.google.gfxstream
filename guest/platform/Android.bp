@@ -12,9 +12,9 @@ cc_library_static {
     ],
     shared_libs: [
         "libcutils",
-        "libutils",
-	"libdrm",
+        "libdrm",
         "liblog",
+        "libutils",
     ],
     export_include_dirs: [
         "include"
@@ -25,5 +25,7 @@ cc_library_static {
         "-fvisibility=default",
         "-fstrict-aliasing",
     ],
-    include_dirs: ["device/generic/goldfish-opengl/platform/include"],
+    local_include_dirs: [
+        "include",
+    ],
 }
