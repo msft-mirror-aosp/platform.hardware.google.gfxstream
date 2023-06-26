@@ -654,11 +654,17 @@ def encode_vkInvalidateMappedMemoryRanges(typeInfo, api, cgen):
 def emit_manual_inline(typeInfo, api, cgen):
     cgen.line("#include \"%s_encode_impl.cpp.inl\"" % api.name)
 
-def unwrap_VkNativeBufferANDROID():
+def unwrap_vkCreateImage_pCreateInfo():
     def mapOp(cgen, orig, local):
-        cgen.stmt("sResourceTracker->unwrap_VkNativeBufferANDROID(%s, %s)" %
+        cgen.stmt("sResourceTracker->unwrap_vkCreateImage_pCreateInfo(%s, %s)" %
                   (orig.paramName, local.paramName))
     return { "pCreateInfo" : { "mapOp" : mapOp } }
+
+def unwrap_vkBindImageMemory2_pBindInfos():
+    def mapOp(cgen, orig, local):
+        cgen.stmt("sResourceTracker->unwrap_VkBindImageMemory2_pBindInfos(bindInfoCount, %s, %s)" %
+                  (orig.paramName, local.paramName))
+    return { "pBindInfos" : { "mapOp" : mapOp } }
 
 def unwrap_vkAcquireImageANDROID_nativeFenceFd():
     def mapOp(cgen, orig, local):
@@ -671,8 +677,9 @@ custom_encodes = {
     "vkUnmapMemory" : emit_only_resource_event,
     "vkFlushMappedMemoryRanges" : encode_vkFlushMappedMemoryRanges,
     "vkInvalidateMappedMemoryRanges" : encode_vkInvalidateMappedMemoryRanges,
-    "vkCreateImage" : emit_with_custom_unwrap(unwrap_VkNativeBufferANDROID()),
-    "vkCreateImageWithRequirementsGOOGLE" : emit_with_custom_unwrap(unwrap_VkNativeBufferANDROID()),
+    "vkCreateImage" : emit_with_custom_unwrap(unwrap_vkCreateImage_pCreateInfo()),
+    "vkCreateImageWithRequirementsGOOGLE" : emit_with_custom_unwrap(unwrap_vkCreateImage_pCreateInfo()),
+    "vkBindImageMemory2": emit_with_custom_unwrap(unwrap_vkBindImageMemory2_pBindInfos()),
     "vkAcquireImageANDROID" : emit_with_custom_unwrap(unwrap_vkAcquireImageANDROID_nativeFenceFd()),
     "vkQueueFlushCommandsGOOGLE" : emit_manual_inline,
 }
