@@ -353,23 +353,6 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
         /*height=*/1,
         std::move(pbufferSurfaceGl));
 
-    // b/283491732: we could skip the creation of subwindow if we know we will create a real
-    // window.
-    auto fakeWindowSurfaceGl = DisplaySurfaceGl::createPbufferSurface(emulationGl->mEglDisplay,
-                                                                      emulationGl->mEglConfig,
-                                                                      emulationGl->mEglContext,
-                                                                      maxContextAttribs,
-                                                                      width,
-                                                                      height);
-    if (!fakeWindowSurfaceGl) {
-        ERR("Failed to create fake window display surface.");
-        return nullptr;
-    }
-    emulationGl->mFakeWindowSurface = std::make_unique<gfxstream::DisplaySurface>(
-        width,
-        height,
-        std::move(fakeWindowSurfaceGl));
-
     emulationGl->mEmulatedEglConfigs =
         std::make_unique<EmulatedEglConfigList>(emulationGl->mEglDisplay,
                                                 emulationGl->mGlesDispatchMaxVersion);
@@ -527,7 +510,12 @@ EmulationGl::~EmulationGl() {
     }
 }
 
-gfxstream::DisplaySurface* EmulationGl::getFakeWindowSurface() { return mFakeWindowSurface.get(); }
+std::unique_ptr<gfxstream::DisplaySurface> EmulationGl::createFakeWindowSurface() {
+    return std::make_unique<gfxstream::DisplaySurface>(
+        mWidth, mHeight,
+        std::move(DisplaySurfaceGl::createPbufferSurface(
+            mEglDisplay, mEglConfig, mEglContext, getGlesMaxContextAttribs(), mWidth, mHeight)));
+}
 
 /*static*/ const GLint* EmulationGl::getGlesMaxContextAttribs() {
     int glesMaj, glesMin;

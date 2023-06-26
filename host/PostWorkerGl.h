@@ -29,12 +29,13 @@ class RecursiveScopedContextBind;
 
 namespace gl {
 class DisplayGl;
+class EmulationGl;
 }  // namespace gl
 
 class PostWorkerGl : public PostWorker, public DisplaySurfaceUser {
    public:
     PostWorkerGl(bool mainThreadPostingOnly, FrameBuffer* fb, Compositor* compositor,
-                 gfxstream::DisplaySurface* fakeWindowSurface, gl::DisplayGl* displayGl);
+                 gl::DisplayGl* displayGl, gl::EmulationGl* emulationGl);
 
     void screenshot(ColorBuffer* cb, int screenwidth, int screenheight, GLenum format, GLenum type,
                     int skinRotation, void* pixels, Rect rect) override;
@@ -63,7 +64,8 @@ class PostWorkerGl : public PostWorker, public DisplaySurfaceUser {
     int m_viewportHeight = 0;
 
     bool mContextBound = false;
-    gfxstream::DisplaySurface* const mFakeWindowSurface;
+    std::unique_ptr<gfxstream::DisplaySurface> mFakeWindowSurface = nullptr;
+    gl::EmulationGl* mEmulationGl;
 };
 
 }  // namespace gfxstream
