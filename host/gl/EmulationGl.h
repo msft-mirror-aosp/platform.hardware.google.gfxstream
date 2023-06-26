@@ -139,7 +139,7 @@ class EmulationGl {
         const ColorBufferMap& colorBuffers,
         const EmulatedEglContextMap& contexts);
 
-    gfxstream::DisplaySurface* getFakeWindowSurface();
+    std::unique_ptr<gfxstream::DisplaySurface> createFakeWindowSurface();
 
    private:
     // TODO(b/233939967): Remove this after fully transitioning to EmulationGl.
@@ -164,7 +164,6 @@ class EmulationGl {
 
    // Used for Composition and Display ops.
    std::unique_ptr<gfxstream::DisplaySurface> mWindowSurface;
-   std::unique_ptr<gfxstream::DisplaySurface> mFakeWindowSurface;
 
    GLint mGlesVersionMajor = 0;
    GLint mGlesVersionMinor = 0;
