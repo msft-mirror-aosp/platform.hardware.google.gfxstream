@@ -35,8 +35,8 @@ namespace gl {
 #define YUV_CONVERTER_DEBUG 0
 
 #if YUV_CONVERTER_DEBUG
-#define YUV_DEBUG_LOG(fmt, ...)                                                     \
-    fprintf(stderr, "yuv-converter: %s:%d " fmt "\n", __func__, __LINE__, \
+#define YUV_DEBUG_LOG(fmt, ...)                                                        \
+    fprintf(stderr, "yuv-converter: %s %s:%d " fmt "\n", __FILE__, __func__, __LINE__, \
             ##__VA_ARGS__);
 #else
 #define YUV_DEBUG_LOG(fmt, ...)
@@ -520,6 +520,28 @@ static void subUpdateYUVGLTex(GLenum texture_unit,
     s_gles2.glActiveTexture(GL_TEXTURE0);
 }
 
+bool YUVConverter::checkAndUpdateColorAspectsChanged(void* metadata) {
+    bool needToUpdateConversionShader = false;
+    if (metadata) {
+        uint64_t type = *(uint64_t*)(metadata);
+        uint8_t* pmetadata = (uint8_t*)(metadata);
+        if (type == 1) {
+            uint64_t primaries = *(uint64_t*)(pmetadata + 8);
+            uint64_t range = *(uint64_t*)(pmetadata + 16);
+            uint64_t transfer = *(uint64_t*)(pmetadata + 24);
+            if (primaries != mColorPrimaries || range != mColorRange ||
+                transfer != mColorTransfer) {
+                mColorPrimaries = primaries;
+                mColorRange = range;
+                mColorTransfer = transfer;
+                needToUpdateConversionShader = true;
+            }
+        }
+    }
+
+    return needToUpdateConversionShader;
+}
+
 void YUVConverter::createYUVGLShader() {
     YUV_DEBUG_LOG("format:%d", mFormat);
 
@@ -603,15 +625,48 @@ void main(void) {
         yuv[2] = float(vRaw >> 6) / 1023.0;
     )";
 
+    // default
+    // limited range (2) 601 (4) sRGB transfer (3)
     static const char kFragShaderMainEnd[] = R"(
     yuv[0] = yuv[0] - 0.0625;
-    yuv[1] = 0.96 * (yuv[1] - 0.5);
+    yuv[1] = (yuv[1] - 0.5);
     yuv[2] = (yuv[2] - 0.5);
 
     highp float yscale = 1.1643835616438356;
     highp vec3 rgb = mat3(            yscale,               yscale,            yscale,
                                            0, -0.39176229009491365, 2.017232142857143,
                           1.5960267857142856,  -0.8129676472377708,                 0) * yuv;
+
+    gl_FragColor = vec4(rgb, 1.0);
+}
+    )";
+
+    // full range (1) 601 (4) sRGB transfer (3)
+    static const char kFragShaderMainEnd_1_4_3[] = R"(
+    yuv[0] = yuv[0];
+    yuv[1] = (yuv[1] - 0.5);
+    yuv[2] = (yuv[2] - 0.5);
+
+    highp float yscale = 1.0;
+    highp vec3 rgb = mat3(            yscale,               yscale,            yscale,
+                                           0, -0.344136* yscale, 1.772* yscale,
+                          yscale*1.402,  -0.714136* yscale,                 0) * yuv;
+
+    gl_FragColor = vec4(rgb, 1.0);
+}
+    )";
+
+    // limited range (2) 709 (1) sRGB transfer (3)
+    static const char kFragShaderMainEnd_2_1_3[] = R"(
+    highp float xscale = 219.0/ 224.0;
+    yuv[0] = yuv[0] - 0.0625;
+    yuv[1] = xscale* (yuv[1] - 0.5);
+    yuv[2] = xscale* (yuv[2] - 0.5);
+
+    highp float yscale = 255.0/219.0;
+    highp vec3 rgb = mat3(            yscale,               yscale,            yscale,
+                                           0, -0.1873* yscale, 1.8556* yscale,
+                          yscale*1.5748,  -0.4681* yscale,                 0) * yuv;
 
     gl_FragColor = vec4(rgb, 1.0);
 }
@@ -657,7 +712,13 @@ void main(void) {
         return;
     }
 
+    if (mColorRange == 1 && mColorPrimaries == 4) {
+    fragShaderSource += kFragShaderMainEnd_1_4_3;
+    } else if (mColorRange == 2 && mColorPrimaries == 1) {
+    fragShaderSource += kFragShaderMainEnd_2_1_3;
+    } else {
     fragShaderSource += kFragShaderMainEnd;
+    }
 
     YUV_DEBUG_LOG("format:%d vert-source:%s frag-source:%s", mFormat, vertShaderSource.c_str(), fragShaderSource.c_str());
 
@@ -877,7 +938,7 @@ void YUVConverter::readPixels(uint8_t* pixels, uint32_t pixels_size) {
     readYUVTex(mTextureY, mFormat, YUVPlane::Y, pixels + yOffsetBytes, yStridePixels);
 }
 
-void YUVConverter::swapTextures(FrameworkFormat format, GLuint* textures) {
+void YUVConverter::swapTextures(FrameworkFormat format, GLuint* textures, void* metadata) {
     if (isInterleaved(format)) {
         std::swap(textures[0], mTextureY);
         std::swap(textures[1], mTextureU);
@@ -889,6 +950,14 @@ void YUVConverter::swapTextures(FrameworkFormat format, GLuint* textures) {
     }
 
     mFormat = format;
+
+    const bool needToUpdateConversionShader = checkAndUpdateColorAspectsChanged(metadata);
+    if (needToUpdateConversionShader) {
+        saveGLState();
+        reset();
+        init(mWidth, mHeight, mFormat);
+    }
+
     mTexturesSwapped = true;
 }
 
@@ -901,14 +970,16 @@ void YUVConverter::drawConvert(int x, int y, int width, int height, const char* 
 }
 
 void YUVConverter::drawConvertFromFormat(FrameworkFormat format, int x, int y, int width,
-                                         int height, const char* pixels) {
+                                         int height, const char* pixels, void* metadata) {
     saveGLState();
+    const bool needToUpdateConversionShader = checkAndUpdateColorAspectsChanged(metadata);
+
     if (pixels && (width != mWidth || height != mHeight)) {
         reset();
     }
 
     bool uploadFormatChanged = !mTexturesSwapped && pixels && (format != mFormat);
-    bool initNeeded = (mProgram == 0) || uploadFormatChanged;
+    bool initNeeded = (mProgram == 0) || uploadFormatChanged || needToUpdateConversionShader;
 
     if (initNeeded) {
         if (uploadFormatChanged) {
