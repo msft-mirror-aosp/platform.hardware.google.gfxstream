@@ -14,14 +14,20 @@
 
 #pragma once
 
+#include <lib/magma/magma_common_defs.h>
+
 #include <optional>
 #include <memory>
 
+#include "DrmBuffer.h"
+#include "MonotonicMap.h"
 #include "aemu/base/Compiler.h"
 #include "aemu/base/ManagedDescriptor.hpp"
 
 namespace gfxstream {
 namespace magma {
+
+class DrmBuffer;
 
 class DrmDevice {
    public:
