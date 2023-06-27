@@ -22,8 +22,9 @@ cc_library_static {
     target: {
         android: {
             srcs: [
-                "IntelDrmDecoder.cpp",
+                "DrmBuffer.cpp",
                 "DrmDevice.cpp",
+                "IntelDrmDecoder.cpp",
             ],
             header_libs: [
                 "libdrm_headers",
@@ -34,8 +35,9 @@ cc_library_static {
         },
         not_windows: {
             srcs: [
-                "IntelDrmDecoder.cpp",
+                "DrmBuffer.cpp",
                 "DrmDevice.cpp",
+                "IntelDrmDecoder.cpp",
             ],
             header_libs: [
                 "libdrm_headers",
