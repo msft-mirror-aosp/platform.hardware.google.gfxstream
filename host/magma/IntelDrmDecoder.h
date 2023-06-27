@@ -30,13 +30,15 @@ class IntelDrmDecoder : public Decoder {
     IntelDrmDecoder();
     magma_status_t magma_device_import(magma_handle_t device_channel, magma_device_t* device_out) override;
     void magma_device_release(magma_device_t device) override;
-    magma_status_t magma_device_query(magma_device_t device, uint64_t id, magma_handle_t* result_buffer_out, uint64_t* result_out) override;
+    magma_status_t magma_device_query_fudge(magma_device_t device, uint64_t id, magma_bool_t host_allocate, uint64_t* result_buffer_mapping_id_inout, uint64_t* result_buffer_size_inout, uint64_t* result_out) override;
     magma_status_t magma_device_create_connection(magma_device_t device, magma_connection_t* connection_out) override;
     void magma_connection_release(magma_connection_t connection) override;
     magma_status_t magma_connection_create_buffer(magma_connection_t connection, uint64_t size, uint64_t* size_out, magma_buffer_t* buffer_out, magma_buffer_id_t* id_out) override;
     void magma_connection_release_buffer(magma_connection_t connection, magma_buffer_t buffer) override;
     magma_status_t magma_connection_create_semaphore(magma_connection_t magma_connection, magma_semaphore_t* semaphore_out, magma_semaphore_id_t* id_out) override;
     void magma_connection_release_semaphore(magma_connection_t connection, magma_semaphore_t semaphore) override;
+    magma_status_t magma_buffer_get_info(magma_buffer_t buffer, magma_buffer_info_t* info_out) override;
+    magma_status_t magma_buffer_get_handle(magma_buffer_t buffer, magma_handle_t* handle_out) override;
     magma_status_t magma_buffer_export(magma_buffer_t buffer, magma_handle_t* buffer_handle_out) override;
     void magma_semaphore_signal(magma_semaphore_t semaphore) override;
     void magma_semaphore_reset(magma_semaphore_t semaphore) override;
@@ -49,6 +51,10 @@ class IntelDrmDecoder : public Decoder {
 
     uint32_t mContextId;
     MonotonicMap<magma_device_t, DrmDevice> mDevices;
+    MonotonicMap<magma_buffer_t, DrmBuffer> mBuffers;
+
+    // Maps GEM handles to Buffers.
+    std::unordered_map<uint32_t, magma_buffer_t> mGemHandleToBuffer;
 };
 
 } // namespace magma
