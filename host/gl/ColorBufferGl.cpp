@@ -544,9 +544,9 @@ void ColorBufferGl::reformat(GLint internalformat, GLenum type) {
     m_numBytes = bpp * m_width * m_height;
 }
 
-void ColorBufferGl::swapYUVTextures(FrameworkFormat type, uint32_t* textures) {
+void ColorBufferGl::swapYUVTextures(FrameworkFormat type, uint32_t* textures, void* metadata) {
     if (type == FrameworkFormat::FRAMEWORK_FORMAT_NV12) {
-        m_yuv_converter->swapTextures(type, textures);
+        m_yuv_converter->swapTextures(type, textures, metadata);
     } else {
         fprintf(stderr,
                 "%s: ERROR: format other than NV12 is not supported: 0x%x\n",
@@ -555,14 +555,15 @@ void ColorBufferGl::swapYUVTextures(FrameworkFormat type, uint32_t* textures) {
 }
 
 bool ColorBufferGl::subUpdate(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
-                              const void* pixels) {
+                              const void* pixels, void* metadata) {
     return subUpdateFromFrameworkFormat(x, y, width, height, m_frameworkFormat, p_format, p_type,
-                                        pixels);
+                                        pixels, metadata);
 }
 
 bool ColorBufferGl::subUpdateFromFrameworkFormat(int x, int y, int width, int height,
                                                  FrameworkFormat fwkFormat, GLenum p_format,
-                                                 GLenum p_type, const void* pixels) {
+                                                 GLenum p_type, const void* pixels,
+                                                 void* metadata) {
     const GLenum p_unsizedFormat = sGetUnsizedColorBufferFormat(p_format);
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
@@ -584,7 +585,8 @@ bool ColorBufferGl::subUpdateFromFrameworkFormat(int x, int y, int width, int he
         // This FBO will convert the YUV frame to RGB
         // and render it to |m_tex|.
         bindFbo(&m_yuv_conversion_fbo, m_tex, m_needFboReattach);
-        m_yuv_converter->drawConvertFromFormat(fwkFormat, x, y, width, height, (char*)pixels);
+        m_yuv_converter->drawConvertFromFormat(fwkFormat, x, y, width, height, (char*)pixels,
+                                               metadata);
         unbindFbo();
 
         // |m_tex| still needs to be bound afterwards
