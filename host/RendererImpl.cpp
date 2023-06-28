@@ -582,8 +582,6 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
     .swap_textures_and_update_color_buffer =
         [](uint32_t colorbufferhandle, int x, int y, int width, int height, uint32_t format,
            uint32_t type, uint32_t texture_type, uint32_t* textures, void* metadata) {
-            (void)metadata;
-            // TODO(joshuaduong): CP go/oag/2170490
             FrameBuffer::getFB()->swapTexturesAndUpdateColorBuffer(
                 colorbufferhandle, x, y, width, height, format, type, texture_type, textures);
         },
@@ -619,7 +617,8 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
         [](uint32_t handle, int x, int y, int width, int height, uint32_t fwkFormat,
            uint32_t format, uint32_t type, void* pixels, void* pMetadata) {
             FrameBuffer::getFB()->updateColorBufferFromFrameworkFormat(
-                handle, x, y, width, height, (FrameworkFormat)fwkFormat, format, type, pixels);
+                handle, x, y, width, height, (FrameworkFormat)fwkFormat, format, type, pixels,
+                pMetadata);
         },
     .platform_import_resource =
         [](uint32_t handle, uint32_t info, void* resource) {
