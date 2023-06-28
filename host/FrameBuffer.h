@@ -384,11 +384,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void destroyYUVTextures(uint32_t type, uint32_t count, uint32_t* textures);
     void updateYUVTextures(uint32_t type, uint32_t* textures, void* privData,
                            void* func);
-    void swapTexturesAndUpdateColorBuffer(uint32_t colorbufferhandle, int x,
-                                          int y, int width, int height,
-                                          uint32_t format, uint32_t type,
-                                          uint32_t texture_type,
-                                          uint32_t* textures);
+    void swapTexturesAndUpdateColorBuffer(uint32_t colorbufferhandle, int x, int y, int width,
+                                          int height, uint32_t format, uint32_t type,
+                                          uint32_t texture_type, uint32_t* textures);
 
     // Update the content of a given Buffer from client data.
     // |p_buffer| is the Buffer's handle value.
@@ -415,7 +413,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
                            void* pixels);
     bool updateColorBufferFromFrameworkFormat(HandleType p_colorbuffer, int x, int y, int width,
                                               int height, FrameworkFormat fwkFormat, GLenum format,
-                                              GLenum type, void* pixels);
+                                              GLenum type, void* pixels, void* metadata = nullptr);
 
     // Reads back the raw color buffer to |pixels|
     // if |pixels| is not null.

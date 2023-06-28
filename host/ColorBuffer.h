@@ -68,7 +68,8 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool updateFromBytes(int x, int y, int width, int height, GLenum pixelsFormat,
                          GLenum pixelsType, const void* pixels);
     bool updateFromBytes(int x, int y, int width, int height, FrameworkFormat frameworkFormat,
-                         GLenum pixelsFormat, GLenum pixelsType, const void* pixels);
+                         GLenum pixelsFormat, GLenum pixelsType, const void* pixels,
+                         void* metadata = nullptr);
     bool updateGlFromBytes(const void* bytes, std::size_t bytesSize);
 
     enum class UsedApi {
