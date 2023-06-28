@@ -1598,6 +1598,7 @@ class VkDecoderGlobalState::Impl {
         auto& imageInfo = mImageInfo[*pImage];
         imageInfo.device = device;
         imageInfo.cmpInfo = std::move(cmpInfo);
+        imageInfo.imageCreateInfoShallow = vk_make_orphan_copy(*pCreateInfo);
         if (nativeBufferANDROID) imageInfo.anbInfo = std::move(anbInfo);
 
         *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
@@ -1627,8 +1628,65 @@ class VkDecoderGlobalState::Impl {
         destroyImageLocked(device, deviceDispatch, image, pAllocator);
     }
 
-    VkResult on_vkBindImageMemory(android::base::BumpPool* pool, VkDevice boxed_device,
-                                  VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
+    VkResult performBindImageMemoryDeferredAhb(android::base::BumpPool* pool,
+                                               VkDevice boxed_device,
+                                               const VkBindImageMemoryInfo* bimi) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
+        auto original_underlying_image = bimi->image;
+        auto original_boxed_image = unboxed_to_boxed_non_dispatchable_VkImage(original_underlying_image);
+
+        VkImageCreateInfo ici = {};
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+
+            auto* imageInfo = android::base::find(mImageInfo, original_underlying_image);
+            if (!imageInfo) {
+                ERR("Image for deferred AHB bind does not exist.");
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+
+            ici = imageInfo->imageCreateInfoShallow;
+        }
+
+        ici.pNext = vk_find_struct<VkNativeBufferANDROID>(bimi);
+        if (!ici.pNext) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "Missing VkNativeBufferANDROID for deferred AHB bind.";
+        }
+
+        VkImage boxed_replacement_image = VK_NULL_HANDLE;
+        VkResult result = on_vkCreateImage(pool, boxed_device, &ici, nullptr, &boxed_replacement_image);
+        if (result != VK_SUCCESS) {
+            ERR("Failed to create image for deferred AHB bind.");
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        on_vkDestroyImage(pool, boxed_device, original_underlying_image, nullptr);
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+
+            auto underlying_replacement_image = unbox_VkImage(boxed_replacement_image);
+            delete_VkImage(boxed_replacement_image);
+            set_boxed_non_dispatchable_VkImage(original_boxed_image, underlying_replacement_image);
+        }
+
+        return VK_SUCCESS;
+    }
+
+    VkResult performBindImageMemory(android::base::BumpPool* pool, VkDevice boxed_device,
+                                    const VkBindImageMemoryInfo* bimi) {
+        auto image = bimi->image;
+        auto memory = bimi->memory;
+        auto memoryOffset = bimi->memoryOffset;
+
+        const auto* anb = vk_find_struct<VkNativeBufferANDROID>(bimi);
+        if (memory == VK_NULL_HANDLE && anb != nullptr) {
+            return performBindImageMemoryDeferredAhb(pool, boxed_device, bimi);
+        }
+
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -1637,11 +1695,15 @@ class VkDecoderGlobalState::Impl {
         if (result != VK_SUCCESS) {
             return result;
         }
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
+
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
         if (!deviceInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
         auto* memoryInfo = android::base::find(mMemoryInfo, memory);
         if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
 #ifdef VK_MVK_moltenvk
         if (memoryInfo->mtlTexture) {
             result = m_vk->vkSetMTLTextureMVK(image, memoryInfo->mtlTexture);
@@ -1654,13 +1716,27 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
             return VK_SUCCESS;
         }
+
         auto* imageInfo = android::base::find(mImageInfo, image);
         if (!imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
         CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
         if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
             return VK_SUCCESS;
         }
         return cmpInfo.bindCompressedMipmapsMemory(vk, memory, memoryOffset);
+    }
+
+    VkResult on_vkBindImageMemory(android::base::BumpPool* pool, VkDevice boxed_device,
+                                  VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
+        const VkBindImageMemoryInfo bimi = {
+            .sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO,
+            .pNext = nullptr,
+            .image = image,
+            .memory = memory,
+            .memoryOffset = memoryOffset,
+        };
+        return performBindImageMemory(pool, boxed_device, &bimi);
     }
 
     VkResult on_vkBindImageMemory2(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -1677,6 +1753,12 @@ class VkDecoderGlobalState::Impl {
             auto* imageInfo = android::base::find(mImageInfo, pBindInfos[i].image);
             if (!imageInfo) return VK_ERROR_UNKNOWN;
 
+            const auto* anb = vk_find_struct<VkNativeBufferANDROID>(&pBindInfos[i]);
+            if (anb != nullptr) {
+                needEmulation = true;
+                break;
+            }
+
             if (deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
                 needEmulation = true;
                 break;
@@ -1686,9 +1768,7 @@ class VkDecoderGlobalState::Impl {
         if (needEmulation) {
             VkResult result;
             for (uint32_t i = 0; i < bindInfoCount; i++) {
-                result = on_vkBindImageMemory(pool, boxed_device, pBindInfos[i].image,
-                                              pBindInfos[i].memory, pBindInfos[i].memoryOffset);
-
+                result = performBindImageMemory(pool, boxed_device, &pBindInfos[i]);
                 if (result != VK_SUCCESS) return result;
             }
 
@@ -5968,6 +6048,7 @@ class VkDecoderGlobalState::Impl {
 
     struct ImageInfo {
         VkDevice device;
+        VkImageCreateInfo imageCreateInfoShallow;
         std::shared_ptr<AndroidNativeBufferInfo> anbInfo;
         CompressedImageInfo cmpInfo;
     };

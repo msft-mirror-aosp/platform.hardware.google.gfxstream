@@ -32,7 +32,7 @@
 #define DEBUG_LOG(fd, fmt, ...)
 #endif
 
-std::map<uint32_t, android::MultiDisplayInfo> mMultiDisplay;
+static std::map<uint32_t, android::MultiDisplayInfo> mMultiDisplay;
 
 using namespace android;
 
