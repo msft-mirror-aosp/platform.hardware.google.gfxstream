@@ -49,10 +49,10 @@ hwc_transform_t getTransformFromRotation(int rotation) {
 }  // namespace
 
 PostWorkerGl::PostWorkerGl(bool mainThreadPostingOnly, FrameBuffer* fb, Compositor* compositor,
-                           gfxstream::DisplaySurface* fakeWindowSurface, DisplayGl* displayGl)
+                           DisplayGl* displayGl, gl::EmulationGl* emulationGl)
     : PostWorker(mainThreadPostingOnly, fb, compositor),
       m_displayGl(displayGl),
-      mFakeWindowSurface(fakeWindowSurface) {
+      mEmulationGl(emulationGl) {
     if (!m_displayGl) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "PostWorker missing DisplayGl.";
     }
@@ -270,8 +270,13 @@ void PostWorkerGl::setupContext() {
     if (surface) {
         surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
     } else {
-        // This could happen in AEMU with -qt-hide-window.
         // Create a fake context.
+        // This could happen in AEMU with -qt-hide-window. Also due to an Intel bug
+        // this needs to happen on post thread.
+        // b/274313125
+        if (!mFakeWindowSurface) {
+            mFakeWindowSurface = mEmulationGl->createFakeWindowSurface();
+        }
         if (!mFakeWindowSurface) {
             ERR("Post worker does not have a window surface.");
             return;
