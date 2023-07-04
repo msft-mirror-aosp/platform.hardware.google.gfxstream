@@ -231,6 +231,11 @@ if(NOT TARGET flatbuffers)
     endif()
 endif()
 
+if (QNX) # QNX SDP provides EGL headers
+    add_library(gfxstream_egl_headers INTERFACE)
+    target_include_directories(gfxstream_egl_headers INTERFACE ${QNX_TARGET}/usr/include)
+endif()
+
 if(NOT TARGET gfxstream_egl_headers)
     if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
         # ANGLE provides the EGL headers for us.
