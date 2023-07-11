@@ -162,6 +162,7 @@ struct VAOState {
         element_array_buffer_binding(ibo),
         vertexAttribInfo(numVertexAttribBindings),
         bindingState(numVertexAttribBindings),
+        bufferBacked(false),
         everBound(false),
         legacy(arr != nullptr),
         arraysMap(arr) { }
