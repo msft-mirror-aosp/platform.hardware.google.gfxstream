@@ -682,7 +682,7 @@ class PipeVirglRenderer {
     type variable = {};               \
     memcpy(&variable, input, sizeof(type));
 
-    void addressSpaceProcessCmd(VirtioGpuCtxId ctxId, uint32_t* dwords, int dwordCount) {
+    void addressSpaceProcessCmd(VirtioGpuCtxId ctxId, uint32_t* dwords) {
         DECODE(header, gfxstream::gfxstreamHeader, dwords)
 
         switch (header.opCode) {
@@ -738,21 +738,23 @@ class PipeVirglRenderer {
         }
     }
 
-    int submitCmd(VirtioGpuCtxId ctxId, void* buffer, int dwordCount) {
-        // TODO(kaiyili): embed the ring_idx into the command buffer to make it possible to dispatch
-        // commands on different ring.
+    int submitCmd(struct stream_renderer_command* cmd) {
+        if (!cmd) return -EINVAL;
+
+        void* buffer = reinterpret_cast<void*>(cmd->cmd);
+
         VirtioGpuRing ring = VirtioGpuRingGlobal{};
         VGPLOG("ctx: %" PRIu32 ", ring: %s buffer: %p dwords: %d", ctxId, to_string(ring).c_str(),
-               buffer, dwordCount);
+               buffer, cmd->cmd_size);
 
         if (!buffer) {
             fprintf(stderr, "%s: error: buffer null\n", __func__);
-            return -1;
+            return -EINVAL;
         }
 
-        if (dwordCount < 1) {
-            fprintf(stderr, "%s: error: not enough dwords (got %d)\n", __func__, dwordCount);
-            return -1;
+        if (cmd->cmd_size < 4) {
+            fprintf(stderr, "%s: error: not enough bytes (got %d)\n", __func__, cmd->cmd_size);
+            return -EINVAL;
         }
 
         DECODE(header, gfxstream::gfxstreamHeader, buffer);
@@ -760,7 +762,7 @@ class PipeVirglRenderer {
             case GFXSTREAM_CONTEXT_CREATE:
             case GFXSTREAM_CONTEXT_PING:
             case GFXSTREAM_CONTEXT_PING_WITH_RESPONSE:
-                addressSpaceProcessCmd(ctxId, (uint32_t*)buffer, dwordCount);
+                addressSpaceProcessCmd(cmd->ctx_id, (uint32_t*)buffer);
                 break;
             case GFXSTREAM_CREATE_EXPORT_SYNC: {
                 DECODE(exportSync, gfxstream::gfxstreamCreateExportSync, buffer)
@@ -782,7 +784,7 @@ class PipeVirglRenderer {
                 // the same ring as the fence created for the virtio gpu command or the
                 // fence may be signaled without properly waiting for the task to complete.
                 ring = VirtioGpuRingContextSpecific{
-                    .mCtxId = ctxId,
+                    .mCtxId = cmd->ctx_id,
                     .mRingIdx = 0,
                 };
 
@@ -807,7 +809,7 @@ class PipeVirglRenderer {
                 // the same ring as the fence created for the virtio gpu command or the
                 // fence may be signaled without properly waiting for the task to complete.
                 ring = VirtioGpuRingContextSpecific{
-                    .mCtxId = ctxId,
+                    .mCtxId = cmd->ctx_id,
                     .mRingIdx = 0,
                 };
 
@@ -1764,8 +1766,8 @@ VG_EXPORT void stream_renderer_context_destroy(uint32_t handle) {
     sRenderer()->destroyContext(handle);
 }
 
-VG_EXPORT int stream_renderer_submit_cmd(void* buffer, int ctx_id, int dwordCount) {
-    return sRenderer()->submitCmd(ctx_id, buffer, dwordCount);
+VG_EXPORT int stream_renderer_submit_cmd(struct stream_renderer_command* cmd) {
+    return sRenderer()->submitCmd(cmd);
 }
 
 VG_EXPORT int stream_renderer_transfer_read_iov(uint32_t handle, uint32_t ctx_id, uint32_t level,
