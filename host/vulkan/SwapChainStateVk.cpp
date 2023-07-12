@@ -292,7 +292,7 @@ std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
         swapChainCi.setQueueFamilyIndices(
             std::vector<uint32_t>(queueFamilyIndices.begin(), queueFamilyIndices.end()));
     }
-    return swapChainCi;
+    return std::optional(swapChainCi);
 }
 
 VkFormat SwapChainStateVk::getFormat() { return k_vkFormat; }
