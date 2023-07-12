@@ -23,6 +23,7 @@
 #include <pthread.h>
 #endif
 
+#include <stdint.h>
 #include <assert.h>
 
 namespace android {
