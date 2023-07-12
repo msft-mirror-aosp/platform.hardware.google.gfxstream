@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "RenderThreadInfoMagma.h"
+#include "host/magma/Connection.h"
 #include "host/magma/DrmDevice.h"
 #include "magma/magma_common_defs.h"
 
@@ -320,12 +321,19 @@ magma_status_t IntelDrmDecoder::magma_device_query_fudge(magma_device_t device, 
 magma_status_t IntelDrmDecoder::magma_device_create_connection(magma_device_t device,
                                                                magma_connection_t* connection_out) {
     *connection_out = MAGMA_INVALID_OBJECT_ID;
-    WARN("%s not implemented", __FUNCTION__);
-    return MAGMA_STATUS_UNIMPLEMENTED;
+    auto dev = mDevices.get(device);
+    if (!dev) {
+        return MAGMA_STATUS_INVALID_ARGS;
+    }
+    *connection_out = mConnections.create(*dev);
+    return MAGMA_STATUS_OK;
 }
 
 void IntelDrmDecoder::magma_connection_release(magma_connection_t connection) {
-    WARN("%s not implemented", __FUNCTION__);
+    bool erased = mConnections.erase(connection);
+    if (!erased) {
+        WARN("invalid connection %" PRIu64, connection);
+    }
 }
 
 magma_status_t IntelDrmDecoder::magma_connection_create_buffer(magma_connection_t connection,
@@ -404,8 +412,17 @@ magma_status_t IntelDrmDecoder::magma_connection_get_error(magma_connection_t co
 magma_status_t IntelDrmDecoder::magma_connection_create_context(magma_connection_t connection,
                                                                 uint32_t* context_id_out) {
     *context_id_out = MAGMA_INVALID_OBJECT_ID;
-    WARN("%s not implemented", __FUNCTION__);
-    return MAGMA_STATUS_UNIMPLEMENTED;
+    auto con = mConnections.get(connection);
+    if (!con) {
+        return MAGMA_STATUS_INVALID_ARGS;
+    }
+    auto ctx = con->createContext();
+    if (!ctx) {
+        WARN("error creating context");
+        return MAGMA_STATUS_INTERNAL_ERROR;
+    }
+    *context_id_out = ctx.value();
+    return MAGMA_STATUS_OK;
 }
 
 void IntelDrmDecoder::magma_connection_release_context(magma_connection_t connection,
