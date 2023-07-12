@@ -24,6 +24,7 @@
 #include <string>
 
 #include "host-common/logging.h"
+#include "magma/magma_common_defs.h"
 
 namespace gfxstream {
 namespace magma {
