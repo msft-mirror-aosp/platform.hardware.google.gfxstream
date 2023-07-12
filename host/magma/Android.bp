@@ -22,7 +22,9 @@ cc_library_static {
     target: {
         android: {
             srcs: [
+                "Connection.cpp",
                 "DrmBuffer.cpp",
+                "DrmContext.cpp",
                 "DrmDevice.cpp",
                 "IntelDrmDecoder.cpp",
             ],
@@ -35,7 +37,9 @@ cc_library_static {
         },
         not_windows: {
             srcs: [
+                "Connection.cpp",
                 "DrmBuffer.cpp",
+                "DrmContext.cpp",
                 "DrmDevice.cpp",
                 "IntelDrmDecoder.cpp",
             ],
