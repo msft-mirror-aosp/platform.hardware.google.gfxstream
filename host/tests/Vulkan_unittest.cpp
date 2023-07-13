@@ -459,7 +459,7 @@ protected:
 
     void TearDown() override {
         VulkanTest::TearDown();
-        if (mFb) { delete mFb; mFb = nullptr; }
+        if (mFb) { FrameBuffer::finalize(); }
         if (mRenderThreadInfo) mRenderThreadInfo.reset();
     }
 
