@@ -248,7 +248,7 @@ HWC3::Error findDrmDisplays(const DrmClient& drm,
 HWC3::Error findDisplays(const DrmClient* drm,
                          std::vector<DisplayMultiConfigs>* outDisplays) {
   HWC3::Error error = HWC3::Error::None;
-  if (IsInGem5DisplayFinderMode() || IsInNoOpCompositionMode()) {
+  if (IsInGem5DisplayFinderMode() || IsInNoOpDisplayFinderMode()) {
     error = findNoOpDisplays(outDisplays);
   } else if (IsInDrmDisplayFinderMode()) {
     if (drm == nullptr) {
