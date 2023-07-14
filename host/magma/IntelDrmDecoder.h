@@ -17,6 +17,7 @@
 #include "Decoder.h"
 #include "MonotonicMap.h"
 #include "DrmDevice.h"
+#include "Connection.h"
 
 namespace gfxstream {
 namespace magma {
@@ -52,6 +53,7 @@ class IntelDrmDecoder : public Decoder {
     uint32_t mContextId;
     MonotonicMap<magma_device_t, DrmDevice> mDevices;
     MonotonicMap<magma_buffer_t, DrmBuffer> mBuffers;
+    MonotonicMap<magma_connection_t, Connection> mConnections;
 
     // Maps GEM handles to Buffers.
     std::unordered_map<uint32_t, magma_buffer_t> mGemHandleToBuffer;
