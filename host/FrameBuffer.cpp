@@ -2488,7 +2488,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
     // Send framebuffer (without FPS overlay) to callback
     //
     if (m_onPost.size() == 0) {
-        goto EXIT;
+        goto DEC_REFCOUNT_AND_EXIT;
     }
     for (auto& iter : m_onPost) {
         ColorBufferPtr cb;
@@ -2523,6 +2523,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
             doPostCallback(iter.second.img, iter.first);
         }
     }
+DEC_REFCOUNT_AND_EXIT:
     if (!m_subWin) { // m_subWin is supposed to be false
         decColorBufferRefCountLocked(p_colorbuffer);
     }
