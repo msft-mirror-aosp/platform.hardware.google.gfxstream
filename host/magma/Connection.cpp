@@ -28,6 +28,10 @@ namespace magma {
 
 Connection::Connection(DrmDevice& device) : mDevice(device) {}
 
+DrmDevice& Connection::getDevice() {
+    return mDevice;
+}
+
 std::optional<uint32_t> Connection::createContext() {
     auto context = DrmContext::create(*this);
     if (!context) {
