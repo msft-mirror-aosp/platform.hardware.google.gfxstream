@@ -35,6 +35,9 @@ class Connection {
     Connection(Connection&&) noexcept = default;
     Connection& operator=(Connection&&) = delete;
 
+    // Get the parent device for this connection.
+    DrmDevice& getDevice();
+
     // Creates a new context and returns its ID. Returns nullopt on error.
     std::optional<uint32_t> createContext();
 
