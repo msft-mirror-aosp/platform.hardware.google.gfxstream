@@ -140,6 +140,11 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
                     continue;
                 }
 
+                const auto transform = getTransformFromRotation(mFb->getZrot());
+                postLayerOptions.transform = transform;
+                if ( transform == HWC_TRANSFORM_ROT_90 || transform == HWC_TRANSFORM_ROT_270) {
+                    std::swap(currentDisplayW, currentDisplayH);
+                }
                 postLayerOptions.displayFrame = {
                     .left = static_cast<int>(currentDisplayOffsetX),
                     .top = static_cast<int>(currentDisplayOffsetY),
