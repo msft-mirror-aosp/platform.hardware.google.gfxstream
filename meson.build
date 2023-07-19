@@ -70,6 +70,7 @@ inc_include = include_directories('include')
 inc_utils = include_directories('utils/include')
 
 if use_vulkan
+  inc_vulkan_headers = include_directories('common/vulkan/include')
   inc_renderdoc_external = include_directories('third-party/renderdoc/include')
 endif
 
