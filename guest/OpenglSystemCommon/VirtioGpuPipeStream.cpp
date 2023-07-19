@@ -42,6 +42,7 @@ static const size_t kWriteOffset = kReadSize;
 VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize) :
     IOStream(bufSize),
     m_fd(-1),
+    m_fd_owned(true),
     m_virtio_rh(~0U),
     m_virtio_bo(0),
     m_virtio_mapped(nullptr),
@@ -49,12 +50,12 @@ VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize) :
     m_buf(nullptr),
     m_read(0),
     m_readLeft(0),
-    m_writtenPos(0),
-    m_fd_owned(true) { }
+    m_writtenPos(0){ }
 
 VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int stream_handle) :
     IOStream(bufSize),
     m_fd(stream_handle),
+    m_fd_owned(false),
     m_virtio_rh(~0U),
     m_virtio_bo(0),
     m_virtio_mapped(nullptr),
@@ -62,8 +63,7 @@ VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int stream_handle) :
     m_buf(nullptr),
     m_read(0),
     m_readLeft(0),
-    m_writtenPos(0),
-    m_fd_owned(false) { }
+    m_writtenPos(0) { }
 
 VirtioGpuPipeStream::~VirtioGpuPipeStream()
 {
