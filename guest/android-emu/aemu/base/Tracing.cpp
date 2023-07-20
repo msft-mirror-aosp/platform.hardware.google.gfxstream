@@ -51,6 +51,7 @@ void ScopedTraceGuest::beginTraceImpl(const char* name) {
 
 void ScopedTraceGuest::endTraceImpl(const char* name) {
 #if defined(__ANDROID__) || defined(HOST_BUILD)
+    (void)name;
     atrace_end(TRACE_TAG);
 #elif defined(__Fuchsia__) && !defined(FUCHSIA_NO_TRACE)
     TRACE_DURATION_END(TRACE_TAG, name);
