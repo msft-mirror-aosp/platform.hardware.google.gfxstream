@@ -1,0 +1,69 @@
+package {
+    // See: http://go/android-license-faq
+    // A large-scale-change added 'default_applicable_licenses' to import
+    // all of the 'license_kinds' from "device_generic_goldfish-opengl_license"
+    // to get the below license kinds:
+    //   SPDX-license-identifier-Apache-2.0
+    //   SPDX-license-identifier-GPL-2.0
+    default_applicable_licenses: ["device_generic_goldfish-opengl_license"],
+}
+
+cc_library_shared {
+    name: "libandroidemu",
+    vendor: true,
+    srcs: [
+        "aemu/base/AlignedBuf.cpp",
+        "aemu/base/files/MemStream.cpp",
+        "aemu/base/files/Stream.cpp",
+        "aemu/base/files/StreamSerializing.cpp",
+        "aemu/base/Pool.cpp",
+        "aemu/base/StringFormat.cpp",
+        "aemu/base/Process.cpp",
+        "aemu/base/AndroidSubAllocator.cpp",
+        "aemu/base/synchronization/AndroidMessageChannel.cpp",
+        "aemu/base/threads/AndroidFunctorThread.cpp",
+        "aemu/base/threads/AndroidThreadStore.cpp",
+        "aemu/base/threads/AndroidThread_pthread.cpp",
+        "aemu/base/threads/AndroidWorkPool.cpp",
+        "aemu/base/AndroidHealthMonitor.cpp",
+        "aemu/base/AndroidHealthMonitorConsumerBasic.cpp",
+        "aemu/base/Tracing.cpp",
+        "android/utils/debug.c",
+    ],
+    shared_libs: [
+        "libcutils",
+        "libutils",
+        "liblog",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"androidemu\"",
+        "-Wno-missing-field-initializers",
+        "-fvisibility=default",
+        "-fstrict-aliasing",
+    ],
+}
+
+cc_library_static {
+    name: "libringbuffer",
+    vendor: true,
+    srcs: [
+        "aemu/base/ring_buffer.c",
+    ],
+    shared_libs: [
+        "libcutils",
+        "libutils",
+        "liblog",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"androidemu\"",
+        "-Wno-missing-field-initializers",
+        "-fvisibility=default",
+        "-fstrict-aliasing",
+    ],
+}
