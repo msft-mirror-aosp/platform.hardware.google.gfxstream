@@ -16,8 +16,8 @@
 
 #include <stdio.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 std::string StringFormatRaw(const char* format, ...) {
     va_list args;
