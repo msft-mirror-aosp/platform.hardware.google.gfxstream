@@ -21,12 +21,9 @@ default_cpp_args = [
   '-Wno-unused-function',
   '-Wno-unused-variable',
   '-Wno-ignored-qualifiers',
-  '-Wno-reorder-ctor',
   '-Wno-mismatched-tags',
   '-Wno-missing-field-initializers',
   '-Wno-implicit-fallthrough',
-  '-Wno-unused-private-field',
-  '-Wno-macro-redefined'
 ]
 
 #===============#
