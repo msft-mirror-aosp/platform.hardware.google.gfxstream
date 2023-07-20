@@ -34,6 +34,19 @@ aemu_base_dep = dependency('aemu_base')
 aemu_common_dep = dependency('aemu_host_common')
 logging_base_dep = dependency('logging_base')
 
+#========================#
+# Logging + error report #
+#========================#
+log_level = get_option('log-level')
+
+if log_level == 'error'
+  default_cpp_args += '-DSTREAM_RENDERER_LOG_LEVEL=1'
+elif log_level == 'warn'
+  default_cpp_args += '-DSTREAM_RENDERER_LOG_LEVEL=2'
+elif log_level == 'info'
+  default_cpp_args += '-DSTREAM_RENDERER_LOG_LEVEL=3'
+endif
+
 #===============#
 # Decoders      #
 #===============#
@@ -95,6 +108,7 @@ summary({'prefix': get_option('prefix'),
 summary({'c_args': (' ').join(get_option('c_args')),
          'cpp_args': (' ').join(get_option('cpp_args')),
          'buildtype': (' ').join(get_option('buildtype')),
+         'log-level': log_level,
          'gles': use_gles,
          'vulkan': use_vulkan,
          'magma': use_magma,
