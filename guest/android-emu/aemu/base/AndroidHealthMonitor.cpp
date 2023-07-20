@@ -132,7 +132,7 @@ intptr_t HealthMonitor<Clock>::main() {
             events.pop();
 
             std::visit(MonitoredEventVisitor{
-                           [](std::monostate& event) {
+                           [](std::monostate&) {
                                ALOGE("MonitoredEvent type not found");
                                abort();
                            },
@@ -193,7 +193,7 @@ intptr_t HealthMonitor<Clock>::main() {
                                // the health check concurrent tasks hung
                                tasksToRemove.insert(event.id);
                            },
-                           [&keepMonitoring](typename MonitoredEventType::EndMonitoring& event) {
+                           [&keepMonitoring](typename MonitoredEventType::EndMonitoring&) {
                                keepMonitoring = false;
                            },
                            [&pollPromises](typename MonitoredEventType::Poll& event) {
@@ -270,6 +270,8 @@ std::unique_ptr<HealthMonitor<>> CreateHealthMonitor(HealthMonitorConsumer& cons
     ALOGI("HealthMonitor enabled. Returning monitor.");
     return std::make_unique<HealthMonitor<>>(consumer, heartbeatInterval);
 #else
+    (void)consumer;
+    (void)heartbeatInterval;
     ALOGI("HealthMonitor disabled. Returning nullptr");
     return nullptr;
 #endif
