@@ -130,7 +130,7 @@ class ColorBufferGl {
                              void* pixels,
                              uint32_t pixels_size);
 
-    void swapYUVTextures(FrameworkFormat texture_type, GLuint* textures);
+    void swapYUVTextures(FrameworkFormat texture_type, GLuint* textures, void* metadata = nullptr);
 
     // Update the ColorBufferGl instance's pixel values from host memory.
     // |p_format / p_type| are the desired OpenGL color buffer format
@@ -138,10 +138,10 @@ class ColorBufferGl {
     // Otherwise, subUpdate() will explicitly convert |pixels|
     // to be in |p_format|.
     bool subUpdate(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
-                   const void* pixels);
+                   const void* pixels, void* metadata = nullptr);
     bool subUpdateFromFrameworkFormat(int x, int y, int width, int height,
                                       FrameworkFormat fwkFormat, GLenum p_format, GLenum p_type,
-                                      const void* pixels);
+                                      const void* pixels, void* metadata = nullptr);
 
     // Completely replaces contents, assuming that |pixels| is a buffer
     // that is allocated and filled with the same format.

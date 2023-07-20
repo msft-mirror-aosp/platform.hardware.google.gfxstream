@@ -192,12 +192,12 @@ void ColorBuffer::readYuvToBytes(int x, int y, int width, int height, void* outP
 
 bool ColorBuffer::updateFromBytes(int x, int y, int width, int height,
                                   FrameworkFormat frameworkFormat, GLenum pixelsFormat,
-                                  GLenum pixelsType, const void* pixels) {
+                                  GLenum pixelsType, const void* pixels, void* metadata) {
     touch();
 
     if (mColorBufferGl) {
         mColorBufferGl->subUpdateFromFrameworkFormat(x, y, width, height, frameworkFormat,
-                                                     pixelsFormat, pixelsType, pixels);
+                                                     pixelsFormat, pixelsType, pixels, metadata);
         return true;
     }
     if (mColorBufferVk) {
