@@ -40,14 +40,14 @@ void logEventHangMetadata(const EventHangMetadata* metadata) {
 }
 
 // HealthMonitorConsumerBasic
-void HealthMonitorConsumerBasic::consumeHangEvent(uint64_t taskId,
+void HealthMonitorConsumerBasic::consumeHangEvent(uint64_t,
                                                   const EventHangMetadata* metadata,
                                                   int64_t otherHungTasks) {
     ALOGE("Logging hang event. Number of tasks already hung: %lld", (long long)otherHungTasks);
     logEventHangMetadata(metadata);
 }
 
-void HealthMonitorConsumerBasic::consumeUnHangEvent(uint64_t taskId,
+void HealthMonitorConsumerBasic::consumeUnHangEvent(uint64_t,
                                                     const EventHangMetadata* metadata,
                                                     int64_t hungMs) {
     ALOGE("Logging unhang event. Hang time: %lld ms", (long long)hungMs);

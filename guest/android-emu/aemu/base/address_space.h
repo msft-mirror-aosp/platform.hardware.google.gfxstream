@@ -66,6 +66,7 @@ static void address_space_assert(bool condition) {
 #ifdef ANDROID_EMU_ADDRESS_SPACE_ASSERT_FUNC
     ANDROID_EMU_ADDRESS_SPACE_ASSERT_FUNC(condition);
 #else
+    (void)condition;
     assert(condition);
 #endif
 }
