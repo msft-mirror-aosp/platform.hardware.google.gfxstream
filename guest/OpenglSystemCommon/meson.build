@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 files_lib_stream = files(
-  'AddressSpaceStream.cpp',
   'HostConnection.cpp',
   'ProcessPipe.cpp',
   'QemuPipeStream.cpp',

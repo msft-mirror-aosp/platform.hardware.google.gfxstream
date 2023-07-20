@@ -22,7 +22,7 @@ package {
 cc_library_static {
     name: "libplatform",
     host_supported: true,
-    vendor: true,
+    vendor_available: true,
     srcs: [
         "VirtGpu.cpp",
         "linux/LinuxVirtGpuBlob.cpp",

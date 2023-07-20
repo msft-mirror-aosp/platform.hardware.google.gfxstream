@@ -21,6 +21,7 @@ package {
 
 cc_library_headers {
     name: "libgfxstream_guest_errorlog_headers",
+    host_supported: true,
     vendor_available: true,
     export_include_dirs: [
         ".",
@@ -29,6 +30,7 @@ cc_library_headers {
 
 cc_library_shared {
     name: "libOpenglCodecCommon",
+    host_supported: true,
     vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
