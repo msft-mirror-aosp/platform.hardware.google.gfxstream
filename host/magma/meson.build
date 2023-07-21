@@ -4,10 +4,12 @@
 subdir('magma_dec')
 
 files_lib_magma_server = files(
+  'Connection.cpp',
   'Decoder.cpp',
-  'IntelDrmDecoder.cpp',
   'DrmBuffer.cpp',
+  'DrmContext.cpp',
   'DrmDevice.cpp',
+  'IntelDrmDecoder.cpp',
 )
 
 magma_server_cpp_args = [
