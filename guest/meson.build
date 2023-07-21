@@ -52,6 +52,9 @@ thread_dep = dependency('threads')
 # Includes      #
 #===============#
 
+inc_vulkan_headers = include_directories('../common/vulkan/include')
+inc_fuchsia_magma = include_directories('../third-party/fuchsia/magma/include')
+inc_fuchsia_magma_nolib = include_directories('../third-party/fuchsia/magma/include/lib')
 inc_android_emu = include_directories('android-emu')
 inc_gralloc = include_directories('gralloc_cb/include')
 inc_host = include_directories('iostream/include/libOpenglRender')
@@ -66,17 +69,14 @@ inc_vulkan_enc = include_directories('vulkan_enc')
 # Subdirectories #
 #================#
 
-subdir('android-emu/aemu/base')
 subdir('fuchsia')
-subdir('GoldfishAddressSpace')
-subdir('magma')
-subdir('OpenglCodecCommon')
-subdir('OpenglSystemCommon')
 subdir('platform')
+subdir('android-emu/aemu/base')
+subdir('GoldfishAddressSpace')
 subdir('qemupipe')
+subdir('OpenglCodecCommon')
 subdir('renderControl_enc')
-subdir('shared')
-subdir('system')
-subdir('third-party')
+subdir('OpenglSystemCommon')
+subdir('magma')
 subdir('vulkan_enc')
 subdir('vulkan')
