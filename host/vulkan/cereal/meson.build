@@ -22,5 +22,5 @@ lib_vulkan_cereal = static_library(
   files_lib_cereal,
   cpp_args: cereal_cpp_args,
   include_directories: [inc_stream_servers, inc_vulkan_server, inc_utils,
-                        inc_include],
+                        inc_include, inc_vulkan_headers],
 )

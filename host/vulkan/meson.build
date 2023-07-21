@@ -58,6 +58,6 @@ lib_vulkan_server = static_library(
   include_directories: [inc_root, inc_include, inc_utils, inc_apigen_codec,
                         inc_vulkan_cereal, inc_stream_servers,
                         inc_vulkan_server, inc_renderdoc_external,
-                        inc_gl_host_common],
+                        inc_gl_host_common, inc_vulkan_headers],
   link_with: [lib_vulkan_cereal, lib_emulated_textures]
 )
