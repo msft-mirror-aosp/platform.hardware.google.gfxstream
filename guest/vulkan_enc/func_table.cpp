@@ -4463,7 +4463,7 @@ static void dynCheck_entry_vkGetDeviceImageSparseMemoryRequirementsKHR(
                                                        true /* do lock */);
 }
 #endif
-#ifdef VK_ANDROID_native_buffer
+#if defined(VK_ANDROID_native_buffer) && !defined(LINUX_GUEST_BUILD)
 static VkResult entry_vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format,
                                                         VkImageUsageFlags imageUsage,
                                                         int* grallocUsage) {
@@ -5645,7 +5645,7 @@ static void entry_vkSubmitDebugUtilsMessageEXT(
                                         true /* do lock */);
 }
 #endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
+#if defined(VK_ANDROID_external_memory_android_hardware_buffer) && !defined(LINUX_GUEST_BUILD)
 static VkResult entry_vkGetAndroidHardwareBufferPropertiesANDROID(
     VkDevice device, const AHardwareBuffer* buffer,
     VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
@@ -12147,7 +12147,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkGetDeviceImageSparseMemoryRequirementsKHR;
     }
 #endif
-#ifdef VK_ANDROID_native_buffer
+#if defined(VK_ANDROID_native_buffer) && !defined(LINUX_GUEST_BUILD)
     if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID")) {
         // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSwapchainGrallocUsageANDROID;
@@ -14394,7 +14394,7 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetDeviceImageSparseMemoryRequirementsKHR : nullptr;
     }
 #endif
-#ifdef VK_ANDROID_native_buffer
+#if defined(VK_ANDROID_native_buffer) && !(LINUX_GUEST_BUILD)
     if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_ANDROID_native_buffer");
         return hasExt ? (void*)entry_vkGetSwapchainGrallocUsageANDROID : nullptr;
