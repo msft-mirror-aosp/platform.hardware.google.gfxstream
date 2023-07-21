@@ -18,7 +18,8 @@ lib_magma_enc = static_library(
       '-Wno-misleading-indentation',
       '-Wno-unused-function',
    ],
-   include_directories: [inc_magma, inc_magma_enc, inc_android_emu, inc_host, inc_android_compat,
+   include_directories: [inc_fuchsia_magma, inc_fuchsia_magma_nolib, inc_magma, inc_magma_enc,
+                         inc_android_emu, inc_host, inc_android_compat,
                          inc_opengl_codec, inc_opengl_system, inc_render_enc, inc_system,
                          inc_goldfish_address_space, inc_platform],
    link_with: [
@@ -29,7 +30,6 @@ lib_magma_enc = static_library(
       lib_android_compat # for logging
    ],
    dependencies: [
-    fuchsia_magma_dep,
     dependency('libdrm')
    ],
 )
