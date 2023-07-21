@@ -18,6 +18,8 @@
 
 #include "renderControl_enc.h"
 
+typedef struct AHardwareBuffer AHardwareBuffer;
+
 namespace gfxstream {
 
 // Abstraction for gralloc handle conversion
@@ -27,13 +29,33 @@ class Gralloc {
 
     virtual uint32_t createColorBuffer(renderControl_client_context_t* rcEnc, int width, int height,
                                        uint32_t glformat) = 0;
-    virtual uint32_t getHostHandle(native_handle_t const* handle) = 0;
-    virtual int getFormat(native_handle_t const* handle) = 0;
-    virtual uint32_t getFormatDrmFourcc(native_handle_t const* /*handle*/) {
+
+    virtual void acquire(AHardwareBuffer* ahb) = 0;
+    virtual void release(AHardwareBuffer* ahb) = 0;
+
+    virtual int allocate(uint32_t width,
+                         uint32_t height,
+                         uint32_t format,
+                         uint64_t usage,
+                         AHardwareBuffer** outputAhb) = 0;
+
+    virtual uint32_t getHostHandle(const native_handle_t* handle) = 0;
+    virtual uint32_t getHostHandle(const AHardwareBuffer* handle) = 0;
+
+    virtual int getFormat(const native_handle_t* handle) = 0;
+    virtual int getFormat(const AHardwareBuffer* handle) = 0;
+
+    virtual uint32_t getFormatDrmFourcc(const AHardwareBuffer* /*handle*/) {
         // Equal to DRM_FORMAT_INVALID -- see <drm_fourcc.h>
         return 0;
     }
-    virtual size_t getAllocatedSize(native_handle_t const* handle) = 0;
+    virtual uint32_t getFormatDrmFourcc(const native_handle_t* /*handle*/) {
+        // Equal to DRM_FORMAT_INVALID -- see <drm_fourcc.h>
+        return 0;
+    }
+
+    virtual size_t getAllocatedSize(const native_handle_t* handle) = 0;
+    virtual size_t getAllocatedSize(const AHardwareBuffer* handle) = 0;
 };
 
 }  // namespace gfxstream
