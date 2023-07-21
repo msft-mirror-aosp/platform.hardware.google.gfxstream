@@ -30,6 +30,9 @@ class StubVirtGpuBlob : public std::enable_shared_from_this<StubVirtGpuBlob>, pu
     VirtGpuBlobMappingPtr createMapping(void) override;
     int exportBlob(struct VirtGpuExternalHandle& handle) override;
 
+    int transferFromHost(uint32_t offset, uint32_t size) override;
+    int transferToHost(uint32_t offset, uint32_t size) override;
+
   private:
     // Not owned.  Really should use a ScopedFD for this, but doesn't matter since we have a
     // singleton deviceimplemenentation anyways.
