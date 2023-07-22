@@ -78,11 +78,26 @@ struct stream_renderer_resource_info {
 
 #define STREAM_RENDERER_FLAG_FENCE (1 << 0)
 #define STREAM_RENDERER_FLAG_FENCE_RING_IDX (1 << 1)
+#define STREAM_RENDERER_FLAG_FENCE_SHAREABLE (1 << 2)
 struct stream_renderer_fence {
     uint32_t flags;
     uint64_t fence_id;
     uint32_t ctx_id;
     uint8_t ring_idx;
+};
+
+#define STREAM_MEM_HANDLE_TYPE_OPAQUE_FD 0x1
+#define STREAM_MEM_HANDLE_TYPE_DMABUF 0x2
+#define STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32 0x3
+#define STREAM_MEM_HANDLE_TYPE_SHM 0x4
+#define STREAM_MEM_HANDLE_TYPE_ZIRCON 0x5
+#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_FD 0x6
+#define STREAM_FENCE_HANDLE_TYPE_SYNC_FD 0x7
+#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_WIN32 0x8
+#define STREAM_FENCE_HANDLE_TYPE_ZIRCON 0x9
+struct stream_renderer_handle {
+    int64_t os_handle;
+    uint32_t handle_type;
 };
 
 // Callback for writing a fence.
@@ -132,7 +147,18 @@ VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_cr
                                               struct iovec* iov, uint32_t num_iovs);
 VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle);
 VG_EXPORT void stream_renderer_context_destroy(uint32_t handle);
-VG_EXPORT int stream_renderer_submit_cmd(void* buffer, int ctx_id, int bytes);
+
+struct stream_renderer_command {
+    uint32_t ctx_id;
+    uint32_t cmd_size;
+    uint8_t* cmd;
+
+    uint32_t num_in_fences;
+    struct stream_renderer_handle* fences;
+};
+
+VG_EXPORT int stream_renderer_submit_cmd(struct stream_renderer_command* cmd);
+
 VG_EXPORT int stream_renderer_transfer_read_iov(uint32_t handle, uint32_t ctx_id, uint32_t level,
                                                 uint32_t stride, uint32_t layer_stride,
                                                 struct stream_renderer_box* box, uint64_t offset,
@@ -151,20 +177,6 @@ VG_EXPORT void stream_renderer_ctx_attach_resource(int ctx_id, int res_handle);
 VG_EXPORT void stream_renderer_ctx_detach_resource(int ctx_id, int res_handle);
 VG_EXPORT int stream_renderer_resource_get_info(int res_handle,
                                                 struct stream_renderer_resource_info* info);
-
-#define STREAM_MEM_HANDLE_TYPE_OPAQUE_FD 0x1
-#define STREAM_MEM_HANDLE_TYPE_DMABUF 0x2
-#define STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32 0x3
-#define STREAM_MEM_HANDLE_TYPE_SHM 0x4
-#define STREAM_MEM_HANDLE_TYPE_ZIRCON 0x5
-#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_FD 0x6
-#define STREAM_FENCE_HANDLE_TYPE_SYNC_FD 0x7
-#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_WIN32 0x8
-#define STREAM_FENCE_HANDLE_TYPE_ZIRCON 0x9
-struct stream_renderer_handle {
-    int64_t os_handle;
-    uint32_t handle_type;
-};
 
 struct stream_renderer_create_blob {
     uint32_t blob_mem;
