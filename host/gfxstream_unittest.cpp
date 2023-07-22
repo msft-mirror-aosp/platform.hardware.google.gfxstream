@@ -154,6 +154,11 @@ TEST_F(GfxStreamBackendTest, DISABLED_ApiCallLinkTest) {
         .flags = 0,
     };
     EXPECT_EQ(stream_renderer_resource_create(&create_resource_args, NULL, 0), 0);
+    struct stream_renderer_command cmd;
+    cmd.ctx_id = 0;
+    cmd.cmd = nullptr;
+    cmd.cmd_size = 0;
+
     // R8G8B8A8 is used, so 4 bytes per pixel
     auto fb = std::make_unique<uint32_t[]>(width * height);
     EXPECT_NE(fb, nullptr);
@@ -161,7 +166,7 @@ TEST_F(GfxStreamBackendTest, DISABLED_ApiCallLinkTest) {
     stream_renderer_resource_unref(0);
     stream_renderer_context_create(0, 0, NULL, 0);
     stream_renderer_context_destroy(0);
-    stream_renderer_submit_cmd(0, 0, 0);
+    stream_renderer_submit_cmd(&cmd);
     stream_renderer_transfer_read_iov(0, 0, 0, 0, 0, 0, 0, 0, 0);
     stream_renderer_transfer_write_iov(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
