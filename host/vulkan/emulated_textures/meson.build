@@ -17,4 +17,5 @@ lib_emulated_textures = static_library(
   cpp_args: emulated_texture_args,
   include_directories: [inc_utils, inc_root, inc_vulkan_server, inc_include,
                         inc_stream_servers],
+  dependencies: aemu_base_dep,
 )

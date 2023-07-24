@@ -30,4 +30,5 @@ lib_gl_common = static_library(
   cpp_args: default_cpp_args,
   include_directories: [inc_include, inc_stream_servers, inc_gles_translator],
   link_with: lib_compressed_textures,
+  dependencies: aemu_base_dep,
 )
