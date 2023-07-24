@@ -46,4 +46,5 @@ lib_gl_server = static_library(
                         inc_gl_snapshot, inc_gl_host_common],
   link_with: [lib_gles1_dec, lib_gles2_dec, lib_apigen_codec, lib_gl_dispatch,
               lib_apigen_codec],
+  dependencies: aemu_base_dep,
 )
