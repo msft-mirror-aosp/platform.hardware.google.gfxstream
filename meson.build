@@ -79,6 +79,8 @@ if use_magma
   inc_magma_external_lib = include_directories('third-party/fuchsia/magma/include/lib')
 endif
 
+inc_glm = include_directories('third-party/glm/include')
+
 #================#
 # Subdirectories #
 #================#
