@@ -38,17 +38,18 @@
 #include "vulkan_gfxstream.h"
 
 namespace gfxstream {
+namespace guest {
 class IOStream;
-}
+}  // namespace guest
+}  // namespace gfxstream
 
 namespace gfxstream {
 namespace vk {
 
-using gfxstream::guest::HealthMonitor;
-
 class VkEncoder {
    public:
-    VkEncoder(IOStream* stream, HealthMonitor<>* healthMonitor = nullptr);
+    VkEncoder(gfxstream::guest::IOStream* stream,
+              gfxstream::guest::HealthMonitor<>* healthMonitor = nullptr);
     ~VkEncoder();
 
 #include "VkEncoder.h.inl"
@@ -2616,7 +2617,7 @@ class VkEncoder {
    private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
-    HealthMonitor<>* mHealthMonitor;
+    gfxstream::guest::HealthMonitor<>* mHealthMonitor;
 };
 
 }  // namespace vk

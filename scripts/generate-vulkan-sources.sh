@@ -40,7 +40,7 @@ fi
 
 # Generate Vulkan headers
 VULKAN_HEADERS_ROOT=$PROJECT_ROOT/common/vulkan
-mkdir -p $VULKAN_HEADERS_ROOT
+rm -rf $VULKAN_HEADERS_ROOT/include && mkdir -p $VULKAN_HEADERS_ROOT/include
 if [ $? -ne 0 ]; then
     echo "Failed to clear the old Vulkan headers." 1>&2
     exit 1
