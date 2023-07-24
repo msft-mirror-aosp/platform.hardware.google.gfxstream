@@ -23,6 +23,6 @@ lib_magma_server = static_library(
   include_directories: [inc_root, inc_include, inc_magma_external,
                         inc_magma_external_lib, inc_apigen_codec, inc_magma_dec,
                         inc_stream_servers],
-  dependencies: drm_dep,
+  dependencies: [drm_dep, aemu_base_dep],
   link_with: [lib_magma_dec, lib_apigen_codec],
 )
