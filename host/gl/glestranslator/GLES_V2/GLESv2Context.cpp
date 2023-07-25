@@ -236,6 +236,7 @@ const GLESpointer* GLESv2Context::getPointer(GLenum arrType) {
 }
 
 void GLESv2Context::postLoadRestoreCtx() {
+    initExtensionString();
     GLDispatch& dispatcher = GLEScontext::dispatcher();
     m_useProgramData = shareGroup()->getObjectDataPtr(
             NamedObjectType::SHADER_OR_PROGRAM, m_useProgram);
