@@ -1581,7 +1581,10 @@ static VkFormat glFormat2VkFormat(GLint internalFormat) {
             return VK_FORMAT_R8_UNORM;
         case GL_RGB:
         case GL_RGB8:
-            return VK_FORMAT_R8G8B8_UNORM;
+            // b/281550953
+            // RGB8 is not supported on many vulkan drivers.
+            // Try RGBA8 instead.
+            return VK_FORMAT_R8G8B8A8_UNORM;
         case GL_RGB565:
             return VK_FORMAT_R5G6B5_UNORM_PACK16;
         case GL_RGB16F:
