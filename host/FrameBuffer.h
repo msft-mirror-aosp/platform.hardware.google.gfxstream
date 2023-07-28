@@ -720,6 +720,10 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     int m_framebufferHeight = 0;
     std::atomic_int m_windowWidth = 0;
     std::atomic_int m_windowHeight = 0;
+    // When zoomed in, the size of the content is bigger than the window size, and we only
+    // display / store a portion of it.
+    int m_windowContentFullWidth = 0;
+    int m_windowContentFullHeight = 0;
     float m_dpr = 0;
 
     bool m_useSubWindow = false;
