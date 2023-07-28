@@ -523,7 +523,7 @@ class VkDecoderGlobalState::Impl {
         init_vulkan_dispatch_from_instance(m_vk, *pInstance, dispatch_VkInstance(boxed));
         info.boxed = boxed;
 
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         if (m_emu->instanceSupportsMoltenVK) {
             if (!m_vk->vkSetMTLTextureMVK) {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Cannot find vkSetMTLTextureMVK";
@@ -1117,7 +1117,7 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
         bool shouldPassthrough = !m_emu->enableYcbcrEmulation;
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         shouldPassthrough = shouldPassthrough && !m_emu->instanceSupportsMoltenVK;
 #endif
         if (shouldPassthrough) {
@@ -1134,7 +1134,7 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
 
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         if (m_emu->instanceSupportsMoltenVK &&
             !hasDeviceExtension(properties, VK_MVK_MOLTENVK_EXTENSION_NAME)) {
             VkExtensionProperties mvk_props;
@@ -1704,7 +1704,7 @@ class VkDecoderGlobalState::Impl {
         auto* memoryInfo = android::base::find(mMemoryInfo, memory);
         if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         if (memoryInfo->mtlTexture) {
             result = m_vk->vkSetMTLTextureMVK(image, memoryInfo->mtlTexture);
             if (result != VK_SUCCESS) {
@@ -3364,7 +3364,7 @@ class VkDecoderGlobalState::Impl {
         memoryInfo.size = localAllocInfo.allocationSize;
         memoryInfo.device = device;
         memoryInfo.memoryIndex = localAllocInfo.memoryTypeIndex;
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         if (importCbInfoPtr && m_emu->instanceSupportsMoltenVK) {
             memoryInfo.mtlTexture = getColorBufferMTLTexture(importCbInfoPtr->colorBuffer);
         }

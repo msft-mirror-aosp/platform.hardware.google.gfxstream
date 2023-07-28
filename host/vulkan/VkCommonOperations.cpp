@@ -563,7 +563,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
         extensionsSupported(exts, externalMemoryInstanceExtNames);
     bool externalSemaphoreCapabilitiesSupported =
         extensionsSupported(exts, externalSemaphoreInstanceExtNames);
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
     bool moltenVKSupported =
         (vk->vkGetMTLTextureMVK != nullptr) && (vk->vkSetMTLTextureMVK != nullptr);
 #endif
@@ -587,7 +587,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
         }
     }
 
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
     if (moltenVKSupported) {
         // We don't need both moltenVK and external memory. Disable
         // external memory if moltenVK is supported.
@@ -600,7 +600,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
         enabledExtensions.emplace(extension);
     }
 
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
     if (moltenVKSupported) {
         enabledExtensions.emplace(VK_MVK_MOLTENVK_EXTENSION_NAME);
     }
@@ -691,7 +691,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
     sVkEmulation->instanceSupportsExternalMemoryCapabilities = externalMemoryCapabilitiesSupported;
     sVkEmulation->instanceSupportsExternalSemaphoreCapabilities =
         externalSemaphoreCapabilitiesSupported;
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
     sVkEmulation->instanceSupportsMoltenVK = moltenVKSupported;
 #endif
 
@@ -707,7 +707,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
         vk_util::getVkInstanceProcAddrWithFallback<vk_util::vk_fn_info::GetPhysicalDeviceFeatures2>(
             {ivk->vkGetInstanceProcAddr, vk->vkGetInstanceProcAddr}, sVkEmulation->instance);
 
-#ifdef VK_MVK_moltenvk
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
     if (sVkEmulation->instanceSupportsMoltenVK) {
         sVkEmulation->setMTLTextureFunc = reinterpret_cast<PFN_vkSetMTLTextureMVK>(
             vk->vkGetInstanceProcAddr(sVkEmulation->instance, "vkSetMTLTextureMVK"));
