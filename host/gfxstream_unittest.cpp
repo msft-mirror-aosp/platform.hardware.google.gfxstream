@@ -194,7 +194,7 @@ TEST_F(GfxStreamBackendTest, MissingRequiredParameter) {
         std::vector<stream_renderer_param> insufficientParams = minimumRequiredParams;
         insufficientParams.erase(insufficientParams.begin() + i);
         int initResult = stream_renderer_init(insufficientParams.data(), insufficientParams.size());
-        EXPECT_EQ(initResult, -1);
+        EXPECT_NE(initResult, 0);
 
         // Ensure background threads aren't mid-initialization.
         sleepMs(100);

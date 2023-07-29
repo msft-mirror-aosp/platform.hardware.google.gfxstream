@@ -100,9 +100,29 @@ struct stream_renderer_handle {
     uint32_t handle_type;
 };
 
+// Log level of gfxstream
+#ifndef STREAM_RENDERER_LOG_LEVEL
+#define STREAM_RENDERER_LOG_LEVEL 1
+#endif
+
+// @user_data: custom user data passed during `stream_renderer_init`
+// @type: one of STREAM_RENDERER_DEBUG_*
+// @string: null-terminated C-string
+#define STREAM_RENDERER_DEBUG_ERROR 0x1
+#define STREAM_RENDERER_DEBUG_WARN 0x2
+#define STREAM_RENDERER_DEBUG_INFO 0x3
+struct stream_renderer_debug {
+    uint32_t debug_type;
+    const char* message;
+};
+
 // Callback for writing a fence.
 typedef void (*stream_renderer_fence_callback)(void* user_data,
                                                struct stream_renderer_fence* fence_data);
+
+// Callback for allowing debug prints or possibly even aborts.
+typedef void (*stream_renderer_debug_callback)(void* user_data,
+                                               struct stream_renderer_debug* debug);
 
 // Parameters - data passed to initialize the renderer, with the goal of avoiding FFI breakages.
 // To change the data a parameter is passing safely, you should create a new parameter and
@@ -111,7 +131,7 @@ typedef void (*stream_renderer_fence_callback)(void* user_data,
 // STREAM_RENDERER_PARAM_NULL: Reserved value
 //
 // The following are required for correct operation:
-// STREAM_RENDERER_PARAM_USER_DATA: User data, for custom use by renderer.
+// STREAM_RENDERER_PARAM_USER_DATA: User data, for custom use by VMM.
 // STREAM_RENDERER_PARAM_RENDERER_FLAGS: Bitwise flags for the renderer.
 // STREAM_RENDERER_PARAM_FENCE_CALLBACK: A function of the type `stream_renderer_fence_callback`
 
@@ -124,6 +144,7 @@ typedef void (*stream_renderer_fence_callback)(void* user_data,
 #define STREAM_RENDERER_PARAM_FENCE_CALLBACK 3
 #define STREAM_RENDERER_PARAM_WIN0_WIDTH 4
 #define STREAM_RENDERER_PARAM_WIN0_HEIGHT 5
+#define STREAM_RENDERER_PARAM_DEBUG_CALLBACK 6
 
 // An entry in the stream renderer parameters list.
 // The key should be one of STREAM_RENDERER_PARAM_*
