@@ -13,3 +13,15 @@ option(
   ],
   description : 'A list of supported decoders to build'
 )
+option(
+  'log-level',
+  type : 'combo',
+  value : 'error',
+  choices : [
+    'none',
+    'info',
+    'warn',
+    'error',
+  ],
+  description : 'The logging level of gfxstream'
+)
