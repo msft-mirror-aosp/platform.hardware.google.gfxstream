@@ -42,6 +42,8 @@ namespace vk {
 #endif
 #ifdef VK_VERSION_1_2
 #endif
+#ifdef VK_VERSION_1_3
+#endif
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
@@ -65,6 +67,8 @@ namespace vk {
 #ifdef VK_KHR_video_queue
 #endif
 #ifdef VK_KHR_video_decode_queue
+#endif
+#ifdef VK_KHR_video_decode_h264
 #endif
 #ifdef VK_KHR_dynamic_rendering
 #endif
@@ -160,6 +164,10 @@ namespace vk {
 #endif
 #ifdef VK_KHR_shader_clock
 #endif
+#ifdef VK_KHR_video_decode_h265
+#endif
+#ifdef VK_KHR_global_priority
+#endif
 #ifdef VK_KHR_driver_properties
 #endif
 #ifdef VK_KHR_shader_float_controls
@@ -192,6 +200,8 @@ namespace vk {
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 #endif
+#ifdef VK_KHR_map_memory2
+#endif
 #ifdef VK_KHR_shader_integer_dot_product
 #endif
 #ifdef VK_KHR_pipeline_library
@@ -204,6 +214,8 @@ namespace vk {
 #endif
 #ifdef VK_KHR_synchronization2
 #endif
+#ifdef VK_KHR_fragment_shader_barycentric
+#endif
 #ifdef VK_KHR_shader_subgroup_uniform_control_flow
 #endif
 #ifdef VK_KHR_zero_initialize_workgroup_memory
@@ -214,7 +226,13 @@ namespace vk {
 #endif
 #ifdef VK_KHR_format_feature_flags2
 #endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+#endif
+#ifdef VK_KHR_portability_enumeration
+#endif
 #ifdef VK_KHR_maintenance4
+#endif
+#ifdef VK_KHR_ray_tracing_position_fetch
 #endif
 #ifdef VK_ANDROID_native_buffer
 #endif
@@ -256,8 +274,6 @@ namespace vk {
 #endif
 #ifdef VK_EXT_video_encode_h265
 #endif
-#ifdef VK_EXT_video_decode_h264
-#endif
 #ifdef VK_AMD_texture_gather_bias_lod
 #endif
 #ifdef VK_AMD_shader_info
@@ -289,6 +305,8 @@ namespace vk {
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
 #ifdef VK_EXT_astc_decode_mode
+#endif
+#ifdef VK_EXT_pipeline_robustness
 #endif
 #ifdef VK_EXT_conditional_rendering
 #endif
@@ -327,8 +345,6 @@ namespace vk {
 #ifdef VK_MVK_ios_surface
 #endif
 #ifdef VK_MVK_macos_surface
-#endif
-#ifdef VK_MVK_moltenvk
 #endif
 #ifdef VK_EXT_external_memory_dma_buf
 #endif
@@ -393,8 +409,6 @@ namespace vk {
 #ifdef VK_EXT_calibrated_timestamps
 #endif
 #ifdef VK_AMD_shader_core_properties
-#endif
-#ifdef VK_EXT_video_decode_h265
 #endif
 #ifdef VK_AMD_memory_overallocation_behavior
 #endif
@@ -486,6 +500,10 @@ namespace vk {
 #endif
 #ifdef VK_EXT_shader_atomic_float2
 #endif
+#ifdef VK_EXT_surface_maintenance1
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+#endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
 #endif
 #ifdef VK_NV_device_generated_commands
@@ -506,6 +524,8 @@ namespace vk {
 #endif
 #ifdef VK_GOOGLE_user_type
 #endif
+#ifdef VK_NV_present_barrier
+#endif
 #ifdef VK_EXT_private_data
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
@@ -513,6 +533,16 @@ namespace vk {
 #ifdef VK_NV_device_diagnostics_config
 #endif
 #ifdef VK_QCOM_render_pass_store_ops
+#endif
+#ifdef VK_NV_low_latency
+#endif
+#ifdef VK_EXT_metal_objects
+#endif
+#ifdef VK_EXT_descriptor_buffer
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+#endif
+#ifdef VK_AMD_shader_early_and_late_fragment_tests
 #endif
 #ifdef VK_NV_fragment_shading_rate_enums
 #endif
@@ -526,7 +556,15 @@ namespace vk {
 #endif
 #ifdef VK_EXT_image_robustness
 #endif
+#ifdef VK_EXT_image_compression_control
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_layout
+#endif
 #ifdef VK_EXT_4444_formats
+#endif
+#ifdef VK_EXT_device_fault
+#endif
+#ifdef VK_ARM_rasterization_order_attachment_access
 #endif
 #ifdef VK_EXT_rgba10x6_formats
 #endif
@@ -539,6 +577,10 @@ namespace vk {
 #ifdef VK_EXT_vertex_input_dynamic_state
 #endif
 #ifdef VK_EXT_physical_device_drm
+#endif
+#ifdef VK_EXT_device_address_binding_report
+#endif
+#ifdef VK_EXT_depth_clip_control
 #endif
 #ifdef VK_EXT_primitive_topology_list_restart
 #endif
@@ -554,29 +596,109 @@ namespace vk {
 #endif
 #ifdef VK_NV_external_memory_rdma
 #endif
+#ifdef VK_EXT_pipeline_properties
+#endif
+#ifdef VK_EXT_multisampled_render_to_single_sampled
+#endif
 #ifdef VK_EXT_extended_dynamic_state2
 #endif
 #ifdef VK_QNX_screen_surface
 #endif
 #ifdef VK_EXT_color_write_enable
 #endif
+#ifdef VK_EXT_primitives_generated_query
+#endif
 #ifdef VK_GOOGLE_gfxstream
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
+#ifdef VK_EXT_image_view_min_lod
+#endif
 #ifdef VK_EXT_multi_draw
 #endif
+#ifdef VK_EXT_image_2d_view_of_3d
+#endif
+#ifdef VK_EXT_shader_tile_image
+#endif
+#ifdef VK_EXT_opacity_micromap
+#endif
+#ifdef VK_NV_displacement_micromap
+#endif
 #ifdef VK_EXT_load_store_op_none
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
 #endif
 #ifdef VK_EXT_border_color_swizzle
 #endif
 #ifdef VK_EXT_pageable_device_local_memory
+#endif
+#ifdef VK_ARM_shader_core_properties
+#endif
+#ifdef VK_EXT_image_sliced_view_of_3d
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+#endif
+#ifdef VK_EXT_depth_clamp_zero_one
+#endif
+#ifdef VK_EXT_non_seamless_cube_map
+#endif
+#ifdef VK_QCOM_fragment_density_map_offset
+#endif
+#ifdef VK_NV_copy_memory_indirect
+#endif
+#ifdef VK_NV_memory_decompression
+#endif
+#ifdef VK_NV_linear_color_attachment
+#endif
+#ifdef VK_GOOGLE_surfaceless_query
+#endif
+#ifdef VK_EXT_image_compression_control_swapchain
+#endif
+#ifdef VK_QCOM_image_processing
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+#endif
+#ifdef VK_EXT_subpass_merge_feedback
+#endif
+#ifdef VK_LUNARG_direct_driver_loading
+#endif
+#ifdef VK_EXT_shader_module_identifier
+#endif
+#ifdef VK_EXT_rasterization_order_attachment_access
+#endif
+#ifdef VK_NV_optical_flow
+#endif
+#ifdef VK_EXT_legacy_dithering
+#endif
+#ifdef VK_EXT_pipeline_protected_access
+#endif
+#ifdef VK_EXT_shader_object
+#endif
+#ifdef VK_QCOM_tile_properties
+#endif
+#ifdef VK_SEC_amigo_profiling
+#endif
+#ifdef VK_QCOM_multiview_per_view_viewports
+#endif
+#ifdef VK_NV_ray_tracing_invocation_reorder
+#endif
+#ifdef VK_EXT_mutable_descriptor_type
+#endif
+#ifdef VK_ARM_shader_core_builtins
+#endif
+#ifdef VK_EXT_pipeline_library_group_handles
+#endif
+#ifdef VK_QCOM_multiview_per_view_render_areas
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
 #endif
 #ifdef VK_KHR_acceleration_structure
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
 #endif
 #ifdef VK_KHR_ray_query
+#endif
+#ifdef VK_EXT_mesh_shader
 #endif
 void* goldfish_vulkan_get_proc_address(const char* name);
 void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char* name);

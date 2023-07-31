@@ -869,8 +869,12 @@ if __name__ == '__main__':
 
                 # Extending an existing entry. This happens for MVK.
                 if entriesName == "extensions":
-                    for child in entry.find("require"):
-                        originalEntry.find("require").append(child)
+                    for key, value in entry.attrib.items():
+                        originalEntry.set(key, value)
+                    require = entry.find("require")
+                    if require is not None:
+                        for child in require:
+                            originalEntry.find("require").append(child)
                     continue
 
                 # Overwriting an existing entry. This happen for

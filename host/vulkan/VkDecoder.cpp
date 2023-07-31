@@ -11291,6 +11291,1853 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_VERSION_1_3
+            case OP_vkGetPhysicalDeviceToolProperties: {
+                android::base::beginTrace("vkGetPhysicalDeviceToolProperties decode");
+                VkPhysicalDevice physicalDevice;
+                uint32_t* pToolCount;
+                VkPhysicalDeviceToolProperties* pToolProperties;
+                // Begin non wrapped dispatchable handle unboxing for physicalDevice;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPhysicalDevice*)&physicalDevice =
+                    (VkPhysicalDevice)(VkPhysicalDevice)((VkPhysicalDevice)(*&cgen_var_0));
+                auto unboxed_physicalDevice = unbox_VkPhysicalDevice(physicalDevice);
+                auto vk = dispatch_VkPhysicalDevice(physicalDevice);
+                // End manual dispatchable handle unboxing for physicalDevice;
+                // Begin manual dispatchable handle unboxing for pToolCount;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((uint32_t**)&pToolCount, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pToolCount);
+                *readStreamPtrPtr += 8;
+                if (pToolCount) {
+                    vkReadStream->alloc((void**)&pToolCount, sizeof(uint32_t));
+                    memcpy((uint32_t*)pToolCount, *readStreamPtrPtr, sizeof(uint32_t));
+                    *readStreamPtrPtr += sizeof(uint32_t);
+                }
+                // Begin manual dispatchable handle unboxing for pToolProperties;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((VkPhysicalDeviceToolProperties**)&pToolProperties, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pToolProperties);
+                *readStreamPtrPtr += 8;
+                if (pToolProperties) {
+                    vkReadStream->alloc((void**)&pToolProperties,
+                                        (*(pToolCount)) * sizeof(VkPhysicalDeviceToolProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                        reservedunmarshal_VkPhysicalDeviceToolProperties(
+                            vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                            (VkPhysicalDeviceToolProperties*)(pToolProperties + i),
+                            readStreamPtrPtr);
+                    }
+                }
+                if (pToolCount) {
+                    if (pToolProperties) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                            transform_tohost_VkPhysicalDeviceToolProperties(
+                                m_state, (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
+                        }
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkGetPhysicalDeviceToolProperties 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pToolCount, (unsigned long long)pToolProperties);
+                }
+                VkResult vkGetPhysicalDeviceToolProperties_VkResult_return = (VkResult)0;
+                vkGetPhysicalDeviceToolProperties_VkResult_return =
+                    vk->vkGetPhysicalDeviceToolProperties(unboxed_physicalDevice, pToolCount,
+                                                          pToolProperties);
+                if ((vkGetPhysicalDeviceToolProperties_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkGetPhysicalDeviceToolProperties_VkResult_return,
+                                             opcode, context);
+                vkStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pToolCount;
+                vkStream->putBe64(cgen_var_3);
+                if (pToolCount) {
+                    vkStream->write((uint32_t*)pToolCount, sizeof(uint32_t));
+                }
+                if (pToolCount) {
+                    if (pToolProperties) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                            transform_fromhost_VkPhysicalDeviceToolProperties(
+                                m_state, (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
+                        }
+                    }
+                }
+                // WARNING PTR CHECK
+                uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pToolProperties;
+                vkStream->putBe64(cgen_var_4);
+                if (pToolProperties) {
+                    if (pToolCount) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                            marshal_VkPhysicalDeviceToolProperties(
+                                vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
+                        }
+                    }
+                }
+                vkStream->write(&vkGetPhysicalDeviceToolProperties_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetPhysicalDeviceToolProperties(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetPhysicalDeviceToolProperties_VkResult_return, physicalDevice,
+                        pToolCount, pToolProperties);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCreatePrivateDataSlot: {
+                android::base::beginTrace("vkCreatePrivateDataSlot decode");
+                VkDevice device;
+                const VkPrivateDataSlotCreateInfo* pCreateInfo;
+                const VkAllocationCallbacks* pAllocator;
+                VkPrivateDataSlot* pPrivateDataSlot;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pCreateInfo,
+                                    sizeof(const VkPrivateDataSlotCreateInfo));
+                reservedunmarshal_VkPrivateDataSlotCreateInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkPrivateDataSlotCreateInfo*)(pCreateInfo), readStreamPtrPtr);
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                // Begin manual dispatchable handle unboxing for pPrivateDataSlot;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pPrivateDataSlot, sizeof(VkPrivateDataSlot));
+                memcpy((VkPrivateDataSlot*)&(*pPrivateDataSlot), (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&(*pPrivateDataSlot));
+                *readStreamPtrPtr += 8;
+                if (pCreateInfo) {
+                    transform_tohost_VkPrivateDataSlotCreateInfo(
+                        m_state, (VkPrivateDataSlotCreateInfo*)(pCreateInfo));
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCreatePrivateDataSlot 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pPrivateDataSlot);
+                }
+                VkResult vkCreatePrivateDataSlot_VkResult_return = (VkResult)0;
+                vkCreatePrivateDataSlot_VkResult_return = vk->vkCreatePrivateDataSlot(
+                    unboxed_device, pCreateInfo, pAllocator, pPrivateDataSlot);
+                if ((vkCreatePrivateDataSlot_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCreatePrivateDataSlot_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                uint64_t cgen_var_3 = (uint64_t)(*pPrivateDataSlot);
+                vkStream->putBe64(cgen_var_3);
+                vkStream->write(&vkCreatePrivateDataSlot_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCreatePrivateDataSlot(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCreatePrivateDataSlot_VkResult_return, device, pCreateInfo, pAllocator,
+                        pPrivateDataSlot);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkDestroyPrivateDataSlot: {
+                android::base::beginTrace("vkDestroyPrivateDataSlot decode");
+                VkDevice device;
+                VkPrivateDataSlot privateDataSlot;
+                const VkAllocationCallbacks* pAllocator;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
+                *readStreamPtrPtr += 8;
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkDestroyPrivateDataSlot 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)privateDataSlot, (unsigned long long)pAllocator);
+                }
+                vk->vkDestroyPrivateDataSlot(unboxed_device, privateDataSlot, pAllocator);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkDestroyPrivateDataSlot(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, privateDataSlot,
+                        pAllocator);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkSetPrivateData: {
+                android::base::beginTrace("vkSetPrivateData decode");
+                VkDevice device;
+                VkObjectType objectType;
+                uint64_t objectHandle;
+                VkPrivateDataSlot privateDataSlot;
+                uint64_t data;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkObjectType*)&objectType, *readStreamPtrPtr, sizeof(VkObjectType));
+                *readStreamPtrPtr += sizeof(VkObjectType);
+                memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
+                *readStreamPtrPtr += sizeof(uint64_t);
+                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
+                *readStreamPtrPtr += 8;
+                memcpy((uint64_t*)&data, *readStreamPtrPtr, sizeof(uint64_t));
+                *readStreamPtrPtr += sizeof(uint64_t);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkSetPrivateData 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)objectType,
+                        (unsigned long long)objectHandle, (unsigned long long)privateDataSlot,
+                        (unsigned long long)data);
+                }
+                VkResult vkSetPrivateData_VkResult_return = (VkResult)0;
+                vkSetPrivateData_VkResult_return = vk->vkSetPrivateData(
+                    unboxed_device, objectType, objectHandle, privateDataSlot, data);
+                if ((vkSetPrivateData_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkSetPrivateData_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkSetPrivateData_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkSetPrivateData(snapshotTraceBegin, snapshotTraceBytes,
+                                                          &m_pool, vkSetPrivateData_VkResult_return,
+                                                          device, objectType, objectHandle,
+                                                          privateDataSlot, data);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetPrivateData: {
+                android::base::beginTrace("vkGetPrivateData decode");
+                VkDevice device;
+                VkObjectType objectType;
+                uint64_t objectHandle;
+                VkPrivateDataSlot privateDataSlot;
+                uint64_t* pData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkObjectType*)&objectType, *readStreamPtrPtr, sizeof(VkObjectType));
+                *readStreamPtrPtr += sizeof(VkObjectType);
+                memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
+                *readStreamPtrPtr += sizeof(uint64_t);
+                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
+                *readStreamPtrPtr += 8;
+                // Begin manual dispatchable handle unboxing for pData;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pData, sizeof(uint64_t));
+                memcpy((uint64_t*)pData, *readStreamPtrPtr, sizeof(uint64_t));
+                *readStreamPtrPtr += sizeof(uint64_t);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkGetPrivateData 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)objectType,
+                        (unsigned long long)objectHandle, (unsigned long long)privateDataSlot,
+                        (unsigned long long)pData);
+                }
+                vk->vkGetPrivateData(unboxed_device, objectType, objectHandle, privateDataSlot,
+                                     pData);
+                vkStream->unsetHandleMapping();
+                vkStream->write((uint64_t*)pData, sizeof(uint64_t));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetPrivateData(snapshotTraceBegin, snapshotTraceBytes,
+                                                          &m_pool, device, objectType, objectHandle,
+                                                          privateDataSlot, pData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetEvent2: {
+                android::base::beginTrace("vkCmdSetEvent2 decode");
+                VkCommandBuffer commandBuffer;
+                VkEvent event;
+                const VkDependencyInfo* pDependencyInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_1));
+                vkReadStream->alloc((void**)&pDependencyInfo, sizeof(const VkDependencyInfo));
+                reservedunmarshal_VkDependencyInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                   (VkDependencyInfo*)(pDependencyInfo),
+                                                   readStreamPtrPtr);
+                if (pDependencyInfo) {
+                    transform_tohost_VkDependencyInfo(m_state,
+                                                      (VkDependencyInfo*)(pDependencyInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetEvent2 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)event,
+                            (unsigned long long)pDependencyInfo);
+                }
+                vk->vkCmdSetEvent2(unboxed_commandBuffer, event, pDependencyInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetEvent2(snapshotTraceBegin, snapshotTraceBytes,
+                                                        &m_pool, commandBuffer, event,
+                                                        pDependencyInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdResetEvent2: {
+                android::base::beginTrace("vkCmdResetEvent2 decode");
+                VkCommandBuffer commandBuffer;
+                VkEvent event;
+                VkPipelineStageFlags2 stageMask;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_1));
+                memcpy((VkPipelineStageFlags2*)&stageMask, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags2));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdResetEvent2 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)event,
+                            (unsigned long long)stageMask);
+                }
+                vk->vkCmdResetEvent2(unboxed_commandBuffer, event, stageMask);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdResetEvent2(snapshotTraceBegin, snapshotTraceBytes,
+                                                          &m_pool, commandBuffer, event, stageMask);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdWaitEvents2: {
+                android::base::beginTrace("vkCmdWaitEvents2 decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t eventCount;
+                const VkEvent* pEvents;
+                const VkDependencyInfo* pDependencyInfos;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pEvents, ((eventCount)) * sizeof(const VkEvent));
+                if (((eventCount))) {
+                    uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
+                    *readStreamPtrPtr += 8 * ((eventCount));
+                    for (uint32_t k = 0; k < ((eventCount)); ++k) {
+                        uint64_t tmpval;
+                        memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
+                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                    }
+                }
+                vkReadStream->alloc((void**)&pDependencyInfos,
+                                    ((eventCount)) * sizeof(const VkDependencyInfo));
+                for (uint32_t i = 0; i < (uint32_t)((eventCount)); ++i) {
+                    reservedunmarshal_VkDependencyInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkDependencyInfo*)(pDependencyInfos + i),
+                                                       readStreamPtrPtr);
+                }
+                if (pDependencyInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)((eventCount)); ++i) {
+                        transform_tohost_VkDependencyInfo(
+                            m_state, (VkDependencyInfo*)(pDependencyInfos + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr, "stream %p: call vkCmdWaitEvents2 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)eventCount,
+                        (unsigned long long)pEvents, (unsigned long long)pDependencyInfos);
+                }
+                vk->vkCmdWaitEvents2(unboxed_commandBuffer, eventCount, pEvents, pDependencyInfos);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdWaitEvents2(snapshotTraceBegin, snapshotTraceBytes,
+                                                          &m_pool, commandBuffer, eventCount,
+                                                          pEvents, pDependencyInfos);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdPipelineBarrier2: {
+                android::base::beginTrace("vkCmdPipelineBarrier2 decode");
+                VkCommandBuffer commandBuffer;
+                const VkDependencyInfo* pDependencyInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pDependencyInfo, sizeof(const VkDependencyInfo));
+                reservedunmarshal_VkDependencyInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                   (VkDependencyInfo*)(pDependencyInfo),
+                                                   readStreamPtrPtr);
+                if (pDependencyInfo) {
+                    transform_tohost_VkDependencyInfo(m_state,
+                                                      (VkDependencyInfo*)(pDependencyInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdPipelineBarrier2 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pDependencyInfo);
+                }
+                vk->vkCmdPipelineBarrier2(unboxed_commandBuffer, pDependencyInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdPipelineBarrier2(snapshotTraceBegin,
+                                                               snapshotTraceBytes, &m_pool,
+                                                               commandBuffer, pDependencyInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdWriteTimestamp2: {
+                android::base::beginTrace("vkCmdWriteTimestamp2 decode");
+                VkCommandBuffer commandBuffer;
+                VkPipelineStageFlags2 stage;
+                VkQueryPool queryPool;
+                uint32_t query;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkPipelineStageFlags2*)&stage, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags2));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkQueryPool*)&queryPool =
+                    (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_1));
+                memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdWriteTimestamp2 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)stage,
+                            (unsigned long long)queryPool, (unsigned long long)query);
+                }
+                vk->vkCmdWriteTimestamp2(unboxed_commandBuffer, stage, queryPool, query);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdWriteTimestamp2(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, stage,
+                        queryPool, query);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkQueueSubmit2: {
+                android::base::beginTrace("vkQueueSubmit2 decode");
+                VkQueue queue;
+                uint32_t submitCount;
+                const VkSubmitInfo2* pSubmits;
+                VkFence fence;
+                // Begin non wrapped dispatchable handle unboxing for queue;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
+                auto unboxed_queue = unbox_VkQueue(queue);
+                auto vk = dispatch_VkQueue(queue);
+                // End manual dispatchable handle unboxing for queue;
+                memcpy((uint32_t*)&submitCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pSubmits,
+                                    ((submitCount)) * sizeof(const VkSubmitInfo2));
+                for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                    reservedunmarshal_VkSubmitInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkSubmitInfo2*)(pSubmits + i),
+                                                    readStreamPtrPtr);
+                }
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
+                if (pSubmits) {
+                    for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                        transform_tohost_VkSubmitInfo2(m_state, (VkSubmitInfo2*)(pSubmits + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkQueueSubmit2 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)queue, (unsigned long long)submitCount,
+                            (unsigned long long)pSubmits, (unsigned long long)fence);
+                }
+                VkResult vkQueueSubmit2_VkResult_return = (VkResult)0;
+                vkQueueSubmit2_VkResult_return =
+                    vk->vkQueueSubmit2(unboxed_queue, submitCount, pSubmits, fence);
+                if ((vkQueueSubmit2_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkQueueSubmit2_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkQueueSubmit2_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkQueueSubmit2(snapshotTraceBegin, snapshotTraceBytes,
+                                                        &m_pool, vkQueueSubmit2_VkResult_return,
+                                                        queue, submitCount, pSubmits, fence);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdCopyBuffer2: {
+                android::base::beginTrace("vkCmdCopyBuffer2 decode");
+                VkCommandBuffer commandBuffer;
+                const VkCopyBufferInfo2* pCopyBufferInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pCopyBufferInfo, sizeof(const VkCopyBufferInfo2));
+                reservedunmarshal_VkCopyBufferInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkCopyBufferInfo2*)(pCopyBufferInfo),
+                                                    readStreamPtrPtr);
+                if (pCopyBufferInfo) {
+                    transform_tohost_VkCopyBufferInfo2(m_state,
+                                                       (VkCopyBufferInfo2*)(pCopyBufferInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdCopyBuffer2 0x%llx 0x%llx \n", ioStream,
+                            (unsigned long long)commandBuffer, (unsigned long long)pCopyBufferInfo);
+                }
+                vk->vkCmdCopyBuffer2(unboxed_commandBuffer, pCopyBufferInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdCopyBuffer2(snapshotTraceBegin, snapshotTraceBytes,
+                                                          &m_pool, commandBuffer, pCopyBufferInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdCopyImage2: {
+                android::base::beginTrace("vkCmdCopyImage2 decode");
+                VkCommandBuffer commandBuffer;
+                const VkCopyImageInfo2* pCopyImageInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pCopyImageInfo, sizeof(const VkCopyImageInfo2));
+                reservedunmarshal_VkCopyImageInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                   (VkCopyImageInfo2*)(pCopyImageInfo),
+                                                   readStreamPtrPtr);
+                if (pCopyImageInfo) {
+                    transform_tohost_VkCopyImageInfo2(m_state, (VkCopyImageInfo2*)(pCopyImageInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdCopyImage2 0x%llx 0x%llx \n", ioStream,
+                            (unsigned long long)commandBuffer, (unsigned long long)pCopyImageInfo);
+                }
+                vk->vkCmdCopyImage2(unboxed_commandBuffer, pCopyImageInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdCopyImage2(snapshotTraceBegin, snapshotTraceBytes,
+                                                         &m_pool, commandBuffer, pCopyImageInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdCopyBufferToImage2: {
+                android::base::beginTrace("vkCmdCopyBufferToImage2 decode");
+                VkCommandBuffer commandBuffer;
+                const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pCopyBufferToImageInfo,
+                                    sizeof(const VkCopyBufferToImageInfo2));
+                reservedunmarshal_VkCopyBufferToImageInfo2(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo), readStreamPtrPtr);
+                if (pCopyBufferToImageInfo) {
+                    transform_tohost_VkCopyBufferToImageInfo2(
+                        m_state, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdCopyBufferToImage2 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pCopyBufferToImageInfo);
+                }
+                vk->vkCmdCopyBufferToImage2(unboxed_commandBuffer, pCopyBufferToImageInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdCopyBufferToImage2(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        pCopyBufferToImageInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdCopyImageToBuffer2: {
+                android::base::beginTrace("vkCmdCopyImageToBuffer2 decode");
+                VkCommandBuffer commandBuffer;
+                const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pCopyImageToBufferInfo,
+                                    sizeof(const VkCopyImageToBufferInfo2));
+                reservedunmarshal_VkCopyImageToBufferInfo2(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo), readStreamPtrPtr);
+                if (pCopyImageToBufferInfo) {
+                    transform_tohost_VkCopyImageToBufferInfo2(
+                        m_state, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdCopyImageToBuffer2 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pCopyImageToBufferInfo);
+                }
+                vk->vkCmdCopyImageToBuffer2(unboxed_commandBuffer, pCopyImageToBufferInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdCopyImageToBuffer2(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        pCopyImageToBufferInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdBlitImage2: {
+                android::base::beginTrace("vkCmdBlitImage2 decode");
+                VkCommandBuffer commandBuffer;
+                const VkBlitImageInfo2* pBlitImageInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pBlitImageInfo, sizeof(const VkBlitImageInfo2));
+                reservedunmarshal_VkBlitImageInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                   (VkBlitImageInfo2*)(pBlitImageInfo),
+                                                   readStreamPtrPtr);
+                if (pBlitImageInfo) {
+                    transform_tohost_VkBlitImageInfo2(m_state, (VkBlitImageInfo2*)(pBlitImageInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdBlitImage2 0x%llx 0x%llx \n", ioStream,
+                            (unsigned long long)commandBuffer, (unsigned long long)pBlitImageInfo);
+                }
+                vk->vkCmdBlitImage2(unboxed_commandBuffer, pBlitImageInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdBlitImage2(snapshotTraceBegin, snapshotTraceBytes,
+                                                         &m_pool, commandBuffer, pBlitImageInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdResolveImage2: {
+                android::base::beginTrace("vkCmdResolveImage2 decode");
+                VkCommandBuffer commandBuffer;
+                const VkResolveImageInfo2* pResolveImageInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pResolveImageInfo, sizeof(const VkResolveImageInfo2));
+                reservedunmarshal_VkResolveImageInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkResolveImageInfo2*)(pResolveImageInfo),
+                                                      readStreamPtrPtr);
+                if (pResolveImageInfo) {
+                    transform_tohost_VkResolveImageInfo2(m_state,
+                                                         (VkResolveImageInfo2*)(pResolveImageInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdResolveImage2 0x%llx 0x%llx \n", ioStream,
+                            (unsigned long long)commandBuffer,
+                            (unsigned long long)pResolveImageInfo);
+                }
+                vk->vkCmdResolveImage2(unboxed_commandBuffer, pResolveImageInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdResolveImage2(snapshotTraceBegin, snapshotTraceBytes,
+                                                            &m_pool, commandBuffer,
+                                                            pResolveImageInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdBeginRendering: {
+                android::base::beginTrace("vkCmdBeginRendering decode");
+                VkCommandBuffer commandBuffer;
+                const VkRenderingInfo* pRenderingInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pRenderingInfo, sizeof(const VkRenderingInfo));
+                reservedunmarshal_VkRenderingInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                  (VkRenderingInfo*)(pRenderingInfo),
+                                                  readStreamPtrPtr);
+                if (pRenderingInfo) {
+                    transform_tohost_VkRenderingInfo(m_state, (VkRenderingInfo*)(pRenderingInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdBeginRendering 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pRenderingInfo);
+                }
+                vk->vkCmdBeginRendering(unboxed_commandBuffer, pRenderingInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdBeginRendering(snapshotTraceBegin, snapshotTraceBytes,
+                                                             &m_pool, commandBuffer,
+                                                             pRenderingInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdEndRendering: {
+                android::base::beginTrace("vkCmdEndRendering decode");
+                VkCommandBuffer commandBuffer;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdEndRendering 0x%llx \n", ioStream,
+                            (unsigned long long)commandBuffer);
+                }
+                vk->vkCmdEndRendering(unboxed_commandBuffer);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdEndRendering(snapshotTraceBegin, snapshotTraceBytes,
+                                                           &m_pool, commandBuffer);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetCullMode: {
+                android::base::beginTrace("vkCmdSetCullMode decode");
+                VkCommandBuffer commandBuffer;
+                VkCullModeFlags cullMode;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkCullModeFlags*)&cullMode, *readStreamPtrPtr, sizeof(VkCullModeFlags));
+                *readStreamPtrPtr += sizeof(VkCullModeFlags);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetCullMode 0x%llx 0x%llx \n", ioStream,
+                            (unsigned long long)commandBuffer, (unsigned long long)cullMode);
+                }
+                vk->vkCmdSetCullMode(unboxed_commandBuffer, cullMode);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetCullMode(snapshotTraceBegin, snapshotTraceBytes,
+                                                          &m_pool, commandBuffer, cullMode);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetFrontFace: {
+                android::base::beginTrace("vkCmdSetFrontFace decode");
+                VkCommandBuffer commandBuffer;
+                VkFrontFace frontFace;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkFrontFace*)&frontFace, *readStreamPtrPtr, sizeof(VkFrontFace));
+                *readStreamPtrPtr += sizeof(VkFrontFace);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetFrontFace 0x%llx 0x%llx \n", ioStream,
+                            (unsigned long long)commandBuffer, (unsigned long long)frontFace);
+                }
+                vk->vkCmdSetFrontFace(unboxed_commandBuffer, frontFace);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetFrontFace(snapshotTraceBegin, snapshotTraceBytes,
+                                                           &m_pool, commandBuffer, frontFace);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetPrimitiveTopology: {
+                android::base::beginTrace("vkCmdSetPrimitiveTopology decode");
+                VkCommandBuffer commandBuffer;
+                VkPrimitiveTopology primitiveTopology;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkPrimitiveTopology*)&primitiveTopology, *readStreamPtrPtr,
+                       sizeof(VkPrimitiveTopology));
+                *readStreamPtrPtr += sizeof(VkPrimitiveTopology);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetPrimitiveTopology 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)primitiveTopology);
+                }
+                vk->vkCmdSetPrimitiveTopology(unboxed_commandBuffer, primitiveTopology);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetPrimitiveTopology(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        primitiveTopology);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetViewportWithCount: {
+                android::base::beginTrace("vkCmdSetViewportWithCount decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t viewportCount;
+                const VkViewport* pViewports;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&viewportCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pViewports,
+                                    ((viewportCount)) * sizeof(const VkViewport));
+                for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                    reservedunmarshal_VkViewport(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                 (VkViewport*)(pViewports + i), readStreamPtrPtr);
+                }
+                if (pViewports) {
+                    for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                        transform_tohost_VkViewport(m_state, (VkViewport*)(pViewports + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetViewportWithCount 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)viewportCount, (unsigned long long)pViewports);
+                }
+                vk->vkCmdSetViewportWithCount(unboxed_commandBuffer, viewportCount, pViewports);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetViewportWithCount(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        viewportCount, pViewports);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetScissorWithCount: {
+                android::base::beginTrace("vkCmdSetScissorWithCount decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t scissorCount;
+                const VkRect2D* pScissors;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&scissorCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pScissors, ((scissorCount)) * sizeof(const VkRect2D));
+                for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i) {
+                    reservedunmarshal_VkRect2D(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                               (VkRect2D*)(pScissors + i), readStreamPtrPtr);
+                }
+                if (pScissors) {
+                    for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i) {
+                        transform_tohost_VkRect2D(m_state, (VkRect2D*)(pScissors + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetScissorWithCount 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)scissorCount, (unsigned long long)pScissors);
+                }
+                vk->vkCmdSetScissorWithCount(unboxed_commandBuffer, scissorCount, pScissors);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetScissorWithCount(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        scissorCount, pScissors);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdBindVertexBuffers2: {
+                android::base::beginTrace("vkCmdBindVertexBuffers2 decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t firstBinding;
+                uint32_t bindingCount;
+                const VkBuffer* pBuffers;
+                const VkDeviceSize* pOffsets;
+                const VkDeviceSize* pSizes;
+                const VkDeviceSize* pStrides;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&firstBinding, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&bindingCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                // WARNING PTR CHECK
+                memcpy((VkBuffer**)&pBuffers, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pBuffers);
+                *readStreamPtrPtr += 8;
+                if (pBuffers) {
+                    vkReadStream->alloc((void**)&pBuffers,
+                                        ((bindingCount)) * sizeof(const VkBuffer));
+                    if (((bindingCount))) {
+                        uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*readStreamPtrPtr);
+                        *readStreamPtrPtr += 8 * ((bindingCount));
+                        for (uint32_t k = 0; k < ((bindingCount)); ++k) {
+                            uint64_t tmpval;
+                            memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
+                            *(((VkBuffer*)pBuffers) + k) =
+                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                        }
+                    }
+                }
+                vkReadStream->alloc((void**)&pOffsets,
+                                    ((bindingCount)) * sizeof(const VkDeviceSize));
+                memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
+                       ((bindingCount)) * sizeof(const VkDeviceSize));
+                *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                // WARNING PTR CHECK
+                memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pSizes);
+                *readStreamPtrPtr += 8;
+                if (pSizes) {
+                    vkReadStream->alloc((void**)&pSizes,
+                                        ((bindingCount)) * sizeof(const VkDeviceSize));
+                    memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
+                           ((bindingCount)) * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                }
+                // WARNING PTR CHECK
+                memcpy((VkDeviceSize**)&pStrides, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pStrides);
+                *readStreamPtrPtr += 8;
+                if (pStrides) {
+                    vkReadStream->alloc((void**)&pStrides,
+                                        ((bindingCount)) * sizeof(const VkDeviceSize));
+                    memcpy((VkDeviceSize*)pStrides, *readStreamPtrPtr,
+                           ((bindingCount)) * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdBindVertexBuffers2 0x%llx 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)firstBinding, (unsigned long long)bindingCount,
+                            (unsigned long long)pBuffers, (unsigned long long)pOffsets,
+                            (unsigned long long)pSizes, (unsigned long long)pStrides);
+                }
+                vk->vkCmdBindVertexBuffers2(unboxed_commandBuffer, firstBinding, bindingCount,
+                                            pBuffers, pOffsets, pSizes, pStrides);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdBindVertexBuffers2(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        firstBinding, bindingCount, pBuffers, pOffsets, pSizes, pStrides);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDepthTestEnable: {
+                android::base::beginTrace("vkCmdSetDepthTestEnable decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 depthTestEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&depthTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetDepthTestEnable 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)depthTestEnable);
+                }
+                vk->vkCmdSetDepthTestEnable(unboxed_commandBuffer, depthTestEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDepthTestEnable(snapshotTraceBegin,
+                                                                 snapshotTraceBytes, &m_pool,
+                                                                 commandBuffer, depthTestEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDepthWriteEnable: {
+                android::base::beginTrace("vkCmdSetDepthWriteEnable decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 depthWriteEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&depthWriteEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetDepthWriteEnable 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)depthWriteEnable);
+                }
+                vk->vkCmdSetDepthWriteEnable(unboxed_commandBuffer, depthWriteEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDepthWriteEnable(snapshotTraceBegin,
+                                                                  snapshotTraceBytes, &m_pool,
+                                                                  commandBuffer, depthWriteEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDepthCompareOp: {
+                android::base::beginTrace("vkCmdSetDepthCompareOp decode");
+                VkCommandBuffer commandBuffer;
+                VkCompareOp depthCompareOp;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkCompareOp*)&depthCompareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
+                *readStreamPtrPtr += sizeof(VkCompareOp);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetDepthCompareOp 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)depthCompareOp);
+                }
+                vk->vkCmdSetDepthCompareOp(unboxed_commandBuffer, depthCompareOp);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDepthCompareOp(snapshotTraceBegin,
+                                                                snapshotTraceBytes, &m_pool,
+                                                                commandBuffer, depthCompareOp);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDepthBoundsTestEnable: {
+                android::base::beginTrace("vkCmdSetDepthBoundsTestEnable decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 depthBoundsTestEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&depthBoundsTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetDepthBoundsTestEnable 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)depthBoundsTestEnable);
+                }
+                vk->vkCmdSetDepthBoundsTestEnable(unboxed_commandBuffer, depthBoundsTestEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDepthBoundsTestEnable(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        depthBoundsTestEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetStencilTestEnable: {
+                android::base::beginTrace("vkCmdSetStencilTestEnable decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 stencilTestEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&stencilTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetStencilTestEnable 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)stencilTestEnable);
+                }
+                vk->vkCmdSetStencilTestEnable(unboxed_commandBuffer, stencilTestEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetStencilTestEnable(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        stencilTestEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetStencilOp: {
+                android::base::beginTrace("vkCmdSetStencilOp decode");
+                VkCommandBuffer commandBuffer;
+                VkStencilFaceFlags faceMask;
+                VkStencilOp failOp;
+                VkStencilOp passOp;
+                VkStencilOp depthFailOp;
+                VkCompareOp compareOp;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkStencilFaceFlags*)&faceMask, *readStreamPtrPtr,
+                       sizeof(VkStencilFaceFlags));
+                *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
+                memcpy((VkStencilOp*)&failOp, *readStreamPtrPtr, sizeof(VkStencilOp));
+                *readStreamPtrPtr += sizeof(VkStencilOp);
+                memcpy((VkStencilOp*)&passOp, *readStreamPtrPtr, sizeof(VkStencilOp));
+                *readStreamPtrPtr += sizeof(VkStencilOp);
+                memcpy((VkStencilOp*)&depthFailOp, *readStreamPtrPtr, sizeof(VkStencilOp));
+                *readStreamPtrPtr += sizeof(VkStencilOp);
+                memcpy((VkCompareOp*)&compareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
+                *readStreamPtrPtr += sizeof(VkCompareOp);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetStencilOp 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)faceMask, (unsigned long long)failOp,
+                            (unsigned long long)passOp, (unsigned long long)depthFailOp,
+                            (unsigned long long)compareOp);
+                }
+                vk->vkCmdSetStencilOp(unboxed_commandBuffer, faceMask, failOp, passOp, depthFailOp,
+                                      compareOp);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetStencilOp(snapshotTraceBegin, snapshotTraceBytes,
+                                                           &m_pool, commandBuffer, faceMask, failOp,
+                                                           passOp, depthFailOp, compareOp);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetRasterizerDiscardEnable: {
+                android::base::beginTrace("vkCmdSetRasterizerDiscardEnable decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 rasterizerDiscardEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&rasterizerDiscardEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetRasterizerDiscardEnable 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)rasterizerDiscardEnable);
+                }
+                vk->vkCmdSetRasterizerDiscardEnable(unboxed_commandBuffer, rasterizerDiscardEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetRasterizerDiscardEnable(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        rasterizerDiscardEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDepthBiasEnable: {
+                android::base::beginTrace("vkCmdSetDepthBiasEnable decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 depthBiasEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&depthBiasEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetDepthBiasEnable 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)depthBiasEnable);
+                }
+                vk->vkCmdSetDepthBiasEnable(unboxed_commandBuffer, depthBiasEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDepthBiasEnable(snapshotTraceBegin,
+                                                                 snapshotTraceBytes, &m_pool,
+                                                                 commandBuffer, depthBiasEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetPrimitiveRestartEnable: {
+                android::base::beginTrace("vkCmdSetPrimitiveRestartEnable decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 primitiveRestartEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&primitiveRestartEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetPrimitiveRestartEnable 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)primitiveRestartEnable);
+                }
+                vk->vkCmdSetPrimitiveRestartEnable(unboxed_commandBuffer, primitiveRestartEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetPrimitiveRestartEnable(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        primitiveRestartEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetDeviceBufferMemoryRequirements: {
+                android::base::beginTrace("vkGetDeviceBufferMemoryRequirements decode");
+                VkDevice device;
+                const VkDeviceBufferMemoryRequirements* pInfo;
+                VkMemoryRequirements2* pMemoryRequirements;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkDeviceBufferMemoryRequirements));
+                reservedunmarshal_VkDeviceBufferMemoryRequirements(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDeviceBufferMemoryRequirements*)(pInfo), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pMemoryRequirements;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pMemoryRequirements, sizeof(VkMemoryRequirements2));
+                reservedunmarshal_VkMemoryRequirements2(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkMemoryRequirements2*)(pMemoryRequirements), readStreamPtrPtr);
+                if (pInfo) {
+                    transform_tohost_VkDeviceBufferMemoryRequirements(
+                        m_state, (VkDeviceBufferMemoryRequirements*)(pInfo));
+                }
+                if (pMemoryRequirements) {
+                    transform_tohost_VkMemoryRequirements2(
+                        m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetDeviceBufferMemoryRequirements 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                            (unsigned long long)pMemoryRequirements);
+                }
+                vk->vkGetDeviceBufferMemoryRequirements(unboxed_device, pInfo, pMemoryRequirements);
+                vkStream->unsetHandleMapping();
+                if (pMemoryRequirements) {
+                    transform_fromhost_VkMemoryRequirements2(
+                        m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
+                }
+                marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                              (VkMemoryRequirements2*)(pMemoryRequirements));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDeviceBufferMemoryRequirements(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
+                        pMemoryRequirements);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetDeviceImageMemoryRequirements: {
+                android::base::beginTrace("vkGetDeviceImageMemoryRequirements decode");
+                VkDevice device;
+                const VkDeviceImageMemoryRequirements* pInfo;
+                VkMemoryRequirements2* pMemoryRequirements;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkDeviceImageMemoryRequirements));
+                reservedunmarshal_VkDeviceImageMemoryRequirements(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDeviceImageMemoryRequirements*)(pInfo), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pMemoryRequirements;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pMemoryRequirements, sizeof(VkMemoryRequirements2));
+                reservedunmarshal_VkMemoryRequirements2(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkMemoryRequirements2*)(pMemoryRequirements), readStreamPtrPtr);
+                if (pInfo) {
+                    transform_tohost_VkDeviceImageMemoryRequirements(
+                        m_state, (VkDeviceImageMemoryRequirements*)(pInfo));
+                }
+                if (pMemoryRequirements) {
+                    transform_tohost_VkMemoryRequirements2(
+                        m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetDeviceImageMemoryRequirements 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                            (unsigned long long)pMemoryRequirements);
+                }
+                vk->vkGetDeviceImageMemoryRequirements(unboxed_device, pInfo, pMemoryRequirements);
+                vkStream->unsetHandleMapping();
+                if (pMemoryRequirements) {
+                    transform_fromhost_VkMemoryRequirements2(
+                        m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
+                }
+                marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                              (VkMemoryRequirements2*)(pMemoryRequirements));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDeviceImageMemoryRequirements(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
+                        pMemoryRequirements);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetDeviceImageSparseMemoryRequirements: {
+                android::base::beginTrace("vkGetDeviceImageSparseMemoryRequirements decode");
+                VkDevice device;
+                const VkDeviceImageMemoryRequirements* pInfo;
+                uint32_t* pSparseMemoryRequirementCount;
+                VkSparseImageMemoryRequirements2* pSparseMemoryRequirements;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkDeviceImageMemoryRequirements));
+                reservedunmarshal_VkDeviceImageMemoryRequirements(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDeviceImageMemoryRequirements*)(pInfo), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pSparseMemoryRequirementCount;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((uint32_t**)&pSparseMemoryRequirementCount, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
+                *readStreamPtrPtr += 8;
+                if (pSparseMemoryRequirementCount) {
+                    vkReadStream->alloc((void**)&pSparseMemoryRequirementCount, sizeof(uint32_t));
+                    memcpy((uint32_t*)pSparseMemoryRequirementCount, *readStreamPtrPtr,
+                           sizeof(uint32_t));
+                    *readStreamPtrPtr += sizeof(uint32_t);
+                }
+                // Begin manual dispatchable handle unboxing for pSparseMemoryRequirements;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((VkSparseImageMemoryRequirements2**)&pSparseMemoryRequirements,
+                       (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
+                *readStreamPtrPtr += 8;
+                if (pSparseMemoryRequirements) {
+                    vkReadStream->alloc((void**)&pSparseMemoryRequirements,
+                                        (*(pSparseMemoryRequirementCount)) *
+                                            sizeof(VkSparseImageMemoryRequirements2));
+                    for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
+                        reservedunmarshal_VkSparseImageMemoryRequirements2(
+                            vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                            (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i),
+                            readStreamPtrPtr);
+                    }
+                }
+                if (pInfo) {
+                    transform_tohost_VkDeviceImageMemoryRequirements(
+                        m_state, (VkDeviceImageMemoryRequirements*)(pInfo));
+                }
+                if (pSparseMemoryRequirementCount) {
+                    if (pSparseMemoryRequirements) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
+                             ++i) {
+                            transform_tohost_VkSparseImageMemoryRequirements2(
+                                m_state,
+                                (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+                        }
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetDeviceImageSparseMemoryRequirements 0x%llx "
+                            "0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                            (unsigned long long)pSparseMemoryRequirementCount,
+                            (unsigned long long)pSparseMemoryRequirements);
+                }
+                vk->vkGetDeviceImageSparseMemoryRequirements(unboxed_device, pInfo,
+                                                             pSparseMemoryRequirementCount,
+                                                             pSparseMemoryRequirements);
+                vkStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
+                vkStream->putBe64(cgen_var_3);
+                if (pSparseMemoryRequirementCount) {
+                    vkStream->write((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
+                }
+                if (pSparseMemoryRequirementCount) {
+                    if (pSparseMemoryRequirements) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
+                             ++i) {
+                            transform_fromhost_VkSparseImageMemoryRequirements2(
+                                m_state,
+                                (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+                        }
+                    }
+                }
+                // WARNING PTR CHECK
+                uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
+                vkStream->putBe64(cgen_var_4);
+                if (pSparseMemoryRequirements) {
+                    if (pSparseMemoryRequirementCount) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
+                             ++i) {
+                            marshal_VkSparseImageMemoryRequirements2(
+                                vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+                        }
+                    }
+                }
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDeviceImageSparseMemoryRequirements(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
+                        pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
 #ifdef VK_KHR_surface
             case OP_vkDestroySurfaceKHR: {
                 android::base::beginTrace("vkDestroySurfaceKHR decode");
@@ -13660,7 +15507,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkGetPhysicalDeviceVideoCapabilitiesKHR: {
                 android::base::beginTrace("vkGetPhysicalDeviceVideoCapabilitiesKHR decode");
                 VkPhysicalDevice physicalDevice;
-                const VkVideoProfileKHR* pVideoProfile;
+                const VkVideoProfileInfoKHR* pVideoProfile;
                 VkVideoCapabilitiesKHR* pCapabilities;
                 // Begin non wrapped dispatchable handle unboxing for physicalDevice;
                 uint64_t cgen_var_0;
@@ -13671,10 +15518,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_physicalDevice = unbox_VkPhysicalDevice(physicalDevice);
                 auto vk = dispatch_VkPhysicalDevice(physicalDevice);
                 // End manual dispatchable handle unboxing for physicalDevice;
-                vkReadStream->alloc((void**)&pVideoProfile, sizeof(const VkVideoProfileKHR));
-                reservedunmarshal_VkVideoProfileKHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                    (VkVideoProfileKHR*)(pVideoProfile),
-                                                    readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pVideoProfile, sizeof(const VkVideoProfileInfoKHR));
+                reservedunmarshal_VkVideoProfileInfoKHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                        (VkVideoProfileInfoKHR*)(pVideoProfile),
+                                                        readStreamPtrPtr);
                 // Begin manual dispatchable handle unboxing for pCapabilities;
                 vkReadStream->unsetHandleMapping();
                 vkReadStream->alloc((void**)&pCapabilities, sizeof(VkVideoCapabilitiesKHR));
@@ -13682,8 +15529,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                          (VkVideoCapabilitiesKHR*)(pCapabilities),
                                                          readStreamPtrPtr);
                 if (pVideoProfile) {
-                    transform_tohost_VkVideoProfileKHR(m_state,
-                                                       (VkVideoProfileKHR*)(pVideoProfile));
+                    transform_tohost_VkVideoProfileInfoKHR(m_state,
+                                                           (VkVideoProfileInfoKHR*)(pVideoProfile));
                 }
                 if (pCapabilities) {
                     transform_tohost_VkVideoCapabilitiesKHR(
@@ -13989,8 +15836,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkGetVideoSessionMemoryRequirementsKHR decode");
                 VkDevice device;
                 VkVideoSessionKHR videoSession;
-                uint32_t* pVideoSessionMemoryRequirementsCount;
-                VkVideoGetMemoryPropertiesKHR* pVideoSessionMemoryRequirements;
+                uint32_t* pMemoryRequirementsCount;
+                VkVideoSessionMemoryRequirementsKHR* pMemoryRequirements;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -14002,47 +15849,42 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkVideoSessionKHR*)&videoSession, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&videoSession);
                 *readStreamPtrPtr += 8;
-                // Begin manual dispatchable handle unboxing for
-                // pVideoSessionMemoryRequirementsCount;
+                // Begin manual dispatchable handle unboxing for pMemoryRequirementsCount;
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
-                memcpy((uint32_t**)&pVideoSessionMemoryRequirementsCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pVideoSessionMemoryRequirementsCount);
+                memcpy((uint32_t**)&pMemoryRequirementsCount, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pMemoryRequirementsCount);
                 *readStreamPtrPtr += 8;
-                if (pVideoSessionMemoryRequirementsCount) {
-                    vkReadStream->alloc((void**)&pVideoSessionMemoryRequirementsCount,
-                                        sizeof(uint32_t));
-                    memcpy((uint32_t*)pVideoSessionMemoryRequirementsCount, *readStreamPtrPtr,
+                if (pMemoryRequirementsCount) {
+                    vkReadStream->alloc((void**)&pMemoryRequirementsCount, sizeof(uint32_t));
+                    memcpy((uint32_t*)pMemoryRequirementsCount, *readStreamPtrPtr,
                            sizeof(uint32_t));
                     *readStreamPtrPtr += sizeof(uint32_t);
                 }
-                // Begin manual dispatchable handle unboxing for pVideoSessionMemoryRequirements;
+                // Begin manual dispatchable handle unboxing for pMemoryRequirements;
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
-                memcpy((VkVideoGetMemoryPropertiesKHR**)&pVideoSessionMemoryRequirements,
+                memcpy((VkVideoSessionMemoryRequirementsKHR**)&pMemoryRequirements,
                        (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pVideoSessionMemoryRequirements);
+                android::base::Stream::fromBe64((uint8_t*)&pMemoryRequirements);
                 *readStreamPtrPtr += 8;
-                if (pVideoSessionMemoryRequirements) {
-                    vkReadStream->alloc((void**)&pVideoSessionMemoryRequirements,
-                                        (*(pVideoSessionMemoryRequirementsCount)) *
-                                            sizeof(VkVideoGetMemoryPropertiesKHR));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pVideoSessionMemoryRequirementsCount));
-                         ++i) {
-                        reservedunmarshal_VkVideoGetMemoryPropertiesKHR(
+                if (pMemoryRequirements) {
+                    vkReadStream->alloc((void**)&pMemoryRequirements,
+                                        (*(pMemoryRequirementsCount)) *
+                                            sizeof(VkVideoSessionMemoryRequirementsKHR));
+                    for (uint32_t i = 0; i < (uint32_t)(*(pMemoryRequirementsCount)); ++i) {
+                        reservedunmarshal_VkVideoSessionMemoryRequirementsKHR(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                            (VkVideoGetMemoryPropertiesKHR*)(pVideoSessionMemoryRequirements + i),
+                            (VkVideoSessionMemoryRequirementsKHR*)(pMemoryRequirements + i),
                             readStreamPtrPtr);
                     }
                 }
-                if (pVideoSessionMemoryRequirementsCount) {
-                    if (pVideoSessionMemoryRequirements) {
-                        for (uint32_t i = 0;
-                             i < (uint32_t)(*(pVideoSessionMemoryRequirementsCount)); ++i) {
-                            transform_tohost_VkVideoGetMemoryPropertiesKHR(
+                if (pMemoryRequirementsCount) {
+                    if (pMemoryRequirements) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pMemoryRequirementsCount)); ++i) {
+                            transform_tohost_VkVideoSessionMemoryRequirementsKHR(
                                 m_state,
-                                (VkVideoGetMemoryPropertiesKHR*)(pVideoSessionMemoryRequirements +
-                                                                 i));
+                                (VkVideoSessionMemoryRequirementsKHR*)(pMemoryRequirements + i));
                         }
                     }
                 }
@@ -14051,14 +15893,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             "stream %p: call vkGetVideoSessionMemoryRequirementsKHR 0x%llx 0x%llx "
                             "0x%llx 0x%llx \n",
                             ioStream, (unsigned long long)device, (unsigned long long)videoSession,
-                            (unsigned long long)pVideoSessionMemoryRequirementsCount,
-                            (unsigned long long)pVideoSessionMemoryRequirements);
+                            (unsigned long long)pMemoryRequirementsCount,
+                            (unsigned long long)pMemoryRequirements);
                 }
                 VkResult vkGetVideoSessionMemoryRequirementsKHR_VkResult_return = (VkResult)0;
                 vkGetVideoSessionMemoryRequirementsKHR_VkResult_return =
                     vk->vkGetVideoSessionMemoryRequirementsKHR(unboxed_device, videoSession,
-                                                               pVideoSessionMemoryRequirementsCount,
-                                                               pVideoSessionMemoryRequirements);
+                                                               pMemoryRequirementsCount,
+                                                               pMemoryRequirements);
                 if ((vkGetVideoSessionMemoryRequirementsKHR_VkResult_return) ==
                     VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -14066,34 +15908,29 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                              opcode, context);
                 vkStream->unsetHandleMapping();
                 // WARNING PTR CHECK
-                uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pVideoSessionMemoryRequirementsCount;
+                uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pMemoryRequirementsCount;
                 vkStream->putBe64(cgen_var_4);
-                if (pVideoSessionMemoryRequirementsCount) {
-                    vkStream->write((uint32_t*)pVideoSessionMemoryRequirementsCount,
-                                    sizeof(uint32_t));
+                if (pMemoryRequirementsCount) {
+                    vkStream->write((uint32_t*)pMemoryRequirementsCount, sizeof(uint32_t));
                 }
-                if (pVideoSessionMemoryRequirementsCount) {
-                    if (pVideoSessionMemoryRequirements) {
-                        for (uint32_t i = 0;
-                             i < (uint32_t)(*(pVideoSessionMemoryRequirementsCount)); ++i) {
-                            transform_fromhost_VkVideoGetMemoryPropertiesKHR(
+                if (pMemoryRequirementsCount) {
+                    if (pMemoryRequirements) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pMemoryRequirementsCount)); ++i) {
+                            transform_fromhost_VkVideoSessionMemoryRequirementsKHR(
                                 m_state,
-                                (VkVideoGetMemoryPropertiesKHR*)(pVideoSessionMemoryRequirements +
-                                                                 i));
+                                (VkVideoSessionMemoryRequirementsKHR*)(pMemoryRequirements + i));
                         }
                     }
                 }
                 // WARNING PTR CHECK
-                uint64_t cgen_var_5 = (uint64_t)(uintptr_t)pVideoSessionMemoryRequirements;
+                uint64_t cgen_var_5 = (uint64_t)(uintptr_t)pMemoryRequirements;
                 vkStream->putBe64(cgen_var_5);
-                if (pVideoSessionMemoryRequirements) {
-                    if (pVideoSessionMemoryRequirementsCount) {
-                        for (uint32_t i = 0;
-                             i < (uint32_t)(*(pVideoSessionMemoryRequirementsCount)); ++i) {
-                            marshal_VkVideoGetMemoryPropertiesKHR(
+                if (pMemoryRequirements) {
+                    if (pMemoryRequirementsCount) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pMemoryRequirementsCount)); ++i) {
+                            marshal_VkVideoSessionMemoryRequirementsKHR(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                (VkVideoGetMemoryPropertiesKHR*)(pVideoSessionMemoryRequirements +
-                                                                 i));
+                                (VkVideoSessionMemoryRequirementsKHR*)(pMemoryRequirements + i));
                         }
                     }
                 }
@@ -14107,8 +15944,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     m_state->snapshot()->vkGetVideoSessionMemoryRequirementsKHR(
                         snapshotTraceBegin, snapshotTraceBytes, &m_pool,
                         vkGetVideoSessionMemoryRequirementsKHR_VkResult_return, device,
-                        videoSession, pVideoSessionMemoryRequirementsCount,
-                        pVideoSessionMemoryRequirements);
+                        videoSession, pMemoryRequirementsCount, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (queueSubmitWithCommandsEnabled)
@@ -14120,8 +15956,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkBindVideoSessionMemoryKHR decode");
                 VkDevice device;
                 VkVideoSessionKHR videoSession;
-                uint32_t videoSessionBindMemoryCount;
-                const VkVideoBindMemoryKHR* pVideoSessionBindMemories;
+                uint32_t bindSessionMemoryInfoCount;
+                const VkBindVideoSessionMemoryInfoKHR* pBindSessionMemoryInfos;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -14133,21 +15969,22 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkVideoSessionKHR*)&videoSession, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&videoSession);
                 *readStreamPtrPtr += 8;
-                memcpy((uint32_t*)&videoSessionBindMemoryCount, *readStreamPtrPtr,
-                       sizeof(uint32_t));
+                memcpy((uint32_t*)&bindSessionMemoryInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc(
-                    (void**)&pVideoSessionBindMemories,
-                    ((videoSessionBindMemoryCount)) * sizeof(const VkVideoBindMemoryKHR));
-                for (uint32_t i = 0; i < (uint32_t)((videoSessionBindMemoryCount)); ++i) {
-                    reservedunmarshal_VkVideoBindMemoryKHR(
+                    (void**)&pBindSessionMemoryInfos,
+                    ((bindSessionMemoryInfoCount)) * sizeof(const VkBindVideoSessionMemoryInfoKHR));
+                for (uint32_t i = 0; i < (uint32_t)((bindSessionMemoryInfoCount)); ++i) {
+                    reservedunmarshal_VkBindVideoSessionMemoryInfoKHR(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                        (VkVideoBindMemoryKHR*)(pVideoSessionBindMemories + i), readStreamPtrPtr);
+                        (VkBindVideoSessionMemoryInfoKHR*)(pBindSessionMemoryInfos + i),
+                        readStreamPtrPtr);
                 }
-                if (pVideoSessionBindMemories) {
-                    for (uint32_t i = 0; i < (uint32_t)((videoSessionBindMemoryCount)); ++i) {
-                        transform_tohost_VkVideoBindMemoryKHR(
-                            m_state, (VkVideoBindMemoryKHR*)(pVideoSessionBindMemories + i));
+                if (pBindSessionMemoryInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)((bindSessionMemoryInfoCount)); ++i) {
+                        transform_tohost_VkBindVideoSessionMemoryInfoKHR(
+                            m_state,
+                            (VkBindVideoSessionMemoryInfoKHR*)(pBindSessionMemoryInfos + i));
                     }
                 }
                 if (m_logCalls) {
@@ -14155,13 +15992,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             "stream %p: call vkBindVideoSessionMemoryKHR 0x%llx 0x%llx 0x%llx "
                             "0x%llx \n",
                             ioStream, (unsigned long long)device, (unsigned long long)videoSession,
-                            (unsigned long long)videoSessionBindMemoryCount,
-                            (unsigned long long)pVideoSessionBindMemories);
+                            (unsigned long long)bindSessionMemoryInfoCount,
+                            (unsigned long long)pBindSessionMemoryInfos);
                 }
                 VkResult vkBindVideoSessionMemoryKHR_VkResult_return = (VkResult)0;
                 vkBindVideoSessionMemoryKHR_VkResult_return = vk->vkBindVideoSessionMemoryKHR(
-                    unboxed_device, videoSession, videoSessionBindMemoryCount,
-                    pVideoSessionBindMemories);
+                    unboxed_device, videoSession, bindSessionMemoryInfoCount,
+                    pBindSessionMemoryInfos);
                 if ((vkBindVideoSessionMemoryKHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkBindVideoSessionMemoryKHR_VkResult_return, opcode,
@@ -14176,7 +16013,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     m_state->snapshot()->vkBindVideoSessionMemoryKHR(
                         snapshotTraceBegin, snapshotTraceBytes, &m_pool,
                         vkBindVideoSessionMemoryKHR_VkResult_return, device, videoSession,
-                        videoSessionBindMemoryCount, pVideoSessionBindMemories);
+                        bindSessionMemoryInfoCount, pBindSessionMemoryInfos);
                 }
                 vkReadStream->clearPool();
                 if (queueSubmitWithCommandsEnabled)
@@ -14514,7 +16351,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdDecodeVideoKHR: {
                 android::base::beginTrace("vkCmdDecodeVideoKHR decode");
                 VkCommandBuffer commandBuffer;
-                const VkVideoDecodeInfoKHR* pFrameInfo;
+                const VkVideoDecodeInfoKHR* pDecodeInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -14524,27 +16361,27 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
-                vkReadStream->alloc((void**)&pFrameInfo, sizeof(const VkVideoDecodeInfoKHR));
+                vkReadStream->alloc((void**)&pDecodeInfo, sizeof(const VkVideoDecodeInfoKHR));
                 reservedunmarshal_VkVideoDecodeInfoKHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                       (VkVideoDecodeInfoKHR*)(pFrameInfo),
+                                                       (VkVideoDecodeInfoKHR*)(pDecodeInfo),
                                                        readStreamPtrPtr);
-                if (pFrameInfo) {
+                if (pDecodeInfo) {
                     transform_tohost_VkVideoDecodeInfoKHR(m_state,
-                                                          (VkVideoDecodeInfoKHR*)(pFrameInfo));
+                                                          (VkVideoDecodeInfoKHR*)(pDecodeInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdDecodeVideoKHR 0x%llx 0x%llx \n",
                             ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pFrameInfo);
+                            (unsigned long long)pDecodeInfo);
                 }
-                vk->vkCmdDecodeVideoKHR(unboxed_commandBuffer, pFrameInfo);
+                vk->vkCmdDecodeVideoKHR(unboxed_commandBuffer, pDecodeInfo);
                 vkStream->unsetHandleMapping();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
                                          (uintptr_t)snapshotTraceBegin);
                 size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdDecodeVideoKHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer, pFrameInfo);
+                                                             &m_pool, commandBuffer, pDecodeInfo);
                 }
                 vkReadStream->clearPool();
                 if (queueSubmitWithCommandsEnabled)
@@ -14553,11 +16390,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_KHR_video_decode_h264
+#endif
 #ifdef VK_KHR_dynamic_rendering
             case OP_vkCmdBeginRenderingKHR: {
                 android::base::beginTrace("vkCmdBeginRenderingKHR decode");
                 VkCommandBuffer commandBuffer;
-                const VkRenderingInfoKHR* pRenderingInfo;
+                const VkRenderingInfo* pRenderingInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -14567,13 +16406,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
-                vkReadStream->alloc((void**)&pRenderingInfo, sizeof(const VkRenderingInfoKHR));
-                reservedunmarshal_VkRenderingInfoKHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                     (VkRenderingInfoKHR*)(pRenderingInfo),
-                                                     readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pRenderingInfo, sizeof(const VkRenderingInfo));
+                reservedunmarshal_VkRenderingInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                  (VkRenderingInfo*)(pRenderingInfo),
+                                                  readStreamPtrPtr);
                 if (pRenderingInfo) {
-                    transform_tohost_VkRenderingInfoKHR(m_state,
-                                                        (VkRenderingInfoKHR*)(pRenderingInfo));
+                    transform_tohost_VkRenderingInfo(m_state, (VkRenderingInfo*)(pRenderingInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdBeginRenderingKHR 0x%llx 0x%llx \n",
@@ -18614,6 +20452,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_KHR_shader_clock
 #endif
+#ifdef VK_KHR_video_decode_h265
+#endif
+#ifdef VK_KHR_global_priority
+#endif
 #ifdef VK_KHR_driver_properties
 #endif
 #ifdef VK_KHR_shader_float_controls
@@ -19774,6 +21616,121 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_KHR_map_memory2
+            case OP_vkMapMemory2KHR: {
+                android::base::beginTrace("vkMapMemory2KHR decode");
+                VkDevice device;
+                const VkMemoryMapInfoKHR* pMemoryMapInfo;
+                void** ppData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pMemoryMapInfo, sizeof(const VkMemoryMapInfoKHR));
+                reservedunmarshal_VkMemoryMapInfoKHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                     (VkMemoryMapInfoKHR*)(pMemoryMapInfo),
+                                                     readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for ppData;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((void***)&ppData, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&ppData);
+                *readStreamPtrPtr += 8;
+                if (ppData) {
+                    vkReadStream->alloc((void**)&ppData, sizeof(void*));
+                    memcpy((void**)ppData, *readStreamPtrPtr, sizeof(void*));
+                    *readStreamPtrPtr += sizeof(void*);
+                }
+                if (pMemoryMapInfo) {
+                    transform_tohost_VkMemoryMapInfoKHR(m_state,
+                                                        (VkMemoryMapInfoKHR*)(pMemoryMapInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkMapMemory2KHR 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)pMemoryMapInfo, (unsigned long long)ppData);
+                }
+                VkResult vkMapMemory2KHR_VkResult_return = (VkResult)0;
+                vkMapMemory2KHR_VkResult_return =
+                    vk->vkMapMemory2KHR(unboxed_device, pMemoryMapInfo, ppData);
+                if ((vkMapMemory2KHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkMapMemory2KHR_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                uint64_t cgen_var_2 = (uint64_t)(uintptr_t)ppData;
+                vkStream->putBe64(cgen_var_2);
+                if (ppData) {
+                    vkStream->write((void**)ppData, sizeof(void*));
+                }
+                vkStream->write(&vkMapMemory2KHR_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkMapMemory2KHR(snapshotTraceBegin, snapshotTraceBytes,
+                                                         &m_pool, vkMapMemory2KHR_VkResult_return,
+                                                         device, pMemoryMapInfo, ppData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkUnmapMemory2KHR: {
+                android::base::beginTrace("vkUnmapMemory2KHR decode");
+                VkDevice device;
+                const VkMemoryUnmapInfoKHR* pMemoryUnmapInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pMemoryUnmapInfo, sizeof(const VkMemoryUnmapInfoKHR));
+                reservedunmarshal_VkMemoryUnmapInfoKHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkMemoryUnmapInfoKHR*)(pMemoryUnmapInfo),
+                                                       readStreamPtrPtr);
+                if (pMemoryUnmapInfo) {
+                    transform_tohost_VkMemoryUnmapInfoKHR(
+                        m_state, (VkMemoryUnmapInfoKHR*)(pMemoryUnmapInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkUnmapMemory2KHR 0x%llx 0x%llx \n", ioStream,
+                            (unsigned long long)device, (unsigned long long)pMemoryUnmapInfo);
+                }
+                VkResult vkUnmapMemory2KHR_VkResult_return = (VkResult)0;
+                vkUnmapMemory2KHR_VkResult_return =
+                    vk->vkUnmapMemory2KHR(unboxed_device, pMemoryUnmapInfo);
+                if ((vkUnmapMemory2KHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkUnmapMemory2KHR_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkUnmapMemory2KHR_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkUnmapMemory2KHR(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkUnmapMemory2KHR_VkResult_return, device, pMemoryUnmapInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
 #ifdef VK_KHR_shader_integer_dot_product
 #endif
 #ifdef VK_KHR_pipeline_library
@@ -19830,7 +21787,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkCmdSetEvent2KHR decode");
                 VkCommandBuffer commandBuffer;
                 VkEvent event;
-                const VkDependencyInfoKHR* pDependencyInfo;
+                const VkDependencyInfo* pDependencyInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -19844,13 +21801,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_1));
-                vkReadStream->alloc((void**)&pDependencyInfo, sizeof(const VkDependencyInfoKHR));
-                reservedunmarshal_VkDependencyInfoKHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                      (VkDependencyInfoKHR*)(pDependencyInfo),
-                                                      readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pDependencyInfo, sizeof(const VkDependencyInfo));
+                reservedunmarshal_VkDependencyInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                   (VkDependencyInfo*)(pDependencyInfo),
+                                                   readStreamPtrPtr);
                 if (pDependencyInfo) {
-                    transform_tohost_VkDependencyInfoKHR(m_state,
-                                                         (VkDependencyInfoKHR*)(pDependencyInfo));
+                    transform_tohost_VkDependencyInfo(m_state,
+                                                      (VkDependencyInfo*)(pDependencyInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdSetEvent2KHR 0x%llx 0x%llx 0x%llx \n",
@@ -19877,7 +21834,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkCmdResetEvent2KHR decode");
                 VkCommandBuffer commandBuffer;
                 VkEvent event;
-                VkPipelineStageFlags2KHR stageMask;
+                VkPipelineStageFlags2 stageMask;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -19891,9 +21848,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_1));
-                memcpy((VkPipelineStageFlags2KHR*)&stageMask, *readStreamPtrPtr,
-                       sizeof(VkPipelineStageFlags2KHR));
-                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2KHR);
+                memcpy((VkPipelineStageFlags2*)&stageMask, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags2));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdResetEvent2KHR 0x%llx 0x%llx 0x%llx \n",
                             ioStream, (unsigned long long)commandBuffer, (unsigned long long)event,
@@ -19920,7 +21877,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkCommandBuffer commandBuffer;
                 uint32_t eventCount;
                 const VkEvent* pEvents;
-                const VkDependencyInfoKHR* pDependencyInfos;
+                const VkDependencyInfo* pDependencyInfos;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -19943,16 +21900,16 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkReadStream->alloc((void**)&pDependencyInfos,
-                                    ((eventCount)) * sizeof(const VkDependencyInfoKHR));
+                                    ((eventCount)) * sizeof(const VkDependencyInfo));
                 for (uint32_t i = 0; i < (uint32_t)((eventCount)); ++i) {
-                    reservedunmarshal_VkDependencyInfoKHR(
-                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                        (VkDependencyInfoKHR*)(pDependencyInfos + i), readStreamPtrPtr);
+                    reservedunmarshal_VkDependencyInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkDependencyInfo*)(pDependencyInfos + i),
+                                                       readStreamPtrPtr);
                 }
                 if (pDependencyInfos) {
                     for (uint32_t i = 0; i < (uint32_t)((eventCount)); ++i) {
-                        transform_tohost_VkDependencyInfoKHR(
-                            m_state, (VkDependencyInfoKHR*)(pDependencyInfos + i));
+                        transform_tohost_VkDependencyInfo(
+                            m_state, (VkDependencyInfo*)(pDependencyInfos + i));
                     }
                 }
                 if (m_logCalls) {
@@ -19982,7 +21939,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdPipelineBarrier2KHR: {
                 android::base::beginTrace("vkCmdPipelineBarrier2KHR decode");
                 VkCommandBuffer commandBuffer;
-                const VkDependencyInfoKHR* pDependencyInfo;
+                const VkDependencyInfo* pDependencyInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -19992,13 +21949,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
-                vkReadStream->alloc((void**)&pDependencyInfo, sizeof(const VkDependencyInfoKHR));
-                reservedunmarshal_VkDependencyInfoKHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                      (VkDependencyInfoKHR*)(pDependencyInfo),
-                                                      readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pDependencyInfo, sizeof(const VkDependencyInfo));
+                reservedunmarshal_VkDependencyInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                   (VkDependencyInfo*)(pDependencyInfo),
+                                                   readStreamPtrPtr);
                 if (pDependencyInfo) {
-                    transform_tohost_VkDependencyInfoKHR(m_state,
-                                                         (VkDependencyInfoKHR*)(pDependencyInfo));
+                    transform_tohost_VkDependencyInfo(m_state,
+                                                      (VkDependencyInfo*)(pDependencyInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdPipelineBarrier2KHR 0x%llx 0x%llx \n",
@@ -20024,7 +21981,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdWriteTimestamp2KHR: {
                 android::base::beginTrace("vkCmdWriteTimestamp2KHR decode");
                 VkCommandBuffer commandBuffer;
-                VkPipelineStageFlags2KHR stage;
+                VkPipelineStageFlags2 stage;
                 VkQueryPool queryPool;
                 uint32_t query;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
@@ -20036,9 +21993,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
-                memcpy((VkPipelineStageFlags2KHR*)&stage, *readStreamPtrPtr,
-                       sizeof(VkPipelineStageFlags2KHR));
-                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2KHR);
+                memcpy((VkPipelineStageFlags2*)&stage, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags2));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
@@ -20073,7 +22030,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkQueueSubmit2KHR decode");
                 VkQueue queue;
                 uint32_t submitCount;
-                const VkSubmitInfo2KHR* pSubmits;
+                const VkSubmitInfo2* pSubmits;
                 VkFence fence;
                 // Begin non wrapped dispatchable handle unboxing for queue;
                 uint64_t cgen_var_0;
@@ -20086,11 +22043,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&submitCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pSubmits,
-                                    ((submitCount)) * sizeof(const VkSubmitInfo2KHR));
+                                    ((submitCount)) * sizeof(const VkSubmitInfo2));
                 for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
-                    reservedunmarshal_VkSubmitInfo2KHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                       (VkSubmitInfo2KHR*)(pSubmits + i),
-                                                       readStreamPtrPtr);
+                    reservedunmarshal_VkSubmitInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkSubmitInfo2*)(pSubmits + i),
+                                                    readStreamPtrPtr);
                 }
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
@@ -20098,8 +22055,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
                 if (pSubmits) {
                     for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
-                        transform_tohost_VkSubmitInfo2KHR(m_state,
-                                                          (VkSubmitInfo2KHR*)(pSubmits + i));
+                        transform_tohost_VkSubmitInfo2(m_state, (VkSubmitInfo2*)(pSubmits + i));
                     }
                 }
                 if (m_logCalls) {
@@ -20134,7 +22090,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdWriteBufferMarker2AMD: {
                 android::base::beginTrace("vkCmdWriteBufferMarker2AMD decode");
                 VkCommandBuffer commandBuffer;
-                VkPipelineStageFlags2KHR stage;
+                VkPipelineStageFlags2 stage;
                 VkBuffer dstBuffer;
                 VkDeviceSize dstOffset;
                 uint32_t marker;
@@ -20147,9 +22103,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
-                memcpy((VkPipelineStageFlags2KHR*)&stage, *readStreamPtrPtr,
-                       sizeof(VkPipelineStageFlags2KHR));
-                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2KHR);
+                memcpy((VkPipelineStageFlags2*)&stage, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags2));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
@@ -20282,6 +22238,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_KHR_fragment_shader_barycentric
+#endif
 #ifdef VK_KHR_shader_subgroup_uniform_control_flow
 #endif
 #ifdef VK_KHR_zero_initialize_workgroup_memory
@@ -20292,7 +22250,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdCopyBuffer2KHR: {
                 android::base::beginTrace("vkCmdCopyBuffer2KHR decode");
                 VkCommandBuffer commandBuffer;
-                const VkCopyBufferInfo2KHR* pCopyBufferInfo;
+                const VkCopyBufferInfo2* pCopyBufferInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -20302,13 +22260,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
-                vkReadStream->alloc((void**)&pCopyBufferInfo, sizeof(const VkCopyBufferInfo2KHR));
-                reservedunmarshal_VkCopyBufferInfo2KHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                       (VkCopyBufferInfo2KHR*)(pCopyBufferInfo),
-                                                       readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pCopyBufferInfo, sizeof(const VkCopyBufferInfo2));
+                reservedunmarshal_VkCopyBufferInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkCopyBufferInfo2*)(pCopyBufferInfo),
+                                                    readStreamPtrPtr);
                 if (pCopyBufferInfo) {
-                    transform_tohost_VkCopyBufferInfo2KHR(m_state,
-                                                          (VkCopyBufferInfo2KHR*)(pCopyBufferInfo));
+                    transform_tohost_VkCopyBufferInfo2(m_state,
+                                                       (VkCopyBufferInfo2*)(pCopyBufferInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdCopyBuffer2KHR 0x%llx 0x%llx \n",
@@ -20334,7 +22292,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdCopyImage2KHR: {
                 android::base::beginTrace("vkCmdCopyImage2KHR decode");
                 VkCommandBuffer commandBuffer;
-                const VkCopyImageInfo2KHR* pCopyImageInfo;
+                const VkCopyImageInfo2* pCopyImageInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -20344,13 +22302,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
-                vkReadStream->alloc((void**)&pCopyImageInfo, sizeof(const VkCopyImageInfo2KHR));
-                reservedunmarshal_VkCopyImageInfo2KHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                      (VkCopyImageInfo2KHR*)(pCopyImageInfo),
-                                                      readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pCopyImageInfo, sizeof(const VkCopyImageInfo2));
+                reservedunmarshal_VkCopyImageInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                   (VkCopyImageInfo2*)(pCopyImageInfo),
+                                                   readStreamPtrPtr);
                 if (pCopyImageInfo) {
-                    transform_tohost_VkCopyImageInfo2KHR(m_state,
-                                                         (VkCopyImageInfo2KHR*)(pCopyImageInfo));
+                    transform_tohost_VkCopyImageInfo2(m_state, (VkCopyImageInfo2*)(pCopyImageInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdCopyImage2KHR 0x%llx 0x%llx \n", ioStream,
@@ -20374,7 +22331,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdCopyBufferToImage2KHR: {
                 android::base::beginTrace("vkCmdCopyBufferToImage2KHR decode");
                 VkCommandBuffer commandBuffer;
-                const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo;
+                const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -20385,13 +22342,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pCopyBufferToImageInfo,
-                                    sizeof(const VkCopyBufferToImageInfo2KHR));
-                reservedunmarshal_VkCopyBufferToImageInfo2KHR(
+                                    sizeof(const VkCopyBufferToImageInfo2));
+                reservedunmarshal_VkCopyBufferToImageInfo2(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkCopyBufferToImageInfo2KHR*)(pCopyBufferToImageInfo), readStreamPtrPtr);
+                    (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo), readStreamPtrPtr);
                 if (pCopyBufferToImageInfo) {
-                    transform_tohost_VkCopyBufferToImageInfo2KHR(
-                        m_state, (VkCopyBufferToImageInfo2KHR*)(pCopyBufferToImageInfo));
+                    transform_tohost_VkCopyBufferToImageInfo2(
+                        m_state, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdCopyBufferToImage2KHR 0x%llx 0x%llx \n",
@@ -20417,7 +22374,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdCopyImageToBuffer2KHR: {
                 android::base::beginTrace("vkCmdCopyImageToBuffer2KHR decode");
                 VkCommandBuffer commandBuffer;
-                const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo;
+                const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -20428,13 +22385,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pCopyImageToBufferInfo,
-                                    sizeof(const VkCopyImageToBufferInfo2KHR));
-                reservedunmarshal_VkCopyImageToBufferInfo2KHR(
+                                    sizeof(const VkCopyImageToBufferInfo2));
+                reservedunmarshal_VkCopyImageToBufferInfo2(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkCopyImageToBufferInfo2KHR*)(pCopyImageToBufferInfo), readStreamPtrPtr);
+                    (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo), readStreamPtrPtr);
                 if (pCopyImageToBufferInfo) {
-                    transform_tohost_VkCopyImageToBufferInfo2KHR(
-                        m_state, (VkCopyImageToBufferInfo2KHR*)(pCopyImageToBufferInfo));
+                    transform_tohost_VkCopyImageToBufferInfo2(
+                        m_state, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdCopyImageToBuffer2KHR 0x%llx 0x%llx \n",
@@ -20460,7 +22417,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdBlitImage2KHR: {
                 android::base::beginTrace("vkCmdBlitImage2KHR decode");
                 VkCommandBuffer commandBuffer;
-                const VkBlitImageInfo2KHR* pBlitImageInfo;
+                const VkBlitImageInfo2* pBlitImageInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -20470,13 +22427,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
-                vkReadStream->alloc((void**)&pBlitImageInfo, sizeof(const VkBlitImageInfo2KHR));
-                reservedunmarshal_VkBlitImageInfo2KHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                      (VkBlitImageInfo2KHR*)(pBlitImageInfo),
-                                                      readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pBlitImageInfo, sizeof(const VkBlitImageInfo2));
+                reservedunmarshal_VkBlitImageInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                   (VkBlitImageInfo2*)(pBlitImageInfo),
+                                                   readStreamPtrPtr);
                 if (pBlitImageInfo) {
-                    transform_tohost_VkBlitImageInfo2KHR(m_state,
-                                                         (VkBlitImageInfo2KHR*)(pBlitImageInfo));
+                    transform_tohost_VkBlitImageInfo2(m_state, (VkBlitImageInfo2*)(pBlitImageInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdBlitImage2KHR 0x%llx 0x%llx \n", ioStream,
@@ -20500,7 +22456,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkCmdResolveImage2KHR: {
                 android::base::beginTrace("vkCmdResolveImage2KHR decode");
                 VkCommandBuffer commandBuffer;
-                const VkResolveImageInfo2KHR* pResolveImageInfo;
+                const VkResolveImageInfo2* pResolveImageInfo;
                 // Begin non wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -20510,14 +22466,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
-                vkReadStream->alloc((void**)&pResolveImageInfo,
-                                    sizeof(const VkResolveImageInfo2KHR));
-                reservedunmarshal_VkResolveImageInfo2KHR(
-                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkResolveImageInfo2KHR*)(pResolveImageInfo), readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pResolveImageInfo, sizeof(const VkResolveImageInfo2));
+                reservedunmarshal_VkResolveImageInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkResolveImageInfo2*)(pResolveImageInfo),
+                                                      readStreamPtrPtr);
                 if (pResolveImageInfo) {
-                    transform_tohost_VkResolveImageInfo2KHR(
-                        m_state, (VkResolveImageInfo2KHR*)(pResolveImageInfo));
+                    transform_tohost_VkResolveImageInfo2(m_state,
+                                                         (VkResolveImageInfo2*)(pResolveImageInfo));
                 }
                 if (m_logCalls) {
                     fprintf(stderr, "stream %p: call vkCmdResolveImage2KHR 0x%llx 0x%llx \n",
@@ -20543,11 +22498,52 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_KHR_format_feature_flags2
 #endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+            case OP_vkCmdTraceRaysIndirect2KHR: {
+                android::base::beginTrace("vkCmdTraceRaysIndirect2KHR decode");
+                VkCommandBuffer commandBuffer;
+                VkDeviceAddress indirectDeviceAddress;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkDeviceAddress*)&indirectDeviceAddress, *readStreamPtrPtr,
+                       sizeof(VkDeviceAddress));
+                *readStreamPtrPtr += sizeof(VkDeviceAddress);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdTraceRaysIndirect2KHR 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)indirectDeviceAddress);
+                }
+                vk->vkCmdTraceRaysIndirect2KHR(unboxed_commandBuffer, indirectDeviceAddress);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdTraceRaysIndirect2KHR(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        indirectDeviceAddress);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_KHR_portability_enumeration
+#endif
 #ifdef VK_KHR_maintenance4
             case OP_vkGetDeviceBufferMemoryRequirementsKHR: {
                 android::base::beginTrace("vkGetDeviceBufferMemoryRequirementsKHR decode");
                 VkDevice device;
-                const VkDeviceBufferMemoryRequirementsKHR* pInfo;
+                const VkDeviceBufferMemoryRequirements* pInfo;
                 VkMemoryRequirements2* pMemoryRequirements;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
@@ -20557,11 +22553,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
-                vkReadStream->alloc((void**)&pInfo,
-                                    sizeof(const VkDeviceBufferMemoryRequirementsKHR));
-                reservedunmarshal_VkDeviceBufferMemoryRequirementsKHR(
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkDeviceBufferMemoryRequirements));
+                reservedunmarshal_VkDeviceBufferMemoryRequirements(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkDeviceBufferMemoryRequirementsKHR*)(pInfo), readStreamPtrPtr);
+                    (VkDeviceBufferMemoryRequirements*)(pInfo), readStreamPtrPtr);
                 // Begin manual dispatchable handle unboxing for pMemoryRequirements;
                 vkReadStream->unsetHandleMapping();
                 vkReadStream->alloc((void**)&pMemoryRequirements, sizeof(VkMemoryRequirements2));
@@ -20569,8 +22564,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkMemoryRequirements2*)(pMemoryRequirements), readStreamPtrPtr);
                 if (pInfo) {
-                    transform_tohost_VkDeviceBufferMemoryRequirementsKHR(
-                        m_state, (VkDeviceBufferMemoryRequirementsKHR*)(pInfo));
+                    transform_tohost_VkDeviceBufferMemoryRequirements(
+                        m_state, (VkDeviceBufferMemoryRequirements*)(pInfo));
                 }
                 if (pMemoryRequirements) {
                     transform_tohost_VkMemoryRequirements2(
@@ -20610,7 +22605,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkGetDeviceImageMemoryRequirementsKHR: {
                 android::base::beginTrace("vkGetDeviceImageMemoryRequirementsKHR decode");
                 VkDevice device;
-                const VkDeviceImageMemoryRequirementsKHR* pInfo;
+                const VkDeviceImageMemoryRequirements* pInfo;
                 VkMemoryRequirements2* pMemoryRequirements;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
@@ -20620,11 +22615,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
-                vkReadStream->alloc((void**)&pInfo,
-                                    sizeof(const VkDeviceImageMemoryRequirementsKHR));
-                reservedunmarshal_VkDeviceImageMemoryRequirementsKHR(
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkDeviceImageMemoryRequirements));
+                reservedunmarshal_VkDeviceImageMemoryRequirements(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkDeviceImageMemoryRequirementsKHR*)(pInfo), readStreamPtrPtr);
+                    (VkDeviceImageMemoryRequirements*)(pInfo), readStreamPtrPtr);
                 // Begin manual dispatchable handle unboxing for pMemoryRequirements;
                 vkReadStream->unsetHandleMapping();
                 vkReadStream->alloc((void**)&pMemoryRequirements, sizeof(VkMemoryRequirements2));
@@ -20632,8 +22626,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkMemoryRequirements2*)(pMemoryRequirements), readStreamPtrPtr);
                 if (pInfo) {
-                    transform_tohost_VkDeviceImageMemoryRequirementsKHR(
-                        m_state, (VkDeviceImageMemoryRequirementsKHR*)(pInfo));
+                    transform_tohost_VkDeviceImageMemoryRequirements(
+                        m_state, (VkDeviceImageMemoryRequirements*)(pInfo));
                 }
                 if (pMemoryRequirements) {
                     transform_tohost_VkMemoryRequirements2(
@@ -20673,7 +22667,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkGetDeviceImageSparseMemoryRequirementsKHR: {
                 android::base::beginTrace("vkGetDeviceImageSparseMemoryRequirementsKHR decode");
                 VkDevice device;
-                const VkDeviceImageMemoryRequirementsKHR* pInfo;
+                const VkDeviceImageMemoryRequirements* pInfo;
                 uint32_t* pSparseMemoryRequirementCount;
                 VkSparseImageMemoryRequirements2* pSparseMemoryRequirements;
                 // Begin non wrapped dispatchable handle unboxing for device;
@@ -20684,11 +22678,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
-                vkReadStream->alloc((void**)&pInfo,
-                                    sizeof(const VkDeviceImageMemoryRequirementsKHR));
-                reservedunmarshal_VkDeviceImageMemoryRequirementsKHR(
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkDeviceImageMemoryRequirements));
+                reservedunmarshal_VkDeviceImageMemoryRequirements(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkDeviceImageMemoryRequirementsKHR*)(pInfo), readStreamPtrPtr);
+                    (VkDeviceImageMemoryRequirements*)(pInfo), readStreamPtrPtr);
                 // Begin manual dispatchable handle unboxing for pSparseMemoryRequirementCount;
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
@@ -20720,8 +22713,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (pInfo) {
-                    transform_tohost_VkDeviceImageMemoryRequirementsKHR(
-                        m_state, (VkDeviceImageMemoryRequirementsKHR*)(pInfo));
+                    transform_tohost_VkDeviceImageMemoryRequirements(
+                        m_state, (VkDeviceImageMemoryRequirements*)(pInfo));
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
@@ -20789,6 +22782,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::endTrace();
                 break;
             }
+#endif
+#ifdef VK_KHR_ray_tracing_position_fetch
 #endif
 #ifdef VK_ANDROID_native_buffer
             case OP_vkGetSwapchainGrallocUsageANDROID: {
@@ -20921,22 +22916,16 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
                 memcpy((uint32_t*)&waitSemaphoreCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                // WARNING PTR CHECK
-                memcpy((VkSemaphore**)&pWaitSemaphores, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pWaitSemaphores);
-                *readStreamPtrPtr += 8;
-                if (pWaitSemaphores) {
-                    vkReadStream->alloc((void**)&pWaitSemaphores,
-                                        ((waitSemaphoreCount)) * sizeof(const VkSemaphore));
-                    if (((waitSemaphoreCount))) {
-                        uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((waitSemaphoreCount));
-                        for (uint32_t k = 0; k < ((waitSemaphoreCount)); ++k) {
-                            uint64_t tmpval;
-                            memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
-                            *(((VkSemaphore*)pWaitSemaphores) + k) =
-                                (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
-                        }
+                vkReadStream->alloc((void**)&pWaitSemaphores,
+                                    ((waitSemaphoreCount)) * sizeof(const VkSemaphore));
+                if (((waitSemaphoreCount))) {
+                    uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
+                    *readStreamPtrPtr += 8 * ((waitSemaphoreCount));
+                    for (uint32_t k = 0; k < ((waitSemaphoreCount)); ++k) {
+                        uint64_t tmpval;
+                        memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
+                        *(((VkSemaphore*)pWaitSemaphores) + k) =
+                            (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
                     }
                 }
                 uint64_t cgen_var_2;
@@ -20978,6 +22967,77 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         snapshotTraceBegin, snapshotTraceBytes, &m_pool,
                         vkQueueSignalReleaseImageANDROID_VkResult_return, queue, waitSemaphoreCount,
                         pWaitSemaphores, image, pNativeFenceFd);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetSwapchainGrallocUsage2ANDROID: {
+                android::base::beginTrace("vkGetSwapchainGrallocUsage2ANDROID decode");
+                VkDevice device;
+                VkFormat format;
+                VkImageUsageFlags imageUsage;
+                VkSwapchainImageUsageFlagsANDROID swapchainImageUsage;
+                uint64_t* grallocConsumerUsage;
+                uint64_t* grallocProducerUsage;
+                // Begin global wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                memcpy((VkFormat*)&format, *readStreamPtrPtr, sizeof(VkFormat));
+                *readStreamPtrPtr += sizeof(VkFormat);
+                memcpy((VkImageUsageFlags*)&imageUsage, *readStreamPtrPtr,
+                       sizeof(VkImageUsageFlags));
+                *readStreamPtrPtr += sizeof(VkImageUsageFlags);
+                memcpy((VkSwapchainImageUsageFlagsANDROID*)&swapchainImageUsage, *readStreamPtrPtr,
+                       sizeof(VkSwapchainImageUsageFlagsANDROID));
+                *readStreamPtrPtr += sizeof(VkSwapchainImageUsageFlagsANDROID);
+                // Begin manual dispatchable handle unboxing for grallocConsumerUsage;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&grallocConsumerUsage, sizeof(uint64_t));
+                memcpy((uint64_t*)grallocConsumerUsage, *readStreamPtrPtr, sizeof(uint64_t));
+                *readStreamPtrPtr += sizeof(uint64_t);
+                // Begin manual dispatchable handle unboxing for grallocProducerUsage;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&grallocProducerUsage, sizeof(uint64_t));
+                memcpy((uint64_t*)grallocProducerUsage, *readStreamPtrPtr, sizeof(uint64_t));
+                *readStreamPtrPtr += sizeof(uint64_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetSwapchainGrallocUsage2ANDROID 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)format,
+                            (unsigned long long)imageUsage, (unsigned long long)swapchainImageUsage,
+                            (unsigned long long)grallocConsumerUsage,
+                            (unsigned long long)grallocProducerUsage);
+                }
+                VkResult vkGetSwapchainGrallocUsage2ANDROID_VkResult_return = (VkResult)0;
+                vkGetSwapchainGrallocUsage2ANDROID_VkResult_return =
+                    m_state->on_vkGetSwapchainGrallocUsage2ANDROID(
+                        &m_pool, device, format, imageUsage, swapchainImageUsage,
+                        grallocConsumerUsage, grallocProducerUsage);
+                if ((vkGetSwapchainGrallocUsage2ANDROID_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkGetSwapchainGrallocUsage2ANDROID_VkResult_return,
+                                             opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write((uint64_t*)grallocConsumerUsage, sizeof(uint64_t));
+                vkStream->write((uint64_t*)grallocProducerUsage, sizeof(uint64_t));
+                vkStream->write(&vkGetSwapchainGrallocUsage2ANDROID_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetSwapchainGrallocUsage2ANDROID(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetSwapchainGrallocUsage2ANDROID_VkResult_return, device, format,
+                        imageUsage, swapchainImageUsage, grallocConsumerUsage,
+                        grallocProducerUsage);
                 }
                 vkReadStream->clearPool();
                 if (queueSubmitWithCommandsEnabled)
@@ -22362,8 +24422,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_EXT_video_encode_h265
 #endif
-#ifdef VK_EXT_video_decode_h264
-#endif
 #ifdef VK_AMD_texture_gather_bias_lod
 #endif
 #ifdef VK_AMD_shader_info
@@ -22804,6 +24862,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
 #ifdef VK_EXT_astc_decode_mode
+#endif
+#ifdef VK_EXT_pipeline_robustness
 #endif
 #ifdef VK_EXT_conditional_rendering
             case OP_vkCmdBeginConditionalRenderingEXT: {
@@ -23731,6 +25791,82 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::endTrace();
                 break;
             }
+            case OP_vkCmdSetDiscardRectangleEnableEXT: {
+                android::base::beginTrace("vkCmdSetDiscardRectangleEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 discardRectangleEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&discardRectangleEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetDiscardRectangleEnableEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)discardRectangleEnable);
+                }
+                vk->vkCmdSetDiscardRectangleEnableEXT(unboxed_commandBuffer,
+                                                      discardRectangleEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDiscardRectangleEnableEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        discardRectangleEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDiscardRectangleModeEXT: {
+                android::base::beginTrace("vkCmdSetDiscardRectangleModeEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkDiscardRectangleModeEXT discardRectangleMode;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkDiscardRectangleModeEXT*)&discardRectangleMode, *readStreamPtrPtr,
+                       sizeof(VkDiscardRectangleModeEXT));
+                *readStreamPtrPtr += sizeof(VkDiscardRectangleModeEXT);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetDiscardRectangleModeEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)discardRectangleMode);
+                }
+                vk->vkCmdSetDiscardRectangleModeEXT(unboxed_commandBuffer, discardRectangleMode);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDiscardRectangleModeEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        discardRectangleMode);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
 #endif
 #ifdef VK_EXT_conservative_rasterization
 #endif
@@ -23958,229 +26094,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         snapshotTraceBegin, snapshotTraceBytes, &m_pool,
                         vkCreateMacOSSurfaceMVK_VkResult_return, instance, pCreateInfo, pAllocator,
                         pSurface);
-                }
-                vkReadStream->clearPool();
-                if (queueSubmitWithCommandsEnabled)
-                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
-                android::base::endTrace();
-                break;
-            }
-#endif
-#ifdef VK_MVK_moltenvk
-            case OP_vkGetMTLDeviceMVK: {
-                android::base::beginTrace("vkGetMTLDeviceMVK decode");
-                VkPhysicalDevice physicalDevice;
-                void** pMTLDevice;
-                // Begin non wrapped dispatchable handle unboxing for physicalDevice;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkPhysicalDevice*)&physicalDevice =
-                    (VkPhysicalDevice)(VkPhysicalDevice)((VkPhysicalDevice)(*&cgen_var_0));
-                auto unboxed_physicalDevice = unbox_VkPhysicalDevice(physicalDevice);
-                auto vk = dispatch_VkPhysicalDevice(physicalDevice);
-                // End manual dispatchable handle unboxing for physicalDevice;
-                // Begin manual dispatchable handle unboxing for pMTLDevice;
-                vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pMTLDevice, sizeof(void*));
-                memcpy((void**)pMTLDevice, *readStreamPtrPtr, sizeof(void*));
-                *readStreamPtrPtr += sizeof(void*);
-                if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetMTLDeviceMVK 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)physicalDevice, (unsigned long long)pMTLDevice);
-                }
-                vk->vkGetMTLDeviceMVK(unboxed_physicalDevice, pMTLDevice);
-                vkStream->unsetHandleMapping();
-                vkStream->write((void**)pMTLDevice, sizeof(void*));
-                vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
-                if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetMTLDeviceMVK(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, physicalDevice, pMTLDevice);
-                }
-                vkReadStream->clearPool();
-                if (queueSubmitWithCommandsEnabled)
-                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
-                android::base::endTrace();
-                break;
-            }
-            case OP_vkSetMTLTextureMVK: {
-                android::base::beginTrace("vkSetMTLTextureMVK decode");
-                VkImage image;
-                void* mtlTexture;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-                // Begin manual dispatchable handle unboxing for mtlTexture;
-                vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&mtlTexture, sizeof(uint8_t));
-                memcpy((void*)mtlTexture, *readStreamPtrPtr, sizeof(uint8_t));
-                *readStreamPtrPtr += sizeof(uint8_t);
-                if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkSetMTLTextureMVK 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)image, (unsigned long long)mtlTexture);
-                }
-                VkResult vkSetMTLTextureMVK_VkResult_return = (VkResult)0;
-                vkSetMTLTextureMVK_VkResult_return = vk->vkSetMTLTextureMVK(image, mtlTexture);
-                if ((vkSetMTLTextureMVK_VkResult_return) == VK_ERROR_DEVICE_LOST)
-                    m_state->on_DeviceLost();
-                m_state->on_CheckOutOfMemory(vkSetMTLTextureMVK_VkResult_return, opcode, context);
-                vkStream->unsetHandleMapping();
-                vkStream->write((void*)mtlTexture, sizeof(uint8_t));
-                vkStream->write(&vkSetMTLTextureMVK_VkResult_return, sizeof(VkResult));
-                vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
-                if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkSetMTLTextureMVK(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkSetMTLTextureMVK_VkResult_return, image, mtlTexture);
-                }
-                vkReadStream->clearPool();
-                if (queueSubmitWithCommandsEnabled)
-                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
-                android::base::endTrace();
-                break;
-            }
-            case OP_vkGetMTLTextureMVK: {
-                android::base::beginTrace("vkGetMTLTextureMVK decode");
-                VkImage image;
-                void** pMTLTexture;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-                // Begin manual dispatchable handle unboxing for pMTLTexture;
-                vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pMTLTexture, sizeof(void*));
-                memcpy((void**)pMTLTexture, *readStreamPtrPtr, sizeof(void*));
-                *readStreamPtrPtr += sizeof(void*);
-                if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetMTLTextureMVK 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)image, (unsigned long long)pMTLTexture);
-                }
-                vk->vkGetMTLTextureMVK(image, pMTLTexture);
-                vkStream->unsetHandleMapping();
-                vkStream->write((void**)pMTLTexture, sizeof(void*));
-                vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
-                if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetMTLTextureMVK(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, image, pMTLTexture);
-                }
-                vkReadStream->clearPool();
-                if (queueSubmitWithCommandsEnabled)
-                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
-                android::base::endTrace();
-                break;
-            }
-            case OP_vkGetMTLBufferMVK: {
-                android::base::beginTrace("vkGetMTLBufferMVK decode");
-                VkBuffer buffer;
-                void** pMTLBuffer;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
-                // Begin manual dispatchable handle unboxing for pMTLBuffer;
-                vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pMTLBuffer, sizeof(void*));
-                memcpy((void**)pMTLBuffer, *readStreamPtrPtr, sizeof(void*));
-                *readStreamPtrPtr += sizeof(void*);
-                if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetMTLBufferMVK 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)buffer, (unsigned long long)pMTLBuffer);
-                }
-                vk->vkGetMTLBufferMVK(buffer, pMTLBuffer);
-                vkStream->unsetHandleMapping();
-                vkStream->write((void**)pMTLBuffer, sizeof(void*));
-                vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
-                if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetMTLBufferMVK(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, buffer, pMTLBuffer);
-                }
-                vkReadStream->clearPool();
-                if (queueSubmitWithCommandsEnabled)
-                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
-                android::base::endTrace();
-                break;
-            }
-            case OP_vkUseIOSurfaceMVK: {
-                android::base::beginTrace("vkUseIOSurfaceMVK decode");
-                VkImage image;
-                void* ioSurface;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-                // Begin manual dispatchable handle unboxing for ioSurface;
-                vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&ioSurface, sizeof(uint8_t));
-                memcpy((void*)ioSurface, *readStreamPtrPtr, sizeof(uint8_t));
-                *readStreamPtrPtr += sizeof(uint8_t);
-                if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkUseIOSurfaceMVK 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)image, (unsigned long long)ioSurface);
-                }
-                VkResult vkUseIOSurfaceMVK_VkResult_return = (VkResult)0;
-                vkUseIOSurfaceMVK_VkResult_return = vk->vkUseIOSurfaceMVK(image, ioSurface);
-                if ((vkUseIOSurfaceMVK_VkResult_return) == VK_ERROR_DEVICE_LOST)
-                    m_state->on_DeviceLost();
-                m_state->on_CheckOutOfMemory(vkUseIOSurfaceMVK_VkResult_return, opcode, context);
-                vkStream->unsetHandleMapping();
-                vkStream->write((void*)ioSurface, sizeof(uint8_t));
-                vkStream->write(&vkUseIOSurfaceMVK_VkResult_return, sizeof(VkResult));
-                vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
-                if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkUseIOSurfaceMVK(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkUseIOSurfaceMVK_VkResult_return, image, ioSurface);
-                }
-                vkReadStream->clearPool();
-                if (queueSubmitWithCommandsEnabled)
-                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
-                android::base::endTrace();
-                break;
-            }
-            case OP_vkGetIOSurfaceMVK: {
-                android::base::beginTrace("vkGetIOSurfaceMVK decode");
-                VkImage image;
-                void** pIOSurface;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-                // Begin manual dispatchable handle unboxing for pIOSurface;
-                vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pIOSurface, sizeof(void*));
-                memcpy((void**)pIOSurface, *readStreamPtrPtr, sizeof(void*));
-                *readStreamPtrPtr += sizeof(void*);
-                if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetIOSurfaceMVK 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)image, (unsigned long long)pIOSurface);
-                }
-                vk->vkGetIOSurfaceMVK(image, pIOSurface);
-                vkStream->unsetHandleMapping();
-                vkStream->write((void**)pIOSurface, sizeof(void*));
-                vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
-                if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetIOSurfaceMVK(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, image, pIOSurface);
                 }
                 vkReadStream->clearPool();
                 if (queueSubmitWithCommandsEnabled)
@@ -26806,8 +28719,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_AMD_shader_core_properties
 #endif
-#ifdef VK_EXT_video_decode_h265
-#endif
 #ifdef VK_AMD_memory_overallocation_behavior
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
@@ -26978,6 +28889,57 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #ifdef VK_NV_shader_image_footprint
 #endif
 #ifdef VK_NV_scissor_exclusive
+            case OP_vkCmdSetExclusiveScissorEnableNV: {
+                android::base::beginTrace("vkCmdSetExclusiveScissorEnableNV decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t firstExclusiveScissor;
+                uint32_t exclusiveScissorCount;
+                const VkBool32* pExclusiveScissorEnables;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&firstExclusiveScissor, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&exclusiveScissorCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pExclusiveScissorEnables,
+                                    ((exclusiveScissorCount)) * sizeof(const VkBool32));
+                memcpy((VkBool32*)pExclusiveScissorEnables, *readStreamPtrPtr,
+                       ((exclusiveScissorCount)) * sizeof(const VkBool32));
+                *readStreamPtrPtr += ((exclusiveScissorCount)) * sizeof(const VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetExclusiveScissorEnableNV 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)firstExclusiveScissor,
+                            (unsigned long long)exclusiveScissorCount,
+                            (unsigned long long)pExclusiveScissorEnables);
+                }
+                vk->vkCmdSetExclusiveScissorEnableNV(unboxed_commandBuffer, firstExclusiveScissor,
+                                                     exclusiveScissorCount,
+                                                     pExclusiveScissorEnables);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetExclusiveScissorEnableNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        firstExclusiveScissor, exclusiveScissorCount, pExclusiveScissorEnables);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
             case OP_vkCmdSetExclusiveScissorNV: {
                 android::base::beginTrace("vkCmdSetExclusiveScissorNV decode");
                 VkCommandBuffer commandBuffer;
@@ -27863,7 +29825,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkGetPhysicalDeviceToolPropertiesEXT decode");
                 VkPhysicalDevice physicalDevice;
                 uint32_t* pToolCount;
-                VkPhysicalDeviceToolPropertiesEXT* pToolProperties;
+                VkPhysicalDeviceToolProperties* pToolProperties;
                 // Begin non wrapped dispatchable handle unboxing for physicalDevice;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -27887,26 +29849,24 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // Begin manual dispatchable handle unboxing for pToolProperties;
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
-                memcpy((VkPhysicalDeviceToolPropertiesEXT**)&pToolProperties, (*readStreamPtrPtr),
-                       8);
+                memcpy((VkPhysicalDeviceToolProperties**)&pToolProperties, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pToolProperties);
                 *readStreamPtrPtr += 8;
                 if (pToolProperties) {
-                    vkReadStream->alloc(
-                        (void**)&pToolProperties,
-                        (*(pToolCount)) * sizeof(VkPhysicalDeviceToolPropertiesEXT));
+                    vkReadStream->alloc((void**)&pToolProperties,
+                                        (*(pToolCount)) * sizeof(VkPhysicalDeviceToolProperties));
                     for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
-                        reservedunmarshal_VkPhysicalDeviceToolPropertiesEXT(
+                        reservedunmarshal_VkPhysicalDeviceToolProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                            (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i),
+                            (VkPhysicalDeviceToolProperties*)(pToolProperties + i),
                             readStreamPtrPtr);
                     }
                 }
                 if (pToolCount) {
                     if (pToolProperties) {
                         for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
-                            transform_tohost_VkPhysicalDeviceToolPropertiesEXT(
-                                m_state, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i));
+                            transform_tohost_VkPhysicalDeviceToolProperties(
+                                m_state, (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
                         }
                     }
                 }
@@ -27935,8 +29895,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (pToolCount) {
                     if (pToolProperties) {
                         for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
-                            transform_fromhost_VkPhysicalDeviceToolPropertiesEXT(
-                                m_state, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i));
+                            transform_fromhost_VkPhysicalDeviceToolProperties(
+                                m_state, (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
                         }
                     }
                 }
@@ -27946,9 +29906,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (pToolProperties) {
                     if (pToolCount) {
                         for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
-                            marshal_VkPhysicalDeviceToolPropertiesEXT(
+                            marshal_VkPhysicalDeviceToolProperties(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i));
+                                (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
                         }
                     }
                 }
@@ -29202,6 +31162,59 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_EXT_shader_atomic_float2
 #endif
+#ifdef VK_EXT_surface_maintenance1
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+            case OP_vkReleaseSwapchainImagesEXT: {
+                android::base::beginTrace("vkReleaseSwapchainImagesEXT decode");
+                VkDevice device;
+                const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pReleaseInfo,
+                                    sizeof(const VkReleaseSwapchainImagesInfoEXT));
+                reservedunmarshal_VkReleaseSwapchainImagesInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkReleaseSwapchainImagesInfoEXT*)(pReleaseInfo), readStreamPtrPtr);
+                if (pReleaseInfo) {
+                    transform_tohost_VkReleaseSwapchainImagesInfoEXT(
+                        m_state, (VkReleaseSwapchainImagesInfoEXT*)(pReleaseInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkReleaseSwapchainImagesEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pReleaseInfo);
+                }
+                VkResult vkReleaseSwapchainImagesEXT_VkResult_return = (VkResult)0;
+                vkReleaseSwapchainImagesEXT_VkResult_return =
+                    vk->vkReleaseSwapchainImagesEXT(unboxed_device, pReleaseInfo);
+                if ((vkReleaseSwapchainImagesEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkReleaseSwapchainImagesEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkReleaseSwapchainImagesEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkReleaseSwapchainImagesEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkReleaseSwapchainImagesEXT_VkResult_return, device, pReleaseInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
 #endif
 #ifdef VK_NV_device_generated_commands
@@ -29696,13 +31709,15 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_GOOGLE_user_type
 #endif
+#ifdef VK_NV_present_barrier
+#endif
 #ifdef VK_EXT_private_data
             case OP_vkCreatePrivateDataSlotEXT: {
                 android::base::beginTrace("vkCreatePrivateDataSlotEXT decode");
                 VkDevice device;
-                const VkPrivateDataSlotCreateInfoEXT* pCreateInfo;
+                const VkPrivateDataSlotCreateInfo* pCreateInfo;
                 const VkAllocationCallbacks* pAllocator;
-                VkPrivateDataSlotEXT* pPrivateDataSlot;
+                VkPrivateDataSlot* pPrivateDataSlot;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -29712,10 +31727,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pCreateInfo,
-                                    sizeof(const VkPrivateDataSlotCreateInfoEXT));
-                reservedunmarshal_VkPrivateDataSlotCreateInfoEXT(
+                                    sizeof(const VkPrivateDataSlotCreateInfo));
+                reservedunmarshal_VkPrivateDataSlotCreateInfo(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkPrivateDataSlotCreateInfoEXT*)(pCreateInfo), readStreamPtrPtr);
+                    (VkPrivateDataSlotCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -29728,13 +31743,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // Begin manual dispatchable handle unboxing for pPrivateDataSlot;
                 vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pPrivateDataSlot, sizeof(VkPrivateDataSlotEXT));
-                memcpy((VkPrivateDataSlotEXT*)&(*pPrivateDataSlot), (*readStreamPtrPtr), 8);
+                vkReadStream->alloc((void**)&pPrivateDataSlot, sizeof(VkPrivateDataSlot));
+                memcpy((VkPrivateDataSlot*)&(*pPrivateDataSlot), (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&(*pPrivateDataSlot));
                 *readStreamPtrPtr += 8;
                 if (pCreateInfo) {
-                    transform_tohost_VkPrivateDataSlotCreateInfoEXT(
-                        m_state, (VkPrivateDataSlotCreateInfoEXT*)(pCreateInfo));
+                    transform_tohost_VkPrivateDataSlotCreateInfo(
+                        m_state, (VkPrivateDataSlotCreateInfo*)(pCreateInfo));
                 }
                 if (pAllocator) {
                     transform_tohost_VkAllocationCallbacks(m_state,
@@ -29777,7 +31792,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             case OP_vkDestroyPrivateDataSlotEXT: {
                 android::base::beginTrace("vkDestroyPrivateDataSlotEXT decode");
                 VkDevice device;
-                VkPrivateDataSlotEXT privateDataSlot;
+                VkPrivateDataSlot privateDataSlot;
                 const VkAllocationCallbacks* pAllocator;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
@@ -29787,7 +31802,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
-                memcpy((VkPrivateDataSlotEXT*)&privateDataSlot, (*readStreamPtrPtr), 8);
+                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
                 *readStreamPtrPtr += 8;
                 // WARNING PTR CHECK
@@ -29831,7 +31846,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkDevice device;
                 VkObjectType objectType;
                 uint64_t objectHandle;
-                VkPrivateDataSlotEXT privateDataSlot;
+                VkPrivateDataSlot privateDataSlot;
                 uint64_t data;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
@@ -29845,7 +31860,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
-                memcpy((VkPrivateDataSlotEXT*)&privateDataSlot, (*readStreamPtrPtr), 8);
+                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
                 *readStreamPtrPtr += 8;
                 memcpy((uint64_t*)&data, *readStreamPtrPtr, sizeof(uint64_t));
@@ -29887,7 +31902,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkDevice device;
                 VkObjectType objectType;
                 uint64_t objectHandle;
-                VkPrivateDataSlotEXT privateDataSlot;
+                VkPrivateDataSlot privateDataSlot;
                 uint64_t* pData;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
@@ -29901,7 +31916,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
-                memcpy((VkPrivateDataSlotEXT*)&privateDataSlot, (*readStreamPtrPtr), 8);
+                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
                 *readStreamPtrPtr += 8;
                 // Begin manual dispatchable handle unboxing for pData;
@@ -29942,6 +31957,709 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #ifdef VK_NV_device_diagnostics_config
 #endif
 #ifdef VK_QCOM_render_pass_store_ops
+#endif
+#ifdef VK_NV_low_latency
+#endif
+#ifdef VK_EXT_metal_objects
+            case OP_vkExportMetalObjectsEXT: {
+                android::base::beginTrace("vkExportMetalObjectsEXT decode");
+                VkDevice device;
+                VkExportMetalObjectsInfoEXT* pMetalObjectsInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                // Begin manual dispatchable handle unboxing for pMetalObjectsInfo;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pMetalObjectsInfo,
+                                    sizeof(VkExportMetalObjectsInfoEXT));
+                reservedunmarshal_VkExportMetalObjectsInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkExportMetalObjectsInfoEXT*)(pMetalObjectsInfo), readStreamPtrPtr);
+                if (pMetalObjectsInfo) {
+                    transform_tohost_VkExportMetalObjectsInfoEXT(
+                        m_state, (VkExportMetalObjectsInfoEXT*)(pMetalObjectsInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkExportMetalObjectsEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)pMetalObjectsInfo);
+                }
+                vk->vkExportMetalObjectsEXT(unboxed_device, pMetalObjectsInfo);
+                vkStream->unsetHandleMapping();
+                if (pMetalObjectsInfo) {
+                    transform_fromhost_VkExportMetalObjectsInfoEXT(
+                        m_state, (VkExportMetalObjectsInfoEXT*)(pMetalObjectsInfo));
+                }
+                marshal_VkExportMetalObjectsInfoEXT(
+                    vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkExportMetalObjectsInfoEXT*)(pMetalObjectsInfo));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkExportMetalObjectsEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pMetalObjectsInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_EXT_descriptor_buffer
+            case OP_vkGetDescriptorSetLayoutSizeEXT: {
+                android::base::beginTrace("vkGetDescriptorSetLayoutSizeEXT decode");
+                VkDevice device;
+                VkDescriptorSetLayout layout;
+                VkDeviceSize* pLayoutSizeInBytes;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDescriptorSetLayout*)&layout =
+                    (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
+                        (VkDescriptorSetLayout)(*&cgen_var_1));
+                // Begin manual dispatchable handle unboxing for pLayoutSizeInBytes;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pLayoutSizeInBytes, sizeof(VkDeviceSize));
+                memcpy((VkDeviceSize*)pLayoutSizeInBytes, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkGetDescriptorSetLayoutSizeEXT 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)layout,
+                        (unsigned long long)pLayoutSizeInBytes);
+                }
+                vk->vkGetDescriptorSetLayoutSizeEXT(unboxed_device, layout, pLayoutSizeInBytes);
+                vkStream->unsetHandleMapping();
+                vkStream->write((VkDeviceSize*)pLayoutSizeInBytes, sizeof(VkDeviceSize));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDescriptorSetLayoutSizeEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, layout,
+                        pLayoutSizeInBytes);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetDescriptorSetLayoutBindingOffsetEXT: {
+                android::base::beginTrace("vkGetDescriptorSetLayoutBindingOffsetEXT decode");
+                VkDevice device;
+                VkDescriptorSetLayout layout;
+                uint32_t binding;
+                VkDeviceSize* pOffset;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDescriptorSetLayout*)&layout =
+                    (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
+                        (VkDescriptorSetLayout)(*&cgen_var_1));
+                memcpy((uint32_t*)&binding, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                // Begin manual dispatchable handle unboxing for pOffset;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pOffset, sizeof(VkDeviceSize));
+                memcpy((VkDeviceSize*)pOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetDescriptorSetLayoutBindingOffsetEXT 0x%llx "
+                            "0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)layout,
+                            (unsigned long long)binding, (unsigned long long)pOffset);
+                }
+                vk->vkGetDescriptorSetLayoutBindingOffsetEXT(unboxed_device, layout, binding,
+                                                             pOffset);
+                vkStream->unsetHandleMapping();
+                vkStream->write((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDescriptorSetLayoutBindingOffsetEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, layout, binding,
+                        pOffset);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetDescriptorEXT: {
+                android::base::beginTrace("vkGetDescriptorEXT decode");
+                VkDevice device;
+                const VkDescriptorGetInfoEXT* pDescriptorInfo;
+                size_t dataSize;
+                void* pDescriptor;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pDescriptorInfo, sizeof(const VkDescriptorGetInfoEXT));
+                reservedunmarshal_VkDescriptorGetInfoEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                         (VkDescriptorGetInfoEXT*)(pDescriptorInfo),
+                                                         readStreamPtrPtr);
+                memcpy((size_t*)&dataSize, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&dataSize);
+                *readStreamPtrPtr += 8;
+                // Begin manual dispatchable handle unboxing for pDescriptor;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pDescriptor, ((dataSize)) * sizeof(uint8_t));
+                memcpy((void*)pDescriptor, *readStreamPtrPtr, ((dataSize)) * sizeof(uint8_t));
+                *readStreamPtrPtr += ((dataSize)) * sizeof(uint8_t);
+                if (pDescriptorInfo) {
+                    transform_tohost_VkDescriptorGetInfoEXT(
+                        m_state, (VkDescriptorGetInfoEXT*)(pDescriptorInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr, "stream %p: call vkGetDescriptorEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)pDescriptorInfo,
+                        (unsigned long long)dataSize, (unsigned long long)pDescriptor);
+                }
+                vk->vkGetDescriptorEXT(unboxed_device, pDescriptorInfo, dataSize, pDescriptor);
+                vkStream->unsetHandleMapping();
+                vkStream->write((void*)pDescriptor, ((dataSize)) * sizeof(uint8_t));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDescriptorEXT(snapshotTraceBegin, snapshotTraceBytes,
+                                                            &m_pool, device, pDescriptorInfo,
+                                                            dataSize, pDescriptor);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdBindDescriptorBuffersEXT: {
+                android::base::beginTrace("vkCmdBindDescriptorBuffersEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t bufferCount;
+                const VkDescriptorBufferBindingInfoEXT* pBindingInfos;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&bufferCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc(
+                    (void**)&pBindingInfos,
+                    ((bufferCount)) * sizeof(const VkDescriptorBufferBindingInfoEXT));
+                for (uint32_t i = 0; i < (uint32_t)((bufferCount)); ++i) {
+                    reservedunmarshal_VkDescriptorBufferBindingInfoEXT(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkDescriptorBufferBindingInfoEXT*)(pBindingInfos + i), readStreamPtrPtr);
+                }
+                if (pBindingInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)((bufferCount)); ++i) {
+                        transform_tohost_VkDescriptorBufferBindingInfoEXT(
+                            m_state, (VkDescriptorBufferBindingInfoEXT*)(pBindingInfos + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdBindDescriptorBuffersEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)bufferCount, (unsigned long long)pBindingInfos);
+                }
+                vk->vkCmdBindDescriptorBuffersEXT(unboxed_commandBuffer, bufferCount,
+                                                  pBindingInfos);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdBindDescriptorBuffersEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, bufferCount,
+                        pBindingInfos);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDescriptorBufferOffsetsEXT: {
+                android::base::beginTrace("vkCmdSetDescriptorBufferOffsetsEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkPipelineBindPoint pipelineBindPoint;
+                VkPipelineLayout layout;
+                uint32_t firstSet;
+                uint32_t setCount;
+                const uint32_t* pBufferIndices;
+                const VkDeviceSize* pOffsets;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkPipelineBindPoint*)&pipelineBindPoint, *readStreamPtrPtr,
+                       sizeof(VkPipelineBindPoint));
+                *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipelineLayout*)&layout =
+                    (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_1));
+                memcpy((uint32_t*)&firstSet, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&setCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pBufferIndices, ((setCount)) * sizeof(const uint32_t));
+                memcpy((uint32_t*)pBufferIndices, *readStreamPtrPtr,
+                       ((setCount)) * sizeof(const uint32_t));
+                *readStreamPtrPtr += ((setCount)) * sizeof(const uint32_t);
+                vkReadStream->alloc((void**)&pOffsets, ((setCount)) * sizeof(const VkDeviceSize));
+                memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
+                       ((setCount)) * sizeof(const VkDeviceSize));
+                *readStreamPtrPtr += ((setCount)) * sizeof(const VkDeviceSize);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetDescriptorBufferOffsetsEXT 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pipelineBindPoint, (unsigned long long)layout,
+                            (unsigned long long)firstSet, (unsigned long long)setCount,
+                            (unsigned long long)pBufferIndices, (unsigned long long)pOffsets);
+                }
+                vk->vkCmdSetDescriptorBufferOffsetsEXT(unboxed_commandBuffer, pipelineBindPoint,
+                                                       layout, firstSet, setCount, pBufferIndices,
+                                                       pOffsets);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDescriptorBufferOffsetsEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        pipelineBindPoint, layout, firstSet, setCount, pBufferIndices, pOffsets);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdBindDescriptorBufferEmbeddedSamplersEXT: {
+                android::base::beginTrace("vkCmdBindDescriptorBufferEmbeddedSamplersEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkPipelineBindPoint pipelineBindPoint;
+                VkPipelineLayout layout;
+                uint32_t set;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkPipelineBindPoint*)&pipelineBindPoint, *readStreamPtrPtr,
+                       sizeof(VkPipelineBindPoint));
+                *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipelineLayout*)&layout =
+                    (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_1));
+                memcpy((uint32_t*)&set, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdBindDescriptorBufferEmbeddedSamplersEXT 0x%llx "
+                            "0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pipelineBindPoint, (unsigned long long)layout,
+                            (unsigned long long)set);
+                }
+                vk->vkCmdBindDescriptorBufferEmbeddedSamplersEXT(unboxed_commandBuffer,
+                                                                 pipelineBindPoint, layout, set);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdBindDescriptorBufferEmbeddedSamplersEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        pipelineBindPoint, layout, set);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetBufferOpaqueCaptureDescriptorDataEXT: {
+                android::base::beginTrace("vkGetBufferOpaqueCaptureDescriptorDataEXT decode");
+                VkDevice device;
+                const VkBufferCaptureDescriptorDataInfoEXT* pInfo;
+                void* pData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pInfo,
+                                    sizeof(const VkBufferCaptureDescriptorDataInfoEXT));
+                reservedunmarshal_VkBufferCaptureDescriptorDataInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkBufferCaptureDescriptorDataInfoEXT*)(pInfo), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pData;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pData, sizeof(uint8_t));
+                memcpy((void*)pData, *readStreamPtrPtr, sizeof(uint8_t));
+                *readStreamPtrPtr += sizeof(uint8_t);
+                if (pInfo) {
+                    transform_tohost_VkBufferCaptureDescriptorDataInfoEXT(
+                        m_state, (VkBufferCaptureDescriptorDataInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetBufferOpaqueCaptureDescriptorDataEXT 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                            (unsigned long long)pData);
+                }
+                VkResult vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+                vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return =
+                    vk->vkGetBufferOpaqueCaptureDescriptorDataEXT(unboxed_device, pInfo, pData);
+                if ((vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return) ==
+                    VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(
+                    vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write((void*)pData, sizeof(uint8_t));
+                vkStream->write(&vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetBufferOpaqueCaptureDescriptorDataEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return, device, pInfo,
+                        pData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetImageOpaqueCaptureDescriptorDataEXT: {
+                android::base::beginTrace("vkGetImageOpaqueCaptureDescriptorDataEXT decode");
+                VkDevice device;
+                const VkImageCaptureDescriptorDataInfoEXT* pInfo;
+                void* pData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pInfo,
+                                    sizeof(const VkImageCaptureDescriptorDataInfoEXT));
+                reservedunmarshal_VkImageCaptureDescriptorDataInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkImageCaptureDescriptorDataInfoEXT*)(pInfo), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pData;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pData, sizeof(uint8_t));
+                memcpy((void*)pData, *readStreamPtrPtr, sizeof(uint8_t));
+                *readStreamPtrPtr += sizeof(uint8_t);
+                if (pInfo) {
+                    transform_tohost_VkImageCaptureDescriptorDataInfoEXT(
+                        m_state, (VkImageCaptureDescriptorDataInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetImageOpaqueCaptureDescriptorDataEXT 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                            (unsigned long long)pData);
+                }
+                VkResult vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+                vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return =
+                    vk->vkGetImageOpaqueCaptureDescriptorDataEXT(unboxed_device, pInfo, pData);
+                if ((vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return) ==
+                    VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(
+                    vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write((void*)pData, sizeof(uint8_t));
+                vkStream->write(&vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetImageOpaqueCaptureDescriptorDataEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return, device, pInfo,
+                        pData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetImageViewOpaqueCaptureDescriptorDataEXT: {
+                android::base::beginTrace("vkGetImageViewOpaqueCaptureDescriptorDataEXT decode");
+                VkDevice device;
+                const VkImageViewCaptureDescriptorDataInfoEXT* pInfo;
+                void* pData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pInfo,
+                                    sizeof(const VkImageViewCaptureDescriptorDataInfoEXT));
+                reservedunmarshal_VkImageViewCaptureDescriptorDataInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkImageViewCaptureDescriptorDataInfoEXT*)(pInfo), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pData;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pData, sizeof(uint8_t));
+                memcpy((void*)pData, *readStreamPtrPtr, sizeof(uint8_t));
+                *readStreamPtrPtr += sizeof(uint8_t);
+                if (pInfo) {
+                    transform_tohost_VkImageViewCaptureDescriptorDataInfoEXT(
+                        m_state, (VkImageViewCaptureDescriptorDataInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetImageViewOpaqueCaptureDescriptorDataEXT 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                            (unsigned long long)pData);
+                }
+                VkResult vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+                vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return =
+                    vk->vkGetImageViewOpaqueCaptureDescriptorDataEXT(unboxed_device, pInfo, pData);
+                if ((vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return) ==
+                    VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(
+                    vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write((void*)pData, sizeof(uint8_t));
+                vkStream->write(&vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetImageViewOpaqueCaptureDescriptorDataEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return, device, pInfo,
+                        pData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetSamplerOpaqueCaptureDescriptorDataEXT: {
+                android::base::beginTrace("vkGetSamplerOpaqueCaptureDescriptorDataEXT decode");
+                VkDevice device;
+                const VkSamplerCaptureDescriptorDataInfoEXT* pInfo;
+                void* pData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pInfo,
+                                    sizeof(const VkSamplerCaptureDescriptorDataInfoEXT));
+                reservedunmarshal_VkSamplerCaptureDescriptorDataInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkSamplerCaptureDescriptorDataInfoEXT*)(pInfo), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pData;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pData, sizeof(uint8_t));
+                memcpy((void*)pData, *readStreamPtrPtr, sizeof(uint8_t));
+                *readStreamPtrPtr += sizeof(uint8_t);
+                if (pInfo) {
+                    transform_tohost_VkSamplerCaptureDescriptorDataInfoEXT(
+                        m_state, (VkSamplerCaptureDescriptorDataInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetSamplerOpaqueCaptureDescriptorDataEXT 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                            (unsigned long long)pData);
+                }
+                VkResult vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+                vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return =
+                    vk->vkGetSamplerOpaqueCaptureDescriptorDataEXT(unboxed_device, pInfo, pData);
+                if ((vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return) ==
+                    VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(
+                    vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write((void*)pData, sizeof(uint8_t));
+                vkStream->write(&vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetSamplerOpaqueCaptureDescriptorDataEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return, device, pInfo,
+                        pData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT: {
+                android::base::beginTrace(
+                    "vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT decode");
+                VkDevice device;
+                const VkAccelerationStructureCaptureDescriptorDataInfoEXT* pInfo;
+                void* pData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc(
+                    (void**)&pInfo,
+                    sizeof(const VkAccelerationStructureCaptureDescriptorDataInfoEXT));
+                reservedunmarshal_VkAccelerationStructureCaptureDescriptorDataInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkAccelerationStructureCaptureDescriptorDataInfoEXT*)(pInfo),
+                    readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pData;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pData, sizeof(uint8_t));
+                memcpy((void*)pData, *readStreamPtrPtr, sizeof(uint8_t));
+                *readStreamPtrPtr += sizeof(uint8_t);
+                if (pInfo) {
+                    transform_tohost_VkAccelerationStructureCaptureDescriptorDataInfoEXT(
+                        m_state, (VkAccelerationStructureCaptureDescriptorDataInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT "
+                        "0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pData);
+                }
+                VkResult vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return =
+                    (VkResult)0;
+                vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return =
+                    vk->vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT(unboxed_device,
+                                                                                 pInfo, pData);
+                if ((vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return) ==
+                    VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(
+                    vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return,
+                    opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write((void*)pData, sizeof(uint8_t));
+                vkStream->write(
+                    &vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return,
+                    sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return,
+                        device, pInfo, pData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+#endif
+#ifdef VK_AMD_shader_early_and_late_fragment_tests
 #endif
 #ifdef VK_NV_fragment_shading_rate_enums
             case OP_vkCmdSetFragmentShadingRateEnumNV: {
@@ -29999,7 +32717,167 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_EXT_image_robustness
 #endif
+#ifdef VK_EXT_image_compression_control
+            case OP_vkGetImageSubresourceLayout2EXT: {
+                android::base::beginTrace("vkGetImageSubresourceLayout2EXT decode");
+                VkDevice device;
+                VkImage image;
+                const VkImageSubresource2EXT* pSubresource;
+                VkSubresourceLayout2EXT* pLayout;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+                vkReadStream->alloc((void**)&pSubresource, sizeof(const VkImageSubresource2EXT));
+                reservedunmarshal_VkImageSubresource2EXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                         (VkImageSubresource2EXT*)(pSubresource),
+                                                         readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pLayout;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pLayout, sizeof(VkSubresourceLayout2EXT));
+                reservedunmarshal_VkSubresourceLayout2EXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                          (VkSubresourceLayout2EXT*)(pLayout),
+                                                          readStreamPtrPtr);
+                if (pSubresource) {
+                    transform_tohost_VkImageSubresource2EXT(
+                        m_state, (VkImageSubresource2EXT*)(pSubresource));
+                }
+                if (pLayout) {
+                    transform_tohost_VkSubresourceLayout2EXT(m_state,
+                                                             (VkSubresourceLayout2EXT*)(pLayout));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetImageSubresourceLayout2EXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)image,
+                            (unsigned long long)pSubresource, (unsigned long long)pLayout);
+                }
+                vk->vkGetImageSubresourceLayout2EXT(unboxed_device, image, pSubresource, pLayout);
+                vkStream->unsetHandleMapping();
+                if (pLayout) {
+                    transform_fromhost_VkSubresourceLayout2EXT(m_state,
+                                                               (VkSubresourceLayout2EXT*)(pLayout));
+                }
+                marshal_VkSubresourceLayout2EXT(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                (VkSubresourceLayout2EXT*)(pLayout));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetImageSubresourceLayout2EXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, image,
+                        pSubresource, pLayout);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_layout
+#endif
 #ifdef VK_EXT_4444_formats
+#endif
+#ifdef VK_EXT_device_fault
+            case OP_vkGetDeviceFaultInfoEXT: {
+                android::base::beginTrace("vkGetDeviceFaultInfoEXT decode");
+                VkDevice device;
+                VkDeviceFaultCountsEXT* pFaultCounts;
+                VkDeviceFaultInfoEXT* pFaultInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                // Begin manual dispatchable handle unboxing for pFaultCounts;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pFaultCounts, sizeof(VkDeviceFaultCountsEXT));
+                reservedunmarshal_VkDeviceFaultCountsEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                         (VkDeviceFaultCountsEXT*)(pFaultCounts),
+                                                         readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pFaultInfo;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((VkDeviceFaultInfoEXT**)&pFaultInfo, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pFaultInfo);
+                *readStreamPtrPtr += 8;
+                if (pFaultInfo) {
+                    vkReadStream->alloc((void**)&pFaultInfo, sizeof(VkDeviceFaultInfoEXT));
+                    reservedunmarshal_VkDeviceFaultInfoEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                           (VkDeviceFaultInfoEXT*)(pFaultInfo),
+                                                           readStreamPtrPtr);
+                }
+                if (pFaultCounts) {
+                    transform_tohost_VkDeviceFaultCountsEXT(
+                        m_state, (VkDeviceFaultCountsEXT*)(pFaultCounts));
+                }
+                if (pFaultInfo) {
+                    transform_tohost_VkDeviceFaultInfoEXT(m_state,
+                                                          (VkDeviceFaultInfoEXT*)(pFaultInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetDeviceFaultInfoEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pFaultCounts,
+                            (unsigned long long)pFaultInfo);
+                }
+                VkResult vkGetDeviceFaultInfoEXT_VkResult_return = (VkResult)0;
+                vkGetDeviceFaultInfoEXT_VkResult_return =
+                    vk->vkGetDeviceFaultInfoEXT(unboxed_device, pFaultCounts, pFaultInfo);
+                if ((vkGetDeviceFaultInfoEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkGetDeviceFaultInfoEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                if (pFaultCounts) {
+                    transform_fromhost_VkDeviceFaultCountsEXT(
+                        m_state, (VkDeviceFaultCountsEXT*)(pFaultCounts));
+                }
+                marshal_VkDeviceFaultCountsEXT(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                               (VkDeviceFaultCountsEXT*)(pFaultCounts));
+                if (pFaultInfo) {
+                    transform_fromhost_VkDeviceFaultInfoEXT(m_state,
+                                                            (VkDeviceFaultInfoEXT*)(pFaultInfo));
+                }
+                // WARNING PTR CHECK
+                uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pFaultInfo;
+                vkStream->putBe64(cgen_var_2);
+                if (pFaultInfo) {
+                    marshal_VkDeviceFaultInfoEXT(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                 (VkDeviceFaultInfoEXT*)(pFaultInfo));
+                }
+                vkStream->write(&vkGetDeviceFaultInfoEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDeviceFaultInfoEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetDeviceFaultInfoEXT_VkResult_return, device, pFaultCounts, pFaultInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_ARM_rasterization_order_attachment_access
 #endif
 #ifdef VK_EXT_rgba10x6_formats
 #endif
@@ -30334,6 +33212,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             }
 #endif
 #ifdef VK_EXT_physical_device_drm
+#endif
+#ifdef VK_EXT_device_address_binding_report
+#endif
+#ifdef VK_EXT_depth_clip_control
 #endif
 #ifdef VK_EXT_primitive_topology_list_restart
 #endif
@@ -31130,6 +34012,89 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_EXT_pipeline_properties
+            case OP_vkGetPipelinePropertiesEXT: {
+                android::base::beginTrace("vkGetPipelinePropertiesEXT decode");
+                VkDevice device;
+                const VkPipelineInfoEXT* pPipelineInfo;
+                VkBaseOutStructure* pPipelineProperties;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pPipelineInfo, sizeof(const VkPipelineInfoEXT));
+                reservedunmarshal_VkPipelineInfoEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkPipelineInfoEXT*)(pPipelineInfo),
+                                                    readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pPipelineProperties;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((VkBaseOutStructure**)&pPipelineProperties, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pPipelineProperties);
+                *readStreamPtrPtr += 8;
+                if (pPipelineProperties) {
+                    vkReadStream->alloc((void**)&pPipelineProperties, sizeof(VkBaseOutStructure));
+                    reservedunmarshal_VkBaseOutStructure(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                         (VkBaseOutStructure*)(pPipelineProperties),
+                                                         readStreamPtrPtr);
+                }
+                if (pPipelineInfo) {
+                    transform_tohost_VkPipelineInfoEXT(m_state,
+                                                       (VkPipelineInfoEXT*)(pPipelineInfo));
+                }
+                if (pPipelineProperties) {
+                    transform_tohost_VkBaseOutStructure(m_state,
+                                                        (VkBaseOutStructure*)(pPipelineProperties));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetPipelinePropertiesEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pPipelineInfo,
+                            (unsigned long long)pPipelineProperties);
+                }
+                VkResult vkGetPipelinePropertiesEXT_VkResult_return = (VkResult)0;
+                vkGetPipelinePropertiesEXT_VkResult_return = vk->vkGetPipelinePropertiesEXT(
+                    unboxed_device, pPipelineInfo, pPipelineProperties);
+                if ((vkGetPipelinePropertiesEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkGetPipelinePropertiesEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                if (pPipelineProperties) {
+                    transform_fromhost_VkBaseOutStructure(
+                        m_state, (VkBaseOutStructure*)(pPipelineProperties));
+                }
+                // WARNING PTR CHECK
+                uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPipelineProperties;
+                vkStream->putBe64(cgen_var_2);
+                if (pPipelineProperties) {
+                    marshal_VkBaseOutStructure(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                               (VkBaseOutStructure*)(pPipelineProperties));
+                }
+                vkStream->write(&vkGetPipelinePropertiesEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetPipelinePropertiesEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetPipelinePropertiesEXT_VkResult_return, device, pPipelineInfo,
+                        pPipelineProperties);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_EXT_multisampled_render_to_single_sampled
+#endif
 #ifdef VK_EXT_extended_dynamic_state2
             case OP_vkCmdSetPatchControlPointsEXT: {
                 android::base::beginTrace("vkCmdSetPatchControlPointsEXT decode");
@@ -31496,6 +34461,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::endTrace();
                 break;
             }
+#endif
+#ifdef VK_EXT_primitives_generated_query
 #endif
 #ifdef VK_GOOGLE_gfxstream
             case OP_vkMapMemoryIntoAddressSpaceGOOGLE: {
@@ -32898,6 +35865,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
+#ifdef VK_EXT_image_view_min_lod
+#endif
 #ifdef VK_EXT_multi_draw
             case OP_vkCmdDrawMultiEXT: {
                 android::base::beginTrace("vkCmdDrawMultiEXT decode");
@@ -33050,7 +36019,881 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_EXT_image_2d_view_of_3d
+#endif
+#ifdef VK_EXT_shader_tile_image
+#endif
+#ifdef VK_EXT_opacity_micromap
+            case OP_vkCreateMicromapEXT: {
+                android::base::beginTrace("vkCreateMicromapEXT decode");
+                VkDevice device;
+                const VkMicromapCreateInfoEXT* pCreateInfo;
+                const VkAllocationCallbacks* pAllocator;
+                VkMicromapEXT* pMicromap;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pCreateInfo, sizeof(const VkMicromapCreateInfoEXT));
+                reservedunmarshal_VkMicromapCreateInfoEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                          (VkMicromapCreateInfoEXT*)(pCreateInfo),
+                                                          readStreamPtrPtr);
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                // Begin manual dispatchable handle unboxing for pMicromap;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pMicromap, sizeof(VkMicromapEXT));
+                memcpy((VkMicromapEXT*)&(*pMicromap), (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&(*pMicromap));
+                *readStreamPtrPtr += 8;
+                if (pCreateInfo) {
+                    transform_tohost_VkMicromapCreateInfoEXT(
+                        m_state, (VkMicromapCreateInfoEXT*)(pCreateInfo));
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCreateMicromapEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                            (unsigned long long)pAllocator, (unsigned long long)pMicromap);
+                }
+                VkResult vkCreateMicromapEXT_VkResult_return = (VkResult)0;
+                vkCreateMicromapEXT_VkResult_return =
+                    vk->vkCreateMicromapEXT(unboxed_device, pCreateInfo, pAllocator, pMicromap);
+                if ((vkCreateMicromapEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCreateMicromapEXT_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                uint64_t cgen_var_3 = (uint64_t)(*pMicromap);
+                vkStream->putBe64(cgen_var_3);
+                vkStream->write(&vkCreateMicromapEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCreateMicromapEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCreateMicromapEXT_VkResult_return, device, pCreateInfo, pAllocator,
+                        pMicromap);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkDestroyMicromapEXT: {
+                android::base::beginTrace("vkDestroyMicromapEXT decode");
+                VkDevice device;
+                VkMicromapEXT micromap;
+                const VkAllocationCallbacks* pAllocator;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkMicromapEXT*)&micromap, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&micromap);
+                *readStreamPtrPtr += 8;
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkDestroyMicromapEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)micromap,
+                            (unsigned long long)pAllocator);
+                }
+                vk->vkDestroyMicromapEXT(unboxed_device, micromap, pAllocator);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkDestroyMicromapEXT(snapshotTraceBegin,
+                                                              snapshotTraceBytes, &m_pool, device,
+                                                              micromap, pAllocator);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdBuildMicromapsEXT: {
+                android::base::beginTrace("vkCmdBuildMicromapsEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t infoCount;
+                const VkMicromapBuildInfoEXT* pInfos;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&infoCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pInfos,
+                                    ((infoCount)) * sizeof(const VkMicromapBuildInfoEXT));
+                for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i) {
+                    reservedunmarshal_VkMicromapBuildInfoEXT(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkMicromapBuildInfoEXT*)(pInfos + i), readStreamPtrPtr);
+                }
+                if (pInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i) {
+                        transform_tohost_VkMicromapBuildInfoEXT(
+                            m_state, (VkMicromapBuildInfoEXT*)(pInfos + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdBuildMicromapsEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)infoCount, (unsigned long long)pInfos);
+                }
+                vk->vkCmdBuildMicromapsEXT(unboxed_commandBuffer, infoCount, pInfos);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdBuildMicromapsEXT(snapshotTraceBegin,
+                                                                snapshotTraceBytes, &m_pool,
+                                                                commandBuffer, infoCount, pInfos);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkBuildMicromapsEXT: {
+                android::base::beginTrace("vkBuildMicromapsEXT decode");
+                VkDevice device;
+                VkDeferredOperationKHR deferredOperation;
+                uint32_t infoCount;
+                const VkMicromapBuildInfoEXT* pInfos;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkDeferredOperationKHR*)&deferredOperation, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&deferredOperation);
+                *readStreamPtrPtr += 8;
+                memcpy((uint32_t*)&infoCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pInfos,
+                                    ((infoCount)) * sizeof(const VkMicromapBuildInfoEXT));
+                for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i) {
+                    reservedunmarshal_VkMicromapBuildInfoEXT(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkMicromapBuildInfoEXT*)(pInfos + i), readStreamPtrPtr);
+                }
+                if (pInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i) {
+                        transform_tohost_VkMicromapBuildInfoEXT(
+                            m_state, (VkMicromapBuildInfoEXT*)(pInfos + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkBuildMicromapsEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)deferredOperation, (unsigned long long)infoCount,
+                            (unsigned long long)pInfos);
+                }
+                VkResult vkBuildMicromapsEXT_VkResult_return = (VkResult)0;
+                vkBuildMicromapsEXT_VkResult_return =
+                    vk->vkBuildMicromapsEXT(unboxed_device, deferredOperation, infoCount, pInfos);
+                if ((vkBuildMicromapsEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkBuildMicromapsEXT_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkBuildMicromapsEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkBuildMicromapsEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkBuildMicromapsEXT_VkResult_return, device, deferredOperation, infoCount,
+                        pInfos);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCopyMicromapEXT: {
+                android::base::beginTrace("vkCopyMicromapEXT decode");
+                VkDevice device;
+                VkDeferredOperationKHR deferredOperation;
+                const VkCopyMicromapInfoEXT* pInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkDeferredOperationKHR*)&deferredOperation, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&deferredOperation);
+                *readStreamPtrPtr += 8;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkCopyMicromapInfoEXT));
+                reservedunmarshal_VkCopyMicromapInfoEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                        (VkCopyMicromapInfoEXT*)(pInfo),
+                                                        readStreamPtrPtr);
+                if (pInfo) {
+                    transform_tohost_VkCopyMicromapInfoEXT(m_state,
+                                                           (VkCopyMicromapInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCopyMicromapEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)deferredOperation, (unsigned long long)pInfo);
+                }
+                VkResult vkCopyMicromapEXT_VkResult_return = (VkResult)0;
+                vkCopyMicromapEXT_VkResult_return =
+                    vk->vkCopyMicromapEXT(unboxed_device, deferredOperation, pInfo);
+                if ((vkCopyMicromapEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCopyMicromapEXT_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkCopyMicromapEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCopyMicromapEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCopyMicromapEXT_VkResult_return, device, deferredOperation, pInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCopyMicromapToMemoryEXT: {
+                android::base::beginTrace("vkCopyMicromapToMemoryEXT decode");
+                VkDevice device;
+                VkDeferredOperationKHR deferredOperation;
+                const VkCopyMicromapToMemoryInfoEXT* pInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkDeferredOperationKHR*)&deferredOperation, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&deferredOperation);
+                *readStreamPtrPtr += 8;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkCopyMicromapToMemoryInfoEXT));
+                reservedunmarshal_VkCopyMicromapToMemoryInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkCopyMicromapToMemoryInfoEXT*)(pInfo), readStreamPtrPtr);
+                if (pInfo) {
+                    transform_tohost_VkCopyMicromapToMemoryInfoEXT(
+                        m_state, (VkCopyMicromapToMemoryInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCopyMicromapToMemoryEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)deferredOperation, (unsigned long long)pInfo);
+                }
+                VkResult vkCopyMicromapToMemoryEXT_VkResult_return = (VkResult)0;
+                vkCopyMicromapToMemoryEXT_VkResult_return =
+                    vk->vkCopyMicromapToMemoryEXT(unboxed_device, deferredOperation, pInfo);
+                if ((vkCopyMicromapToMemoryEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCopyMicromapToMemoryEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkCopyMicromapToMemoryEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCopyMicromapToMemoryEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCopyMicromapToMemoryEXT_VkResult_return, device, deferredOperation,
+                        pInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCopyMemoryToMicromapEXT: {
+                android::base::beginTrace("vkCopyMemoryToMicromapEXT decode");
+                VkDevice device;
+                VkDeferredOperationKHR deferredOperation;
+                const VkCopyMemoryToMicromapInfoEXT* pInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkDeferredOperationKHR*)&deferredOperation, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&deferredOperation);
+                *readStreamPtrPtr += 8;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkCopyMemoryToMicromapInfoEXT));
+                reservedunmarshal_VkCopyMemoryToMicromapInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkCopyMemoryToMicromapInfoEXT*)(pInfo), readStreamPtrPtr);
+                if (pInfo) {
+                    transform_tohost_VkCopyMemoryToMicromapInfoEXT(
+                        m_state, (VkCopyMemoryToMicromapInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCopyMemoryToMicromapEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)deferredOperation, (unsigned long long)pInfo);
+                }
+                VkResult vkCopyMemoryToMicromapEXT_VkResult_return = (VkResult)0;
+                vkCopyMemoryToMicromapEXT_VkResult_return =
+                    vk->vkCopyMemoryToMicromapEXT(unboxed_device, deferredOperation, pInfo);
+                if ((vkCopyMemoryToMicromapEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCopyMemoryToMicromapEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkCopyMemoryToMicromapEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCopyMemoryToMicromapEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCopyMemoryToMicromapEXT_VkResult_return, device, deferredOperation,
+                        pInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkWriteMicromapsPropertiesEXT: {
+                android::base::beginTrace("vkWriteMicromapsPropertiesEXT decode");
+                VkDevice device;
+                uint32_t micromapCount;
+                const VkMicromapEXT* pMicromaps;
+                VkQueryType queryType;
+                size_t dataSize;
+                void* pData;
+                size_t stride;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((uint32_t*)&micromapCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pMicromaps,
+                                    ((micromapCount)) * sizeof(const VkMicromapEXT));
+                for (uint32_t i = 0; i < (uint32_t)((micromapCount)); ++i) {
+                    memcpy((VkMicromapEXT*)&pMicromaps[i], (*readStreamPtrPtr), 8);
+                    android::base::Stream::fromBe64((uint8_t*)&pMicromaps[i]);
+                    *readStreamPtrPtr += 8;
+                }
+                memcpy((VkQueryType*)&queryType, *readStreamPtrPtr, sizeof(VkQueryType));
+                *readStreamPtrPtr += sizeof(VkQueryType);
+                memcpy((size_t*)&dataSize, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&dataSize);
+                *readStreamPtrPtr += 8;
+                // Begin manual dispatchable handle unboxing for pData;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pData, ((dataSize)) * sizeof(uint8_t));
+                memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(uint8_t));
+                *readStreamPtrPtr += ((dataSize)) * sizeof(uint8_t);
+                memcpy((size_t*)&stride, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&stride);
+                *readStreamPtrPtr += 8;
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkWriteMicromapsPropertiesEXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)micromapCount,
+                            (unsigned long long)pMicromaps, (unsigned long long)queryType,
+                            (unsigned long long)dataSize, (unsigned long long)pData,
+                            (unsigned long long)stride);
+                }
+                VkResult vkWriteMicromapsPropertiesEXT_VkResult_return = (VkResult)0;
+                vkWriteMicromapsPropertiesEXT_VkResult_return = vk->vkWriteMicromapsPropertiesEXT(
+                    unboxed_device, micromapCount, pMicromaps, queryType, dataSize, pData, stride);
+                if ((vkWriteMicromapsPropertiesEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkWriteMicromapsPropertiesEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                vkStream->write((void*)pData, ((dataSize)) * sizeof(uint8_t));
+                vkStream->write(&vkWriteMicromapsPropertiesEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkWriteMicromapsPropertiesEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkWriteMicromapsPropertiesEXT_VkResult_return, device, micromapCount,
+                        pMicromaps, queryType, dataSize, pData, stride);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdCopyMicromapEXT: {
+                android::base::beginTrace("vkCmdCopyMicromapEXT decode");
+                VkCommandBuffer commandBuffer;
+                const VkCopyMicromapInfoEXT* pInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkCopyMicromapInfoEXT));
+                reservedunmarshal_VkCopyMicromapInfoEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                        (VkCopyMicromapInfoEXT*)(pInfo),
+                                                        readStreamPtrPtr);
+                if (pInfo) {
+                    transform_tohost_VkCopyMicromapInfoEXT(m_state,
+                                                           (VkCopyMicromapInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdCopyMicromapEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)pInfo);
+                }
+                vk->vkCmdCopyMicromapEXT(unboxed_commandBuffer, pInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdCopyMicromapEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, pInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdCopyMicromapToMemoryEXT: {
+                android::base::beginTrace("vkCmdCopyMicromapToMemoryEXT decode");
+                VkCommandBuffer commandBuffer;
+                const VkCopyMicromapToMemoryInfoEXT* pInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkCopyMicromapToMemoryInfoEXT));
+                reservedunmarshal_VkCopyMicromapToMemoryInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkCopyMicromapToMemoryInfoEXT*)(pInfo), readStreamPtrPtr);
+                if (pInfo) {
+                    transform_tohost_VkCopyMicromapToMemoryInfoEXT(
+                        m_state, (VkCopyMicromapToMemoryInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdCopyMicromapToMemoryEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)pInfo);
+                }
+                vk->vkCmdCopyMicromapToMemoryEXT(unboxed_commandBuffer, pInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdCopyMicromapToMemoryEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, pInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdCopyMemoryToMicromapEXT: {
+                android::base::beginTrace("vkCmdCopyMemoryToMicromapEXT decode");
+                VkCommandBuffer commandBuffer;
+                const VkCopyMemoryToMicromapInfoEXT* pInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkCopyMemoryToMicromapInfoEXT));
+                reservedunmarshal_VkCopyMemoryToMicromapInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkCopyMemoryToMicromapInfoEXT*)(pInfo), readStreamPtrPtr);
+                if (pInfo) {
+                    transform_tohost_VkCopyMemoryToMicromapInfoEXT(
+                        m_state, (VkCopyMemoryToMicromapInfoEXT*)(pInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdCopyMemoryToMicromapEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)pInfo);
+                }
+                vk->vkCmdCopyMemoryToMicromapEXT(unboxed_commandBuffer, pInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdCopyMemoryToMicromapEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, pInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdWriteMicromapsPropertiesEXT: {
+                android::base::beginTrace("vkCmdWriteMicromapsPropertiesEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t micromapCount;
+                const VkMicromapEXT* pMicromaps;
+                VkQueryType queryType;
+                VkQueryPool queryPool;
+                uint32_t firstQuery;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&micromapCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pMicromaps,
+                                    ((micromapCount)) * sizeof(const VkMicromapEXT));
+                for (uint32_t i = 0; i < (uint32_t)((micromapCount)); ++i) {
+                    memcpy((VkMicromapEXT*)&pMicromaps[i], (*readStreamPtrPtr), 8);
+                    android::base::Stream::fromBe64((uint8_t*)&pMicromaps[i]);
+                    *readStreamPtrPtr += 8;
+                }
+                memcpy((VkQueryType*)&queryType, *readStreamPtrPtr, sizeof(VkQueryType));
+                *readStreamPtrPtr += sizeof(VkQueryType);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkQueryPool*)&queryPool =
+                    (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_1));
+                memcpy((uint32_t*)&firstQuery, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdWriteMicromapsPropertiesEXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)micromapCount, (unsigned long long)pMicromaps,
+                            (unsigned long long)queryType, (unsigned long long)queryPool,
+                            (unsigned long long)firstQuery);
+                }
+                vk->vkCmdWriteMicromapsPropertiesEXT(unboxed_commandBuffer, micromapCount,
+                                                     pMicromaps, queryType, queryPool, firstQuery);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdWriteMicromapsPropertiesEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        micromapCount, pMicromaps, queryType, queryPool, firstQuery);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetDeviceMicromapCompatibilityEXT: {
+                android::base::beginTrace("vkGetDeviceMicromapCompatibilityEXT decode");
+                VkDevice device;
+                const VkMicromapVersionInfoEXT* pVersionInfo;
+                VkAccelerationStructureCompatibilityKHR* pCompatibility;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pVersionInfo, sizeof(const VkMicromapVersionInfoEXT));
+                reservedunmarshal_VkMicromapVersionInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkMicromapVersionInfoEXT*)(pVersionInfo), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pCompatibility;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pCompatibility,
+                                    sizeof(VkAccelerationStructureCompatibilityKHR));
+                memcpy((VkAccelerationStructureCompatibilityKHR*)pCompatibility, *readStreamPtrPtr,
+                       sizeof(VkAccelerationStructureCompatibilityKHR));
+                *readStreamPtrPtr += sizeof(VkAccelerationStructureCompatibilityKHR);
+                if (pVersionInfo) {
+                    transform_tohost_VkMicromapVersionInfoEXT(
+                        m_state, (VkMicromapVersionInfoEXT*)(pVersionInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetDeviceMicromapCompatibilityEXT 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pVersionInfo,
+                            (unsigned long long)pCompatibility);
+                }
+                vk->vkGetDeviceMicromapCompatibilityEXT(unboxed_device, pVersionInfo,
+                                                        pCompatibility);
+                vkStream->unsetHandleMapping();
+                vkStream->write((VkAccelerationStructureCompatibilityKHR*)pCompatibility,
+                                sizeof(VkAccelerationStructureCompatibilityKHR));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDeviceMicromapCompatibilityEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pVersionInfo,
+                        pCompatibility);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetMicromapBuildSizesEXT: {
+                android::base::beginTrace("vkGetMicromapBuildSizesEXT decode");
+                VkDevice device;
+                VkAccelerationStructureBuildTypeKHR buildType;
+                const VkMicromapBuildInfoEXT* pBuildInfo;
+                VkMicromapBuildSizesInfoEXT* pSizeInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkAccelerationStructureBuildTypeKHR*)&buildType, *readStreamPtrPtr,
+                       sizeof(VkAccelerationStructureBuildTypeKHR));
+                *readStreamPtrPtr += sizeof(VkAccelerationStructureBuildTypeKHR);
+                vkReadStream->alloc((void**)&pBuildInfo, sizeof(const VkMicromapBuildInfoEXT));
+                reservedunmarshal_VkMicromapBuildInfoEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                         (VkMicromapBuildInfoEXT*)(pBuildInfo),
+                                                         readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pSizeInfo;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pSizeInfo, sizeof(VkMicromapBuildSizesInfoEXT));
+                reservedunmarshal_VkMicromapBuildSizesInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkMicromapBuildSizesInfoEXT*)(pSizeInfo), readStreamPtrPtr);
+                if (pBuildInfo) {
+                    transform_tohost_VkMicromapBuildInfoEXT(m_state,
+                                                            (VkMicromapBuildInfoEXT*)(pBuildInfo));
+                }
+                if (pSizeInfo) {
+                    transform_tohost_VkMicromapBuildSizesInfoEXT(
+                        m_state, (VkMicromapBuildSizesInfoEXT*)(pSizeInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkGetMicromapBuildSizesEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)buildType,
+                        (unsigned long long)pBuildInfo, (unsigned long long)pSizeInfo);
+                }
+                vk->vkGetMicromapBuildSizesEXT(unboxed_device, buildType, pBuildInfo, pSizeInfo);
+                vkStream->unsetHandleMapping();
+                if (pSizeInfo) {
+                    transform_fromhost_VkMicromapBuildSizesInfoEXT(
+                        m_state, (VkMicromapBuildSizesInfoEXT*)(pSizeInfo));
+                }
+                marshal_VkMicromapBuildSizesInfoEXT(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkMicromapBuildSizesInfoEXT*)(pSizeInfo));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetMicromapBuildSizesEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, buildType,
+                        pBuildInfo, pSizeInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_NV_displacement_micromap
+#endif
 #ifdef VK_EXT_load_store_op_none
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+            case OP_vkCmdDrawClusterHUAWEI: {
+                android::base::beginTrace("vkCmdDrawClusterHUAWEI decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t groupCountX;
+                uint32_t groupCountY;
+                uint32_t groupCountZ;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&groupCountX, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCountY, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCountZ, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdDrawClusterHUAWEI 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)groupCountX, (unsigned long long)groupCountY,
+                            (unsigned long long)groupCountZ);
+                }
+                vk->vkCmdDrawClusterHUAWEI(unboxed_commandBuffer, groupCountX, groupCountY,
+                                           groupCountZ);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdDrawClusterHUAWEI(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, groupCountX,
+                        groupCountY, groupCountZ);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdDrawClusterIndirectHUAWEI: {
+                android::base::beginTrace("vkCmdDrawClusterIndirectHUAWEI decode");
+                VkCommandBuffer commandBuffer;
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCmdDrawClusterIndirectHUAWEI 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
+                        (unsigned long long)offset);
+                }
+                vk->vkCmdDrawClusterIndirectHUAWEI(unboxed_commandBuffer, buffer, offset);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdDrawClusterIndirectHUAWEI(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, buffer,
+                        offset);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
 #endif
 #ifdef VK_EXT_border_color_swizzle
 #endif
@@ -33089,6 +36932,2664 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkSetDeviceMemoryPriorityEXT(
                         snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, memory, priority);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_ARM_shader_core_properties
+#endif
+#ifdef VK_EXT_image_sliced_view_of_3d
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+            case OP_vkGetDescriptorSetLayoutHostMappingInfoVALVE: {
+                android::base::beginTrace("vkGetDescriptorSetLayoutHostMappingInfoVALVE decode");
+                VkDevice device;
+                const VkDescriptorSetBindingReferenceVALVE* pBindingReference;
+                VkDescriptorSetLayoutHostMappingInfoVALVE* pHostMapping;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pBindingReference,
+                                    sizeof(const VkDescriptorSetBindingReferenceVALVE));
+                reservedunmarshal_VkDescriptorSetBindingReferenceVALVE(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDescriptorSetBindingReferenceVALVE*)(pBindingReference), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pHostMapping;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pHostMapping,
+                                    sizeof(VkDescriptorSetLayoutHostMappingInfoVALVE));
+                reservedunmarshal_VkDescriptorSetLayoutHostMappingInfoVALVE(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDescriptorSetLayoutHostMappingInfoVALVE*)(pHostMapping), readStreamPtrPtr);
+                if (pBindingReference) {
+                    transform_tohost_VkDescriptorSetBindingReferenceVALVE(
+                        m_state, (VkDescriptorSetBindingReferenceVALVE*)(pBindingReference));
+                }
+                if (pHostMapping) {
+                    transform_tohost_VkDescriptorSetLayoutHostMappingInfoVALVE(
+                        m_state, (VkDescriptorSetLayoutHostMappingInfoVALVE*)(pHostMapping));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetDescriptorSetLayoutHostMappingInfoVALVE 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)pBindingReference,
+                            (unsigned long long)pHostMapping);
+                }
+                vk->vkGetDescriptorSetLayoutHostMappingInfoVALVE(unboxed_device, pBindingReference,
+                                                                 pHostMapping);
+                vkStream->unsetHandleMapping();
+                if (pHostMapping) {
+                    transform_fromhost_VkDescriptorSetLayoutHostMappingInfoVALVE(
+                        m_state, (VkDescriptorSetLayoutHostMappingInfoVALVE*)(pHostMapping));
+                }
+                marshal_VkDescriptorSetLayoutHostMappingInfoVALVE(
+                    vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDescriptorSetLayoutHostMappingInfoVALVE*)(pHostMapping));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDescriptorSetLayoutHostMappingInfoVALVE(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pBindingReference,
+                        pHostMapping);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetDescriptorSetHostMappingVALVE: {
+                android::base::beginTrace("vkGetDescriptorSetHostMappingVALVE decode");
+                VkDevice device;
+                VkDescriptorSet descriptorSet;
+                void** ppData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDescriptorSet*)&descriptorSet =
+                    (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)(*&cgen_var_1));
+                // Begin manual dispatchable handle unboxing for ppData;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&ppData, sizeof(void*));
+                memcpy((void**)ppData, *readStreamPtrPtr, sizeof(void*));
+                *readStreamPtrPtr += sizeof(void*);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetDescriptorSetHostMappingVALVE 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
+                            (unsigned long long)ppData);
+                }
+                vk->vkGetDescriptorSetHostMappingVALVE(unboxed_device, descriptorSet, ppData);
+                vkStream->unsetHandleMapping();
+                vkStream->write((void**)ppData, sizeof(void*));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDescriptorSetHostMappingVALVE(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, descriptorSet,
+                        ppData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_EXT_depth_clamp_zero_one
+#endif
+#ifdef VK_EXT_non_seamless_cube_map
+#endif
+#ifdef VK_QCOM_fragment_density_map_offset
+#endif
+#ifdef VK_NV_copy_memory_indirect
+            case OP_vkCmdCopyMemoryIndirectNV: {
+                android::base::beginTrace("vkCmdCopyMemoryIndirectNV decode");
+                VkCommandBuffer commandBuffer;
+                VkDeviceAddress copyBufferAddress;
+                uint32_t copyCount;
+                uint32_t stride;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkDeviceAddress*)&copyBufferAddress, *readStreamPtrPtr,
+                       sizeof(VkDeviceAddress));
+                *readStreamPtrPtr += sizeof(VkDeviceAddress);
+                memcpy((uint32_t*)&copyCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCmdCopyMemoryIndirectNV 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)copyBufferAddress, (unsigned long long)copyCount,
+                        (unsigned long long)stride);
+                }
+                vk->vkCmdCopyMemoryIndirectNV(unboxed_commandBuffer, copyBufferAddress, copyCount,
+                                              stride);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdCopyMemoryIndirectNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        copyBufferAddress, copyCount, stride);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdCopyMemoryToImageIndirectNV: {
+                android::base::beginTrace("vkCmdCopyMemoryToImageIndirectNV decode");
+                VkCommandBuffer commandBuffer;
+                VkDeviceAddress copyBufferAddress;
+                uint32_t copyCount;
+                uint32_t stride;
+                VkImage dstImage;
+                VkImageLayout dstImageLayout;
+                const VkImageSubresourceLayers* pImageSubresources;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkDeviceAddress*)&copyBufferAddress, *readStreamPtrPtr,
+                       sizeof(VkDeviceAddress));
+                *readStreamPtrPtr += sizeof(VkDeviceAddress);
+                memcpy((uint32_t*)&copyCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImage*)&dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+                memcpy((VkImageLayout*)&dstImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
+                *readStreamPtrPtr += sizeof(VkImageLayout);
+                vkReadStream->alloc((void**)&pImageSubresources,
+                                    ((copyCount)) * sizeof(const VkImageSubresourceLayers));
+                for (uint32_t i = 0; i < (uint32_t)((copyCount)); ++i) {
+                    reservedunmarshal_VkImageSubresourceLayers(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkImageSubresourceLayers*)(pImageSubresources + i), readStreamPtrPtr);
+                }
+                if (pImageSubresources) {
+                    for (uint32_t i = 0; i < (uint32_t)((copyCount)); ++i) {
+                        transform_tohost_VkImageSubresourceLayers(
+                            m_state, (VkImageSubresourceLayers*)(pImageSubresources + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdCopyMemoryToImageIndirectNV 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)copyBufferAddress, (unsigned long long)copyCount,
+                            (unsigned long long)stride, (unsigned long long)dstImage,
+                            (unsigned long long)dstImageLayout,
+                            (unsigned long long)pImageSubresources);
+                }
+                vk->vkCmdCopyMemoryToImageIndirectNV(unboxed_commandBuffer, copyBufferAddress,
+                                                     copyCount, stride, dstImage, dstImageLayout,
+                                                     pImageSubresources);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdCopyMemoryToImageIndirectNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        copyBufferAddress, copyCount, stride, dstImage, dstImageLayout,
+                        pImageSubresources);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_NV_memory_decompression
+            case OP_vkCmdDecompressMemoryNV: {
+                android::base::beginTrace("vkCmdDecompressMemoryNV decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t decompressRegionCount;
+                const VkDecompressMemoryRegionNV* pDecompressMemoryRegions;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&decompressRegionCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc(
+                    (void**)&pDecompressMemoryRegions,
+                    ((decompressRegionCount)) * sizeof(const VkDecompressMemoryRegionNV));
+                for (uint32_t i = 0; i < (uint32_t)((decompressRegionCount)); ++i) {
+                    reservedunmarshal_VkDecompressMemoryRegionNV(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkDecompressMemoryRegionNV*)(pDecompressMemoryRegions + i),
+                        readStreamPtrPtr);
+                }
+                if (pDecompressMemoryRegions) {
+                    for (uint32_t i = 0; i < (uint32_t)((decompressRegionCount)); ++i) {
+                        transform_tohost_VkDecompressMemoryRegionNV(
+                            m_state, (VkDecompressMemoryRegionNV*)(pDecompressMemoryRegions + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdDecompressMemoryNV 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)decompressRegionCount,
+                            (unsigned long long)pDecompressMemoryRegions);
+                }
+                vk->vkCmdDecompressMemoryNV(unboxed_commandBuffer, decompressRegionCount,
+                                            pDecompressMemoryRegions);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdDecompressMemoryNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        decompressRegionCount, pDecompressMemoryRegions);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdDecompressMemoryIndirectCountNV: {
+                android::base::beginTrace("vkCmdDecompressMemoryIndirectCountNV decode");
+                VkCommandBuffer commandBuffer;
+                VkDeviceAddress indirectCommandsAddress;
+                VkDeviceAddress indirectCommandsCountAddress;
+                uint32_t stride;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkDeviceAddress*)&indirectCommandsAddress, *readStreamPtrPtr,
+                       sizeof(VkDeviceAddress));
+                *readStreamPtrPtr += sizeof(VkDeviceAddress);
+                memcpy((VkDeviceAddress*)&indirectCommandsCountAddress, *readStreamPtrPtr,
+                       sizeof(VkDeviceAddress));
+                *readStreamPtrPtr += sizeof(VkDeviceAddress);
+                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdDecompressMemoryIndirectCountNV 0x%llx 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)indirectCommandsAddress,
+                            (unsigned long long)indirectCommandsCountAddress,
+                            (unsigned long long)stride);
+                }
+                vk->vkCmdDecompressMemoryIndirectCountNV(unboxed_commandBuffer,
+                                                         indirectCommandsAddress,
+                                                         indirectCommandsCountAddress, stride);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdDecompressMemoryIndirectCountNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        indirectCommandsAddress, indirectCommandsCountAddress, stride);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_NV_linear_color_attachment
+#endif
+#ifdef VK_GOOGLE_surfaceless_query
+#endif
+#ifdef VK_EXT_image_compression_control_swapchain
+#endif
+#ifdef VK_QCOM_image_processing
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+            case OP_vkCmdSetTessellationDomainOriginEXT: {
+                android::base::beginTrace("vkCmdSetTessellationDomainOriginEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkTessellationDomainOrigin domainOrigin;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkTessellationDomainOrigin*)&domainOrigin, *readStreamPtrPtr,
+                       sizeof(VkTessellationDomainOrigin));
+                *readStreamPtrPtr += sizeof(VkTessellationDomainOrigin);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetTessellationDomainOriginEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)domainOrigin);
+                }
+                vk->vkCmdSetTessellationDomainOriginEXT(unboxed_commandBuffer, domainOrigin);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetTessellationDomainOriginEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        domainOrigin);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDepthClampEnableEXT: {
+                android::base::beginTrace("vkCmdSetDepthClampEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 depthClampEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&depthClampEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetDepthClampEnableEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)depthClampEnable);
+                }
+                vk->vkCmdSetDepthClampEnableEXT(unboxed_commandBuffer, depthClampEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDepthClampEnableEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        depthClampEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetPolygonModeEXT: {
+                android::base::beginTrace("vkCmdSetPolygonModeEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkPolygonMode polygonMode;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkPolygonMode*)&polygonMode, *readStreamPtrPtr, sizeof(VkPolygonMode));
+                *readStreamPtrPtr += sizeof(VkPolygonMode);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetPolygonModeEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)polygonMode);
+                }
+                vk->vkCmdSetPolygonModeEXT(unboxed_commandBuffer, polygonMode);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetPolygonModeEXT(snapshotTraceBegin,
+                                                                snapshotTraceBytes, &m_pool,
+                                                                commandBuffer, polygonMode);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetRasterizationSamplesEXT: {
+                android::base::beginTrace("vkCmdSetRasterizationSamplesEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkSampleCountFlagBits rasterizationSamples;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkSampleCountFlagBits*)&rasterizationSamples, *readStreamPtrPtr,
+                       sizeof(VkSampleCountFlagBits));
+                *readStreamPtrPtr += sizeof(VkSampleCountFlagBits);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetRasterizationSamplesEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)rasterizationSamples);
+                }
+                vk->vkCmdSetRasterizationSamplesEXT(unboxed_commandBuffer, rasterizationSamples);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetRasterizationSamplesEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        rasterizationSamples);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetSampleMaskEXT: {
+                android::base::beginTrace("vkCmdSetSampleMaskEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkSampleCountFlagBits samples;
+                const VkSampleMask* pSampleMask;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkSampleCountFlagBits*)&samples, *readStreamPtrPtr,
+                       sizeof(VkSampleCountFlagBits));
+                *readStreamPtrPtr += sizeof(VkSampleCountFlagBits);
+                vkReadStream->alloc((void**)&pSampleMask,
+                                    int(samples / 32) * sizeof(const VkSampleMask));
+                memcpy((VkSampleMask*)pSampleMask, *readStreamPtrPtr,
+                       int(samples / 32) * sizeof(const VkSampleMask));
+                *readStreamPtrPtr += int(samples / 32) * sizeof(const VkSampleMask);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetSampleMaskEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)samples, (unsigned long long)pSampleMask);
+                }
+                vk->vkCmdSetSampleMaskEXT(unboxed_commandBuffer, samples, pSampleMask);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetSampleMaskEXT(snapshotTraceBegin,
+                                                               snapshotTraceBytes, &m_pool,
+                                                               commandBuffer, samples, pSampleMask);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetAlphaToCoverageEnableEXT: {
+                android::base::beginTrace("vkCmdSetAlphaToCoverageEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 alphaToCoverageEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&alphaToCoverageEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetAlphaToCoverageEnableEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)alphaToCoverageEnable);
+                }
+                vk->vkCmdSetAlphaToCoverageEnableEXT(unboxed_commandBuffer, alphaToCoverageEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetAlphaToCoverageEnableEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        alphaToCoverageEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetAlphaToOneEnableEXT: {
+                android::base::beginTrace("vkCmdSetAlphaToOneEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 alphaToOneEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&alphaToOneEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetAlphaToOneEnableEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)alphaToOneEnable);
+                }
+                vk->vkCmdSetAlphaToOneEnableEXT(unboxed_commandBuffer, alphaToOneEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetAlphaToOneEnableEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        alphaToOneEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetLogicOpEnableEXT: {
+                android::base::beginTrace("vkCmdSetLogicOpEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 logicOpEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&logicOpEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetLogicOpEnableEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)logicOpEnable);
+                }
+                vk->vkCmdSetLogicOpEnableEXT(unboxed_commandBuffer, logicOpEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetLogicOpEnableEXT(snapshotTraceBegin,
+                                                                  snapshotTraceBytes, &m_pool,
+                                                                  commandBuffer, logicOpEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetColorBlendEnableEXT: {
+                android::base::beginTrace("vkCmdSetColorBlendEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t firstAttachment;
+                uint32_t attachmentCount;
+                const VkBool32* pColorBlendEnables;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&firstAttachment, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pColorBlendEnables,
+                                    ((attachmentCount)) * sizeof(const VkBool32));
+                memcpy((VkBool32*)pColorBlendEnables, *readStreamPtrPtr,
+                       ((attachmentCount)) * sizeof(const VkBool32));
+                *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetColorBlendEnableEXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)firstAttachment,
+                            (unsigned long long)attachmentCount,
+                            (unsigned long long)pColorBlendEnables);
+                }
+                vk->vkCmdSetColorBlendEnableEXT(unboxed_commandBuffer, firstAttachment,
+                                                attachmentCount, pColorBlendEnables);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetColorBlendEnableEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        firstAttachment, attachmentCount, pColorBlendEnables);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetColorBlendEquationEXT: {
+                android::base::beginTrace("vkCmdSetColorBlendEquationEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t firstAttachment;
+                uint32_t attachmentCount;
+                const VkColorBlendEquationEXT* pColorBlendEquations;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&firstAttachment, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pColorBlendEquations,
+                                    ((attachmentCount)) * sizeof(const VkColorBlendEquationEXT));
+                for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i) {
+                    reservedunmarshal_VkColorBlendEquationEXT(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkColorBlendEquationEXT*)(pColorBlendEquations + i), readStreamPtrPtr);
+                }
+                if (pColorBlendEquations) {
+                    for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i) {
+                        transform_tohost_VkColorBlendEquationEXT(
+                            m_state, (VkColorBlendEquationEXT*)(pColorBlendEquations + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetColorBlendEquationEXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)firstAttachment,
+                            (unsigned long long)attachmentCount,
+                            (unsigned long long)pColorBlendEquations);
+                }
+                vk->vkCmdSetColorBlendEquationEXT(unboxed_commandBuffer, firstAttachment,
+                                                  attachmentCount, pColorBlendEquations);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetColorBlendEquationEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        firstAttachment, attachmentCount, pColorBlendEquations);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetColorWriteMaskEXT: {
+                android::base::beginTrace("vkCmdSetColorWriteMaskEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t firstAttachment;
+                uint32_t attachmentCount;
+                const VkColorComponentFlags* pColorWriteMasks;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&firstAttachment, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                // WARNING PTR CHECK
+                memcpy((VkColorComponentFlags**)&pColorWriteMasks, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pColorWriteMasks);
+                *readStreamPtrPtr += 8;
+                if (pColorWriteMasks) {
+                    vkReadStream->alloc((void**)&pColorWriteMasks,
+                                        ((attachmentCount)) * sizeof(const VkColorComponentFlags));
+                    memcpy((VkColorComponentFlags*)pColorWriteMasks, *readStreamPtrPtr,
+                           ((attachmentCount)) * sizeof(const VkColorComponentFlags));
+                    *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkColorComponentFlags);
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCmdSetColorWriteMaskEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)firstAttachment, (unsigned long long)attachmentCount,
+                        (unsigned long long)pColorWriteMasks);
+                }
+                vk->vkCmdSetColorWriteMaskEXT(unboxed_commandBuffer, firstAttachment,
+                                              attachmentCount, pColorWriteMasks);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetColorWriteMaskEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        firstAttachment, attachmentCount, pColorWriteMasks);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetRasterizationStreamEXT: {
+                android::base::beginTrace("vkCmdSetRasterizationStreamEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t rasterizationStream;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&rasterizationStream, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetRasterizationStreamEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)rasterizationStream);
+                }
+                vk->vkCmdSetRasterizationStreamEXT(unboxed_commandBuffer, rasterizationStream);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetRasterizationStreamEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        rasterizationStream);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetConservativeRasterizationModeEXT: {
+                android::base::beginTrace("vkCmdSetConservativeRasterizationModeEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkConservativeRasterizationModeEXT conservativeRasterizationMode;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkConservativeRasterizationModeEXT*)&conservativeRasterizationMode,
+                       *readStreamPtrPtr, sizeof(VkConservativeRasterizationModeEXT));
+                *readStreamPtrPtr += sizeof(VkConservativeRasterizationModeEXT);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCmdSetConservativeRasterizationModeEXT 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)conservativeRasterizationMode);
+                }
+                vk->vkCmdSetConservativeRasterizationModeEXT(unboxed_commandBuffer,
+                                                             conservativeRasterizationMode);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetConservativeRasterizationModeEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        conservativeRasterizationMode);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetExtraPrimitiveOverestimationSizeEXT: {
+                android::base::beginTrace("vkCmdSetExtraPrimitiveOverestimationSizeEXT decode");
+                VkCommandBuffer commandBuffer;
+                float extraPrimitiveOverestimationSize;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((float*)&extraPrimitiveOverestimationSize, *readStreamPtrPtr, sizeof(float));
+                *readStreamPtrPtr += sizeof(float);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetExtraPrimitiveOverestimationSizeEXT 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)extraPrimitiveOverestimationSize);
+                }
+                vk->vkCmdSetExtraPrimitiveOverestimationSizeEXT(unboxed_commandBuffer,
+                                                                extraPrimitiveOverestimationSize);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetExtraPrimitiveOverestimationSizeEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        extraPrimitiveOverestimationSize);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDepthClipEnableEXT: {
+                android::base::beginTrace("vkCmdSetDepthClipEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 depthClipEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&depthClipEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetDepthClipEnableEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)depthClipEnable);
+                }
+                vk->vkCmdSetDepthClipEnableEXT(unboxed_commandBuffer, depthClipEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDepthClipEnableEXT(snapshotTraceBegin,
+                                                                    snapshotTraceBytes, &m_pool,
+                                                                    commandBuffer, depthClipEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetSampleLocationsEnableEXT: {
+                android::base::beginTrace("vkCmdSetSampleLocationsEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 sampleLocationsEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&sampleLocationsEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetSampleLocationsEnableEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)sampleLocationsEnable);
+                }
+                vk->vkCmdSetSampleLocationsEnableEXT(unboxed_commandBuffer, sampleLocationsEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetSampleLocationsEnableEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        sampleLocationsEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetColorBlendAdvancedEXT: {
+                android::base::beginTrace("vkCmdSetColorBlendAdvancedEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t firstAttachment;
+                uint32_t attachmentCount;
+                const VkColorBlendAdvancedEXT* pColorBlendAdvanced;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&firstAttachment, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pColorBlendAdvanced,
+                                    ((attachmentCount)) * sizeof(const VkColorBlendAdvancedEXT));
+                for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i) {
+                    reservedunmarshal_VkColorBlendAdvancedEXT(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkColorBlendAdvancedEXT*)(pColorBlendAdvanced + i), readStreamPtrPtr);
+                }
+                if (pColorBlendAdvanced) {
+                    for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i) {
+                        transform_tohost_VkColorBlendAdvancedEXT(
+                            m_state, (VkColorBlendAdvancedEXT*)(pColorBlendAdvanced + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetColorBlendAdvancedEXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)firstAttachment,
+                            (unsigned long long)attachmentCount,
+                            (unsigned long long)pColorBlendAdvanced);
+                }
+                vk->vkCmdSetColorBlendAdvancedEXT(unboxed_commandBuffer, firstAttachment,
+                                                  attachmentCount, pColorBlendAdvanced);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetColorBlendAdvancedEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        firstAttachment, attachmentCount, pColorBlendAdvanced);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetProvokingVertexModeEXT: {
+                android::base::beginTrace("vkCmdSetProvokingVertexModeEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkProvokingVertexModeEXT provokingVertexMode;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkProvokingVertexModeEXT*)&provokingVertexMode, *readStreamPtrPtr,
+                       sizeof(VkProvokingVertexModeEXT));
+                *readStreamPtrPtr += sizeof(VkProvokingVertexModeEXT);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetProvokingVertexModeEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)provokingVertexMode);
+                }
+                vk->vkCmdSetProvokingVertexModeEXT(unboxed_commandBuffer, provokingVertexMode);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetProvokingVertexModeEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        provokingVertexMode);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetLineRasterizationModeEXT: {
+                android::base::beginTrace("vkCmdSetLineRasterizationModeEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkLineRasterizationModeEXT lineRasterizationMode;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkLineRasterizationModeEXT*)&lineRasterizationMode, *readStreamPtrPtr,
+                       sizeof(VkLineRasterizationModeEXT));
+                *readStreamPtrPtr += sizeof(VkLineRasterizationModeEXT);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetLineRasterizationModeEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)lineRasterizationMode);
+                }
+                vk->vkCmdSetLineRasterizationModeEXT(unboxed_commandBuffer, lineRasterizationMode);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetLineRasterizationModeEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        lineRasterizationMode);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetLineStippleEnableEXT: {
+                android::base::beginTrace("vkCmdSetLineStippleEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 stippledLineEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&stippledLineEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdSetLineStippleEnableEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)stippledLineEnable);
+                }
+                vk->vkCmdSetLineStippleEnableEXT(unboxed_commandBuffer, stippledLineEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetLineStippleEnableEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        stippledLineEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetDepthClipNegativeOneToOneEXT: {
+                android::base::beginTrace("vkCmdSetDepthClipNegativeOneToOneEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 negativeOneToOne;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&negativeOneToOne, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetDepthClipNegativeOneToOneEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)negativeOneToOne);
+                }
+                vk->vkCmdSetDepthClipNegativeOneToOneEXT(unboxed_commandBuffer, negativeOneToOne);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetDepthClipNegativeOneToOneEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        negativeOneToOne);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetViewportWScalingEnableNV: {
+                android::base::beginTrace("vkCmdSetViewportWScalingEnableNV decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 viewportWScalingEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&viewportWScalingEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetViewportWScalingEnableNV 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)viewportWScalingEnable);
+                }
+                vk->vkCmdSetViewportWScalingEnableNV(unboxed_commandBuffer, viewportWScalingEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetViewportWScalingEnableNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        viewportWScalingEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetViewportSwizzleNV: {
+                android::base::beginTrace("vkCmdSetViewportSwizzleNV decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t firstViewport;
+                uint32_t viewportCount;
+                const VkViewportSwizzleNV* pViewportSwizzles;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&firstViewport, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&viewportCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pViewportSwizzles,
+                                    ((viewportCount)) * sizeof(const VkViewportSwizzleNV));
+                for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                    reservedunmarshal_VkViewportSwizzleNV(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkViewportSwizzleNV*)(pViewportSwizzles + i), readStreamPtrPtr);
+                }
+                if (pViewportSwizzles) {
+                    for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                        transform_tohost_VkViewportSwizzleNV(
+                            m_state, (VkViewportSwizzleNV*)(pViewportSwizzles + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCmdSetViewportSwizzleNV 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)firstViewport, (unsigned long long)viewportCount,
+                        (unsigned long long)pViewportSwizzles);
+                }
+                vk->vkCmdSetViewportSwizzleNV(unboxed_commandBuffer, firstViewport, viewportCount,
+                                              pViewportSwizzles);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetViewportSwizzleNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        firstViewport, viewportCount, pViewportSwizzles);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetCoverageToColorEnableNV: {
+                android::base::beginTrace("vkCmdSetCoverageToColorEnableNV decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 coverageToColorEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&coverageToColorEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetCoverageToColorEnableNV 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)coverageToColorEnable);
+                }
+                vk->vkCmdSetCoverageToColorEnableNV(unboxed_commandBuffer, coverageToColorEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetCoverageToColorEnableNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        coverageToColorEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetCoverageToColorLocationNV: {
+                android::base::beginTrace("vkCmdSetCoverageToColorLocationNV decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t coverageToColorLocation;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&coverageToColorLocation, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetCoverageToColorLocationNV 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)coverageToColorLocation);
+                }
+                vk->vkCmdSetCoverageToColorLocationNV(unboxed_commandBuffer,
+                                                      coverageToColorLocation);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetCoverageToColorLocationNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        coverageToColorLocation);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetCoverageModulationModeNV: {
+                android::base::beginTrace("vkCmdSetCoverageModulationModeNV decode");
+                VkCommandBuffer commandBuffer;
+                VkCoverageModulationModeNV coverageModulationMode;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkCoverageModulationModeNV*)&coverageModulationMode, *readStreamPtrPtr,
+                       sizeof(VkCoverageModulationModeNV));
+                *readStreamPtrPtr += sizeof(VkCoverageModulationModeNV);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetCoverageModulationModeNV 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)coverageModulationMode);
+                }
+                vk->vkCmdSetCoverageModulationModeNV(unboxed_commandBuffer, coverageModulationMode);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetCoverageModulationModeNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        coverageModulationMode);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetCoverageModulationTableEnableNV: {
+                android::base::beginTrace("vkCmdSetCoverageModulationTableEnableNV decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 coverageModulationTableEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&coverageModulationTableEnable, *readStreamPtrPtr,
+                       sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCmdSetCoverageModulationTableEnableNV 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)coverageModulationTableEnable);
+                }
+                vk->vkCmdSetCoverageModulationTableEnableNV(unboxed_commandBuffer,
+                                                            coverageModulationTableEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetCoverageModulationTableEnableNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        coverageModulationTableEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetCoverageModulationTableNV: {
+                android::base::beginTrace("vkCmdSetCoverageModulationTableNV decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t coverageModulationTableCount;
+                const float* pCoverageModulationTable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&coverageModulationTableCount, *readStreamPtrPtr,
+                       sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pCoverageModulationTable,
+                                    ((coverageModulationTableCount)) * sizeof(const float));
+                memcpy((float*)pCoverageModulationTable, *readStreamPtrPtr,
+                       ((coverageModulationTableCount)) * sizeof(const float));
+                *readStreamPtrPtr += ((coverageModulationTableCount)) * sizeof(const float);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCmdSetCoverageModulationTableNV 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)coverageModulationTableCount,
+                        (unsigned long long)pCoverageModulationTable);
+                }
+                vk->vkCmdSetCoverageModulationTableNV(
+                    unboxed_commandBuffer, coverageModulationTableCount, pCoverageModulationTable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetCoverageModulationTableNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        coverageModulationTableCount, pCoverageModulationTable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetShadingRateImageEnableNV: {
+                android::base::beginTrace("vkCmdSetShadingRateImageEnableNV decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 shadingRateImageEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&shadingRateImageEnable, *readStreamPtrPtr, sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetShadingRateImageEnableNV 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)shadingRateImageEnable);
+                }
+                vk->vkCmdSetShadingRateImageEnableNV(unboxed_commandBuffer, shadingRateImageEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetShadingRateImageEnableNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        shadingRateImageEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetRepresentativeFragmentTestEnableNV: {
+                android::base::beginTrace("vkCmdSetRepresentativeFragmentTestEnableNV decode");
+                VkCommandBuffer commandBuffer;
+                VkBool32 representativeFragmentTestEnable;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkBool32*)&representativeFragmentTestEnable, *readStreamPtrPtr,
+                       sizeof(VkBool32));
+                *readStreamPtrPtr += sizeof(VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetRepresentativeFragmentTestEnableNV 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)representativeFragmentTestEnable);
+                }
+                vk->vkCmdSetRepresentativeFragmentTestEnableNV(unboxed_commandBuffer,
+                                                               representativeFragmentTestEnable);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetRepresentativeFragmentTestEnableNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        representativeFragmentTestEnable);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetCoverageReductionModeNV: {
+                android::base::beginTrace("vkCmdSetCoverageReductionModeNV decode");
+                VkCommandBuffer commandBuffer;
+                VkCoverageReductionModeNV coverageReductionMode;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkCoverageReductionModeNV*)&coverageReductionMode, *readStreamPtrPtr,
+                       sizeof(VkCoverageReductionModeNV));
+                *readStreamPtrPtr += sizeof(VkCoverageReductionModeNV);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetCoverageReductionModeNV 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)coverageReductionMode);
+                }
+                vk->vkCmdSetCoverageReductionModeNV(unboxed_commandBuffer, coverageReductionMode);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetCoverageReductionModeNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        coverageReductionMode);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_EXT_subpass_merge_feedback
+#endif
+#ifdef VK_LUNARG_direct_driver_loading
+#endif
+#ifdef VK_EXT_shader_module_identifier
+            case OP_vkGetShaderModuleIdentifierEXT: {
+                android::base::beginTrace("vkGetShaderModuleIdentifierEXT decode");
+                VkDevice device;
+                VkShaderModule shaderModule;
+                VkShaderModuleIdentifierEXT* pIdentifier;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkShaderModule*)&shaderModule =
+                    (VkShaderModule)unbox_VkShaderModule((VkShaderModule)(*&cgen_var_1));
+                // Begin manual dispatchable handle unboxing for pIdentifier;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pIdentifier, sizeof(VkShaderModuleIdentifierEXT));
+                reservedunmarshal_VkShaderModuleIdentifierEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkShaderModuleIdentifierEXT*)(pIdentifier), readStreamPtrPtr);
+                if (pIdentifier) {
+                    transform_tohost_VkShaderModuleIdentifierEXT(
+                        m_state, (VkShaderModuleIdentifierEXT*)(pIdentifier));
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkGetShaderModuleIdentifierEXT 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)shaderModule,
+                        (unsigned long long)pIdentifier);
+                }
+                vk->vkGetShaderModuleIdentifierEXT(unboxed_device, shaderModule, pIdentifier);
+                vkStream->unsetHandleMapping();
+                if (pIdentifier) {
+                    transform_fromhost_VkShaderModuleIdentifierEXT(
+                        m_state, (VkShaderModuleIdentifierEXT*)(pIdentifier));
+                }
+                marshal_VkShaderModuleIdentifierEXT(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkShaderModuleIdentifierEXT*)(pIdentifier));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetShaderModuleIdentifierEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, shaderModule,
+                        pIdentifier);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetShaderModuleCreateInfoIdentifierEXT: {
+                android::base::beginTrace("vkGetShaderModuleCreateInfoIdentifierEXT decode");
+                VkDevice device;
+                const VkShaderModuleCreateInfo* pCreateInfo;
+                VkShaderModuleIdentifierEXT* pIdentifier;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pCreateInfo, sizeof(const VkShaderModuleCreateInfo));
+                reservedunmarshal_VkShaderModuleCreateInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                           (VkShaderModuleCreateInfo*)(pCreateInfo),
+                                                           readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pIdentifier;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pIdentifier, sizeof(VkShaderModuleIdentifierEXT));
+                reservedunmarshal_VkShaderModuleIdentifierEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkShaderModuleIdentifierEXT*)(pIdentifier), readStreamPtrPtr);
+                if (pCreateInfo) {
+                    transform_tohost_VkShaderModuleCreateInfo(
+                        m_state, (VkShaderModuleCreateInfo*)(pCreateInfo));
+                }
+                if (pIdentifier) {
+                    transform_tohost_VkShaderModuleIdentifierEXT(
+                        m_state, (VkShaderModuleIdentifierEXT*)(pIdentifier));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetShaderModuleCreateInfoIdentifierEXT 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                            (unsigned long long)pIdentifier);
+                }
+                vk->vkGetShaderModuleCreateInfoIdentifierEXT(unboxed_device, pCreateInfo,
+                                                             pIdentifier);
+                vkStream->unsetHandleMapping();
+                if (pIdentifier) {
+                    transform_fromhost_VkShaderModuleIdentifierEXT(
+                        m_state, (VkShaderModuleIdentifierEXT*)(pIdentifier));
+                }
+                marshal_VkShaderModuleIdentifierEXT(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkShaderModuleIdentifierEXT*)(pIdentifier));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetShaderModuleCreateInfoIdentifierEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pCreateInfo,
+                        pIdentifier);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_EXT_rasterization_order_attachment_access
+#endif
+#ifdef VK_NV_optical_flow
+            case OP_vkGetPhysicalDeviceOpticalFlowImageFormatsNV: {
+                android::base::beginTrace("vkGetPhysicalDeviceOpticalFlowImageFormatsNV decode");
+                VkPhysicalDevice physicalDevice;
+                const VkOpticalFlowImageFormatInfoNV* pOpticalFlowImageFormatInfo;
+                uint32_t* pFormatCount;
+                VkOpticalFlowImageFormatPropertiesNV* pImageFormatProperties;
+                // Begin non wrapped dispatchable handle unboxing for physicalDevice;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPhysicalDevice*)&physicalDevice =
+                    (VkPhysicalDevice)(VkPhysicalDevice)((VkPhysicalDevice)(*&cgen_var_0));
+                auto unboxed_physicalDevice = unbox_VkPhysicalDevice(physicalDevice);
+                auto vk = dispatch_VkPhysicalDevice(physicalDevice);
+                // End manual dispatchable handle unboxing for physicalDevice;
+                vkReadStream->alloc((void**)&pOpticalFlowImageFormatInfo,
+                                    sizeof(const VkOpticalFlowImageFormatInfoNV));
+                reservedunmarshal_VkOpticalFlowImageFormatInfoNV(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkOpticalFlowImageFormatInfoNV*)(pOpticalFlowImageFormatInfo),
+                    readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pFormatCount;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((uint32_t**)&pFormatCount, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pFormatCount);
+                *readStreamPtrPtr += 8;
+                if (pFormatCount) {
+                    vkReadStream->alloc((void**)&pFormatCount, sizeof(uint32_t));
+                    memcpy((uint32_t*)pFormatCount, *readStreamPtrPtr, sizeof(uint32_t));
+                    *readStreamPtrPtr += sizeof(uint32_t);
+                }
+                // Begin manual dispatchable handle unboxing for pImageFormatProperties;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((VkOpticalFlowImageFormatPropertiesNV**)&pImageFormatProperties,
+                       (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pImageFormatProperties);
+                *readStreamPtrPtr += 8;
+                if (pImageFormatProperties) {
+                    vkReadStream->alloc(
+                        (void**)&pImageFormatProperties,
+                        (*(pFormatCount)) * sizeof(VkOpticalFlowImageFormatPropertiesNV));
+                    for (uint32_t i = 0; i < (uint32_t)(*(pFormatCount)); ++i) {
+                        reservedunmarshal_VkOpticalFlowImageFormatPropertiesNV(
+                            vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                            (VkOpticalFlowImageFormatPropertiesNV*)(pImageFormatProperties + i),
+                            readStreamPtrPtr);
+                    }
+                }
+                if (pOpticalFlowImageFormatInfo) {
+                    transform_tohost_VkOpticalFlowImageFormatInfoNV(
+                        m_state, (VkOpticalFlowImageFormatInfoNV*)(pOpticalFlowImageFormatInfo));
+                }
+                if (pFormatCount) {
+                    if (pImageFormatProperties) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pFormatCount)); ++i) {
+                            transform_tohost_VkOpticalFlowImageFormatPropertiesNV(
+                                m_state,
+                                (VkOpticalFlowImageFormatPropertiesNV*)(pImageFormatProperties +
+                                                                        i));
+                        }
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetPhysicalDeviceOpticalFlowImageFormatsNV 0x%llx "
+                            "0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)physicalDevice,
+                            (unsigned long long)pOpticalFlowImageFormatInfo,
+                            (unsigned long long)pFormatCount,
+                            (unsigned long long)pImageFormatProperties);
+                }
+                VkResult vkGetPhysicalDeviceOpticalFlowImageFormatsNV_VkResult_return = (VkResult)0;
+                vkGetPhysicalDeviceOpticalFlowImageFormatsNV_VkResult_return =
+                    vk->vkGetPhysicalDeviceOpticalFlowImageFormatsNV(
+                        unboxed_physicalDevice, pOpticalFlowImageFormatInfo, pFormatCount,
+                        pImageFormatProperties);
+                if ((vkGetPhysicalDeviceOpticalFlowImageFormatsNV_VkResult_return) ==
+                    VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(
+                    vkGetPhysicalDeviceOpticalFlowImageFormatsNV_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pFormatCount;
+                vkStream->putBe64(cgen_var_3);
+                if (pFormatCount) {
+                    vkStream->write((uint32_t*)pFormatCount, sizeof(uint32_t));
+                }
+                if (pFormatCount) {
+                    if (pImageFormatProperties) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pFormatCount)); ++i) {
+                            transform_fromhost_VkOpticalFlowImageFormatPropertiesNV(
+                                m_state,
+                                (VkOpticalFlowImageFormatPropertiesNV*)(pImageFormatProperties +
+                                                                        i));
+                        }
+                    }
+                }
+                // WARNING PTR CHECK
+                uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pImageFormatProperties;
+                vkStream->putBe64(cgen_var_4);
+                if (pImageFormatProperties) {
+                    if (pFormatCount) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pFormatCount)); ++i) {
+                            marshal_VkOpticalFlowImageFormatPropertiesNV(
+                                vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                (VkOpticalFlowImageFormatPropertiesNV*)(pImageFormatProperties +
+                                                                        i));
+                        }
+                    }
+                }
+                vkStream->write(&vkGetPhysicalDeviceOpticalFlowImageFormatsNV_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetPhysicalDeviceOpticalFlowImageFormatsNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetPhysicalDeviceOpticalFlowImageFormatsNV_VkResult_return,
+                        physicalDevice, pOpticalFlowImageFormatInfo, pFormatCount,
+                        pImageFormatProperties);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCreateOpticalFlowSessionNV: {
+                android::base::beginTrace("vkCreateOpticalFlowSessionNV decode");
+                VkDevice device;
+                const VkOpticalFlowSessionCreateInfoNV* pCreateInfo;
+                const VkAllocationCallbacks* pAllocator;
+                VkOpticalFlowSessionNV* pSession;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pCreateInfo,
+                                    sizeof(const VkOpticalFlowSessionCreateInfoNV));
+                reservedunmarshal_VkOpticalFlowSessionCreateInfoNV(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkOpticalFlowSessionCreateInfoNV*)(pCreateInfo), readStreamPtrPtr);
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                // Begin manual dispatchable handle unboxing for pSession;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pSession, sizeof(VkOpticalFlowSessionNV));
+                memcpy((VkOpticalFlowSessionNV*)&(*pSession), (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&(*pSession));
+                *readStreamPtrPtr += 8;
+                if (pCreateInfo) {
+                    transform_tohost_VkOpticalFlowSessionCreateInfoNV(
+                        m_state, (VkOpticalFlowSessionCreateInfoNV*)(pCreateInfo));
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCreateOpticalFlowSessionNV 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                            (unsigned long long)pAllocator, (unsigned long long)pSession);
+                }
+                VkResult vkCreateOpticalFlowSessionNV_VkResult_return = (VkResult)0;
+                vkCreateOpticalFlowSessionNV_VkResult_return = vk->vkCreateOpticalFlowSessionNV(
+                    unboxed_device, pCreateInfo, pAllocator, pSession);
+                if ((vkCreateOpticalFlowSessionNV_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCreateOpticalFlowSessionNV_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                uint64_t cgen_var_3 = (uint64_t)(*pSession);
+                vkStream->putBe64(cgen_var_3);
+                vkStream->write(&vkCreateOpticalFlowSessionNV_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCreateOpticalFlowSessionNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCreateOpticalFlowSessionNV_VkResult_return, device, pCreateInfo,
+                        pAllocator, pSession);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkDestroyOpticalFlowSessionNV: {
+                android::base::beginTrace("vkDestroyOpticalFlowSessionNV decode");
+                VkDevice device;
+                VkOpticalFlowSessionNV session;
+                const VkAllocationCallbacks* pAllocator;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkOpticalFlowSessionNV*)&session, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&session);
+                *readStreamPtrPtr += 8;
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkDestroyOpticalFlowSessionNV 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)session,
+                            (unsigned long long)pAllocator);
+                }
+                vk->vkDestroyOpticalFlowSessionNV(unboxed_device, session, pAllocator);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkDestroyOpticalFlowSessionNV(snapshotTraceBegin,
+                                                                       snapshotTraceBytes, &m_pool,
+                                                                       device, session, pAllocator);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkBindOpticalFlowSessionImageNV: {
+                android::base::beginTrace("vkBindOpticalFlowSessionImageNV decode");
+                VkDevice device;
+                VkOpticalFlowSessionNV session;
+                VkOpticalFlowSessionBindingPointNV bindingPoint;
+                VkImageView view;
+                VkImageLayout layout;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkOpticalFlowSessionNV*)&session, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&session);
+                *readStreamPtrPtr += 8;
+                memcpy((VkOpticalFlowSessionBindingPointNV*)&bindingPoint, *readStreamPtrPtr,
+                       sizeof(VkOpticalFlowSessionBindingPointNV));
+                *readStreamPtrPtr += sizeof(VkOpticalFlowSessionBindingPointNV);
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImageView*)&view = (VkImageView)unbox_VkImageView((VkImageView)(*&cgen_var_2));
+                memcpy((VkImageLayout*)&layout, *readStreamPtrPtr, sizeof(VkImageLayout));
+                *readStreamPtrPtr += sizeof(VkImageLayout);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkBindOpticalFlowSessionImageNV 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)session,
+                            (unsigned long long)bindingPoint, (unsigned long long)view,
+                            (unsigned long long)layout);
+                }
+                VkResult vkBindOpticalFlowSessionImageNV_VkResult_return = (VkResult)0;
+                vkBindOpticalFlowSessionImageNV_VkResult_return =
+                    vk->vkBindOpticalFlowSessionImageNV(unboxed_device, session, bindingPoint, view,
+                                                        layout);
+                if ((vkBindOpticalFlowSessionImageNV_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkBindOpticalFlowSessionImageNV_VkResult_return,
+                                             opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkBindOpticalFlowSessionImageNV_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkBindOpticalFlowSessionImageNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkBindOpticalFlowSessionImageNV_VkResult_return, device, session,
+                        bindingPoint, view, layout);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdOpticalFlowExecuteNV: {
+                android::base::beginTrace("vkCmdOpticalFlowExecuteNV decode");
+                VkCommandBuffer commandBuffer;
+                VkOpticalFlowSessionNV session;
+                const VkOpticalFlowExecuteInfoNV* pExecuteInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkOpticalFlowSessionNV*)&session, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&session);
+                *readStreamPtrPtr += 8;
+                vkReadStream->alloc((void**)&pExecuteInfo,
+                                    sizeof(const VkOpticalFlowExecuteInfoNV));
+                reservedunmarshal_VkOpticalFlowExecuteInfoNV(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkOpticalFlowExecuteInfoNV*)(pExecuteInfo), readStreamPtrPtr);
+                if (pExecuteInfo) {
+                    transform_tohost_VkOpticalFlowExecuteInfoNV(
+                        m_state, (VkOpticalFlowExecuteInfoNV*)(pExecuteInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdOpticalFlowExecuteNV 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)session, (unsigned long long)pExecuteInfo);
+                }
+                vk->vkCmdOpticalFlowExecuteNV(unboxed_commandBuffer, session, pExecuteInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdOpticalFlowExecuteNV(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, session,
+                        pExecuteInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_EXT_legacy_dithering
+#endif
+#ifdef VK_EXT_pipeline_protected_access
+#endif
+#ifdef VK_EXT_shader_object
+            case OP_vkCreateShadersEXT: {
+                android::base::beginTrace("vkCreateShadersEXT decode");
+                VkDevice device;
+                uint32_t createInfoCount;
+                const VkShaderCreateInfoEXT* pCreateInfos;
+                const VkAllocationCallbacks* pAllocator;
+                VkShaderEXT* pShaders;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((uint32_t*)&createInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pCreateInfos,
+                                    ((createInfoCount)) * sizeof(const VkShaderCreateInfoEXT));
+                for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                    reservedunmarshal_VkShaderCreateInfoEXT(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkShaderCreateInfoEXT*)(pCreateInfos + i), readStreamPtrPtr);
+                }
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                // Begin manual dispatchable handle unboxing for pShaders;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pShaders, ((createInfoCount)) * sizeof(VkShaderEXT));
+                for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                    memcpy((VkShaderEXT*)&pShaders[i], (*readStreamPtrPtr), 8);
+                    android::base::Stream::fromBe64((uint8_t*)&pShaders[i]);
+                    *readStreamPtrPtr += 8;
+                }
+                if (pCreateInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                        transform_tohost_VkShaderCreateInfoEXT(
+                            m_state, (VkShaderCreateInfoEXT*)(pCreateInfos + i));
+                    }
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCreateShadersEXT 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)createInfoCount,
+                        (unsigned long long)pCreateInfos, (unsigned long long)pAllocator,
+                        (unsigned long long)pShaders);
+                }
+                VkResult vkCreateShadersEXT_VkResult_return = (VkResult)0;
+                vkCreateShadersEXT_VkResult_return = vk->vkCreateShadersEXT(
+                    unboxed_device, createInfoCount, pCreateInfos, pAllocator, pShaders);
+                if ((vkCreateShadersEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCreateShadersEXT_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                    uint64_t cgen_var_1_0 = (uint64_t)pShaders[i];
+                    vkStream->putBe64(cgen_var_1_0);
+                }
+                vkStream->write(&vkCreateShadersEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCreateShadersEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCreateShadersEXT_VkResult_return, device, createInfoCount, pCreateInfos,
+                        pAllocator, pShaders);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkDestroyShaderEXT: {
+                android::base::beginTrace("vkDestroyShaderEXT decode");
+                VkDevice device;
+                VkShaderEXT shader;
+                const VkAllocationCallbacks* pAllocator;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkShaderEXT*)&shader, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&shader);
+                *readStreamPtrPtr += 8;
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkDestroyShaderEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)shader,
+                            (unsigned long long)pAllocator);
+                }
+                vk->vkDestroyShaderEXT(unboxed_device, shader, pAllocator);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkDestroyShaderEXT(snapshotTraceBegin, snapshotTraceBytes,
+                                                            &m_pool, device, shader, pAllocator);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetShaderBinaryDataEXT: {
+                android::base::beginTrace("vkGetShaderBinaryDataEXT decode");
+                VkDevice device;
+                VkShaderEXT shader;
+                size_t* pDataSize;
+                void* pData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkShaderEXT*)&shader, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&shader);
+                *readStreamPtrPtr += 8;
+                // Begin manual dispatchable handle unboxing for pDataSize;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((size_t**)&pDataSize, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pDataSize);
+                *readStreamPtrPtr += 8;
+                if (pDataSize) {
+                    vkReadStream->alloc((void**)&pDataSize, sizeof(size_t));
+                    memcpy((size_t*)&(*pDataSize), (*readStreamPtrPtr), 8);
+                    android::base::Stream::fromBe64((uint8_t*)&(*pDataSize));
+                    *readStreamPtrPtr += 8;
+                }
+                // Begin manual dispatchable handle unboxing for pData;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((void**)&pData, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pData);
+                *readStreamPtrPtr += 8;
+                if (pData) {
+                    vkReadStream->alloc((void**)&pData, (*(pDataSize)) * sizeof(uint8_t));
+                    memcpy((void*)pData, *readStreamPtrPtr, (*(pDataSize)) * sizeof(uint8_t));
+                    *readStreamPtrPtr += (*(pDataSize)) * sizeof(uint8_t);
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkGetShaderBinaryDataEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)device, (unsigned long long)shader,
+                        (unsigned long long)pDataSize, (unsigned long long)pData);
+                }
+                VkResult vkGetShaderBinaryDataEXT_VkResult_return = (VkResult)0;
+                vkGetShaderBinaryDataEXT_VkResult_return =
+                    vk->vkGetShaderBinaryDataEXT(unboxed_device, shader, pDataSize, pData);
+                if ((vkGetShaderBinaryDataEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkGetShaderBinaryDataEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pDataSize;
+                vkStream->putBe64(cgen_var_4);
+                if (pDataSize) {
+                    uint64_t cgen_var_4_0 = (uint64_t)(*pDataSize);
+                    vkStream->putBe64(cgen_var_4_0);
+                }
+                // WARNING PTR CHECK
+                uint64_t cgen_var_5 = (uint64_t)(uintptr_t)pData;
+                vkStream->putBe64(cgen_var_5);
+                if (pData) {
+                    vkStream->write((void*)pData, (*(pDataSize)) * sizeof(uint8_t));
+                }
+                vkStream->write(&vkGetShaderBinaryDataEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetShaderBinaryDataEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetShaderBinaryDataEXT_VkResult_return, device, shader, pDataSize, pData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdBindShadersEXT: {
+                android::base::beginTrace("vkCmdBindShadersEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t stageCount;
+                const VkShaderStageFlagBits* pStages;
+                const VkShaderEXT* pShaders;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&stageCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pStages,
+                                    ((stageCount)) * sizeof(const VkShaderStageFlagBits));
+                memcpy((VkShaderStageFlagBits*)pStages, *readStreamPtrPtr,
+                       ((stageCount)) * sizeof(const VkShaderStageFlagBits));
+                *readStreamPtrPtr += ((stageCount)) * sizeof(const VkShaderStageFlagBits);
+                // WARNING PTR CHECK
+                memcpy((VkShaderEXT**)&pShaders, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pShaders);
+                *readStreamPtrPtr += 8;
+                if (pShaders) {
+                    vkReadStream->alloc((void**)&pShaders,
+                                        ((stageCount)) * sizeof(const VkShaderEXT));
+                    for (uint32_t i = 0; i < (uint32_t)((stageCount)); ++i) {
+                        memcpy((VkShaderEXT*)&pShaders[i], (*readStreamPtrPtr), 8);
+                        android::base::Stream::fromBe64((uint8_t*)&pShaders[i]);
+                        *readStreamPtrPtr += 8;
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdBindShadersEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)stageCount, (unsigned long long)pStages,
+                            (unsigned long long)pShaders);
+                }
+                vk->vkCmdBindShadersEXT(unboxed_commandBuffer, stageCount, pStages, pShaders);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdBindShadersEXT(snapshotTraceBegin, snapshotTraceBytes,
+                                                             &m_pool, commandBuffer, stageCount,
+                                                             pStages, pShaders);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_QCOM_tile_properties
+            case OP_vkGetFramebufferTilePropertiesQCOM: {
+                android::base::beginTrace("vkGetFramebufferTilePropertiesQCOM decode");
+                VkDevice device;
+                VkFramebuffer framebuffer;
+                uint32_t* pPropertiesCount;
+                VkTilePropertiesQCOM* pProperties;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkFramebuffer*)&framebuffer =
+                    (VkFramebuffer)unbox_VkFramebuffer((VkFramebuffer)(*&cgen_var_1));
+                // Begin manual dispatchable handle unboxing for pPropertiesCount;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((uint32_t**)&pPropertiesCount, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pPropertiesCount);
+                *readStreamPtrPtr += 8;
+                if (pPropertiesCount) {
+                    vkReadStream->alloc((void**)&pPropertiesCount, sizeof(uint32_t));
+                    memcpy((uint32_t*)pPropertiesCount, *readStreamPtrPtr, sizeof(uint32_t));
+                    *readStreamPtrPtr += sizeof(uint32_t);
+                }
+                // Begin manual dispatchable handle unboxing for pProperties;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((VkTilePropertiesQCOM**)&pProperties, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pProperties);
+                *readStreamPtrPtr += 8;
+                if (pProperties) {
+                    vkReadStream->alloc((void**)&pProperties,
+                                        (*(pPropertiesCount)) * sizeof(VkTilePropertiesQCOM));
+                    for (uint32_t i = 0; i < (uint32_t)(*(pPropertiesCount)); ++i) {
+                        reservedunmarshal_VkTilePropertiesQCOM(
+                            vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                            (VkTilePropertiesQCOM*)(pProperties + i), readStreamPtrPtr);
+                    }
+                }
+                if (pPropertiesCount) {
+                    if (pProperties) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertiesCount)); ++i) {
+                            transform_tohost_VkTilePropertiesQCOM(
+                                m_state, (VkTilePropertiesQCOM*)(pProperties + i));
+                        }
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetFramebufferTilePropertiesQCOM 0x%llx 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)framebuffer,
+                            (unsigned long long)pPropertiesCount, (unsigned long long)pProperties);
+                }
+                VkResult vkGetFramebufferTilePropertiesQCOM_VkResult_return = (VkResult)0;
+                vkGetFramebufferTilePropertiesQCOM_VkResult_return =
+                    vk->vkGetFramebufferTilePropertiesQCOM(unboxed_device, framebuffer,
+                                                           pPropertiesCount, pProperties);
+                if ((vkGetFramebufferTilePropertiesQCOM_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkGetFramebufferTilePropertiesQCOM_VkResult_return,
+                                             opcode, context);
+                vkStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pPropertiesCount;
+                vkStream->putBe64(cgen_var_4);
+                if (pPropertiesCount) {
+                    vkStream->write((uint32_t*)pPropertiesCount, sizeof(uint32_t));
+                }
+                if (pPropertiesCount) {
+                    if (pProperties) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertiesCount)); ++i) {
+                            transform_fromhost_VkTilePropertiesQCOM(
+                                m_state, (VkTilePropertiesQCOM*)(pProperties + i));
+                        }
+                    }
+                }
+                // WARNING PTR CHECK
+                uint64_t cgen_var_5 = (uint64_t)(uintptr_t)pProperties;
+                vkStream->putBe64(cgen_var_5);
+                if (pProperties) {
+                    if (pPropertiesCount) {
+                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertiesCount)); ++i) {
+                            marshal_VkTilePropertiesQCOM(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                         (VkTilePropertiesQCOM*)(pProperties + i));
+                        }
+                    }
+                }
+                vkStream->write(&vkGetFramebufferTilePropertiesQCOM_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetFramebufferTilePropertiesQCOM(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetFramebufferTilePropertiesQCOM_VkResult_return, device, framebuffer,
+                        pPropertiesCount, pProperties);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetDynamicRenderingTilePropertiesQCOM: {
+                android::base::beginTrace("vkGetDynamicRenderingTilePropertiesQCOM decode");
+                VkDevice device;
+                const VkRenderingInfo* pRenderingInfo;
+                VkTilePropertiesQCOM* pProperties;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pRenderingInfo, sizeof(const VkRenderingInfo));
+                reservedunmarshal_VkRenderingInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                  (VkRenderingInfo*)(pRenderingInfo),
+                                                  readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pProperties;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pProperties, sizeof(VkTilePropertiesQCOM));
+                reservedunmarshal_VkTilePropertiesQCOM(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkTilePropertiesQCOM*)(pProperties),
+                                                       readStreamPtrPtr);
+                if (pRenderingInfo) {
+                    transform_tohost_VkRenderingInfo(m_state, (VkRenderingInfo*)(pRenderingInfo));
+                }
+                if (pProperties) {
+                    transform_tohost_VkTilePropertiesQCOM(m_state,
+                                                          (VkTilePropertiesQCOM*)(pProperties));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetDynamicRenderingTilePropertiesQCOM 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)pRenderingInfo, (unsigned long long)pProperties);
+                }
+                VkResult vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return = (VkResult)0;
+                vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return =
+                    vk->vkGetDynamicRenderingTilePropertiesQCOM(unboxed_device, pRenderingInfo,
+                                                                pProperties);
+                if ((vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return) ==
+                    VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(
+                    vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                if (pProperties) {
+                    transform_fromhost_VkTilePropertiesQCOM(m_state,
+                                                            (VkTilePropertiesQCOM*)(pProperties));
+                }
+                marshal_VkTilePropertiesQCOM(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                             (VkTilePropertiesQCOM*)(pProperties));
+                vkStream->write(&vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetDynamicRenderingTilePropertiesQCOM(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return, device,
+                        pRenderingInfo, pProperties);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_SEC_amigo_profiling
+#endif
+#ifdef VK_QCOM_multiview_per_view_viewports
+#endif
+#ifdef VK_NV_ray_tracing_invocation_reorder
+#endif
+#ifdef VK_EXT_mutable_descriptor_type
+#endif
+#ifdef VK_ARM_shader_core_builtins
+#endif
+#ifdef VK_EXT_pipeline_library_group_handles
+#endif
+#ifdef VK_QCOM_multiview_per_view_render_areas
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+            case OP_vkCmdSetAttachmentFeedbackLoopEnableEXT: {
+                android::base::beginTrace("vkCmdSetAttachmentFeedbackLoopEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkImageAspectFlags aspectMask;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkImageAspectFlags*)&aspectMask, *readStreamPtrPtr,
+                       sizeof(VkImageAspectFlags));
+                *readStreamPtrPtr += sizeof(VkImageAspectFlags);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCmdSetAttachmentFeedbackLoopEnableEXT 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)aspectMask);
+                }
+                vk->vkCmdSetAttachmentFeedbackLoopEnableEXT(unboxed_commandBuffer, aspectMask);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetAttachmentFeedbackLoopEnableEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, aspectMask);
                 }
                 vkReadStream->clearPool();
                 if (queueSubmitWithCommandsEnabled)
@@ -34570,6 +41071,165 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             }
 #endif
 #ifdef VK_KHR_ray_query
+#endif
+#ifdef VK_EXT_mesh_shader
+            case OP_vkCmdDrawMeshTasksEXT: {
+                android::base::beginTrace("vkCmdDrawMeshTasksEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t groupCountX;
+                uint32_t groupCountY;
+                uint32_t groupCountZ;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&groupCountX, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCountY, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCountZ, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdDrawMeshTasksEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)groupCountX, (unsigned long long)groupCountY,
+                            (unsigned long long)groupCountZ);
+                }
+                vk->vkCmdDrawMeshTasksEXT(unboxed_commandBuffer, groupCountX, groupCountY,
+                                          groupCountZ);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdDrawMeshTasksEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, groupCountX,
+                        groupCountY, groupCountZ);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdDrawMeshTasksIndirectEXT: {
+                android::base::beginTrace("vkCmdDrawMeshTasksIndirectEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                uint32_t drawCount;
+                uint32_t stride;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((uint32_t*)&drawCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdDrawMeshTasksIndirectEXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
+                            (unsigned long long)offset, (unsigned long long)drawCount,
+                            (unsigned long long)stride);
+                }
+                vk->vkCmdDrawMeshTasksIndirectEXT(unboxed_commandBuffer, buffer, offset, drawCount,
+                                                  stride);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdDrawMeshTasksIndirectEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, buffer,
+                        offset, drawCount, stride);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdDrawMeshTasksIndirectCountEXT: {
+                android::base::beginTrace("vkCmdDrawMeshTasksIndirectCountEXT decode");
+                VkCommandBuffer commandBuffer;
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                VkBuffer countBuffer;
+                VkDeviceSize countBufferOffset;
+                uint32_t maxDrawCount;
+                uint32_t stride;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&countBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_2));
+                memcpy((VkDeviceSize*)&countBufferOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((uint32_t*)&maxDrawCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdDrawMeshTasksIndirectCountEXT 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
+                            (unsigned long long)offset, (unsigned long long)countBuffer,
+                            (unsigned long long)countBufferOffset, (unsigned long long)maxDrawCount,
+                            (unsigned long long)stride);
+                }
+                vk->vkCmdDrawMeshTasksIndirectCountEXT(unboxed_commandBuffer, buffer, offset,
+                                                       countBuffer, countBufferOffset, maxDrawCount,
+                                                       stride);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdDrawMeshTasksIndirectCountEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, buffer,
+                        offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
 #endif
             default: {
                 m_pool.freeAll();

@@ -1251,7 +1251,7 @@ VkResult CreateSwapchainKHR(VkDevice device,
         // TODO(kaiyili): remove this guard once we bump the version of VK_ANDROID_native_buffer to
         // 8
 #if VK_ANDROID_NATIVE_BUFFER_SPEC_VERSION > 6
-        image_native_buffer.handle = img.buffer->handle;
+        image_native_buffer.handle = reinterpret_cast<const uint32_t*>(img.buffer->handle);
 #endif
         image_native_buffer.stride = img.buffer->stride;
         image_native_buffer.format = img.buffer->format;

@@ -66,7 +66,7 @@ if __name__ == '__main__':
         name = elem.get('name')
         supported = elem.get('supported')
 
-        if supported == 'vulkan':
+        if 'vulkan' in supported.split(','):
             # Relies on name being in the form VK_<vendor>_stuff
             (vk, vendor) = name.split('_')[0:2]
 
