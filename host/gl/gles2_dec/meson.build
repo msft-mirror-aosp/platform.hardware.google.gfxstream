@@ -14,4 +14,5 @@ lib_gles2_dec = static_library(
   include_directories: [inc_include, inc_apigen_codec, inc_gles_translator,
                         inc_gl_snapshot],
   link_with: lib_gl_snapshot,
+  dependencies: aemu_base_dep,
 )

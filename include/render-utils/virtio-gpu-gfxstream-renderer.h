@@ -78,6 +78,7 @@ struct stream_renderer_resource_info {
 
 #define STREAM_RENDERER_FLAG_FENCE (1 << 0)
 #define STREAM_RENDERER_FLAG_FENCE_RING_IDX (1 << 1)
+#define STREAM_RENDERER_FLAG_FENCE_SHAREABLE (1 << 2)
 struct stream_renderer_fence {
     uint32_t flags;
     uint64_t fence_id;
@@ -85,9 +86,43 @@ struct stream_renderer_fence {
     uint8_t ring_idx;
 };
 
+#define STREAM_MEM_HANDLE_TYPE_OPAQUE_FD 0x1
+#define STREAM_MEM_HANDLE_TYPE_DMABUF 0x2
+#define STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32 0x3
+#define STREAM_MEM_HANDLE_TYPE_SHM 0x4
+#define STREAM_MEM_HANDLE_TYPE_ZIRCON 0x5
+#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_FD 0x6
+#define STREAM_FENCE_HANDLE_TYPE_SYNC_FD 0x7
+#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_WIN32 0x8
+#define STREAM_FENCE_HANDLE_TYPE_ZIRCON 0x9
+struct stream_renderer_handle {
+    int64_t os_handle;
+    uint32_t handle_type;
+};
+
+// Log level of gfxstream
+#ifndef STREAM_RENDERER_LOG_LEVEL
+#define STREAM_RENDERER_LOG_LEVEL 1
+#endif
+
+// @user_data: custom user data passed during `stream_renderer_init`
+// @type: one of STREAM_RENDERER_DEBUG_*
+// @string: null-terminated C-string
+#define STREAM_RENDERER_DEBUG_ERROR 0x1
+#define STREAM_RENDERER_DEBUG_WARN 0x2
+#define STREAM_RENDERER_DEBUG_INFO 0x3
+struct stream_renderer_debug {
+    uint32_t debug_type;
+    const char* message;
+};
+
 // Callback for writing a fence.
 typedef void (*stream_renderer_fence_callback)(void* user_data,
                                                struct stream_renderer_fence* fence_data);
+
+// Callback for allowing debug prints or possibly even aborts.
+typedef void (*stream_renderer_debug_callback)(void* user_data,
+                                               struct stream_renderer_debug* debug);
 
 // Parameters - data passed to initialize the renderer, with the goal of avoiding FFI breakages.
 // To change the data a parameter is passing safely, you should create a new parameter and
@@ -96,7 +131,7 @@ typedef void (*stream_renderer_fence_callback)(void* user_data,
 // STREAM_RENDERER_PARAM_NULL: Reserved value
 //
 // The following are required for correct operation:
-// STREAM_RENDERER_PARAM_USER_DATA: User data, for custom use by renderer.
+// STREAM_RENDERER_PARAM_USER_DATA: User data, for custom use by VMM.
 // STREAM_RENDERER_PARAM_RENDERER_FLAGS: Bitwise flags for the renderer.
 // STREAM_RENDERER_PARAM_FENCE_CALLBACK: A function of the type `stream_renderer_fence_callback`
 
@@ -109,6 +144,7 @@ typedef void (*stream_renderer_fence_callback)(void* user_data,
 #define STREAM_RENDERER_PARAM_FENCE_CALLBACK 3
 #define STREAM_RENDERER_PARAM_WIN0_WIDTH 4
 #define STREAM_RENDERER_PARAM_WIN0_HEIGHT 5
+#define STREAM_RENDERER_PARAM_DEBUG_CALLBACK 6
 
 // An entry in the stream renderer parameters list.
 // The key should be one of STREAM_RENDERER_PARAM_*
@@ -132,7 +168,18 @@ VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_cr
                                               struct iovec* iov, uint32_t num_iovs);
 VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle);
 VG_EXPORT void stream_renderer_context_destroy(uint32_t handle);
-VG_EXPORT int stream_renderer_submit_cmd(void* buffer, int ctx_id, int bytes);
+
+struct stream_renderer_command {
+    uint32_t ctx_id;
+    uint32_t cmd_size;
+    uint8_t* cmd;
+
+    uint32_t num_in_fences;
+    struct stream_renderer_handle* fences;
+};
+
+VG_EXPORT int stream_renderer_submit_cmd(struct stream_renderer_command* cmd);
+
 VG_EXPORT int stream_renderer_transfer_read_iov(uint32_t handle, uint32_t ctx_id, uint32_t level,
                                                 uint32_t stride, uint32_t layer_stride,
                                                 struct stream_renderer_box* box, uint64_t offset,
@@ -151,20 +198,6 @@ VG_EXPORT void stream_renderer_ctx_attach_resource(int ctx_id, int res_handle);
 VG_EXPORT void stream_renderer_ctx_detach_resource(int ctx_id, int res_handle);
 VG_EXPORT int stream_renderer_resource_get_info(int res_handle,
                                                 struct stream_renderer_resource_info* info);
-
-#define STREAM_MEM_HANDLE_TYPE_OPAQUE_FD 0x1
-#define STREAM_MEM_HANDLE_TYPE_DMABUF 0x2
-#define STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32 0x3
-#define STREAM_MEM_HANDLE_TYPE_SHM 0x4
-#define STREAM_MEM_HANDLE_TYPE_ZIRCON 0x5
-#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_FD 0x6
-#define STREAM_FENCE_HANDLE_TYPE_SYNC_FD 0x7
-#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_WIN32 0x8
-#define STREAM_FENCE_HANDLE_TYPE_ZIRCON 0x9
-struct stream_renderer_handle {
-    int64_t os_handle;
-    uint32_t handle_type;
-};
 
 struct stream_renderer_create_blob {
     uint32_t blob_mem;

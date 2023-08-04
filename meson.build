@@ -21,12 +21,9 @@ default_cpp_args = [
   '-Wno-unused-function',
   '-Wno-unused-variable',
   '-Wno-ignored-qualifiers',
-  '-Wno-reorder-ctor',
   '-Wno-mismatched-tags',
   '-Wno-missing-field-initializers',
   '-Wno-implicit-fallthrough',
-  '-Wno-unused-private-field',
-  '-Wno-macro-redefined'
 ]
 
 #===============#
@@ -36,6 +33,19 @@ drm_dep = dependency('libdrm')
 aemu_base_dep = dependency('aemu_base')
 aemu_common_dep = dependency('aemu_host_common')
 logging_base_dep = dependency('logging_base')
+
+#========================#
+# Logging + error report #
+#========================#
+log_level = get_option('log-level')
+
+if log_level == 'error'
+  default_cpp_args += '-DSTREAM_RENDERER_LOG_LEVEL=1'
+elif log_level == 'warn'
+  default_cpp_args += '-DSTREAM_RENDERER_LOG_LEVEL=2'
+elif log_level == 'info'
+  default_cpp_args += '-DSTREAM_RENDERER_LOG_LEVEL=3'
+endif
 
 #===============#
 # Decoders      #
@@ -70,6 +80,7 @@ inc_include = include_directories('include')
 inc_utils = include_directories('utils/include')
 
 if use_vulkan
+  inc_vulkan_headers = include_directories('common/vulkan/include')
   inc_renderdoc_external = include_directories('third-party/renderdoc/include')
 endif
 
@@ -77,6 +88,8 @@ if use_magma
   inc_magma_external = include_directories('third-party/fuchsia/magma/include')
   inc_magma_external_lib = include_directories('third-party/fuchsia/magma/include/lib')
 endif
+
+inc_glm = include_directories('third-party/glm/include')
 
 #================#
 # Subdirectories #
@@ -95,6 +108,7 @@ summary({'prefix': get_option('prefix'),
 summary({'c_args': (' ').join(get_option('c_args')),
          'cpp_args': (' ').join(get_option('cpp_args')),
          'buildtype': (' ').join(get_option('buildtype')),
+         'log-level': log_level,
          'gles': use_gles,
          'vulkan': use_vulkan,
          'magma': use_magma,

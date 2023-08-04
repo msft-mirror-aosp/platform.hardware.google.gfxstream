@@ -2511,11 +2511,9 @@ GL_API GLboolean GLAPIENTRY glIsFramebufferOES(GLuint framebuffer) {
     }
 }
 
-GL_API void GLAPIENTRY glBindFramebufferOES(GLenum target, GLuint framebuffer) {
+void glBindFramebufferNoValidation(GLenum target, GLuint framebuffer) {
     GET_CTX()
     GLES_CM_TRACE()
-    SET_ERROR_IF(!ctx->getCaps()->GL_EXT_FRAMEBUFFER_OBJECT,GL_INVALID_OPERATION);
-    SET_ERROR_IF(!GLEScmValidate::framebufferTarget(target) ,GL_INVALID_ENUM);
     if (framebuffer && !ctx->isFBO(framebuffer)) {
         ctx->genFBOName(framebuffer);
         ctx->setFBOData(framebuffer,
@@ -2536,6 +2534,14 @@ GL_API void GLAPIENTRY glBindFramebufferOES(GLenum target, GLuint framebuffer) {
 
     // update framebuffer binding state
     ctx->setFramebufferBinding(GL_FRAMEBUFFER_EXT, framebuffer);
+}
+
+GL_API void GLAPIENTRY glBindFramebufferOES(GLenum target, GLuint framebuffer) {
+    GET_CTX()
+    GLES_CM_TRACE()
+    SET_ERROR_IF(!ctx->getCaps()->GL_EXT_FRAMEBUFFER_OBJECT,GL_INVALID_OPERATION);
+    SET_ERROR_IF(!GLEScmValidate::framebufferTarget(target) ,GL_INVALID_ENUM);
+    glBindFramebufferNoValidation(target, framebuffer);
 }
 
 GL_API void GLAPIENTRY glDeleteFramebuffersOES(GLsizei n, const GLuint *framebuffers) {
@@ -2723,10 +2729,8 @@ GL_API void GL_APIENTRY  glReadPixels( GLint x, GLint y, GLsizei width, GLsizei 
     SET_ERROR_IF(!(GLEScmValidate::pixelFrmt(ctx,format) && GLEScmValidate::pixelType(ctx,type)),GL_INVALID_ENUM);
     SET_ERROR_IF(!(GLEScmValidate::pixelOp(format,type)),GL_INVALID_OPERATION);
 
-    // Just stop allowing glReadPixels on multisampled default FBO for now.
     if (ctx->isDefaultFBOBound(GL_READ_FRAMEBUFFER) &&
         ctx->getDefaultFBOMultisamples()) {
-        SET_ERROR_IF(!isGles2Gles(), GL_INVALID_OPERATION);
 
         GLint prev_bound_rbo = 0;
         GLint prev_bound_draw_fbo = 0;
@@ -2745,11 +2749,13 @@ GL_API void GL_APIENTRY  glReadPixels( GLint x, GLint y, GLsizei width, GLsizei 
 
         glBindRenderbufferOES(GL_RENDERBUFFER, resolve_rbo);
         glRenderbufferStorageOES(GL_RENDERBUFFER, fboFormat, fboWidth, fboHeight);
-        glBindFramebufferOES(GL_FRAMEBUFFER, resolve_fbo);
+        glBindFramebufferNoValidation(GL_FRAMEBUFFER, resolve_fbo);
         glFramebufferRenderbufferOES(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, resolve_rbo);
 
-        glBindFramebufferOES(GL_READ_FRAMEBUFFER, 0);
-        glBindFramebufferOES(GL_DRAW_FRAMEBUFFER, resolve_fbo);
+        // GL_READ_FRAMEBUFFER was not supported in GLES1. But the
+        // dispatcher actually supports it.
+        glBindFramebufferNoValidation(GL_READ_FRAMEBUFFER, 0);
+        glBindFramebufferNoValidation(GL_DRAW_FRAMEBUFFER, resolve_fbo);
 
         bool scissorEnabled = glIsEnabled(GL_SCISSOR_TEST);
 
@@ -2758,7 +2764,7 @@ GL_API void GL_APIENTRY  glReadPixels( GLint x, GLint y, GLsizei width, GLsizei 
                           GL_COLOR_BUFFER_BIT, GL_LINEAR);
         if (scissorEnabled) glEnable(GL_SCISSOR_TEST);
 
-        glBindFramebufferOES(GL_READ_FRAMEBUFFER, resolve_fbo);
+        glBindFramebufferNoValidation(GL_READ_FRAMEBUFFER, resolve_fbo);
 
         ctx->dispatcher().glReadPixels(x,y,width,height,format,type,pixels);
 
@@ -2767,8 +2773,8 @@ GL_API void GL_APIENTRY  glReadPixels( GLint x, GLint y, GLsizei width, GLsizei 
 
         glBindRenderbufferOES(GL_RENDERBUFFER, prev_bound_rbo);
 
-        glBindFramebufferOES(GL_DRAW_FRAMEBUFFER, prev_bound_draw_fbo);
-        glBindFramebufferOES(GL_READ_FRAMEBUFFER, 0);
+        glBindFramebufferNoValidation(GL_DRAW_FRAMEBUFFER, prev_bound_draw_fbo);
+        glBindFramebufferNoValidation(GL_READ_FRAMEBUFFER, 0);
     } else {
         ctx->dispatcher().glReadPixels(x,y,width,height,format,type,pixels);
     }

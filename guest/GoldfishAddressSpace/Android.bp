@@ -1,0 +1,27 @@
+package {
+    // See: http://go/android-license-faq
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_static {
+    name: "libGoldfishAddressSpace",
+    vendor: true,
+    srcs: [
+        "goldfish_address_space.cpp",
+    ],
+    shared_libs: [
+        "liblog",
+        "libdrm",
+    ],
+    static_libs: [
+        "libplatform",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"goldfish-address-space\"",
+        "-DVIRTIO_GPU",
+    ],
+    include_dirs: ["hardware/google/gfxstream/guest/include"],
+}

@@ -197,6 +197,25 @@ void SyncThread::triggerWaitVkQsriWithCompletionCallback(VkImage vkImage, FenceC
         ss.str());
 }
 
+void SyncThread::triggerWaitVkQsri(VkImage vkImage, uint64_t timeline) {
+     std::stringstream ss;
+    ss << "triggerWaitVkQsri vkImage=0x" << std::hex << vkImage
+       << " timeline=0x" << std::hex << timeline;
+    sendAsync(
+        [vkImage, timeline](WorkerId) {
+            auto decoder = vk::VkDecoderGlobalState::get();
+            auto res = decoder->registerQsriCallback(vkImage, [timeline](){
+                 emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
+            });
+            // If registerQsriCallback does not schedule the callback, we still need to complete
+            // the task, otherwise we may hit deadlocks on tasks on the same ring.
+            if (!res.CallbackScheduledOrFired()) {
+                emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
+            }
+        },
+        ss.str());
+}
+
 void SyncThread::triggerGeneral(FenceCompletionCallback cb, std::string description) {
     std::stringstream ss;
     ss << "triggerGeneral: " << description;

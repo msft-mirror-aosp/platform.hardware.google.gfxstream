@@ -290,6 +290,7 @@ void GLEScmContext::restoreMatrixStack(const MatrixStack& matrices) {
 
 void GLEScmContext::postLoadRestoreCtx() {
     if (isInitialized()) {
+        initExtensionString();
         if (isCoreProfile()) {
             m_coreProfileEngine = new CoreProfileEngine(this);
         } else if (isGles2Gles()) {
