@@ -571,6 +571,15 @@ varying highp vec2 vTexCoord;
 uniform highp float uYWidthCutoff;
 uniform highp float uUVWidthCutoff;
     )";
+    static const char kFragShaderBeginVersion3[] = R"(
+precision highp float;
+
+layout (location = 0) out vec4 FragColor;
+in highp vec2 vTexCoord;
+
+uniform highp float uYWidthCutoff;
+uniform highp float uUVWidthCutoff;
+    )";
 
     static const char kSamplerUniforms[] = R"(
 uniform sampler2D uSamplerY;
@@ -578,9 +587,9 @@ uniform sampler2D uSamplerU;
 uniform sampler2D uSamplerV;
     )";
     static const char kSamplerUniformsUint[] = R"(
-uniform usampler2D uSamplerY;
-uniform usampler2D uSamplerU;
-uniform usampler2D uSamplerV;
+uniform highp usampler2D uSamplerY;
+uniform highp usampler2D uSamplerU;
+uniform highp usampler2D uSamplerV;
     )";
 
     static const char kFragShaderMainBegin[] = R"(
@@ -627,7 +636,7 @@ void main(void) {
 
     // default
     // limited range (2) 601 (4) sRGB transfer (3)
-    static const char kFragShaderMainEnd[] = R"(
+    static const char kFragShaderMain_2_4_3[] = R"(
     yuv[0] = yuv[0] - 0.0625;
     yuv[1] = (yuv[1] - 0.5);
     yuv[2] = (yuv[2] - 0.5);
@@ -637,12 +646,10 @@ void main(void) {
                                            0, -0.39176229009491365, 2.017232142857143,
                           1.5960267857142856,  -0.8129676472377708,                 0) * yuv;
 
-    gl_FragColor = vec4(rgb, 1.0);
-}
     )";
 
     // full range (1) 601 (4) sRGB transfer (3)
-    static const char kFragShaderMainEnd_1_4_3[] = R"(
+    static const char kFragShaderMain_1_4_3[] = R"(
     yuv[0] = yuv[0];
     yuv[1] = (yuv[1] - 0.5);
     yuv[2] = (yuv[2] - 0.5);
@@ -652,12 +659,10 @@ void main(void) {
                                            0, -0.344136* yscale, 1.772* yscale,
                           yscale*1.402,  -0.714136* yscale,                 0) * yuv;
 
-    gl_FragColor = vec4(rgb, 1.0);
-}
     )";
 
     // limited range (2) 709 (1) sRGB transfer (3)
-    static const char kFragShaderMainEnd_2_1_3[] = R"(
+    static const char kFragShaderMain_2_1_3[] = R"(
     highp float xscale = 219.0/ 224.0;
     yuv[0] = yuv[0] - 0.0625;
     yuv[1] = xscale* (yuv[1] - 0.5);
@@ -668,18 +673,26 @@ void main(void) {
                                            0, -0.1873* yscale, 1.8556* yscale,
                           yscale*1.5748,  -0.4681* yscale,                 0) * yuv;
 
+    )";
+
+    static const char kFragShaderMainEnd[] = R"(
     gl_FragColor = vec4(rgb, 1.0);
 }
     )";
 
+    static const char kFragShaderMainEndVersion3[] = R"(
+    FragColor = vec4(rgb, 1.0);
+}
+    )";
     std::string vertShaderSource(kVertShader);
     std::string fragShaderSource;
 
     if (mFormat == FRAMEWORK_FORMAT_P010) {
         fragShaderSource += kFragShaderVersion3;
+        fragShaderSource += kFragShaderBeginVersion3;
+    } else {
+        fragShaderSource += kFragShaderBegin;
     }
-
-    fragShaderSource += kFragShaderBegin;
 
     if (mFormat == FRAMEWORK_FORMAT_P010) {
         fragShaderSource += kSamplerUniformsUint;
@@ -713,11 +726,17 @@ void main(void) {
     }
 
     if (mColorRange == 1 && mColorPrimaries == 4) {
-    fragShaderSource += kFragShaderMainEnd_1_4_3;
+    fragShaderSource += kFragShaderMain_1_4_3;
     } else if (mColorRange == 2 && mColorPrimaries == 1) {
-    fragShaderSource += kFragShaderMainEnd_2_1_3;
+    fragShaderSource += kFragShaderMain_2_1_3;
     } else {
-    fragShaderSource += kFragShaderMainEnd;
+    fragShaderSource += kFragShaderMain_2_4_3;
+    }
+
+    if (mFormat == FRAMEWORK_FORMAT_P010) {
+        fragShaderSource += kFragShaderMainEndVersion3;
+    } else {
+        fragShaderSource += kFragShaderMainEnd;
     }
 
     YUV_DEBUG_LOG("format:%d vert-source:%s frag-source:%s", mFormat, vertShaderSource.c_str(), fragShaderSource.c_str());
