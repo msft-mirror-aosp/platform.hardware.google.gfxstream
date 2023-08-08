@@ -2775,6 +2775,8 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     scrCmd.screenshot.rect = rect;
 
     std::future<void> completeFuture = sendPostWorkerCmd(std::move(scrCmd));
+
+    mutex.unlock();
     completeFuture.wait();
     return 0;
 }
