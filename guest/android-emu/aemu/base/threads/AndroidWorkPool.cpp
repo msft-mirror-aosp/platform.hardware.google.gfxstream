@@ -220,6 +220,8 @@ public:
             case State::Scheduled:
             case State::Exiting:
                 return false;
+            default:
+                return false;
         }
     }
 
@@ -243,6 +245,8 @@ public:
             }
             case State::Scheduled:
             case State::Exiting:
+                return false;
+            default:
                 return false;
         }
     }
