@@ -558,7 +558,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
         }
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
             VirtGpuDevice& instance =
-                VirtGpuDevice::getInstance((enum VirtGpuCapset)kCapsetGfxStream);
+                VirtGpuDevice::getInstance((enum VirtGpuCapset)kCapsetGfxStreamVulkan);
             auto deviceHandle = instance.getDeviceHandle();
             auto stream = createVirtioGpuAddressSpaceStream(getGlobalHealthMonitor());
             if (!stream) {

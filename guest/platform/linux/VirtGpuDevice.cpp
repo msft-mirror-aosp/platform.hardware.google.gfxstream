@@ -76,7 +76,7 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
     }
 
     get_caps.cap_set_id = static_cast<uint32_t>(capset);
-    if (capset == kCapsetGfxStream) {
+    if (capset == kCapsetGfxStreamVulkan) {
         get_caps.size = sizeof(struct gfxstreamCapset);
         get_caps.addr = (unsigned long long)&mCaps.gfxstreamCapset;
     }
