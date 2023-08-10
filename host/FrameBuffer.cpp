@@ -2775,6 +2775,8 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     scrCmd.screenshot.rect = rect;
 
     std::future<void> completeFuture = sendPostWorkerCmd(std::move(scrCmd));
+
+    mutex.unlock();
     completeFuture.wait();
     return 0;
 }
@@ -2816,6 +2818,8 @@ bool FrameBuffer::compose(uint32_t bufferSize, void* buffer, bool needPost) {
         completeFuture.wait();
     }
 
+    const auto& multiDisplay = emugl::get_emugl_multi_display_operations();
+    const bool is_pixel_fold = multiDisplay.isPixelFold();
     if (needPost) {
         // AEMU with -no-window mode uses this code path.
         ComposeDevice* composeDevice = (ComposeDevice*)buffer;
@@ -2827,7 +2831,7 @@ bool FrameBuffer::compose(uint32_t bufferSize, void* buffer, bool needPost) {
             }
             case 2: {
                 ComposeDevice_v2* composeDeviceV2 = (ComposeDevice_v2*)buffer;
-                if (composeDeviceV2->displayId == 0) {
+                if (is_pixel_fold || composeDeviceV2->displayId == 0) {
                     post(composeDeviceV2->targetHandle, true);
                 }
                 break;
