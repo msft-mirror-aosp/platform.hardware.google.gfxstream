@@ -52,7 +52,6 @@
 #include "host-common/logging.h"
 #include "host/FrameBuffer.h"
 #include "render-utils/IOStream.h"
-
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 
 namespace gfxstream {
