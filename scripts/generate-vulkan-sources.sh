@@ -23,16 +23,13 @@ if [[ "$OSTYPE" == "msys" ]]; then
     WHICH=where
 fi
 
-if [ -z "$1" ] || [ -z "$2" ];
+export VULKAN_CEREAL_DIR=$PROJECT_ROOT
+export VULKAN_REGISTRY_DIR=codegen/vulkan
+if [ -z "$1" ];
 then
-    AOSP_DIR=$(pwd)/../../..
-    export GOLDFISH_OPENGL_DIR=$AOSP_DIR/device/generic/goldfish-opengl
-    export VULKAN_CEREAL_DIR=$AOSP_DIR/hardware/google/gfxstream
-    export VULKAN_REGISTRY_DIR=$AOSP_DIR/hardware/google/gfxstream/codegen/vulkan
+    export GUEST_VK_DIR=$PROJECT_ROOT/guest
 else
-    export GOLDFISH_OPENGL_DIR=$1
-    export VULKAN_CEREAL_DIR=$2
-    export VULKAN_REGISTRY_DIR=codegen/vulkan
+    export GUEST_VK_DIR=$1
 fi
 
 # Detect clang-format
@@ -57,8 +54,8 @@ fi
 
 cd $PROJECT_ROOT
 
-export VK_CEREAL_GUEST_ENCODER_DIR=$GOLDFISH_OPENGL_DIR/system/vulkan_enc
-export VK_CEREAL_GUEST_HAL_DIR=$GOLDFISH_OPENGL_DIR/system/vulkan
+export VK_CEREAL_GUEST_ENCODER_DIR=$GUEST_VK_DIR/vulkan_enc
+export VK_CEREAL_GUEST_HAL_DIR=$GUEST_VK_DIR/vulkan
 export VK_CEREAL_HOST_DECODER_DIR=$VULKAN_CEREAL_DIR/host/vulkan
 export VK_CEREAL_HOST_INCLUDE_DIR=$VULKAN_CEREAL_DIR/host
 export VK_CEREAL_HOST_SCRIPTS_DIR=$VULKAN_CEREAL_DIR/scripts
@@ -68,18 +65,9 @@ export VK_CEREAL_VK_HEADER_TARGET=gfxstream_vulkan_headers
 export VK_CEREAL_UTILS_LINKNAME=gfxstream_utils.headers
 export VK_CEREAL_UTILS_PREFIX=utils
 
-VK_CEREAL_OUTPUT_DIR=$VK_CEREAL_HOST_DECODER_DIR/cereal
-if [ -d "$VK_CEREAL_GUEST_DIR" ]; then
-    mkdir -p $VK_CEREAL_GUEST_ENCODER_DIR
-    mkdir -p $VK_CEREAL_GUEST_HAL_DIR
-fi
-if [ -d "$VK_CEREAL_HOST_DIR" ]; then
-    mkdir -p $VK_CEREAL_HOST_DECODER_DIR
-    mkdir -p $VK_CEREAL_OUTPUT_DIR
-fi
-
 VULKAN_REGISTRY_XML_DIR=$VULKAN_REGISTRY_DIR/xml
 VULKAN_REGISTRY_SCRIPTS_DIR=$VULKAN_REGISTRY_DIR/scripts
+VK_CEREAL_OUTPUT_DIR=$VK_CEREAL_HOST_DECODER_DIR/cereal
 
 python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml cereal -o $VK_CEREAL_OUTPUT_DIR
 
