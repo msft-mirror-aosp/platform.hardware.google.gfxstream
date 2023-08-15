@@ -41,9 +41,6 @@ extern "C" {
 #define STREAM_RENDERER_VERSION_MINOR 1
 #define STREAM_RENDERER_VERSION_PATCH 1
 
-typedef uint32_t VirtioGpuCtxId;
-typedef uint8_t VirtioGpuRingIdx;
-
 #ifdef _WIN32
 #define VG_EXPORT __declspec(dllexport)
 #else
@@ -62,18 +59,6 @@ struct stream_renderer_resource_create_args {
     uint32_t last_level;
     uint32_t nr_samples;
     uint32_t flags;
-};
-
-struct stream_renderer_resource_info {
-    uint32_t handle;
-    uint32_t virgl_format;
-    uint32_t width;
-    uint32_t height;
-    uint32_t depth;
-    uint32_t flags;
-    uint32_t tex_id;
-    uint32_t stride;
-    int drm_fourcc;
 };
 
 #define STREAM_RENDERER_FLAG_FENCE (1 << 0)
@@ -174,6 +159,7 @@ struct stream_renderer_command {
     uint32_t cmd_size;
     uint8_t* cmd;
 
+    // Unstable: do not use until release strictly greater than 0.1.2
     uint32_t num_in_fences;
     struct stream_renderer_handle* fences;
 };
@@ -196,8 +182,6 @@ VG_EXPORT void stream_renderer_resource_detach_iov(int res_handle, struct iovec*
                                                    int* num_iovs);
 VG_EXPORT void stream_renderer_ctx_attach_resource(int ctx_id, int res_handle);
 VG_EXPORT void stream_renderer_ctx_detach_resource(int ctx_id, int res_handle);
-VG_EXPORT int stream_renderer_resource_get_info(int res_handle,
-                                                struct stream_renderer_resource_info* info);
 
 struct stream_renderer_create_blob {
     uint32_t blob_mem;
@@ -230,24 +214,6 @@ VG_EXPORT int stream_renderer_context_create(uint32_t ctx_id, uint32_t nlen, con
                                              uint32_t context_init);
 
 VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* fence);
-
-// Platform resources and contexts support
-#define STREAM_RENDERER_PLATFORM_RESOURCE_USE_MASK 0xF0
-#define STREAM_RENDERER_PLATFORM_RESOURCE_TYPE_MASK 0x0F
-
-// types
-#define STREAM_RENDERER_PLATFORM_RESOURCE_TYPE_EGL_NATIVE_PIXMAP 0x01
-#define STREAM_RENDERER_PLATFORM_RESOURCE_TYPE_EGL_IMAGE 0x02
-
-// uses
-#define STREAM_RENDERER_PLATFORM_RESOURCE_USE_PRESERVE 0x10
-
-VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
-                                                       void* resource);
-VG_EXPORT int stream_renderer_platform_resource_info(int res_handle, int* width, int* height,
-                                                     int* internal_format);
-VG_EXPORT void* stream_renderer_platform_create_shared_egl_context(void);
-VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void*);
 
 #define STREAM_RENDERER_MAP_CACHE_MASK 0x0f
 #define STREAM_RENDERER_MAP_CACHE_NONE 0x00
