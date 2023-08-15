@@ -50,7 +50,6 @@
 #include "aemu/base/synchronization/AndroidLock.h"
 #include "goldfish_vk_counting_guest.h"
 #include "goldfish_vk_deepcopy_guest.h"
-#include "goldfish_vk_handlemap_guest.h"
 #include "goldfish_vk_marshaling_guest.h"
 #include "goldfish_vk_private_defs.h"
 #include "goldfish_vk_reserved_marshaling_guest.h"
