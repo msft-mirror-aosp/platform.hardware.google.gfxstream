@@ -52,7 +52,6 @@
 #include "host-common/logging.h"
 #include "host/FrameBuffer.h"
 #include "render-utils/IOStream.h"
-
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 
 namespace gfxstream {
@@ -163,8 +162,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             }
         }
 
-        std::atomic<uint32_t>* seqnoPtr = processResources ?
-                processResources->getSequenceNumberPtr() : nullptr;
+        std::atomic<uint32_t>* seqnoPtr =
+            processResources ? processResources->getSequenceNumberPtr() : nullptr;
 
         if (queueSubmitWithCommandsEnabled &&
             ((opcode >= OP_vkFirst && opcode < OP_vkLast) ||

@@ -30,7 +30,6 @@
 //
 
 #include "goldfish_vk_extension_structs.h"
-
 namespace gfxstream {
 namespace vk {
 
