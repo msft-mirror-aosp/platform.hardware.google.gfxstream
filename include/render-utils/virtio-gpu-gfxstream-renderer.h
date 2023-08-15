@@ -39,7 +39,7 @@ extern "C" {
  */
 #define STREAM_RENDERER_VERSION_MAJOR 0
 #define STREAM_RENDERER_VERSION_MINOR 1
-#define STREAM_RENDERER_VERSION_PATCH 1
+#define STREAM_RENDERER_VERSION_PATCH 2
 
 #ifdef _WIN32
 #define VG_EXPORT __declspec(dllexport)
