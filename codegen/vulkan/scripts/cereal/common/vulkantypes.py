@@ -184,6 +184,18 @@ NON_TRIVIAL_TRANSFORMED_TYPES = [
 
 TRANSFORMED_TYPES = TRIVIAL_TRANSFORMED_TYPES + NON_TRIVIAL_TRANSFORMED_TYPES
 
+STRUCT_STREAM_FEATURE = {
+    "VkPhysicalDeviceShaderFloat16Int8Features": "VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT",
+    "VkPhysicalDeviceShaderFloat16Int8FeaturesKHR": "VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT",
+    "VkPhysicalDeviceFloat16Int8FeaturesKHR": "VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT",
+}
+
+STRUCT_MEMBER_STREAM_FEATURE = {
+    "VkGraphicsPipelineCreateInfo.pVertexInputState": "VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT",
+    "VkGraphicsPipelineCreateInfo.pInputAssemblyState": "VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT",
+    "VkGraphicsPipelineCreateInfo.pRasterizationState": "VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT",
+}
+
 # Holds information about a Vulkan type instance (i.e., not a type definition).
 # Type instances are used as struct field definitions or function parameters,
 # to be later fed to code generation.
@@ -430,6 +442,11 @@ class VulkanType(object):
                self.pointerIndirectionLevels > 0 and \
                (not self.isNextPointer())
 
+    def getProtectStreamFeature(self) -> Optional[str]:
+        key = f"{self.parent.name}.{self.paramName}"
+        if key in STRUCT_MEMBER_STREAM_FEATURE.keys():
+            return STRUCT_MEMBER_STREAM_FEATURE[key]
+        return None
 
 # Is an S-expression w/ the following spec:
 # From https://gist.github.com/pib/240957
@@ -747,6 +764,12 @@ class VulkanCompoundType(object):
 
     def getStructEnumExpr(self,):
         return self.structEnumExpr
+
+    def getProtectStreamFeature(self) -> Optional[str]:
+        if not self.name in STRUCT_STREAM_FEATURE.keys():
+            return None
+        return STRUCT_STREAM_FEATURE[self.name]
+
 
 class VulkanAPI(object):
 

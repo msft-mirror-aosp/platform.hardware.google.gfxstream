@@ -118,12 +118,10 @@ class VulkanCountingCodegen(VulkanTypeIterator):
         pass
 
     def getOptionalStringFeatureExpr(self, vulkanType):
-        if vulkanType.optionalStr is not None:
-            if vulkanType.optionalStr.startswith("streamFeature:"):
-                splitted = vulkanType.optionalStr.split(":")
-                featureExpr = "%s & %s" % (self.featureBitsVar, splitted[1])
-                return featureExpr
-        return None
+        feature = vulkanType.getProtectStreamFeature()
+        if feature is None:
+            return None
+        return "%s & %s" % (self.featureBitsVar, feature)
 
     def onCheck(self, vulkanType):
 
