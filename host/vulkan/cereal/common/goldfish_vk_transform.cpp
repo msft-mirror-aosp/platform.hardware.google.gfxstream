@@ -6048,6 +6048,10 @@ void transform_tohost_VkWin32KeyedMutexAcquireReleaseInfoKHR(
     VkDecoderGlobalState* resourceTracker, VkWin32KeyedMutexAcquireReleaseInfoKHR* toTransform) {
     (void)resourceTracker;
     (void)toTransform;
+    resourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)toTransform->pAcquireSyncs,
+                                                  toTransform->acquireCount, (VkDeviceSize*)nullptr,
+                                                  0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr,
+                                                  0, (uint32_t*)nullptr, 0);
     resourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)toTransform->pReleaseSyncs,
                                                   toTransform->releaseCount, (VkDeviceSize*)nullptr,
                                                   0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr,
@@ -6061,6 +6065,10 @@ void transform_fromhost_VkWin32KeyedMutexAcquireReleaseInfoKHR(
     VkDecoderGlobalState* resourceTracker, VkWin32KeyedMutexAcquireReleaseInfoKHR* toTransform) {
     (void)resourceTracker;
     (void)toTransform;
+    resourceTracker->deviceMemoryTransform_fromhost(
+        (VkDeviceMemory*)toTransform->pAcquireSyncs, toTransform->acquireCount,
+        (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0,
+        (uint32_t*)nullptr, 0);
     resourceTracker->deviceMemoryTransform_fromhost(
         (VkDeviceMemory*)toTransform->pReleaseSyncs, toTransform->releaseCount,
         (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0,
@@ -9469,6 +9477,10 @@ void transform_tohost_VkWin32KeyedMutexAcquireReleaseInfoNV(
     VkDecoderGlobalState* resourceTracker, VkWin32KeyedMutexAcquireReleaseInfoNV* toTransform) {
     (void)resourceTracker;
     (void)toTransform;
+    resourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)toTransform->pAcquireSyncs,
+                                                  toTransform->acquireCount, (VkDeviceSize*)nullptr,
+                                                  0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr,
+                                                  0, (uint32_t*)nullptr, 0);
     resourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)toTransform->pReleaseSyncs,
                                                   toTransform->releaseCount, (VkDeviceSize*)nullptr,
                                                   0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr,
@@ -9482,6 +9494,10 @@ void transform_fromhost_VkWin32KeyedMutexAcquireReleaseInfoNV(
     VkDecoderGlobalState* resourceTracker, VkWin32KeyedMutexAcquireReleaseInfoNV* toTransform) {
     (void)resourceTracker;
     (void)toTransform;
+    resourceTracker->deviceMemoryTransform_fromhost(
+        (VkDeviceMemory*)toTransform->pAcquireSyncs, toTransform->acquireCount,
+        (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0,
+        (uint32_t*)nullptr, 0);
     resourceTracker->deviceMemoryTransform_fromhost(
         (VkDeviceMemory*)toTransform->pReleaseSyncs, toTransform->releaseCount,
         (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0,
