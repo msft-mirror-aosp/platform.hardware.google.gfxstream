@@ -18,6 +18,7 @@ from xml.etree.ElementTree import Element
 from generator import noneStr
 
 from copy import copy
+from dataclasses import dataclass
 from string import whitespace
 
 # Holds information about core Vulkan objects
@@ -159,13 +160,50 @@ NON_ABI_PORTABLE_TYPE_CATEGORIES = [
     "funcpointer",
 ]
 
-DEVICE_MEMORY_INFO_KEYS = [
-    "devicememoryhandle",
-    "devicememoryoffset",
-    "devicememorysize",
-    "devicememorytypeindex",
-    "devicememorytypebits",
-]
+# A class for holding the parameter indices corresponding to various
+# attributes about a VkDeviceMemory, such as the handle, size, offset, etc.
+@dataclass
+class DeviceMemoryInfoParameterIndices:
+    handle: int = -1
+    offset: int = -1
+    size: int = -1
+    typeIndex: int = -1
+    typeBits: int = -1
+
+DEVICE_MEMORY_STRUCTS = {
+    "VkMemoryAllocateInfo": {"1": DeviceMemoryInfoParameterIndices(typeIndex = 3)},
+    "VkMemoryRequirements": {"1": DeviceMemoryInfoParameterIndices(typeBits = 2)},
+    "VkMappedMemoryRange": {"1": DeviceMemoryInfoParameterIndices(handle = 2, offset = 3, size = 4)},
+    "VkSparseMemoryBind": {"1": DeviceMemoryInfoParameterIndices(handle = 2, offset = 3)},
+    "VkSparseImageMemoryBind": {"1": DeviceMemoryInfoParameterIndices(handle = 3, offset = 4)},
+    "VkWin32KeyedMutexAcquireReleaseInfoNV": {"1": DeviceMemoryInfoParameterIndices(handle = 3), "2": DeviceMemoryInfoParameterIndices(handle = 7)},
+    "VkMemoryWin32HandlePropertiesKHR": {"1": DeviceMemoryInfoParameterIndices(typeBits = 2)},
+    "VkMemoryGetWin32HandleInfoKHR": {"1": DeviceMemoryInfoParameterIndices(handle = 2)},
+    "VkMemoryFdPropertiesKHR": {"1": DeviceMemoryInfoParameterIndices(typeBits = 2)},
+    "VkMemoryGetFdInfoKHR": {"1": DeviceMemoryInfoParameterIndices(handle = 2)},
+    "VkWin32KeyedMutexAcquireReleaseInfoKHR": {"1": DeviceMemoryInfoParameterIndices(handle = 3), "2": DeviceMemoryInfoParameterIndices(handle = 7)},
+    "VkBindBufferMemoryInfo": {"1": DeviceMemoryInfoParameterIndices(handle = 3, offset = 4)},
+    "VkBindImageMemoryInfo": {"1": DeviceMemoryInfoParameterIndices(handle = 3, offset = 4)},
+    "VkMemoryHostPointerPropertiesEXT": {"1": DeviceMemoryInfoParameterIndices(typeBits = 2)},
+    "VkAndroidHardwareBufferPropertiesANDROID": {"1": DeviceMemoryInfoParameterIndices(typeBits = 3)},
+    "VkMemoryGetAndroidHardwareBufferInfoANDROID": {"1": DeviceMemoryInfoParameterIndices(handle = 2)},
+    "VkBindAccelerationStructureMemoryInfoNV": {"1": DeviceMemoryInfoParameterIndices(handle = 3, offset = 4)},
+    "VkDeviceMemoryOpaqueCaptureAddressInfo": {"1": DeviceMemoryInfoParameterIndices(handle = 2)},
+}
+
+DEVICE_MEMORY_COMMANDS = {
+    "vkFreeMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkMapMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkUnmapMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkGetDeviceMemoryCommitment": {"1": DeviceMemoryInfoParameterIndices(handle = 1, offset = 2)},
+    "vkBindBufferMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 2, offset = 3)},
+    "vkBindImageMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 2, offset = 3)},
+    "vkGetBlobGOOGLE": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkGetMemoryWin32HandleNV": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkMapMemoryIntoAddressSpaceGOOGLE": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkGetMemoryHostAddressInfoGOOGLE": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkFreeMemorySyncGOOGLE": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+}
 
 TRIVIAL_TRANSFORMED_TYPES = [
     "VkPhysicalDeviceExternalImageFormatInfo",
@@ -241,12 +279,7 @@ class VulkanType(object):
         # Device memory annotations
 
         # self.deviceMemoryAttrib/Val stores
-        # device memory info attributes from the XML.
-        # devicememoryhandle
-        # devicememoryoffset
-        # devicememorysize
-        # devicememorytypeindex
-        # devicememorytypebits
+        # device memory info attributes
         self.deviceMemoryAttrib = None
         self.deviceMemoryVal = None
 
@@ -639,13 +672,6 @@ def makeVulkanTypeFromXMLTag(typeInfo, tag: Element) -> VulkanType:
         bindPairsSplit = map(lambda p: p.split(":"), bindPairs)
         res.binds = dict(map(lambda sp: (sp[0].strip(), sp[1].strip()), bindPairsSplit))
 
-    # Annotations: Device memory
-    for k in DEVICE_MEMORY_INFO_KEYS:
-        if tag.attrib.get(k) is not None:
-            res.deviceMemoryAttrib = k
-            res.deviceMemoryVal = tag.attrib.get(k)
-            break
-
     # Annotations: Filters
     if tag.attrib.get("filterVar") is not None:
         res.filterVar = tag.attrib.get("filterVar").strip()
@@ -683,55 +709,6 @@ def makeVulkanTypeSimple(isConst,
 
     return res
 
-# A class for holding the parameter indices corresponding to various
-# attributes about a VkDeviceMemory, such as the handle, size, offset, etc.
-class DeviceMemoryInfoParameterIndices(object):
-    def __init__(self, handle, offset, size, typeIndex, typeBits):
-        self.handle = handle
-        self.offset = offset
-        self.size = size
-        self.typeIndex = typeIndex
-        self.typeBits = typeBits
-
-# initializes DeviceMemoryInfoParameterIndices for each
-# abstract VkDeviceMemory encountered over |parameters|
-def initDeviceMemoryInfoParameterIndices(parameters):
-
-    use = False
-    deviceMemoryInfoById = {}
-
-    for (i, p) in enumerate(parameters):
-        a = p.deviceMemoryAttrib
-        if not a:
-            continue
-
-        if a in DEVICE_MEMORY_INFO_KEYS:
-            use = True
-            deviceMemoryInfoById[p.deviceMemoryVal] =  DeviceMemoryInfoParameterIndices(
-                        None, None, None, None, None)
-
-    for (i, p) in enumerate(parameters):
-        a = p.deviceMemoryAttrib
-        if not a:
-            continue
-
-        info = deviceMemoryInfoById[p.deviceMemoryVal]
-
-        if a == "devicememoryhandle":
-            info.handle = i
-        if a == "devicememoryoffset":
-            info.offset = i
-        if a == "devicememorysize":
-            info.size = i
-        if a == "devicememorytypeindex":
-            info.typeIndex = i
-        if a == "devicememorytypebits":
-            info.typeBits = i
-
-    if not use:
-        return None
-
-    return deviceMemoryInfoById
 
 # Classes for describing aggregate types (unions, structs) and API calls.
 class VulkanCompoundType(object):
@@ -745,7 +722,10 @@ class VulkanCompoundType(object):
         self.structEnumExpr = structEnumExpr
         self.structExtendsExpr = structExtendsExpr
         self.feature = feature
-        self.deviceMemoryInfoParameterIndices = initDeviceMemoryInfoParameterIndices(self.members)
+        if name in DEVICE_MEMORY_STRUCTS:
+            self.deviceMemoryInfoParameterIndices = DEVICE_MEMORY_STRUCTS[name]
+        else:
+            self.deviceMemoryInfoParameterIndices = None
         self.isTransformed = name in TRANSFORMED_TYPES
         self.copy = None
         self.optionalStr = optional
@@ -779,7 +759,10 @@ class VulkanAPI(object):
         self.retType: VulkanType = retType
         self.parameters: List[VulkanType] = parameters
 
-        self.deviceMemoryInfoParameterIndices = initDeviceMemoryInfoParameterIndices(self.parameters)
+        if name in DEVICE_MEMORY_COMMANDS.keys():
+            self.deviceMemoryInfoParameterIndices = DEVICE_MEMORY_COMMANDS[name]
+        else:
+            self.deviceMemoryInfoParameterIndices = None
 
         self.copy = None
 
