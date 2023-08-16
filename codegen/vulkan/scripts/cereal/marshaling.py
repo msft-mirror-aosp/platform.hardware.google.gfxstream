@@ -180,12 +180,10 @@ class VulkanMarshalingCodegen(VulkanTypeIterator):
                      access, bytesExpr))
 
     def getOptionalStringFeatureExpr(self, vulkanType):
-        if vulkanType.optionalStr is not None:
-            if vulkanType.optionalStr.startswith("streamFeature:"):
-                splitted = vulkanType.optionalStr.split(":")
-                featureExpr = "%s->getFeatureBits() & %s" % (self.streamVarName, splitted[1])
-                return featureExpr
-        return None
+        streamFeature = vulkanType.getProtectStreamFeature()
+        if streamFeature is None:
+            return None
+        return "%s->getFeatureBits() & %s" % (self.streamVarName, streamFeature)
 
     def onCheck(self, vulkanType):
 
