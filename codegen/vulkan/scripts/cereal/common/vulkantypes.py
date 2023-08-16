@@ -234,6 +234,49 @@ STRUCT_MEMBER_STREAM_FEATURE = {
     "VkGraphicsPipelineCreateInfo.pRasterizationState": "VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT",
 }
 
+STRUCT_ENV_STR = {
+    "VkGraphicsPipelineCreateInfo": {
+        "hasTessellation": "(arrayany pStages 0 stageCount (lambda ((s VkPipelineShaderStageCreateInfo)) (or (eq (getfield s stage) VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) (eq (getfield s stage) VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT))))",
+        "hasRasterization" : "(if (eq 0 pRasterizationState) 0 (not (getfield pRasterizationState rasterizerDiscardEnable)))",
+    },
+}
+
+STRUCT_MEMBER_FILTER_VAR = {
+    "VkGraphicsPipelineCreateInfo.pTessellationState": "hasTessellation",
+    "VkGraphicsPipelineCreateInfo.pViewportState": "hasRasterization",
+    "VkGraphicsPipelineCreateInfo.pMultisampleState": "hasRasterization",
+    "VkGraphicsPipelineCreateInfo.pDepthStencilState": "hasRasterization",
+    "VkGraphicsPipelineCreateInfo.pColorBlendState": "hasRasterization",
+    "VkWriteDescriptorSet.pImageInfo": "descriptorType",
+    "VkWriteDescriptorSet.pBufferInfo": "descriptorType",
+    "VkWriteDescriptorSet.pTexelBufferView": "descriptorType",
+    "VkFramebufferCreateInfo.pAttachments": "flags",
+}
+
+STRUCT_MEMBER_FILTER_VALS = {
+    "VkWriteDescriptorSet.pImageInfo": [
+        "VK_DESCRIPTOR_TYPE_SAMPLER",
+        "VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER",
+        "VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE",
+        "VK_DESCRIPTOR_TYPE_STORAGE_IMAGE",
+        "VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT"
+    ],
+    "VkWriteDescriptorSet.pBufferInfo": [
+        "VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER",
+        "VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC",
+        "VK_DESCRIPTOR_TYPE_STORAGE_BUFFER",
+        "VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC",
+    ],
+    "VkWriteDescriptorSet.pTexelBufferView": [
+        "VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER",
+        "VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER",
+    ],
+}
+
+STRUCT_MEMBER_FILTER_FUNC = {
+    "VkFramebufferCreateInfo.pAttachments": "(eq (bitwise_and flags VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) 0)",
+}
+
 # Holds information about a Vulkan type instance (i.e., not a type definition).
 # Type instances are used as struct field definitions or function parameters,
 # to be later fed to code generation.
@@ -587,7 +630,7 @@ def parseLetBodyExpr(expr):
     return res
 
 
-def makeVulkanTypeFromXMLTag(typeInfo, tag: Element) -> VulkanType:
+def makeVulkanTypeFromXMLTag(typeInfo, parentName: str, tag: Element) -> VulkanType:
     res = VulkanType()
 
     # Process the length expression
@@ -673,17 +716,15 @@ def makeVulkanTypeFromXMLTag(typeInfo, tag: Element) -> VulkanType:
         res.binds = dict(map(lambda sp: (sp[0].strip(), sp[1].strip()), bindPairsSplit))
 
     # Annotations: Filters
-    if tag.attrib.get("filterVar") is not None:
-        res.filterVar = tag.attrib.get("filterVar").strip()
+    structMemberName = f"{parentName}.{res.paramName}"
+    if structMemberName in STRUCT_MEMBER_FILTER_VAR.keys():
+        res.filterVar = STRUCT_MEMBER_FILTER_VAR[structMemberName]
 
-    if tag.attrib.get("filterVals") is not None:
-        res.filterVals = \
-            list(map(lambda v: v.strip(),
-                    tag.attrib.get("filterVals").strip().split(",")))
-        print("Filtervals: %s" % res.filterVals)
+    if structMemberName in STRUCT_MEMBER_FILTER_VALS.keys():
+        res.filterVals = STRUCT_MEMBER_FILTER_VALS[structMemberName]
 
-    if tag.attrib.get("filterFunc") is not None:
-        res.filterFunc = parseFilterFuncExpr(tag.attrib.get("filterFunc"))
+    if structMemberName in STRUCT_MEMBER_FILTER_FUNC.keys():
+        res.filterFunc = parseFilterFuncExpr(STRUCT_MEMBER_FILTER_FUNC[structMemberName])
 
     if tag.attrib.get("filterOtherwise") is not None:
         res.Otherwise = tag.attrib.get("filterOtherwise")
@@ -957,11 +998,9 @@ class VulkanTypeInfo(object):
                         "body" : None,
                     }
 
-            letenvStr = typeinfo.elem.get("let")
-            if letenvStr != None:
-                comma_separated = letenvStr.split(",")
-                name_body_pairs = map(lambda cs: tuple(map(lambda t: t.strip(), cs.split(":"))), comma_separated)
-                for (name, body) in name_body_pairs:
+            if typeName in STRUCT_ENV_STR.keys():
+                name_body_pairs = STRUCT_ENV_STR[typeName]
+                for (name, body) in name_body_pairs.items():
                     initialEnv[name] = {
                         "type" : "uint32_t",
                         "binding" : name,
@@ -970,7 +1009,7 @@ class VulkanTypeInfo(object):
                     }
 
             for member in typeinfo.elem.findall(".//member"):
-                vulkanType = makeVulkanTypeFromXMLTag(self, member)
+                vulkanType = makeVulkanTypeFromXMLTag(self, typeName, member)
                 initialEnv[vulkanType.paramName] = {
                     "type": vulkanType.typeName,
                     "binding": vulkanType.paramName,
@@ -1026,8 +1065,8 @@ class VulkanTypeInfo(object):
         self.apis[name] = \
             VulkanAPI(
                 name,
-                makeVulkanTypeFromXMLTag(self, proto),
-                list(map(lambda p: makeVulkanTypeFromXMLTag(self, p),
+                makeVulkanTypeFromXMLTag(self, name, proto),
+                list(map(lambda p: makeVulkanTypeFromXMLTag(self, name, p),
                          params)))
         self.apis[name].initCopies()
 
