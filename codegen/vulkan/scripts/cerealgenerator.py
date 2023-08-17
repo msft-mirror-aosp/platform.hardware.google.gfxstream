@@ -276,13 +276,6 @@ class IOStream;
 #include "{self.baseLibDirPrefix}/files/StreamSerializing.h"
 """ % VULKAN_STREAM_TYPE
 
-        testingInclude = f"""
-{self.hostCommonExtraVulkanHeaders}
-#include "goldfish_vk_private_defs.h"
-#include <string.h>
-#include <functional>
-using OnFailCompareFunc = std::function<void(const char*)>;
-"""
         poolInclude = f"""
 {self.hostCommonExtraVulkanHeaders}
 #include "goldfish_vk_private_defs.h"
@@ -510,9 +503,6 @@ class BumpPool;
         self.addCppModule("common", "goldfish_vk_reserved_marshaling",
                        extraHeader=vulkanStreamIncludeHost,
                        extraImpl=commonCerealImplIncludes)
-        self.addCppModule("common", "goldfish_vk_testing",
-                       extraHeader=testingInclude,
-                       extraImpl=commonCerealImplIncludes)
         self.addCppModule("common", "goldfish_vk_deepcopy",
                        extraHeader=poolInclude,
                        extraImpl=commonCerealImplIncludes + deepcopyInclude)
@@ -562,7 +552,6 @@ class BumpPool;
         self.addWrapper(cereal.VulkanExtensionStructs, "goldfish_vk_extension_structs")
         self.addWrapper(cereal.VulkanMarshaling, "goldfish_vk_marshaling")
         self.addWrapper(cereal.VulkanReservedMarshaling, "goldfish_vk_reserved_marshaling", variant = "host")
-        self.addWrapper(cereal.VulkanTesting, "goldfish_vk_testing")
         self.addWrapper(cereal.VulkanDeepcopy, "goldfish_vk_deepcopy")
         self.addWrapper(cereal.VulkanHandleMap, "goldfish_vk_handlemap")
         self.addWrapper(cereal.VulkanDispatch, "goldfish_vk_dispatch")
