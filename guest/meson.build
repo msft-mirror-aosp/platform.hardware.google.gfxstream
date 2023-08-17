@@ -1,8 +1,8 @@
 # Copyright 2022 Android Open Source Project
 # SPDX-License-Identifier: MIT
 
-project('gfxstream', 'cpp', 'c',
-         version : '0.0.1',
+project('gfxstream_frontend', 'cpp', 'c',
+         version : '0.1.2',
          license : 'MIT OR Apache-2.0',
          default_options : ['cpp_std=gnu++17'])
 
