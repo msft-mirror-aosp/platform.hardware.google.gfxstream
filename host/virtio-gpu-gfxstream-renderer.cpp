@@ -58,6 +58,8 @@ struct iovec {
     void* iov_base; /* Starting address */
     size_t iov_len; /* Length in bytes */
 };
+#else
+#include <unistd.h>
 #endif  // _WIN32
 
 #define MAX_DEBUG_BUFFER_SIZE 512
@@ -1361,10 +1363,10 @@ class PipeVirglRenderer {
 
             if (vk_emu && vk_emu->live) {
                 capset->deferredMapping = 1;
-#if defined(__APPLE__) && defined(__arm64__)
-                capset->blobAlignment = 16384;
-#else
+#if defined(_WIN32)
                 capset->blobAlignment = 4096;
+#else
+                capset->blobAlignment = getpagesize();
 #endif
             }
         }
