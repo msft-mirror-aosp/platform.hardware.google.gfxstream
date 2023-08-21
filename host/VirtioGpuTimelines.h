@@ -27,6 +27,9 @@
 #include "render-utils/virtio-gpu-gfxstream-renderer.h"
 #include "render-utils/virtio_gpu_ops.h"
 
+typedef uint32_t VirtioGpuCtxId;
+typedef uint8_t VirtioGpuRingIdx;
+
 struct VirtioGpuRingGlobal {};
 struct VirtioGpuRingContextSpecific {
     VirtioGpuCtxId mCtxId;

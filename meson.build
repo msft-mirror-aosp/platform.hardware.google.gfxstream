@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 project('gfxstream_backend', 'cpp', 'c',
-         version : '0.0.1',
+         version : '0.1.2',
          license : 'MIT OR Apache-2.0',
          default_options : ['cpp_std=gnu++17'])
 
@@ -73,7 +73,9 @@ endif
 # Includes      #
 #===============#
 
-gfxstream_header = files('include/render-utils/virtio-gpu-gfxstream-renderer.h')
+gfxstream_headers = files(
+  'include/render-utils/virtio-gpu-gfxstream-renderer.h',
+  'include/render-utils/virtio-gpu-gfxstream-renderer-unstable.h')
 
 inc_root = include_directories('.')
 inc_include = include_directories('include')

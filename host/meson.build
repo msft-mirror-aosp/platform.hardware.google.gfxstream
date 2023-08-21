@@ -95,7 +95,7 @@ gfxstream_backend = library(
   install: true,
 )
 
-install_headers(gfxstream_header,
+install_headers(gfxstream_headers,
                 subdir: 'gfxstream')
 
 pkg = import('pkgconfig')
