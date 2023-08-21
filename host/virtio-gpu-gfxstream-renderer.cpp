@@ -586,6 +586,11 @@ class PipeVirglRenderer {
         }
         mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
         mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
+
+#if !defined(_WIN32)
+        mPageSize = getpagesize();
+#endif
+
         return 0;
     }
 
@@ -1363,11 +1368,7 @@ class PipeVirglRenderer {
 
             if (vk_emu && vk_emu->live) {
                 capset->deferredMapping = 1;
-#if defined(_WIN32)
-                capset->blobAlignment = 4096;
-#else
-                capset->blobAlignment = getpagesize();
-#endif
+                capset->blobAlignment = mPageSize;
             }
         }
     }
@@ -1485,7 +1486,7 @@ class PipeVirglRenderer {
             entry.hva = ringBlob->get();
         } else {
             void* addr =
-                android::aligned_buf_alloc(ADDRESS_SPACE_GRAPHICS_PAGE_SIZE, create_blob->size);
+                android::aligned_buf_alloc(mPageSize, create_blob->size);
             if (addr == nullptr) {
                 stream_renderer_error("Failed to allocate ring blob");
                 return -ENOMEM;
@@ -1761,6 +1762,7 @@ class PipeVirglRenderer {
     void* mCookie = nullptr;
     stream_renderer_fence_callback mFenceCallback;
     AndroidVirtioGpuOps* mVirtioGpuOps = nullptr;
+    uint32_t mPageSize = 4096;
     struct address_space_device_control_ops* mAddressSpaceDeviceControlOps = nullptr;
 
     const GoldfishPipeServiceOps* mServiceOps = nullptr;
