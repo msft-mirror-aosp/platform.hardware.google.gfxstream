@@ -3456,6 +3456,10 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
+        if (!device || !vk) {
+            return;
+        }
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
         freeMemoryLocked(vk, device, memory, pAllocator);
