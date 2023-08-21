@@ -32,9 +32,6 @@ cpp_args += '-DGFXSTREAM'
 cpp_args += '-DLINUX_GUEST_BUILD'
 # Don't want to goldfish OpenGL
 cpp_args += '-DGOLDFISH_NO_GL'
-# This is a good number for PAGE_SIZE
-# But we should really do getpagesize(..).
-cpp_args += '-DPAGE_SIZE=4096'
 # This should just be called NO_TRACE eventually
 cpp_args += '-DFUCHSIA_NO_TRACE'
 # Include the gfxstream private VkStructureType definitions
