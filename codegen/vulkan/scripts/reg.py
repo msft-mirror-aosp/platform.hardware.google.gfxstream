@@ -1104,7 +1104,7 @@ class Registry:
                         if extname is not None:
                             # 'supported' attribute was injected when the <enum> element was
                             # moved into the <enums> group in Registry.parseTree()
-                            if self.genOpts.defaultExtensions == elem.get('supported'):
+                            if self.genOpts.defaultExtensions in elem.get('supported').split(','):
                                 required = True
                             elif re.match(self.genOpts.addExtensions, extname) is not None:
                                 required = True

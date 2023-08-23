@@ -357,7 +357,7 @@ class ValidityOutputGenerator(OutputGenerator):
 
     def isHandleOptional(self, param, params):
         # Simple, if it's optional, return true
-        if param.get('optional') is not None:
+        if param.get('optional') is not None and param.get('optional').split(',')[0] == 'true':
             return True
 
         # If no validity is being generated, it usually means that validity is complex and not absolute, so let's say yes.
@@ -442,7 +442,7 @@ class ValidityOutputGenerator(OutputGenerator):
 
                 other_param = findNamedElem(params, length.other_param_name)
                 other_param_optional = (other_param is not None) and (
-                    other_param.get('optional') is not None)
+                    other_param.get('optional') is not None and other_param.get('optional').split(',')[0] == 'true')
 
                 if other_param is None or not other_param_optional:
                     # Don't care about not-found params or non-optional params

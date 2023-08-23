@@ -133,7 +133,7 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
 
     out->format = nativeBufferANDROID->format;
     out->stride = nativeBufferANDROID->stride;
-    out->colorBufferHandle = *(nativeBufferANDROID->handle);
+    out->colorBufferHandle = *static_cast<const uint32_t*>(nativeBufferANDROID->handle);
 
     bool externalMemoryCompatible = false;
 
