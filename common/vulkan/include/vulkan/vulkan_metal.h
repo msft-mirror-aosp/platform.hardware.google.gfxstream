@@ -20,7 +20,6 @@ extern "C" {
 
 
 #define VK_EXT_metal_surface 1
-
 #ifdef __OBJC__
 @class CAMetalLayer;
 #else

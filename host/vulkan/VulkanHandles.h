@@ -56,7 +56,8 @@
     f(VkIndirectCommandsLayoutNV)                                 \
     f(VkAccelerationStructureKHR)                                 \
     f(VkCuModuleNVX)                                              \
-    f(VkCuFunctionNVX)
+    f(VkCuFunctionNVX)                                            \
+    f(VkMicromapEXT)
 
 #define GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkDeviceMemory)                                     \
@@ -105,4 +106,5 @@
     f(VkIndirectCommandsLayoutNV)                 \
     f(VkAccelerationStructureKHR)                 \
     f(VkCuModuleNVX)                              \
-    f(VkCuFunctionNVX)
+    f(VkCuFunctionNVX)                            \
+    f(VkMicromapEXT)
