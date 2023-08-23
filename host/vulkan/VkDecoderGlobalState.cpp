@@ -3456,6 +3456,10 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
+        if (!device || !vk) {
+            return;
+        }
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
         freeMemoryLocked(vk, device, memory, pAllocator);
@@ -5116,12 +5120,13 @@ class VkDecoderGlobalState::Impl {
                 importSource = "AHardwareBuffer";
             } else if (pNativeBufferANDROID) {
                 // For native buffer binding, we can query the creation parameters from handle.
-                auto colorBufferInfo = getColorBufferInfo(*pNativeBufferANDROID->handle);
-                if (colorBufferInfo.handle == *pNativeBufferANDROID->handle) {
+                uint32_t cbHandle = *static_cast<const uint32_t*>(pNativeBufferANDROID->handle);
+                auto colorBufferInfo = getColorBufferInfo(cbHandle);
+                if (colorBufferInfo.handle == cbHandle) {
                     colorBufferVkImageCi =
                         std::make_unique<VkImageCreateInfo>(colorBufferInfo.imageCreateInfoShallow);
                 } else {
-                    ERR("Unknown ColorBuffer handle: %" PRIu32 ".", *pNativeBufferANDROID->handle);
+                    ERR("Unknown ColorBuffer handle: %" PRIu32 ".", cbHandle);
                 }
                 importSource = "NativeBufferANDROID";
             }

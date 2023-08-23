@@ -35,6 +35,12 @@
 #define VIRGL_BIND_CUSTOM (1 << 17)
 #define PIPE_BUFFER 0
 
+#ifdef PAGE_SIZE
+constexpr size_t kPageSize = PAGE_SIZE;
+#else
+static const size_t kPageSize = getpagesize();
+#endif
+
 namespace {
 
 struct goldfish_address_space_allocate_block {
@@ -268,7 +274,7 @@ void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
 
 void *GoldfishAddressSpaceBlock::guestPtr() const
 {
-    return reinterpret_cast<char *>(m_mmaped_ptr) + (m_host_addr & (PAGE_SIZE - 1));
+    return reinterpret_cast<char *>(m_mmaped_ptr) + (m_host_addr & (kPageSize - 1));
 }
 
 void GoldfishAddressSpaceBlock::destroy()
@@ -501,11 +507,11 @@ void* goldfish_address_space_map(
         return 0;
     }
 
-    return (void*)(((char*)res) + (uintptr_t)(pgoff & (PAGE_SIZE - 1)));
+    return (void*)(((char*)res) + (uintptr_t)(pgoff & (kPageSize - 1)));
 }
 
 void goldfish_address_space_unmap(void* ptr, uint64_t size) {
-    void* pagePtr = (void*)(((uintptr_t)ptr) & ~(PAGE_SIZE - 1));
+    void* pagePtr = (void*)(((uintptr_t)ptr) & ~(kPageSize - 1));
     ::munmap(pagePtr, size);
 }
 
