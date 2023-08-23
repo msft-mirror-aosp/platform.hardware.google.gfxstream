@@ -30,10 +30,21 @@ extern "C" {
 #ifndef VK_ANDROID_native_buffer
 
 #define VK_ANDROID_native_buffer 1
-#define VK_ANDROID_NATIVE_BUFFER_SPEC_VERSION 6
+#define VK_ANDROID_NATIVE_BUFFER_SPEC_VERSION 8
 #define VK_ANDROID_NATIVE_BUFFER_NUMBER 11
 #define VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME "VK_ANDROID_native_buffer"
 #define VK_ANDROID_NATIVE_BUFFER_NAME VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME
+
+typedef enum VkSwapchainImageUsageFlagBitsANDROID {
+    VK_SWAPCHAIN_IMAGE_USAGE_SHARED_BIT_ANDROID = 0x00000001,
+    VK_SWAPCHAIN_IMAGE_USAGE_FLAG_BITS_MAX_ENUM_ANDROID = 0x7FFFFFFF
+} VkSwapchainImageUsageFlagBitsANDROID;
+typedef VkFlags VkSwapchainImageUsageFlagsANDROID;
+typedef struct VkNativeBufferUsage2ANDROID {
+    uint64_t consumer;
+    uint64_t producer;
+} VkNativeBufferUsage2ANDROID;
+
 typedef struct VkNativeBufferANDROID {
     VkStructureType sType;
     const void* pNext;
@@ -41,9 +52,20 @@ typedef struct VkNativeBufferANDROID {
     int stride;
     int format;
     int usage;
-    uint64_t consumer;
-    uint64_t producer;
+    VkNativeBufferUsage2ANDROID usage2;
 } VkNativeBufferANDROID;
+
+typedef struct VkSwapchainImageCreateInfoANDROID {
+    VkStructureType sType;
+    const void* pNext;
+    VkSwapchainImageUsageFlagsANDROID usage;
+} VkSwapchainImageCreateInfoANDROID;
+
+typedef struct VkPhysicalDevicePresentationPropertiesANDROID {
+    VkStructureType sType;
+    const void* pNext;
+    VkBool32 sharedImage;
+} VkPhysicalDevicePresentationPropertiesANDROID;
 
 typedef VkResult(VKAPI_PTR* PFN_vkGetSwapchainGrallocUsageANDROID)(VkDevice device, VkFormat format,
                                                                    VkImageUsageFlags imageUsage,
@@ -54,6 +76,10 @@ typedef VkResult(VKAPI_PTR* PFN_vkAcquireImageANDROID)(VkDevice device, VkImage 
 typedef VkResult(VKAPI_PTR* PFN_vkQueueSignalReleaseImageANDROID)(
     VkQueue queue, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image,
     int* pNativeFenceFd);
+typedef VkResult(VKAPI_PTR* PFN_vkGetSwapchainGrallocUsage2ANDROID)(
+    VkDevice device, VkFormat format, VkImageUsageFlags imageUsage,
+    VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
+    uint64_t* grallocProducerUsage);
 
 #ifndef VK_NO_PROTOTYPES
 VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format,
@@ -68,6 +94,11 @@ VKAPI_ATTR VkResult VKAPI_CALL vkQueueSignalReleaseImageANDROID(VkQueue queue,
                                                                 uint32_t waitSemaphoreCount,
                                                                 const VkSemaphore* pWaitSemaphores,
                                                                 VkImage image, int* pNativeFenceFd);
+
+VKAPI_ATTR VkResult VKAPI_CALL
+vkGetSwapchainGrallocUsage2ANDROID(VkDevice device, VkFormat format, VkImageUsageFlags imageUsage,
+                                   VkSwapchainImageUsageFlagsANDROID swapchainImageUsage,
+                                   uint64_t* grallocConsumerUsage, uint64_t* grallocProducerUsage);
 #endif
 #endif /* VK_ANDROID_native_buffer */
 

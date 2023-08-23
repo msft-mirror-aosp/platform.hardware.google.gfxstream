@@ -277,6 +277,26 @@ STRUCT_MEMBER_FILTER_FUNC = {
     "VkFramebufferCreateInfo.pAttachments": "(eq (bitwise_and flags VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) 0)",
 }
 
+# vk.xml added optional to some of the existing fields. For backward compatibility
+# we need to ignore those optionals.
+# We might want to add more complex safety checks in future.
+STRUCT_MEMBER_IGNORE_OPTIONAL = {
+    "VkSubmitInfo.pWaitDstStageMask",
+    "VkPipelineLayoutCreateInfo.pSetLayouts",
+    "VkGraphicsPipelineCreateInfo.pStages",
+    "VkPipelineColorBlendStateCreateInfo.pAttachments",
+    "VkFramebufferCreateInfo.attachmentCount",
+    "VkFramebufferCreateInfo.pAttachments",
+    "VkVideoProfileInfoKHR.chromaBitDepth",
+    "VkVideoDecodeInfoKHR.pSetupReferenceSlot",
+    "vkCmdBindDescriptorSets.pDescriptorSets",
+    "vkCmdBindDescriptorSets.local_pDescriptorSets",
+    "vkCmdBindVertexBuffers.pBuffers",
+    "vkCmdBindVertexBuffers.local_pBuffers",
+    "vkCmdClearColorImage.pColor",
+    "vkCmdClearColorImage.local_pColor",
+}
+
 # Holds information about a Vulkan type instance (i.e., not a type definition).
 # Type instances are used as struct field definitions or function parameters,
 # to be later fed to code generation.
@@ -369,6 +389,14 @@ class VulkanType(object):
         if self.staticArrExpr != "":
             return self.staticArrExpr
         if self.lenExpr:
+            # Use a simple lookup table for latexmath.
+            known_expressions = {
+                r"latexmath:[\lceil{\mathit{samples} \over 32}\rceil]":
+                    "int(samples / 32)",
+                r"latexmath:[2 \times \mathtt{VK\_UUID\_SIZE}]": "2 * VK_UUID_SIZE",
+            }
+            if self.lenExpr in known_expressions:
+                return known_expressions[self.lenExpr]
             return self.lenExpr
         return None
 
@@ -450,6 +478,8 @@ class VulkanType(object):
                self.isNonDispatchableHandleType()
 
     def isCreatedBy(self, api):
+        if self.shouldSkip():
+            return False
         if self.typeName in HANDLE_INFO.keys():
             nonKhrRes = HANDLE_INFO[self.typeName].isCreateApi(api.name)
             if nonKhrRes:
@@ -466,6 +496,8 @@ class VulkanType(object):
         return False
 
     def isDestroyedBy(self, api):
+        if self.shouldSkip():
+            return False
         if self.typeName in HANDLE_INFO.keys():
             nonKhrRes = HANDLE_INFO[self.typeName].isDestroyApi(api.name)
             if nonKhrRes:
@@ -515,14 +547,34 @@ class VulkanType(object):
         return None
     def isOptionalPointer(self) -> bool:
         return self.isOptional and \
+               (not self.isForceOptional()) and\
                self.pointerIndirectionLevels > 0 and \
                (not self.isNextPointer())
 
+    def isForceOptional(self) -> bool:
+        """
+        Returns true if we should generate a placeholder for null.
+
+        Vulkan updates change certain pointers from non-optional to
+        optional. We want to keep our encoder/decoder backward compatible.
+        Thus we should generate a placeholder for such APIs.
+        """
+        return self.getFullName() in STRUCT_MEMBER_IGNORE_OPTIONAL
+
+    def getFullName(self) -> str:
+        if self.parent is None:
+            return self.paramName
+        return f"{self.parent.name}.{self.paramName}" 
+
     def getProtectStreamFeature(self) -> Optional[str]:
-        key = f"{self.parent.name}.{self.paramName}"
+        key = self.getFullName()
         if key in STRUCT_MEMBER_STREAM_FEATURE.keys():
             return STRUCT_MEMBER_STREAM_FEATURE[key]
         return None
+
+    def shouldSkip(self) -> bool:
+        return ("api" in self.attribs.keys()
+                and not "vulkan" == self.attribs["api"])
 
 # Is an S-expression w/ the following spec:
 # From https://gist.github.com/pib/240957
@@ -798,7 +850,7 @@ class VulkanAPI(object):
         self.name: str = name
         self.origName = name
         self.retType: VulkanType = retType
-        self.parameters: List[VulkanType] = parameters
+        self.parameters: List[VulkanType] = list(filter(lambda param: not param.shouldSkip(), parameters))
 
         if name in DEVICE_MEMORY_COMMANDS.keys():
             self.deviceMemoryInfoParameterIndices = DEVICE_MEMORY_COMMANDS[name]
@@ -893,6 +945,9 @@ class VulkanTypeInfo(object):
         # Maps all enum names to their values.
         # For aliases, the value is the name of the canonical enum
         self.enumValues: Dict[str, Union[int, str]] = {}
+
+        # Maps enum to their xml element
+        self.enumElem = {}
 
         self.feature = None
 
@@ -1009,6 +1064,8 @@ class VulkanTypeInfo(object):
                     }
 
             for member in typeinfo.elem.findall(".//member"):
+                if "api" in member.attrib.keys() and not "vulkan" == member.attrib["api"]:
+                    continue
                 vulkanType = makeVulkanTypeFromXMLTag(self, typeName, member)
                 initialEnv[vulkanType.paramName] = {
                     "type": vulkanType.typeName,
@@ -1039,11 +1096,13 @@ class VulkanTypeInfo(object):
         for enum in enums:
             intVal, strVal = self.generator.enumToValue(enum, True)
             self.enumValues[enum.get('name')] = intVal if intVal is not None else strVal
+            self.enumElem[enum.get('name')] = enum
 
 
     def onGenEnum(self, enuminfo, name: str, alias):
         self.initType(name, "enum")
         value: str = enuminfo.elem.get("value")
+        self.enumElem[name] = enuminfo.elem
         if value and value.isdigit():
             self.enumValues[name] = int(value)
         elif value and value[0] == '"' and value[-1] == '"':
@@ -1085,6 +1144,9 @@ def iterateVulkanType(typeInfo: VulkanTypeInfo, vulkanType: VulkanType, forEachT
     if not vulkanType.isArrayOfStrings():
         if vulkanType.isPointerToConstPointer:
             return False
+
+    if vulkanType.shouldSkip():
+        return False
 
     forEachType.registerTypeInfo(typeInfo)
 
