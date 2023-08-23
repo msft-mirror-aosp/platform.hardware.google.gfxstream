@@ -355,7 +355,8 @@ class COutputGenerator(OutputGenerator):
             body += ' ' + typeName + ' {\n'
 
             targetLen = self.getMaxCParamTypeLength(typeinfo)
-            for member in typeElem.findall('.//member'):
+            # b/294089430 do not generate non-vulkan APIs.
+            for member in filter(lambda elem: "api" not in elem.attrib.keys() or "vulkan" == elem.attrib["api"], typeElem.findall('member')):
                 body += self.makeCParamDecl(member, targetLen + 4)
                 body += ';\n'
             body += '} ' + typeName + ';\n'
