@@ -823,7 +823,7 @@ class PipeVirglRenderer {
                 uint64_t sync_handle =
                     convert32to64(exportSync.syncHandleLo, exportSync.syncHandleHi);
 
-                stream_renderer_info("wait for gpu ring %s", to_string(ring));
+                stream_renderer_info("wait for gpu ring %s", to_string(ring).c_str());
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
                 mVirtioGpuOps->async_wait_for_gpu_with_cb(sync_handle, [this, taskId] {
                     mVirtioGpuTimelines->notifyTaskCompletion(taskId);
@@ -849,7 +849,7 @@ class PipeVirglRenderer {
                 uint64_t fence_handle =
                     convert32to64(exportSyncVK.fenceHandleLo, exportSyncVK.fenceHandleHi);
 
-                stream_renderer_info("wait for gpu ring %s", to_string(ring));
+                stream_renderer_info("wait for gpu ring %s", to_string(ring).c_str());
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
                 mVirtioGpuOps->async_wait_for_gpu_vulkan_with_cb(
                     device_handle, fence_handle,
@@ -1155,7 +1155,9 @@ class PipeVirglRenderer {
 
             if (status > 0) {
                 readBytes += status;
-            } else if (status != kPipeTryAgain) {
+            } else if (status == kPipeTryAgain) {
+                ops->wait_guest_recv(hostPipe);
+            } else {
                 return EIO;
             }
         }
@@ -1204,7 +1206,9 @@ class PipeVirglRenderer {
 
             if (status > 0) {
                 writtenBytes += status;
-            } else if (status != kPipeTryAgain) {
+            } else if (status == kPipeTryAgain) {
+                ops->wait_guest_send(hostPipe);
+            } else {
                 return EIO;
             }
         }
@@ -1987,11 +1991,19 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
         return android_pipe_guest_recv(hostPipe, reinterpret_cast<AndroidPipeBuffer*>(buffers),
                                        numBuffers);
     },
+    // wait_guest_recv()
+    [](GoldfishHostPipe* hostPipe) {
+        android_pipe_wait_guest_recv(hostPipe);
+    },
     // guest_send()
     [](GoldfishHostPipe** hostPipe, const GoldfishPipeBuffer* buffers, int numBuffers) -> int {
         return android_pipe_guest_send(reinterpret_cast<void**>(hostPipe),
                                        reinterpret_cast<const AndroidPipeBuffer*>(buffers),
                                        numBuffers);
+    },
+    // wait_guest_send()
+    [](GoldfishHostPipe* hostPipe) {
+        android_pipe_wait_guest_send(hostPipe);
     },
     // guest_wake_on()
     [](GoldfishHostPipe* hostPipe, GoldfishPipeWakeFlags wakeFlags) {

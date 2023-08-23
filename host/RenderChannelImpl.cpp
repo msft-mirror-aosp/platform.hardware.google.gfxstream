@@ -93,6 +93,11 @@ IoResult RenderChannelImpl::tryWrite(Buffer&& buffer) {
     return result;
 }
 
+void RenderChannelImpl::waitUntilWritable() {
+    AutoLock lock(mLock);
+    mFromGuest.waitUntilPushableLocked();
+}
+
 IoResult RenderChannelImpl::tryRead(Buffer* buffer) {
     D("enter");
     AutoLock lock(mLock);
@@ -111,6 +116,11 @@ IoResult RenderChannelImpl::readBefore(Buffer* buffer, Duration waitUntilUs) {
     DD("mToGuest.popLockedBefore() returned %d, buffer size %d, state %d",
        (int)result, (int)buffer->size(), (int)mState);
     return result;
+}
+
+void RenderChannelImpl::waitUntilReadable() {
+    AutoLock lock(mLock);
+    mToGuest.waitUntilPopableLocked();
 }
 
 void RenderChannelImpl::stop() {
