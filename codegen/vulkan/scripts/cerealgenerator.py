@@ -211,7 +211,6 @@ class IOStream;
 #include "goldfish_vk_reserved_marshaling_guest.h"
 #include "goldfish_vk_deepcopy_guest.h"
 #include "goldfish_vk_counting_guest.h"
-#include "goldfish_vk_handlemap_guest.h"
 #include "goldfish_vk_private_defs.h"
 #include "goldfish_vk_transform_guest.h"
 
@@ -277,13 +276,6 @@ class IOStream;
 #include "{self.baseLibDirPrefix}/files/StreamSerializing.h"
 """ % VULKAN_STREAM_TYPE
 
-        testingInclude = f"""
-{self.hostCommonExtraVulkanHeaders}
-#include "goldfish_vk_private_defs.h"
-#include <string.h>
-#include <functional>
-using OnFailCompareFunc = std::function<void(const char*)>;
-"""
         poolInclude = f"""
 {self.hostCommonExtraVulkanHeaders}
 #include "goldfish_vk_private_defs.h"
@@ -318,16 +310,6 @@ using android::base::BumpPool;
 #include "{self.guestBaseLibDirPrefix}/BumpPool.h"
 using android::base::Allocator;
 using android::base::BumpPool;
-// Stuff we are not going to use but if included,
-// will cause compile errors. These are Android Vulkan
-// required extensions, but the approach will be to
-// implement them completely on the guest side.
-#undef VK_KHR_android_surface
-#undef VK_ANDROID_external_memory_android_hardware_buffer
-"""
-        handleMapIncludeGuest = """
-#include "goldfish_vk_private_defs.h"
-#include "VulkanHandleMapping.h"
 // Stuff we are not going to use but if included,
 // will cause compile errors. These are Android Vulkan
 // required extensions, but the approach will be to
@@ -502,9 +484,6 @@ class BumpPool;
         self.addGuestEncoderModule("goldfish_vk_counting_guest",
                                    extraHeader=countingIncludes,
                                    extraImpl=commonCerealImplIncludesGuest)
-        self.addGuestEncoderModule("goldfish_vk_handlemap_guest",
-                                   extraHeader=commonCerealIncludesGuest + handleMapIncludeGuest,
-                                   extraImpl=commonCerealImplIncludesGuest)
         self.addGuestEncoderModule("goldfish_vk_transform_guest",
                                    extraHeader=commonCerealIncludesGuest + transformIncludeGuest,
                                    extraImpl=commonCerealImplIncludesGuest + transformImplIncludeGuest)
@@ -523,9 +502,6 @@ class BumpPool;
                        extraImpl=commonCerealImplIncludes)
         self.addCppModule("common", "goldfish_vk_reserved_marshaling",
                        extraHeader=vulkanStreamIncludeHost,
-                       extraImpl=commonCerealImplIncludes)
-        self.addCppModule("common", "goldfish_vk_testing",
-                       extraHeader=testingInclude,
                        extraImpl=commonCerealImplIncludes)
         self.addCppModule("common", "goldfish_vk_deepcopy",
                        extraHeader=poolInclude,
@@ -571,13 +547,11 @@ class BumpPool;
         self.addWrapper(cereal.VulkanReservedMarshaling, "goldfish_vk_reserved_marshaling_guest", variant = "guest")
         self.addWrapper(cereal.VulkanDeepcopy, "goldfish_vk_deepcopy_guest")
         self.addWrapper(cereal.VulkanCounting, "goldfish_vk_counting_guest")
-        self.addWrapper(cereal.VulkanHandleMap, "goldfish_vk_handlemap_guest")
         self.addWrapper(cereal.VulkanTransform, "goldfish_vk_transform_guest")
         self.addWrapper(cereal.VulkanFuncTable, "func_table")
         self.addWrapper(cereal.VulkanExtensionStructs, "goldfish_vk_extension_structs")
         self.addWrapper(cereal.VulkanMarshaling, "goldfish_vk_marshaling")
         self.addWrapper(cereal.VulkanReservedMarshaling, "goldfish_vk_reserved_marshaling", variant = "host")
-        self.addWrapper(cereal.VulkanTesting, "goldfish_vk_testing")
         self.addWrapper(cereal.VulkanDeepcopy, "goldfish_vk_deepcopy")
         self.addWrapper(cereal.VulkanHandleMap, "goldfish_vk_handlemap")
         self.addWrapper(cereal.VulkanDispatch, "goldfish_vk_dispatch")
