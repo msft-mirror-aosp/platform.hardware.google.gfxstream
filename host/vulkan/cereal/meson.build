@@ -5,7 +5,6 @@ files_lib_cereal = files(
   'common/goldfish_vk_extension_structs.cpp',
   'common/goldfish_vk_marshaling.cpp',
   'common/goldfish_vk_reserved_marshaling.cpp',
-  'common/goldfish_vk_testing.cpp',
   'common/goldfish_vk_deepcopy.cpp',
   'common/goldfish_vk_handlemap.cpp',
   'common/goldfish_vk_dispatch.cpp',
