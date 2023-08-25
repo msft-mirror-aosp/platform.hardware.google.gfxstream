@@ -6,6 +6,9 @@ elseif (WIN32)
         windows/WindowsTimer.cpp
         windows/Windows_system_utils.cpp
         windows/win32/Win32Window.cpp)
+elseif(QNX)
+    set(oswindow-platform-sources
+        qnx/QNXWindow.cpp)
 else()
     set(oswindow-platform-sources
         x11/X11Window.cpp)
