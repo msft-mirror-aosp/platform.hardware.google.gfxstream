@@ -513,6 +513,20 @@ def decode_vkFlushMappedMemoryRanges(typeInfo: VulkanTypeInfo, api, cgen):
     emit_decode_parameters(typeInfo, api, cgen)
 
     cgen.beginIf("!m_state->usingDirectMapping()")
+    cgen.stmt("// This is to deal with a deficiency in the encoder,");
+    cgen.stmt("// where usingDirectMapping fails to set the proper packet size,");
+    cgen.stmt("// meaning we can read off the end of the packet.");
+    cgen.stmt("VkDeviceSize totalMemorySize = 8 * memoryRangeCount;")
+    cgen.beginFor("uint32_t i = 0", "i < memoryRangeCount", "++i")
+    cgen.stmt("totalMemorySize += pMemoryRanges[i].size;")
+    cgen.endFor()
+    cgen.beginIf("(end - *readStreamPtrPtr) < totalMemorySize")
+    cgen.beginIf("m_logCalls")
+    cgen.stmt("fprintf(stderr, \"stream %p: Retrying vkFlushMappedMemoryRanges\\n\", ioStream);")
+    cgen.endIf()
+    cgen.stmt("return ptr - (unsigned char*)buf;")
+    cgen.endIf()
+
     cgen.beginFor("uint32_t i = 0", "i < memoryRangeCount", "++i")
     cgen.stmt("auto range = pMemoryRanges[i]")
     cgen.stmt("auto memory = pMemoryRanges[i].memory")
