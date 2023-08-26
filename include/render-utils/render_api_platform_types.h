@@ -36,6 +36,11 @@ typedef uint32_t FBNativeWindowType;
 
 typedef void*   FBNativeWindowType;
 
+#elif defined(__QNX__)
+
+#include <screen/screen.h>
+typedef screen_window_t FBNativeWindowType;
+
 #else
 #warning "Unsupported platform"
 #endif
