@@ -3262,9 +3262,11 @@ class VkDecoderGlobalState::Impl {
                 if (rawDescriptorOpt) {
                     rawDescriptor = *rawDescriptorOpt;
                 } else {
+                    ERR("Failed vkAllocateMemory: missing raw descriptor.");
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
             } else {
+                ERR("Failed vkAllocateMemory: missing descriptor info.");
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
 #if defined(__linux__) || defined(__QNX__)
@@ -3455,6 +3457,10 @@ class VkDecoderGlobalState::Impl {
                          VkDeviceMemory memory, const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
+
+        if (!device || !vk) {
+            return;
+        }
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
@@ -5116,12 +5122,13 @@ class VkDecoderGlobalState::Impl {
                 importSource = "AHardwareBuffer";
             } else if (pNativeBufferANDROID) {
                 // For native buffer binding, we can query the creation parameters from handle.
-                auto colorBufferInfo = getColorBufferInfo(*pNativeBufferANDROID->handle);
-                if (colorBufferInfo.handle == *pNativeBufferANDROID->handle) {
+                uint32_t cbHandle = *static_cast<const uint32_t*>(pNativeBufferANDROID->handle);
+                auto colorBufferInfo = getColorBufferInfo(cbHandle);
+                if (colorBufferInfo.handle == cbHandle) {
                     colorBufferVkImageCi =
                         std::make_unique<VkImageCreateInfo>(colorBufferInfo.imageCreateInfoShallow);
                 } else {
-                    ERR("Unknown ColorBuffer handle: %" PRIu32 ".", *pNativeBufferANDROID->handle);
+                    ERR("Unknown ColorBuffer handle: %" PRIu32 ".", cbHandle);
                 }
                 importSource = "NativeBufferANDROID";
             }

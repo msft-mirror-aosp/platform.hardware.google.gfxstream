@@ -123,6 +123,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
             uint32_t currentDisplayW;
             uint32_t currentDisplayH;
             uint32_t currentDisplayColorBufferHandle;
+            const bool is_pixel_fold = multiDisplay.isPixelFold();
             while (multiDisplay.getNextMultiDisplay(
                 previousDisplayId, &currentDisplayId, &currentDisplayOffsetX,
                 &currentDisplayOffsetY, &currentDisplayW, &currentDisplayH,
@@ -142,6 +143,21 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
                 if (!currentCb) {
                     continue;
                 }
+
+                if (is_pixel_fold) {
+                    if (emugl::get_emugl_window_operations().isFolded()) {
+                        // folded, ignore the primary display
+                        if (currentDisplayId == 0) {
+                            continue;
+                        }
+                    } else {
+                        // unfolded, ignore the second display
+                        if (currentDisplayId > 0) {
+                            continue;
+                        }
+                    }
+                }
+
 
                 const auto transform = getTransformFromRotation(mFb->getZrot());
                 postLayerOptions.transform = transform;

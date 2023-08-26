@@ -998,6 +998,12 @@ class VulkanWrapperGenerator(object):
                 currFeature = ext.feature
 
             enum = ext.structEnumExpr
+            protect = None
+            if enum in self.typeInfo.enumElem:
+                protect = self.typeInfo.enumElem[enum].get("protect", default=None)
+                if protect is not None:
+                    cgen.leftline("#ifdef %s" % protect)
+
             cgen.line("case %s:" % enum)
             cgen.beginBlock()
 
@@ -1026,6 +1032,9 @@ class VulkanWrapperGenerator(object):
             if autoBreak:
                 cgen.stmt("break")
             cgen.endBlock()
+
+            if protect is not None:
+                cgen.leftline("#endif // %s" % protect)
 
         if currFeature:
             cgen.leftline("#endif")
