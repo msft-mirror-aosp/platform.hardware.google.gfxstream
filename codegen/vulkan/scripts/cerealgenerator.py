@@ -27,6 +27,96 @@ from cereal.wrapperdefs import VULKAN_STREAM_TYPE_GUEST
 # while being agnostic to the stream implementation
 from reg import GroupInfo, TypeInfo, EnumInfo
 
+SUPPORTED_FEATURES = [
+    "VK_VERSION_1_0",
+    "VK_VERSION_1_1",
+    "VK_VERSION_1_2",
+    "VK_VERSION_1_3",
+    # Instance extensions
+    "VK_KHR_get_physical_device_properties2",
+    "VK_KHR_sampler_ycbcr_conversion",
+    "VK_KHR_external_semaphore_capabilities",
+    "VK_KHR_external_memory_capabilities",
+    "VK_KHR_external_fence_capabilities",
+    # Device extensions
+    "VK_KHR_storage_buffer_storage_class",
+    "VK_KHR_vulkan_memory_model",
+    "VK_KHR_buffer_device_address",
+    "VK_KHR_maintenance1",
+    "VK_KHR_maintenance2",
+    "VK_KHR_maintenance3",
+    "VK_KHR_bind_memory2",
+    "VK_KHR_dedicated_allocation",
+    "VK_KHR_get_memory_requirements2",
+    "VK_KHR_sampler_ycbcr_conversion",
+    "VK_KHR_shader_float16_int8",
+    "VK_AMD_gpu_shader_half_float",
+    "VK_NV_shader_subgroup_partitioned",
+    "VK_KHR_shader_subgroup_extended_types",
+    "VK_EXT_subgroup_size_control",
+    "VK_EXT_provoking_vertex",
+    "VK_EXT_line_rasterization",
+    "VK_KHR_shader_terminate_invocation",
+    "VK_EXT_transform_feedback",
+    "VK_EXT_primitive_topology_list_restart",
+    "VK_EXT_index_type_uint8",
+    "VK_EXT_load_store_op_none",
+    "VK_EXT_swapchain_colorspace",
+    "VK_EXT_image_robustness",
+    "VK_EXT_custom_border_color",
+    "VK_EXT_shader_stencil_export",
+    "VK_KHR_image_format_list",
+    "VK_KHR_incremental_present",
+    "VK_KHR_pipeline_executable_properties",
+    "VK_EXT_queue_family_foreign",
+    "VK_KHR_external_semaphore",
+    "VK_KHR_external_semaphore_fd",
+    "VK_KHR_external_memory",
+    "VK_KHR_external_fence",
+    "VK_KHR_external_fence_fd",
+    "VK_EXT_device_memory_report",
+    "VK_KHR_create_renderpass2",
+    "VK_KHR_imageless_framebuffer",
+    "VK_KHR_descriptor_update_template",
+    # Host dispatch
+    "VK_EXT_debug_utils",
+    "VK_KHR_surface",
+    "VK_KHR_swapchain",
+    "VK_KHR_xcb_surface",
+    "VK_KHR_win32_surface",
+    "VK_EXT_metal_surface",
+    "VK_MVK_moltenvk",
+    "VK_KHR_external_semaphore_win32",
+    "VK_KHR_external_memory_win32",
+    "VK_KHR_external_memory_fd",
+    # Android
+    "VK_ANDROID_native_buffer",
+    "VK_ANDROID_external_memory_android_hardware_buffer",
+    "VK_KHR_android_surface",
+    # Custom
+    "VK_GOOGLE_gfxstream",
+]
+
+# By default, the all wrappers are run all on all features.  In certain cases,
+# we wish run only a subset of wrappers.  For example, `VK_GOOGLE_gfxstream`
+# shouldn't generate a function table entry since it's an internal interface.
+SUPPORTED_WRAPPERS = {
+    "VK_EXT_debug_utils": [cereal.VulkanDispatch],
+    "VK_KHR_surface": [cereal.VulkanDispatch],
+    "VK_KHR_swapchain": [cereal.VulkanDispatch],
+    "VK_KHR_xcb_surface": [cereal.VulkanDispatch],
+    "VK_KHR_win32_surface": [cereal.VulkanDispatch],
+    "VK_EXT_metal_surface": [cereal.VulkanDispatch],
+    # VK_MVK_moltenvk doesn't generate a generate dispatch entry for some reason, but should. The
+    # lack of this extension doesn't cause any build failtures though.
+    "VK_MVK_moltenvk": [cereal.VulkanDispatch],
+    "VK_KHR_external_semaphore_win32" : [cereal.VulkanDispatch],
+    "VK_KHR_external_memory_win32" : [cereal.VulkanDispatch],
+    "VK_KHR_external_memory_fd": [cereal.VulkanDispatch],
+    "VK_ANDROID_external_memory_android_hardware_buffer": [cereal.VulkanFuncTable],
+    "VK_KHR_android_surface": [cereal.VulkanFuncTable],
+}
+
 copyrightHeader = """// Copyright (C) 2018 The Android Open Source Project
 // Copyright (C) 2018 Google Inc.
 //
@@ -147,6 +237,8 @@ class CerealGenerator(OutputGenerator):
         self.wrappers = []
 
         self.codegen = cereal.CodeGen()
+        self.featureSupported = False
+        self.supportedWrappers = None
 
         self.guestBaseLibDirPrefix = \
             envGetOrDefault("VK_CEREAL_GUEST_BASELIB_PREFIX", "aemu/base")
@@ -659,9 +751,12 @@ class BumpPool;
         for moduleName in self.moduleList:
             func(self.modules[moduleName])
 
-    def forEachWrapper(self, func):
+    def forEachWrapper(self, func, supportedWrappers):
         for wrapper in self.wrappers:
-            func(wrapper)
+            if supportedWrappers is None:
+                func(wrapper)
+            elif type(wrapper) in supportedWrappers:
+                func(wrapper)
 
 ## Overrides####################################################################
 
@@ -684,20 +779,28 @@ class BumpPool;
                     "Android.mk")
 
         self.forEachModule(lambda m: m.begin(self.genOpts.directory))
-        self.forEachWrapper(lambda w: w.onBegin())
+        self.forEachWrapper(lambda w: w.onBegin(), None)
 
     def endFile(self):
         OutputGenerator.endFile(self)
 
         self.typeInfo.onEnd()
 
-        self.forEachWrapper(lambda w: w.onEnd())
+        self.forEachWrapper(lambda w: w.onEnd(), None)
         self.forEachModule(lambda m: m.end())
 
     def beginFeature(self, interface, emit):
         # Start processing in superclass
         OutputGenerator.beginFeature(self, interface, emit)
 
+        for supportedFeature in SUPPORTED_FEATURES:
+            if self.featureName == supportedFeature:
+                self.featureSupported = True
+
+        if self.featureSupported == False:
+            return
+
+        self.supportedWrappers = SUPPORTED_WRAPPERS.get(self.featureName)
         self.typeInfo.onBeginFeature(self.featureName, self.featureType)
 
         self.forEachModule(
@@ -706,15 +809,20 @@ class BumpPool;
         self.forEachModule(
             lambda m: m.appendImpl("#ifdef %s\n" % self.featureName)
             if isinstance(m, cereal.Module) and not m.suppressFeatureGuards else None)
-        self.forEachWrapper(lambda w: w.onBeginFeature(self.featureName, self.featureType))
+        self.forEachWrapper(lambda w: w.onBeginFeature(self.featureName, self.featureType), self.supportedWrappers)
         # functable needs to understand the feature type (device vs instance) of each cmd
         for features in interface.findall('require'):
             for c in features.findall('command'):
-                self.forEachWrapper(lambda w: w.onFeatureNewCmd(c.get('name')))
+                self.forEachWrapper(lambda w: w.onFeatureNewCmd(c.get('name')), self.supportedWrappers)
 
     def endFeature(self):
         # Finish processing in superclass
         OutputGenerator.endFeature(self)
+
+        if self.featureSupported == False:
+            return
+
+        self.featureSupported = False
 
         self.typeInfo.onEndFeature()
 
@@ -722,29 +830,56 @@ class BumpPool;
             m, cereal.Module) and not m.suppressFeatureGuards else None)
         self.forEachModule(lambda m: m.appendImpl("#endif\n") if isinstance(
             m, cereal.Module) and not m.suppressFeatureGuards else None)
-        self.forEachWrapper(lambda w: w.onEndFeature())
+        self.forEachWrapper(lambda w: w.onEndFeature(), self.supportedWrappers)
 
     def genType(self, typeinfo: TypeInfo, name, alias):
         OutputGenerator.genType(self, typeinfo, name, alias)
+
+        if self.featureSupported == False and name == "int":
+            self.typeInfo.onGenType(typeinfo, name, alias)
+            return
+
+        if self.featureSupported == False and name == "int64_t":
+            self.typeInfo.onGenType(typeinfo, name, alias)
+            return
+
+        if self.featureSupported == False and name == "double":
+            self.typeInfo.onGenType(typeinfo, name, alias)
+            return
+
+        if self.featureSupported == False:
+            return
+
         self.typeInfo.onGenType(typeinfo, name, alias)
-        self.forEachWrapper(lambda w: w.onGenType(typeinfo, name, alias))
+        self.forEachWrapper(lambda w: w.onGenType(typeinfo, name, alias), self.supportedWrappers)
 
     def genStruct(self, typeinfo, typeName, alias):
         OutputGenerator.genStruct(self, typeinfo, typeName, alias)
+        if self.featureSupported == False:
+            return
+
         self.typeInfo.onGenStruct(typeinfo, typeName, alias)
-        self.forEachWrapper(lambda w: w.onGenStruct(typeinfo, typeName, alias))
+        self.forEachWrapper(lambda w: w.onGenStruct(typeinfo, typeName, alias), self.supportedWrappers)
 
     def genGroup(self, groupinfo: GroupInfo, groupName, alias = None):
         OutputGenerator.genGroup(self, groupinfo, groupName, alias)
+        if self.featureSupported == False:
+            return
+
         self.typeInfo.onGenGroup(groupinfo, groupName, alias)
-        self.forEachWrapper(lambda w: w.onGenGroup(groupinfo, groupName, alias))
+        self.forEachWrapper(lambda w: w.onGenGroup(groupinfo, groupName, alias), self.supportedWrappers)
 
     def genEnum(self, enuminfo: EnumInfo, name, alias):
         OutputGenerator.genEnum(self, enuminfo, name, alias)
+        if self.featureSupported == False:
+            return
         self.typeInfo.onGenEnum(enuminfo, name, alias)
-        self.forEachWrapper(lambda w: w.onGenEnum(enuminfo, name, alias))
+        self.forEachWrapper(lambda w: w.onGenEnum(enuminfo, name, alias), self.supportedWrappers)
 
     def genCmd(self, cmdinfo, name, alias):
         OutputGenerator.genCmd(self, cmdinfo, name, alias)
+        if self.featureSupported == False:
+            return
+
         self.typeInfo.onGenCmd(cmdinfo, name, alias)
-        self.forEachWrapper(lambda w: w.onGenCmd(cmdinfo, name, alias))
+        self.forEachWrapper(lambda w: w.onGenCmd(cmdinfo, name, alias), self.supportedWrappers)
