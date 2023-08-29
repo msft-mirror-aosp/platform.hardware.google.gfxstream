@@ -3262,11 +3262,9 @@ class VkDecoderGlobalState::Impl {
                 if (rawDescriptorOpt) {
                     rawDescriptor = *rawDescriptorOpt;
                 } else {
-                    ERR("Failed vkAllocateMemory: missing raw descriptor.");
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
             } else {
-                ERR("Failed vkAllocateMemory: missing descriptor info.");
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
 #if defined(__linux__) || defined(__QNX__)
