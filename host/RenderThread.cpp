@@ -349,7 +349,7 @@ intptr_t RenderThread::main() {
     auto& metricsLogger = FrameBuffer::getFB()->getMetricsLogger();
 
     const ProcessResources* processResources = nullptr;
-
+    bool anyProgress = false;
     while (true) {
         // Let's make sure we read enough data for at least some processing.
         uint32_t packetSize;
@@ -367,7 +367,11 @@ intptr_t RenderThread::main() {
             // time.
             packetSize = 8;
         }
-
+        if (!anyProgress) {
+            // If we didn't make any progress last time, then make sure we read at least one
+            // extra byte.
+            packetSize = std::max(packetSize, static_cast<uint32_t>(readBuf.validData() + 1));
+        }
         int stat = 0;
         if (packetSize > readBuf.validData()) {
             stat = readBuf.getData(ioStream, packetSize);
@@ -418,9 +422,10 @@ intptr_t RenderThread::main() {
             fflush(dumpFP);
         }
 
-        bool progress;
-
+        bool progress = false;
+        anyProgress = false;
         do {
+            anyProgress |= progress;
             std::unique_ptr<EventHangMetadata::HangAnnotations> renderThreadData =
                 std::make_unique<EventHangMetadata::HangAnnotations>();
 
