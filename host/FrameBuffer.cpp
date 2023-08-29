@@ -3749,6 +3749,8 @@ bool FrameBuffer::flushColorBufferFromVk(HandleType colorBufferHandle) {
 }
 
 bool FrameBuffer::flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes, size_t bytesSize) {
+    AutoLock mutex(m_lock);
+
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
