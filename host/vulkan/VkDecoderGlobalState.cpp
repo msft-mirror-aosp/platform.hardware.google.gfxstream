@@ -3072,6 +3072,23 @@ class VkDecoderGlobalState::Impl {
         if (dedicatedAllocInfoPtr) {
             localDedicatedAllocInfo = vk_make_orphan_copy(*dedicatedAllocInfoPtr);
         }
+        if (!usingDirectMapping()) {
+            // We copy bytes 1 page at a time from the guest to the host
+            // if we are not using direct mapping. This means we can end up
+            // writing over memory we did not intend.
+            // E.g. swiftshader just allocated with malloc, which can have
+            // data stored between allocations.
+        #ifdef PAGE_SIZE
+            localAllocInfo.allocationSize += static_cast<VkDeviceSize>(PAGE_SIZE);
+            localAllocInfo.allocationSize &= ~static_cast<VkDeviceSize>(PAGE_SIZE - 1);
+        #elif defined(_WIN32)
+            localAllocInfo.allocationSize += static_cast<VkDeviceSize>(4096);
+            localAllocInfo.allocationSize &= ~static_cast<VkDeviceSize>(4095);
+        #else
+            localAllocInfo.allocationSize += static_cast<VkDeviceSize>(getpagesize());
+            localAllocInfo.allocationSize &= ~static_cast<VkDeviceSize>(getpagesize() - 1);
+        #endif
+        }
         // Note for AHardwareBuffers, the Vulkan spec states:
         //
         //     Android hardware buffers have intrinsic width, height, format, and usage
