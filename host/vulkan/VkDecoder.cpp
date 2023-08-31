@@ -1896,20 +1896,24 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pMemoryRanges);
                 }
                 if (!m_state->usingDirectMapping()) {
-                    // This is to deal with a deficiency in the encoder,
-                    // where usingDirectMapping fails to set the proper packet size,
-                    // meaning we can read off the end of the packet.
+                    // This is to deal with a deficiency in the encoder,;
+                    // where usingDirectMapping fails to set the proper packet size,;
+                    // meaning we can read off the end of the packet.;
                     VkDeviceSize totalMemorySize = 8 * memoryRangeCount;
+                    ;
                     for (uint32_t i = 0; i < memoryRangeCount; ++i) {
                         totalMemorySize += pMemoryRanges[i].size;
+                        ;
                     }
                     if ((end - *readStreamPtrPtr) < totalMemorySize) {
                         if (m_logCalls) {
-                            fprintf(stderr, "stream %p: Retrying vkFlushMappedMemoryRanges\n", ioStream);
+                            fprintf(stderr, "stream %p: Retrying vkFlushMappedMemoryRanges\n",
+                                    ioStream);
+                            ;
                         }
                         return ptr - (unsigned char*)buf;
+                        ;
                     }
-
                     for (uint32_t i = 0; i < memoryRangeCount; ++i) {
                         auto range = pMemoryRanges[i];
                         auto memory = pMemoryRanges[i].memory;
