@@ -431,7 +431,6 @@ class BumpPool;
     ((type)(1000000000 + (1000 * ({extensionName}_NUMBER - 1)) + (id)))
 """
         self.guest_encoder_tag = "guest_encoder"
-        self.guest_hal_tag = "guest_hal"
         self.host_tag = "host"
 
         default_guest_abs_encoder_destination = \
@@ -443,16 +442,6 @@ class BumpPool;
         self.guest_abs_encoder_destination = \
             envGetOrDefault("VK_CEREAL_GUEST_ENCODER_DIR",
                             default_guest_abs_encoder_destination)
-
-        default_guest_abs_hal_destination = \
-            os.path.join(
-                os.getcwd(),
-                "..", "..",
-                "device", "generic", "goldfish-opengl",
-                "system", "vulkan")
-        self.guest_abs_hal_destination = \
-            envGetOrDefault("VK_CEREAL_GUEST_HAL_DIR",
-                            default_guest_abs_hal_destination)
 
         default_host_abs_decoder_destination = \
             os.path.join(
@@ -577,7 +566,7 @@ class BumpPool;
                 self.guestAndroidMkCppFiles += mkSrcEntry
             elif m.directory == self.host_tag:
                 self.hostDecoderCMakeCppFiles += cmakeSrcEntry
-            elif m.directory != self.guest_hal_tag:
+            else:
                 self.hostCMakeCppFiles += cmakeSrcEntry
 
         self.forEachModule(addSrcEntry)
@@ -593,17 +582,6 @@ class BumpPool;
                        useNamespace=useNamespace, headerOnly=headerOnly,
                        suppressFeatureGuards=suppressFeatureGuards, moduleName=moduleName,
                        suppressVulkanHeaders=suppressVulkanHeaders)
-
-    def addGuestHalModule(self, basename, extraHeader = "", extraImpl = "", useNamespace = True):
-        if not os.path.exists(self.guest_abs_hal_destination):
-            print("Path [%s] not found (guest encoder path), skipping" % self.guest_abs_encoder_destination)
-            return
-        self.addCppModule(self.guest_hal_tag,
-                       basename,
-                       extraHeader = extraHeader,
-                       extraImpl = extraImpl,
-                       customAbsDir = self.guest_abs_hal_destination,
-                       useNamespace = useNamespace)
 
     def addHostModule(
             self, basename, extraHeader="", extraImpl="", useNamespace=True, implOnly=False,
