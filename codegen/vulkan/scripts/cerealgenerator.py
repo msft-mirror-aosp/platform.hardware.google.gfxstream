@@ -237,6 +237,9 @@ class IOStream;
 // required extensions, but the approach will be to
 // implement them completely on the guest side.
 #undef VK_KHR_android_surface
+#if defined(LINUX_GUEST_BUILD)
+#undef VK_ANDROID_native_buffer
+#endif
 """
         marshalIncludeGuest = """
 #include "goldfish_vk_marshaling_guest.h"
