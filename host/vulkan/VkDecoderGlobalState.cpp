@@ -152,7 +152,7 @@ static constexpr const char* const kEmulatedInstanceExtensions[] = {
     VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
 };
 
-static constexpr uint32_t kMaxSafeVersion = VK_MAKE_VERSION(1, 1, 0);
+static constexpr uint32_t kMaxSafeVersion = VK_MAKE_VERSION(1, 3, 0);
 static constexpr uint32_t kMinVersion = VK_MAKE_VERSION(1, 0, 0);
 
 static constexpr uint64_t kPageSizeforBlob = 4096;
@@ -3262,9 +3262,11 @@ class VkDecoderGlobalState::Impl {
                 if (rawDescriptorOpt) {
                     rawDescriptor = *rawDescriptorOpt;
                 } else {
+                    ERR("Failed vkAllocateMemory: missing raw descriptor.");
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
             } else {
+                ERR("Failed vkAllocateMemory: missing descriptor info.");
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
 #if defined(__linux__) || defined(__QNX__)
