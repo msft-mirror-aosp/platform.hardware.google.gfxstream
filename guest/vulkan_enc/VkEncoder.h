@@ -615,14 +615,184 @@ class VkEncoder {
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements, uint32_t doLock);
 #endif
 #ifdef VK_KHR_surface
+    void vkDestroySurfaceKHR(VkInstance instance, VkSurfaceKHR surface,
+                             const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    VkResult vkGetPhysicalDeviceSurfaceSupportKHR(VkPhysicalDevice physicalDevice,
+                                                  uint32_t queueFamilyIndex, VkSurfaceKHR surface,
+                                                  VkBool32* pSupported, uint32_t doLock);
+    VkResult vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+        VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+        VkSurfaceCapabilitiesKHR* pSurfaceCapabilities, uint32_t doLock);
+    VkResult vkGetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDevice physicalDevice,
+                                                  VkSurfaceKHR surface,
+                                                  uint32_t* pSurfaceFormatCount,
+                                                  VkSurfaceFormatKHR* pSurfaceFormats,
+                                                  uint32_t doLock);
+    VkResult vkGetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice physicalDevice,
+                                                       VkSurfaceKHR surface,
+                                                       uint32_t* pPresentModeCount,
+                                                       VkPresentModeKHR* pPresentModes,
+                                                       uint32_t doLock);
 #endif
 #ifdef VK_KHR_swapchain
+    VkResult vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInfo,
+                                  const VkAllocationCallbacks* pAllocator,
+                                  VkSwapchainKHR* pSwapchain, uint32_t doLock);
+    void vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapchain,
+                               const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    VkResult vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                     uint32_t* pSwapchainImageCount, VkImage* pSwapchainImages,
+                                     uint32_t doLock);
+    VkResult vkAcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchain, uint64_t timeout,
+                                   VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex,
+                                   uint32_t doLock);
+    VkResult vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo,
+                               uint32_t doLock);
+    VkResult vkGetDeviceGroupPresentCapabilitiesKHR(
+        VkDevice device, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities,
+        uint32_t doLock);
+    VkResult vkGetDeviceGroupSurfacePresentModesKHR(VkDevice device, VkSurfaceKHR surface,
+                                                    VkDeviceGroupPresentModeFlagsKHR* pModes,
+                                                    uint32_t doLock);
+    VkResult vkGetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice physicalDevice,
+                                                     VkSurfaceKHR surface, uint32_t* pRectCount,
+                                                     VkRect2D* pRects, uint32_t doLock);
+    VkResult vkAcquireNextImage2KHR(VkDevice device, const VkAcquireNextImageInfoKHR* pAcquireInfo,
+                                    uint32_t* pImageIndex, uint32_t doLock);
+#endif
+#ifdef VK_KHR_display
+    VkResult vkGetPhysicalDeviceDisplayPropertiesKHR(VkPhysicalDevice physicalDevice,
+                                                     uint32_t* pPropertyCount,
+                                                     VkDisplayPropertiesKHR* pProperties,
+                                                     uint32_t doLock);
+    VkResult vkGetPhysicalDeviceDisplayPlanePropertiesKHR(VkPhysicalDevice physicalDevice,
+                                                          uint32_t* pPropertyCount,
+                                                          VkDisplayPlanePropertiesKHR* pProperties,
+                                                          uint32_t doLock);
+    VkResult vkGetDisplayPlaneSupportedDisplaysKHR(VkPhysicalDevice physicalDevice,
+                                                   uint32_t planeIndex, uint32_t* pDisplayCount,
+                                                   VkDisplayKHR* pDisplays, uint32_t doLock);
+    VkResult vkGetDisplayModePropertiesKHR(VkPhysicalDevice physicalDevice, VkDisplayKHR display,
+                                           uint32_t* pPropertyCount,
+                                           VkDisplayModePropertiesKHR* pProperties,
+                                           uint32_t doLock);
+    VkResult vkCreateDisplayModeKHR(VkPhysicalDevice physicalDevice, VkDisplayKHR display,
+                                    const VkDisplayModeCreateInfoKHR* pCreateInfo,
+                                    const VkAllocationCallbacks* pAllocator,
+                                    VkDisplayModeKHR* pMode, uint32_t doLock);
+    VkResult vkGetDisplayPlaneCapabilitiesKHR(VkPhysicalDevice physicalDevice,
+                                              VkDisplayModeKHR mode, uint32_t planeIndex,
+                                              VkDisplayPlaneCapabilitiesKHR* pCapabilities,
+                                              uint32_t doLock);
+    VkResult vkCreateDisplayPlaneSurfaceKHR(VkInstance instance,
+                                            const VkDisplaySurfaceCreateInfoKHR* pCreateInfo,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkSurfaceKHR* pSurface, uint32_t doLock);
+#endif
+#ifdef VK_KHR_display_swapchain
+    VkResult vkCreateSharedSwapchainsKHR(VkDevice device, uint32_t swapchainCount,
+                                         const VkSwapchainCreateInfoKHR* pCreateInfos,
+                                         const VkAllocationCallbacks* pAllocator,
+                                         VkSwapchainKHR* pSwapchains, uint32_t doLock);
+#endif
+#ifdef VK_KHR_xlib_surface
+    VkResult vkCreateXlibSurfaceKHR(VkInstance instance,
+                                    const VkXlibSurfaceCreateInfoKHR* pCreateInfo,
+                                    const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface,
+                                    uint32_t doLock);
+    VkBool32 vkGetPhysicalDeviceXlibPresentationSupportKHR(VkPhysicalDevice physicalDevice,
+                                                           uint32_t queueFamilyIndex, Display* dpy,
+                                                           VisualID visualID, uint32_t doLock);
 #endif
 #ifdef VK_KHR_xcb_surface
+    VkResult vkCreateXcbSurfaceKHR(VkInstance instance,
+                                   const VkXcbSurfaceCreateInfoKHR* pCreateInfo,
+                                   const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface,
+                                   uint32_t doLock);
+    VkBool32 vkGetPhysicalDeviceXcbPresentationSupportKHR(VkPhysicalDevice physicalDevice,
+                                                          uint32_t queueFamilyIndex,
+                                                          xcb_connection_t* connection,
+                                                          xcb_visualid_t visual_id,
+                                                          uint32_t doLock);
+#endif
+#ifdef VK_KHR_wayland_surface
+    VkResult vkCreateWaylandSurfaceKHR(VkInstance instance,
+                                       const VkWaylandSurfaceCreateInfoKHR* pCreateInfo,
+                                       const VkAllocationCallbacks* pAllocator,
+                                       VkSurfaceKHR* pSurface, uint32_t doLock);
+    VkBool32 vkGetPhysicalDeviceWaylandPresentationSupportKHR(VkPhysicalDevice physicalDevice,
+                                                              uint32_t queueFamilyIndex,
+                                                              wl_display* display, uint32_t doLock);
 #endif
 #ifdef VK_KHR_android_surface
+    VkResult vkCreateAndroidSurfaceKHR(VkInstance instance,
+                                       const VkAndroidSurfaceCreateInfoKHR* pCreateInfo,
+                                       const VkAllocationCallbacks* pAllocator,
+                                       VkSurfaceKHR* pSurface, uint32_t doLock);
 #endif
 #ifdef VK_KHR_win32_surface
+    VkResult vkCreateWin32SurfaceKHR(VkInstance instance,
+                                     const VkWin32SurfaceCreateInfoKHR* pCreateInfo,
+                                     const VkAllocationCallbacks* pAllocator,
+                                     VkSurfaceKHR* pSurface, uint32_t doLock);
+    VkBool32 vkGetPhysicalDeviceWin32PresentationSupportKHR(VkPhysicalDevice physicalDevice,
+                                                            uint32_t queueFamilyIndex,
+                                                            uint32_t doLock);
+#endif
+#ifdef VK_KHR_sampler_mirror_clamp_to_edge
+#endif
+#ifdef VK_KHR_video_queue
+    VkResult vkGetPhysicalDeviceVideoCapabilitiesKHR(VkPhysicalDevice physicalDevice,
+                                                     const VkVideoProfileInfoKHR* pVideoProfile,
+                                                     VkVideoCapabilitiesKHR* pCapabilities,
+                                                     uint32_t doLock);
+    VkResult vkGetPhysicalDeviceVideoFormatPropertiesKHR(
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceVideoFormatInfoKHR* pVideoFormatInfo,
+        uint32_t* pVideoFormatPropertyCount, VkVideoFormatPropertiesKHR* pVideoFormatProperties,
+        uint32_t doLock);
+    VkResult vkCreateVideoSessionKHR(VkDevice device,
+                                     const VkVideoSessionCreateInfoKHR* pCreateInfo,
+                                     const VkAllocationCallbacks* pAllocator,
+                                     VkVideoSessionKHR* pVideoSession, uint32_t doLock);
+    void vkDestroyVideoSessionKHR(VkDevice device, VkVideoSessionKHR videoSession,
+                                  const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    VkResult vkGetVideoSessionMemoryRequirementsKHR(
+        VkDevice device, VkVideoSessionKHR videoSession, uint32_t* pMemoryRequirementsCount,
+        VkVideoSessionMemoryRequirementsKHR* pMemoryRequirements, uint32_t doLock);
+    VkResult vkBindVideoSessionMemoryKHR(
+        VkDevice device, VkVideoSessionKHR videoSession, uint32_t bindSessionMemoryInfoCount,
+        const VkBindVideoSessionMemoryInfoKHR* pBindSessionMemoryInfos, uint32_t doLock);
+    VkResult vkCreateVideoSessionParametersKHR(
+        VkDevice device, const VkVideoSessionParametersCreateInfoKHR* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkVideoSessionParametersKHR* pVideoSessionParameters, uint32_t doLock);
+    VkResult vkUpdateVideoSessionParametersKHR(
+        VkDevice device, VkVideoSessionParametersKHR videoSessionParameters,
+        const VkVideoSessionParametersUpdateInfoKHR* pUpdateInfo, uint32_t doLock);
+    void vkDestroyVideoSessionParametersKHR(VkDevice device,
+                                            VkVideoSessionParametersKHR videoSessionParameters,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            uint32_t doLock);
+    void vkCmdBeginVideoCodingKHR(VkCommandBuffer commandBuffer,
+                                  const VkVideoBeginCodingInfoKHR* pBeginInfo, uint32_t doLock);
+    void vkCmdEndVideoCodingKHR(VkCommandBuffer commandBuffer,
+                                const VkVideoEndCodingInfoKHR* pEndCodingInfo, uint32_t doLock);
+    void vkCmdControlVideoCodingKHR(VkCommandBuffer commandBuffer,
+                                    const VkVideoCodingControlInfoKHR* pCodingControlInfo,
+                                    uint32_t doLock);
+#endif
+#ifdef VK_KHR_video_decode_queue
+    void vkCmdDecodeVideoKHR(VkCommandBuffer commandBuffer, const VkVideoDecodeInfoKHR* pDecodeInfo,
+                             uint32_t doLock);
+#endif
+#ifdef VK_KHR_video_decode_h264
+#endif
+#ifdef VK_KHR_dynamic_rendering
+    void vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
+                                const VkRenderingInfo* pRenderingInfo, uint32_t doLock);
+    void vkCmdEndRenderingKHR(VkCommandBuffer commandBuffer, uint32_t doLock);
+#endif
+#ifdef VK_KHR_multiview
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
     void vkGetPhysicalDeviceFeatures2KHR(VkPhysicalDevice physicalDevice,
@@ -646,9 +816,27 @@ class VkEncoder {
         VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
         uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties, uint32_t doLock);
 #endif
+#ifdef VK_KHR_device_group
+    void vkGetDeviceGroupPeerMemoryFeaturesKHR(VkDevice device, uint32_t heapIndex,
+                                               uint32_t localDeviceIndex,
+                                               uint32_t remoteDeviceIndex,
+                                               VkPeerMemoryFeatureFlags* pPeerMemoryFeatures,
+                                               uint32_t doLock);
+    void vkCmdSetDeviceMaskKHR(VkCommandBuffer commandBuffer, uint32_t deviceMask, uint32_t doLock);
+    void vkCmdDispatchBaseKHR(VkCommandBuffer commandBuffer, uint32_t baseGroupX,
+                              uint32_t baseGroupY, uint32_t baseGroupZ, uint32_t groupCountX,
+                              uint32_t groupCountY, uint32_t groupCountZ, uint32_t doLock);
+#endif
+#ifdef VK_KHR_shader_draw_parameters
+#endif
 #ifdef VK_KHR_maintenance1
     void vkTrimCommandPoolKHR(VkDevice device, VkCommandPool commandPool,
                               VkCommandPoolTrimFlags flags, uint32_t doLock);
+#endif
+#ifdef VK_KHR_device_group_creation
+    VkResult vkEnumeratePhysicalDeviceGroupsKHR(
+        VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+        VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties, uint32_t doLock);
 #endif
 #ifdef VK_KHR_external_memory_capabilities
     void vkGetPhysicalDeviceExternalBufferPropertiesKHR(
@@ -659,8 +847,22 @@ class VkEncoder {
 #ifdef VK_KHR_external_memory
 #endif
 #ifdef VK_KHR_external_memory_win32
+    VkResult vkGetMemoryWin32HandleKHR(VkDevice device,
+                                       const VkMemoryGetWin32HandleInfoKHR* pGetWin32HandleInfo,
+                                       HANDLE* pHandle, uint32_t doLock);
+    VkResult vkGetMemoryWin32HandlePropertiesKHR(
+        VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, HANDLE handle,
+        VkMemoryWin32HandlePropertiesKHR* pMemoryWin32HandleProperties, uint32_t doLock);
 #endif
 #ifdef VK_KHR_external_memory_fd
+    VkResult vkGetMemoryFdKHR(VkDevice device, const VkMemoryGetFdInfoKHR* pGetFdInfo, int* pFd,
+                              uint32_t doLock);
+    VkResult vkGetMemoryFdPropertiesKHR(VkDevice device,
+                                        VkExternalMemoryHandleTypeFlagBits handleType, int fd,
+                                        VkMemoryFdPropertiesKHR* pMemoryFdProperties,
+                                        uint32_t doLock);
+#endif
+#ifdef VK_KHR_win32_keyed_mutex
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
     void vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
@@ -671,6 +873,12 @@ class VkEncoder {
 #ifdef VK_KHR_external_semaphore
 #endif
 #ifdef VK_KHR_external_semaphore_win32
+    VkResult vkImportSemaphoreWin32HandleKHR(
+        VkDevice device, const VkImportSemaphoreWin32HandleInfoKHR* pImportSemaphoreWin32HandleInfo,
+        uint32_t doLock);
+    VkResult vkGetSemaphoreWin32HandleKHR(
+        VkDevice device, const VkSemaphoreGetWin32HandleInfoKHR* pGetWin32HandleInfo,
+        HANDLE* pHandle, uint32_t doLock);
 #endif
 #ifdef VK_KHR_external_semaphore_fd
     VkResult vkImportSemaphoreFdKHR(VkDevice device,
@@ -679,7 +887,19 @@ class VkEncoder {
     VkResult vkGetSemaphoreFdKHR(VkDevice device, const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
                                  int* pFd, uint32_t doLock);
 #endif
+#ifdef VK_KHR_push_descriptor
+    void vkCmdPushDescriptorSetKHR(VkCommandBuffer commandBuffer,
+                                   VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
+                                   uint32_t set, uint32_t descriptorWriteCount,
+                                   const VkWriteDescriptorSet* pDescriptorWrites, uint32_t doLock);
+    void vkCmdPushDescriptorSetWithTemplateKHR(VkCommandBuffer commandBuffer,
+                                               VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+                                               VkPipelineLayout layout, uint32_t set,
+                                               const void* pData, uint32_t doLock);
+#endif
 #ifdef VK_KHR_shader_float16_int8
+#endif
+#ifdef VK_KHR_16bit_storage
 #endif
 #ifdef VK_KHR_incremental_present
 #endif
@@ -711,6 +931,9 @@ class VkEncoder {
     void vkCmdEndRenderPass2KHR(VkCommandBuffer commandBuffer,
                                 const VkSubpassEndInfo* pSubpassEndInfo, uint32_t doLock);
 #endif
+#ifdef VK_KHR_shared_presentable_image
+    VkResult vkGetSwapchainStatusKHR(VkDevice device, VkSwapchainKHR swapchain, uint32_t doLock);
+#endif
 #ifdef VK_KHR_external_fence_capabilities
     void vkGetPhysicalDeviceExternalFencePropertiesKHR(
         VkPhysicalDevice physicalDevice,
@@ -719,17 +942,67 @@ class VkEncoder {
 #endif
 #ifdef VK_KHR_external_fence
 #endif
+#ifdef VK_KHR_external_fence_win32
+    VkResult vkImportFenceWin32HandleKHR(
+        VkDevice device, const VkImportFenceWin32HandleInfoKHR* pImportFenceWin32HandleInfo,
+        uint32_t doLock);
+    VkResult vkGetFenceWin32HandleKHR(VkDevice device,
+                                      const VkFenceGetWin32HandleInfoKHR* pGetWin32HandleInfo,
+                                      HANDLE* pHandle, uint32_t doLock);
+#endif
 #ifdef VK_KHR_external_fence_fd
     VkResult vkImportFenceFdKHR(VkDevice device, const VkImportFenceFdInfoKHR* pImportFenceFdInfo,
                                 uint32_t doLock);
     VkResult vkGetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* pGetFdInfo, int* pFd,
                              uint32_t doLock);
 #endif
+#ifdef VK_KHR_performance_query
+    VkResult vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR(
+        VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, uint32_t* pCounterCount,
+        VkPerformanceCounterKHR* pCounters,
+        VkPerformanceCounterDescriptionKHR* pCounterDescriptions, uint32_t doLock);
+    void vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR(
+        VkPhysicalDevice physicalDevice,
+        const VkQueryPoolPerformanceCreateInfoKHR* pPerformanceQueryCreateInfo,
+        uint32_t* pNumPasses, uint32_t doLock);
+    VkResult vkAcquireProfilingLockKHR(VkDevice device, const VkAcquireProfilingLockInfoKHR* pInfo,
+                                       uint32_t doLock);
+    void vkReleaseProfilingLockKHR(VkDevice device, uint32_t doLock);
+#endif
 #ifdef VK_KHR_maintenance2
+#endif
+#ifdef VK_KHR_get_surface_capabilities2
+    VkResult vkGetPhysicalDeviceSurfaceCapabilities2KHR(
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+        VkSurfaceCapabilities2KHR* pSurfaceCapabilities, uint32_t doLock);
+    VkResult vkGetPhysicalDeviceSurfaceFormats2KHR(
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+        uint32_t* pSurfaceFormatCount, VkSurfaceFormat2KHR* pSurfaceFormats, uint32_t doLock);
+#endif
+#ifdef VK_KHR_variable_pointers
+#endif
+#ifdef VK_KHR_get_display_properties2
+    VkResult vkGetPhysicalDeviceDisplayProperties2KHR(VkPhysicalDevice physicalDevice,
+                                                      uint32_t* pPropertyCount,
+                                                      VkDisplayProperties2KHR* pProperties,
+                                                      uint32_t doLock);
+    VkResult vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
+        VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount,
+        VkDisplayPlaneProperties2KHR* pProperties, uint32_t doLock);
+    VkResult vkGetDisplayModeProperties2KHR(VkPhysicalDevice physicalDevice, VkDisplayKHR display,
+                                            uint32_t* pPropertyCount,
+                                            VkDisplayModeProperties2KHR* pProperties,
+                                            uint32_t doLock);
+    VkResult vkGetDisplayPlaneCapabilities2KHR(VkPhysicalDevice physicalDevice,
+                                               const VkDisplayPlaneInfo2KHR* pDisplayPlaneInfo,
+                                               VkDisplayPlaneCapabilities2KHR* pCapabilities,
+                                               uint32_t doLock);
 #endif
 #ifdef VK_KHR_dedicated_allocation
 #endif
 #ifdef VK_KHR_storage_buffer_storage_class
+#endif
+#ifdef VK_KHR_relaxed_block_layout
 #endif
 #ifdef VK_KHR_get_memory_requirements2
     void vkGetImageMemoryRequirements2KHR(VkDevice device,
@@ -763,17 +1036,76 @@ class VkEncoder {
     VkResult vkBindImageMemory2KHR(VkDevice device, uint32_t bindInfoCount,
                                    const VkBindImageMemoryInfo* pBindInfos, uint32_t doLock);
 #endif
+#ifdef VK_KHR_portability_subset
+#endif
 #ifdef VK_KHR_maintenance3
     void vkGetDescriptorSetLayoutSupportKHR(VkDevice device,
                                             const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                             VkDescriptorSetLayoutSupport* pSupport,
                                             uint32_t doLock);
 #endif
+#ifdef VK_KHR_draw_indirect_count
+    void vkCmdDrawIndirectCountKHR(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                   VkDeviceSize offset, VkBuffer countBuffer,
+                                   VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
+                                   uint32_t stride, uint32_t doLock);
+    void vkCmdDrawIndexedIndirectCountKHR(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                          VkDeviceSize offset, VkBuffer countBuffer,
+                                          VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
+                                          uint32_t stride, uint32_t doLock);
+#endif
 #ifdef VK_KHR_shader_subgroup_extended_types
+#endif
+#ifdef VK_KHR_8bit_storage
+#endif
+#ifdef VK_KHR_shader_atomic_int64
+#endif
+#ifdef VK_KHR_shader_clock
+#endif
+#ifdef VK_KHR_video_decode_h265
+#endif
+#ifdef VK_KHR_global_priority
+#endif
+#ifdef VK_KHR_driver_properties
+#endif
+#ifdef VK_KHR_shader_float_controls
+#endif
+#ifdef VK_KHR_depth_stencil_resolve
+#endif
+#ifdef VK_KHR_swapchain_mutable_format
+#endif
+#ifdef VK_KHR_timeline_semaphore
+    VkResult vkGetSemaphoreCounterValueKHR(VkDevice device, VkSemaphore semaphore, uint64_t* pValue,
+                                           uint32_t doLock);
+    VkResult vkWaitSemaphoresKHR(VkDevice device, const VkSemaphoreWaitInfo* pWaitInfo,
+                                 uint64_t timeout, uint32_t doLock);
+    VkResult vkSignalSemaphoreKHR(VkDevice device, const VkSemaphoreSignalInfo* pSignalInfo,
+                                  uint32_t doLock);
 #endif
 #ifdef VK_KHR_vulkan_memory_model
 #endif
 #ifdef VK_KHR_shader_terminate_invocation
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+    VkResult vkGetPhysicalDeviceFragmentShadingRatesKHR(
+        VkPhysicalDevice physicalDevice, uint32_t* pFragmentShadingRateCount,
+        VkPhysicalDeviceFragmentShadingRateKHR* pFragmentShadingRates, uint32_t doLock);
+    void vkCmdSetFragmentShadingRateKHR(VkCommandBuffer commandBuffer,
+                                        const VkExtent2D* pFragmentSize,
+                                        const VkFragmentShadingRateCombinerOpKHR combinerOps[2],
+                                        uint32_t doLock);
+#endif
+#ifdef VK_KHR_spirv_1_4
+#endif
+#ifdef VK_KHR_surface_protected_capabilities
+#endif
+#ifdef VK_KHR_separate_depth_stencil_layouts
+#endif
+#ifdef VK_KHR_present_wait
+    VkResult vkWaitForPresentKHR(VkDevice device, VkSwapchainKHR swapchain, uint64_t presentId,
+                                 uint64_t timeout, uint32_t doLock);
+#endif
+#ifdef VK_KHR_uniform_buffer_standard_layout
 #endif
 #ifdef VK_KHR_buffer_device_address
     VkDeviceAddress vkGetBufferDeviceAddressKHR(VkDevice device,
@@ -784,6 +1116,20 @@ class VkEncoder {
                                                 uint32_t doLock);
     uint64_t vkGetDeviceMemoryOpaqueCaptureAddressKHR(
         VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo, uint32_t doLock);
+#endif
+#ifdef VK_KHR_deferred_host_operations
+    VkResult vkCreateDeferredOperationKHR(VkDevice device, const VkAllocationCallbacks* pAllocator,
+                                          VkDeferredOperationKHR* pDeferredOperation,
+                                          uint32_t doLock);
+    void vkDestroyDeferredOperationKHR(VkDevice device, VkDeferredOperationKHR operation,
+                                       const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    uint32_t vkGetDeferredOperationMaxConcurrencyKHR(VkDevice device,
+                                                     VkDeferredOperationKHR operation,
+                                                     uint32_t doLock);
+    VkResult vkGetDeferredOperationResultKHR(VkDevice device, VkDeferredOperationKHR operation,
+                                             uint32_t doLock);
+    VkResult vkDeferredOperationJoinKHR(VkDevice device, VkDeferredOperationKHR operation,
+                                        uint32_t doLock);
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
     VkResult vkGetPipelineExecutablePropertiesKHR(VkDevice device,
@@ -799,6 +1145,92 @@ class VkEncoder {
         uint32_t* pInternalRepresentationCount,
         VkPipelineExecutableInternalRepresentationKHR* pInternalRepresentations, uint32_t doLock);
 #endif
+#ifdef VK_KHR_map_memory2
+    VkResult vkMapMemory2KHR(VkDevice device, const VkMemoryMapInfoKHR* pMemoryMapInfo,
+                             void** ppData, uint32_t doLock);
+    VkResult vkUnmapMemory2KHR(VkDevice device, const VkMemoryUnmapInfoKHR* pMemoryUnmapInfo,
+                               uint32_t doLock);
+#endif
+#ifdef VK_KHR_shader_integer_dot_product
+#endif
+#ifdef VK_KHR_pipeline_library
+#endif
+#ifdef VK_KHR_shader_non_semantic_info
+#endif
+#ifdef VK_KHR_present_id
+#endif
+#ifdef VK_KHR_video_encode_queue
+    void vkCmdEncodeVideoKHR(VkCommandBuffer commandBuffer, const VkVideoEncodeInfoKHR* pEncodeInfo,
+                             uint32_t doLock);
+#endif
+#ifdef VK_KHR_synchronization2
+    void vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
+                           const VkDependencyInfo* pDependencyInfo, uint32_t doLock);
+    void vkCmdResetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
+                             VkPipelineStageFlags2 stageMask, uint32_t doLock);
+    void vkCmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t eventCount,
+                             const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos,
+                             uint32_t doLock);
+    void vkCmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer,
+                                  const VkDependencyInfo* pDependencyInfo, uint32_t doLock);
+    void vkCmdWriteTimestamp2KHR(VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
+                                 VkQueryPool queryPool, uint32_t query, uint32_t doLock);
+    VkResult vkQueueSubmit2KHR(VkQueue queue, uint32_t submitCount, const VkSubmitInfo2* pSubmits,
+                               VkFence fence, uint32_t doLock);
+    void vkCmdWriteBufferMarker2AMD(VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
+                                    VkBuffer dstBuffer, VkDeviceSize dstOffset, uint32_t marker,
+                                    uint32_t doLock);
+    void vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpointDataCount,
+                                     VkCheckpointData2NV* pCheckpointData, uint32_t doLock);
+#endif
+#ifdef VK_KHR_fragment_shader_barycentric
+#endif
+#ifdef VK_KHR_shader_subgroup_uniform_control_flow
+#endif
+#ifdef VK_KHR_zero_initialize_workgroup_memory
+#endif
+#ifdef VK_KHR_workgroup_memory_explicit_layout
+#endif
+#ifdef VK_KHR_copy_commands2
+    void vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
+                             const VkCopyBufferInfo2* pCopyBufferInfo, uint32_t doLock);
+    void vkCmdCopyImage2KHR(VkCommandBuffer commandBuffer, const VkCopyImageInfo2* pCopyImageInfo,
+                            uint32_t doLock);
+    void vkCmdCopyBufferToImage2KHR(VkCommandBuffer commandBuffer,
+                                    const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
+                                    uint32_t doLock);
+    void vkCmdCopyImageToBuffer2KHR(VkCommandBuffer commandBuffer,
+                                    const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo,
+                                    uint32_t doLock);
+    void vkCmdBlitImage2KHR(VkCommandBuffer commandBuffer, const VkBlitImageInfo2* pBlitImageInfo,
+                            uint32_t doLock);
+    void vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer,
+                               const VkResolveImageInfo2* pResolveImageInfo, uint32_t doLock);
+#endif
+#ifdef VK_KHR_format_feature_flags2
+#endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+    void vkCmdTraceRaysIndirect2KHR(VkCommandBuffer commandBuffer,
+                                    VkDeviceAddress indirectDeviceAddress, uint32_t doLock);
+#endif
+#ifdef VK_KHR_portability_enumeration
+#endif
+#ifdef VK_KHR_maintenance4
+    void vkGetDeviceBufferMemoryRequirementsKHR(VkDevice device,
+                                                const VkDeviceBufferMemoryRequirements* pInfo,
+                                                VkMemoryRequirements2* pMemoryRequirements,
+                                                uint32_t doLock);
+    void vkGetDeviceImageMemoryRequirementsKHR(VkDevice device,
+                                               const VkDeviceImageMemoryRequirements* pInfo,
+                                               VkMemoryRequirements2* pMemoryRequirements,
+                                               uint32_t doLock);
+    void vkGetDeviceImageSparseMemoryRequirementsKHR(
+        VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
+        uint32_t* pSparseMemoryRequirementCount,
+        VkSparseImageMemoryRequirements2* pSparseMemoryRequirements, uint32_t doLock);
+#endif
+#ifdef VK_KHR_ray_tracing_position_fetch
+#endif
 #ifdef VK_ANDROID_native_buffer
     VkResult vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format,
                                                VkImageUsageFlags imageUsage, int* grallocUsage,
@@ -812,6 +1244,47 @@ class VkEncoder {
         VkDevice device, VkFormat format, VkImageUsageFlags imageUsage,
         VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
         uint64_t* grallocProducerUsage, uint32_t doLock);
+#endif
+#ifdef VK_EXT_debug_report
+    VkResult vkCreateDebugReportCallbackEXT(VkInstance instance,
+                                            const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkDebugReportCallbackEXT* pCallback, uint32_t doLock);
+    void vkDestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback,
+                                         const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    void vkDebugReportMessageEXT(VkInstance instance, VkDebugReportFlagsEXT flags,
+                                 VkDebugReportObjectTypeEXT objectType, uint64_t object,
+                                 size_t location, int32_t messageCode, const char* pLayerPrefix,
+                                 const char* pMessage, uint32_t doLock);
+#endif
+#ifdef VK_NV_glsl_shader
+#endif
+#ifdef VK_EXT_depth_range_unrestricted
+#endif
+#ifdef VK_IMG_filter_cubic
+#endif
+#ifdef VK_AMD_rasterization_order
+#endif
+#ifdef VK_AMD_shader_trinary_minmax
+#endif
+#ifdef VK_AMD_shader_explicit_vertex_parameter
+#endif
+#ifdef VK_EXT_debug_marker
+    VkResult vkDebugMarkerSetObjectTagEXT(VkDevice device,
+                                          const VkDebugMarkerObjectTagInfoEXT* pTagInfo,
+                                          uint32_t doLock);
+    VkResult vkDebugMarkerSetObjectNameEXT(VkDevice device,
+                                           const VkDebugMarkerObjectNameInfoEXT* pNameInfo,
+                                           uint32_t doLock);
+    void vkCmdDebugMarkerBeginEXT(VkCommandBuffer commandBuffer,
+                                  const VkDebugMarkerMarkerInfoEXT* pMarkerInfo, uint32_t doLock);
+    void vkCmdDebugMarkerEndEXT(VkCommandBuffer commandBuffer, uint32_t doLock);
+    void vkCmdDebugMarkerInsertEXT(VkCommandBuffer commandBuffer,
+                                   const VkDebugMarkerMarkerInfoEXT* pMarkerInfo, uint32_t doLock);
+#endif
+#ifdef VK_AMD_gcn_shader
+#endif
+#ifdef VK_NV_dedicated_allocation
 #endif
 #ifdef VK_EXT_transform_feedback
     void vkCmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuffer, uint32_t firstBinding,
@@ -835,39 +1308,855 @@ class VkEncoder {
                                        VkDeviceSize counterBufferOffset, uint32_t counterOffset,
                                        uint32_t vertexStride, uint32_t doLock);
 #endif
+#ifdef VK_NVX_binary_import
+    VkResult vkCreateCuModuleNVX(VkDevice device, const VkCuModuleCreateInfoNVX* pCreateInfo,
+                                 const VkAllocationCallbacks* pAllocator, VkCuModuleNVX* pModule,
+                                 uint32_t doLock);
+    VkResult vkCreateCuFunctionNVX(VkDevice device, const VkCuFunctionCreateInfoNVX* pCreateInfo,
+                                   const VkAllocationCallbacks* pAllocator,
+                                   VkCuFunctionNVX* pFunction, uint32_t doLock);
+    void vkDestroyCuModuleNVX(VkDevice device, VkCuModuleNVX module,
+                              const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    void vkDestroyCuFunctionNVX(VkDevice device, VkCuFunctionNVX function,
+                                const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    void vkCmdCuLaunchKernelNVX(VkCommandBuffer commandBuffer, const VkCuLaunchInfoNVX* pLaunchInfo,
+                                uint32_t doLock);
+#endif
+#ifdef VK_NVX_image_view_handle
+    uint32_t vkGetImageViewHandleNVX(VkDevice device, const VkImageViewHandleInfoNVX* pInfo,
+                                     uint32_t doLock);
+    VkResult vkGetImageViewAddressNVX(VkDevice device, VkImageView imageView,
+                                      VkImageViewAddressPropertiesNVX* pProperties,
+                                      uint32_t doLock);
+#endif
+#ifdef VK_AMD_draw_indirect_count
+    void vkCmdDrawIndirectCountAMD(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                   VkDeviceSize offset, VkBuffer countBuffer,
+                                   VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
+                                   uint32_t stride, uint32_t doLock);
+    void vkCmdDrawIndexedIndirectCountAMD(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                          VkDeviceSize offset, VkBuffer countBuffer,
+                                          VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
+                                          uint32_t stride, uint32_t doLock);
+#endif
+#ifdef VK_AMD_negative_viewport_height
+#endif
 #ifdef VK_AMD_gpu_shader_half_float
 #endif
+#ifdef VK_AMD_shader_ballot
+#endif
+#ifdef VK_EXT_video_encode_h264
+#endif
+#ifdef VK_EXT_video_encode_h265
+#endif
+#ifdef VK_AMD_texture_gather_bias_lod
+#endif
+#ifdef VK_AMD_shader_info
+    VkResult vkGetShaderInfoAMD(VkDevice device, VkPipeline pipeline,
+                                VkShaderStageFlagBits shaderStage, VkShaderInfoTypeAMD infoType,
+                                size_t* pInfoSize, void* pInfo, uint32_t doLock);
+#endif
+#ifdef VK_AMD_shader_image_load_store_lod
+#endif
+#ifdef VK_GGP_stream_descriptor_surface
+    VkResult vkCreateStreamDescriptorSurfaceGGP(
+        VkInstance instance, const VkStreamDescriptorSurfaceCreateInfoGGP* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface, uint32_t doLock);
+#endif
+#ifdef VK_NV_corner_sampled_image
+#endif
+#ifdef VK_IMG_format_pvrtc
+#endif
+#ifdef VK_NV_external_memory_capabilities
+    VkResult vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
+        VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkImageTiling tiling,
+        VkImageUsageFlags usage, VkImageCreateFlags flags,
+        VkExternalMemoryHandleTypeFlagsNV externalHandleType,
+        VkExternalImageFormatPropertiesNV* pExternalImageFormatProperties, uint32_t doLock);
+#endif
+#ifdef VK_NV_external_memory
+#endif
+#ifdef VK_NV_external_memory_win32
+    VkResult vkGetMemoryWin32HandleNV(VkDevice device, VkDeviceMemory memory,
+                                      VkExternalMemoryHandleTypeFlagsNV handleType, HANDLE* pHandle,
+                                      uint32_t doLock);
+#endif
+#ifdef VK_NV_win32_keyed_mutex
+#endif
+#ifdef VK_EXT_validation_flags
+#endif
+#ifdef VK_NN_vi_surface
+    VkResult vkCreateViSurfaceNN(VkInstance instance, const VkViSurfaceCreateInfoNN* pCreateInfo,
+                                 const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface,
+                                 uint32_t doLock);
+#endif
+#ifdef VK_EXT_shader_subgroup_ballot
+#endif
+#ifdef VK_EXT_shader_subgroup_vote
+#endif
+#ifdef VK_EXT_texture_compression_astc_hdr
+#endif
+#ifdef VK_EXT_astc_decode_mode
+#endif
+#ifdef VK_EXT_pipeline_robustness
+#endif
+#ifdef VK_EXT_conditional_rendering
+    void vkCmdBeginConditionalRenderingEXT(
+        VkCommandBuffer commandBuffer,
+        const VkConditionalRenderingBeginInfoEXT* pConditionalRenderingBegin, uint32_t doLock);
+    void vkCmdEndConditionalRenderingEXT(VkCommandBuffer commandBuffer, uint32_t doLock);
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+    void vkCmdSetViewportWScalingNV(VkCommandBuffer commandBuffer, uint32_t firstViewport,
+                                    uint32_t viewportCount,
+                                    const VkViewportWScalingNV* pViewportWScalings,
+                                    uint32_t doLock);
+#endif
+#ifdef VK_EXT_direct_mode_display
+    VkResult vkReleaseDisplayEXT(VkPhysicalDevice physicalDevice, VkDisplayKHR display,
+                                 uint32_t doLock);
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+    VkResult vkAcquireXlibDisplayEXT(VkPhysicalDevice physicalDevice, Display* dpy,
+                                     VkDisplayKHR display, uint32_t doLock);
+    VkResult vkGetRandROutputDisplayEXT(VkPhysicalDevice physicalDevice, Display* dpy,
+                                        RROutput rrOutput, VkDisplayKHR* pDisplay, uint32_t doLock);
+#endif
+#ifdef VK_EXT_display_surface_counter
+    VkResult vkGetPhysicalDeviceSurfaceCapabilities2EXT(
+        VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+        VkSurfaceCapabilities2EXT* pSurfaceCapabilities, uint32_t doLock);
+#endif
+#ifdef VK_EXT_display_control
+    VkResult vkDisplayPowerControlEXT(VkDevice device, VkDisplayKHR display,
+                                      const VkDisplayPowerInfoEXT* pDisplayPowerInfo,
+                                      uint32_t doLock);
+    VkResult vkRegisterDeviceEventEXT(VkDevice device, const VkDeviceEventInfoEXT* pDeviceEventInfo,
+                                      const VkAllocationCallbacks* pAllocator, VkFence* pFence,
+                                      uint32_t doLock);
+    VkResult vkRegisterDisplayEventEXT(VkDevice device, VkDisplayKHR display,
+                                       const VkDisplayEventInfoEXT* pDisplayEventInfo,
+                                       const VkAllocationCallbacks* pAllocator, VkFence* pFence,
+                                       uint32_t doLock);
+    VkResult vkGetSwapchainCounterEXT(VkDevice device, VkSwapchainKHR swapchain,
+                                      VkSurfaceCounterFlagBitsEXT counter, uint64_t* pCounterValue,
+                                      uint32_t doLock);
+#endif
+#ifdef VK_GOOGLE_display_timing
+    VkResult vkGetRefreshCycleDurationGOOGLE(VkDevice device, VkSwapchainKHR swapchain,
+                                             VkRefreshCycleDurationGOOGLE* pDisplayTimingProperties,
+                                             uint32_t doLock);
+    VkResult vkGetPastPresentationTimingGOOGLE(VkDevice device, VkSwapchainKHR swapchain,
+                                               uint32_t* pPresentationTimingCount,
+                                               VkPastPresentationTimingGOOGLE* pPresentationTimings,
+                                               uint32_t doLock);
+#endif
+#ifdef VK_NV_sample_mask_override_coverage
+#endif
+#ifdef VK_NV_geometry_shader_passthrough
+#endif
+#ifdef VK_NV_viewport_array2
+#endif
+#ifdef VK_NVX_multiview_per_view_attributes
+#endif
+#ifdef VK_NV_viewport_swizzle
+#endif
+#ifdef VK_EXT_discard_rectangles
+    void vkCmdSetDiscardRectangleEXT(VkCommandBuffer commandBuffer, uint32_t firstDiscardRectangle,
+                                     uint32_t discardRectangleCount,
+                                     const VkRect2D* pDiscardRectangles, uint32_t doLock);
+    void vkCmdSetDiscardRectangleEnableEXT(VkCommandBuffer commandBuffer,
+                                           VkBool32 discardRectangleEnable, uint32_t doLock);
+    void vkCmdSetDiscardRectangleModeEXT(VkCommandBuffer commandBuffer,
+                                         VkDiscardRectangleModeEXT discardRectangleMode,
+                                         uint32_t doLock);
+#endif
+#ifdef VK_EXT_conservative_rasterization
+#endif
+#ifdef VK_EXT_depth_clip_enable
+#endif
 #ifdef VK_EXT_swapchain_colorspace
+#endif
+#ifdef VK_EXT_hdr_metadata
+    void vkSetHdrMetadataEXT(VkDevice device, uint32_t swapchainCount,
+                             const VkSwapchainKHR* pSwapchains, const VkHdrMetadataEXT* pMetadata,
+                             uint32_t doLock);
+#endif
+#ifdef VK_MVK_ios_surface
+    VkResult vkCreateIOSSurfaceMVK(VkInstance instance,
+                                   const VkIOSSurfaceCreateInfoMVK* pCreateInfo,
+                                   const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface,
+                                   uint32_t doLock);
+#endif
+#ifdef VK_MVK_macos_surface
+    VkResult vkCreateMacOSSurfaceMVK(VkInstance instance,
+                                     const VkMacOSSurfaceCreateInfoMVK* pCreateInfo,
+                                     const VkAllocationCallbacks* pAllocator,
+                                     VkSurfaceKHR* pSurface, uint32_t doLock);
+#endif
+#ifdef VK_EXT_external_memory_dma_buf
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+    VkResult vkSetDebugUtilsObjectNameEXT(VkDevice device,
+                                          const VkDebugUtilsObjectNameInfoEXT* pNameInfo,
+                                          uint32_t doLock);
+    VkResult vkSetDebugUtilsObjectTagEXT(VkDevice device,
+                                         const VkDebugUtilsObjectTagInfoEXT* pTagInfo,
+                                         uint32_t doLock);
+    void vkQueueBeginDebugUtilsLabelEXT(VkQueue queue, const VkDebugUtilsLabelEXT* pLabelInfo,
+                                        uint32_t doLock);
+    void vkQueueEndDebugUtilsLabelEXT(VkQueue queue, uint32_t doLock);
+    void vkQueueInsertDebugUtilsLabelEXT(VkQueue queue, const VkDebugUtilsLabelEXT* pLabelInfo,
+                                         uint32_t doLock);
+    void vkCmdBeginDebugUtilsLabelEXT(VkCommandBuffer commandBuffer,
+                                      const VkDebugUtilsLabelEXT* pLabelInfo, uint32_t doLock);
+    void vkCmdEndDebugUtilsLabelEXT(VkCommandBuffer commandBuffer, uint32_t doLock);
+    void vkCmdInsertDebugUtilsLabelEXT(VkCommandBuffer commandBuffer,
+                                       const VkDebugUtilsLabelEXT* pLabelInfo, uint32_t doLock);
+    VkResult vkCreateDebugUtilsMessengerEXT(VkInstance instance,
+                                            const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkDebugUtilsMessengerEXT* pMessenger, uint32_t doLock);
+    void vkDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT messenger,
+                                         const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    void vkSubmitDebugUtilsMessageEXT(VkInstance instance,
+                                      VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                      VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+                                      const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                      uint32_t doLock);
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
+    VkResult vkGetAndroidHardwareBufferPropertiesANDROID(
+        VkDevice device, const AHardwareBuffer* buffer,
+        VkAndroidHardwareBufferPropertiesANDROID* pProperties, uint32_t doLock);
+    VkResult vkGetMemoryAndroidHardwareBufferANDROID(
+        VkDevice device, const VkMemoryGetAndroidHardwareBufferInfoANDROID* pInfo,
+        AHardwareBuffer** pBuffer, uint32_t doLock);
+#endif
+#ifdef VK_EXT_sampler_filter_minmax
+#endif
+#ifdef VK_AMD_gpu_shader_int16
+#endif
+#ifdef VK_AMD_mixed_attachment_samples
+#endif
+#ifdef VK_AMD_shader_fragment_mask
+#endif
+#ifdef VK_EXT_inline_uniform_block
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_sample_locations
+    void vkCmdSetSampleLocationsEXT(VkCommandBuffer commandBuffer,
+                                    const VkSampleLocationsInfoEXT* pSampleLocationsInfo,
+                                    uint32_t doLock);
+    void vkGetPhysicalDeviceMultisamplePropertiesEXT(
+        VkPhysicalDevice physicalDevice, VkSampleCountFlagBits samples,
+        VkMultisamplePropertiesEXT* pMultisampleProperties, uint32_t doLock);
+#endif
+#ifdef VK_EXT_blend_operation_advanced
+#endif
+#ifdef VK_NV_fragment_coverage_to_color
+#endif
+#ifdef VK_NV_framebuffer_mixed_samples
+#endif
+#ifdef VK_NV_fill_rectangle
+#endif
+#ifdef VK_NV_shader_sm_builtins
+#endif
+#ifdef VK_EXT_post_depth_coverage
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+    VkResult vkGetImageDrmFormatModifierPropertiesEXT(
+        VkDevice device, VkImage image, VkImageDrmFormatModifierPropertiesEXT* pProperties,
+        uint32_t doLock);
+#endif
+#ifdef VK_EXT_validation_cache
+    VkResult vkCreateValidationCacheEXT(VkDevice device,
+                                        const VkValidationCacheCreateInfoEXT* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkValidationCacheEXT* pValidationCache, uint32_t doLock);
+    void vkDestroyValidationCacheEXT(VkDevice device, VkValidationCacheEXT validationCache,
+                                     const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    VkResult vkMergeValidationCachesEXT(VkDevice device, VkValidationCacheEXT dstCache,
+                                        uint32_t srcCacheCount,
+                                        const VkValidationCacheEXT* pSrcCaches, uint32_t doLock);
+    VkResult vkGetValidationCacheDataEXT(VkDevice device, VkValidationCacheEXT validationCache,
+                                         size_t* pDataSize, void* pData, uint32_t doLock);
+#endif
+#ifdef VK_EXT_descriptor_indexing
+#endif
+#ifdef VK_EXT_shader_viewport_index_layer
+#endif
+#ifdef VK_NV_shading_rate_image
+    void vkCmdBindShadingRateImageNV(VkCommandBuffer commandBuffer, VkImageView imageView,
+                                     VkImageLayout imageLayout, uint32_t doLock);
+    void vkCmdSetViewportShadingRatePaletteNV(VkCommandBuffer commandBuffer, uint32_t firstViewport,
+                                              uint32_t viewportCount,
+                                              const VkShadingRatePaletteNV* pShadingRatePalettes,
+                                              uint32_t doLock);
+    void vkCmdSetCoarseSampleOrderNV(VkCommandBuffer commandBuffer,
+                                     VkCoarseSampleOrderTypeNV sampleOrderType,
+                                     uint32_t customSampleOrderCount,
+                                     const VkCoarseSampleOrderCustomNV* pCustomSampleOrders,
+                                     uint32_t doLock);
+#endif
+#ifdef VK_NV_ray_tracing
+    VkResult vkCreateAccelerationStructureNV(VkDevice device,
+                                             const VkAccelerationStructureCreateInfoNV* pCreateInfo,
+                                             const VkAllocationCallbacks* pAllocator,
+                                             VkAccelerationStructureNV* pAccelerationStructure,
+                                             uint32_t doLock);
+    void vkDestroyAccelerationStructureNV(VkDevice device,
+                                          VkAccelerationStructureNV accelerationStructure,
+                                          const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    void vkGetAccelerationStructureMemoryRequirementsNV(
+        VkDevice device, const VkAccelerationStructureMemoryRequirementsInfoNV* pInfo,
+        VkMemoryRequirements2KHR* pMemoryRequirements, uint32_t doLock);
+    VkResult vkBindAccelerationStructureMemoryNV(
+        VkDevice device, uint32_t bindInfoCount,
+        const VkBindAccelerationStructureMemoryInfoNV* pBindInfos, uint32_t doLock);
+    void vkCmdBuildAccelerationStructureNV(VkCommandBuffer commandBuffer,
+                                           const VkAccelerationStructureInfoNV* pInfo,
+                                           VkBuffer instanceData, VkDeviceSize instanceOffset,
+                                           VkBool32 update, VkAccelerationStructureNV dst,
+                                           VkAccelerationStructureNV src, VkBuffer scratch,
+                                           VkDeviceSize scratchOffset, uint32_t doLock);
+    void vkCmdCopyAccelerationStructureNV(VkCommandBuffer commandBuffer,
+                                          VkAccelerationStructureNV dst,
+                                          VkAccelerationStructureNV src,
+                                          VkCopyAccelerationStructureModeKHR mode, uint32_t doLock);
+    void vkCmdTraceRaysNV(
+        VkCommandBuffer commandBuffer, VkBuffer raygenShaderBindingTableBuffer,
+        VkDeviceSize raygenShaderBindingOffset, VkBuffer missShaderBindingTableBuffer,
+        VkDeviceSize missShaderBindingOffset, VkDeviceSize missShaderBindingStride,
+        VkBuffer hitShaderBindingTableBuffer, VkDeviceSize hitShaderBindingOffset,
+        VkDeviceSize hitShaderBindingStride, VkBuffer callableShaderBindingTableBuffer,
+        VkDeviceSize callableShaderBindingOffset, VkDeviceSize callableShaderBindingStride,
+        uint32_t width, uint32_t height, uint32_t depth, uint32_t doLock);
+    VkResult vkCreateRayTracingPipelinesNV(VkDevice device, VkPipelineCache pipelineCache,
+                                           uint32_t createInfoCount,
+                                           const VkRayTracingPipelineCreateInfoNV* pCreateInfos,
+                                           const VkAllocationCallbacks* pAllocator,
+                                           VkPipeline* pPipelines, uint32_t doLock);
+    VkResult vkGetRayTracingShaderGroupHandlesKHR(VkDevice device, VkPipeline pipeline,
+                                                  uint32_t firstGroup, uint32_t groupCount,
+                                                  size_t dataSize, void* pData, uint32_t doLock);
+    VkResult vkGetRayTracingShaderGroupHandlesNV(VkDevice device, VkPipeline pipeline,
+                                                 uint32_t firstGroup, uint32_t groupCount,
+                                                 size_t dataSize, void* pData, uint32_t doLock);
+    VkResult vkGetAccelerationStructureHandleNV(VkDevice device,
+                                                VkAccelerationStructureNV accelerationStructure,
+                                                size_t dataSize, void* pData, uint32_t doLock);
+    void vkCmdWriteAccelerationStructuresPropertiesNV(
+        VkCommandBuffer commandBuffer, uint32_t accelerationStructureCount,
+        const VkAccelerationStructureNV* pAccelerationStructures, VkQueryType queryType,
+        VkQueryPool queryPool, uint32_t firstQuery, uint32_t doLock);
+    VkResult vkCompileDeferredNV(VkDevice device, VkPipeline pipeline, uint32_t shader,
+                                 uint32_t doLock);
+#endif
+#ifdef VK_NV_representative_fragment_test
+#endif
+#ifdef VK_EXT_filter_cubic
+#endif
+#ifdef VK_QCOM_render_pass_shader_resolve
+#endif
+#ifdef VK_EXT_global_priority
+#endif
+#ifdef VK_EXT_external_memory_host
+    VkResult vkGetMemoryHostPointerPropertiesEXT(
+        VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, const void* pHostPointer,
+        VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties, uint32_t doLock);
+#endif
+#ifdef VK_AMD_buffer_marker
+    void vkCmdWriteBufferMarkerAMD(VkCommandBuffer commandBuffer,
+                                   VkPipelineStageFlagBits pipelineStage, VkBuffer dstBuffer,
+                                   VkDeviceSize dstOffset, uint32_t marker, uint32_t doLock);
+#endif
+#ifdef VK_AMD_pipeline_compiler_control
+#endif
+#ifdef VK_EXT_calibrated_timestamps
+    VkResult vkGetPhysicalDeviceCalibrateableTimeDomainsEXT(VkPhysicalDevice physicalDevice,
+                                                            uint32_t* pTimeDomainCount,
+                                                            VkTimeDomainEXT* pTimeDomains,
+                                                            uint32_t doLock);
+    VkResult vkGetCalibratedTimestampsEXT(VkDevice device, uint32_t timestampCount,
+                                          const VkCalibratedTimestampInfoEXT* pTimestampInfos,
+                                          uint64_t* pTimestamps, uint64_t* pMaxDeviation,
+                                          uint32_t doLock);
+#endif
+#ifdef VK_AMD_shader_core_properties
+#endif
+#ifdef VK_AMD_memory_overallocation_behavior
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+#endif
+#ifdef VK_GGP_frame_token
+#endif
+#ifdef VK_EXT_pipeline_creation_feedback
+#endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
+#ifdef VK_NV_compute_shader_derivatives
+#endif
+#ifdef VK_NV_mesh_shader
+    void vkCmdDrawMeshTasksNV(VkCommandBuffer commandBuffer, uint32_t taskCount, uint32_t firstTask,
+                              uint32_t doLock);
+    void vkCmdDrawMeshTasksIndirectNV(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                      VkDeviceSize offset, uint32_t drawCount, uint32_t stride,
+                                      uint32_t doLock);
+    void vkCmdDrawMeshTasksIndirectCountNV(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                           VkDeviceSize offset, VkBuffer countBuffer,
+                                           VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
+                                           uint32_t stride, uint32_t doLock);
+#endif
+#ifdef VK_NV_fragment_shader_barycentric
+#endif
+#ifdef VK_NV_shader_image_footprint
+#endif
+#ifdef VK_NV_scissor_exclusive
+    void vkCmdSetExclusiveScissorEnableNV(VkCommandBuffer commandBuffer,
+                                          uint32_t firstExclusiveScissor,
+                                          uint32_t exclusiveScissorCount,
+                                          const VkBool32* pExclusiveScissorEnables,
+                                          uint32_t doLock);
+    void vkCmdSetExclusiveScissorNV(VkCommandBuffer commandBuffer, uint32_t firstExclusiveScissor,
+                                    uint32_t exclusiveScissorCount,
+                                    const VkRect2D* pExclusiveScissors, uint32_t doLock);
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    void vkCmdSetCheckpointNV(VkCommandBuffer commandBuffer, const void* pCheckpointMarker,
+                              uint32_t doLock);
+    void vkGetQueueCheckpointDataNV(VkQueue queue, uint32_t* pCheckpointDataCount,
+                                    VkCheckpointDataNV* pCheckpointData, uint32_t doLock);
+#endif
+#ifdef VK_INTEL_shader_integer_functions2
+#endif
+#ifdef VK_INTEL_performance_query
+    VkResult vkInitializePerformanceApiINTEL(
+        VkDevice device, const VkInitializePerformanceApiInfoINTEL* pInitializeInfo,
+        uint32_t doLock);
+    void vkUninitializePerformanceApiINTEL(VkDevice device, uint32_t doLock);
+    VkResult vkCmdSetPerformanceMarkerINTEL(VkCommandBuffer commandBuffer,
+                                            const VkPerformanceMarkerInfoINTEL* pMarkerInfo,
+                                            uint32_t doLock);
+    VkResult vkCmdSetPerformanceStreamMarkerINTEL(
+        VkCommandBuffer commandBuffer, const VkPerformanceStreamMarkerInfoINTEL* pMarkerInfo,
+        uint32_t doLock);
+    VkResult vkCmdSetPerformanceOverrideINTEL(VkCommandBuffer commandBuffer,
+                                              const VkPerformanceOverrideInfoINTEL* pOverrideInfo,
+                                              uint32_t doLock);
+    VkResult vkAcquirePerformanceConfigurationINTEL(
+        VkDevice device, const VkPerformanceConfigurationAcquireInfoINTEL* pAcquireInfo,
+        VkPerformanceConfigurationINTEL* pConfiguration, uint32_t doLock);
+    VkResult vkReleasePerformanceConfigurationINTEL(VkDevice device,
+                                                    VkPerformanceConfigurationINTEL configuration,
+                                                    uint32_t doLock);
+    VkResult vkQueueSetPerformanceConfigurationINTEL(VkQueue queue,
+                                                     VkPerformanceConfigurationINTEL configuration,
+                                                     uint32_t doLock);
+    VkResult vkGetPerformanceParameterINTEL(VkDevice device,
+                                            VkPerformanceParameterTypeINTEL parameter,
+                                            VkPerformanceValueINTEL* pValue, uint32_t doLock);
+#endif
+#ifdef VK_EXT_pci_bus_info
+#endif
+#ifdef VK_AMD_display_native_hdr
+    void vkSetLocalDimmingAMD(VkDevice device, VkSwapchainKHR swapChain,
+                              VkBool32 localDimmingEnable, uint32_t doLock);
+#endif
+#ifdef VK_FUCHSIA_imagepipe_surface
+    VkResult vkCreateImagePipeSurfaceFUCHSIA(VkInstance instance,
+                                             const VkImagePipeSurfaceCreateInfoFUCHSIA* pCreateInfo,
+                                             const VkAllocationCallbacks* pAllocator,
+                                             VkSurfaceKHR* pSurface, uint32_t doLock);
+#endif
 #ifdef VK_EXT_metal_surface
+    VkResult vkCreateMetalSurfaceEXT(VkInstance instance,
+                                     const VkMetalSurfaceCreateInfoEXT* pCreateInfo,
+                                     const VkAllocationCallbacks* pAllocator,
+                                     VkSurfaceKHR* pSurface, uint32_t doLock);
+#endif
+#ifdef VK_EXT_fragment_density_map
+#endif
+#ifdef VK_EXT_scalar_block_layout
+#endif
+#ifdef VK_GOOGLE_hlsl_functionality1
+#endif
+#ifdef VK_GOOGLE_decorate_string
 #endif
 #ifdef VK_EXT_subgroup_size_control
 #endif
+#ifdef VK_AMD_shader_core_properties2
+#endif
+#ifdef VK_AMD_device_coherent_memory
+#endif
+#ifdef VK_EXT_shader_image_atomic_int64
+#endif
+#ifdef VK_EXT_memory_budget
+#endif
+#ifdef VK_EXT_memory_priority
+#endif
+#ifdef VK_NV_dedicated_allocation_image_aliasing
+#endif
+#ifdef VK_EXT_buffer_device_address
+    VkDeviceAddress vkGetBufferDeviceAddressEXT(VkDevice device,
+                                                const VkBufferDeviceAddressInfo* pInfo,
+                                                uint32_t doLock);
+#endif
+#ifdef VK_EXT_tooling_info
+    VkResult vkGetPhysicalDeviceToolPropertiesEXT(VkPhysicalDevice physicalDevice,
+                                                  uint32_t* pToolCount,
+                                                  VkPhysicalDeviceToolProperties* pToolProperties,
+                                                  uint32_t doLock);
+#endif
+#ifdef VK_EXT_separate_stencil_usage
+#endif
+#ifdef VK_EXT_validation_features
+#endif
+#ifdef VK_NV_cooperative_matrix
+    VkResult vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
+        VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount,
+        VkCooperativeMatrixPropertiesNV* pProperties, uint32_t doLock);
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+    VkResult vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV(
+        VkPhysicalDevice physicalDevice, uint32_t* pCombinationCount,
+        VkFramebufferMixedSamplesCombinationNV* pCombinations, uint32_t doLock);
+#endif
+#ifdef VK_EXT_fragment_shader_interlock
+#endif
+#ifdef VK_EXT_ycbcr_image_arrays
+#endif
 #ifdef VK_EXT_provoking_vertex
+#endif
+#ifdef VK_EXT_full_screen_exclusive
+    VkResult vkGetPhysicalDeviceSurfacePresentModes2EXT(
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+        uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes, uint32_t doLock);
+    VkResult vkAcquireFullScreenExclusiveModeEXT(VkDevice device, VkSwapchainKHR swapchain,
+                                                 uint32_t doLock);
+    VkResult vkReleaseFullScreenExclusiveModeEXT(VkDevice device, VkSwapchainKHR swapchain,
+                                                 uint32_t doLock);
+    VkResult vkGetDeviceGroupSurfacePresentModes2EXT(
+        VkDevice device, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+        VkDeviceGroupPresentModeFlagsKHR* pModes, uint32_t doLock);
+#endif
+#ifdef VK_EXT_headless_surface
+    VkResult vkCreateHeadlessSurfaceEXT(VkInstance instance,
+                                        const VkHeadlessSurfaceCreateInfoEXT* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkSurfaceKHR* pSurface, uint32_t doLock);
 #endif
 #ifdef VK_EXT_line_rasterization
     void vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
                                 uint16_t lineStipplePattern, uint32_t doLock);
 #endif
+#ifdef VK_EXT_shader_atomic_float
+#endif
+#ifdef VK_EXT_host_query_reset
+    void vkResetQueryPoolEXT(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery,
+                             uint32_t queryCount, uint32_t doLock);
+#endif
 #ifdef VK_EXT_index_type_uint8
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+    void vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode,
+                             uint32_t doLock);
+    void vkCmdSetFrontFaceEXT(VkCommandBuffer commandBuffer, VkFrontFace frontFace,
+                              uint32_t doLock);
+    void vkCmdSetPrimitiveTopologyEXT(VkCommandBuffer commandBuffer,
+                                      VkPrimitiveTopology primitiveTopology, uint32_t doLock);
+    void vkCmdSetViewportWithCountEXT(VkCommandBuffer commandBuffer, uint32_t viewportCount,
+                                      const VkViewport* pViewports, uint32_t doLock);
+    void vkCmdSetScissorWithCountEXT(VkCommandBuffer commandBuffer, uint32_t scissorCount,
+                                     const VkRect2D* pScissors, uint32_t doLock);
+    void vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32_t firstBinding,
+                                    uint32_t bindingCount, const VkBuffer* pBuffers,
+                                    const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
+                                    const VkDeviceSize* pStrides, uint32_t doLock);
+    void vkCmdSetDepthTestEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthTestEnable,
+                                    uint32_t doLock);
+    void vkCmdSetDepthWriteEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable,
+                                     uint32_t doLock);
+    void vkCmdSetDepthCompareOpEXT(VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp,
+                                   uint32_t doLock);
+    void vkCmdSetDepthBoundsTestEnableEXT(VkCommandBuffer commandBuffer,
+                                          VkBool32 depthBoundsTestEnable, uint32_t doLock);
+    void vkCmdSetStencilTestEnableEXT(VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable,
+                                      uint32_t doLock);
+    void vkCmdSetStencilOpEXT(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+                              VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp,
+                              VkCompareOp compareOp, uint32_t doLock);
+#endif
+#ifdef VK_EXT_shader_atomic_float2
+#endif
+#ifdef VK_EXT_surface_maintenance1
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+    VkResult vkReleaseSwapchainImagesEXT(VkDevice device,
+                                         const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo,
+                                         uint32_t doLock);
+#endif
+#ifdef VK_EXT_shader_demote_to_helper_invocation
+#endif
+#ifdef VK_NV_device_generated_commands
+    void vkGetGeneratedCommandsMemoryRequirementsNV(
+        VkDevice device, const VkGeneratedCommandsMemoryRequirementsInfoNV* pInfo,
+        VkMemoryRequirements2* pMemoryRequirements, uint32_t doLock);
+    void vkCmdPreprocessGeneratedCommandsNV(VkCommandBuffer commandBuffer,
+                                            const VkGeneratedCommandsInfoNV* pGeneratedCommandsInfo,
+                                            uint32_t doLock);
+    void vkCmdExecuteGeneratedCommandsNV(VkCommandBuffer commandBuffer, VkBool32 isPreprocessed,
+                                         const VkGeneratedCommandsInfoNV* pGeneratedCommandsInfo,
+                                         uint32_t doLock);
+    void vkCmdBindPipelineShaderGroupNV(VkCommandBuffer commandBuffer,
+                                        VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline,
+                                        uint32_t groupIndex, uint32_t doLock);
+    VkResult vkCreateIndirectCommandsLayoutNV(
+        VkDevice device, const VkIndirectCommandsLayoutCreateInfoNV* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkIndirectCommandsLayoutNV* pIndirectCommandsLayout, uint32_t doLock);
+    void vkDestroyIndirectCommandsLayoutNV(VkDevice device,
+                                           VkIndirectCommandsLayoutNV indirectCommandsLayout,
+                                           const VkAllocationCallbacks* pAllocator,
+                                           uint32_t doLock);
+#endif
+#ifdef VK_NV_inherited_viewport_scissor
+#endif
+#ifdef VK_EXT_texel_buffer_alignment
+#endif
+#ifdef VK_QCOM_render_pass_transform
 #endif
 #ifdef VK_EXT_device_memory_report
 #endif
+#ifdef VK_EXT_acquire_drm_display
+    VkResult vkAcquireDrmDisplayEXT(VkPhysicalDevice physicalDevice, int32_t drmFd,
+                                    VkDisplayKHR display, uint32_t doLock);
+    VkResult vkGetDrmDisplayEXT(VkPhysicalDevice physicalDevice, int32_t drmFd,
+                                uint32_t connectorId, VkDisplayKHR* display, uint32_t doLock);
+#endif
+#ifdef VK_EXT_robustness2
+#endif
 #ifdef VK_EXT_custom_border_color
+#endif
+#ifdef VK_GOOGLE_user_type
+#endif
+#ifdef VK_NV_present_barrier
+#endif
+#ifdef VK_EXT_private_data
+    VkResult vkCreatePrivateDataSlotEXT(VkDevice device,
+                                        const VkPrivateDataSlotCreateInfo* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkPrivateDataSlot* pPrivateDataSlot, uint32_t doLock);
+    void vkDestroyPrivateDataSlotEXT(VkDevice device, VkPrivateDataSlot privateDataSlot,
+                                     const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    VkResult vkSetPrivateDataEXT(VkDevice device, VkObjectType objectType, uint64_t objectHandle,
+                                 VkPrivateDataSlot privateDataSlot, uint64_t data, uint32_t doLock);
+    void vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType, uint64_t objectHandle,
+                             VkPrivateDataSlot privateDataSlot, uint64_t* pData, uint32_t doLock);
+#endif
+#ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_NV_device_diagnostics_config
+#endif
+#ifdef VK_QCOM_render_pass_store_ops
+#endif
+#ifdef VK_NV_low_latency
+#endif
+#ifdef VK_EXT_metal_objects
+    void vkExportMetalObjectsEXT(VkDevice device, VkExportMetalObjectsInfoEXT* pMetalObjectsInfo,
+                                 uint32_t doLock);
+#endif
+#ifdef VK_EXT_descriptor_buffer
+    void vkGetDescriptorSetLayoutSizeEXT(VkDevice device, VkDescriptorSetLayout layout,
+                                         VkDeviceSize* pLayoutSizeInBytes, uint32_t doLock);
+    void vkGetDescriptorSetLayoutBindingOffsetEXT(VkDevice device, VkDescriptorSetLayout layout,
+                                                  uint32_t binding, VkDeviceSize* pOffset,
+                                                  uint32_t doLock);
+    void vkGetDescriptorEXT(VkDevice device, const VkDescriptorGetInfoEXT* pDescriptorInfo,
+                            size_t dataSize, void* pDescriptor, uint32_t doLock);
+    void vkCmdBindDescriptorBuffersEXT(VkCommandBuffer commandBuffer, uint32_t bufferCount,
+                                       const VkDescriptorBufferBindingInfoEXT* pBindingInfos,
+                                       uint32_t doLock);
+    void vkCmdSetDescriptorBufferOffsetsEXT(VkCommandBuffer commandBuffer,
+                                            VkPipelineBindPoint pipelineBindPoint,
+                                            VkPipelineLayout layout, uint32_t firstSet,
+                                            uint32_t setCount, const uint32_t* pBufferIndices,
+                                            const VkDeviceSize* pOffsets, uint32_t doLock);
+    void vkCmdBindDescriptorBufferEmbeddedSamplersEXT(VkCommandBuffer commandBuffer,
+                                                      VkPipelineBindPoint pipelineBindPoint,
+                                                      VkPipelineLayout layout, uint32_t set,
+                                                      uint32_t doLock);
+    VkResult vkGetBufferOpaqueCaptureDescriptorDataEXT(
+        VkDevice device, const VkBufferCaptureDescriptorDataInfoEXT* pInfo, void* pData,
+        uint32_t doLock);
+    VkResult vkGetImageOpaqueCaptureDescriptorDataEXT(
+        VkDevice device, const VkImageCaptureDescriptorDataInfoEXT* pInfo, void* pData,
+        uint32_t doLock);
+    VkResult vkGetImageViewOpaqueCaptureDescriptorDataEXT(
+        VkDevice device, const VkImageViewCaptureDescriptorDataInfoEXT* pInfo, void* pData,
+        uint32_t doLock);
+    VkResult vkGetSamplerOpaqueCaptureDescriptorDataEXT(
+        VkDevice device, const VkSamplerCaptureDescriptorDataInfoEXT* pInfo, void* pData,
+        uint32_t doLock);
+    VkResult vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT(
+        VkDevice device, const VkAccelerationStructureCaptureDescriptorDataInfoEXT* pInfo,
+        void* pData, uint32_t doLock);
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+#endif
+#ifdef VK_AMD_shader_early_and_late_fragment_tests
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+    void vkCmdSetFragmentShadingRateEnumNV(VkCommandBuffer commandBuffer,
+                                           VkFragmentShadingRateNV shadingRate,
+                                           const VkFragmentShadingRateCombinerOpKHR combinerOps[2],
+                                           uint32_t doLock);
+#endif
+#ifdef VK_NV_ray_tracing_motion_blur
+#endif
+#ifdef VK_EXT_ycbcr_2plane_444_formats
+#endif
+#ifdef VK_EXT_fragment_density_map2
+#endif
+#ifdef VK_QCOM_rotated_copy_commands
 #endif
 #ifdef VK_EXT_image_robustness
 #endif
+#ifdef VK_EXT_image_compression_control
+    void vkGetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
+                                         const VkImageSubresource2EXT* pSubresource,
+                                         VkSubresourceLayout2EXT* pLayout, uint32_t doLock);
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_layout
+#endif
+#ifdef VK_EXT_4444_formats
+#endif
+#ifdef VK_EXT_device_fault
+    VkResult vkGetDeviceFaultInfoEXT(VkDevice device, VkDeviceFaultCountsEXT* pFaultCounts,
+                                     VkDeviceFaultInfoEXT* pFaultInfo, uint32_t doLock);
+#endif
+#ifdef VK_ARM_rasterization_order_attachment_access
+#endif
+#ifdef VK_EXT_rgba10x6_formats
+#endif
+#ifdef VK_NV_acquire_winrt_display
+    VkResult vkAcquireWinrtDisplayNV(VkPhysicalDevice physicalDevice, VkDisplayKHR display,
+                                     uint32_t doLock);
+    VkResult vkGetWinrtDisplayNV(VkPhysicalDevice physicalDevice, uint32_t deviceRelativeId,
+                                 VkDisplayKHR* pDisplay, uint32_t doLock);
+#endif
+#ifdef VK_EXT_directfb_surface
+    VkResult vkCreateDirectFBSurfaceEXT(VkInstance instance,
+                                        const VkDirectFBSurfaceCreateInfoEXT* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkSurfaceKHR* pSurface, uint32_t doLock);
+    VkBool32 vkGetPhysicalDeviceDirectFBPresentationSupportEXT(VkPhysicalDevice physicalDevice,
+                                                               uint32_t queueFamilyIndex,
+                                                               IDirectFB* dfb, uint32_t doLock);
+#endif
+#ifdef VK_VALVE_mutable_descriptor_type
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+    void vkCmdSetVertexInputEXT(
+        VkCommandBuffer commandBuffer, uint32_t vertexBindingDescriptionCount,
+        const VkVertexInputBindingDescription2EXT* pVertexBindingDescriptions,
+        uint32_t vertexAttributeDescriptionCount,
+        const VkVertexInputAttributeDescription2EXT* pVertexAttributeDescriptions, uint32_t doLock);
+#endif
+#ifdef VK_EXT_physical_device_drm
+#endif
+#ifdef VK_EXT_device_address_binding_report
+#endif
+#ifdef VK_EXT_depth_clip_control
+#endif
 #ifdef VK_EXT_primitive_topology_list_restart
+#endif
+#ifdef VK_FUCHSIA_external_memory
+    VkResult vkGetMemoryZirconHandleFUCHSIA(
+        VkDevice device, const VkMemoryGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+        zx_handle_t* pZirconHandle, uint32_t doLock);
+    VkResult vkGetMemoryZirconHandlePropertiesFUCHSIA(
+        VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, zx_handle_t zirconHandle,
+        VkMemoryZirconHandlePropertiesFUCHSIA* pMemoryZirconHandleProperties, uint32_t doLock);
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+    VkResult vkImportSemaphoreZirconHandleFUCHSIA(
+        VkDevice device,
+        const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo,
+        uint32_t doLock);
+    VkResult vkGetSemaphoreZirconHandleFUCHSIA(
+        VkDevice device, const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+        zx_handle_t* pZirconHandle, uint32_t doLock);
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+    VkResult vkCreateBufferCollectionFUCHSIA(VkDevice device,
+                                             const VkBufferCollectionCreateInfoFUCHSIA* pCreateInfo,
+                                             const VkAllocationCallbacks* pAllocator,
+                                             VkBufferCollectionFUCHSIA* pCollection,
+                                             uint32_t doLock);
+    VkResult vkSetBufferCollectionImageConstraintsFUCHSIA(
+        VkDevice device, VkBufferCollectionFUCHSIA collection,
+        const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo, uint32_t doLock);
+    VkResult vkSetBufferCollectionBufferConstraintsFUCHSIA(
+        VkDevice device, VkBufferCollectionFUCHSIA collection,
+        const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo, uint32_t doLock);
+    void vkDestroyBufferCollectionFUCHSIA(VkDevice device, VkBufferCollectionFUCHSIA collection,
+                                          const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    VkResult vkGetBufferCollectionPropertiesFUCHSIA(
+        VkDevice device, VkBufferCollectionFUCHSIA collection,
+        VkBufferCollectionPropertiesFUCHSIA* pProperties, uint32_t doLock);
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+    VkResult vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(VkDevice device,
+                                                             VkRenderPass renderpass,
+                                                             VkExtent2D* pMaxWorkgroupSize,
+                                                             uint32_t doLock);
+    void vkCmdSubpassShadingHUAWEI(VkCommandBuffer commandBuffer, uint32_t doLock);
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+    void vkCmdBindInvocationMaskHUAWEI(VkCommandBuffer commandBuffer, VkImageView imageView,
+                                       VkImageLayout imageLayout, uint32_t doLock);
+#endif
+#ifdef VK_NV_external_memory_rdma
+    VkResult vkGetMemoryRemoteAddressNV(
+        VkDevice device, const VkMemoryGetRemoteAddressInfoNV* pMemoryGetRemoteAddressInfo,
+        VkRemoteAddressNV* pAddress, uint32_t doLock);
+#endif
+#ifdef VK_EXT_pipeline_properties
+    VkResult vkGetPipelinePropertiesEXT(VkDevice device, const VkPipelineInfoEXT* pPipelineInfo,
+                                        VkBaseOutStructure* pPipelineProperties, uint32_t doLock);
+#endif
+#ifdef VK_EXT_multisampled_render_to_single_sampled
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+    void vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer, uint32_t patchControlPoints,
+                                       uint32_t doLock);
+    void vkCmdSetRasterizerDiscardEnableEXT(VkCommandBuffer commandBuffer,
+                                            VkBool32 rasterizerDiscardEnable, uint32_t doLock);
+    void vkCmdSetDepthBiasEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable,
+                                    uint32_t doLock);
+    void vkCmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logicOp, uint32_t doLock);
+    void vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
+                                           VkBool32 primitiveRestartEnable, uint32_t doLock);
+#endif
+#ifdef VK_QNX_screen_surface
+    VkResult vkCreateScreenSurfaceQNX(VkInstance instance,
+                                      const VkScreenSurfaceCreateInfoQNX* pCreateInfo,
+                                      const VkAllocationCallbacks* pAllocator,
+                                      VkSurfaceKHR* pSurface, uint32_t doLock);
+    VkBool32 vkGetPhysicalDeviceScreenPresentationSupportQNX(VkPhysicalDevice physicalDevice,
+                                                             uint32_t queueFamilyIndex,
+                                                             _screen_window* window,
+                                                             uint32_t doLock);
+#endif
+#ifdef VK_EXT_color_write_enable
+    void vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                     const VkBool32* pColorWriteEnables, uint32_t doLock);
+#endif
+#ifdef VK_EXT_primitives_generated_query
 #endif
 #ifdef VK_GOOGLE_gfxstream
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceMemory memory,
@@ -938,7 +2227,382 @@ class VkEncoder {
                                                  uint32_t doLock);
     VkResult vkGetBlobGOOGLE(VkDevice device, VkDeviceMemory memory, uint32_t doLock);
 #endif
+#ifdef VK_EXT_global_priority_query
+#endif
+#ifdef VK_EXT_image_view_min_lod
+#endif
+#ifdef VK_EXT_multi_draw
+    void vkCmdDrawMultiEXT(VkCommandBuffer commandBuffer, uint32_t drawCount,
+                           const VkMultiDrawInfoEXT* pVertexInfo, uint32_t instanceCount,
+                           uint32_t firstInstance, uint32_t stride, uint32_t doLock);
+    void vkCmdDrawMultiIndexedEXT(VkCommandBuffer commandBuffer, uint32_t drawCount,
+                                  const VkMultiDrawIndexedInfoEXT* pIndexInfo,
+                                  uint32_t instanceCount, uint32_t firstInstance, uint32_t stride,
+                                  const int32_t* pVertexOffset, uint32_t doLock);
+#endif
+#ifdef VK_EXT_image_2d_view_of_3d
+#endif
+#ifdef VK_EXT_shader_tile_image
+#endif
+#ifdef VK_EXT_opacity_micromap
+    VkResult vkCreateMicromapEXT(VkDevice device, const VkMicromapCreateInfoEXT* pCreateInfo,
+                                 const VkAllocationCallbacks* pAllocator, VkMicromapEXT* pMicromap,
+                                 uint32_t doLock);
+    void vkDestroyMicromapEXT(VkDevice device, VkMicromapEXT micromap,
+                              const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    void vkCmdBuildMicromapsEXT(VkCommandBuffer commandBuffer, uint32_t infoCount,
+                                const VkMicromapBuildInfoEXT* pInfos, uint32_t doLock);
+    VkResult vkBuildMicromapsEXT(VkDevice device, VkDeferredOperationKHR deferredOperation,
+                                 uint32_t infoCount, const VkMicromapBuildInfoEXT* pInfos,
+                                 uint32_t doLock);
+    VkResult vkCopyMicromapEXT(VkDevice device, VkDeferredOperationKHR deferredOperation,
+                               const VkCopyMicromapInfoEXT* pInfo, uint32_t doLock);
+    VkResult vkCopyMicromapToMemoryEXT(VkDevice device, VkDeferredOperationKHR deferredOperation,
+                                       const VkCopyMicromapToMemoryInfoEXT* pInfo, uint32_t doLock);
+    VkResult vkCopyMemoryToMicromapEXT(VkDevice device, VkDeferredOperationKHR deferredOperation,
+                                       const VkCopyMemoryToMicromapInfoEXT* pInfo, uint32_t doLock);
+    VkResult vkWriteMicromapsPropertiesEXT(VkDevice device, uint32_t micromapCount,
+                                           const VkMicromapEXT* pMicromaps, VkQueryType queryType,
+                                           size_t dataSize, void* pData, size_t stride,
+                                           uint32_t doLock);
+    void vkCmdCopyMicromapEXT(VkCommandBuffer commandBuffer, const VkCopyMicromapInfoEXT* pInfo,
+                              uint32_t doLock);
+    void vkCmdCopyMicromapToMemoryEXT(VkCommandBuffer commandBuffer,
+                                      const VkCopyMicromapToMemoryInfoEXT* pInfo, uint32_t doLock);
+    void vkCmdCopyMemoryToMicromapEXT(VkCommandBuffer commandBuffer,
+                                      const VkCopyMemoryToMicromapInfoEXT* pInfo, uint32_t doLock);
+    void vkCmdWriteMicromapsPropertiesEXT(VkCommandBuffer commandBuffer, uint32_t micromapCount,
+                                          const VkMicromapEXT* pMicromaps, VkQueryType queryType,
+                                          VkQueryPool queryPool, uint32_t firstQuery,
+                                          uint32_t doLock);
+    void vkGetDeviceMicromapCompatibilityEXT(
+        VkDevice device, const VkMicromapVersionInfoEXT* pVersionInfo,
+        VkAccelerationStructureCompatibilityKHR* pCompatibility, uint32_t doLock);
+    void vkGetMicromapBuildSizesEXT(VkDevice device, VkAccelerationStructureBuildTypeKHR buildType,
+                                    const VkMicromapBuildInfoEXT* pBuildInfo,
+                                    VkMicromapBuildSizesInfoEXT* pSizeInfo, uint32_t doLock);
+#endif
+#ifdef VK_NV_displacement_micromap
+#endif
 #ifdef VK_EXT_load_store_op_none
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+    void vkCmdDrawClusterHUAWEI(VkCommandBuffer commandBuffer, uint32_t groupCountX,
+                                uint32_t groupCountY, uint32_t groupCountZ, uint32_t doLock);
+    void vkCmdDrawClusterIndirectHUAWEI(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                        VkDeviceSize offset, uint32_t doLock);
+#endif
+#ifdef VK_EXT_border_color_swizzle
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+    void vkSetDeviceMemoryPriorityEXT(VkDevice device, VkDeviceMemory memory, float priority,
+                                      uint32_t doLock);
+#endif
+#ifdef VK_ARM_shader_core_properties
+#endif
+#ifdef VK_EXT_image_sliced_view_of_3d
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+    void vkGetDescriptorSetLayoutHostMappingInfoVALVE(
+        VkDevice device, const VkDescriptorSetBindingReferenceVALVE* pBindingReference,
+        VkDescriptorSetLayoutHostMappingInfoVALVE* pHostMapping, uint32_t doLock);
+    void vkGetDescriptorSetHostMappingVALVE(VkDevice device, VkDescriptorSet descriptorSet,
+                                            void** ppData, uint32_t doLock);
+#endif
+#ifdef VK_EXT_depth_clamp_zero_one
+#endif
+#ifdef VK_EXT_non_seamless_cube_map
+#endif
+#ifdef VK_QCOM_fragment_density_map_offset
+#endif
+#ifdef VK_NV_copy_memory_indirect
+    void vkCmdCopyMemoryIndirectNV(VkCommandBuffer commandBuffer, VkDeviceAddress copyBufferAddress,
+                                   uint32_t copyCount, uint32_t stride, uint32_t doLock);
+    void vkCmdCopyMemoryToImageIndirectNV(VkCommandBuffer commandBuffer,
+                                          VkDeviceAddress copyBufferAddress, uint32_t copyCount,
+                                          uint32_t stride, VkImage dstImage,
+                                          VkImageLayout dstImageLayout,
+                                          const VkImageSubresourceLayers* pImageSubresources,
+                                          uint32_t doLock);
+#endif
+#ifdef VK_NV_memory_decompression
+    void vkCmdDecompressMemoryNV(VkCommandBuffer commandBuffer, uint32_t decompressRegionCount,
+                                 const VkDecompressMemoryRegionNV* pDecompressMemoryRegions,
+                                 uint32_t doLock);
+    void vkCmdDecompressMemoryIndirectCountNV(VkCommandBuffer commandBuffer,
+                                              VkDeviceAddress indirectCommandsAddress,
+                                              VkDeviceAddress indirectCommandsCountAddress,
+                                              uint32_t stride, uint32_t doLock);
+#endif
+#ifdef VK_NV_linear_color_attachment
+#endif
+#ifdef VK_GOOGLE_surfaceless_query
+#endif
+#ifdef VK_EXT_image_compression_control_swapchain
+#endif
+#ifdef VK_QCOM_image_processing
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+    void vkCmdSetTessellationDomainOriginEXT(VkCommandBuffer commandBuffer,
+                                             VkTessellationDomainOrigin domainOrigin,
+                                             uint32_t doLock);
+    void vkCmdSetDepthClampEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthClampEnable,
+                                     uint32_t doLock);
+    void vkCmdSetPolygonModeEXT(VkCommandBuffer commandBuffer, VkPolygonMode polygonMode,
+                                uint32_t doLock);
+    void vkCmdSetRasterizationSamplesEXT(VkCommandBuffer commandBuffer,
+                                         VkSampleCountFlagBits rasterizationSamples,
+                                         uint32_t doLock);
+    void vkCmdSetSampleMaskEXT(VkCommandBuffer commandBuffer, VkSampleCountFlagBits samples,
+                               const VkSampleMask* pSampleMask, uint32_t doLock);
+    void vkCmdSetAlphaToCoverageEnableEXT(VkCommandBuffer commandBuffer,
+                                          VkBool32 alphaToCoverageEnable, uint32_t doLock);
+    void vkCmdSetAlphaToOneEnableEXT(VkCommandBuffer commandBuffer, VkBool32 alphaToOneEnable,
+                                     uint32_t doLock);
+    void vkCmdSetLogicOpEnableEXT(VkCommandBuffer commandBuffer, VkBool32 logicOpEnable,
+                                  uint32_t doLock);
+    void vkCmdSetColorBlendEnableEXT(VkCommandBuffer commandBuffer, uint32_t firstAttachment,
+                                     uint32_t attachmentCount, const VkBool32* pColorBlendEnables,
+                                     uint32_t doLock);
+    void vkCmdSetColorBlendEquationEXT(VkCommandBuffer commandBuffer, uint32_t firstAttachment,
+                                       uint32_t attachmentCount,
+                                       const VkColorBlendEquationEXT* pColorBlendEquations,
+                                       uint32_t doLock);
+    void vkCmdSetColorWriteMaskEXT(VkCommandBuffer commandBuffer, uint32_t firstAttachment,
+                                   uint32_t attachmentCount,
+                                   const VkColorComponentFlags* pColorWriteMasks, uint32_t doLock);
+    void vkCmdSetRasterizationStreamEXT(VkCommandBuffer commandBuffer, uint32_t rasterizationStream,
+                                        uint32_t doLock);
+    void vkCmdSetConservativeRasterizationModeEXT(
+        VkCommandBuffer commandBuffer,
+        VkConservativeRasterizationModeEXT conservativeRasterizationMode, uint32_t doLock);
+    void vkCmdSetExtraPrimitiveOverestimationSizeEXT(VkCommandBuffer commandBuffer,
+                                                     float extraPrimitiveOverestimationSize,
+                                                     uint32_t doLock);
+    void vkCmdSetDepthClipEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthClipEnable,
+                                    uint32_t doLock);
+    void vkCmdSetSampleLocationsEnableEXT(VkCommandBuffer commandBuffer,
+                                          VkBool32 sampleLocationsEnable, uint32_t doLock);
+    void vkCmdSetColorBlendAdvancedEXT(VkCommandBuffer commandBuffer, uint32_t firstAttachment,
+                                       uint32_t attachmentCount,
+                                       const VkColorBlendAdvancedEXT* pColorBlendAdvanced,
+                                       uint32_t doLock);
+    void vkCmdSetProvokingVertexModeEXT(VkCommandBuffer commandBuffer,
+                                        VkProvokingVertexModeEXT provokingVertexMode,
+                                        uint32_t doLock);
+    void vkCmdSetLineRasterizationModeEXT(VkCommandBuffer commandBuffer,
+                                          VkLineRasterizationModeEXT lineRasterizationMode,
+                                          uint32_t doLock);
+    void vkCmdSetLineStippleEnableEXT(VkCommandBuffer commandBuffer, VkBool32 stippledLineEnable,
+                                      uint32_t doLock);
+    void vkCmdSetDepthClipNegativeOneToOneEXT(VkCommandBuffer commandBuffer,
+                                              VkBool32 negativeOneToOne, uint32_t doLock);
+    void vkCmdSetViewportWScalingEnableNV(VkCommandBuffer commandBuffer,
+                                          VkBool32 viewportWScalingEnable, uint32_t doLock);
+    void vkCmdSetViewportSwizzleNV(VkCommandBuffer commandBuffer, uint32_t firstViewport,
+                                   uint32_t viewportCount,
+                                   const VkViewportSwizzleNV* pViewportSwizzles, uint32_t doLock);
+    void vkCmdSetCoverageToColorEnableNV(VkCommandBuffer commandBuffer,
+                                         VkBool32 coverageToColorEnable, uint32_t doLock);
+    void vkCmdSetCoverageToColorLocationNV(VkCommandBuffer commandBuffer,
+                                           uint32_t coverageToColorLocation, uint32_t doLock);
+    void vkCmdSetCoverageModulationModeNV(VkCommandBuffer commandBuffer,
+                                          VkCoverageModulationModeNV coverageModulationMode,
+                                          uint32_t doLock);
+    void vkCmdSetCoverageModulationTableEnableNV(VkCommandBuffer commandBuffer,
+                                                 VkBool32 coverageModulationTableEnable,
+                                                 uint32_t doLock);
+    void vkCmdSetCoverageModulationTableNV(VkCommandBuffer commandBuffer,
+                                           uint32_t coverageModulationTableCount,
+                                           const float* pCoverageModulationTable, uint32_t doLock);
+    void vkCmdSetShadingRateImageEnableNV(VkCommandBuffer commandBuffer,
+                                          VkBool32 shadingRateImageEnable, uint32_t doLock);
+    void vkCmdSetRepresentativeFragmentTestEnableNV(VkCommandBuffer commandBuffer,
+                                                    VkBool32 representativeFragmentTestEnable,
+                                                    uint32_t doLock);
+    void vkCmdSetCoverageReductionModeNV(VkCommandBuffer commandBuffer,
+                                         VkCoverageReductionModeNV coverageReductionMode,
+                                         uint32_t doLock);
+#endif
+#ifdef VK_EXT_subpass_merge_feedback
+#endif
+#ifdef VK_LUNARG_direct_driver_loading
+#endif
+#ifdef VK_EXT_shader_module_identifier
+    void vkGetShaderModuleIdentifierEXT(VkDevice device, VkShaderModule shaderModule,
+                                        VkShaderModuleIdentifierEXT* pIdentifier, uint32_t doLock);
+    void vkGetShaderModuleCreateInfoIdentifierEXT(VkDevice device,
+                                                  const VkShaderModuleCreateInfo* pCreateInfo,
+                                                  VkShaderModuleIdentifierEXT* pIdentifier,
+                                                  uint32_t doLock);
+#endif
+#ifdef VK_EXT_rasterization_order_attachment_access
+#endif
+#ifdef VK_NV_optical_flow
+    VkResult vkGetPhysicalDeviceOpticalFlowImageFormatsNV(
+        VkPhysicalDevice physicalDevice,
+        const VkOpticalFlowImageFormatInfoNV* pOpticalFlowImageFormatInfo, uint32_t* pFormatCount,
+        VkOpticalFlowImageFormatPropertiesNV* pImageFormatProperties, uint32_t doLock);
+    VkResult vkCreateOpticalFlowSessionNV(VkDevice device,
+                                          const VkOpticalFlowSessionCreateInfoNV* pCreateInfo,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkOpticalFlowSessionNV* pSession, uint32_t doLock);
+    void vkDestroyOpticalFlowSessionNV(VkDevice device, VkOpticalFlowSessionNV session,
+                                       const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    VkResult vkBindOpticalFlowSessionImageNV(VkDevice device, VkOpticalFlowSessionNV session,
+                                             VkOpticalFlowSessionBindingPointNV bindingPoint,
+                                             VkImageView view, VkImageLayout layout,
+                                             uint32_t doLock);
+    void vkCmdOpticalFlowExecuteNV(VkCommandBuffer commandBuffer, VkOpticalFlowSessionNV session,
+                                   const VkOpticalFlowExecuteInfoNV* pExecuteInfo, uint32_t doLock);
+#endif
+#ifdef VK_EXT_legacy_dithering
+#endif
+#ifdef VK_EXT_pipeline_protected_access
+#endif
+#ifdef VK_EXT_shader_object
+    VkResult vkCreateShadersEXT(VkDevice device, uint32_t createInfoCount,
+                                const VkShaderCreateInfoEXT* pCreateInfos,
+                                const VkAllocationCallbacks* pAllocator, VkShaderEXT* pShaders,
+                                uint32_t doLock);
+    void vkDestroyShaderEXT(VkDevice device, VkShaderEXT shader,
+                            const VkAllocationCallbacks* pAllocator, uint32_t doLock);
+    VkResult vkGetShaderBinaryDataEXT(VkDevice device, VkShaderEXT shader, size_t* pDataSize,
+                                      void* pData, uint32_t doLock);
+    void vkCmdBindShadersEXT(VkCommandBuffer commandBuffer, uint32_t stageCount,
+                             const VkShaderStageFlagBits* pStages, const VkShaderEXT* pShaders,
+                             uint32_t doLock);
+#endif
+#ifdef VK_QCOM_tile_properties
+    VkResult vkGetFramebufferTilePropertiesQCOM(VkDevice device, VkFramebuffer framebuffer,
+                                                uint32_t* pPropertiesCount,
+                                                VkTilePropertiesQCOM* pProperties, uint32_t doLock);
+    VkResult vkGetDynamicRenderingTilePropertiesQCOM(VkDevice device,
+                                                     const VkRenderingInfo* pRenderingInfo,
+                                                     VkTilePropertiesQCOM* pProperties,
+                                                     uint32_t doLock);
+#endif
+#ifdef VK_SEC_amigo_profiling
+#endif
+#ifdef VK_QCOM_multiview_per_view_viewports
+#endif
+#ifdef VK_NV_ray_tracing_invocation_reorder
+#endif
+#ifdef VK_EXT_mutable_descriptor_type
+#endif
+#ifdef VK_ARM_shader_core_builtins
+#endif
+#ifdef VK_EXT_pipeline_library_group_handles
+#endif
+#ifdef VK_QCOM_multiview_per_view_render_areas
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+    void vkCmdSetAttachmentFeedbackLoopEnableEXT(VkCommandBuffer commandBuffer,
+                                                 VkImageAspectFlags aspectMask, uint32_t doLock);
+#endif
+#ifdef VK_KHR_acceleration_structure
+    VkResult vkCreateAccelerationStructureKHR(
+        VkDevice device, const VkAccelerationStructureCreateInfoKHR* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator, VkAccelerationStructureKHR* pAccelerationStructure,
+        uint32_t doLock);
+    void vkDestroyAccelerationStructureKHR(VkDevice device,
+                                           VkAccelerationStructureKHR accelerationStructure,
+                                           const VkAllocationCallbacks* pAllocator,
+                                           uint32_t doLock);
+    void vkCmdBuildAccelerationStructuresKHR(
+        VkCommandBuffer commandBuffer, uint32_t infoCount,
+        const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+        const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos, uint32_t doLock);
+    void vkCmdBuildAccelerationStructuresIndirectKHR(
+        VkCommandBuffer commandBuffer, uint32_t infoCount,
+        const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+        const VkDeviceAddress* pIndirectDeviceAddresses, const uint32_t* pIndirectStrides,
+        const uint32_t* const* ppMaxPrimitiveCounts, uint32_t doLock);
+    VkResult vkBuildAccelerationStructuresKHR(
+        VkDevice device, VkDeferredOperationKHR deferredOperation, uint32_t infoCount,
+        const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+        const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos, uint32_t doLock);
+    VkResult vkCopyAccelerationStructureKHR(VkDevice device,
+                                            VkDeferredOperationKHR deferredOperation,
+                                            const VkCopyAccelerationStructureInfoKHR* pInfo,
+                                            uint32_t doLock);
+    VkResult vkCopyAccelerationStructureToMemoryKHR(
+        VkDevice device, VkDeferredOperationKHR deferredOperation,
+        const VkCopyAccelerationStructureToMemoryInfoKHR* pInfo, uint32_t doLock);
+    VkResult vkCopyMemoryToAccelerationStructureKHR(
+        VkDevice device, VkDeferredOperationKHR deferredOperation,
+        const VkCopyMemoryToAccelerationStructureInfoKHR* pInfo, uint32_t doLock);
+    VkResult vkWriteAccelerationStructuresPropertiesKHR(
+        VkDevice device, uint32_t accelerationStructureCount,
+        const VkAccelerationStructureKHR* pAccelerationStructures, VkQueryType queryType,
+        size_t dataSize, void* pData, size_t stride, uint32_t doLock);
+    void vkCmdCopyAccelerationStructureKHR(VkCommandBuffer commandBuffer,
+                                           const VkCopyAccelerationStructureInfoKHR* pInfo,
+                                           uint32_t doLock);
+    void vkCmdCopyAccelerationStructureToMemoryKHR(
+        VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureToMemoryInfoKHR* pInfo,
+        uint32_t doLock);
+    void vkCmdCopyMemoryToAccelerationStructureKHR(
+        VkCommandBuffer commandBuffer, const VkCopyMemoryToAccelerationStructureInfoKHR* pInfo,
+        uint32_t doLock);
+    VkDeviceAddress vkGetAccelerationStructureDeviceAddressKHR(
+        VkDevice device, const VkAccelerationStructureDeviceAddressInfoKHR* pInfo, uint32_t doLock);
+    void vkCmdWriteAccelerationStructuresPropertiesKHR(
+        VkCommandBuffer commandBuffer, uint32_t accelerationStructureCount,
+        const VkAccelerationStructureKHR* pAccelerationStructures, VkQueryType queryType,
+        VkQueryPool queryPool, uint32_t firstQuery, uint32_t doLock);
+    void vkGetDeviceAccelerationStructureCompatibilityKHR(
+        VkDevice device, const VkAccelerationStructureVersionInfoKHR* pVersionInfo,
+        VkAccelerationStructureCompatibilityKHR* pCompatibility, uint32_t doLock);
+    void vkGetAccelerationStructureBuildSizesKHR(
+        VkDevice device, VkAccelerationStructureBuildTypeKHR buildType,
+        const VkAccelerationStructureBuildGeometryInfoKHR* pBuildInfo,
+        const uint32_t* pMaxPrimitiveCounts, VkAccelerationStructureBuildSizesInfoKHR* pSizeInfo,
+        uint32_t doLock);
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    void vkCmdTraceRaysKHR(VkCommandBuffer commandBuffer,
+                           const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+                           uint32_t width, uint32_t height, uint32_t depth, uint32_t doLock);
+    VkResult vkCreateRayTracingPipelinesKHR(VkDevice device,
+                                            VkDeferredOperationKHR deferredOperation,
+                                            VkPipelineCache pipelineCache, uint32_t createInfoCount,
+                                            const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkPipeline* pPipelines, uint32_t doLock);
+    VkResult vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(VkDevice device, VkPipeline pipeline,
+                                                               uint32_t firstGroup,
+                                                               uint32_t groupCount, size_t dataSize,
+                                                               void* pData, uint32_t doLock);
+    void vkCmdTraceRaysIndirectKHR(
+        VkCommandBuffer commandBuffer,
+        const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+        VkDeviceAddress indirectDeviceAddress, uint32_t doLock);
+    VkDeviceSize vkGetRayTracingShaderGroupStackSizeKHR(VkDevice device, VkPipeline pipeline,
+                                                        uint32_t group,
+                                                        VkShaderGroupShaderKHR groupShader,
+                                                        uint32_t doLock);
+    void vkCmdSetRayTracingPipelineStackSizeKHR(VkCommandBuffer commandBuffer,
+                                                uint32_t pipelineStackSize, uint32_t doLock);
+#endif
+#ifdef VK_KHR_ray_query
+#endif
+#ifdef VK_EXT_mesh_shader
+    void vkCmdDrawMeshTasksEXT(VkCommandBuffer commandBuffer, uint32_t groupCountX,
+                               uint32_t groupCountY, uint32_t groupCountZ, uint32_t doLock);
+    void vkCmdDrawMeshTasksIndirectEXT(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                       VkDeviceSize offset, uint32_t drawCount, uint32_t stride,
+                                       uint32_t doLock);
+    void vkCmdDrawMeshTasksIndirectCountEXT(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                            VkDeviceSize offset, VkBuffer countBuffer,
+                                            VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
+                                            uint32_t stride, uint32_t doLock);
 #endif
 
    private:

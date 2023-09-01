@@ -2162,10 +2162,420 @@ static void dynCheck_entry_vkGetDeviceImageSparseMemoryRequirements(
 }
 #endif
 #ifdef VK_KHR_surface
+static void entry_vkDestroySurfaceKHR(VkInstance instance, VkSurfaceKHR surface,
+                                      const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroySurfaceKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroySurfaceKHR(instance, surface, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkGetPhysicalDeviceSurfaceSupportKHR(VkPhysicalDevice physicalDevice,
+                                                           uint32_t queueFamilyIndex,
+                                                           VkSurfaceKHR surface,
+                                                           VkBool32* pSupported) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceSupportKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamilyIndex, surface,
+                                                    pSupported, true /* do lock */);
+    return vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return;
+}
+static VkResult entry_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+    VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+    VkSurfaceCapabilitiesKHR* pSurfaceCapabilities) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface,
+                                                         pSurfaceCapabilities, true /* do lock */);
+    return vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return;
+}
+static VkResult entry_vkGetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDevice physicalDevice,
+                                                           VkSurfaceKHR surface,
+                                                           uint32_t* pSurfaceFormatCount,
+                                                           VkSurfaceFormatKHR* pSurfaceFormats) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceFormatsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, pSurfaceFormatCount,
+                                                    pSurfaceFormats, true /* do lock */);
+    return vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return;
+}
+static VkResult entry_vkGetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice physicalDevice,
+                                                                VkSurfaceKHR surface,
+                                                                uint32_t* pPresentModeCount,
+                                                                VkPresentModeKHR* pPresentModes) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfacePresentModesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, pPresentModeCount,
+                                                         pPresentModes, true /* do lock */);
+    return vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return;
+}
 #endif
 #ifdef VK_KHR_swapchain
+static VkResult entry_vkCreateSwapchainKHR(VkDevice device,
+                                           const VkSwapchainCreateInfoKHR* pCreateInfo,
+                                           const VkAllocationCallbacks* pAllocator,
+                                           VkSwapchainKHR* pSwapchain) {
+    AEMU_SCOPED_TRACE("vkCreateSwapchainKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateSwapchainKHR_VkResult_return = (VkResult)0;
+    vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(
+        device, pCreateInfo, pAllocator, pSwapchain, true /* do lock */);
+    return vkCreateSwapchainKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateSwapchainKHR(VkDevice device,
+                                                    const VkSwapchainCreateInfoKHR* pCreateInfo,
+                                                    const VkAllocationCallbacks* pAllocator,
+                                                    VkSwapchainKHR* pSwapchain) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateSwapchainKHR", "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkCreateSwapchainKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateSwapchainKHR_VkResult_return = (VkResult)0;
+    vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(
+        device, pCreateInfo, pAllocator, pSwapchain, true /* do lock */);
+    return vkCreateSwapchainKHR_VkResult_return;
+}
+static void entry_vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                        const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroySwapchainKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                                 const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroySwapchainKHR", "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkDestroySwapchainKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                              uint32_t* pSwapchainImageCount,
+                                              VkImage* pSwapchainImages) {
+    AEMU_SCOPED_TRACE("vkGetSwapchainImagesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSwapchainImagesKHR_VkResult_return = (VkResult)0;
+    vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(
+        device, swapchain, pSwapchainImageCount, pSwapchainImages, true /* do lock */);
+    return vkGetSwapchainImagesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                                       uint32_t* pSwapchainImageCount,
+                                                       VkImage* pSwapchainImages) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetSwapchainImagesKHR", "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkGetSwapchainImagesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSwapchainImagesKHR_VkResult_return = (VkResult)0;
+    vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(
+        device, swapchain, pSwapchainImageCount, pSwapchainImages, true /* do lock */);
+    return vkGetSwapchainImagesKHR_VkResult_return;
+}
+static VkResult entry_vkAcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                            uint64_t timeout, VkSemaphore semaphore, VkFence fence,
+                                            uint32_t* pImageIndex) {
+    AEMU_SCOPED_TRACE("vkAcquireNextImageKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
+    vkAcquireNextImageKHR_VkResult_return = vkEnc->vkAcquireNextImageKHR(
+        device, swapchain, timeout, semaphore, fence, pImageIndex, true /* do lock */);
+    return vkAcquireNextImageKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkAcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                                     uint64_t timeout, VkSemaphore semaphore,
+                                                     VkFence fence, uint32_t* pImageIndex) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
+        sOnInvalidDynamicallyCheckedCall("vkAcquireNextImageKHR", "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkAcquireNextImageKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
+    vkAcquireNextImageKHR_VkResult_return = vkEnc->vkAcquireNextImageKHR(
+        device, swapchain, timeout, semaphore, fence, pImageIndex, true /* do lock */);
+    return vkAcquireNextImageKHR_VkResult_return;
+}
+static VkResult entry_vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo) {
+    AEMU_SCOPED_TRACE("vkQueuePresentKHR");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    VkResult vkQueuePresentKHR_VkResult_return = (VkResult)0;
+    vkQueuePresentKHR_VkResult_return =
+        vkEnc->vkQueuePresentKHR(queue, pPresentInfo, true /* do lock */);
+    return vkQueuePresentKHR_VkResult_return;
+}
+static VkResult entry_vkGetDeviceGroupPresentCapabilitiesKHR(
+    VkDevice device, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupPresentCapabilitiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
+    vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return =
+        vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities,
+                                                      true /* do lock */);
+    return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetDeviceGroupPresentCapabilitiesKHR(
+    VkDevice device, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupPresentCapabilitiesKHR",
+                                         "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupPresentCapabilitiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
+    vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return =
+        vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities,
+                                                      true /* do lock */);
+    return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
+}
+static VkResult entry_vkGetDeviceGroupSurfacePresentModesKHR(
+    VkDevice device, VkSurfaceKHR surface, VkDeviceGroupPresentModeFlagsKHR* pModes) {
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
+    vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return =
+        vkEnc->vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes, true /* do lock */);
+    return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetDeviceGroupSurfacePresentModesKHR(
+    VkDevice device, VkSurfaceKHR surface, VkDeviceGroupPresentModeFlagsKHR* pModes) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupSurfacePresentModesKHR",
+                                         "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
+    vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return =
+        vkEnc->vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes, true /* do lock */);
+    return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
+}
+static VkResult entry_vkGetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice physicalDevice,
+                                                              VkSurfaceKHR surface,
+                                                              uint32_t* pRectCount,
+                                                              VkRect2D* pRects) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDevicePresentRectanglesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice, surface, pRectCount, pRects,
+                                                       true /* do lock */);
+    return vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return;
+}
+static VkResult entry_vkAcquireNextImage2KHR(VkDevice device,
+                                             const VkAcquireNextImageInfoKHR* pAcquireInfo,
+                                             uint32_t* pImageIndex) {
+    AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
+    vkAcquireNextImage2KHR_VkResult_return =
+        vkEnc->vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex, true /* do lock */);
+    return vkAcquireNextImage2KHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkAcquireNextImage2KHR(VkDevice device,
+                                                      const VkAcquireNextImageInfoKHR* pAcquireInfo,
+                                                      uint32_t* pImageIndex) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
+        sOnInvalidDynamicallyCheckedCall("vkAcquireNextImage2KHR", "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
+    vkAcquireNextImage2KHR_VkResult_return =
+        vkEnc->vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex, true /* do lock */);
+    return vkAcquireNextImage2KHR_VkResult_return;
+}
+#endif
+#ifdef VK_KHR_display
+static VkResult entry_vkGetPhysicalDeviceDisplayPropertiesKHR(VkPhysicalDevice physicalDevice,
+                                                              uint32_t* pPropertyCount,
+                                                              VkDisplayPropertiesKHR* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceDisplayPropertiesKHR(physicalDevice, pPropertyCount, pProperties,
+                                                       true /* do lock */);
+    return vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return;
+}
+static VkResult entry_vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
+    VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount,
+    VkDisplayPlanePropertiesKHR* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPlanePropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physicalDevice, pPropertyCount,
+                                                            pProperties, true /* do lock */);
+    return vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return;
+}
+static VkResult entry_vkGetDisplayPlaneSupportedDisplaysKHR(VkPhysicalDevice physicalDevice,
+                                                            uint32_t planeIndex,
+                                                            uint32_t* pDisplayCount,
+                                                            VkDisplayKHR* pDisplays) {
+    AEMU_SCOPED_TRACE("vkGetDisplayPlaneSupportedDisplaysKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return = (VkResult)0;
+    vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return =
+        vkEnc->vkGetDisplayPlaneSupportedDisplaysKHR(physicalDevice, planeIndex, pDisplayCount,
+                                                     pDisplays, true /* do lock */);
+    return vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return;
+}
+static VkResult entry_vkGetDisplayModePropertiesKHR(VkPhysicalDevice physicalDevice,
+                                                    VkDisplayKHR display, uint32_t* pPropertyCount,
+                                                    VkDisplayModePropertiesKHR* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetDisplayModePropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDisplayModePropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetDisplayModePropertiesKHR_VkResult_return = vkEnc->vkGetDisplayModePropertiesKHR(
+        physicalDevice, display, pPropertyCount, pProperties, true /* do lock */);
+    return vkGetDisplayModePropertiesKHR_VkResult_return;
+}
+static VkResult entry_vkCreateDisplayModeKHR(VkPhysicalDevice physicalDevice, VkDisplayKHR display,
+                                             const VkDisplayModeCreateInfoKHR* pCreateInfo,
+                                             const VkAllocationCallbacks* pAllocator,
+                                             VkDisplayModeKHR* pMode) {
+    AEMU_SCOPED_TRACE("vkCreateDisplayModeKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateDisplayModeKHR_VkResult_return = (VkResult)0;
+    vkCreateDisplayModeKHR_VkResult_return = vkEnc->vkCreateDisplayModeKHR(
+        physicalDevice, display, pCreateInfo, pAllocator, pMode, true /* do lock */);
+    return vkCreateDisplayModeKHR_VkResult_return;
+}
+static VkResult entry_vkGetDisplayPlaneCapabilitiesKHR(
+    VkPhysicalDevice physicalDevice, VkDisplayModeKHR mode, uint32_t planeIndex,
+    VkDisplayPlaneCapabilitiesKHR* pCapabilities) {
+    AEMU_SCOPED_TRACE("vkGetDisplayPlaneCapabilitiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDisplayPlaneCapabilitiesKHR_VkResult_return = (VkResult)0;
+    vkGetDisplayPlaneCapabilitiesKHR_VkResult_return = vkEnc->vkGetDisplayPlaneCapabilitiesKHR(
+        physicalDevice, mode, planeIndex, pCapabilities, true /* do lock */);
+    return vkGetDisplayPlaneCapabilitiesKHR_VkResult_return;
+}
+static VkResult entry_vkCreateDisplayPlaneSurfaceKHR(
+    VkInstance instance, const VkDisplaySurfaceCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateDisplayPlaneSurfaceKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateDisplayPlaneSurfaceKHR_VkResult_return = (VkResult)0;
+    vkCreateDisplayPlaneSurfaceKHR_VkResult_return = vkEnc->vkCreateDisplayPlaneSurfaceKHR(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateDisplayPlaneSurfaceKHR_VkResult_return;
+}
+#endif
+#ifdef VK_KHR_display_swapchain
+static VkResult entry_vkCreateSharedSwapchainsKHR(VkDevice device, uint32_t swapchainCount,
+                                                  const VkSwapchainCreateInfoKHR* pCreateInfos,
+                                                  const VkAllocationCallbacks* pAllocator,
+                                                  VkSwapchainKHR* pSwapchains) {
+    AEMU_SCOPED_TRACE("vkCreateSharedSwapchainsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateSharedSwapchainsKHR_VkResult_return = (VkResult)0;
+    vkCreateSharedSwapchainsKHR_VkResult_return = vkEnc->vkCreateSharedSwapchainsKHR(
+        device, swapchainCount, pCreateInfos, pAllocator, pSwapchains, true /* do lock */);
+    return vkCreateSharedSwapchainsKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateSharedSwapchainsKHR(
+    VkDevice device, uint32_t swapchainCount, const VkSwapchainCreateInfoKHR* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchains) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_display_swapchain")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateSharedSwapchainsKHR", "VK_KHR_display_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkCreateSharedSwapchainsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateSharedSwapchainsKHR_VkResult_return = (VkResult)0;
+    vkCreateSharedSwapchainsKHR_VkResult_return = vkEnc->vkCreateSharedSwapchainsKHR(
+        device, swapchainCount, pCreateInfos, pAllocator, pSwapchains, true /* do lock */);
+    return vkCreateSharedSwapchainsKHR_VkResult_return;
+}
+#endif
+#ifdef VK_KHR_xlib_surface
+static VkResult entry_vkCreateXlibSurfaceKHR(VkInstance instance,
+                                             const VkXlibSurfaceCreateInfoKHR* pCreateInfo,
+                                             const VkAllocationCallbacks* pAllocator,
+                                             VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateXlibSurfaceKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateXlibSurfaceKHR_VkResult_return = (VkResult)0;
+    vkCreateXlibSurfaceKHR_VkResult_return = vkEnc->vkCreateXlibSurfaceKHR(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateXlibSurfaceKHR_VkResult_return;
+}
+static VkBool32 entry_vkGetPhysicalDeviceXlibPresentationSupportKHR(VkPhysicalDevice physicalDevice,
+                                                                    uint32_t queueFamilyIndex,
+                                                                    Display* dpy,
+                                                                    VisualID visualID) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceXlibPresentationSupportKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkBool32 vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return = (VkBool32)0;
+    vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return =
+        vkEnc->vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, dpy,
+                                                             visualID, true /* do lock */);
+    return vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return;
+}
 #endif
 #ifdef VK_KHR_xcb_surface
+static VkResult entry_vkCreateXcbSurfaceKHR(VkInstance instance,
+                                            const VkXcbSurfaceCreateInfoKHR* pCreateInfo,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateXcbSurfaceKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateXcbSurfaceKHR_VkResult_return = (VkResult)0;
+    vkCreateXcbSurfaceKHR_VkResult_return = vkEnc->vkCreateXcbSurfaceKHR(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateXcbSurfaceKHR_VkResult_return;
+}
+static VkBool32 entry_vkGetPhysicalDeviceXcbPresentationSupportKHR(VkPhysicalDevice physicalDevice,
+                                                                   uint32_t queueFamilyIndex,
+                                                                   xcb_connection_t* connection,
+                                                                   xcb_visualid_t visual_id) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceXcbPresentationSupportKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkBool32 vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return = (VkBool32)0;
+    vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return =
+        vkEnc->vkGetPhysicalDeviceXcbPresentationSupportKHR(
+            physicalDevice, queueFamilyIndex, connection, visual_id, true /* do lock */);
+    return vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return;
+}
+#endif
+#ifdef VK_KHR_wayland_surface
+static VkResult entry_vkCreateWaylandSurfaceKHR(VkInstance instance,
+                                                const VkWaylandSurfaceCreateInfoKHR* pCreateInfo,
+                                                const VkAllocationCallbacks* pAllocator,
+                                                VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateWaylandSurfaceKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateWaylandSurfaceKHR_VkResult_return = (VkResult)0;
+    vkCreateWaylandSurfaceKHR_VkResult_return = vkEnc->vkCreateWaylandSurfaceKHR(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateWaylandSurfaceKHR_VkResult_return;
+}
+static VkBool32 entry_vkGetPhysicalDeviceWaylandPresentationSupportKHR(
+    VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, wl_display* display) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceWaylandPresentationSupportKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkBool32 vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return = (VkBool32)0;
+    vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return =
+        vkEnc->vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex,
+                                                                display, true /* do lock */);
+    return vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return;
+}
 #endif
 #ifdef VK_KHR_android_surface
 static VkResult entry_vkCreateAndroidSurfaceKHR(VkInstance instance,
@@ -2181,6 +2591,333 @@ static VkResult entry_vkCreateAndroidSurfaceKHR(VkInstance instance,
 }
 #endif
 #ifdef VK_KHR_win32_surface
+static VkResult entry_vkCreateWin32SurfaceKHR(VkInstance instance,
+                                              const VkWin32SurfaceCreateInfoKHR* pCreateInfo,
+                                              const VkAllocationCallbacks* pAllocator,
+                                              VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateWin32SurfaceKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateWin32SurfaceKHR_VkResult_return = (VkResult)0;
+    vkCreateWin32SurfaceKHR_VkResult_return = vkEnc->vkCreateWin32SurfaceKHR(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateWin32SurfaceKHR_VkResult_return;
+}
+static VkBool32 entry_vkGetPhysicalDeviceWin32PresentationSupportKHR(
+    VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceWin32PresentationSupportKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkBool32 vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return = (VkBool32)0;
+    vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return =
+        vkEnc->vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex,
+                                                              true /* do lock */);
+    return vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return;
+}
+#endif
+#ifdef VK_KHR_sampler_mirror_clamp_to_edge
+#endif
+#ifdef VK_KHR_video_queue
+static VkResult entry_vkGetPhysicalDeviceVideoCapabilitiesKHR(
+    VkPhysicalDevice physicalDevice, const VkVideoProfileInfoKHR* pVideoProfile,
+    VkVideoCapabilitiesKHR* pCapabilities) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceVideoCapabilitiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceVideoCapabilitiesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceVideoCapabilitiesKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceVideoCapabilitiesKHR(physicalDevice, pVideoProfile, pCapabilities,
+                                                       true /* do lock */);
+    return vkGetPhysicalDeviceVideoCapabilitiesKHR_VkResult_return;
+}
+static VkResult entry_vkGetPhysicalDeviceVideoFormatPropertiesKHR(
+    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceVideoFormatInfoKHR* pVideoFormatInfo,
+    uint32_t* pVideoFormatPropertyCount, VkVideoFormatPropertiesKHR* pVideoFormatProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceVideoFormatPropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceVideoFormatPropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceVideoFormatPropertiesKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceVideoFormatPropertiesKHR(
+            physicalDevice, pVideoFormatInfo, pVideoFormatPropertyCount, pVideoFormatProperties,
+            true /* do lock */);
+    return vkGetPhysicalDeviceVideoFormatPropertiesKHR_VkResult_return;
+}
+static VkResult entry_vkCreateVideoSessionKHR(VkDevice device,
+                                              const VkVideoSessionCreateInfoKHR* pCreateInfo,
+                                              const VkAllocationCallbacks* pAllocator,
+                                              VkVideoSessionKHR* pVideoSession) {
+    AEMU_SCOPED_TRACE("vkCreateVideoSessionKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateVideoSessionKHR_VkResult_return = (VkResult)0;
+    vkCreateVideoSessionKHR_VkResult_return = vkEnc->vkCreateVideoSessionKHR(
+        device, pCreateInfo, pAllocator, pVideoSession, true /* do lock */);
+    return vkCreateVideoSessionKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateVideoSessionKHR(
+    VkDevice device, const VkVideoSessionCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkVideoSessionKHR* pVideoSession) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateVideoSessionKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkCreateVideoSessionKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateVideoSessionKHR_VkResult_return = (VkResult)0;
+    vkCreateVideoSessionKHR_VkResult_return = vkEnc->vkCreateVideoSessionKHR(
+        device, pCreateInfo, pAllocator, pVideoSession, true /* do lock */);
+    return vkCreateVideoSessionKHR_VkResult_return;
+}
+static void entry_vkDestroyVideoSessionKHR(VkDevice device, VkVideoSessionKHR videoSession,
+                                           const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyVideoSessionKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyVideoSessionKHR(device, videoSession, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyVideoSessionKHR(VkDevice device, VkVideoSessionKHR videoSession,
+                                                    const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyVideoSessionKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyVideoSessionKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyVideoSessionKHR(device, videoSession, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkGetVideoSessionMemoryRequirementsKHR(
+    VkDevice device, VkVideoSessionKHR videoSession, uint32_t* pMemoryRequirementsCount,
+    VkVideoSessionMemoryRequirementsKHR* pMemoryRequirements) {
+    AEMU_SCOPED_TRACE("vkGetVideoSessionMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetVideoSessionMemoryRequirementsKHR_VkResult_return = (VkResult)0;
+    vkGetVideoSessionMemoryRequirementsKHR_VkResult_return =
+        vkEnc->vkGetVideoSessionMemoryRequirementsKHR(device, videoSession,
+                                                      pMemoryRequirementsCount, pMemoryRequirements,
+                                                      true /* do lock */);
+    return vkGetVideoSessionMemoryRequirementsKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetVideoSessionMemoryRequirementsKHR(
+    VkDevice device, VkVideoSessionKHR videoSession, uint32_t* pMemoryRequirementsCount,
+    VkVideoSessionMemoryRequirementsKHR* pMemoryRequirements) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetVideoSessionMemoryRequirementsKHR",
+                                         "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkGetVideoSessionMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetVideoSessionMemoryRequirementsKHR_VkResult_return = (VkResult)0;
+    vkGetVideoSessionMemoryRequirementsKHR_VkResult_return =
+        vkEnc->vkGetVideoSessionMemoryRequirementsKHR(device, videoSession,
+                                                      pMemoryRequirementsCount, pMemoryRequirements,
+                                                      true /* do lock */);
+    return vkGetVideoSessionMemoryRequirementsKHR_VkResult_return;
+}
+static VkResult entry_vkBindVideoSessionMemoryKHR(
+    VkDevice device, VkVideoSessionKHR videoSession, uint32_t bindSessionMemoryInfoCount,
+    const VkBindVideoSessionMemoryInfoKHR* pBindSessionMemoryInfos) {
+    AEMU_SCOPED_TRACE("vkBindVideoSessionMemoryKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBindVideoSessionMemoryKHR_VkResult_return = (VkResult)0;
+    vkBindVideoSessionMemoryKHR_VkResult_return =
+        vkEnc->vkBindVideoSessionMemoryKHR(device, videoSession, bindSessionMemoryInfoCount,
+                                           pBindSessionMemoryInfos, true /* do lock */);
+    return vkBindVideoSessionMemoryKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkBindVideoSessionMemoryKHR(
+    VkDevice device, VkVideoSessionKHR videoSession, uint32_t bindSessionMemoryInfoCount,
+    const VkBindVideoSessionMemoryInfoKHR* pBindSessionMemoryInfos) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkBindVideoSessionMemoryKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkBindVideoSessionMemoryKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBindVideoSessionMemoryKHR_VkResult_return = (VkResult)0;
+    vkBindVideoSessionMemoryKHR_VkResult_return =
+        vkEnc->vkBindVideoSessionMemoryKHR(device, videoSession, bindSessionMemoryInfoCount,
+                                           pBindSessionMemoryInfos, true /* do lock */);
+    return vkBindVideoSessionMemoryKHR_VkResult_return;
+}
+static VkResult entry_vkCreateVideoSessionParametersKHR(
+    VkDevice device, const VkVideoSessionParametersCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkVideoSessionParametersKHR* pVideoSessionParameters) {
+    AEMU_SCOPED_TRACE("vkCreateVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateVideoSessionParametersKHR_VkResult_return = (VkResult)0;
+    vkCreateVideoSessionParametersKHR_VkResult_return = vkEnc->vkCreateVideoSessionParametersKHR(
+        device, pCreateInfo, pAllocator, pVideoSessionParameters, true /* do lock */);
+    return vkCreateVideoSessionParametersKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateVideoSessionParametersKHR(
+    VkDevice device, const VkVideoSessionParametersCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkVideoSessionParametersKHR* pVideoSessionParameters) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateVideoSessionParametersKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkCreateVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateVideoSessionParametersKHR_VkResult_return = (VkResult)0;
+    vkCreateVideoSessionParametersKHR_VkResult_return = vkEnc->vkCreateVideoSessionParametersKHR(
+        device, pCreateInfo, pAllocator, pVideoSessionParameters, true /* do lock */);
+    return vkCreateVideoSessionParametersKHR_VkResult_return;
+}
+static VkResult entry_vkUpdateVideoSessionParametersKHR(
+    VkDevice device, VkVideoSessionParametersKHR videoSessionParameters,
+    const VkVideoSessionParametersUpdateInfoKHR* pUpdateInfo) {
+    AEMU_SCOPED_TRACE("vkUpdateVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkUpdateVideoSessionParametersKHR_VkResult_return = (VkResult)0;
+    vkUpdateVideoSessionParametersKHR_VkResult_return = vkEnc->vkUpdateVideoSessionParametersKHR(
+        device, videoSessionParameters, pUpdateInfo, true /* do lock */);
+    return vkUpdateVideoSessionParametersKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkUpdateVideoSessionParametersKHR(
+    VkDevice device, VkVideoSessionParametersKHR videoSessionParameters,
+    const VkVideoSessionParametersUpdateInfoKHR* pUpdateInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkUpdateVideoSessionParametersKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkUpdateVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkUpdateVideoSessionParametersKHR_VkResult_return = (VkResult)0;
+    vkUpdateVideoSessionParametersKHR_VkResult_return = vkEnc->vkUpdateVideoSessionParametersKHR(
+        device, videoSessionParameters, pUpdateInfo, true /* do lock */);
+    return vkUpdateVideoSessionParametersKHR_VkResult_return;
+}
+static void entry_vkDestroyVideoSessionParametersKHR(
+    VkDevice device, VkVideoSessionParametersKHR videoSessionParameters,
+    const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyVideoSessionParametersKHR(device, videoSessionParameters, pAllocator,
+                                              true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyVideoSessionParametersKHR(
+    VkDevice device, VkVideoSessionParametersKHR videoSessionParameters,
+    const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyVideoSessionParametersKHR",
+                                         "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyVideoSessionParametersKHR(device, videoSessionParameters, pAllocator,
+                                              true /* do lock */);
+}
+static void entry_vkCmdBeginVideoCodingKHR(VkCommandBuffer commandBuffer,
+                                           const VkVideoBeginCodingInfoKHR* pBeginInfo) {
+    AEMU_SCOPED_TRACE("vkCmdBeginVideoCodingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBeginVideoCodingKHR(commandBuffer, pBeginInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBeginVideoCodingKHR(VkCommandBuffer commandBuffer,
+                                                    const VkVideoBeginCodingInfoKHR* pBeginInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBeginVideoCodingKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBeginVideoCodingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBeginVideoCodingKHR(commandBuffer, pBeginInfo, true /* do lock */);
+}
+static void entry_vkCmdEndVideoCodingKHR(VkCommandBuffer commandBuffer,
+                                         const VkVideoEndCodingInfoKHR* pEndCodingInfo) {
+    AEMU_SCOPED_TRACE("vkCmdEndVideoCodingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEndVideoCodingKHR(commandBuffer, pEndCodingInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdEndVideoCodingKHR(VkCommandBuffer commandBuffer,
+                                                  const VkVideoEndCodingInfoKHR* pEndCodingInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdEndVideoCodingKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkCmdEndVideoCodingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEndVideoCodingKHR(commandBuffer, pEndCodingInfo, true /* do lock */);
+}
+static void entry_vkCmdControlVideoCodingKHR(
+    VkCommandBuffer commandBuffer, const VkVideoCodingControlInfoKHR* pCodingControlInfo) {
+    AEMU_SCOPED_TRACE("vkCmdControlVideoCodingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdControlVideoCodingKHR(commandBuffer, pCodingControlInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdControlVideoCodingKHR(
+    VkCommandBuffer commandBuffer, const VkVideoCodingControlInfoKHR* pCodingControlInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdControlVideoCodingKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkCmdControlVideoCodingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdControlVideoCodingKHR(commandBuffer, pCodingControlInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_video_decode_queue
+static void entry_vkCmdDecodeVideoKHR(VkCommandBuffer commandBuffer,
+                                      const VkVideoDecodeInfoKHR* pDecodeInfo) {
+    AEMU_SCOPED_TRACE("vkCmdDecodeVideoKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDecodeVideoKHR(commandBuffer, pDecodeInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDecodeVideoKHR(VkCommandBuffer commandBuffer,
+                                               const VkVideoDecodeInfoKHR* pDecodeInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_decode_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDecodeVideoKHR", "VK_KHR_video_decode_queue");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDecodeVideoKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDecodeVideoKHR(commandBuffer, pDecodeInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_video_decode_h264
+#endif
+#ifdef VK_KHR_dynamic_rendering
+static void entry_vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
+                                         const VkRenderingInfo* pRenderingInfo) {
+    AEMU_SCOPED_TRACE("vkCmdBeginRenderingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBeginRenderingKHR(commandBuffer, pRenderingInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
+                                                  const VkRenderingInfo* pRenderingInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_dynamic_rendering")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBeginRenderingKHR", "VK_KHR_dynamic_rendering");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBeginRenderingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBeginRenderingKHR(commandBuffer, pRenderingInfo, true /* do lock */);
+}
+static void entry_vkCmdEndRenderingKHR(VkCommandBuffer commandBuffer) {
+    AEMU_SCOPED_TRACE("vkCmdEndRenderingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEndRenderingKHR(commandBuffer, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdEndRenderingKHR(VkCommandBuffer commandBuffer) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_dynamic_rendering")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdEndRenderingKHR", "VK_KHR_dynamic_rendering");
+    }
+    AEMU_SCOPED_TRACE("vkCmdEndRenderingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEndRenderingKHR(commandBuffer, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_multiview
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 static void entry_vkGetPhysicalDeviceFeatures2KHR(VkPhysicalDevice physicalDevice,
@@ -2239,6 +2976,74 @@ static void entry_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         physicalDevice, pFormatInfo, pPropertyCount, pProperties, true /* do lock */);
 }
 #endif
+#ifdef VK_KHR_device_group
+static void entry_vkGetDeviceGroupPeerMemoryFeaturesKHR(
+    VkDevice device, uint32_t heapIndex, uint32_t localDeviceIndex, uint32_t remoteDeviceIndex,
+    VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) {
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeaturesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceGroupPeerMemoryFeaturesKHR(device, heapIndex, localDeviceIndex,
+                                                 remoteDeviceIndex, pPeerMemoryFeatures,
+                                                 true /* do lock */);
+}
+static void dynCheck_entry_vkGetDeviceGroupPeerMemoryFeaturesKHR(
+    VkDevice device, uint32_t heapIndex, uint32_t localDeviceIndex, uint32_t remoteDeviceIndex,
+    VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_device_group")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupPeerMemoryFeaturesKHR",
+                                         "VK_KHR_device_group");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeaturesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceGroupPeerMemoryFeaturesKHR(device, heapIndex, localDeviceIndex,
+                                                 remoteDeviceIndex, pPeerMemoryFeatures,
+                                                 true /* do lock */);
+}
+static void entry_vkCmdSetDeviceMaskKHR(VkCommandBuffer commandBuffer, uint32_t deviceMask) {
+    AEMU_SCOPED_TRACE("vkCmdSetDeviceMaskKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDeviceMaskKHR(commandBuffer, deviceMask, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDeviceMaskKHR(VkCommandBuffer commandBuffer,
+                                                 uint32_t deviceMask) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_device_group")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDeviceMaskKHR", "VK_KHR_device_group");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDeviceMaskKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDeviceMaskKHR(commandBuffer, deviceMask, true /* do lock */);
+}
+static void entry_vkCmdDispatchBaseKHR(VkCommandBuffer commandBuffer, uint32_t baseGroupX,
+                                       uint32_t baseGroupY, uint32_t baseGroupZ,
+                                       uint32_t groupCountX, uint32_t groupCountY,
+                                       uint32_t groupCountZ) {
+    AEMU_SCOPED_TRACE("vkCmdDispatchBaseKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDispatchBaseKHR(commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX,
+                                groupCountY, groupCountZ, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDispatchBaseKHR(VkCommandBuffer commandBuffer, uint32_t baseGroupX,
+                                                uint32_t baseGroupY, uint32_t baseGroupZ,
+                                                uint32_t groupCountX, uint32_t groupCountY,
+                                                uint32_t groupCountZ) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_device_group")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDispatchBaseKHR", "VK_KHR_device_group");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDispatchBaseKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDispatchBaseKHR(commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX,
+                                groupCountY, groupCountZ, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_shader_draw_parameters
+#endif
 #ifdef VK_KHR_maintenance1
 static void entry_vkTrimCommandPoolKHR(VkDevice device, VkCommandPool commandPool,
                                        VkCommandPoolTrimFlags flags) {
@@ -2257,6 +3062,18 @@ static void dynCheck_entry_vkTrimCommandPoolKHR(VkDevice device, VkCommandPool c
     vkEnc->vkTrimCommandPoolKHR(device, commandPool, flags, true /* do lock */);
 }
 #endif
+#ifdef VK_KHR_device_group_creation
+static VkResult entry_vkEnumeratePhysicalDeviceGroupsKHR(
+    VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+    VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
+    AEMU_SCOPED_TRACE("vkEnumeratePhysicalDeviceGroupsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return = (VkResult)0;
+    vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return = vkEnc->vkEnumeratePhysicalDeviceGroupsKHR(
+        instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties, true /* do lock */);
+    return vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return;
+}
+#endif
 #ifdef VK_KHR_external_memory_capabilities
 static void entry_vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
@@ -2270,8 +3087,107 @@ static void entry_vkGetPhysicalDeviceExternalBufferPropertiesKHR(
 #ifdef VK_KHR_external_memory
 #endif
 #ifdef VK_KHR_external_memory_win32
+static VkResult entry_vkGetMemoryWin32HandleKHR(
+    VkDevice device, const VkMemoryGetWin32HandleInfoKHR* pGetWin32HandleInfo, HANDLE* pHandle) {
+    AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryWin32HandleKHR_VkResult_return =
+        vkEnc->vkGetMemoryWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
+    return vkGetMemoryWin32HandleKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryWin32HandleKHR(
+    VkDevice device, const VkMemoryGetWin32HandleInfoKHR* pGetWin32HandleInfo, HANDLE* pHandle) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_memory_win32")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryWin32HandleKHR",
+                                         "VK_KHR_external_memory_win32");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryWin32HandleKHR_VkResult_return =
+        vkEnc->vkGetMemoryWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
+    return vkGetMemoryWin32HandleKHR_VkResult_return;
+}
+static VkResult entry_vkGetMemoryWin32HandlePropertiesKHR(
+    VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, HANDLE handle,
+    VkMemoryWin32HandlePropertiesKHR* pMemoryWin32HandleProperties) {
+    AEMU_SCOPED_TRACE("vkGetMemoryWin32HandlePropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryWin32HandlePropertiesKHR_VkResult_return =
+        vkEnc->vkGetMemoryWin32HandlePropertiesKHR(
+            device, handleType, handle, pMemoryWin32HandleProperties, true /* do lock */);
+    return vkGetMemoryWin32HandlePropertiesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryWin32HandlePropertiesKHR(
+    VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, HANDLE handle,
+    VkMemoryWin32HandlePropertiesKHR* pMemoryWin32HandleProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_memory_win32")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryWin32HandlePropertiesKHR",
+                                         "VK_KHR_external_memory_win32");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryWin32HandlePropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryWin32HandlePropertiesKHR_VkResult_return =
+        vkEnc->vkGetMemoryWin32HandlePropertiesKHR(
+            device, handleType, handle, pMemoryWin32HandleProperties, true /* do lock */);
+    return vkGetMemoryWin32HandlePropertiesKHR_VkResult_return;
+}
 #endif
 #ifdef VK_KHR_external_memory_fd
+static VkResult entry_vkGetMemoryFdKHR(VkDevice device, const VkMemoryGetFdInfoKHR* pGetFdInfo,
+                                       int* pFd) {
+    AEMU_SCOPED_TRACE("vkGetMemoryFdKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryFdKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryFdKHR_VkResult_return =
+        vkEnc->vkGetMemoryFdKHR(device, pGetFdInfo, pFd, true /* do lock */);
+    return vkGetMemoryFdKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryFdKHR(VkDevice device,
+                                                const VkMemoryGetFdInfoKHR* pGetFdInfo, int* pFd) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_memory_fd")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryFdKHR", "VK_KHR_external_memory_fd");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryFdKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryFdKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryFdKHR_VkResult_return =
+        vkEnc->vkGetMemoryFdKHR(device, pGetFdInfo, pFd, true /* do lock */);
+    return vkGetMemoryFdKHR_VkResult_return;
+}
+static VkResult entry_vkGetMemoryFdPropertiesKHR(VkDevice device,
+                                                 VkExternalMemoryHandleTypeFlagBits handleType,
+                                                 int fd,
+                                                 VkMemoryFdPropertiesKHR* pMemoryFdProperties) {
+    AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryFdPropertiesKHR_VkResult_return = vkEnc->vkGetMemoryFdPropertiesKHR(
+        device, handleType, fd, pMemoryFdProperties, true /* do lock */);
+    return vkGetMemoryFdPropertiesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryFdPropertiesKHR(
+    VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, int fd,
+    VkMemoryFdPropertiesKHR* pMemoryFdProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_memory_fd")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryFdPropertiesKHR", "VK_KHR_external_memory_fd");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryFdPropertiesKHR_VkResult_return = vkEnc->vkGetMemoryFdPropertiesKHR(
+        device, handleType, fd, pMemoryFdProperties, true /* do lock */);
+    return vkGetMemoryFdPropertiesKHR_VkResult_return;
+}
+#endif
+#ifdef VK_KHR_win32_keyed_mutex
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
 static void entry_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
@@ -2287,6 +3203,52 @@ static void entry_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
 #ifdef VK_KHR_external_semaphore
 #endif
 #ifdef VK_KHR_external_semaphore_win32
+static VkResult entry_vkImportSemaphoreWin32HandleKHR(
+    VkDevice device, const VkImportSemaphoreWin32HandleInfoKHR* pImportSemaphoreWin32HandleInfo) {
+    AEMU_SCOPED_TRACE("vkImportSemaphoreWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkImportSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkImportSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkImportSemaphoreWin32HandleKHR(
+        device, pImportSemaphoreWin32HandleInfo, true /* do lock */);
+    return vkImportSemaphoreWin32HandleKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkImportSemaphoreWin32HandleKHR(
+    VkDevice device, const VkImportSemaphoreWin32HandleInfoKHR* pImportSemaphoreWin32HandleInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_win32")) {
+        sOnInvalidDynamicallyCheckedCall("vkImportSemaphoreWin32HandleKHR",
+                                         "VK_KHR_external_semaphore_win32");
+    }
+    AEMU_SCOPED_TRACE("vkImportSemaphoreWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkImportSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkImportSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkImportSemaphoreWin32HandleKHR(
+        device, pImportSemaphoreWin32HandleInfo, true /* do lock */);
+    return vkImportSemaphoreWin32HandleKHR_VkResult_return;
+}
+static VkResult entry_vkGetSemaphoreWin32HandleKHR(
+    VkDevice device, const VkSemaphoreGetWin32HandleInfoKHR* pGetWin32HandleInfo, HANDLE* pHandle) {
+    AEMU_SCOPED_TRACE("vkGetSemaphoreWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkGetSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkGetSemaphoreWin32HandleKHR(
+        device, pGetWin32HandleInfo, pHandle, true /* do lock */);
+    return vkGetSemaphoreWin32HandleKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSemaphoreWin32HandleKHR(
+    VkDevice device, const VkSemaphoreGetWin32HandleInfoKHR* pGetWin32HandleInfo, HANDLE* pHandle) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_win32")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetSemaphoreWin32HandleKHR",
+                                         "VK_KHR_external_semaphore_win32");
+    }
+    AEMU_SCOPED_TRACE("vkGetSemaphoreWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkGetSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkGetSemaphoreWin32HandleKHR(
+        device, pGetWin32HandleInfo, pHandle, true /* do lock */);
+    return vkGetSemaphoreWin32HandleKHR_VkResult_return;
+}
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 static VkResult entry_vkImportSemaphoreFdKHR(
@@ -2337,7 +3299,58 @@ static VkResult dynCheck_entry_vkGetSemaphoreFdKHR(VkDevice device,
     return vkGetSemaphoreFdKHR_VkResult_return;
 }
 #endif
+#ifdef VK_KHR_push_descriptor
+static void entry_vkCmdPushDescriptorSetKHR(VkCommandBuffer commandBuffer,
+                                            VkPipelineBindPoint pipelineBindPoint,
+                                            VkPipelineLayout layout, uint32_t set,
+                                            uint32_t descriptorWriteCount,
+                                            const VkWriteDescriptorSet* pDescriptorWrites) {
+    AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdPushDescriptorSetKHR(commandBuffer, pipelineBindPoint, layout, set,
+                                     descriptorWriteCount, pDescriptorWrites, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdPushDescriptorSetKHR(
+    VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
+    uint32_t set, uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_push_descriptor")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdPushDescriptorSetKHR", "VK_KHR_push_descriptor");
+    }
+    AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdPushDescriptorSetKHR(commandBuffer, pipelineBindPoint, layout, set,
+                                     descriptorWriteCount, pDescriptorWrites, true /* do lock */);
+}
+static void entry_vkCmdPushDescriptorSetWithTemplateKHR(
+    VkCommandBuffer commandBuffer, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    VkPipelineLayout layout, uint32_t set, const void* pData) {
+    AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetWithTemplateKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdPushDescriptorSetWithTemplateKHR(commandBuffer, descriptorUpdateTemplate, layout,
+                                                 set, pData, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdPushDescriptorSetWithTemplateKHR(
+    VkCommandBuffer commandBuffer, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    VkPipelineLayout layout, uint32_t set, const void* pData) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_push_descriptor")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdPushDescriptorSetWithTemplateKHR",
+                                         "VK_KHR_push_descriptor");
+    }
+    AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetWithTemplateKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdPushDescriptorSetWithTemplateKHR(commandBuffer, descriptorUpdateTemplate, layout,
+                                                 set, pData, true /* do lock */);
+}
+#endif
 #ifdef VK_KHR_shader_float16_int8
+#endif
+#ifdef VK_KHR_16bit_storage
 #endif
 #ifdef VK_KHR_incremental_present
 #endif
@@ -2506,6 +3519,29 @@ static void dynCheck_entry_vkCmdEndRenderPass2KHR(VkCommandBuffer commandBuffer,
     vkEnc->vkCmdEndRenderPass2KHR(commandBuffer, pSubpassEndInfo, true /* do lock */);
 }
 #endif
+#ifdef VK_KHR_shared_presentable_image
+static VkResult entry_vkGetSwapchainStatusKHR(VkDevice device, VkSwapchainKHR swapchain) {
+    AEMU_SCOPED_TRACE("vkGetSwapchainStatusKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSwapchainStatusKHR_VkResult_return = (VkResult)0;
+    vkGetSwapchainStatusKHR_VkResult_return =
+        vkEnc->vkGetSwapchainStatusKHR(device, swapchain, true /* do lock */);
+    return vkGetSwapchainStatusKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSwapchainStatusKHR(VkDevice device, VkSwapchainKHR swapchain) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_shared_presentable_image")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetSwapchainStatusKHR",
+                                         "VK_KHR_shared_presentable_image");
+    }
+    AEMU_SCOPED_TRACE("vkGetSwapchainStatusKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSwapchainStatusKHR_VkResult_return = (VkResult)0;
+    vkGetSwapchainStatusKHR_VkResult_return =
+        vkEnc->vkGetSwapchainStatusKHR(device, swapchain, true /* do lock */);
+    return vkGetSwapchainStatusKHR_VkResult_return;
+}
+#endif
 #ifdef VK_KHR_external_fence_capabilities
 static void entry_vkGetPhysicalDeviceExternalFencePropertiesKHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
@@ -2518,6 +3554,53 @@ static void entry_vkGetPhysicalDeviceExternalFencePropertiesKHR(
 }
 #endif
 #ifdef VK_KHR_external_fence
+#endif
+#ifdef VK_KHR_external_fence_win32
+static VkResult entry_vkImportFenceWin32HandleKHR(
+    VkDevice device, const VkImportFenceWin32HandleInfoKHR* pImportFenceWin32HandleInfo) {
+    AEMU_SCOPED_TRACE("vkImportFenceWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkImportFenceWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkImportFenceWin32HandleKHR_VkResult_return =
+        vkEnc->vkImportFenceWin32HandleKHR(device, pImportFenceWin32HandleInfo, true /* do lock */);
+    return vkImportFenceWin32HandleKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkImportFenceWin32HandleKHR(
+    VkDevice device, const VkImportFenceWin32HandleInfoKHR* pImportFenceWin32HandleInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_fence_win32")) {
+        sOnInvalidDynamicallyCheckedCall("vkImportFenceWin32HandleKHR",
+                                         "VK_KHR_external_fence_win32");
+    }
+    AEMU_SCOPED_TRACE("vkImportFenceWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkImportFenceWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkImportFenceWin32HandleKHR_VkResult_return =
+        vkEnc->vkImportFenceWin32HandleKHR(device, pImportFenceWin32HandleInfo, true /* do lock */);
+    return vkImportFenceWin32HandleKHR_VkResult_return;
+}
+static VkResult entry_vkGetFenceWin32HandleKHR(
+    VkDevice device, const VkFenceGetWin32HandleInfoKHR* pGetWin32HandleInfo, HANDLE* pHandle) {
+    AEMU_SCOPED_TRACE("vkGetFenceWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetFenceWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkGetFenceWin32HandleKHR_VkResult_return =
+        vkEnc->vkGetFenceWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
+    return vkGetFenceWin32HandleKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetFenceWin32HandleKHR(
+    VkDevice device, const VkFenceGetWin32HandleInfoKHR* pGetWin32HandleInfo, HANDLE* pHandle) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_fence_win32")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetFenceWin32HandleKHR", "VK_KHR_external_fence_win32");
+    }
+    AEMU_SCOPED_TRACE("vkGetFenceWin32HandleKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetFenceWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkGetFenceWin32HandleKHR_VkResult_return =
+        vkEnc->vkGetFenceWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
+    return vkGetFenceWin32HandleKHR_VkResult_return;
+}
 #endif
 #ifdef VK_KHR_external_fence_fd
 static VkResult entry_vkImportFenceFdKHR(VkDevice device,
@@ -2567,11 +3650,142 @@ static VkResult dynCheck_entry_vkGetFenceFdKHR(VkDevice device,
     return vkGetFenceFdKHR_VkResult_return;
 }
 #endif
+#ifdef VK_KHR_performance_query
+static VkResult entry_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR(
+    VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, uint32_t* pCounterCount,
+    VkPerformanceCounterKHR* pCounters, VkPerformanceCounterDescriptionKHR* pCounterDescriptions) {
+    AEMU_SCOPED_TRACE("vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR_VkResult_return =
+        (VkResult)0;
+    vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR_VkResult_return =
+        vkEnc->vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR(
+            physicalDevice, queueFamilyIndex, pCounterCount, pCounters, pCounterDescriptions,
+            true /* do lock */);
+    return vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR_VkResult_return;
+}
+static void entry_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR(
+    VkPhysicalDevice physicalDevice,
+    const VkQueryPoolPerformanceCreateInfoKHR* pPerformanceQueryCreateInfo, uint32_t* pNumPasses) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR(
+        physicalDevice, pPerformanceQueryCreateInfo, pNumPasses, true /* do lock */);
+}
+static VkResult entry_vkAcquireProfilingLockKHR(VkDevice device,
+                                                const VkAcquireProfilingLockInfoKHR* pInfo) {
+    AEMU_SCOPED_TRACE("vkAcquireProfilingLockKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireProfilingLockKHR_VkResult_return = (VkResult)0;
+    vkAcquireProfilingLockKHR_VkResult_return =
+        vkEnc->vkAcquireProfilingLockKHR(device, pInfo, true /* do lock */);
+    return vkAcquireProfilingLockKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkAcquireProfilingLockKHR(
+    VkDevice device, const VkAcquireProfilingLockInfoKHR* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkAcquireProfilingLockKHR", "VK_KHR_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkAcquireProfilingLockKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireProfilingLockKHR_VkResult_return = (VkResult)0;
+    vkAcquireProfilingLockKHR_VkResult_return =
+        vkEnc->vkAcquireProfilingLockKHR(device, pInfo, true /* do lock */);
+    return vkAcquireProfilingLockKHR_VkResult_return;
+}
+static void entry_vkReleaseProfilingLockKHR(VkDevice device) {
+    AEMU_SCOPED_TRACE("vkReleaseProfilingLockKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkReleaseProfilingLockKHR(device, true /* do lock */);
+}
+static void dynCheck_entry_vkReleaseProfilingLockKHR(VkDevice device) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkReleaseProfilingLockKHR", "VK_KHR_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkReleaseProfilingLockKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkReleaseProfilingLockKHR(device, true /* do lock */);
+}
+#endif
 #ifdef VK_KHR_maintenance2
+#endif
+#ifdef VK_KHR_get_surface_capabilities2
+static VkResult entry_vkGetPhysicalDeviceSurfaceCapabilities2KHR(
+    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+    VkSurfaceCapabilities2KHR* pSurfaceCapabilities) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilities2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceSurfaceCapabilities2KHR(physicalDevice, pSurfaceInfo,
+                                                          pSurfaceCapabilities, true /* do lock */);
+    return vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return;
+}
+static VkResult entry_vkGetPhysicalDeviceSurfaceFormats2KHR(
+    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+    uint32_t* pSurfaceFormatCount, VkSurfaceFormat2KHR* pSurfaceFormats) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceFormats2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceSurfaceFormats2KHR(
+            physicalDevice, pSurfaceInfo, pSurfaceFormatCount, pSurfaceFormats, true /* do lock */);
+    return vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return;
+}
+#endif
+#ifdef VK_KHR_variable_pointers
+#endif
+#ifdef VK_KHR_get_display_properties2
+static VkResult entry_vkGetPhysicalDeviceDisplayProperties2KHR(
+    VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount,
+    VkDisplayProperties2KHR* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayProperties2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceDisplayProperties2KHR(physicalDevice, pPropertyCount, pProperties,
+                                                        true /* do lock */);
+    return vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return;
+}
+static VkResult entry_vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
+    VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount,
+    VkDisplayPlaneProperties2KHR* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPlaneProperties2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceDisplayPlaneProperties2KHR(physicalDevice, pPropertyCount,
+                                                             pProperties, true /* do lock */);
+    return vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return;
+}
+static VkResult entry_vkGetDisplayModeProperties2KHR(VkPhysicalDevice physicalDevice,
+                                                     VkDisplayKHR display, uint32_t* pPropertyCount,
+                                                     VkDisplayModeProperties2KHR* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetDisplayModeProperties2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDisplayModeProperties2KHR_VkResult_return = (VkResult)0;
+    vkGetDisplayModeProperties2KHR_VkResult_return = vkEnc->vkGetDisplayModeProperties2KHR(
+        physicalDevice, display, pPropertyCount, pProperties, true /* do lock */);
+    return vkGetDisplayModeProperties2KHR_VkResult_return;
+}
+static VkResult entry_vkGetDisplayPlaneCapabilities2KHR(
+    VkPhysicalDevice physicalDevice, const VkDisplayPlaneInfo2KHR* pDisplayPlaneInfo,
+    VkDisplayPlaneCapabilities2KHR* pCapabilities) {
+    AEMU_SCOPED_TRACE("vkGetDisplayPlaneCapabilities2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDisplayPlaneCapabilities2KHR_VkResult_return = (VkResult)0;
+    vkGetDisplayPlaneCapabilities2KHR_VkResult_return = vkEnc->vkGetDisplayPlaneCapabilities2KHR(
+        physicalDevice, pDisplayPlaneInfo, pCapabilities, true /* do lock */);
+    return vkGetDisplayPlaneCapabilities2KHR_VkResult_return;
+}
 #endif
 #ifdef VK_KHR_dedicated_allocation
 #endif
 #ifdef VK_KHR_storage_buffer_storage_class
+#endif
+#ifdef VK_KHR_relaxed_block_layout
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 static void entry_vkGetImageMemoryRequirements2KHR(VkDevice device,
@@ -2738,6 +3952,8 @@ static VkResult dynCheck_entry_vkBindImageMemory2KHR(VkDevice device, uint32_t b
     return vkBindImageMemory2KHR_VkResult_return;
 }
 #endif
+#ifdef VK_KHR_portability_subset
+#endif
 #ifdef VK_KHR_maintenance3
 static void entry_vkGetDescriptorSetLayoutSupportKHR(
     VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
@@ -2759,11 +3975,219 @@ static void dynCheck_entry_vkGetDescriptorSetLayoutSupportKHR(
     vkEnc->vkGetDescriptorSetLayoutSupportKHR(device, pCreateInfo, pSupport, true /* do lock */);
 }
 #endif
+#ifdef VK_KHR_draw_indirect_count
+static void entry_vkCmdDrawIndirectCountKHR(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                            VkDeviceSize offset, VkBuffer countBuffer,
+                                            VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
+                                            uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawIndirectCountKHR(commandBuffer, buffer, offset, countBuffer, countBufferOffset,
+                                     maxDrawCount, stride, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawIndirectCountKHR(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                                     VkDeviceSize offset, VkBuffer countBuffer,
+                                                     VkDeviceSize countBufferOffset,
+                                                     uint32_t maxDrawCount, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_draw_indirect_count")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawIndirectCountKHR", "VK_KHR_draw_indirect_count");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawIndirectCountKHR(commandBuffer, buffer, offset, countBuffer, countBufferOffset,
+                                     maxDrawCount, stride, true /* do lock */);
+}
+static void entry_vkCmdDrawIndexedIndirectCountKHR(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                                   VkDeviceSize offset, VkBuffer countBuffer,
+                                                   VkDeviceSize countBufferOffset,
+                                                   uint32_t maxDrawCount, uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawIndexedIndirectCountKHR(commandBuffer, buffer, offset, countBuffer,
+                                            countBufferOffset, maxDrawCount, stride,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawIndexedIndirectCountKHR(
+    VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
+    VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_draw_indirect_count")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawIndexedIndirectCountKHR",
+                                         "VK_KHR_draw_indirect_count");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawIndexedIndirectCountKHR(commandBuffer, buffer, offset, countBuffer,
+                                            countBufferOffset, maxDrawCount, stride,
+                                            true /* do lock */);
+}
+#endif
 #ifdef VK_KHR_shader_subgroup_extended_types
+#endif
+#ifdef VK_KHR_8bit_storage
+#endif
+#ifdef VK_KHR_shader_atomic_int64
+#endif
+#ifdef VK_KHR_shader_clock
+#endif
+#ifdef VK_KHR_video_decode_h265
+#endif
+#ifdef VK_KHR_global_priority
+#endif
+#ifdef VK_KHR_driver_properties
+#endif
+#ifdef VK_KHR_shader_float_controls
+#endif
+#ifdef VK_KHR_depth_stencil_resolve
+#endif
+#ifdef VK_KHR_swapchain_mutable_format
+#endif
+#ifdef VK_KHR_timeline_semaphore
+static VkResult entry_vkGetSemaphoreCounterValueKHR(VkDevice device, VkSemaphore semaphore,
+                                                    uint64_t* pValue) {
+    AEMU_SCOPED_TRACE("vkGetSemaphoreCounterValueKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSemaphoreCounterValueKHR_VkResult_return = (VkResult)0;
+    vkGetSemaphoreCounterValueKHR_VkResult_return =
+        vkEnc->vkGetSemaphoreCounterValueKHR(device, semaphore, pValue, true /* do lock */);
+    return vkGetSemaphoreCounterValueKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSemaphoreCounterValueKHR(VkDevice device, VkSemaphore semaphore,
+                                                             uint64_t* pValue) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_timeline_semaphore")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetSemaphoreCounterValueKHR",
+                                         "VK_KHR_timeline_semaphore");
+    }
+    AEMU_SCOPED_TRACE("vkGetSemaphoreCounterValueKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSemaphoreCounterValueKHR_VkResult_return = (VkResult)0;
+    vkGetSemaphoreCounterValueKHR_VkResult_return =
+        vkEnc->vkGetSemaphoreCounterValueKHR(device, semaphore, pValue, true /* do lock */);
+    return vkGetSemaphoreCounterValueKHR_VkResult_return;
+}
+static VkResult entry_vkWaitSemaphoresKHR(VkDevice device, const VkSemaphoreWaitInfo* pWaitInfo,
+                                          uint64_t timeout) {
+    AEMU_SCOPED_TRACE("vkWaitSemaphoresKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWaitSemaphoresKHR_VkResult_return = (VkResult)0;
+    vkWaitSemaphoresKHR_VkResult_return =
+        vkEnc->vkWaitSemaphoresKHR(device, pWaitInfo, timeout, true /* do lock */);
+    return vkWaitSemaphoresKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkWaitSemaphoresKHR(VkDevice device,
+                                                   const VkSemaphoreWaitInfo* pWaitInfo,
+                                                   uint64_t timeout) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_timeline_semaphore")) {
+        sOnInvalidDynamicallyCheckedCall("vkWaitSemaphoresKHR", "VK_KHR_timeline_semaphore");
+    }
+    AEMU_SCOPED_TRACE("vkWaitSemaphoresKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWaitSemaphoresKHR_VkResult_return = (VkResult)0;
+    vkWaitSemaphoresKHR_VkResult_return =
+        vkEnc->vkWaitSemaphoresKHR(device, pWaitInfo, timeout, true /* do lock */);
+    return vkWaitSemaphoresKHR_VkResult_return;
+}
+static VkResult entry_vkSignalSemaphoreKHR(VkDevice device,
+                                           const VkSemaphoreSignalInfo* pSignalInfo) {
+    AEMU_SCOPED_TRACE("vkSignalSemaphoreKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSignalSemaphoreKHR_VkResult_return = (VkResult)0;
+    vkSignalSemaphoreKHR_VkResult_return =
+        vkEnc->vkSignalSemaphoreKHR(device, pSignalInfo, true /* do lock */);
+    return vkSignalSemaphoreKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkSignalSemaphoreKHR(VkDevice device,
+                                                    const VkSemaphoreSignalInfo* pSignalInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_timeline_semaphore")) {
+        sOnInvalidDynamicallyCheckedCall("vkSignalSemaphoreKHR", "VK_KHR_timeline_semaphore");
+    }
+    AEMU_SCOPED_TRACE("vkSignalSemaphoreKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSignalSemaphoreKHR_VkResult_return = (VkResult)0;
+    vkSignalSemaphoreKHR_VkResult_return =
+        vkEnc->vkSignalSemaphoreKHR(device, pSignalInfo, true /* do lock */);
+    return vkSignalSemaphoreKHR_VkResult_return;
+}
 #endif
 #ifdef VK_KHR_vulkan_memory_model
 #endif
 #ifdef VK_KHR_shader_terminate_invocation
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+static VkResult entry_vkGetPhysicalDeviceFragmentShadingRatesKHR(
+    VkPhysicalDevice physicalDevice, uint32_t* pFragmentShadingRateCount,
+    VkPhysicalDeviceFragmentShadingRateKHR* pFragmentShadingRates) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFragmentShadingRatesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceFragmentShadingRatesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceFragmentShadingRatesKHR_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceFragmentShadingRatesKHR(
+            physicalDevice, pFragmentShadingRateCount, pFragmentShadingRates, true /* do lock */);
+    return vkGetPhysicalDeviceFragmentShadingRatesKHR_VkResult_return;
+}
+static void entry_vkCmdSetFragmentShadingRateKHR(
+    VkCommandBuffer commandBuffer, const VkExtent2D* pFragmentSize,
+    const VkFragmentShadingRateCombinerOpKHR combinerOps[2]) {
+    AEMU_SCOPED_TRACE("vkCmdSetFragmentShadingRateKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetFragmentShadingRateKHR(commandBuffer, pFragmentSize, combinerOps,
+                                          true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetFragmentShadingRateKHR(
+    VkCommandBuffer commandBuffer, const VkExtent2D* pFragmentSize,
+    const VkFragmentShadingRateCombinerOpKHR combinerOps[2]) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_fragment_shading_rate")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetFragmentShadingRateKHR",
+                                         "VK_KHR_fragment_shading_rate");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetFragmentShadingRateKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetFragmentShadingRateKHR(commandBuffer, pFragmentSize, combinerOps,
+                                          true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_spirv_1_4
+#endif
+#ifdef VK_KHR_surface_protected_capabilities
+#endif
+#ifdef VK_KHR_separate_depth_stencil_layouts
+#endif
+#ifdef VK_KHR_present_wait
+static VkResult entry_vkWaitForPresentKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                          uint64_t presentId, uint64_t timeout) {
+    AEMU_SCOPED_TRACE("vkWaitForPresentKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWaitForPresentKHR_VkResult_return = (VkResult)0;
+    vkWaitForPresentKHR_VkResult_return =
+        vkEnc->vkWaitForPresentKHR(device, swapchain, presentId, timeout, true /* do lock */);
+    return vkWaitForPresentKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkWaitForPresentKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                                   uint64_t presentId, uint64_t timeout) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_present_wait")) {
+        sOnInvalidDynamicallyCheckedCall("vkWaitForPresentKHR", "VK_KHR_present_wait");
+    }
+    AEMU_SCOPED_TRACE("vkWaitForPresentKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWaitForPresentKHR_VkResult_return = (VkResult)0;
+    vkWaitForPresentKHR_VkResult_return =
+        vkEnc->vkWaitForPresentKHR(device, swapchain, presentId, timeout, true /* do lock */);
+    return vkWaitForPresentKHR_VkResult_return;
+}
+#endif
+#ifdef VK_KHR_uniform_buffer_standard_layout
 #endif
 #ifdef VK_KHR_buffer_device_address
 static VkDeviceAddress entry_vkGetBufferDeviceAddressKHR(VkDevice device,
@@ -2834,6 +4258,120 @@ static uint64_t dynCheck_entry_vkGetDeviceMemoryOpaqueCaptureAddressKHR(
     vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return =
         vkEnc->vkGetDeviceMemoryOpaqueCaptureAddressKHR(device, pInfo, true /* do lock */);
     return vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return;
+}
+#endif
+#ifdef VK_KHR_deferred_host_operations
+static VkResult entry_vkCreateDeferredOperationKHR(VkDevice device,
+                                                   const VkAllocationCallbacks* pAllocator,
+                                                   VkDeferredOperationKHR* pDeferredOperation) {
+    AEMU_SCOPED_TRACE("vkCreateDeferredOperationKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateDeferredOperationKHR_VkResult_return = (VkResult)0;
+    vkCreateDeferredOperationKHR_VkResult_return = vkEnc->vkCreateDeferredOperationKHR(
+        device, pAllocator, pDeferredOperation, true /* do lock */);
+    return vkCreateDeferredOperationKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateDeferredOperationKHR(
+    VkDevice device, const VkAllocationCallbacks* pAllocator,
+    VkDeferredOperationKHR* pDeferredOperation) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateDeferredOperationKHR",
+                                         "VK_KHR_deferred_host_operations");
+    }
+    AEMU_SCOPED_TRACE("vkCreateDeferredOperationKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateDeferredOperationKHR_VkResult_return = (VkResult)0;
+    vkCreateDeferredOperationKHR_VkResult_return = vkEnc->vkCreateDeferredOperationKHR(
+        device, pAllocator, pDeferredOperation, true /* do lock */);
+    return vkCreateDeferredOperationKHR_VkResult_return;
+}
+static void entry_vkDestroyDeferredOperationKHR(VkDevice device, VkDeferredOperationKHR operation,
+                                                const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyDeferredOperationKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyDeferredOperationKHR(device, operation, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyDeferredOperationKHR(VkDevice device,
+                                                         VkDeferredOperationKHR operation,
+                                                         const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyDeferredOperationKHR",
+                                         "VK_KHR_deferred_host_operations");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyDeferredOperationKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyDeferredOperationKHR(device, operation, pAllocator, true /* do lock */);
+}
+static uint32_t entry_vkGetDeferredOperationMaxConcurrencyKHR(VkDevice device,
+                                                              VkDeferredOperationKHR operation) {
+    AEMU_SCOPED_TRACE("vkGetDeferredOperationMaxConcurrencyKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    uint32_t vkGetDeferredOperationMaxConcurrencyKHR_uint32_t_return = (uint32_t)0;
+    vkGetDeferredOperationMaxConcurrencyKHR_uint32_t_return =
+        vkEnc->vkGetDeferredOperationMaxConcurrencyKHR(device, operation, true /* do lock */);
+    return vkGetDeferredOperationMaxConcurrencyKHR_uint32_t_return;
+}
+static uint32_t dynCheck_entry_vkGetDeferredOperationMaxConcurrencyKHR(
+    VkDevice device, VkDeferredOperationKHR operation) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeferredOperationMaxConcurrencyKHR",
+                                         "VK_KHR_deferred_host_operations");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeferredOperationMaxConcurrencyKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    uint32_t vkGetDeferredOperationMaxConcurrencyKHR_uint32_t_return = (uint32_t)0;
+    vkGetDeferredOperationMaxConcurrencyKHR_uint32_t_return =
+        vkEnc->vkGetDeferredOperationMaxConcurrencyKHR(device, operation, true /* do lock */);
+    return vkGetDeferredOperationMaxConcurrencyKHR_uint32_t_return;
+}
+static VkResult entry_vkGetDeferredOperationResultKHR(VkDevice device,
+                                                      VkDeferredOperationKHR operation) {
+    AEMU_SCOPED_TRACE("vkGetDeferredOperationResultKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeferredOperationResultKHR_VkResult_return = (VkResult)0;
+    vkGetDeferredOperationResultKHR_VkResult_return =
+        vkEnc->vkGetDeferredOperationResultKHR(device, operation, true /* do lock */);
+    return vkGetDeferredOperationResultKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetDeferredOperationResultKHR(VkDevice device,
+                                                               VkDeferredOperationKHR operation) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeferredOperationResultKHR",
+                                         "VK_KHR_deferred_host_operations");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeferredOperationResultKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeferredOperationResultKHR_VkResult_return = (VkResult)0;
+    vkGetDeferredOperationResultKHR_VkResult_return =
+        vkEnc->vkGetDeferredOperationResultKHR(device, operation, true /* do lock */);
+    return vkGetDeferredOperationResultKHR_VkResult_return;
+}
+static VkResult entry_vkDeferredOperationJoinKHR(VkDevice device,
+                                                 VkDeferredOperationKHR operation) {
+    AEMU_SCOPED_TRACE("vkDeferredOperationJoinKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkDeferredOperationJoinKHR_VkResult_return = (VkResult)0;
+    vkDeferredOperationJoinKHR_VkResult_return =
+        vkEnc->vkDeferredOperationJoinKHR(device, operation, true /* do lock */);
+    return vkDeferredOperationJoinKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkDeferredOperationJoinKHR(VkDevice device,
+                                                          VkDeferredOperationKHR operation) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations")) {
+        sOnInvalidDynamicallyCheckedCall("vkDeferredOperationJoinKHR",
+                                         "VK_KHR_deferred_host_operations");
+    }
+    AEMU_SCOPED_TRACE("vkDeferredOperationJoinKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkDeferredOperationJoinKHR_VkResult_return = (VkResult)0;
+    vkDeferredOperationJoinKHR_VkResult_return =
+        vkEnc->vkDeferredOperationJoinKHR(device, operation, true /* do lock */);
+    return vkDeferredOperationJoinKHR_VkResult_return;
 }
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
@@ -2922,6 +4460,432 @@ static VkResult dynCheck_entry_vkGetPipelineExecutableInternalRepresentationsKHR
             true /* do lock */);
     return vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return;
 }
+#endif
+#ifdef VK_KHR_map_memory2
+static VkResult entry_vkMapMemory2KHR(VkDevice device, const VkMemoryMapInfoKHR* pMemoryMapInfo,
+                                      void** ppData) {
+    AEMU_SCOPED_TRACE("vkMapMemory2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkMapMemory2KHR_VkResult_return = (VkResult)0;
+    vkMapMemory2KHR_VkResult_return =
+        vkEnc->vkMapMemory2KHR(device, pMemoryMapInfo, ppData, true /* do lock */);
+    return vkMapMemory2KHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkMapMemory2KHR(VkDevice device,
+                                               const VkMemoryMapInfoKHR* pMemoryMapInfo,
+                                               void** ppData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_map_memory2")) {
+        sOnInvalidDynamicallyCheckedCall("vkMapMemory2KHR", "VK_KHR_map_memory2");
+    }
+    AEMU_SCOPED_TRACE("vkMapMemory2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkMapMemory2KHR_VkResult_return = (VkResult)0;
+    vkMapMemory2KHR_VkResult_return =
+        vkEnc->vkMapMemory2KHR(device, pMemoryMapInfo, ppData, true /* do lock */);
+    return vkMapMemory2KHR_VkResult_return;
+}
+static VkResult entry_vkUnmapMemory2KHR(VkDevice device,
+                                        const VkMemoryUnmapInfoKHR* pMemoryUnmapInfo) {
+    AEMU_SCOPED_TRACE("vkUnmapMemory2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkUnmapMemory2KHR_VkResult_return = (VkResult)0;
+    vkUnmapMemory2KHR_VkResult_return =
+        vkEnc->vkUnmapMemory2KHR(device, pMemoryUnmapInfo, true /* do lock */);
+    return vkUnmapMemory2KHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkUnmapMemory2KHR(VkDevice device,
+                                                 const VkMemoryUnmapInfoKHR* pMemoryUnmapInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_map_memory2")) {
+        sOnInvalidDynamicallyCheckedCall("vkUnmapMemory2KHR", "VK_KHR_map_memory2");
+    }
+    AEMU_SCOPED_TRACE("vkUnmapMemory2KHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkUnmapMemory2KHR_VkResult_return = (VkResult)0;
+    vkUnmapMemory2KHR_VkResult_return =
+        vkEnc->vkUnmapMemory2KHR(device, pMemoryUnmapInfo, true /* do lock */);
+    return vkUnmapMemory2KHR_VkResult_return;
+}
+#endif
+#ifdef VK_KHR_shader_integer_dot_product
+#endif
+#ifdef VK_KHR_pipeline_library
+#endif
+#ifdef VK_KHR_shader_non_semantic_info
+#endif
+#ifdef VK_KHR_present_id
+#endif
+#ifdef VK_KHR_video_encode_queue
+static void entry_vkCmdEncodeVideoKHR(VkCommandBuffer commandBuffer,
+                                      const VkVideoEncodeInfoKHR* pEncodeInfo) {
+    AEMU_SCOPED_TRACE("vkCmdEncodeVideoKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEncodeVideoKHR(commandBuffer, pEncodeInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdEncodeVideoKHR(VkCommandBuffer commandBuffer,
+                                               const VkVideoEncodeInfoKHR* pEncodeInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_encode_queue")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdEncodeVideoKHR", "VK_KHR_video_encode_queue");
+    }
+    AEMU_SCOPED_TRACE("vkCmdEncodeVideoKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEncodeVideoKHR(commandBuffer, pEncodeInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_synchronization2
+static void entry_vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
+                                    const VkDependencyInfo* pDependencyInfo) {
+    AEMU_SCOPED_TRACE("vkCmdSetEvent2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetEvent2KHR(commandBuffer, event, pDependencyInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
+                                             const VkDependencyInfo* pDependencyInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_synchronization2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetEvent2KHR", "VK_KHR_synchronization2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetEvent2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetEvent2KHR(commandBuffer, event, pDependencyInfo, true /* do lock */);
+}
+static void entry_vkCmdResetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
+                                      VkPipelineStageFlags2 stageMask) {
+    AEMU_SCOPED_TRACE("vkCmdResetEvent2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdResetEvent2KHR(commandBuffer, event, stageMask, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdResetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
+                                               VkPipelineStageFlags2 stageMask) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_synchronization2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdResetEvent2KHR", "VK_KHR_synchronization2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdResetEvent2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdResetEvent2KHR(commandBuffer, event, stageMask, true /* do lock */);
+}
+static void entry_vkCmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t eventCount,
+                                      const VkEvent* pEvents,
+                                      const VkDependencyInfo* pDependencyInfos) {
+    AEMU_SCOPED_TRACE("vkCmdWaitEvents2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWaitEvents2KHR(commandBuffer, eventCount, pEvents, pDependencyInfos,
+                               true /* do lock */);
+}
+static void dynCheck_entry_vkCmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t eventCount,
+                                               const VkEvent* pEvents,
+                                               const VkDependencyInfo* pDependencyInfos) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_synchronization2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdWaitEvents2KHR", "VK_KHR_synchronization2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdWaitEvents2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWaitEvents2KHR(commandBuffer, eventCount, pEvents, pDependencyInfos,
+                               true /* do lock */);
+}
+static void entry_vkCmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer,
+                                           const VkDependencyInfo* pDependencyInfo) {
+    AEMU_SCOPED_TRACE("vkCmdPipelineBarrier2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdPipelineBarrier2KHR(commandBuffer, pDependencyInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer,
+                                                    const VkDependencyInfo* pDependencyInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_synchronization2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdPipelineBarrier2KHR", "VK_KHR_synchronization2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdPipelineBarrier2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdPipelineBarrier2KHR(commandBuffer, pDependencyInfo, true /* do lock */);
+}
+static void entry_vkCmdWriteTimestamp2KHR(VkCommandBuffer commandBuffer,
+                                          VkPipelineStageFlags2 stage, VkQueryPool queryPool,
+                                          uint32_t query) {
+    AEMU_SCOPED_TRACE("vkCmdWriteTimestamp2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteTimestamp2KHR(commandBuffer, stage, queryPool, query, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdWriteTimestamp2KHR(VkCommandBuffer commandBuffer,
+                                                   VkPipelineStageFlags2 stage,
+                                                   VkQueryPool queryPool, uint32_t query) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_synchronization2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdWriteTimestamp2KHR", "VK_KHR_synchronization2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdWriteTimestamp2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteTimestamp2KHR(commandBuffer, stage, queryPool, query, true /* do lock */);
+}
+static VkResult entry_vkQueueSubmit2KHR(VkQueue queue, uint32_t submitCount,
+                                        const VkSubmitInfo2* pSubmits, VkFence fence) {
+    AEMU_SCOPED_TRACE("vkQueueSubmit2KHR");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    VkResult vkQueueSubmit2KHR_VkResult_return = (VkResult)0;
+    vkQueueSubmit2KHR_VkResult_return =
+        vkEnc->vkQueueSubmit2KHR(queue, submitCount, pSubmits, fence, true /* do lock */);
+    return vkQueueSubmit2KHR_VkResult_return;
+}
+static void entry_vkCmdWriteBufferMarker2AMD(VkCommandBuffer commandBuffer,
+                                             VkPipelineStageFlags2 stage, VkBuffer dstBuffer,
+                                             VkDeviceSize dstOffset, uint32_t marker) {
+    AEMU_SCOPED_TRACE("vkCmdWriteBufferMarker2AMD");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteBufferMarker2AMD(commandBuffer, stage, dstBuffer, dstOffset, marker,
+                                      true /* do lock */);
+}
+static void dynCheck_entry_vkCmdWriteBufferMarker2AMD(VkCommandBuffer commandBuffer,
+                                                      VkPipelineStageFlags2 stage,
+                                                      VkBuffer dstBuffer, VkDeviceSize dstOffset,
+                                                      uint32_t marker) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_synchronization2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdWriteBufferMarker2AMD", "VK_KHR_synchronization2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdWriteBufferMarker2AMD");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteBufferMarker2AMD(commandBuffer, stage, dstBuffer, dstOffset, marker,
+                                      true /* do lock */);
+}
+static void entry_vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpointDataCount,
+                                              VkCheckpointData2NV* pCheckpointData) {
+    AEMU_SCOPED_TRACE("vkGetQueueCheckpointData2NV");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkGetQueueCheckpointData2NV(queue, pCheckpointDataCount, pCheckpointData,
+                                       true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_fragment_shader_barycentric
+#endif
+#ifdef VK_KHR_shader_subgroup_uniform_control_flow
+#endif
+#ifdef VK_KHR_zero_initialize_workgroup_memory
+#endif
+#ifdef VK_KHR_workgroup_memory_explicit_layout
+#endif
+#ifdef VK_KHR_copy_commands2
+static void entry_vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
+                                      const VkCopyBufferInfo2* pCopyBufferInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyBuffer2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyBuffer2KHR(commandBuffer, pCopyBufferInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
+                                               const VkCopyBufferInfo2* pCopyBufferInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_copy_commands2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyBuffer2KHR", "VK_KHR_copy_commands2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyBuffer2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyBuffer2KHR(commandBuffer, pCopyBufferInfo, true /* do lock */);
+}
+static void entry_vkCmdCopyImage2KHR(VkCommandBuffer commandBuffer,
+                                     const VkCopyImageInfo2* pCopyImageInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyImage2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyImage2KHR(commandBuffer, pCopyImageInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyImage2KHR(VkCommandBuffer commandBuffer,
+                                              const VkCopyImageInfo2* pCopyImageInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_copy_commands2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyImage2KHR", "VK_KHR_copy_commands2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyImage2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyImage2KHR(commandBuffer, pCopyImageInfo, true /* do lock */);
+}
+static void entry_vkCmdCopyBufferToImage2KHR(
+    VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyBufferToImage2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyBufferToImage2KHR(commandBuffer, pCopyBufferToImageInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyBufferToImage2KHR(
+    VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_copy_commands2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyBufferToImage2KHR", "VK_KHR_copy_commands2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyBufferToImage2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyBufferToImage2KHR(commandBuffer, pCopyBufferToImageInfo, true /* do lock */);
+}
+static void entry_vkCmdCopyImageToBuffer2KHR(
+    VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyImageToBuffer2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyImageToBuffer2KHR(commandBuffer, pCopyImageToBufferInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyImageToBuffer2KHR(
+    VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_copy_commands2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyImageToBuffer2KHR", "VK_KHR_copy_commands2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyImageToBuffer2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyImageToBuffer2KHR(commandBuffer, pCopyImageToBufferInfo, true /* do lock */);
+}
+static void entry_vkCmdBlitImage2KHR(VkCommandBuffer commandBuffer,
+                                     const VkBlitImageInfo2* pBlitImageInfo) {
+    AEMU_SCOPED_TRACE("vkCmdBlitImage2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBlitImage2KHR(commandBuffer, pBlitImageInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBlitImage2KHR(VkCommandBuffer commandBuffer,
+                                              const VkBlitImageInfo2* pBlitImageInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_copy_commands2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBlitImage2KHR", "VK_KHR_copy_commands2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBlitImage2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBlitImage2KHR(commandBuffer, pBlitImageInfo, true /* do lock */);
+}
+static void entry_vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer,
+                                        const VkResolveImageInfo2* pResolveImageInfo) {
+    AEMU_SCOPED_TRACE("vkCmdResolveImage2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdResolveImage2KHR(commandBuffer, pResolveImageInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer,
+                                                 const VkResolveImageInfo2* pResolveImageInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_copy_commands2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdResolveImage2KHR", "VK_KHR_copy_commands2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdResolveImage2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdResolveImage2KHR(commandBuffer, pResolveImageInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_format_feature_flags2
+#endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+static void entry_vkCmdTraceRaysIndirect2KHR(VkCommandBuffer commandBuffer,
+                                             VkDeviceAddress indirectDeviceAddress) {
+    AEMU_SCOPED_TRACE("vkCmdTraceRaysIndirect2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdTraceRaysIndirect2KHR(commandBuffer, indirectDeviceAddress, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdTraceRaysIndirect2KHR(VkCommandBuffer commandBuffer,
+                                                      VkDeviceAddress indirectDeviceAddress) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_maintenance1")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdTraceRaysIndirect2KHR",
+                                         "VK_KHR_ray_tracing_maintenance1");
+    }
+    AEMU_SCOPED_TRACE("vkCmdTraceRaysIndirect2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdTraceRaysIndirect2KHR(commandBuffer, indirectDeviceAddress, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_portability_enumeration
+#endif
+#ifdef VK_KHR_maintenance4
+static void entry_vkGetDeviceBufferMemoryRequirementsKHR(
+    VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    AEMU_SCOPED_TRACE("vkGetDeviceBufferMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceBufferMemoryRequirementsKHR(device, pInfo, pMemoryRequirements,
+                                                  true /* do lock */);
+}
+static void dynCheck_entry_vkGetDeviceBufferMemoryRequirementsKHR(
+    VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_maintenance4")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceBufferMemoryRequirementsKHR",
+                                         "VK_KHR_maintenance4");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceBufferMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceBufferMemoryRequirementsKHR(device, pInfo, pMemoryRequirements,
+                                                  true /* do lock */);
+}
+static void entry_vkGetDeviceImageMemoryRequirementsKHR(
+    VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    AEMU_SCOPED_TRACE("vkGetDeviceImageMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceImageMemoryRequirementsKHR(device, pInfo, pMemoryRequirements,
+                                                 true /* do lock */);
+}
+static void dynCheck_entry_vkGetDeviceImageMemoryRequirementsKHR(
+    VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_maintenance4")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceImageMemoryRequirementsKHR",
+                                         "VK_KHR_maintenance4");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceImageMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceImageMemoryRequirementsKHR(device, pInfo, pMemoryRequirements,
+                                                 true /* do lock */);
+}
+static void entry_vkGetDeviceImageSparseMemoryRequirementsKHR(
+    VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
+    AEMU_SCOPED_TRACE("vkGetDeviceImageSparseMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceImageSparseMemoryRequirementsKHR(device, pInfo, pSparseMemoryRequirementCount,
+                                                       pSparseMemoryRequirements,
+                                                       true /* do lock */);
+}
+static void dynCheck_entry_vkGetDeviceImageSparseMemoryRequirementsKHR(
+    VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_maintenance4")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceImageSparseMemoryRequirementsKHR",
+                                         "VK_KHR_maintenance4");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceImageSparseMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceImageSparseMemoryRequirementsKHR(device, pInfo, pSparseMemoryRequirementCount,
+                                                       pSparseMemoryRequirements,
+                                                       true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_ray_tracing_position_fetch
 #endif
 #ifdef VK_ANDROID_native_buffer
 static VkResult entry_vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format,
@@ -3013,6 +4977,148 @@ static VkResult dynCheck_entry_vkGetSwapchainGrallocUsage2ANDROID(
         true /* do lock */);
     return vkGetSwapchainGrallocUsage2ANDROID_VkResult_return;
 }
+#endif
+#ifdef VK_EXT_debug_report
+static VkResult entry_vkCreateDebugReportCallbackEXT(
+    VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback) {
+    AEMU_SCOPED_TRACE("vkCreateDebugReportCallbackEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateDebugReportCallbackEXT_VkResult_return = (VkResult)0;
+    vkCreateDebugReportCallbackEXT_VkResult_return = vkEnc->vkCreateDebugReportCallbackEXT(
+        instance, pCreateInfo, pAllocator, pCallback, true /* do lock */);
+    return vkCreateDebugReportCallbackEXT_VkResult_return;
+}
+static void entry_vkDestroyDebugReportCallbackEXT(VkInstance instance,
+                                                  VkDebugReportCallbackEXT callback,
+                                                  const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyDebugReportCallbackEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyDebugReportCallbackEXT(instance, callback, pAllocator, true /* do lock */);
+}
+static void entry_vkDebugReportMessageEXT(VkInstance instance, VkDebugReportFlagsEXT flags,
+                                          VkDebugReportObjectTypeEXT objectType, uint64_t object,
+                                          size_t location, int32_t messageCode,
+                                          const char* pLayerPrefix, const char* pMessage) {
+    AEMU_SCOPED_TRACE("vkDebugReportMessageEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDebugReportMessageEXT(instance, flags, objectType, object, location, messageCode,
+                                   pLayerPrefix, pMessage, true /* do lock */);
+}
+#endif
+#ifdef VK_NV_glsl_shader
+#endif
+#ifdef VK_EXT_depth_range_unrestricted
+#endif
+#ifdef VK_IMG_filter_cubic
+#endif
+#ifdef VK_AMD_rasterization_order
+#endif
+#ifdef VK_AMD_shader_trinary_minmax
+#endif
+#ifdef VK_AMD_shader_explicit_vertex_parameter
+#endif
+#ifdef VK_EXT_debug_marker
+static VkResult entry_vkDebugMarkerSetObjectTagEXT(VkDevice device,
+                                                   const VkDebugMarkerObjectTagInfoEXT* pTagInfo) {
+    AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectTagEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkDebugMarkerSetObjectTagEXT_VkResult_return = (VkResult)0;
+    vkDebugMarkerSetObjectTagEXT_VkResult_return =
+        vkEnc->vkDebugMarkerSetObjectTagEXT(device, pTagInfo, true /* do lock */);
+    return vkDebugMarkerSetObjectTagEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkDebugMarkerSetObjectTagEXT(
+    VkDevice device, const VkDebugMarkerObjectTagInfoEXT* pTagInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_marker")) {
+        sOnInvalidDynamicallyCheckedCall("vkDebugMarkerSetObjectTagEXT", "VK_EXT_debug_marker");
+    }
+    AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectTagEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkDebugMarkerSetObjectTagEXT_VkResult_return = (VkResult)0;
+    vkDebugMarkerSetObjectTagEXT_VkResult_return =
+        vkEnc->vkDebugMarkerSetObjectTagEXT(device, pTagInfo, true /* do lock */);
+    return vkDebugMarkerSetObjectTagEXT_VkResult_return;
+}
+static VkResult entry_vkDebugMarkerSetObjectNameEXT(
+    VkDevice device, const VkDebugMarkerObjectNameInfoEXT* pNameInfo) {
+    AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectNameEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
+    vkDebugMarkerSetObjectNameEXT_VkResult_return =
+        vkEnc->vkDebugMarkerSetObjectNameEXT(device, pNameInfo, true /* do lock */);
+    return vkDebugMarkerSetObjectNameEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkDebugMarkerSetObjectNameEXT(
+    VkDevice device, const VkDebugMarkerObjectNameInfoEXT* pNameInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_marker")) {
+        sOnInvalidDynamicallyCheckedCall("vkDebugMarkerSetObjectNameEXT", "VK_EXT_debug_marker");
+    }
+    AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectNameEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
+    vkDebugMarkerSetObjectNameEXT_VkResult_return =
+        vkEnc->vkDebugMarkerSetObjectNameEXT(device, pNameInfo, true /* do lock */);
+    return vkDebugMarkerSetObjectNameEXT_VkResult_return;
+}
+static void entry_vkCmdDebugMarkerBeginEXT(VkCommandBuffer commandBuffer,
+                                           const VkDebugMarkerMarkerInfoEXT* pMarkerInfo) {
+    AEMU_SCOPED_TRACE("vkCmdDebugMarkerBeginEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDebugMarkerBeginEXT(commandBuffer, pMarkerInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDebugMarkerBeginEXT(VkCommandBuffer commandBuffer,
+                                                    const VkDebugMarkerMarkerInfoEXT* pMarkerInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_marker")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDebugMarkerBeginEXT", "VK_EXT_debug_marker");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDebugMarkerBeginEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDebugMarkerBeginEXT(commandBuffer, pMarkerInfo, true /* do lock */);
+}
+static void entry_vkCmdDebugMarkerEndEXT(VkCommandBuffer commandBuffer) {
+    AEMU_SCOPED_TRACE("vkCmdDebugMarkerEndEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDebugMarkerEndEXT(commandBuffer, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDebugMarkerEndEXT(VkCommandBuffer commandBuffer) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_marker")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDebugMarkerEndEXT", "VK_EXT_debug_marker");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDebugMarkerEndEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDebugMarkerEndEXT(commandBuffer, true /* do lock */);
+}
+static void entry_vkCmdDebugMarkerInsertEXT(VkCommandBuffer commandBuffer,
+                                            const VkDebugMarkerMarkerInfoEXT* pMarkerInfo) {
+    AEMU_SCOPED_TRACE("vkCmdDebugMarkerInsertEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDebugMarkerInsertEXT(commandBuffer, pMarkerInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDebugMarkerInsertEXT(
+    VkCommandBuffer commandBuffer, const VkDebugMarkerMarkerInfoEXT* pMarkerInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_marker")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDebugMarkerInsertEXT", "VK_EXT_debug_marker");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDebugMarkerInsertEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDebugMarkerInsertEXT(commandBuffer, pMarkerInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_AMD_gcn_shader
+#endif
+#ifdef VK_NV_dedicated_allocation
 #endif
 #ifdef VK_EXT_transform_feedback
 static void entry_vkCmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuffer,
@@ -3164,13 +5270,835 @@ static void dynCheck_entry_vkCmdDrawIndirectByteCountEXT(
                                          true /* do lock */);
 }
 #endif
+#ifdef VK_NVX_binary_import
+static VkResult entry_vkCreateCuModuleNVX(VkDevice device,
+                                          const VkCuModuleCreateInfoNVX* pCreateInfo,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkCuModuleNVX* pModule) {
+    AEMU_SCOPED_TRACE("vkCreateCuModuleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateCuModuleNVX_VkResult_return = (VkResult)0;
+    vkCreateCuModuleNVX_VkResult_return =
+        vkEnc->vkCreateCuModuleNVX(device, pCreateInfo, pAllocator, pModule, true /* do lock */);
+    return vkCreateCuModuleNVX_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateCuModuleNVX(VkDevice device,
+                                                   const VkCuModuleCreateInfoNVX* pCreateInfo,
+                                                   const VkAllocationCallbacks* pAllocator,
+                                                   VkCuModuleNVX* pModule) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_binary_import")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateCuModuleNVX", "VK_NVX_binary_import");
+    }
+    AEMU_SCOPED_TRACE("vkCreateCuModuleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateCuModuleNVX_VkResult_return = (VkResult)0;
+    vkCreateCuModuleNVX_VkResult_return =
+        vkEnc->vkCreateCuModuleNVX(device, pCreateInfo, pAllocator, pModule, true /* do lock */);
+    return vkCreateCuModuleNVX_VkResult_return;
+}
+static VkResult entry_vkCreateCuFunctionNVX(VkDevice device,
+                                            const VkCuFunctionCreateInfoNVX* pCreateInfo,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkCuFunctionNVX* pFunction) {
+    AEMU_SCOPED_TRACE("vkCreateCuFunctionNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateCuFunctionNVX_VkResult_return = (VkResult)0;
+    vkCreateCuFunctionNVX_VkResult_return = vkEnc->vkCreateCuFunctionNVX(
+        device, pCreateInfo, pAllocator, pFunction, true /* do lock */);
+    return vkCreateCuFunctionNVX_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateCuFunctionNVX(VkDevice device,
+                                                     const VkCuFunctionCreateInfoNVX* pCreateInfo,
+                                                     const VkAllocationCallbacks* pAllocator,
+                                                     VkCuFunctionNVX* pFunction) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_binary_import")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateCuFunctionNVX", "VK_NVX_binary_import");
+    }
+    AEMU_SCOPED_TRACE("vkCreateCuFunctionNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateCuFunctionNVX_VkResult_return = (VkResult)0;
+    vkCreateCuFunctionNVX_VkResult_return = vkEnc->vkCreateCuFunctionNVX(
+        device, pCreateInfo, pAllocator, pFunction, true /* do lock */);
+    return vkCreateCuFunctionNVX_VkResult_return;
+}
+static void entry_vkDestroyCuModuleNVX(VkDevice device, VkCuModuleNVX module,
+                                       const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyCuModuleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyCuModuleNVX(device, module, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyCuModuleNVX(VkDevice device, VkCuModuleNVX module,
+                                                const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_binary_import")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyCuModuleNVX", "VK_NVX_binary_import");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyCuModuleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyCuModuleNVX(device, module, pAllocator, true /* do lock */);
+}
+static void entry_vkDestroyCuFunctionNVX(VkDevice device, VkCuFunctionNVX function,
+                                         const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyCuFunctionNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyCuFunctionNVX(device, function, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyCuFunctionNVX(VkDevice device, VkCuFunctionNVX function,
+                                                  const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_binary_import")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyCuFunctionNVX", "VK_NVX_binary_import");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyCuFunctionNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyCuFunctionNVX(device, function, pAllocator, true /* do lock */);
+}
+static void entry_vkCmdCuLaunchKernelNVX(VkCommandBuffer commandBuffer,
+                                         const VkCuLaunchInfoNVX* pLaunchInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCuLaunchKernelNVX");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCuLaunchKernelNVX(commandBuffer, pLaunchInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCuLaunchKernelNVX(VkCommandBuffer commandBuffer,
+                                                  const VkCuLaunchInfoNVX* pLaunchInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NVX_binary_import")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCuLaunchKernelNVX", "VK_NVX_binary_import");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCuLaunchKernelNVX");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCuLaunchKernelNVX(commandBuffer, pLaunchInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_NVX_image_view_handle
+static uint32_t entry_vkGetImageViewHandleNVX(VkDevice device,
+                                              const VkImageViewHandleInfoNVX* pInfo) {
+    AEMU_SCOPED_TRACE("vkGetImageViewHandleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    uint32_t vkGetImageViewHandleNVX_uint32_t_return = (uint32_t)0;
+    vkGetImageViewHandleNVX_uint32_t_return =
+        vkEnc->vkGetImageViewHandleNVX(device, pInfo, true /* do lock */);
+    return vkGetImageViewHandleNVX_uint32_t_return;
+}
+static uint32_t dynCheck_entry_vkGetImageViewHandleNVX(VkDevice device,
+                                                       const VkImageViewHandleInfoNVX* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_image_view_handle")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageViewHandleNVX", "VK_NVX_image_view_handle");
+    }
+    AEMU_SCOPED_TRACE("vkGetImageViewHandleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    uint32_t vkGetImageViewHandleNVX_uint32_t_return = (uint32_t)0;
+    vkGetImageViewHandleNVX_uint32_t_return =
+        vkEnc->vkGetImageViewHandleNVX(device, pInfo, true /* do lock */);
+    return vkGetImageViewHandleNVX_uint32_t_return;
+}
+static VkResult entry_vkGetImageViewAddressNVX(VkDevice device, VkImageView imageView,
+                                               VkImageViewAddressPropertiesNVX* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetImageViewAddressNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetImageViewAddressNVX_VkResult_return = (VkResult)0;
+    vkGetImageViewAddressNVX_VkResult_return =
+        vkEnc->vkGetImageViewAddressNVX(device, imageView, pProperties, true /* do lock */);
+    return vkGetImageViewAddressNVX_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetImageViewAddressNVX(
+    VkDevice device, VkImageView imageView, VkImageViewAddressPropertiesNVX* pProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_image_view_handle")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageViewAddressNVX", "VK_NVX_image_view_handle");
+    }
+    AEMU_SCOPED_TRACE("vkGetImageViewAddressNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetImageViewAddressNVX_VkResult_return = (VkResult)0;
+    vkGetImageViewAddressNVX_VkResult_return =
+        vkEnc->vkGetImageViewAddressNVX(device, imageView, pProperties, true /* do lock */);
+    return vkGetImageViewAddressNVX_VkResult_return;
+}
+#endif
+#ifdef VK_AMD_draw_indirect_count
+static void entry_vkCmdDrawIndirectCountAMD(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                            VkDeviceSize offset, VkBuffer countBuffer,
+                                            VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
+                                            uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountAMD");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawIndirectCountAMD(commandBuffer, buffer, offset, countBuffer, countBufferOffset,
+                                     maxDrawCount, stride, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawIndirectCountAMD(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                                     VkDeviceSize offset, VkBuffer countBuffer,
+                                                     VkDeviceSize countBufferOffset,
+                                                     uint32_t maxDrawCount, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_AMD_draw_indirect_count")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawIndirectCountAMD", "VK_AMD_draw_indirect_count");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountAMD");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawIndirectCountAMD(commandBuffer, buffer, offset, countBuffer, countBufferOffset,
+                                     maxDrawCount, stride, true /* do lock */);
+}
+static void entry_vkCmdDrawIndexedIndirectCountAMD(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                                   VkDeviceSize offset, VkBuffer countBuffer,
+                                                   VkDeviceSize countBufferOffset,
+                                                   uint32_t maxDrawCount, uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountAMD");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawIndexedIndirectCountAMD(commandBuffer, buffer, offset, countBuffer,
+                                            countBufferOffset, maxDrawCount, stride,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawIndexedIndirectCountAMD(
+    VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
+    VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_AMD_draw_indirect_count")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawIndexedIndirectCountAMD",
+                                         "VK_AMD_draw_indirect_count");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountAMD");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawIndexedIndirectCountAMD(commandBuffer, buffer, offset, countBuffer,
+                                            countBufferOffset, maxDrawCount, stride,
+                                            true /* do lock */);
+}
+#endif
+#ifdef VK_AMD_negative_viewport_height
+#endif
 #ifdef VK_AMD_gpu_shader_half_float
 #endif
+#ifdef VK_AMD_shader_ballot
+#endif
+#ifdef VK_EXT_video_encode_h264
+#endif
+#ifdef VK_EXT_video_encode_h265
+#endif
+#ifdef VK_AMD_texture_gather_bias_lod
+#endif
+#ifdef VK_AMD_shader_info
+static VkResult entry_vkGetShaderInfoAMD(VkDevice device, VkPipeline pipeline,
+                                         VkShaderStageFlagBits shaderStage,
+                                         VkShaderInfoTypeAMD infoType, size_t* pInfoSize,
+                                         void* pInfo) {
+    AEMU_SCOPED_TRACE("vkGetShaderInfoAMD");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetShaderInfoAMD_VkResult_return = (VkResult)0;
+    vkGetShaderInfoAMD_VkResult_return = vkEnc->vkGetShaderInfoAMD(
+        device, pipeline, shaderStage, infoType, pInfoSize, pInfo, true /* do lock */);
+    return vkGetShaderInfoAMD_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetShaderInfoAMD(VkDevice device, VkPipeline pipeline,
+                                                  VkShaderStageFlagBits shaderStage,
+                                                  VkShaderInfoTypeAMD infoType, size_t* pInfoSize,
+                                                  void* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_AMD_shader_info")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetShaderInfoAMD", "VK_AMD_shader_info");
+    }
+    AEMU_SCOPED_TRACE("vkGetShaderInfoAMD");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetShaderInfoAMD_VkResult_return = (VkResult)0;
+    vkGetShaderInfoAMD_VkResult_return = vkEnc->vkGetShaderInfoAMD(
+        device, pipeline, shaderStage, infoType, pInfoSize, pInfo, true /* do lock */);
+    return vkGetShaderInfoAMD_VkResult_return;
+}
+#endif
+#ifdef VK_AMD_shader_image_load_store_lod
+#endif
+#ifdef VK_GGP_stream_descriptor_surface
+static VkResult entry_vkCreateStreamDescriptorSurfaceGGP(
+    VkInstance instance, const VkStreamDescriptorSurfaceCreateInfoGGP* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateStreamDescriptorSurfaceGGP");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateStreamDescriptorSurfaceGGP_VkResult_return = (VkResult)0;
+    vkCreateStreamDescriptorSurfaceGGP_VkResult_return = vkEnc->vkCreateStreamDescriptorSurfaceGGP(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateStreamDescriptorSurfaceGGP_VkResult_return;
+}
+#endif
+#ifdef VK_NV_corner_sampled_image
+#endif
+#ifdef VK_IMG_format_pvrtc
+#endif
+#ifdef VK_NV_external_memory_capabilities
+static VkResult entry_vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
+    VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkImageTiling tiling,
+    VkImageUsageFlags usage, VkImageCreateFlags flags,
+    VkExternalMemoryHandleTypeFlagsNV externalHandleType,
+    VkExternalImageFormatPropertiesNV* pExternalImageFormatProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalImageFormatPropertiesNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
+            physicalDevice, format, type, tiling, usage, flags, externalHandleType,
+            pExternalImageFormatProperties, true /* do lock */);
+    return vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return;
+}
+#endif
+#ifdef VK_NV_external_memory
+#endif
+#ifdef VK_NV_external_memory_win32
+static VkResult entry_vkGetMemoryWin32HandleNV(VkDevice device, VkDeviceMemory memory,
+                                               VkExternalMemoryHandleTypeFlagsNV handleType,
+                                               HANDLE* pHandle) {
+    AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryWin32HandleNV_VkResult_return = (VkResult)0;
+    vkGetMemoryWin32HandleNV_VkResult_return =
+        vkEnc->vkGetMemoryWin32HandleNV(device, memory, handleType, pHandle, true /* do lock */);
+    return vkGetMemoryWin32HandleNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryWin32HandleNV(
+    VkDevice device, VkDeviceMemory memory, VkExternalMemoryHandleTypeFlagsNV handleType,
+    HANDLE* pHandle) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_external_memory_win32")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryWin32HandleNV", "VK_NV_external_memory_win32");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryWin32HandleNV_VkResult_return = (VkResult)0;
+    vkGetMemoryWin32HandleNV_VkResult_return =
+        vkEnc->vkGetMemoryWin32HandleNV(device, memory, handleType, pHandle, true /* do lock */);
+    return vkGetMemoryWin32HandleNV_VkResult_return;
+}
+#endif
+#ifdef VK_NV_win32_keyed_mutex
+#endif
+#ifdef VK_EXT_validation_flags
+#endif
+#ifdef VK_NN_vi_surface
+static VkResult entry_vkCreateViSurfaceNN(VkInstance instance,
+                                          const VkViSurfaceCreateInfoNN* pCreateInfo,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateViSurfaceNN");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateViSurfaceNN_VkResult_return = (VkResult)0;
+    vkCreateViSurfaceNN_VkResult_return =
+        vkEnc->vkCreateViSurfaceNN(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateViSurfaceNN_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_shader_subgroup_ballot
+#endif
+#ifdef VK_EXT_shader_subgroup_vote
+#endif
+#ifdef VK_EXT_texture_compression_astc_hdr
+#endif
+#ifdef VK_EXT_astc_decode_mode
+#endif
+#ifdef VK_EXT_pipeline_robustness
+#endif
+#ifdef VK_EXT_conditional_rendering
+static void entry_vkCmdBeginConditionalRenderingEXT(
+    VkCommandBuffer commandBuffer,
+    const VkConditionalRenderingBeginInfoEXT* pConditionalRenderingBegin) {
+    AEMU_SCOPED_TRACE("vkCmdBeginConditionalRenderingEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBeginConditionalRenderingEXT(commandBuffer, pConditionalRenderingBegin,
+                                             true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBeginConditionalRenderingEXT(
+    VkCommandBuffer commandBuffer,
+    const VkConditionalRenderingBeginInfoEXT* pConditionalRenderingBegin) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_conditional_rendering")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBeginConditionalRenderingEXT",
+                                         "VK_EXT_conditional_rendering");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBeginConditionalRenderingEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBeginConditionalRenderingEXT(commandBuffer, pConditionalRenderingBegin,
+                                             true /* do lock */);
+}
+static void entry_vkCmdEndConditionalRenderingEXT(VkCommandBuffer commandBuffer) {
+    AEMU_SCOPED_TRACE("vkCmdEndConditionalRenderingEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEndConditionalRenderingEXT(commandBuffer, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdEndConditionalRenderingEXT(VkCommandBuffer commandBuffer) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_conditional_rendering")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdEndConditionalRenderingEXT",
+                                         "VK_EXT_conditional_rendering");
+    }
+    AEMU_SCOPED_TRACE("vkCmdEndConditionalRenderingEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEndConditionalRenderingEXT(commandBuffer, true /* do lock */);
+}
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+static void entry_vkCmdSetViewportWScalingNV(VkCommandBuffer commandBuffer, uint32_t firstViewport,
+                                             uint32_t viewportCount,
+                                             const VkViewportWScalingNV* pViewportWScalings) {
+    AEMU_SCOPED_TRACE("vkCmdSetViewportWScalingNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportWScalingNV(commandBuffer, firstViewport, viewportCount,
+                                      pViewportWScalings, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetViewportWScalingNV(
+    VkCommandBuffer commandBuffer, uint32_t firstViewport, uint32_t viewportCount,
+    const VkViewportWScalingNV* pViewportWScalings) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_clip_space_w_scaling")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetViewportWScalingNV",
+                                         "VK_NV_clip_space_w_scaling");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetViewportWScalingNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportWScalingNV(commandBuffer, firstViewport, viewportCount,
+                                      pViewportWScalings, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_direct_mode_display
+static VkResult entry_vkReleaseDisplayEXT(VkPhysicalDevice physicalDevice, VkDisplayKHR display) {
+    AEMU_SCOPED_TRACE("vkReleaseDisplayEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkReleaseDisplayEXT_VkResult_return = (VkResult)0;
+    vkReleaseDisplayEXT_VkResult_return =
+        vkEnc->vkReleaseDisplayEXT(physicalDevice, display, true /* do lock */);
+    return vkReleaseDisplayEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+static VkResult entry_vkAcquireXlibDisplayEXT(VkPhysicalDevice physicalDevice, Display* dpy,
+                                              VkDisplayKHR display) {
+    AEMU_SCOPED_TRACE("vkAcquireXlibDisplayEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireXlibDisplayEXT_VkResult_return = (VkResult)0;
+    vkAcquireXlibDisplayEXT_VkResult_return =
+        vkEnc->vkAcquireXlibDisplayEXT(physicalDevice, dpy, display, true /* do lock */);
+    return vkAcquireXlibDisplayEXT_VkResult_return;
+}
+static VkResult entry_vkGetRandROutputDisplayEXT(VkPhysicalDevice physicalDevice, Display* dpy,
+                                                 RROutput rrOutput, VkDisplayKHR* pDisplay) {
+    AEMU_SCOPED_TRACE("vkGetRandROutputDisplayEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetRandROutputDisplayEXT_VkResult_return = (VkResult)0;
+    vkGetRandROutputDisplayEXT_VkResult_return = vkEnc->vkGetRandROutputDisplayEXT(
+        physicalDevice, dpy, rrOutput, pDisplay, true /* do lock */);
+    return vkGetRandROutputDisplayEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_display_surface_counter
+static VkResult entry_vkGetPhysicalDeviceSurfaceCapabilities2EXT(
+    VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+    VkSurfaceCapabilities2EXT* pSurfaceCapabilities) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilities2EXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceSurfaceCapabilities2EXT(physicalDevice, surface,
+                                                          pSurfaceCapabilities, true /* do lock */);
+    return vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_display_control
+static VkResult entry_vkDisplayPowerControlEXT(VkDevice device, VkDisplayKHR display,
+                                               const VkDisplayPowerInfoEXT* pDisplayPowerInfo) {
+    AEMU_SCOPED_TRACE("vkDisplayPowerControlEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkDisplayPowerControlEXT_VkResult_return = (VkResult)0;
+    vkDisplayPowerControlEXT_VkResult_return =
+        vkEnc->vkDisplayPowerControlEXT(device, display, pDisplayPowerInfo, true /* do lock */);
+    return vkDisplayPowerControlEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkDisplayPowerControlEXT(
+    VkDevice device, VkDisplayKHR display, const VkDisplayPowerInfoEXT* pDisplayPowerInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_display_control")) {
+        sOnInvalidDynamicallyCheckedCall("vkDisplayPowerControlEXT", "VK_EXT_display_control");
+    }
+    AEMU_SCOPED_TRACE("vkDisplayPowerControlEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkDisplayPowerControlEXT_VkResult_return = (VkResult)0;
+    vkDisplayPowerControlEXT_VkResult_return =
+        vkEnc->vkDisplayPowerControlEXT(device, display, pDisplayPowerInfo, true /* do lock */);
+    return vkDisplayPowerControlEXT_VkResult_return;
+}
+static VkResult entry_vkRegisterDeviceEventEXT(VkDevice device,
+                                               const VkDeviceEventInfoEXT* pDeviceEventInfo,
+                                               const VkAllocationCallbacks* pAllocator,
+                                               VkFence* pFence) {
+    AEMU_SCOPED_TRACE("vkRegisterDeviceEventEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkRegisterDeviceEventEXT_VkResult_return = (VkResult)0;
+    vkRegisterDeviceEventEXT_VkResult_return = vkEnc->vkRegisterDeviceEventEXT(
+        device, pDeviceEventInfo, pAllocator, pFence, true /* do lock */);
+    return vkRegisterDeviceEventEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkRegisterDeviceEventEXT(
+    VkDevice device, const VkDeviceEventInfoEXT* pDeviceEventInfo,
+    const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_display_control")) {
+        sOnInvalidDynamicallyCheckedCall("vkRegisterDeviceEventEXT", "VK_EXT_display_control");
+    }
+    AEMU_SCOPED_TRACE("vkRegisterDeviceEventEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkRegisterDeviceEventEXT_VkResult_return = (VkResult)0;
+    vkRegisterDeviceEventEXT_VkResult_return = vkEnc->vkRegisterDeviceEventEXT(
+        device, pDeviceEventInfo, pAllocator, pFence, true /* do lock */);
+    return vkRegisterDeviceEventEXT_VkResult_return;
+}
+static VkResult entry_vkRegisterDisplayEventEXT(VkDevice device, VkDisplayKHR display,
+                                                const VkDisplayEventInfoEXT* pDisplayEventInfo,
+                                                const VkAllocationCallbacks* pAllocator,
+                                                VkFence* pFence) {
+    AEMU_SCOPED_TRACE("vkRegisterDisplayEventEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkRegisterDisplayEventEXT_VkResult_return = (VkResult)0;
+    vkRegisterDisplayEventEXT_VkResult_return = vkEnc->vkRegisterDisplayEventEXT(
+        device, display, pDisplayEventInfo, pAllocator, pFence, true /* do lock */);
+    return vkRegisterDisplayEventEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkRegisterDisplayEventEXT(
+    VkDevice device, VkDisplayKHR display, const VkDisplayEventInfoEXT* pDisplayEventInfo,
+    const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_display_control")) {
+        sOnInvalidDynamicallyCheckedCall("vkRegisterDisplayEventEXT", "VK_EXT_display_control");
+    }
+    AEMU_SCOPED_TRACE("vkRegisterDisplayEventEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkRegisterDisplayEventEXT_VkResult_return = (VkResult)0;
+    vkRegisterDisplayEventEXT_VkResult_return = vkEnc->vkRegisterDisplayEventEXT(
+        device, display, pDisplayEventInfo, pAllocator, pFence, true /* do lock */);
+    return vkRegisterDisplayEventEXT_VkResult_return;
+}
+static VkResult entry_vkGetSwapchainCounterEXT(VkDevice device, VkSwapchainKHR swapchain,
+                                               VkSurfaceCounterFlagBitsEXT counter,
+                                               uint64_t* pCounterValue) {
+    AEMU_SCOPED_TRACE("vkGetSwapchainCounterEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSwapchainCounterEXT_VkResult_return = (VkResult)0;
+    vkGetSwapchainCounterEXT_VkResult_return = vkEnc->vkGetSwapchainCounterEXT(
+        device, swapchain, counter, pCounterValue, true /* do lock */);
+    return vkGetSwapchainCounterEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSwapchainCounterEXT(VkDevice device, VkSwapchainKHR swapchain,
+                                                        VkSurfaceCounterFlagBitsEXT counter,
+                                                        uint64_t* pCounterValue) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_display_control")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetSwapchainCounterEXT", "VK_EXT_display_control");
+    }
+    AEMU_SCOPED_TRACE("vkGetSwapchainCounterEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSwapchainCounterEXT_VkResult_return = (VkResult)0;
+    vkGetSwapchainCounterEXT_VkResult_return = vkEnc->vkGetSwapchainCounterEXT(
+        device, swapchain, counter, pCounterValue, true /* do lock */);
+    return vkGetSwapchainCounterEXT_VkResult_return;
+}
+#endif
+#ifdef VK_GOOGLE_display_timing
+static VkResult entry_vkGetRefreshCycleDurationGOOGLE(
+    VkDevice device, VkSwapchainKHR swapchain,
+    VkRefreshCycleDurationGOOGLE* pDisplayTimingProperties) {
+    AEMU_SCOPED_TRACE("vkGetRefreshCycleDurationGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetRefreshCycleDurationGOOGLE_VkResult_return = (VkResult)0;
+    vkGetRefreshCycleDurationGOOGLE_VkResult_return = vkEnc->vkGetRefreshCycleDurationGOOGLE(
+        device, swapchain, pDisplayTimingProperties, true /* do lock */);
+    return vkGetRefreshCycleDurationGOOGLE_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetRefreshCycleDurationGOOGLE(
+    VkDevice device, VkSwapchainKHR swapchain,
+    VkRefreshCycleDurationGOOGLE* pDisplayTimingProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_display_timing")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetRefreshCycleDurationGOOGLE",
+                                         "VK_GOOGLE_display_timing");
+    }
+    AEMU_SCOPED_TRACE("vkGetRefreshCycleDurationGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetRefreshCycleDurationGOOGLE_VkResult_return = (VkResult)0;
+    vkGetRefreshCycleDurationGOOGLE_VkResult_return = vkEnc->vkGetRefreshCycleDurationGOOGLE(
+        device, swapchain, pDisplayTimingProperties, true /* do lock */);
+    return vkGetRefreshCycleDurationGOOGLE_VkResult_return;
+}
+static VkResult entry_vkGetPastPresentationTimingGOOGLE(
+    VkDevice device, VkSwapchainKHR swapchain, uint32_t* pPresentationTimingCount,
+    VkPastPresentationTimingGOOGLE* pPresentationTimings) {
+    AEMU_SCOPED_TRACE("vkGetPastPresentationTimingGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
+    vkGetPastPresentationTimingGOOGLE_VkResult_return = vkEnc->vkGetPastPresentationTimingGOOGLE(
+        device, swapchain, pPresentationTimingCount, pPresentationTimings, true /* do lock */);
+    return vkGetPastPresentationTimingGOOGLE_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetPastPresentationTimingGOOGLE(
+    VkDevice device, VkSwapchainKHR swapchain, uint32_t* pPresentationTimingCount,
+    VkPastPresentationTimingGOOGLE* pPresentationTimings) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_display_timing")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetPastPresentationTimingGOOGLE",
+                                         "VK_GOOGLE_display_timing");
+    }
+    AEMU_SCOPED_TRACE("vkGetPastPresentationTimingGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
+    vkGetPastPresentationTimingGOOGLE_VkResult_return = vkEnc->vkGetPastPresentationTimingGOOGLE(
+        device, swapchain, pPresentationTimingCount, pPresentationTimings, true /* do lock */);
+    return vkGetPastPresentationTimingGOOGLE_VkResult_return;
+}
+#endif
+#ifdef VK_NV_sample_mask_override_coverage
+#endif
+#ifdef VK_NV_geometry_shader_passthrough
+#endif
+#ifdef VK_NV_viewport_array2
+#endif
+#ifdef VK_NVX_multiview_per_view_attributes
+#endif
+#ifdef VK_NV_viewport_swizzle
+#endif
+#ifdef VK_EXT_discard_rectangles
+static void entry_vkCmdSetDiscardRectangleEXT(VkCommandBuffer commandBuffer,
+                                              uint32_t firstDiscardRectangle,
+                                              uint32_t discardRectangleCount,
+                                              const VkRect2D* pDiscardRectangles) {
+    AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDiscardRectangleEXT(commandBuffer, firstDiscardRectangle, discardRectangleCount,
+                                       pDiscardRectangles, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDiscardRectangleEXT(VkCommandBuffer commandBuffer,
+                                                       uint32_t firstDiscardRectangle,
+                                                       uint32_t discardRectangleCount,
+                                                       const VkRect2D* pDiscardRectangles) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_discard_rectangles")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDiscardRectangleEXT",
+                                         "VK_EXT_discard_rectangles");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDiscardRectangleEXT(commandBuffer, firstDiscardRectangle, discardRectangleCount,
+                                       pDiscardRectangles, true /* do lock */);
+}
+static void entry_vkCmdSetDiscardRectangleEnableEXT(VkCommandBuffer commandBuffer,
+                                                    VkBool32 discardRectangleEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDiscardRectangleEnableEXT(commandBuffer, discardRectangleEnable,
+                                             true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDiscardRectangleEnableEXT(VkCommandBuffer commandBuffer,
+                                                             VkBool32 discardRectangleEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_discard_rectangles")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDiscardRectangleEnableEXT",
+                                         "VK_EXT_discard_rectangles");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDiscardRectangleEnableEXT(commandBuffer, discardRectangleEnable,
+                                             true /* do lock */);
+}
+static void entry_vkCmdSetDiscardRectangleModeEXT(VkCommandBuffer commandBuffer,
+                                                  VkDiscardRectangleModeEXT discardRectangleMode) {
+    AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDiscardRectangleModeEXT(commandBuffer, discardRectangleMode, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDiscardRectangleModeEXT(
+    VkCommandBuffer commandBuffer, VkDiscardRectangleModeEXT discardRectangleMode) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_discard_rectangles")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDiscardRectangleModeEXT",
+                                         "VK_EXT_discard_rectangles");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDiscardRectangleModeEXT(commandBuffer, discardRectangleMode, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_conservative_rasterization
+#endif
+#ifdef VK_EXT_depth_clip_enable
+#endif
 #ifdef VK_EXT_swapchain_colorspace
+#endif
+#ifdef VK_EXT_hdr_metadata
+static void entry_vkSetHdrMetadataEXT(VkDevice device, uint32_t swapchainCount,
+                                      const VkSwapchainKHR* pSwapchains,
+                                      const VkHdrMetadataEXT* pMetadata) {
+    AEMU_SCOPED_TRACE("vkSetHdrMetadataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkSetHdrMetadataEXT(device, swapchainCount, pSwapchains, pMetadata, true /* do lock */);
+}
+static void dynCheck_entry_vkSetHdrMetadataEXT(VkDevice device, uint32_t swapchainCount,
+                                               const VkSwapchainKHR* pSwapchains,
+                                               const VkHdrMetadataEXT* pMetadata) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_hdr_metadata")) {
+        sOnInvalidDynamicallyCheckedCall("vkSetHdrMetadataEXT", "VK_EXT_hdr_metadata");
+    }
+    AEMU_SCOPED_TRACE("vkSetHdrMetadataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkSetHdrMetadataEXT(device, swapchainCount, pSwapchains, pMetadata, true /* do lock */);
+}
+#endif
+#ifdef VK_MVK_ios_surface
+static VkResult entry_vkCreateIOSSurfaceMVK(VkInstance instance,
+                                            const VkIOSSurfaceCreateInfoMVK* pCreateInfo,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateIOSSurfaceMVK");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateIOSSurfaceMVK_VkResult_return = (VkResult)0;
+    vkCreateIOSSurfaceMVK_VkResult_return = vkEnc->vkCreateIOSSurfaceMVK(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateIOSSurfaceMVK_VkResult_return;
+}
+#endif
+#ifdef VK_MVK_macos_surface
+static VkResult entry_vkCreateMacOSSurfaceMVK(VkInstance instance,
+                                              const VkMacOSSurfaceCreateInfoMVK* pCreateInfo,
+                                              const VkAllocationCallbacks* pAllocator,
+                                              VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateMacOSSurfaceMVK");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateMacOSSurfaceMVK_VkResult_return = (VkResult)0;
+    vkCreateMacOSSurfaceMVK_VkResult_return = vkEnc->vkCreateMacOSSurfaceMVK(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateMacOSSurfaceMVK_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_external_memory_dma_buf
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+static VkResult entry_vkSetDebugUtilsObjectNameEXT(VkDevice device,
+                                                   const VkDebugUtilsObjectNameInfoEXT* pNameInfo) {
+    AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectNameEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
+    vkSetDebugUtilsObjectNameEXT_VkResult_return =
+        vkEnc->vkSetDebugUtilsObjectNameEXT(device, pNameInfo, true /* do lock */);
+    return vkSetDebugUtilsObjectNameEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkSetDebugUtilsObjectNameEXT(
+    VkDevice device, const VkDebugUtilsObjectNameInfoEXT* pNameInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_utils")) {
+        sOnInvalidDynamicallyCheckedCall("vkSetDebugUtilsObjectNameEXT", "VK_EXT_debug_utils");
+    }
+    AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectNameEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
+    vkSetDebugUtilsObjectNameEXT_VkResult_return =
+        vkEnc->vkSetDebugUtilsObjectNameEXT(device, pNameInfo, true /* do lock */);
+    return vkSetDebugUtilsObjectNameEXT_VkResult_return;
+}
+static VkResult entry_vkSetDebugUtilsObjectTagEXT(VkDevice device,
+                                                  const VkDebugUtilsObjectTagInfoEXT* pTagInfo) {
+    AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectTagEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
+    vkSetDebugUtilsObjectTagEXT_VkResult_return =
+        vkEnc->vkSetDebugUtilsObjectTagEXT(device, pTagInfo, true /* do lock */);
+    return vkSetDebugUtilsObjectTagEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkSetDebugUtilsObjectTagEXT(
+    VkDevice device, const VkDebugUtilsObjectTagInfoEXT* pTagInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_utils")) {
+        sOnInvalidDynamicallyCheckedCall("vkSetDebugUtilsObjectTagEXT", "VK_EXT_debug_utils");
+    }
+    AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectTagEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
+    vkSetDebugUtilsObjectTagEXT_VkResult_return =
+        vkEnc->vkSetDebugUtilsObjectTagEXT(device, pTagInfo, true /* do lock */);
+    return vkSetDebugUtilsObjectTagEXT_VkResult_return;
+}
+static void entry_vkQueueBeginDebugUtilsLabelEXT(VkQueue queue,
+                                                 const VkDebugUtilsLabelEXT* pLabelInfo) {
+    AEMU_SCOPED_TRACE("vkQueueBeginDebugUtilsLabelEXT");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkQueueBeginDebugUtilsLabelEXT(queue, pLabelInfo, true /* do lock */);
+}
+static void entry_vkQueueEndDebugUtilsLabelEXT(VkQueue queue) {
+    AEMU_SCOPED_TRACE("vkQueueEndDebugUtilsLabelEXT");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkQueueEndDebugUtilsLabelEXT(queue, true /* do lock */);
+}
+static void entry_vkQueueInsertDebugUtilsLabelEXT(VkQueue queue,
+                                                  const VkDebugUtilsLabelEXT* pLabelInfo) {
+    AEMU_SCOPED_TRACE("vkQueueInsertDebugUtilsLabelEXT");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkQueueInsertDebugUtilsLabelEXT(queue, pLabelInfo, true /* do lock */);
+}
+static void entry_vkCmdBeginDebugUtilsLabelEXT(VkCommandBuffer commandBuffer,
+                                               const VkDebugUtilsLabelEXT* pLabelInfo) {
+    AEMU_SCOPED_TRACE("vkCmdBeginDebugUtilsLabelEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBeginDebugUtilsLabelEXT(commandBuffer, pLabelInfo, true /* do lock */);
+}
+static void entry_vkCmdEndDebugUtilsLabelEXT(VkCommandBuffer commandBuffer) {
+    AEMU_SCOPED_TRACE("vkCmdEndDebugUtilsLabelEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEndDebugUtilsLabelEXT(commandBuffer, true /* do lock */);
+}
+static void entry_vkCmdInsertDebugUtilsLabelEXT(VkCommandBuffer commandBuffer,
+                                                const VkDebugUtilsLabelEXT* pLabelInfo) {
+    AEMU_SCOPED_TRACE("vkCmdInsertDebugUtilsLabelEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdInsertDebugUtilsLabelEXT(commandBuffer, pLabelInfo, true /* do lock */);
+}
+static VkResult entry_vkCreateDebugUtilsMessengerEXT(
+    VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pMessenger) {
+    AEMU_SCOPED_TRACE("vkCreateDebugUtilsMessengerEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateDebugUtilsMessengerEXT_VkResult_return = (VkResult)0;
+    vkCreateDebugUtilsMessengerEXT_VkResult_return = vkEnc->vkCreateDebugUtilsMessengerEXT(
+        instance, pCreateInfo, pAllocator, pMessenger, true /* do lock */);
+    return vkCreateDebugUtilsMessengerEXT_VkResult_return;
+}
+static void entry_vkDestroyDebugUtilsMessengerEXT(VkInstance instance,
+                                                  VkDebugUtilsMessengerEXT messenger,
+                                                  const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyDebugUtilsMessengerEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyDebugUtilsMessengerEXT(instance, messenger, pAllocator, true /* do lock */);
+}
+static void entry_vkSubmitDebugUtilsMessageEXT(
+    VkInstance instance, VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData) {
+    AEMU_SCOPED_TRACE("vkSubmitDebugUtilsMessageEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkSubmitDebugUtilsMessageEXT(instance, messageSeverity, messageTypes, pCallbackData,
+                                        true /* do lock */);
+}
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 static VkResult entry_vkGetAndroidHardwareBufferPropertiesANDROID(
@@ -3232,15 +6160,1298 @@ static VkResult dynCheck_entry_vkGetMemoryAndroidHardwareBufferANDROID(
     return vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return;
 }
 #endif
+#ifdef VK_EXT_sampler_filter_minmax
+#endif
+#ifdef VK_AMD_gpu_shader_int16
+#endif
+#ifdef VK_AMD_mixed_attachment_samples
+#endif
+#ifdef VK_AMD_shader_fragment_mask
+#endif
+#ifdef VK_EXT_inline_uniform_block
+#endif
 #ifdef VK_EXT_shader_stencil_export
+#endif
+#ifdef VK_EXT_sample_locations
+static void entry_vkCmdSetSampleLocationsEXT(VkCommandBuffer commandBuffer,
+                                             const VkSampleLocationsInfoEXT* pSampleLocationsInfo) {
+    AEMU_SCOPED_TRACE("vkCmdSetSampleLocationsEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetSampleLocationsEXT(commandBuffer, pSampleLocationsInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetSampleLocationsEXT(
+    VkCommandBuffer commandBuffer, const VkSampleLocationsInfoEXT* pSampleLocationsInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_sample_locations")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetSampleLocationsEXT", "VK_EXT_sample_locations");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetSampleLocationsEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetSampleLocationsEXT(commandBuffer, pSampleLocationsInfo, true /* do lock */);
+}
+static void entry_vkGetPhysicalDeviceMultisamplePropertiesEXT(
+    VkPhysicalDevice physicalDevice, VkSampleCountFlagBits samples,
+    VkMultisamplePropertiesEXT* pMultisampleProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMultisamplePropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetPhysicalDeviceMultisamplePropertiesEXT(physicalDevice, samples,
+                                                       pMultisampleProperties, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_blend_operation_advanced
+#endif
+#ifdef VK_NV_fragment_coverage_to_color
+#endif
+#ifdef VK_NV_framebuffer_mixed_samples
+#endif
+#ifdef VK_NV_fill_rectangle
+#endif
+#ifdef VK_NV_shader_sm_builtins
+#endif
+#ifdef VK_EXT_post_depth_coverage
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+static VkResult entry_vkGetImageDrmFormatModifierPropertiesEXT(
+    VkDevice device, VkImage image, VkImageDrmFormatModifierPropertiesEXT* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetImageDrmFormatModifierPropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return = (VkResult)0;
+    vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return =
+        vkEnc->vkGetImageDrmFormatModifierPropertiesEXT(device, image, pProperties,
+                                                        true /* do lock */);
+    return vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetImageDrmFormatModifierPropertiesEXT(
+    VkDevice device, VkImage image, VkImageDrmFormatModifierPropertiesEXT* pProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_image_drm_format_modifier")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageDrmFormatModifierPropertiesEXT",
+                                         "VK_EXT_image_drm_format_modifier");
+    }
+    AEMU_SCOPED_TRACE("vkGetImageDrmFormatModifierPropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return = (VkResult)0;
+    vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return =
+        vkEnc->vkGetImageDrmFormatModifierPropertiesEXT(device, image, pProperties,
+                                                        true /* do lock */);
+    return vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_validation_cache
+static VkResult entry_vkCreateValidationCacheEXT(VkDevice device,
+                                                 const VkValidationCacheCreateInfoEXT* pCreateInfo,
+                                                 const VkAllocationCallbacks* pAllocator,
+                                                 VkValidationCacheEXT* pValidationCache) {
+    AEMU_SCOPED_TRACE("vkCreateValidationCacheEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateValidationCacheEXT_VkResult_return = (VkResult)0;
+    vkCreateValidationCacheEXT_VkResult_return = vkEnc->vkCreateValidationCacheEXT(
+        device, pCreateInfo, pAllocator, pValidationCache, true /* do lock */);
+    return vkCreateValidationCacheEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateValidationCacheEXT(
+    VkDevice device, const VkValidationCacheCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkValidationCacheEXT* pValidationCache) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_validation_cache")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateValidationCacheEXT", "VK_EXT_validation_cache");
+    }
+    AEMU_SCOPED_TRACE("vkCreateValidationCacheEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateValidationCacheEXT_VkResult_return = (VkResult)0;
+    vkCreateValidationCacheEXT_VkResult_return = vkEnc->vkCreateValidationCacheEXT(
+        device, pCreateInfo, pAllocator, pValidationCache, true /* do lock */);
+    return vkCreateValidationCacheEXT_VkResult_return;
+}
+static void entry_vkDestroyValidationCacheEXT(VkDevice device, VkValidationCacheEXT validationCache,
+                                              const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyValidationCacheEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyValidationCacheEXT(device, validationCache, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyValidationCacheEXT(VkDevice device,
+                                                       VkValidationCacheEXT validationCache,
+                                                       const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_validation_cache")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyValidationCacheEXT", "VK_EXT_validation_cache");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyValidationCacheEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyValidationCacheEXT(device, validationCache, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkMergeValidationCachesEXT(VkDevice device, VkValidationCacheEXT dstCache,
+                                                 uint32_t srcCacheCount,
+                                                 const VkValidationCacheEXT* pSrcCaches) {
+    AEMU_SCOPED_TRACE("vkMergeValidationCachesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkMergeValidationCachesEXT_VkResult_return = (VkResult)0;
+    vkMergeValidationCachesEXT_VkResult_return = vkEnc->vkMergeValidationCachesEXT(
+        device, dstCache, srcCacheCount, pSrcCaches, true /* do lock */);
+    return vkMergeValidationCachesEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkMergeValidationCachesEXT(VkDevice device,
+                                                          VkValidationCacheEXT dstCache,
+                                                          uint32_t srcCacheCount,
+                                                          const VkValidationCacheEXT* pSrcCaches) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_validation_cache")) {
+        sOnInvalidDynamicallyCheckedCall("vkMergeValidationCachesEXT", "VK_EXT_validation_cache");
+    }
+    AEMU_SCOPED_TRACE("vkMergeValidationCachesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkMergeValidationCachesEXT_VkResult_return = (VkResult)0;
+    vkMergeValidationCachesEXT_VkResult_return = vkEnc->vkMergeValidationCachesEXT(
+        device, dstCache, srcCacheCount, pSrcCaches, true /* do lock */);
+    return vkMergeValidationCachesEXT_VkResult_return;
+}
+static VkResult entry_vkGetValidationCacheDataEXT(VkDevice device,
+                                                  VkValidationCacheEXT validationCache,
+                                                  size_t* pDataSize, void* pData) {
+    AEMU_SCOPED_TRACE("vkGetValidationCacheDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetValidationCacheDataEXT_VkResult_return = (VkResult)0;
+    vkGetValidationCacheDataEXT_VkResult_return = vkEnc->vkGetValidationCacheDataEXT(
+        device, validationCache, pDataSize, pData, true /* do lock */);
+    return vkGetValidationCacheDataEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetValidationCacheDataEXT(VkDevice device,
+                                                           VkValidationCacheEXT validationCache,
+                                                           size_t* pDataSize, void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_validation_cache")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetValidationCacheDataEXT", "VK_EXT_validation_cache");
+    }
+    AEMU_SCOPED_TRACE("vkGetValidationCacheDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetValidationCacheDataEXT_VkResult_return = (VkResult)0;
+    vkGetValidationCacheDataEXT_VkResult_return = vkEnc->vkGetValidationCacheDataEXT(
+        device, validationCache, pDataSize, pData, true /* do lock */);
+    return vkGetValidationCacheDataEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_descriptor_indexing
+#endif
+#ifdef VK_EXT_shader_viewport_index_layer
+#endif
+#ifdef VK_NV_shading_rate_image
+static void entry_vkCmdBindShadingRateImageNV(VkCommandBuffer commandBuffer, VkImageView imageView,
+                                              VkImageLayout imageLayout) {
+    AEMU_SCOPED_TRACE("vkCmdBindShadingRateImageNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindShadingRateImageNV(commandBuffer, imageView, imageLayout, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBindShadingRateImageNV(VkCommandBuffer commandBuffer,
+                                                       VkImageView imageView,
+                                                       VkImageLayout imageLayout) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_shading_rate_image")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBindShadingRateImageNV", "VK_NV_shading_rate_image");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBindShadingRateImageNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindShadingRateImageNV(commandBuffer, imageView, imageLayout, true /* do lock */);
+}
+static void entry_vkCmdSetViewportShadingRatePaletteNV(
+    VkCommandBuffer commandBuffer, uint32_t firstViewport, uint32_t viewportCount,
+    const VkShadingRatePaletteNV* pShadingRatePalettes) {
+    AEMU_SCOPED_TRACE("vkCmdSetViewportShadingRatePaletteNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportShadingRatePaletteNV(commandBuffer, firstViewport, viewportCount,
+                                                pShadingRatePalettes, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetViewportShadingRatePaletteNV(
+    VkCommandBuffer commandBuffer, uint32_t firstViewport, uint32_t viewportCount,
+    const VkShadingRatePaletteNV* pShadingRatePalettes) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_shading_rate_image")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetViewportShadingRatePaletteNV",
+                                         "VK_NV_shading_rate_image");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetViewportShadingRatePaletteNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportShadingRatePaletteNV(commandBuffer, firstViewport, viewportCount,
+                                                pShadingRatePalettes, true /* do lock */);
+}
+static void entry_vkCmdSetCoarseSampleOrderNV(
+    VkCommandBuffer commandBuffer, VkCoarseSampleOrderTypeNV sampleOrderType,
+    uint32_t customSampleOrderCount, const VkCoarseSampleOrderCustomNV* pCustomSampleOrders) {
+    AEMU_SCOPED_TRACE("vkCmdSetCoarseSampleOrderNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoarseSampleOrderNV(commandBuffer, sampleOrderType, customSampleOrderCount,
+                                       pCustomSampleOrders, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetCoarseSampleOrderNV(
+    VkCommandBuffer commandBuffer, VkCoarseSampleOrderTypeNV sampleOrderType,
+    uint32_t customSampleOrderCount, const VkCoarseSampleOrderCustomNV* pCustomSampleOrders) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_shading_rate_image")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetCoarseSampleOrderNV", "VK_NV_shading_rate_image");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetCoarseSampleOrderNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoarseSampleOrderNV(commandBuffer, sampleOrderType, customSampleOrderCount,
+                                       pCustomSampleOrders, true /* do lock */);
+}
+#endif
+#ifdef VK_NV_ray_tracing
+static VkResult entry_vkCreateAccelerationStructureNV(
+    VkDevice device, const VkAccelerationStructureCreateInfoNV* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkAccelerationStructureNV* pAccelerationStructure) {
+    AEMU_SCOPED_TRACE("vkCreateAccelerationStructureNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateAccelerationStructureNV_VkResult_return = (VkResult)0;
+    vkCreateAccelerationStructureNV_VkResult_return = vkEnc->vkCreateAccelerationStructureNV(
+        device, pCreateInfo, pAllocator, pAccelerationStructure, true /* do lock */);
+    return vkCreateAccelerationStructureNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateAccelerationStructureNV(
+    VkDevice device, const VkAccelerationStructureCreateInfoNV* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkAccelerationStructureNV* pAccelerationStructure) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateAccelerationStructureNV", "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkCreateAccelerationStructureNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateAccelerationStructureNV_VkResult_return = (VkResult)0;
+    vkCreateAccelerationStructureNV_VkResult_return = vkEnc->vkCreateAccelerationStructureNV(
+        device, pCreateInfo, pAllocator, pAccelerationStructure, true /* do lock */);
+    return vkCreateAccelerationStructureNV_VkResult_return;
+}
+static void entry_vkDestroyAccelerationStructureNV(VkDevice device,
+                                                   VkAccelerationStructureNV accelerationStructure,
+                                                   const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyAccelerationStructureNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyAccelerationStructureNV(device, accelerationStructure, pAllocator,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyAccelerationStructureNV(
+    VkDevice device, VkAccelerationStructureNV accelerationStructure,
+    const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyAccelerationStructureNV", "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyAccelerationStructureNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyAccelerationStructureNV(device, accelerationStructure, pAllocator,
+                                            true /* do lock */);
+}
+static void entry_vkGetAccelerationStructureMemoryRequirementsNV(
+    VkDevice device, const VkAccelerationStructureMemoryRequirementsInfoNV* pInfo,
+    VkMemoryRequirements2KHR* pMemoryRequirements) {
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureMemoryRequirementsNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetAccelerationStructureMemoryRequirementsNV(device, pInfo, pMemoryRequirements,
+                                                          true /* do lock */);
+}
+static void dynCheck_entry_vkGetAccelerationStructureMemoryRequirementsNV(
+    VkDevice device, const VkAccelerationStructureMemoryRequirementsInfoNV* pInfo,
+    VkMemoryRequirements2KHR* pMemoryRequirements) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetAccelerationStructureMemoryRequirementsNV",
+                                         "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureMemoryRequirementsNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetAccelerationStructureMemoryRequirementsNV(device, pInfo, pMemoryRequirements,
+                                                          true /* do lock */);
+}
+static VkResult entry_vkBindAccelerationStructureMemoryNV(
+    VkDevice device, uint32_t bindInfoCount,
+    const VkBindAccelerationStructureMemoryInfoNV* pBindInfos) {
+    AEMU_SCOPED_TRACE("vkBindAccelerationStructureMemoryNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBindAccelerationStructureMemoryNV_VkResult_return = (VkResult)0;
+    vkBindAccelerationStructureMemoryNV_VkResult_return =
+        vkEnc->vkBindAccelerationStructureMemoryNV(device, bindInfoCount, pBindInfos,
+                                                   true /* do lock */);
+    return vkBindAccelerationStructureMemoryNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkBindAccelerationStructureMemoryNV(
+    VkDevice device, uint32_t bindInfoCount,
+    const VkBindAccelerationStructureMemoryInfoNV* pBindInfos) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkBindAccelerationStructureMemoryNV",
+                                         "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkBindAccelerationStructureMemoryNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBindAccelerationStructureMemoryNV_VkResult_return = (VkResult)0;
+    vkBindAccelerationStructureMemoryNV_VkResult_return =
+        vkEnc->vkBindAccelerationStructureMemoryNV(device, bindInfoCount, pBindInfos,
+                                                   true /* do lock */);
+    return vkBindAccelerationStructureMemoryNV_VkResult_return;
+}
+static void entry_vkCmdBuildAccelerationStructureNV(VkCommandBuffer commandBuffer,
+                                                    const VkAccelerationStructureInfoNV* pInfo,
+                                                    VkBuffer instanceData,
+                                                    VkDeviceSize instanceOffset, VkBool32 update,
+                                                    VkAccelerationStructureNV dst,
+                                                    VkAccelerationStructureNV src, VkBuffer scratch,
+                                                    VkDeviceSize scratchOffset) {
+    AEMU_SCOPED_TRACE("vkCmdBuildAccelerationStructureNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBuildAccelerationStructureNV(commandBuffer, pInfo, instanceData, instanceOffset,
+                                             update, dst, src, scratch, scratchOffset,
+                                             true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBuildAccelerationStructureNV(
+    VkCommandBuffer commandBuffer, const VkAccelerationStructureInfoNV* pInfo,
+    VkBuffer instanceData, VkDeviceSize instanceOffset, VkBool32 update,
+    VkAccelerationStructureNV dst, VkAccelerationStructureNV src, VkBuffer scratch,
+    VkDeviceSize scratchOffset) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBuildAccelerationStructureNV", "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBuildAccelerationStructureNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBuildAccelerationStructureNV(commandBuffer, pInfo, instanceData, instanceOffset,
+                                             update, dst, src, scratch, scratchOffset,
+                                             true /* do lock */);
+}
+static void entry_vkCmdCopyAccelerationStructureNV(VkCommandBuffer commandBuffer,
+                                                   VkAccelerationStructureNV dst,
+                                                   VkAccelerationStructureNV src,
+                                                   VkCopyAccelerationStructureModeKHR mode) {
+    AEMU_SCOPED_TRACE("vkCmdCopyAccelerationStructureNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyAccelerationStructureNV(commandBuffer, dst, src, mode, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyAccelerationStructureNV(
+    VkCommandBuffer commandBuffer, VkAccelerationStructureNV dst, VkAccelerationStructureNV src,
+    VkCopyAccelerationStructureModeKHR mode) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyAccelerationStructureNV", "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyAccelerationStructureNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyAccelerationStructureNV(commandBuffer, dst, src, mode, true /* do lock */);
+}
+static void entry_vkCmdTraceRaysNV(
+    VkCommandBuffer commandBuffer, VkBuffer raygenShaderBindingTableBuffer,
+    VkDeviceSize raygenShaderBindingOffset, VkBuffer missShaderBindingTableBuffer,
+    VkDeviceSize missShaderBindingOffset, VkDeviceSize missShaderBindingStride,
+    VkBuffer hitShaderBindingTableBuffer, VkDeviceSize hitShaderBindingOffset,
+    VkDeviceSize hitShaderBindingStride, VkBuffer callableShaderBindingTableBuffer,
+    VkDeviceSize callableShaderBindingOffset, VkDeviceSize callableShaderBindingStride,
+    uint32_t width, uint32_t height, uint32_t depth) {
+    AEMU_SCOPED_TRACE("vkCmdTraceRaysNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdTraceRaysNV(
+        commandBuffer, raygenShaderBindingTableBuffer, raygenShaderBindingOffset,
+        missShaderBindingTableBuffer, missShaderBindingOffset, missShaderBindingStride,
+        hitShaderBindingTableBuffer, hitShaderBindingOffset, hitShaderBindingStride,
+        callableShaderBindingTableBuffer, callableShaderBindingOffset, callableShaderBindingStride,
+        width, height, depth, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdTraceRaysNV(
+    VkCommandBuffer commandBuffer, VkBuffer raygenShaderBindingTableBuffer,
+    VkDeviceSize raygenShaderBindingOffset, VkBuffer missShaderBindingTableBuffer,
+    VkDeviceSize missShaderBindingOffset, VkDeviceSize missShaderBindingStride,
+    VkBuffer hitShaderBindingTableBuffer, VkDeviceSize hitShaderBindingOffset,
+    VkDeviceSize hitShaderBindingStride, VkBuffer callableShaderBindingTableBuffer,
+    VkDeviceSize callableShaderBindingOffset, VkDeviceSize callableShaderBindingStride,
+    uint32_t width, uint32_t height, uint32_t depth) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdTraceRaysNV", "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkCmdTraceRaysNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdTraceRaysNV(
+        commandBuffer, raygenShaderBindingTableBuffer, raygenShaderBindingOffset,
+        missShaderBindingTableBuffer, missShaderBindingOffset, missShaderBindingStride,
+        hitShaderBindingTableBuffer, hitShaderBindingOffset, hitShaderBindingStride,
+        callableShaderBindingTableBuffer, callableShaderBindingOffset, callableShaderBindingStride,
+        width, height, depth, true /* do lock */);
+}
+static VkResult entry_vkCreateRayTracingPipelinesNV(
+    VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount,
+    const VkRayTracingPipelineCreateInfoNV* pCreateInfos, const VkAllocationCallbacks* pAllocator,
+    VkPipeline* pPipelines) {
+    AEMU_SCOPED_TRACE("vkCreateRayTracingPipelinesNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateRayTracingPipelinesNV_VkResult_return = (VkResult)0;
+    vkCreateRayTracingPipelinesNV_VkResult_return =
+        vkEnc->vkCreateRayTracingPipelinesNV(device, pipelineCache, createInfoCount, pCreateInfos,
+                                             pAllocator, pPipelines, true /* do lock */);
+    return vkCreateRayTracingPipelinesNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateRayTracingPipelinesNV(
+    VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount,
+    const VkRayTracingPipelineCreateInfoNV* pCreateInfos, const VkAllocationCallbacks* pAllocator,
+    VkPipeline* pPipelines) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateRayTracingPipelinesNV", "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkCreateRayTracingPipelinesNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateRayTracingPipelinesNV_VkResult_return = (VkResult)0;
+    vkCreateRayTracingPipelinesNV_VkResult_return =
+        vkEnc->vkCreateRayTracingPipelinesNV(device, pipelineCache, createInfoCount, pCreateInfos,
+                                             pAllocator, pPipelines, true /* do lock */);
+    return vkCreateRayTracingPipelinesNV_VkResult_return;
+}
+static VkResult entry_vkGetRayTracingShaderGroupHandlesKHR(VkDevice device, VkPipeline pipeline,
+                                                           uint32_t firstGroup, uint32_t groupCount,
+                                                           size_t dataSize, void* pData) {
+    AEMU_SCOPED_TRACE("vkGetRayTracingShaderGroupHandlesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetRayTracingShaderGroupHandlesKHR_VkResult_return = (VkResult)0;
+    vkGetRayTracingShaderGroupHandlesKHR_VkResult_return =
+        vkEnc->vkGetRayTracingShaderGroupHandlesKHR(device, pipeline, firstGroup, groupCount,
+                                                    dataSize, pData, true /* do lock */);
+    return vkGetRayTracingShaderGroupHandlesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetRayTracingShaderGroupHandlesKHR(VkDevice device,
+                                                                    VkPipeline pipeline,
+                                                                    uint32_t firstGroup,
+                                                                    uint32_t groupCount,
+                                                                    size_t dataSize, void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetRayTracingShaderGroupHandlesKHR",
+                                         "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkGetRayTracingShaderGroupHandlesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetRayTracingShaderGroupHandlesKHR_VkResult_return = (VkResult)0;
+    vkGetRayTracingShaderGroupHandlesKHR_VkResult_return =
+        vkEnc->vkGetRayTracingShaderGroupHandlesKHR(device, pipeline, firstGroup, groupCount,
+                                                    dataSize, pData, true /* do lock */);
+    return vkGetRayTracingShaderGroupHandlesKHR_VkResult_return;
+}
+static VkResult entry_vkGetRayTracingShaderGroupHandlesNV(VkDevice device, VkPipeline pipeline,
+                                                          uint32_t firstGroup, uint32_t groupCount,
+                                                          size_t dataSize, void* pData) {
+    AEMU_SCOPED_TRACE("vkGetRayTracingShaderGroupHandlesNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetRayTracingShaderGroupHandlesNV_VkResult_return = (VkResult)0;
+    vkGetRayTracingShaderGroupHandlesNV_VkResult_return =
+        vkEnc->vkGetRayTracingShaderGroupHandlesNV(device, pipeline, firstGroup, groupCount,
+                                                   dataSize, pData, true /* do lock */);
+    return vkGetRayTracingShaderGroupHandlesNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetRayTracingShaderGroupHandlesNV(VkDevice device,
+                                                                   VkPipeline pipeline,
+                                                                   uint32_t firstGroup,
+                                                                   uint32_t groupCount,
+                                                                   size_t dataSize, void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetRayTracingShaderGroupHandlesNV",
+                                         "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkGetRayTracingShaderGroupHandlesNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetRayTracingShaderGroupHandlesNV_VkResult_return = (VkResult)0;
+    vkGetRayTracingShaderGroupHandlesNV_VkResult_return =
+        vkEnc->vkGetRayTracingShaderGroupHandlesNV(device, pipeline, firstGroup, groupCount,
+                                                   dataSize, pData, true /* do lock */);
+    return vkGetRayTracingShaderGroupHandlesNV_VkResult_return;
+}
+static VkResult entry_vkGetAccelerationStructureHandleNV(
+    VkDevice device, VkAccelerationStructureNV accelerationStructure, size_t dataSize,
+    void* pData) {
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureHandleNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetAccelerationStructureHandleNV_VkResult_return = (VkResult)0;
+    vkGetAccelerationStructureHandleNV_VkResult_return = vkEnc->vkGetAccelerationStructureHandleNV(
+        device, accelerationStructure, dataSize, pData, true /* do lock */);
+    return vkGetAccelerationStructureHandleNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetAccelerationStructureHandleNV(
+    VkDevice device, VkAccelerationStructureNV accelerationStructure, size_t dataSize,
+    void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetAccelerationStructureHandleNV", "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureHandleNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetAccelerationStructureHandleNV_VkResult_return = (VkResult)0;
+    vkGetAccelerationStructureHandleNV_VkResult_return = vkEnc->vkGetAccelerationStructureHandleNV(
+        device, accelerationStructure, dataSize, pData, true /* do lock */);
+    return vkGetAccelerationStructureHandleNV_VkResult_return;
+}
+static void entry_vkCmdWriteAccelerationStructuresPropertiesNV(
+    VkCommandBuffer commandBuffer, uint32_t accelerationStructureCount,
+    const VkAccelerationStructureNV* pAccelerationStructures, VkQueryType queryType,
+    VkQueryPool queryPool, uint32_t firstQuery) {
+    AEMU_SCOPED_TRACE("vkCmdWriteAccelerationStructuresPropertiesNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteAccelerationStructuresPropertiesNV(commandBuffer, accelerationStructureCount,
+                                                        pAccelerationStructures, queryType,
+                                                        queryPool, firstQuery, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdWriteAccelerationStructuresPropertiesNV(
+    VkCommandBuffer commandBuffer, uint32_t accelerationStructureCount,
+    const VkAccelerationStructureNV* pAccelerationStructures, VkQueryType queryType,
+    VkQueryPool queryPool, uint32_t firstQuery) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdWriteAccelerationStructuresPropertiesNV",
+                                         "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkCmdWriteAccelerationStructuresPropertiesNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteAccelerationStructuresPropertiesNV(commandBuffer, accelerationStructureCount,
+                                                        pAccelerationStructures, queryType,
+                                                        queryPool, firstQuery, true /* do lock */);
+}
+static VkResult entry_vkCompileDeferredNV(VkDevice device, VkPipeline pipeline, uint32_t shader) {
+    AEMU_SCOPED_TRACE("vkCompileDeferredNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCompileDeferredNV_VkResult_return = (VkResult)0;
+    vkCompileDeferredNV_VkResult_return =
+        vkEnc->vkCompileDeferredNV(device, pipeline, shader, true /* do lock */);
+    return vkCompileDeferredNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCompileDeferredNV(VkDevice device, VkPipeline pipeline,
+                                                   uint32_t shader) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_ray_tracing")) {
+        sOnInvalidDynamicallyCheckedCall("vkCompileDeferredNV", "VK_NV_ray_tracing");
+    }
+    AEMU_SCOPED_TRACE("vkCompileDeferredNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCompileDeferredNV_VkResult_return = (VkResult)0;
+    vkCompileDeferredNV_VkResult_return =
+        vkEnc->vkCompileDeferredNV(device, pipeline, shader, true /* do lock */);
+    return vkCompileDeferredNV_VkResult_return;
+}
+#endif
+#ifdef VK_NV_representative_fragment_test
+#endif
+#ifdef VK_EXT_filter_cubic
+#endif
+#ifdef VK_QCOM_render_pass_shader_resolve
+#endif
+#ifdef VK_EXT_global_priority
+#endif
+#ifdef VK_EXT_external_memory_host
+static VkResult entry_vkGetMemoryHostPointerPropertiesEXT(
+    VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, const void* pHostPointer,
+    VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties) {
+    AEMU_SCOPED_TRACE("vkGetMemoryHostPointerPropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
+    vkGetMemoryHostPointerPropertiesEXT_VkResult_return =
+        vkEnc->vkGetMemoryHostPointerPropertiesEXT(
+            device, handleType, pHostPointer, pMemoryHostPointerProperties, true /* do lock */);
+    return vkGetMemoryHostPointerPropertiesEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryHostPointerPropertiesEXT(
+    VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, const void* pHostPointer,
+    VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_external_memory_host")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryHostPointerPropertiesEXT",
+                                         "VK_EXT_external_memory_host");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryHostPointerPropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
+    vkGetMemoryHostPointerPropertiesEXT_VkResult_return =
+        vkEnc->vkGetMemoryHostPointerPropertiesEXT(
+            device, handleType, pHostPointer, pMemoryHostPointerProperties, true /* do lock */);
+    return vkGetMemoryHostPointerPropertiesEXT_VkResult_return;
+}
+#endif
+#ifdef VK_AMD_buffer_marker
+static void entry_vkCmdWriteBufferMarkerAMD(VkCommandBuffer commandBuffer,
+                                            VkPipelineStageFlagBits pipelineStage,
+                                            VkBuffer dstBuffer, VkDeviceSize dstOffset,
+                                            uint32_t marker) {
+    AEMU_SCOPED_TRACE("vkCmdWriteBufferMarkerAMD");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteBufferMarkerAMD(commandBuffer, pipelineStage, dstBuffer, dstOffset, marker,
+                                     true /* do lock */);
+}
+static void dynCheck_entry_vkCmdWriteBufferMarkerAMD(VkCommandBuffer commandBuffer,
+                                                     VkPipelineStageFlagBits pipelineStage,
+                                                     VkBuffer dstBuffer, VkDeviceSize dstOffset,
+                                                     uint32_t marker) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_AMD_buffer_marker")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdWriteBufferMarkerAMD", "VK_AMD_buffer_marker");
+    }
+    AEMU_SCOPED_TRACE("vkCmdWriteBufferMarkerAMD");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteBufferMarkerAMD(commandBuffer, pipelineStage, dstBuffer, dstOffset, marker,
+                                     true /* do lock */);
+}
+#endif
+#ifdef VK_AMD_pipeline_compiler_control
+#endif
+#ifdef VK_EXT_calibrated_timestamps
+static VkResult entry_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT(
+    VkPhysicalDevice physicalDevice, uint32_t* pTimeDomainCount, VkTimeDomainEXT* pTimeDomains) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceCalibrateableTimeDomainsEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceCalibrateableTimeDomainsEXT_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceCalibrateableTimeDomainsEXT_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceCalibrateableTimeDomainsEXT(physicalDevice, pTimeDomainCount,
+                                                              pTimeDomains, true /* do lock */);
+    return vkGetPhysicalDeviceCalibrateableTimeDomainsEXT_VkResult_return;
+}
+static VkResult entry_vkGetCalibratedTimestampsEXT(
+    VkDevice device, uint32_t timestampCount, const VkCalibratedTimestampInfoEXT* pTimestampInfos,
+    uint64_t* pTimestamps, uint64_t* pMaxDeviation) {
+    AEMU_SCOPED_TRACE("vkGetCalibratedTimestampsEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetCalibratedTimestampsEXT_VkResult_return = (VkResult)0;
+    vkGetCalibratedTimestampsEXT_VkResult_return = vkEnc->vkGetCalibratedTimestampsEXT(
+        device, timestampCount, pTimestampInfos, pTimestamps, pMaxDeviation, true /* do lock */);
+    return vkGetCalibratedTimestampsEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetCalibratedTimestampsEXT(
+    VkDevice device, uint32_t timestampCount, const VkCalibratedTimestampInfoEXT* pTimestampInfos,
+    uint64_t* pTimestamps, uint64_t* pMaxDeviation) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_calibrated_timestamps")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetCalibratedTimestampsEXT",
+                                         "VK_EXT_calibrated_timestamps");
+    }
+    AEMU_SCOPED_TRACE("vkGetCalibratedTimestampsEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetCalibratedTimestampsEXT_VkResult_return = (VkResult)0;
+    vkGetCalibratedTimestampsEXT_VkResult_return = vkEnc->vkGetCalibratedTimestampsEXT(
+        device, timestampCount, pTimestampInfos, pTimestamps, pMaxDeviation, true /* do lock */);
+    return vkGetCalibratedTimestampsEXT_VkResult_return;
+}
+#endif
+#ifdef VK_AMD_shader_core_properties
+#endif
+#ifdef VK_AMD_memory_overallocation_behavior
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+#endif
+#ifdef VK_GGP_frame_token
+#endif
+#ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
+#ifdef VK_NV_compute_shader_derivatives
+#endif
+#ifdef VK_NV_mesh_shader
+static void entry_vkCmdDrawMeshTasksNV(VkCommandBuffer commandBuffer, uint32_t taskCount,
+                                       uint32_t firstTask) {
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksNV(commandBuffer, taskCount, firstTask, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawMeshTasksNV(VkCommandBuffer commandBuffer, uint32_t taskCount,
+                                                uint32_t firstTask) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_mesh_shader")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawMeshTasksNV", "VK_NV_mesh_shader");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksNV(commandBuffer, taskCount, firstTask, true /* do lock */);
+}
+static void entry_vkCmdDrawMeshTasksIndirectNV(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                               VkDeviceSize offset, uint32_t drawCount,
+                                               uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksIndirectNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksIndirectNV(commandBuffer, buffer, offset, drawCount, stride,
+                                        true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawMeshTasksIndirectNV(VkCommandBuffer commandBuffer,
+                                                        VkBuffer buffer, VkDeviceSize offset,
+                                                        uint32_t drawCount, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_mesh_shader")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawMeshTasksIndirectNV", "VK_NV_mesh_shader");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksIndirectNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksIndirectNV(commandBuffer, buffer, offset, drawCount, stride,
+                                        true /* do lock */);
+}
+static void entry_vkCmdDrawMeshTasksIndirectCountNV(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                                    VkDeviceSize offset, VkBuffer countBuffer,
+                                                    VkDeviceSize countBufferOffset,
+                                                    uint32_t maxDrawCount, uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksIndirectCountNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksIndirectCountNV(commandBuffer, buffer, offset, countBuffer,
+                                             countBufferOffset, maxDrawCount, stride,
+                                             true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawMeshTasksIndirectCountNV(
+    VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
+    VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_mesh_shader")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawMeshTasksIndirectCountNV", "VK_NV_mesh_shader");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksIndirectCountNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksIndirectCountNV(commandBuffer, buffer, offset, countBuffer,
+                                             countBufferOffset, maxDrawCount, stride,
+                                             true /* do lock */);
+}
+#endif
+#ifdef VK_NV_fragment_shader_barycentric
+#endif
+#ifdef VK_NV_shader_image_footprint
+#endif
+#ifdef VK_NV_scissor_exclusive
+static void entry_vkCmdSetExclusiveScissorEnableNV(VkCommandBuffer commandBuffer,
+                                                   uint32_t firstExclusiveScissor,
+                                                   uint32_t exclusiveScissorCount,
+                                                   const VkBool32* pExclusiveScissorEnables) {
+    AEMU_SCOPED_TRACE("vkCmdSetExclusiveScissorEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetExclusiveScissorEnableNV(commandBuffer, firstExclusiveScissor,
+                                            exclusiveScissorCount, pExclusiveScissorEnables,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetExclusiveScissorEnableNV(
+    VkCommandBuffer commandBuffer, uint32_t firstExclusiveScissor, uint32_t exclusiveScissorCount,
+    const VkBool32* pExclusiveScissorEnables) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_scissor_exclusive")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetExclusiveScissorEnableNV",
+                                         "VK_NV_scissor_exclusive");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetExclusiveScissorEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetExclusiveScissorEnableNV(commandBuffer, firstExclusiveScissor,
+                                            exclusiveScissorCount, pExclusiveScissorEnables,
+                                            true /* do lock */);
+}
+static void entry_vkCmdSetExclusiveScissorNV(VkCommandBuffer commandBuffer,
+                                             uint32_t firstExclusiveScissor,
+                                             uint32_t exclusiveScissorCount,
+                                             const VkRect2D* pExclusiveScissors) {
+    AEMU_SCOPED_TRACE("vkCmdSetExclusiveScissorNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetExclusiveScissorNV(commandBuffer, firstExclusiveScissor, exclusiveScissorCount,
+                                      pExclusiveScissors, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetExclusiveScissorNV(VkCommandBuffer commandBuffer,
+                                                      uint32_t firstExclusiveScissor,
+                                                      uint32_t exclusiveScissorCount,
+                                                      const VkRect2D* pExclusiveScissors) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_scissor_exclusive")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetExclusiveScissorNV", "VK_NV_scissor_exclusive");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetExclusiveScissorNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetExclusiveScissorNV(commandBuffer, firstExclusiveScissor, exclusiveScissorCount,
+                                      pExclusiveScissors, true /* do lock */);
+}
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+static void entry_vkCmdSetCheckpointNV(VkCommandBuffer commandBuffer,
+                                       const void* pCheckpointMarker) {
+    AEMU_SCOPED_TRACE("vkCmdSetCheckpointNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCheckpointNV(commandBuffer, pCheckpointMarker, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetCheckpointNV(VkCommandBuffer commandBuffer,
+                                                const void* pCheckpointMarker) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_device_diagnostic_checkpoints")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetCheckpointNV",
+                                         "VK_NV_device_diagnostic_checkpoints");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetCheckpointNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCheckpointNV(commandBuffer, pCheckpointMarker, true /* do lock */);
+}
+static void entry_vkGetQueueCheckpointDataNV(VkQueue queue, uint32_t* pCheckpointDataCount,
+                                             VkCheckpointDataNV* pCheckpointData) {
+    AEMU_SCOPED_TRACE("vkGetQueueCheckpointDataNV");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkGetQueueCheckpointDataNV(queue, pCheckpointDataCount, pCheckpointData,
+                                      true /* do lock */);
+}
+#endif
+#ifdef VK_INTEL_shader_integer_functions2
+#endif
+#ifdef VK_INTEL_performance_query
+static VkResult entry_vkInitializePerformanceApiINTEL(
+    VkDevice device, const VkInitializePerformanceApiInfoINTEL* pInitializeInfo) {
+    AEMU_SCOPED_TRACE("vkInitializePerformanceApiINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkInitializePerformanceApiINTEL_VkResult_return = (VkResult)0;
+    vkInitializePerformanceApiINTEL_VkResult_return =
+        vkEnc->vkInitializePerformanceApiINTEL(device, pInitializeInfo, true /* do lock */);
+    return vkInitializePerformanceApiINTEL_VkResult_return;
+}
+static VkResult dynCheck_entry_vkInitializePerformanceApiINTEL(
+    VkDevice device, const VkInitializePerformanceApiInfoINTEL* pInitializeInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_INTEL_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkInitializePerformanceApiINTEL",
+                                         "VK_INTEL_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkInitializePerformanceApiINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkInitializePerformanceApiINTEL_VkResult_return = (VkResult)0;
+    vkInitializePerformanceApiINTEL_VkResult_return =
+        vkEnc->vkInitializePerformanceApiINTEL(device, pInitializeInfo, true /* do lock */);
+    return vkInitializePerformanceApiINTEL_VkResult_return;
+}
+static void entry_vkUninitializePerformanceApiINTEL(VkDevice device) {
+    AEMU_SCOPED_TRACE("vkUninitializePerformanceApiINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkUninitializePerformanceApiINTEL(device, true /* do lock */);
+}
+static void dynCheck_entry_vkUninitializePerformanceApiINTEL(VkDevice device) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_INTEL_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkUninitializePerformanceApiINTEL",
+                                         "VK_INTEL_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkUninitializePerformanceApiINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkUninitializePerformanceApiINTEL(device, true /* do lock */);
+}
+static VkResult entry_vkCmdSetPerformanceMarkerINTEL(
+    VkCommandBuffer commandBuffer, const VkPerformanceMarkerInfoINTEL* pMarkerInfo) {
+    AEMU_SCOPED_TRACE("vkCmdSetPerformanceMarkerINTEL");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    VkResult vkCmdSetPerformanceMarkerINTEL_VkResult_return = (VkResult)0;
+    vkCmdSetPerformanceMarkerINTEL_VkResult_return =
+        vkEnc->vkCmdSetPerformanceMarkerINTEL(commandBuffer, pMarkerInfo, true /* do lock */);
+    return vkCmdSetPerformanceMarkerINTEL_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCmdSetPerformanceMarkerINTEL(
+    VkCommandBuffer commandBuffer, const VkPerformanceMarkerInfoINTEL* pMarkerInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_INTEL_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetPerformanceMarkerINTEL",
+                                         "VK_INTEL_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetPerformanceMarkerINTEL");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    VkResult vkCmdSetPerformanceMarkerINTEL_VkResult_return = (VkResult)0;
+    vkCmdSetPerformanceMarkerINTEL_VkResult_return =
+        vkEnc->vkCmdSetPerformanceMarkerINTEL(commandBuffer, pMarkerInfo, true /* do lock */);
+    return vkCmdSetPerformanceMarkerINTEL_VkResult_return;
+}
+static VkResult entry_vkCmdSetPerformanceStreamMarkerINTEL(
+    VkCommandBuffer commandBuffer, const VkPerformanceStreamMarkerInfoINTEL* pMarkerInfo) {
+    AEMU_SCOPED_TRACE("vkCmdSetPerformanceStreamMarkerINTEL");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    VkResult vkCmdSetPerformanceStreamMarkerINTEL_VkResult_return = (VkResult)0;
+    vkCmdSetPerformanceStreamMarkerINTEL_VkResult_return =
+        vkEnc->vkCmdSetPerformanceStreamMarkerINTEL(commandBuffer, pMarkerInfo, true /* do lock */);
+    return vkCmdSetPerformanceStreamMarkerINTEL_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCmdSetPerformanceStreamMarkerINTEL(
+    VkCommandBuffer commandBuffer, const VkPerformanceStreamMarkerInfoINTEL* pMarkerInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_INTEL_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetPerformanceStreamMarkerINTEL",
+                                         "VK_INTEL_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetPerformanceStreamMarkerINTEL");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    VkResult vkCmdSetPerformanceStreamMarkerINTEL_VkResult_return = (VkResult)0;
+    vkCmdSetPerformanceStreamMarkerINTEL_VkResult_return =
+        vkEnc->vkCmdSetPerformanceStreamMarkerINTEL(commandBuffer, pMarkerInfo, true /* do lock */);
+    return vkCmdSetPerformanceStreamMarkerINTEL_VkResult_return;
+}
+static VkResult entry_vkCmdSetPerformanceOverrideINTEL(
+    VkCommandBuffer commandBuffer, const VkPerformanceOverrideInfoINTEL* pOverrideInfo) {
+    AEMU_SCOPED_TRACE("vkCmdSetPerformanceOverrideINTEL");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    VkResult vkCmdSetPerformanceOverrideINTEL_VkResult_return = (VkResult)0;
+    vkCmdSetPerformanceOverrideINTEL_VkResult_return =
+        vkEnc->vkCmdSetPerformanceOverrideINTEL(commandBuffer, pOverrideInfo, true /* do lock */);
+    return vkCmdSetPerformanceOverrideINTEL_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCmdSetPerformanceOverrideINTEL(
+    VkCommandBuffer commandBuffer, const VkPerformanceOverrideInfoINTEL* pOverrideInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_INTEL_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetPerformanceOverrideINTEL",
+                                         "VK_INTEL_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetPerformanceOverrideINTEL");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    VkResult vkCmdSetPerformanceOverrideINTEL_VkResult_return = (VkResult)0;
+    vkCmdSetPerformanceOverrideINTEL_VkResult_return =
+        vkEnc->vkCmdSetPerformanceOverrideINTEL(commandBuffer, pOverrideInfo, true /* do lock */);
+    return vkCmdSetPerformanceOverrideINTEL_VkResult_return;
+}
+static VkResult entry_vkAcquirePerformanceConfigurationINTEL(
+    VkDevice device, const VkPerformanceConfigurationAcquireInfoINTEL* pAcquireInfo,
+    VkPerformanceConfigurationINTEL* pConfiguration) {
+    AEMU_SCOPED_TRACE("vkAcquirePerformanceConfigurationINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquirePerformanceConfigurationINTEL_VkResult_return = (VkResult)0;
+    vkAcquirePerformanceConfigurationINTEL_VkResult_return =
+        vkEnc->vkAcquirePerformanceConfigurationINTEL(device, pAcquireInfo, pConfiguration,
+                                                      true /* do lock */);
+    return vkAcquirePerformanceConfigurationINTEL_VkResult_return;
+}
+static VkResult dynCheck_entry_vkAcquirePerformanceConfigurationINTEL(
+    VkDevice device, const VkPerformanceConfigurationAcquireInfoINTEL* pAcquireInfo,
+    VkPerformanceConfigurationINTEL* pConfiguration) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_INTEL_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkAcquirePerformanceConfigurationINTEL",
+                                         "VK_INTEL_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkAcquirePerformanceConfigurationINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquirePerformanceConfigurationINTEL_VkResult_return = (VkResult)0;
+    vkAcquirePerformanceConfigurationINTEL_VkResult_return =
+        vkEnc->vkAcquirePerformanceConfigurationINTEL(device, pAcquireInfo, pConfiguration,
+                                                      true /* do lock */);
+    return vkAcquirePerformanceConfigurationINTEL_VkResult_return;
+}
+static VkResult entry_vkReleasePerformanceConfigurationINTEL(
+    VkDevice device, VkPerformanceConfigurationINTEL configuration) {
+    AEMU_SCOPED_TRACE("vkReleasePerformanceConfigurationINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkReleasePerformanceConfigurationINTEL_VkResult_return = (VkResult)0;
+    vkReleasePerformanceConfigurationINTEL_VkResult_return =
+        vkEnc->vkReleasePerformanceConfigurationINTEL(device, configuration, true /* do lock */);
+    return vkReleasePerformanceConfigurationINTEL_VkResult_return;
+}
+static VkResult dynCheck_entry_vkReleasePerformanceConfigurationINTEL(
+    VkDevice device, VkPerformanceConfigurationINTEL configuration) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_INTEL_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkReleasePerformanceConfigurationINTEL",
+                                         "VK_INTEL_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkReleasePerformanceConfigurationINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkReleasePerformanceConfigurationINTEL_VkResult_return = (VkResult)0;
+    vkReleasePerformanceConfigurationINTEL_VkResult_return =
+        vkEnc->vkReleasePerformanceConfigurationINTEL(device, configuration, true /* do lock */);
+    return vkReleasePerformanceConfigurationINTEL_VkResult_return;
+}
+static VkResult entry_vkQueueSetPerformanceConfigurationINTEL(
+    VkQueue queue, VkPerformanceConfigurationINTEL configuration) {
+    AEMU_SCOPED_TRACE("vkQueueSetPerformanceConfigurationINTEL");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    VkResult vkQueueSetPerformanceConfigurationINTEL_VkResult_return = (VkResult)0;
+    vkQueueSetPerformanceConfigurationINTEL_VkResult_return =
+        vkEnc->vkQueueSetPerformanceConfigurationINTEL(queue, configuration, true /* do lock */);
+    return vkQueueSetPerformanceConfigurationINTEL_VkResult_return;
+}
+static VkResult entry_vkGetPerformanceParameterINTEL(VkDevice device,
+                                                     VkPerformanceParameterTypeINTEL parameter,
+                                                     VkPerformanceValueINTEL* pValue) {
+    AEMU_SCOPED_TRACE("vkGetPerformanceParameterINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPerformanceParameterINTEL_VkResult_return = (VkResult)0;
+    vkGetPerformanceParameterINTEL_VkResult_return =
+        vkEnc->vkGetPerformanceParameterINTEL(device, parameter, pValue, true /* do lock */);
+    return vkGetPerformanceParameterINTEL_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetPerformanceParameterINTEL(
+    VkDevice device, VkPerformanceParameterTypeINTEL parameter, VkPerformanceValueINTEL* pValue) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_INTEL_performance_query")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetPerformanceParameterINTEL",
+                                         "VK_INTEL_performance_query");
+    }
+    AEMU_SCOPED_TRACE("vkGetPerformanceParameterINTEL");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPerformanceParameterINTEL_VkResult_return = (VkResult)0;
+    vkGetPerformanceParameterINTEL_VkResult_return =
+        vkEnc->vkGetPerformanceParameterINTEL(device, parameter, pValue, true /* do lock */);
+    return vkGetPerformanceParameterINTEL_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_pci_bus_info
+#endif
+#ifdef VK_AMD_display_native_hdr
+static void entry_vkSetLocalDimmingAMD(VkDevice device, VkSwapchainKHR swapChain,
+                                       VkBool32 localDimmingEnable) {
+    AEMU_SCOPED_TRACE("vkSetLocalDimmingAMD");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkSetLocalDimmingAMD(device, swapChain, localDimmingEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkSetLocalDimmingAMD(VkDevice device, VkSwapchainKHR swapChain,
+                                                VkBool32 localDimmingEnable) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_AMD_display_native_hdr")) {
+        sOnInvalidDynamicallyCheckedCall("vkSetLocalDimmingAMD", "VK_AMD_display_native_hdr");
+    }
+    AEMU_SCOPED_TRACE("vkSetLocalDimmingAMD");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkSetLocalDimmingAMD(device, swapChain, localDimmingEnable, true /* do lock */);
+}
+#endif
+#ifdef VK_FUCHSIA_imagepipe_surface
+static VkResult entry_vkCreateImagePipeSurfaceFUCHSIA(
+    VkInstance instance, const VkImagePipeSurfaceCreateInfoFUCHSIA* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateImagePipeSurfaceFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateImagePipeSurfaceFUCHSIA_VkResult_return = (VkResult)0;
+    vkCreateImagePipeSurfaceFUCHSIA_VkResult_return = vkEnc->vkCreateImagePipeSurfaceFUCHSIA(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateImagePipeSurfaceFUCHSIA_VkResult_return;
+}
+#endif
 #ifdef VK_EXT_metal_surface
+static VkResult entry_vkCreateMetalSurfaceEXT(VkInstance instance,
+                                              const VkMetalSurfaceCreateInfoEXT* pCreateInfo,
+                                              const VkAllocationCallbacks* pAllocator,
+                                              VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateMetalSurfaceEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateMetalSurfaceEXT_VkResult_return = (VkResult)0;
+    vkCreateMetalSurfaceEXT_VkResult_return = vkEnc->vkCreateMetalSurfaceEXT(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateMetalSurfaceEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_fragment_density_map
+#endif
+#ifdef VK_EXT_scalar_block_layout
+#endif
+#ifdef VK_GOOGLE_hlsl_functionality1
+#endif
+#ifdef VK_GOOGLE_decorate_string
 #endif
 #ifdef VK_EXT_subgroup_size_control
 #endif
+#ifdef VK_AMD_shader_core_properties2
+#endif
+#ifdef VK_AMD_device_coherent_memory
+#endif
+#ifdef VK_EXT_shader_image_atomic_int64
+#endif
+#ifdef VK_EXT_memory_budget
+#endif
+#ifdef VK_EXT_memory_priority
+#endif
+#ifdef VK_NV_dedicated_allocation_image_aliasing
+#endif
+#ifdef VK_EXT_buffer_device_address
+static VkDeviceAddress entry_vkGetBufferDeviceAddressEXT(VkDevice device,
+                                                         const VkBufferDeviceAddressInfo* pInfo) {
+    AEMU_SCOPED_TRACE("vkGetBufferDeviceAddressEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkDeviceAddress vkGetBufferDeviceAddressEXT_VkDeviceAddress_return = (VkDeviceAddress)0;
+    vkGetBufferDeviceAddressEXT_VkDeviceAddress_return =
+        vkEnc->vkGetBufferDeviceAddressEXT(device, pInfo, true /* do lock */);
+    return vkGetBufferDeviceAddressEXT_VkDeviceAddress_return;
+}
+static VkDeviceAddress dynCheck_entry_vkGetBufferDeviceAddressEXT(
+    VkDevice device, const VkBufferDeviceAddressInfo* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_buffer_device_address")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetBufferDeviceAddressEXT",
+                                         "VK_EXT_buffer_device_address");
+    }
+    AEMU_SCOPED_TRACE("vkGetBufferDeviceAddressEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkDeviceAddress vkGetBufferDeviceAddressEXT_VkDeviceAddress_return = (VkDeviceAddress)0;
+    vkGetBufferDeviceAddressEXT_VkDeviceAddress_return =
+        vkEnc->vkGetBufferDeviceAddressEXT(device, pInfo, true /* do lock */);
+    return vkGetBufferDeviceAddressEXT_VkDeviceAddress_return;
+}
+#endif
+#ifdef VK_EXT_tooling_info
+static VkResult entry_vkGetPhysicalDeviceToolPropertiesEXT(
+    VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
+    VkPhysicalDeviceToolProperties* pToolProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceToolPropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceToolPropertiesEXT(physicalDevice, pToolCount, pToolProperties,
+                                                    true /* do lock */);
+    return vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_separate_stencil_usage
+#endif
+#ifdef VK_EXT_validation_features
+#endif
+#ifdef VK_NV_cooperative_matrix
+static VkResult entry_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
+    VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount,
+    VkCooperativeMatrixPropertiesNV* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceCooperativeMatrixPropertiesNV_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceCooperativeMatrixPropertiesNV_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(physicalDevice, pPropertyCount,
+                                                                pProperties, true /* do lock */);
+    return vkGetPhysicalDeviceCooperativeMatrixPropertiesNV_VkResult_return;
+}
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+static VkResult entry_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV(
+    VkPhysicalDevice physicalDevice, uint32_t* pCombinationCount,
+    VkFramebufferMixedSamplesCombinationNV* pCombinations) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV_VkResult_return =
+        (VkResult)0;
+    vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV(
+            physicalDevice, pCombinationCount, pCombinations, true /* do lock */);
+    return vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_fragment_shader_interlock
+#endif
+#ifdef VK_EXT_ycbcr_image_arrays
+#endif
 #ifdef VK_EXT_provoking_vertex
+#endif
+#ifdef VK_EXT_full_screen_exclusive
+static VkResult entry_vkGetPhysicalDeviceSurfacePresentModes2EXT(
+    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+    uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfacePresentModes2EXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceSurfacePresentModes2EXT_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceSurfacePresentModes2EXT_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceSurfacePresentModes2EXT(
+            physicalDevice, pSurfaceInfo, pPresentModeCount, pPresentModes, true /* do lock */);
+    return vkGetPhysicalDeviceSurfacePresentModes2EXT_VkResult_return;
+}
+static VkResult entry_vkAcquireFullScreenExclusiveModeEXT(VkDevice device,
+                                                          VkSwapchainKHR swapchain) {
+    AEMU_SCOPED_TRACE("vkAcquireFullScreenExclusiveModeEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireFullScreenExclusiveModeEXT_VkResult_return = (VkResult)0;
+    vkAcquireFullScreenExclusiveModeEXT_VkResult_return =
+        vkEnc->vkAcquireFullScreenExclusiveModeEXT(device, swapchain, true /* do lock */);
+    return vkAcquireFullScreenExclusiveModeEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkAcquireFullScreenExclusiveModeEXT(VkDevice device,
+                                                                   VkSwapchainKHR swapchain) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_full_screen_exclusive")) {
+        sOnInvalidDynamicallyCheckedCall("vkAcquireFullScreenExclusiveModeEXT",
+                                         "VK_EXT_full_screen_exclusive");
+    }
+    AEMU_SCOPED_TRACE("vkAcquireFullScreenExclusiveModeEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireFullScreenExclusiveModeEXT_VkResult_return = (VkResult)0;
+    vkAcquireFullScreenExclusiveModeEXT_VkResult_return =
+        vkEnc->vkAcquireFullScreenExclusiveModeEXT(device, swapchain, true /* do lock */);
+    return vkAcquireFullScreenExclusiveModeEXT_VkResult_return;
+}
+static VkResult entry_vkReleaseFullScreenExclusiveModeEXT(VkDevice device,
+                                                          VkSwapchainKHR swapchain) {
+    AEMU_SCOPED_TRACE("vkReleaseFullScreenExclusiveModeEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkReleaseFullScreenExclusiveModeEXT_VkResult_return = (VkResult)0;
+    vkReleaseFullScreenExclusiveModeEXT_VkResult_return =
+        vkEnc->vkReleaseFullScreenExclusiveModeEXT(device, swapchain, true /* do lock */);
+    return vkReleaseFullScreenExclusiveModeEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkReleaseFullScreenExclusiveModeEXT(VkDevice device,
+                                                                   VkSwapchainKHR swapchain) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_full_screen_exclusive")) {
+        sOnInvalidDynamicallyCheckedCall("vkReleaseFullScreenExclusiveModeEXT",
+                                         "VK_EXT_full_screen_exclusive");
+    }
+    AEMU_SCOPED_TRACE("vkReleaseFullScreenExclusiveModeEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkReleaseFullScreenExclusiveModeEXT_VkResult_return = (VkResult)0;
+    vkReleaseFullScreenExclusiveModeEXT_VkResult_return =
+        vkEnc->vkReleaseFullScreenExclusiveModeEXT(device, swapchain, true /* do lock */);
+    return vkReleaseFullScreenExclusiveModeEXT_VkResult_return;
+}
+static VkResult entry_vkGetDeviceGroupSurfacePresentModes2EXT(
+    VkDevice device, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+    VkDeviceGroupPresentModeFlagsKHR* pModes) {
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModes2EXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceGroupSurfacePresentModes2EXT_VkResult_return = (VkResult)0;
+    vkGetDeviceGroupSurfacePresentModes2EXT_VkResult_return =
+        vkEnc->vkGetDeviceGroupSurfacePresentModes2EXT(device, pSurfaceInfo, pModes,
+                                                       true /* do lock */);
+    return vkGetDeviceGroupSurfacePresentModes2EXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetDeviceGroupSurfacePresentModes2EXT(
+    VkDevice device, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
+    VkDeviceGroupPresentModeFlagsKHR* pModes) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_full_screen_exclusive")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupSurfacePresentModes2EXT",
+                                         "VK_EXT_full_screen_exclusive");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModes2EXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceGroupSurfacePresentModes2EXT_VkResult_return = (VkResult)0;
+    vkGetDeviceGroupSurfacePresentModes2EXT_VkResult_return =
+        vkEnc->vkGetDeviceGroupSurfacePresentModes2EXT(device, pSurfaceInfo, pModes,
+                                                       true /* do lock */);
+    return vkGetDeviceGroupSurfacePresentModes2EXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_headless_surface
+static VkResult entry_vkCreateHeadlessSurfaceEXT(VkInstance instance,
+                                                 const VkHeadlessSurfaceCreateInfoEXT* pCreateInfo,
+                                                 const VkAllocationCallbacks* pAllocator,
+                                                 VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateHeadlessSurfaceEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateHeadlessSurfaceEXT_VkResult_return = (VkResult)0;
+    vkCreateHeadlessSurfaceEXT_VkResult_return = vkEnc->vkCreateHeadlessSurfaceEXT(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateHeadlessSurfaceEXT_VkResult_return;
+}
 #endif
 #ifdef VK_EXT_line_rasterization
 static void entry_vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
@@ -3265,15 +7476,1533 @@ static void dynCheck_entry_vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer,
                                   true /* do lock */);
 }
 #endif
+#ifdef VK_EXT_shader_atomic_float
+#endif
+#ifdef VK_EXT_host_query_reset
+static void entry_vkResetQueryPoolEXT(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery,
+                                      uint32_t queryCount) {
+    AEMU_SCOPED_TRACE("vkResetQueryPoolEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkResetQueryPoolEXT(device, queryPool, firstQuery, queryCount, true /* do lock */);
+}
+static void dynCheck_entry_vkResetQueryPoolEXT(VkDevice device, VkQueryPool queryPool,
+                                               uint32_t firstQuery, uint32_t queryCount) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_host_query_reset")) {
+        sOnInvalidDynamicallyCheckedCall("vkResetQueryPoolEXT", "VK_EXT_host_query_reset");
+    }
+    AEMU_SCOPED_TRACE("vkResetQueryPoolEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkResetQueryPoolEXT(device, queryPool, firstQuery, queryCount, true /* do lock */);
+}
+#endif
 #ifdef VK_EXT_index_type_uint8
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+static void entry_vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
+    AEMU_SCOPED_TRACE("vkCmdSetCullModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCullModeEXT(commandBuffer, cullMode, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer,
+                                               VkCullModeFlags cullMode) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetCullModeEXT", "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetCullModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCullModeEXT(commandBuffer, cullMode, true /* do lock */);
+}
+static void entry_vkCmdSetFrontFaceEXT(VkCommandBuffer commandBuffer, VkFrontFace frontFace) {
+    AEMU_SCOPED_TRACE("vkCmdSetFrontFaceEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetFrontFaceEXT(commandBuffer, frontFace, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetFrontFaceEXT(VkCommandBuffer commandBuffer,
+                                                VkFrontFace frontFace) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetFrontFaceEXT", "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetFrontFaceEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetFrontFaceEXT(commandBuffer, frontFace, true /* do lock */);
+}
+static void entry_vkCmdSetPrimitiveTopologyEXT(VkCommandBuffer commandBuffer,
+                                               VkPrimitiveTopology primitiveTopology) {
+    AEMU_SCOPED_TRACE("vkCmdSetPrimitiveTopologyEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPrimitiveTopologyEXT(commandBuffer, primitiveTopology, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetPrimitiveTopologyEXT(VkCommandBuffer commandBuffer,
+                                                        VkPrimitiveTopology primitiveTopology) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetPrimitiveTopologyEXT",
+                                         "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetPrimitiveTopologyEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPrimitiveTopologyEXT(commandBuffer, primitiveTopology, true /* do lock */);
+}
+static void entry_vkCmdSetViewportWithCountEXT(VkCommandBuffer commandBuffer,
+                                               uint32_t viewportCount,
+                                               const VkViewport* pViewports) {
+    AEMU_SCOPED_TRACE("vkCmdSetViewportWithCountEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportWithCountEXT(commandBuffer, viewportCount, pViewports,
+                                        true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetViewportWithCountEXT(VkCommandBuffer commandBuffer,
+                                                        uint32_t viewportCount,
+                                                        const VkViewport* pViewports) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetViewportWithCountEXT",
+                                         "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetViewportWithCountEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportWithCountEXT(commandBuffer, viewportCount, pViewports,
+                                        true /* do lock */);
+}
+static void entry_vkCmdSetScissorWithCountEXT(VkCommandBuffer commandBuffer, uint32_t scissorCount,
+                                              const VkRect2D* pScissors) {
+    AEMU_SCOPED_TRACE("vkCmdSetScissorWithCountEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetScissorWithCountEXT(commandBuffer, scissorCount, pScissors, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetScissorWithCountEXT(VkCommandBuffer commandBuffer,
+                                                       uint32_t scissorCount,
+                                                       const VkRect2D* pScissors) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetScissorWithCountEXT",
+                                         "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetScissorWithCountEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetScissorWithCountEXT(commandBuffer, scissorCount, pScissors, true /* do lock */);
+}
+static void entry_vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32_t firstBinding,
+                                             uint32_t bindingCount, const VkBuffer* pBuffers,
+                                             const VkDeviceSize* pOffsets,
+                                             const VkDeviceSize* pSizes,
+                                             const VkDeviceSize* pStrides) {
+    AEMU_SCOPED_TRACE("vkCmdBindVertexBuffers2EXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindVertexBuffers2EXT(commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets,
+                                      pSizes, pStrides, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer,
+                                                      uint32_t firstBinding, uint32_t bindingCount,
+                                                      const VkBuffer* pBuffers,
+                                                      const VkDeviceSize* pOffsets,
+                                                      const VkDeviceSize* pSizes,
+                                                      const VkDeviceSize* pStrides) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBindVertexBuffers2EXT",
+                                         "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBindVertexBuffers2EXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindVertexBuffers2EXT(commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets,
+                                      pSizes, pStrides, true /* do lock */);
+}
+static void entry_vkCmdSetDepthTestEnableEXT(VkCommandBuffer commandBuffer,
+                                             VkBool32 depthTestEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetDepthTestEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthTestEnableEXT(commandBuffer, depthTestEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDepthTestEnableEXT(VkCommandBuffer commandBuffer,
+                                                      VkBool32 depthTestEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDepthTestEnableEXT",
+                                         "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDepthTestEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthTestEnableEXT(commandBuffer, depthTestEnable, true /* do lock */);
+}
+static void entry_vkCmdSetDepthWriteEnableEXT(VkCommandBuffer commandBuffer,
+                                              VkBool32 depthWriteEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetDepthWriteEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthWriteEnableEXT(commandBuffer, depthWriteEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDepthWriteEnableEXT(VkCommandBuffer commandBuffer,
+                                                       VkBool32 depthWriteEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDepthWriteEnableEXT",
+                                         "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDepthWriteEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthWriteEnableEXT(commandBuffer, depthWriteEnable, true /* do lock */);
+}
+static void entry_vkCmdSetDepthCompareOpEXT(VkCommandBuffer commandBuffer,
+                                            VkCompareOp depthCompareOp) {
+    AEMU_SCOPED_TRACE("vkCmdSetDepthCompareOpEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthCompareOpEXT(commandBuffer, depthCompareOp, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDepthCompareOpEXT(VkCommandBuffer commandBuffer,
+                                                     VkCompareOp depthCompareOp) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDepthCompareOpEXT",
+                                         "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDepthCompareOpEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthCompareOpEXT(commandBuffer, depthCompareOp, true /* do lock */);
+}
+static void entry_vkCmdSetDepthBoundsTestEnableEXT(VkCommandBuffer commandBuffer,
+                                                   VkBool32 depthBoundsTestEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetDepthBoundsTestEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthBoundsTestEnableEXT(commandBuffer, depthBoundsTestEnable,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDepthBoundsTestEnableEXT(VkCommandBuffer commandBuffer,
+                                                            VkBool32 depthBoundsTestEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDepthBoundsTestEnableEXT",
+                                         "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDepthBoundsTestEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthBoundsTestEnableEXT(commandBuffer, depthBoundsTestEnable,
+                                            true /* do lock */);
+}
+static void entry_vkCmdSetStencilTestEnableEXT(VkCommandBuffer commandBuffer,
+                                               VkBool32 stencilTestEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetStencilTestEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetStencilTestEnableEXT(commandBuffer, stencilTestEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetStencilTestEnableEXT(VkCommandBuffer commandBuffer,
+                                                        VkBool32 stencilTestEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetStencilTestEnableEXT",
+                                         "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetStencilTestEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetStencilTestEnableEXT(commandBuffer, stencilTestEnable, true /* do lock */);
+}
+static void entry_vkCmdSetStencilOpEXT(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+                                       VkStencilOp failOp, VkStencilOp passOp,
+                                       VkStencilOp depthFailOp, VkCompareOp compareOp) {
+    AEMU_SCOPED_TRACE("vkCmdSetStencilOpEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetStencilOpEXT(commandBuffer, faceMask, failOp, passOp, depthFailOp, compareOp,
+                                true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetStencilOpEXT(VkCommandBuffer commandBuffer,
+                                                VkStencilFaceFlags faceMask, VkStencilOp failOp,
+                                                VkStencilOp passOp, VkStencilOp depthFailOp,
+                                                VkCompareOp compareOp) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetStencilOpEXT", "VK_EXT_extended_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetStencilOpEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetStencilOpEXT(commandBuffer, faceMask, failOp, passOp, depthFailOp, compareOp,
+                                true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_shader_atomic_float2
+#endif
+#ifdef VK_EXT_surface_maintenance1
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+static VkResult entry_vkReleaseSwapchainImagesEXT(
+    VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo) {
+    AEMU_SCOPED_TRACE("vkReleaseSwapchainImagesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkReleaseSwapchainImagesEXT_VkResult_return = (VkResult)0;
+    vkReleaseSwapchainImagesEXT_VkResult_return =
+        vkEnc->vkReleaseSwapchainImagesEXT(device, pReleaseInfo, true /* do lock */);
+    return vkReleaseSwapchainImagesEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkReleaseSwapchainImagesEXT(
+    VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_swapchain_maintenance1")) {
+        sOnInvalidDynamicallyCheckedCall("vkReleaseSwapchainImagesEXT",
+                                         "VK_EXT_swapchain_maintenance1");
+    }
+    AEMU_SCOPED_TRACE("vkReleaseSwapchainImagesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkReleaseSwapchainImagesEXT_VkResult_return = (VkResult)0;
+    vkReleaseSwapchainImagesEXT_VkResult_return =
+        vkEnc->vkReleaseSwapchainImagesEXT(device, pReleaseInfo, true /* do lock */);
+    return vkReleaseSwapchainImagesEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_shader_demote_to_helper_invocation
+#endif
+#ifdef VK_NV_device_generated_commands
+static void entry_vkGetGeneratedCommandsMemoryRequirementsNV(
+    VkDevice device, const VkGeneratedCommandsMemoryRequirementsInfoNV* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    AEMU_SCOPED_TRACE("vkGetGeneratedCommandsMemoryRequirementsNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetGeneratedCommandsMemoryRequirementsNV(device, pInfo, pMemoryRequirements,
+                                                      true /* do lock */);
+}
+static void dynCheck_entry_vkGetGeneratedCommandsMemoryRequirementsNV(
+    VkDevice device, const VkGeneratedCommandsMemoryRequirementsInfoNV* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_device_generated_commands")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetGeneratedCommandsMemoryRequirementsNV",
+                                         "VK_NV_device_generated_commands");
+    }
+    AEMU_SCOPED_TRACE("vkGetGeneratedCommandsMemoryRequirementsNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetGeneratedCommandsMemoryRequirementsNV(device, pInfo, pMemoryRequirements,
+                                                      true /* do lock */);
+}
+static void entry_vkCmdPreprocessGeneratedCommandsNV(
+    VkCommandBuffer commandBuffer, const VkGeneratedCommandsInfoNV* pGeneratedCommandsInfo) {
+    AEMU_SCOPED_TRACE("vkCmdPreprocessGeneratedCommandsNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdPreprocessGeneratedCommandsNV(commandBuffer, pGeneratedCommandsInfo,
+                                              true /* do lock */);
+}
+static void dynCheck_entry_vkCmdPreprocessGeneratedCommandsNV(
+    VkCommandBuffer commandBuffer, const VkGeneratedCommandsInfoNV* pGeneratedCommandsInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_device_generated_commands")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdPreprocessGeneratedCommandsNV",
+                                         "VK_NV_device_generated_commands");
+    }
+    AEMU_SCOPED_TRACE("vkCmdPreprocessGeneratedCommandsNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdPreprocessGeneratedCommandsNV(commandBuffer, pGeneratedCommandsInfo,
+                                              true /* do lock */);
+}
+static void entry_vkCmdExecuteGeneratedCommandsNV(
+    VkCommandBuffer commandBuffer, VkBool32 isPreprocessed,
+    const VkGeneratedCommandsInfoNV* pGeneratedCommandsInfo) {
+    AEMU_SCOPED_TRACE("vkCmdExecuteGeneratedCommandsNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdExecuteGeneratedCommandsNV(commandBuffer, isPreprocessed, pGeneratedCommandsInfo,
+                                           true /* do lock */);
+}
+static void dynCheck_entry_vkCmdExecuteGeneratedCommandsNV(
+    VkCommandBuffer commandBuffer, VkBool32 isPreprocessed,
+    const VkGeneratedCommandsInfoNV* pGeneratedCommandsInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_device_generated_commands")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdExecuteGeneratedCommandsNV",
+                                         "VK_NV_device_generated_commands");
+    }
+    AEMU_SCOPED_TRACE("vkCmdExecuteGeneratedCommandsNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdExecuteGeneratedCommandsNV(commandBuffer, isPreprocessed, pGeneratedCommandsInfo,
+                                           true /* do lock */);
+}
+static void entry_vkCmdBindPipelineShaderGroupNV(VkCommandBuffer commandBuffer,
+                                                 VkPipelineBindPoint pipelineBindPoint,
+                                                 VkPipeline pipeline, uint32_t groupIndex) {
+    AEMU_SCOPED_TRACE("vkCmdBindPipelineShaderGroupNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindPipelineShaderGroupNV(commandBuffer, pipelineBindPoint, pipeline, groupIndex,
+                                          true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBindPipelineShaderGroupNV(VkCommandBuffer commandBuffer,
+                                                          VkPipelineBindPoint pipelineBindPoint,
+                                                          VkPipeline pipeline,
+                                                          uint32_t groupIndex) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_device_generated_commands")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBindPipelineShaderGroupNV",
+                                         "VK_NV_device_generated_commands");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBindPipelineShaderGroupNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindPipelineShaderGroupNV(commandBuffer, pipelineBindPoint, pipeline, groupIndex,
+                                          true /* do lock */);
+}
+static VkResult entry_vkCreateIndirectCommandsLayoutNV(
+    VkDevice device, const VkIndirectCommandsLayoutCreateInfoNV* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkIndirectCommandsLayoutNV* pIndirectCommandsLayout) {
+    AEMU_SCOPED_TRACE("vkCreateIndirectCommandsLayoutNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateIndirectCommandsLayoutNV_VkResult_return = (VkResult)0;
+    vkCreateIndirectCommandsLayoutNV_VkResult_return = vkEnc->vkCreateIndirectCommandsLayoutNV(
+        device, pCreateInfo, pAllocator, pIndirectCommandsLayout, true /* do lock */);
+    return vkCreateIndirectCommandsLayoutNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateIndirectCommandsLayoutNV(
+    VkDevice device, const VkIndirectCommandsLayoutCreateInfoNV* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkIndirectCommandsLayoutNV* pIndirectCommandsLayout) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_device_generated_commands")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateIndirectCommandsLayoutNV",
+                                         "VK_NV_device_generated_commands");
+    }
+    AEMU_SCOPED_TRACE("vkCreateIndirectCommandsLayoutNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateIndirectCommandsLayoutNV_VkResult_return = (VkResult)0;
+    vkCreateIndirectCommandsLayoutNV_VkResult_return = vkEnc->vkCreateIndirectCommandsLayoutNV(
+        device, pCreateInfo, pAllocator, pIndirectCommandsLayout, true /* do lock */);
+    return vkCreateIndirectCommandsLayoutNV_VkResult_return;
+}
+static void entry_vkDestroyIndirectCommandsLayoutNV(
+    VkDevice device, VkIndirectCommandsLayoutNV indirectCommandsLayout,
+    const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyIndirectCommandsLayoutNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyIndirectCommandsLayoutNV(device, indirectCommandsLayout, pAllocator,
+                                             true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyIndirectCommandsLayoutNV(
+    VkDevice device, VkIndirectCommandsLayoutNV indirectCommandsLayout,
+    const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_device_generated_commands")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyIndirectCommandsLayoutNV",
+                                         "VK_NV_device_generated_commands");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyIndirectCommandsLayoutNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyIndirectCommandsLayoutNV(device, indirectCommandsLayout, pAllocator,
+                                             true /* do lock */);
+}
+#endif
+#ifdef VK_NV_inherited_viewport_scissor
+#endif
+#ifdef VK_EXT_texel_buffer_alignment
+#endif
+#ifdef VK_QCOM_render_pass_transform
 #endif
 #ifdef VK_EXT_device_memory_report
 #endif
+#ifdef VK_EXT_acquire_drm_display
+static VkResult entry_vkAcquireDrmDisplayEXT(VkPhysicalDevice physicalDevice, int32_t drmFd,
+                                             VkDisplayKHR display) {
+    AEMU_SCOPED_TRACE("vkAcquireDrmDisplayEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireDrmDisplayEXT_VkResult_return = (VkResult)0;
+    vkAcquireDrmDisplayEXT_VkResult_return =
+        vkEnc->vkAcquireDrmDisplayEXT(physicalDevice, drmFd, display, true /* do lock */);
+    return vkAcquireDrmDisplayEXT_VkResult_return;
+}
+static VkResult entry_vkGetDrmDisplayEXT(VkPhysicalDevice physicalDevice, int32_t drmFd,
+                                         uint32_t connectorId, VkDisplayKHR* display) {
+    AEMU_SCOPED_TRACE("vkGetDrmDisplayEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDrmDisplayEXT_VkResult_return = (VkResult)0;
+    vkGetDrmDisplayEXT_VkResult_return =
+        vkEnc->vkGetDrmDisplayEXT(physicalDevice, drmFd, connectorId, display, true /* do lock */);
+    return vkGetDrmDisplayEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_robustness2
+#endif
 #ifdef VK_EXT_custom_border_color
+#endif
+#ifdef VK_GOOGLE_user_type
+#endif
+#ifdef VK_NV_present_barrier
+#endif
+#ifdef VK_EXT_private_data
+static VkResult entry_vkCreatePrivateDataSlotEXT(VkDevice device,
+                                                 const VkPrivateDataSlotCreateInfo* pCreateInfo,
+                                                 const VkAllocationCallbacks* pAllocator,
+                                                 VkPrivateDataSlot* pPrivateDataSlot) {
+    AEMU_SCOPED_TRACE("vkCreatePrivateDataSlotEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreatePrivateDataSlotEXT_VkResult_return = (VkResult)0;
+    vkCreatePrivateDataSlotEXT_VkResult_return = vkEnc->vkCreatePrivateDataSlotEXT(
+        device, pCreateInfo, pAllocator, pPrivateDataSlot, true /* do lock */);
+    return vkCreatePrivateDataSlotEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreatePrivateDataSlotEXT(
+    VkDevice device, const VkPrivateDataSlotCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkPrivateDataSlot* pPrivateDataSlot) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_private_data")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreatePrivateDataSlotEXT", "VK_EXT_private_data");
+    }
+    AEMU_SCOPED_TRACE("vkCreatePrivateDataSlotEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreatePrivateDataSlotEXT_VkResult_return = (VkResult)0;
+    vkCreatePrivateDataSlotEXT_VkResult_return = vkEnc->vkCreatePrivateDataSlotEXT(
+        device, pCreateInfo, pAllocator, pPrivateDataSlot, true /* do lock */);
+    return vkCreatePrivateDataSlotEXT_VkResult_return;
+}
+static void entry_vkDestroyPrivateDataSlotEXT(VkDevice device, VkPrivateDataSlot privateDataSlot,
+                                              const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyPrivateDataSlotEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyPrivateDataSlotEXT(device, privateDataSlot, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyPrivateDataSlotEXT(VkDevice device,
+                                                       VkPrivateDataSlot privateDataSlot,
+                                                       const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_private_data")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyPrivateDataSlotEXT", "VK_EXT_private_data");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyPrivateDataSlotEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyPrivateDataSlotEXT(device, privateDataSlot, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkSetPrivateDataEXT(VkDevice device, VkObjectType objectType,
+                                          uint64_t objectHandle, VkPrivateDataSlot privateDataSlot,
+                                          uint64_t data) {
+    AEMU_SCOPED_TRACE("vkSetPrivateDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetPrivateDataEXT_VkResult_return = (VkResult)0;
+    vkSetPrivateDataEXT_VkResult_return = vkEnc->vkSetPrivateDataEXT(
+        device, objectType, objectHandle, privateDataSlot, data, true /* do lock */);
+    return vkSetPrivateDataEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkSetPrivateDataEXT(VkDevice device, VkObjectType objectType,
+                                                   uint64_t objectHandle,
+                                                   VkPrivateDataSlot privateDataSlot,
+                                                   uint64_t data) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_private_data")) {
+        sOnInvalidDynamicallyCheckedCall("vkSetPrivateDataEXT", "VK_EXT_private_data");
+    }
+    AEMU_SCOPED_TRACE("vkSetPrivateDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetPrivateDataEXT_VkResult_return = (VkResult)0;
+    vkSetPrivateDataEXT_VkResult_return = vkEnc->vkSetPrivateDataEXT(
+        device, objectType, objectHandle, privateDataSlot, data, true /* do lock */);
+    return vkSetPrivateDataEXT_VkResult_return;
+}
+static void entry_vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType,
+                                      uint64_t objectHandle, VkPrivateDataSlot privateDataSlot,
+                                      uint64_t* pData) {
+    AEMU_SCOPED_TRACE("vkGetPrivateDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetPrivateDataEXT(device, objectType, objectHandle, privateDataSlot, pData,
+                               true /* do lock */);
+}
+static void dynCheck_entry_vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType,
+                                               uint64_t objectHandle,
+                                               VkPrivateDataSlot privateDataSlot, uint64_t* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_private_data")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetPrivateDataEXT", "VK_EXT_private_data");
+    }
+    AEMU_SCOPED_TRACE("vkGetPrivateDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetPrivateDataEXT(device, objectType, objectHandle, privateDataSlot, pData,
+                               true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_NV_device_diagnostics_config
+#endif
+#ifdef VK_QCOM_render_pass_store_ops
+#endif
+#ifdef VK_NV_low_latency
+#endif
+#ifdef VK_EXT_metal_objects
+static void entry_vkExportMetalObjectsEXT(VkDevice device,
+                                          VkExportMetalObjectsInfoEXT* pMetalObjectsInfo) {
+    AEMU_SCOPED_TRACE("vkExportMetalObjectsEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkExportMetalObjectsEXT(device, pMetalObjectsInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkExportMetalObjectsEXT(VkDevice device,
+                                                   VkExportMetalObjectsInfoEXT* pMetalObjectsInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_metal_objects")) {
+        sOnInvalidDynamicallyCheckedCall("vkExportMetalObjectsEXT", "VK_EXT_metal_objects");
+    }
+    AEMU_SCOPED_TRACE("vkExportMetalObjectsEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkExportMetalObjectsEXT(device, pMetalObjectsInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_descriptor_buffer
+static void entry_vkGetDescriptorSetLayoutSizeEXT(VkDevice device, VkDescriptorSetLayout layout,
+                                                  VkDeviceSize* pLayoutSizeInBytes) {
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSizeEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorSetLayoutSizeEXT(device, layout, pLayoutSizeInBytes, true /* do lock */);
+}
+static void dynCheck_entry_vkGetDescriptorSetLayoutSizeEXT(VkDevice device,
+                                                           VkDescriptorSetLayout layout,
+                                                           VkDeviceSize* pLayoutSizeInBytes) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDescriptorSetLayoutSizeEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSizeEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorSetLayoutSizeEXT(device, layout, pLayoutSizeInBytes, true /* do lock */);
+}
+static void entry_vkGetDescriptorSetLayoutBindingOffsetEXT(VkDevice device,
+                                                           VkDescriptorSetLayout layout,
+                                                           uint32_t binding,
+                                                           VkDeviceSize* pOffset) {
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutBindingOffsetEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorSetLayoutBindingOffsetEXT(device, layout, binding, pOffset,
+                                                    true /* do lock */);
+}
+static void dynCheck_entry_vkGetDescriptorSetLayoutBindingOffsetEXT(VkDevice device,
+                                                                    VkDescriptorSetLayout layout,
+                                                                    uint32_t binding,
+                                                                    VkDeviceSize* pOffset) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDescriptorSetLayoutBindingOffsetEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutBindingOffsetEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorSetLayoutBindingOffsetEXT(device, layout, binding, pOffset,
+                                                    true /* do lock */);
+}
+static void entry_vkGetDescriptorEXT(VkDevice device, const VkDescriptorGetInfoEXT* pDescriptorInfo,
+                                     size_t dataSize, void* pDescriptor) {
+    AEMU_SCOPED_TRACE("vkGetDescriptorEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorEXT(device, pDescriptorInfo, dataSize, pDescriptor, true /* do lock */);
+}
+static void dynCheck_entry_vkGetDescriptorEXT(VkDevice device,
+                                              const VkDescriptorGetInfoEXT* pDescriptorInfo,
+                                              size_t dataSize, void* pDescriptor) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDescriptorEXT", "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetDescriptorEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorEXT(device, pDescriptorInfo, dataSize, pDescriptor, true /* do lock */);
+}
+static void entry_vkCmdBindDescriptorBuffersEXT(
+    VkCommandBuffer commandBuffer, uint32_t bufferCount,
+    const VkDescriptorBufferBindingInfoEXT* pBindingInfos) {
+    AEMU_SCOPED_TRACE("vkCmdBindDescriptorBuffersEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindDescriptorBuffersEXT(commandBuffer, bufferCount, pBindingInfos,
+                                         true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBindDescriptorBuffersEXT(
+    VkCommandBuffer commandBuffer, uint32_t bufferCount,
+    const VkDescriptorBufferBindingInfoEXT* pBindingInfos) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBindDescriptorBuffersEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBindDescriptorBuffersEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindDescriptorBuffersEXT(commandBuffer, bufferCount, pBindingInfos,
+                                         true /* do lock */);
+}
+static void entry_vkCmdSetDescriptorBufferOffsetsEXT(VkCommandBuffer commandBuffer,
+                                                     VkPipelineBindPoint pipelineBindPoint,
+                                                     VkPipelineLayout layout, uint32_t firstSet,
+                                                     uint32_t setCount,
+                                                     const uint32_t* pBufferIndices,
+                                                     const VkDeviceSize* pOffsets) {
+    AEMU_SCOPED_TRACE("vkCmdSetDescriptorBufferOffsetsEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDescriptorBufferOffsetsEXT(commandBuffer, pipelineBindPoint, layout, firstSet,
+                                              setCount, pBufferIndices, pOffsets,
+                                              true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDescriptorBufferOffsetsEXT(VkCommandBuffer commandBuffer,
+                                                              VkPipelineBindPoint pipelineBindPoint,
+                                                              VkPipelineLayout layout,
+                                                              uint32_t firstSet, uint32_t setCount,
+                                                              const uint32_t* pBufferIndices,
+                                                              const VkDeviceSize* pOffsets) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDescriptorBufferOffsetsEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDescriptorBufferOffsetsEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDescriptorBufferOffsetsEXT(commandBuffer, pipelineBindPoint, layout, firstSet,
+                                              setCount, pBufferIndices, pOffsets,
+                                              true /* do lock */);
+}
+static void entry_vkCmdBindDescriptorBufferEmbeddedSamplersEXT(
+    VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
+    uint32_t set) {
+    AEMU_SCOPED_TRACE("vkCmdBindDescriptorBufferEmbeddedSamplersEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindDescriptorBufferEmbeddedSamplersEXT(commandBuffer, pipelineBindPoint, layout,
+                                                        set, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBindDescriptorBufferEmbeddedSamplersEXT(
+    VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
+    uint32_t set) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBindDescriptorBufferEmbeddedSamplersEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBindDescriptorBufferEmbeddedSamplersEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindDescriptorBufferEmbeddedSamplersEXT(commandBuffer, pipelineBindPoint, layout,
+                                                        set, true /* do lock */);
+}
+static VkResult entry_vkGetBufferOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkBufferCaptureDescriptorDataInfoEXT* pInfo, void* pData) {
+    AEMU_SCOPED_TRACE("vkGetBufferOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetBufferOpaqueCaptureDescriptorDataEXT(device, pInfo, pData, true /* do lock */);
+    return vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetBufferOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkBufferCaptureDescriptorDataInfoEXT* pInfo, void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetBufferOpaqueCaptureDescriptorDataEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetBufferOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetBufferOpaqueCaptureDescriptorDataEXT(device, pInfo, pData, true /* do lock */);
+    return vkGetBufferOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+static VkResult entry_vkGetImageOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkImageCaptureDescriptorDataInfoEXT* pInfo, void* pData) {
+    AEMU_SCOPED_TRACE("vkGetImageOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetImageOpaqueCaptureDescriptorDataEXT(device, pInfo, pData, true /* do lock */);
+    return vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetImageOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkImageCaptureDescriptorDataInfoEXT* pInfo, void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageOpaqueCaptureDescriptorDataEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetImageOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetImageOpaqueCaptureDescriptorDataEXT(device, pInfo, pData, true /* do lock */);
+    return vkGetImageOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+static VkResult entry_vkGetImageViewOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkImageViewCaptureDescriptorDataInfoEXT* pInfo, void* pData) {
+    AEMU_SCOPED_TRACE("vkGetImageViewOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetImageViewOpaqueCaptureDescriptorDataEXT(device, pInfo, pData,
+                                                            true /* do lock */);
+    return vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetImageViewOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkImageViewCaptureDescriptorDataInfoEXT* pInfo, void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageViewOpaqueCaptureDescriptorDataEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetImageViewOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetImageViewOpaqueCaptureDescriptorDataEXT(device, pInfo, pData,
+                                                            true /* do lock */);
+    return vkGetImageViewOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+static VkResult entry_vkGetSamplerOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkSamplerCaptureDescriptorDataInfoEXT* pInfo, void* pData) {
+    AEMU_SCOPED_TRACE("vkGetSamplerOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetSamplerOpaqueCaptureDescriptorDataEXT(device, pInfo, pData, true /* do lock */);
+    return vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSamplerOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkSamplerCaptureDescriptorDataInfoEXT* pInfo, void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetSamplerOpaqueCaptureDescriptorDataEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetSamplerOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetSamplerOpaqueCaptureDescriptorDataEXT(device, pInfo, pData, true /* do lock */);
+    return vkGetSamplerOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+static VkResult entry_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkAccelerationStructureCaptureDescriptorDataInfoEXT* pInfo,
+    void* pData) {
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT(device, pInfo, pData,
+                                                                        true /* do lock */);
+    return vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT(
+    VkDevice device, const VkAccelerationStructureCaptureDescriptorDataInfoEXT* pInfo,
+    void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT",
+                                         "VK_EXT_descriptor_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return = (VkResult)0;
+    vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return =
+        vkEnc->vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT(device, pInfo, pData,
+                                                                        true /* do lock */);
+    return vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+#endif
+#ifdef VK_AMD_shader_early_and_late_fragment_tests
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+static void entry_vkCmdSetFragmentShadingRateEnumNV(
+    VkCommandBuffer commandBuffer, VkFragmentShadingRateNV shadingRate,
+    const VkFragmentShadingRateCombinerOpKHR combinerOps[2]) {
+    AEMU_SCOPED_TRACE("vkCmdSetFragmentShadingRateEnumNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetFragmentShadingRateEnumNV(commandBuffer, shadingRate, combinerOps,
+                                             true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetFragmentShadingRateEnumNV(
+    VkCommandBuffer commandBuffer, VkFragmentShadingRateNV shadingRate,
+    const VkFragmentShadingRateCombinerOpKHR combinerOps[2]) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_fragment_shading_rate_enums")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetFragmentShadingRateEnumNV",
+                                         "VK_NV_fragment_shading_rate_enums");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetFragmentShadingRateEnumNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetFragmentShadingRateEnumNV(commandBuffer, shadingRate, combinerOps,
+                                             true /* do lock */);
+}
+#endif
+#ifdef VK_NV_ray_tracing_motion_blur
+#endif
+#ifdef VK_EXT_ycbcr_2plane_444_formats
+#endif
+#ifdef VK_EXT_fragment_density_map2
+#endif
+#ifdef VK_QCOM_rotated_copy_commands
 #endif
 #ifdef VK_EXT_image_robustness
 #endif
+#ifdef VK_EXT_image_compression_control
+static void entry_vkGetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
+                                                  const VkImageSubresource2EXT* pSubresource,
+                                                  VkSubresourceLayout2EXT* pLayout) {
+    AEMU_SCOPED_TRACE("vkGetImageSubresourceLayout2EXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetImageSubresourceLayout2EXT(device, image, pSubresource, pLayout,
+                                           true /* do lock */);
+}
+static void dynCheck_entry_vkGetImageSubresourceLayout2EXT(
+    VkDevice device, VkImage image, const VkImageSubresource2EXT* pSubresource,
+    VkSubresourceLayout2EXT* pLayout) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_image_compression_control")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageSubresourceLayout2EXT",
+                                         "VK_EXT_image_compression_control");
+    }
+    AEMU_SCOPED_TRACE("vkGetImageSubresourceLayout2EXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetImageSubresourceLayout2EXT(device, image, pSubresource, pLayout,
+                                           true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_layout
+#endif
+#ifdef VK_EXT_4444_formats
+#endif
+#ifdef VK_EXT_device_fault
+static VkResult entry_vkGetDeviceFaultInfoEXT(VkDevice device, VkDeviceFaultCountsEXT* pFaultCounts,
+                                              VkDeviceFaultInfoEXT* pFaultInfo) {
+    AEMU_SCOPED_TRACE("vkGetDeviceFaultInfoEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceFaultInfoEXT_VkResult_return = (VkResult)0;
+    vkGetDeviceFaultInfoEXT_VkResult_return =
+        vkEnc->vkGetDeviceFaultInfoEXT(device, pFaultCounts, pFaultInfo, true /* do lock */);
+    return vkGetDeviceFaultInfoEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetDeviceFaultInfoEXT(VkDevice device,
+                                                       VkDeviceFaultCountsEXT* pFaultCounts,
+                                                       VkDeviceFaultInfoEXT* pFaultInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_device_fault")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceFaultInfoEXT", "VK_EXT_device_fault");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceFaultInfoEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceFaultInfoEXT_VkResult_return = (VkResult)0;
+    vkGetDeviceFaultInfoEXT_VkResult_return =
+        vkEnc->vkGetDeviceFaultInfoEXT(device, pFaultCounts, pFaultInfo, true /* do lock */);
+    return vkGetDeviceFaultInfoEXT_VkResult_return;
+}
+#endif
+#ifdef VK_ARM_rasterization_order_attachment_access
+#endif
+#ifdef VK_EXT_rgba10x6_formats
+#endif
+#ifdef VK_NV_acquire_winrt_display
+static VkResult entry_vkAcquireWinrtDisplayNV(VkPhysicalDevice physicalDevice,
+                                              VkDisplayKHR display) {
+    AEMU_SCOPED_TRACE("vkAcquireWinrtDisplayNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireWinrtDisplayNV_VkResult_return = (VkResult)0;
+    vkAcquireWinrtDisplayNV_VkResult_return =
+        vkEnc->vkAcquireWinrtDisplayNV(physicalDevice, display, true /* do lock */);
+    return vkAcquireWinrtDisplayNV_VkResult_return;
+}
+static VkResult entry_vkGetWinrtDisplayNV(VkPhysicalDevice physicalDevice,
+                                          uint32_t deviceRelativeId, VkDisplayKHR* pDisplay) {
+    AEMU_SCOPED_TRACE("vkGetWinrtDisplayNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetWinrtDisplayNV_VkResult_return = (VkResult)0;
+    vkGetWinrtDisplayNV_VkResult_return =
+        vkEnc->vkGetWinrtDisplayNV(physicalDevice, deviceRelativeId, pDisplay, true /* do lock */);
+    return vkGetWinrtDisplayNV_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_directfb_surface
+static VkResult entry_vkCreateDirectFBSurfaceEXT(VkInstance instance,
+                                                 const VkDirectFBSurfaceCreateInfoEXT* pCreateInfo,
+                                                 const VkAllocationCallbacks* pAllocator,
+                                                 VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateDirectFBSurfaceEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateDirectFBSurfaceEXT_VkResult_return = (VkResult)0;
+    vkCreateDirectFBSurfaceEXT_VkResult_return = vkEnc->vkCreateDirectFBSurfaceEXT(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateDirectFBSurfaceEXT_VkResult_return;
+}
+static VkBool32 entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT(
+    VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, IDirectFB* dfb) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDirectFBPresentationSupportEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkBool32 vkGetPhysicalDeviceDirectFBPresentationSupportEXT_VkBool32_return = (VkBool32)0;
+    vkGetPhysicalDeviceDirectFBPresentationSupportEXT_VkBool32_return =
+        vkEnc->vkGetPhysicalDeviceDirectFBPresentationSupportEXT(physicalDevice, queueFamilyIndex,
+                                                                 dfb, true /* do lock */);
+    return vkGetPhysicalDeviceDirectFBPresentationSupportEXT_VkBool32_return;
+}
+#endif
+#ifdef VK_VALVE_mutable_descriptor_type
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+static void entry_vkCmdSetVertexInputEXT(
+    VkCommandBuffer commandBuffer, uint32_t vertexBindingDescriptionCount,
+    const VkVertexInputBindingDescription2EXT* pVertexBindingDescriptions,
+    uint32_t vertexAttributeDescriptionCount,
+    const VkVertexInputAttributeDescription2EXT* pVertexAttributeDescriptions) {
+    AEMU_SCOPED_TRACE("vkCmdSetVertexInputEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetVertexInputEXT(commandBuffer, vertexBindingDescriptionCount,
+                                  pVertexBindingDescriptions, vertexAttributeDescriptionCount,
+                                  pVertexAttributeDescriptions, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetVertexInputEXT(
+    VkCommandBuffer commandBuffer, uint32_t vertexBindingDescriptionCount,
+    const VkVertexInputBindingDescription2EXT* pVertexBindingDescriptions,
+    uint32_t vertexAttributeDescriptionCount,
+    const VkVertexInputAttributeDescription2EXT* pVertexAttributeDescriptions) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_vertex_input_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetVertexInputEXT",
+                                         "VK_EXT_vertex_input_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetVertexInputEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetVertexInputEXT(commandBuffer, vertexBindingDescriptionCount,
+                                  pVertexBindingDescriptions, vertexAttributeDescriptionCount,
+                                  pVertexAttributeDescriptions, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_physical_device_drm
+#endif
+#ifdef VK_EXT_device_address_binding_report
+#endif
+#ifdef VK_EXT_depth_clip_control
+#endif
 #ifdef VK_EXT_primitive_topology_list_restart
+#endif
+#ifdef VK_FUCHSIA_external_memory
+static VkResult entry_vkGetMemoryZirconHandleFUCHSIA(
+    VkDevice device, const VkMemoryGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+    zx_handle_t* pZirconHandle) {
+    AEMU_SCOPED_TRACE("vkGetMemoryZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetMemoryZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetMemoryZirconHandleFUCHSIA(
+        device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    return vkGetMemoryZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryZirconHandleFUCHSIA(
+    VkDevice device, const VkMemoryGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+    zx_handle_t* pZirconHandle) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_external_memory")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryZirconHandleFUCHSIA",
+                                         "VK_FUCHSIA_external_memory");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetMemoryZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetMemoryZirconHandleFUCHSIA(
+        device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    return vkGetMemoryZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult entry_vkGetMemoryZirconHandlePropertiesFUCHSIA(
+    VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, zx_handle_t zirconHandle,
+    VkMemoryZirconHandlePropertiesFUCHSIA* pMemoryZirconHandleProperties) {
+    AEMU_SCOPED_TRACE("vkGetMemoryZirconHandlePropertiesFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return =
+        vkEnc->vkGetMemoryZirconHandlePropertiesFUCHSIA(
+            device, handleType, zirconHandle, pMemoryZirconHandleProperties, true /* do lock */);
+    return vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryZirconHandlePropertiesFUCHSIA(
+    VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, zx_handle_t zirconHandle,
+    VkMemoryZirconHandlePropertiesFUCHSIA* pMemoryZirconHandleProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_external_memory")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryZirconHandlePropertiesFUCHSIA",
+                                         "VK_FUCHSIA_external_memory");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryZirconHandlePropertiesFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return =
+        vkEnc->vkGetMemoryZirconHandlePropertiesFUCHSIA(
+            device, handleType, zirconHandle, pMemoryZirconHandleProperties, true /* do lock */);
+    return vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return;
+}
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+static VkResult entry_vkImportSemaphoreZirconHandleFUCHSIA(
+    VkDevice device,
+    const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo) {
+    AEMU_SCOPED_TRACE("vkImportSemaphoreZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return =
+        vkEnc->vkImportSemaphoreZirconHandleFUCHSIA(device, pImportSemaphoreZirconHandleInfo,
+                                                    true /* do lock */);
+    return vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkImportSemaphoreZirconHandleFUCHSIA(
+    VkDevice device,
+    const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_external_semaphore")) {
+        sOnInvalidDynamicallyCheckedCall("vkImportSemaphoreZirconHandleFUCHSIA",
+                                         "VK_FUCHSIA_external_semaphore");
+    }
+    AEMU_SCOPED_TRACE("vkImportSemaphoreZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return =
+        vkEnc->vkImportSemaphoreZirconHandleFUCHSIA(device, pImportSemaphoreZirconHandleInfo,
+                                                    true /* do lock */);
+    return vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult entry_vkGetSemaphoreZirconHandleFUCHSIA(
+    VkDevice device, const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+    zx_handle_t* pZirconHandle) {
+    AEMU_SCOPED_TRACE("vkGetSemaphoreZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetSemaphoreZirconHandleFUCHSIA(
+        device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    return vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSemaphoreZirconHandleFUCHSIA(
+    VkDevice device, const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+    zx_handle_t* pZirconHandle) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_external_semaphore")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetSemaphoreZirconHandleFUCHSIA",
+                                         "VK_FUCHSIA_external_semaphore");
+    }
+    AEMU_SCOPED_TRACE("vkGetSemaphoreZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetSemaphoreZirconHandleFUCHSIA(
+        device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    return vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return;
+}
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+static VkResult entry_vkCreateBufferCollectionFUCHSIA(
+    VkDevice device, const VkBufferCollectionCreateInfoFUCHSIA* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkBufferCollectionFUCHSIA* pCollection) {
+    AEMU_SCOPED_TRACE("vkCreateBufferCollectionFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateBufferCollectionFUCHSIA_VkResult_return = (VkResult)0;
+    vkCreateBufferCollectionFUCHSIA_VkResult_return = vkEnc->vkCreateBufferCollectionFUCHSIA(
+        device, pCreateInfo, pAllocator, pCollection, true /* do lock */);
+    return vkCreateBufferCollectionFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateBufferCollectionFUCHSIA(
+    VkDevice device, const VkBufferCollectionCreateInfoFUCHSIA* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkBufferCollectionFUCHSIA* pCollection) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateBufferCollectionFUCHSIA",
+                                         "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkCreateBufferCollectionFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateBufferCollectionFUCHSIA_VkResult_return = (VkResult)0;
+    vkCreateBufferCollectionFUCHSIA_VkResult_return = vkEnc->vkCreateBufferCollectionFUCHSIA(
+        device, pCreateInfo, pAllocator, pCollection, true /* do lock */);
+    return vkCreateBufferCollectionFUCHSIA_VkResult_return;
+}
+static VkResult entry_vkSetBufferCollectionImageConstraintsFUCHSIA(
+    VkDevice device, VkBufferCollectionFUCHSIA collection,
+    const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
+    AEMU_SCOPED_TRACE("vkSetBufferCollectionImageConstraintsFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return =
+        vkEnc->vkSetBufferCollectionImageConstraintsFUCHSIA(
+            device, collection, pImageConstraintsInfo, true /* do lock */);
+    return vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkSetBufferCollectionImageConstraintsFUCHSIA(
+    VkDevice device, VkBufferCollectionFUCHSIA collection,
+    const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection")) {
+        sOnInvalidDynamicallyCheckedCall("vkSetBufferCollectionImageConstraintsFUCHSIA",
+                                         "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkSetBufferCollectionImageConstraintsFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return =
+        vkEnc->vkSetBufferCollectionImageConstraintsFUCHSIA(
+            device, collection, pImageConstraintsInfo, true /* do lock */);
+    return vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return;
+}
+static VkResult entry_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+    VkDevice device, VkBufferCollectionFUCHSIA collection,
+    const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
+    AEMU_SCOPED_TRACE("vkSetBufferCollectionBufferConstraintsFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return =
+        vkEnc->vkSetBufferCollectionBufferConstraintsFUCHSIA(
+            device, collection, pBufferConstraintsInfo, true /* do lock */);
+    return vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+    VkDevice device, VkBufferCollectionFUCHSIA collection,
+    const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection")) {
+        sOnInvalidDynamicallyCheckedCall("vkSetBufferCollectionBufferConstraintsFUCHSIA",
+                                         "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkSetBufferCollectionBufferConstraintsFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return =
+        vkEnc->vkSetBufferCollectionBufferConstraintsFUCHSIA(
+            device, collection, pBufferConstraintsInfo, true /* do lock */);
+    return vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return;
+}
+static void entry_vkDestroyBufferCollectionFUCHSIA(VkDevice device,
+                                                   VkBufferCollectionFUCHSIA collection,
+                                                   const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyBufferCollectionFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyBufferCollectionFUCHSIA(device, collection, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyBufferCollectionFUCHSIA(
+    VkDevice device, VkBufferCollectionFUCHSIA collection,
+    const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyBufferCollectionFUCHSIA",
+                                         "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyBufferCollectionFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyBufferCollectionFUCHSIA(device, collection, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkGetBufferCollectionPropertiesFUCHSIA(
+    VkDevice device, VkBufferCollectionFUCHSIA collection,
+    VkBufferCollectionPropertiesFUCHSIA* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetBufferCollectionPropertiesFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return =
+        vkEnc->vkGetBufferCollectionPropertiesFUCHSIA(device, collection, pProperties,
+                                                      true /* do lock */);
+    return vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetBufferCollectionPropertiesFUCHSIA(
+    VkDevice device, VkBufferCollectionFUCHSIA collection,
+    VkBufferCollectionPropertiesFUCHSIA* pProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetBufferCollectionPropertiesFUCHSIA",
+                                         "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkGetBufferCollectionPropertiesFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return =
+        vkEnc->vkGetBufferCollectionPropertiesFUCHSIA(device, collection, pProperties,
+                                                      true /* do lock */);
+    return vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return;
+}
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+static VkResult entry_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(
+    VkDevice device, VkRenderPass renderpass, VkExtent2D* pMaxWorkgroupSize) {
+    AEMU_SCOPED_TRACE("vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return = (VkResult)0;
+    vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return =
+        vkEnc->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(
+            device, renderpass, pMaxWorkgroupSize, true /* do lock */);
+    return vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(
+    VkDevice device, VkRenderPass renderpass, VkExtent2D* pMaxWorkgroupSize) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_HUAWEI_subpass_shading")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI",
+                                         "VK_HUAWEI_subpass_shading");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return = (VkResult)0;
+    vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return =
+        vkEnc->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(
+            device, renderpass, pMaxWorkgroupSize, true /* do lock */);
+    return vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return;
+}
+static void entry_vkCmdSubpassShadingHUAWEI(VkCommandBuffer commandBuffer) {
+    AEMU_SCOPED_TRACE("vkCmdSubpassShadingHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSubpassShadingHUAWEI(commandBuffer, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSubpassShadingHUAWEI(VkCommandBuffer commandBuffer) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_HUAWEI_subpass_shading")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSubpassShadingHUAWEI", "VK_HUAWEI_subpass_shading");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSubpassShadingHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSubpassShadingHUAWEI(commandBuffer, true /* do lock */);
+}
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+static void entry_vkCmdBindInvocationMaskHUAWEI(VkCommandBuffer commandBuffer,
+                                                VkImageView imageView, VkImageLayout imageLayout) {
+    AEMU_SCOPED_TRACE("vkCmdBindInvocationMaskHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindInvocationMaskHUAWEI(commandBuffer, imageView, imageLayout, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBindInvocationMaskHUAWEI(VkCommandBuffer commandBuffer,
+                                                         VkImageView imageView,
+                                                         VkImageLayout imageLayout) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_HUAWEI_invocation_mask")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBindInvocationMaskHUAWEI",
+                                         "VK_HUAWEI_invocation_mask");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBindInvocationMaskHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindInvocationMaskHUAWEI(commandBuffer, imageView, imageLayout, true /* do lock */);
+}
+#endif
+#ifdef VK_NV_external_memory_rdma
+static VkResult entry_vkGetMemoryRemoteAddressNV(
+    VkDevice device, const VkMemoryGetRemoteAddressInfoNV* pMemoryGetRemoteAddressInfo,
+    VkRemoteAddressNV* pAddress) {
+    AEMU_SCOPED_TRACE("vkGetMemoryRemoteAddressNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryRemoteAddressNV_VkResult_return = (VkResult)0;
+    vkGetMemoryRemoteAddressNV_VkResult_return = vkEnc->vkGetMemoryRemoteAddressNV(
+        device, pMemoryGetRemoteAddressInfo, pAddress, true /* do lock */);
+    return vkGetMemoryRemoteAddressNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryRemoteAddressNV(
+    VkDevice device, const VkMemoryGetRemoteAddressInfoNV* pMemoryGetRemoteAddressInfo,
+    VkRemoteAddressNV* pAddress) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_external_memory_rdma")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryRemoteAddressNV",
+                                         "VK_NV_external_memory_rdma");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryRemoteAddressNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryRemoteAddressNV_VkResult_return = (VkResult)0;
+    vkGetMemoryRemoteAddressNV_VkResult_return = vkEnc->vkGetMemoryRemoteAddressNV(
+        device, pMemoryGetRemoteAddressInfo, pAddress, true /* do lock */);
+    return vkGetMemoryRemoteAddressNV_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_pipeline_properties
+static VkResult entry_vkGetPipelinePropertiesEXT(VkDevice device,
+                                                 const VkPipelineInfoEXT* pPipelineInfo,
+                                                 VkBaseOutStructure* pPipelineProperties) {
+    AEMU_SCOPED_TRACE("vkGetPipelinePropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPipelinePropertiesEXT_VkResult_return = (VkResult)0;
+    vkGetPipelinePropertiesEXT_VkResult_return = vkEnc->vkGetPipelinePropertiesEXT(
+        device, pPipelineInfo, pPipelineProperties, true /* do lock */);
+    return vkGetPipelinePropertiesEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetPipelinePropertiesEXT(VkDevice device,
+                                                          const VkPipelineInfoEXT* pPipelineInfo,
+                                                          VkBaseOutStructure* pPipelineProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_pipeline_properties")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetPipelinePropertiesEXT",
+                                         "VK_EXT_pipeline_properties");
+    }
+    AEMU_SCOPED_TRACE("vkGetPipelinePropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPipelinePropertiesEXT_VkResult_return = (VkResult)0;
+    vkGetPipelinePropertiesEXT_VkResult_return = vkEnc->vkGetPipelinePropertiesEXT(
+        device, pPipelineInfo, pPipelineProperties, true /* do lock */);
+    return vkGetPipelinePropertiesEXT_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_multisampled_render_to_single_sampled
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+static void entry_vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
+                                                uint32_t patchControlPoints) {
+    AEMU_SCOPED_TRACE("vkCmdSetPatchControlPointsEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPatchControlPointsEXT(commandBuffer, patchControlPoints, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
+                                                         uint32_t patchControlPoints) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetPatchControlPointsEXT",
+                                         "VK_EXT_extended_dynamic_state2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetPatchControlPointsEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPatchControlPointsEXT(commandBuffer, patchControlPoints, true /* do lock */);
+}
+static void entry_vkCmdSetRasterizerDiscardEnableEXT(VkCommandBuffer commandBuffer,
+                                                     VkBool32 rasterizerDiscardEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetRasterizerDiscardEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRasterizerDiscardEnableEXT(commandBuffer, rasterizerDiscardEnable,
+                                              true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetRasterizerDiscardEnableEXT(VkCommandBuffer commandBuffer,
+                                                              VkBool32 rasterizerDiscardEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetRasterizerDiscardEnableEXT",
+                                         "VK_EXT_extended_dynamic_state2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetRasterizerDiscardEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRasterizerDiscardEnableEXT(commandBuffer, rasterizerDiscardEnable,
+                                              true /* do lock */);
+}
+static void entry_vkCmdSetDepthBiasEnableEXT(VkCommandBuffer commandBuffer,
+                                             VkBool32 depthBiasEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetDepthBiasEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthBiasEnableEXT(commandBuffer, depthBiasEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDepthBiasEnableEXT(VkCommandBuffer commandBuffer,
+                                                      VkBool32 depthBiasEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDepthBiasEnableEXT",
+                                         "VK_EXT_extended_dynamic_state2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDepthBiasEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthBiasEnableEXT(commandBuffer, depthBiasEnable, true /* do lock */);
+}
+static void entry_vkCmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logicOp) {
+    AEMU_SCOPED_TRACE("vkCmdSetLogicOpEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetLogicOpEXT(commandBuffer, logicOp, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logicOp) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetLogicOpEXT", "VK_EXT_extended_dynamic_state2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetLogicOpEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetLogicOpEXT(commandBuffer, logicOp, true /* do lock */);
+}
+static void entry_vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
+                                                    VkBool32 primitiveRestartEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetPrimitiveRestartEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPrimitiveRestartEnableEXT(commandBuffer, primitiveRestartEnable,
+                                             true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
+                                                             VkBool32 primitiveRestartEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetPrimitiveRestartEnableEXT",
+                                         "VK_EXT_extended_dynamic_state2");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetPrimitiveRestartEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPrimitiveRestartEnableEXT(commandBuffer, primitiveRestartEnable,
+                                             true /* do lock */);
+}
+#endif
+#ifdef VK_QNX_screen_surface
+static VkResult entry_vkCreateScreenSurfaceQNX(VkInstance instance,
+                                               const VkScreenSurfaceCreateInfoQNX* pCreateInfo,
+                                               const VkAllocationCallbacks* pAllocator,
+                                               VkSurfaceKHR* pSurface) {
+    AEMU_SCOPED_TRACE("vkCreateScreenSurfaceQNX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateScreenSurfaceQNX_VkResult_return = (VkResult)0;
+    vkCreateScreenSurfaceQNX_VkResult_return = vkEnc->vkCreateScreenSurfaceQNX(
+        instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateScreenSurfaceQNX_VkResult_return;
+}
+static VkBool32 entry_vkGetPhysicalDeviceScreenPresentationSupportQNX(
+    VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, _screen_window* window) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceScreenPresentationSupportQNX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkBool32 vkGetPhysicalDeviceScreenPresentationSupportQNX_VkBool32_return = (VkBool32)0;
+    vkGetPhysicalDeviceScreenPresentationSupportQNX_VkBool32_return =
+        vkEnc->vkGetPhysicalDeviceScreenPresentationSupportQNX(physicalDevice, queueFamilyIndex,
+                                                               window, true /* do lock */);
+    return vkGetPhysicalDeviceScreenPresentationSupportQNX_VkBool32_return;
+}
+#endif
+#ifdef VK_EXT_color_write_enable
+static void entry_vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer,
+                                              uint32_t attachmentCount,
+                                              const VkBool32* pColorWriteEnables) {
+    AEMU_SCOPED_TRACE("vkCmdSetColorWriteEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorWriteEnableEXT(commandBuffer, attachmentCount, pColorWriteEnables,
+                                       true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer,
+                                                       uint32_t attachmentCount,
+                                                       const VkBool32* pColorWriteEnables) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_color_write_enable")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetColorWriteEnableEXT",
+                                         "VK_EXT_color_write_enable");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetColorWriteEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorWriteEnableEXT(commandBuffer, attachmentCount, pColorWriteEnables,
+                                       true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_primitives_generated_query
 #endif
 #ifdef VK_GOOGLE_gfxstream
 static VkResult entry_vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceMemory memory,
@@ -3602,7 +9331,2196 @@ static VkResult dynCheck_entry_vkGetBlobGOOGLE(VkDevice device, VkDeviceMemory m
     return vkGetBlobGOOGLE_VkResult_return;
 }
 #endif
+#ifdef VK_EXT_global_priority_query
+#endif
+#ifdef VK_EXT_image_view_min_lod
+#endif
+#ifdef VK_EXT_multi_draw
+static void entry_vkCmdDrawMultiEXT(VkCommandBuffer commandBuffer, uint32_t drawCount,
+                                    const VkMultiDrawInfoEXT* pVertexInfo, uint32_t instanceCount,
+                                    uint32_t firstInstance, uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDrawMultiEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMultiEXT(commandBuffer, drawCount, pVertexInfo, instanceCount, firstInstance,
+                             stride, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawMultiEXT(VkCommandBuffer commandBuffer, uint32_t drawCount,
+                                             const VkMultiDrawInfoEXT* pVertexInfo,
+                                             uint32_t instanceCount, uint32_t firstInstance,
+                                             uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_multi_draw")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawMultiEXT", "VK_EXT_multi_draw");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawMultiEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMultiEXT(commandBuffer, drawCount, pVertexInfo, instanceCount, firstInstance,
+                             stride, true /* do lock */);
+}
+static void entry_vkCmdDrawMultiIndexedEXT(VkCommandBuffer commandBuffer, uint32_t drawCount,
+                                           const VkMultiDrawIndexedInfoEXT* pIndexInfo,
+                                           uint32_t instanceCount, uint32_t firstInstance,
+                                           uint32_t stride, const int32_t* pVertexOffset) {
+    AEMU_SCOPED_TRACE("vkCmdDrawMultiIndexedEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMultiIndexedEXT(commandBuffer, drawCount, pIndexInfo, instanceCount,
+                                    firstInstance, stride, pVertexOffset, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawMultiIndexedEXT(VkCommandBuffer commandBuffer,
+                                                    uint32_t drawCount,
+                                                    const VkMultiDrawIndexedInfoEXT* pIndexInfo,
+                                                    uint32_t instanceCount, uint32_t firstInstance,
+                                                    uint32_t stride, const int32_t* pVertexOffset) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_multi_draw")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawMultiIndexedEXT", "VK_EXT_multi_draw");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawMultiIndexedEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMultiIndexedEXT(commandBuffer, drawCount, pIndexInfo, instanceCount,
+                                    firstInstance, stride, pVertexOffset, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_image_2d_view_of_3d
+#endif
+#ifdef VK_EXT_shader_tile_image
+#endif
+#ifdef VK_EXT_opacity_micromap
+static VkResult entry_vkCreateMicromapEXT(VkDevice device,
+                                          const VkMicromapCreateInfoEXT* pCreateInfo,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkMicromapEXT* pMicromap) {
+    AEMU_SCOPED_TRACE("vkCreateMicromapEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateMicromapEXT_VkResult_return = (VkResult)0;
+    vkCreateMicromapEXT_VkResult_return =
+        vkEnc->vkCreateMicromapEXT(device, pCreateInfo, pAllocator, pMicromap, true /* do lock */);
+    return vkCreateMicromapEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateMicromapEXT(VkDevice device,
+                                                   const VkMicromapCreateInfoEXT* pCreateInfo,
+                                                   const VkAllocationCallbacks* pAllocator,
+                                                   VkMicromapEXT* pMicromap) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateMicromapEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkCreateMicromapEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateMicromapEXT_VkResult_return = (VkResult)0;
+    vkCreateMicromapEXT_VkResult_return =
+        vkEnc->vkCreateMicromapEXT(device, pCreateInfo, pAllocator, pMicromap, true /* do lock */);
+    return vkCreateMicromapEXT_VkResult_return;
+}
+static void entry_vkDestroyMicromapEXT(VkDevice device, VkMicromapEXT micromap,
+                                       const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyMicromapEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyMicromapEXT(device, micromap, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyMicromapEXT(VkDevice device, VkMicromapEXT micromap,
+                                                const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyMicromapEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyMicromapEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyMicromapEXT(device, micromap, pAllocator, true /* do lock */);
+}
+static void entry_vkCmdBuildMicromapsEXT(VkCommandBuffer commandBuffer, uint32_t infoCount,
+                                         const VkMicromapBuildInfoEXT* pInfos) {
+    AEMU_SCOPED_TRACE("vkCmdBuildMicromapsEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBuildMicromapsEXT(commandBuffer, infoCount, pInfos, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBuildMicromapsEXT(VkCommandBuffer commandBuffer, uint32_t infoCount,
+                                                  const VkMicromapBuildInfoEXT* pInfos) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBuildMicromapsEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBuildMicromapsEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBuildMicromapsEXT(commandBuffer, infoCount, pInfos, true /* do lock */);
+}
+static VkResult entry_vkBuildMicromapsEXT(VkDevice device, VkDeferredOperationKHR deferredOperation,
+                                          uint32_t infoCount,
+                                          const VkMicromapBuildInfoEXT* pInfos) {
+    AEMU_SCOPED_TRACE("vkBuildMicromapsEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBuildMicromapsEXT_VkResult_return = (VkResult)0;
+    vkBuildMicromapsEXT_VkResult_return = vkEnc->vkBuildMicromapsEXT(
+        device, deferredOperation, infoCount, pInfos, true /* do lock */);
+    return vkBuildMicromapsEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkBuildMicromapsEXT(VkDevice device,
+                                                   VkDeferredOperationKHR deferredOperation,
+                                                   uint32_t infoCount,
+                                                   const VkMicromapBuildInfoEXT* pInfos) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkBuildMicromapsEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkBuildMicromapsEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBuildMicromapsEXT_VkResult_return = (VkResult)0;
+    vkBuildMicromapsEXT_VkResult_return = vkEnc->vkBuildMicromapsEXT(
+        device, deferredOperation, infoCount, pInfos, true /* do lock */);
+    return vkBuildMicromapsEXT_VkResult_return;
+}
+static VkResult entry_vkCopyMicromapEXT(VkDevice device, VkDeferredOperationKHR deferredOperation,
+                                        const VkCopyMicromapInfoEXT* pInfo) {
+    AEMU_SCOPED_TRACE("vkCopyMicromapEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyMicromapEXT_VkResult_return = (VkResult)0;
+    vkCopyMicromapEXT_VkResult_return =
+        vkEnc->vkCopyMicromapEXT(device, deferredOperation, pInfo, true /* do lock */);
+    return vkCopyMicromapEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCopyMicromapEXT(VkDevice device,
+                                                 VkDeferredOperationKHR deferredOperation,
+                                                 const VkCopyMicromapInfoEXT* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkCopyMicromapEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkCopyMicromapEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyMicromapEXT_VkResult_return = (VkResult)0;
+    vkCopyMicromapEXT_VkResult_return =
+        vkEnc->vkCopyMicromapEXT(device, deferredOperation, pInfo, true /* do lock */);
+    return vkCopyMicromapEXT_VkResult_return;
+}
+static VkResult entry_vkCopyMicromapToMemoryEXT(VkDevice device,
+                                                VkDeferredOperationKHR deferredOperation,
+                                                const VkCopyMicromapToMemoryInfoEXT* pInfo) {
+    AEMU_SCOPED_TRACE("vkCopyMicromapToMemoryEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyMicromapToMemoryEXT_VkResult_return = (VkResult)0;
+    vkCopyMicromapToMemoryEXT_VkResult_return =
+        vkEnc->vkCopyMicromapToMemoryEXT(device, deferredOperation, pInfo, true /* do lock */);
+    return vkCopyMicromapToMemoryEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCopyMicromapToMemoryEXT(
+    VkDevice device, VkDeferredOperationKHR deferredOperation,
+    const VkCopyMicromapToMemoryInfoEXT* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkCopyMicromapToMemoryEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkCopyMicromapToMemoryEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyMicromapToMemoryEXT_VkResult_return = (VkResult)0;
+    vkCopyMicromapToMemoryEXT_VkResult_return =
+        vkEnc->vkCopyMicromapToMemoryEXT(device, deferredOperation, pInfo, true /* do lock */);
+    return vkCopyMicromapToMemoryEXT_VkResult_return;
+}
+static VkResult entry_vkCopyMemoryToMicromapEXT(VkDevice device,
+                                                VkDeferredOperationKHR deferredOperation,
+                                                const VkCopyMemoryToMicromapInfoEXT* pInfo) {
+    AEMU_SCOPED_TRACE("vkCopyMemoryToMicromapEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyMemoryToMicromapEXT_VkResult_return = (VkResult)0;
+    vkCopyMemoryToMicromapEXT_VkResult_return =
+        vkEnc->vkCopyMemoryToMicromapEXT(device, deferredOperation, pInfo, true /* do lock */);
+    return vkCopyMemoryToMicromapEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCopyMemoryToMicromapEXT(
+    VkDevice device, VkDeferredOperationKHR deferredOperation,
+    const VkCopyMemoryToMicromapInfoEXT* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkCopyMemoryToMicromapEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkCopyMemoryToMicromapEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyMemoryToMicromapEXT_VkResult_return = (VkResult)0;
+    vkCopyMemoryToMicromapEXT_VkResult_return =
+        vkEnc->vkCopyMemoryToMicromapEXT(device, deferredOperation, pInfo, true /* do lock */);
+    return vkCopyMemoryToMicromapEXT_VkResult_return;
+}
+static VkResult entry_vkWriteMicromapsPropertiesEXT(VkDevice device, uint32_t micromapCount,
+                                                    const VkMicromapEXT* pMicromaps,
+                                                    VkQueryType queryType, size_t dataSize,
+                                                    void* pData, size_t stride) {
+    AEMU_SCOPED_TRACE("vkWriteMicromapsPropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWriteMicromapsPropertiesEXT_VkResult_return = (VkResult)0;
+    vkWriteMicromapsPropertiesEXT_VkResult_return = vkEnc->vkWriteMicromapsPropertiesEXT(
+        device, micromapCount, pMicromaps, queryType, dataSize, pData, stride, true /* do lock */);
+    return vkWriteMicromapsPropertiesEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkWriteMicromapsPropertiesEXT(VkDevice device,
+                                                             uint32_t micromapCount,
+                                                             const VkMicromapEXT* pMicromaps,
+                                                             VkQueryType queryType, size_t dataSize,
+                                                             void* pData, size_t stride) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkWriteMicromapsPropertiesEXT",
+                                         "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkWriteMicromapsPropertiesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWriteMicromapsPropertiesEXT_VkResult_return = (VkResult)0;
+    vkWriteMicromapsPropertiesEXT_VkResult_return = vkEnc->vkWriteMicromapsPropertiesEXT(
+        device, micromapCount, pMicromaps, queryType, dataSize, pData, stride, true /* do lock */);
+    return vkWriteMicromapsPropertiesEXT_VkResult_return;
+}
+static void entry_vkCmdCopyMicromapEXT(VkCommandBuffer commandBuffer,
+                                       const VkCopyMicromapInfoEXT* pInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyMicromapEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMicromapEXT(commandBuffer, pInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyMicromapEXT(VkCommandBuffer commandBuffer,
+                                                const VkCopyMicromapInfoEXT* pInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyMicromapEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyMicromapEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMicromapEXT(commandBuffer, pInfo, true /* do lock */);
+}
+static void entry_vkCmdCopyMicromapToMemoryEXT(VkCommandBuffer commandBuffer,
+                                               const VkCopyMicromapToMemoryInfoEXT* pInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyMicromapToMemoryEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMicromapToMemoryEXT(commandBuffer, pInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyMicromapToMemoryEXT(
+    VkCommandBuffer commandBuffer, const VkCopyMicromapToMemoryInfoEXT* pInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyMicromapToMemoryEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyMicromapToMemoryEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMicromapToMemoryEXT(commandBuffer, pInfo, true /* do lock */);
+}
+static void entry_vkCmdCopyMemoryToMicromapEXT(VkCommandBuffer commandBuffer,
+                                               const VkCopyMemoryToMicromapInfoEXT* pInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyMemoryToMicromapEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMemoryToMicromapEXT(commandBuffer, pInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyMemoryToMicromapEXT(
+    VkCommandBuffer commandBuffer, const VkCopyMemoryToMicromapInfoEXT* pInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyMemoryToMicromapEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyMemoryToMicromapEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMemoryToMicromapEXT(commandBuffer, pInfo, true /* do lock */);
+}
+static void entry_vkCmdWriteMicromapsPropertiesEXT(VkCommandBuffer commandBuffer,
+                                                   uint32_t micromapCount,
+                                                   const VkMicromapEXT* pMicromaps,
+                                                   VkQueryType queryType, VkQueryPool queryPool,
+                                                   uint32_t firstQuery) {
+    AEMU_SCOPED_TRACE("vkCmdWriteMicromapsPropertiesEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteMicromapsPropertiesEXT(commandBuffer, micromapCount, pMicromaps, queryType,
+                                            queryPool, firstQuery, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdWriteMicromapsPropertiesEXT(
+    VkCommandBuffer commandBuffer, uint32_t micromapCount, const VkMicromapEXT* pMicromaps,
+    VkQueryType queryType, VkQueryPool queryPool, uint32_t firstQuery) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdWriteMicromapsPropertiesEXT",
+                                         "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkCmdWriteMicromapsPropertiesEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteMicromapsPropertiesEXT(commandBuffer, micromapCount, pMicromaps, queryType,
+                                            queryPool, firstQuery, true /* do lock */);
+}
+static void entry_vkGetDeviceMicromapCompatibilityEXT(
+    VkDevice device, const VkMicromapVersionInfoEXT* pVersionInfo,
+    VkAccelerationStructureCompatibilityKHR* pCompatibility) {
+    AEMU_SCOPED_TRACE("vkGetDeviceMicromapCompatibilityEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceMicromapCompatibilityEXT(device, pVersionInfo, pCompatibility,
+                                               true /* do lock */);
+}
+static void dynCheck_entry_vkGetDeviceMicromapCompatibilityEXT(
+    VkDevice device, const VkMicromapVersionInfoEXT* pVersionInfo,
+    VkAccelerationStructureCompatibilityKHR* pCompatibility) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceMicromapCompatibilityEXT",
+                                         "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceMicromapCompatibilityEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceMicromapCompatibilityEXT(device, pVersionInfo, pCompatibility,
+                                               true /* do lock */);
+}
+static void entry_vkGetMicromapBuildSizesEXT(VkDevice device,
+                                             VkAccelerationStructureBuildTypeKHR buildType,
+                                             const VkMicromapBuildInfoEXT* pBuildInfo,
+                                             VkMicromapBuildSizesInfoEXT* pSizeInfo) {
+    AEMU_SCOPED_TRACE("vkGetMicromapBuildSizesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetMicromapBuildSizesEXT(device, buildType, pBuildInfo, pSizeInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkGetMicromapBuildSizesEXT(VkDevice device,
+                                                      VkAccelerationStructureBuildTypeKHR buildType,
+                                                      const VkMicromapBuildInfoEXT* pBuildInfo,
+                                                      VkMicromapBuildSizesInfoEXT* pSizeInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetMicromapBuildSizesEXT", "VK_EXT_opacity_micromap");
+    }
+    AEMU_SCOPED_TRACE("vkGetMicromapBuildSizesEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetMicromapBuildSizesEXT(device, buildType, pBuildInfo, pSizeInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_NV_displacement_micromap
+#endif
 #ifdef VK_EXT_load_store_op_none
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+static void entry_vkCmdDrawClusterHUAWEI(VkCommandBuffer commandBuffer, uint32_t groupCountX,
+                                         uint32_t groupCountY, uint32_t groupCountZ) {
+    AEMU_SCOPED_TRACE("vkCmdDrawClusterHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawClusterHUAWEI(commandBuffer, groupCountX, groupCountY, groupCountZ,
+                                  true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawClusterHUAWEI(VkCommandBuffer commandBuffer,
+                                                  uint32_t groupCountX, uint32_t groupCountY,
+                                                  uint32_t groupCountZ) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_HUAWEI_cluster_culling_shader")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawClusterHUAWEI",
+                                         "VK_HUAWEI_cluster_culling_shader");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawClusterHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawClusterHUAWEI(commandBuffer, groupCountX, groupCountY, groupCountZ,
+                                  true /* do lock */);
+}
+static void entry_vkCmdDrawClusterIndirectHUAWEI(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                                 VkDeviceSize offset) {
+    AEMU_SCOPED_TRACE("vkCmdDrawClusterIndirectHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawClusterIndirectHUAWEI(commandBuffer, buffer, offset, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawClusterIndirectHUAWEI(VkCommandBuffer commandBuffer,
+                                                          VkBuffer buffer, VkDeviceSize offset) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_HUAWEI_cluster_culling_shader")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawClusterIndirectHUAWEI",
+                                         "VK_HUAWEI_cluster_culling_shader");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawClusterIndirectHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawClusterIndirectHUAWEI(commandBuffer, buffer, offset, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_border_color_swizzle
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+static void entry_vkSetDeviceMemoryPriorityEXT(VkDevice device, VkDeviceMemory memory,
+                                               float priority) {
+    AEMU_SCOPED_TRACE("vkSetDeviceMemoryPriorityEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkSetDeviceMemoryPriorityEXT(device, memory, priority, true /* do lock */);
+}
+static void dynCheck_entry_vkSetDeviceMemoryPriorityEXT(VkDevice device, VkDeviceMemory memory,
+                                                        float priority) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_pageable_device_local_memory")) {
+        sOnInvalidDynamicallyCheckedCall("vkSetDeviceMemoryPriorityEXT",
+                                         "VK_EXT_pageable_device_local_memory");
+    }
+    AEMU_SCOPED_TRACE("vkSetDeviceMemoryPriorityEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkSetDeviceMemoryPriorityEXT(device, memory, priority, true /* do lock */);
+}
+#endif
+#ifdef VK_ARM_shader_core_properties
+#endif
+#ifdef VK_EXT_image_sliced_view_of_3d
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+static void entry_vkGetDescriptorSetLayoutHostMappingInfoVALVE(
+    VkDevice device, const VkDescriptorSetBindingReferenceVALVE* pBindingReference,
+    VkDescriptorSetLayoutHostMappingInfoVALVE* pHostMapping) {
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutHostMappingInfoVALVE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorSetLayoutHostMappingInfoVALVE(device, pBindingReference, pHostMapping,
+                                                        true /* do lock */);
+}
+static void dynCheck_entry_vkGetDescriptorSetLayoutHostMappingInfoVALVE(
+    VkDevice device, const VkDescriptorSetBindingReferenceVALVE* pBindingReference,
+    VkDescriptorSetLayoutHostMappingInfoVALVE* pHostMapping) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_VALVE_descriptor_set_host_mapping")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDescriptorSetLayoutHostMappingInfoVALVE",
+                                         "VK_VALVE_descriptor_set_host_mapping");
+    }
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutHostMappingInfoVALVE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorSetLayoutHostMappingInfoVALVE(device, pBindingReference, pHostMapping,
+                                                        true /* do lock */);
+}
+static void entry_vkGetDescriptorSetHostMappingVALVE(VkDevice device, VkDescriptorSet descriptorSet,
+                                                     void** ppData) {
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetHostMappingVALVE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorSetHostMappingVALVE(device, descriptorSet, ppData, true /* do lock */);
+}
+static void dynCheck_entry_vkGetDescriptorSetHostMappingVALVE(VkDevice device,
+                                                              VkDescriptorSet descriptorSet,
+                                                              void** ppData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_VALVE_descriptor_set_host_mapping")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDescriptorSetHostMappingVALVE",
+                                         "VK_VALVE_descriptor_set_host_mapping");
+    }
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetHostMappingVALVE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDescriptorSetHostMappingVALVE(device, descriptorSet, ppData, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_depth_clamp_zero_one
+#endif
+#ifdef VK_EXT_non_seamless_cube_map
+#endif
+#ifdef VK_QCOM_fragment_density_map_offset
+#endif
+#ifdef VK_NV_copy_memory_indirect
+static void entry_vkCmdCopyMemoryIndirectNV(VkCommandBuffer commandBuffer,
+                                            VkDeviceAddress copyBufferAddress, uint32_t copyCount,
+                                            uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdCopyMemoryIndirectNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMemoryIndirectNV(commandBuffer, copyBufferAddress, copyCount, stride,
+                                     true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyMemoryIndirectNV(VkCommandBuffer commandBuffer,
+                                                     VkDeviceAddress copyBufferAddress,
+                                                     uint32_t copyCount, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_copy_memory_indirect")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyMemoryIndirectNV", "VK_NV_copy_memory_indirect");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyMemoryIndirectNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMemoryIndirectNV(commandBuffer, copyBufferAddress, copyCount, stride,
+                                     true /* do lock */);
+}
+static void entry_vkCmdCopyMemoryToImageIndirectNV(
+    VkCommandBuffer commandBuffer, VkDeviceAddress copyBufferAddress, uint32_t copyCount,
+    uint32_t stride, VkImage dstImage, VkImageLayout dstImageLayout,
+    const VkImageSubresourceLayers* pImageSubresources) {
+    AEMU_SCOPED_TRACE("vkCmdCopyMemoryToImageIndirectNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMemoryToImageIndirectNV(commandBuffer, copyBufferAddress, copyCount, stride,
+                                            dstImage, dstImageLayout, pImageSubresources,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyMemoryToImageIndirectNV(
+    VkCommandBuffer commandBuffer, VkDeviceAddress copyBufferAddress, uint32_t copyCount,
+    uint32_t stride, VkImage dstImage, VkImageLayout dstImageLayout,
+    const VkImageSubresourceLayers* pImageSubresources) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_copy_memory_indirect")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyMemoryToImageIndirectNV",
+                                         "VK_NV_copy_memory_indirect");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyMemoryToImageIndirectNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMemoryToImageIndirectNV(commandBuffer, copyBufferAddress, copyCount, stride,
+                                            dstImage, dstImageLayout, pImageSubresources,
+                                            true /* do lock */);
+}
+#endif
+#ifdef VK_NV_memory_decompression
+static void entry_vkCmdDecompressMemoryNV(
+    VkCommandBuffer commandBuffer, uint32_t decompressRegionCount,
+    const VkDecompressMemoryRegionNV* pDecompressMemoryRegions) {
+    AEMU_SCOPED_TRACE("vkCmdDecompressMemoryNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDecompressMemoryNV(commandBuffer, decompressRegionCount, pDecompressMemoryRegions,
+                                   true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDecompressMemoryNV(
+    VkCommandBuffer commandBuffer, uint32_t decompressRegionCount,
+    const VkDecompressMemoryRegionNV* pDecompressMemoryRegions) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_memory_decompression")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDecompressMemoryNV", "VK_NV_memory_decompression");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDecompressMemoryNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDecompressMemoryNV(commandBuffer, decompressRegionCount, pDecompressMemoryRegions,
+                                   true /* do lock */);
+}
+static void entry_vkCmdDecompressMemoryIndirectCountNV(VkCommandBuffer commandBuffer,
+                                                       VkDeviceAddress indirectCommandsAddress,
+                                                       VkDeviceAddress indirectCommandsCountAddress,
+                                                       uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDecompressMemoryIndirectCountNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDecompressMemoryIndirectCountNV(commandBuffer, indirectCommandsAddress,
+                                                indirectCommandsCountAddress, stride,
+                                                true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDecompressMemoryIndirectCountNV(
+    VkCommandBuffer commandBuffer, VkDeviceAddress indirectCommandsAddress,
+    VkDeviceAddress indirectCommandsCountAddress, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_memory_decompression")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDecompressMemoryIndirectCountNV",
+                                         "VK_NV_memory_decompression");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDecompressMemoryIndirectCountNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDecompressMemoryIndirectCountNV(commandBuffer, indirectCommandsAddress,
+                                                indirectCommandsCountAddress, stride,
+                                                true /* do lock */);
+}
+#endif
+#ifdef VK_NV_linear_color_attachment
+#endif
+#ifdef VK_GOOGLE_surfaceless_query
+#endif
+#ifdef VK_EXT_image_compression_control_swapchain
+#endif
+#ifdef VK_QCOM_image_processing
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+static void entry_vkCmdSetTessellationDomainOriginEXT(VkCommandBuffer commandBuffer,
+                                                      VkTessellationDomainOrigin domainOrigin) {
+    AEMU_SCOPED_TRACE("vkCmdSetTessellationDomainOriginEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetTessellationDomainOriginEXT(commandBuffer, domainOrigin, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetTessellationDomainOriginEXT(
+    VkCommandBuffer commandBuffer, VkTessellationDomainOrigin domainOrigin) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetTessellationDomainOriginEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetTessellationDomainOriginEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetTessellationDomainOriginEXT(commandBuffer, domainOrigin, true /* do lock */);
+}
+static void entry_vkCmdSetDepthClampEnableEXT(VkCommandBuffer commandBuffer,
+                                              VkBool32 depthClampEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetDepthClampEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthClampEnableEXT(commandBuffer, depthClampEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDepthClampEnableEXT(VkCommandBuffer commandBuffer,
+                                                       VkBool32 depthClampEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDepthClampEnableEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDepthClampEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthClampEnableEXT(commandBuffer, depthClampEnable, true /* do lock */);
+}
+static void entry_vkCmdSetPolygonModeEXT(VkCommandBuffer commandBuffer, VkPolygonMode polygonMode) {
+    AEMU_SCOPED_TRACE("vkCmdSetPolygonModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPolygonModeEXT(commandBuffer, polygonMode, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetPolygonModeEXT(VkCommandBuffer commandBuffer,
+                                                  VkPolygonMode polygonMode) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetPolygonModeEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetPolygonModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPolygonModeEXT(commandBuffer, polygonMode, true /* do lock */);
+}
+static void entry_vkCmdSetRasterizationSamplesEXT(VkCommandBuffer commandBuffer,
+                                                  VkSampleCountFlagBits rasterizationSamples) {
+    AEMU_SCOPED_TRACE("vkCmdSetRasterizationSamplesEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRasterizationSamplesEXT(commandBuffer, rasterizationSamples, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetRasterizationSamplesEXT(
+    VkCommandBuffer commandBuffer, VkSampleCountFlagBits rasterizationSamples) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetRasterizationSamplesEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetRasterizationSamplesEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRasterizationSamplesEXT(commandBuffer, rasterizationSamples, true /* do lock */);
+}
+static void entry_vkCmdSetSampleMaskEXT(VkCommandBuffer commandBuffer,
+                                        VkSampleCountFlagBits samples,
+                                        const VkSampleMask* pSampleMask) {
+    AEMU_SCOPED_TRACE("vkCmdSetSampleMaskEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetSampleMaskEXT(commandBuffer, samples, pSampleMask, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetSampleMaskEXT(VkCommandBuffer commandBuffer,
+                                                 VkSampleCountFlagBits samples,
+                                                 const VkSampleMask* pSampleMask) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetSampleMaskEXT", "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetSampleMaskEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetSampleMaskEXT(commandBuffer, samples, pSampleMask, true /* do lock */);
+}
+static void entry_vkCmdSetAlphaToCoverageEnableEXT(VkCommandBuffer commandBuffer,
+                                                   VkBool32 alphaToCoverageEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetAlphaToCoverageEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetAlphaToCoverageEnableEXT(commandBuffer, alphaToCoverageEnable,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetAlphaToCoverageEnableEXT(VkCommandBuffer commandBuffer,
+                                                            VkBool32 alphaToCoverageEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetAlphaToCoverageEnableEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetAlphaToCoverageEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetAlphaToCoverageEnableEXT(commandBuffer, alphaToCoverageEnable,
+                                            true /* do lock */);
+}
+static void entry_vkCmdSetAlphaToOneEnableEXT(VkCommandBuffer commandBuffer,
+                                              VkBool32 alphaToOneEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetAlphaToOneEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetAlphaToOneEnableEXT(commandBuffer, alphaToOneEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetAlphaToOneEnableEXT(VkCommandBuffer commandBuffer,
+                                                       VkBool32 alphaToOneEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetAlphaToOneEnableEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetAlphaToOneEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetAlphaToOneEnableEXT(commandBuffer, alphaToOneEnable, true /* do lock */);
+}
+static void entry_vkCmdSetLogicOpEnableEXT(VkCommandBuffer commandBuffer, VkBool32 logicOpEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetLogicOpEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetLogicOpEnableEXT(commandBuffer, logicOpEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetLogicOpEnableEXT(VkCommandBuffer commandBuffer,
+                                                    VkBool32 logicOpEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetLogicOpEnableEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetLogicOpEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetLogicOpEnableEXT(commandBuffer, logicOpEnable, true /* do lock */);
+}
+static void entry_vkCmdSetColorBlendEnableEXT(VkCommandBuffer commandBuffer,
+                                              uint32_t firstAttachment, uint32_t attachmentCount,
+                                              const VkBool32* pColorBlendEnables) {
+    AEMU_SCOPED_TRACE("vkCmdSetColorBlendEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorBlendEnableEXT(commandBuffer, firstAttachment, attachmentCount,
+                                       pColorBlendEnables, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetColorBlendEnableEXT(VkCommandBuffer commandBuffer,
+                                                       uint32_t firstAttachment,
+                                                       uint32_t attachmentCount,
+                                                       const VkBool32* pColorBlendEnables) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetColorBlendEnableEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetColorBlendEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorBlendEnableEXT(commandBuffer, firstAttachment, attachmentCount,
+                                       pColorBlendEnables, true /* do lock */);
+}
+static void entry_vkCmdSetColorBlendEquationEXT(
+    VkCommandBuffer commandBuffer, uint32_t firstAttachment, uint32_t attachmentCount,
+    const VkColorBlendEquationEXT* pColorBlendEquations) {
+    AEMU_SCOPED_TRACE("vkCmdSetColorBlendEquationEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorBlendEquationEXT(commandBuffer, firstAttachment, attachmentCount,
+                                         pColorBlendEquations, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetColorBlendEquationEXT(
+    VkCommandBuffer commandBuffer, uint32_t firstAttachment, uint32_t attachmentCount,
+    const VkColorBlendEquationEXT* pColorBlendEquations) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetColorBlendEquationEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetColorBlendEquationEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorBlendEquationEXT(commandBuffer, firstAttachment, attachmentCount,
+                                         pColorBlendEquations, true /* do lock */);
+}
+static void entry_vkCmdSetColorWriteMaskEXT(VkCommandBuffer commandBuffer, uint32_t firstAttachment,
+                                            uint32_t attachmentCount,
+                                            const VkColorComponentFlags* pColorWriteMasks) {
+    AEMU_SCOPED_TRACE("vkCmdSetColorWriteMaskEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorWriteMaskEXT(commandBuffer, firstAttachment, attachmentCount,
+                                     pColorWriteMasks, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetColorWriteMaskEXT(
+    VkCommandBuffer commandBuffer, uint32_t firstAttachment, uint32_t attachmentCount,
+    const VkColorComponentFlags* pColorWriteMasks) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetColorWriteMaskEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetColorWriteMaskEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorWriteMaskEXT(commandBuffer, firstAttachment, attachmentCount,
+                                     pColorWriteMasks, true /* do lock */);
+}
+static void entry_vkCmdSetRasterizationStreamEXT(VkCommandBuffer commandBuffer,
+                                                 uint32_t rasterizationStream) {
+    AEMU_SCOPED_TRACE("vkCmdSetRasterizationStreamEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRasterizationStreamEXT(commandBuffer, rasterizationStream, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetRasterizationStreamEXT(VkCommandBuffer commandBuffer,
+                                                          uint32_t rasterizationStream) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetRasterizationStreamEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetRasterizationStreamEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRasterizationStreamEXT(commandBuffer, rasterizationStream, true /* do lock */);
+}
+static void entry_vkCmdSetConservativeRasterizationModeEXT(
+    VkCommandBuffer commandBuffer,
+    VkConservativeRasterizationModeEXT conservativeRasterizationMode) {
+    AEMU_SCOPED_TRACE("vkCmdSetConservativeRasterizationModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetConservativeRasterizationModeEXT(commandBuffer, conservativeRasterizationMode,
+                                                    true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetConservativeRasterizationModeEXT(
+    VkCommandBuffer commandBuffer,
+    VkConservativeRasterizationModeEXT conservativeRasterizationMode) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetConservativeRasterizationModeEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetConservativeRasterizationModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetConservativeRasterizationModeEXT(commandBuffer, conservativeRasterizationMode,
+                                                    true /* do lock */);
+}
+static void entry_vkCmdSetExtraPrimitiveOverestimationSizeEXT(
+    VkCommandBuffer commandBuffer, float extraPrimitiveOverestimationSize) {
+    AEMU_SCOPED_TRACE("vkCmdSetExtraPrimitiveOverestimationSizeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetExtraPrimitiveOverestimationSizeEXT(
+        commandBuffer, extraPrimitiveOverestimationSize, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetExtraPrimitiveOverestimationSizeEXT(
+    VkCommandBuffer commandBuffer, float extraPrimitiveOverestimationSize) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetExtraPrimitiveOverestimationSizeEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetExtraPrimitiveOverestimationSizeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetExtraPrimitiveOverestimationSizeEXT(
+        commandBuffer, extraPrimitiveOverestimationSize, true /* do lock */);
+}
+static void entry_vkCmdSetDepthClipEnableEXT(VkCommandBuffer commandBuffer,
+                                             VkBool32 depthClipEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetDepthClipEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthClipEnableEXT(commandBuffer, depthClipEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDepthClipEnableEXT(VkCommandBuffer commandBuffer,
+                                                      VkBool32 depthClipEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDepthClipEnableEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDepthClipEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthClipEnableEXT(commandBuffer, depthClipEnable, true /* do lock */);
+}
+static void entry_vkCmdSetSampleLocationsEnableEXT(VkCommandBuffer commandBuffer,
+                                                   VkBool32 sampleLocationsEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetSampleLocationsEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetSampleLocationsEnableEXT(commandBuffer, sampleLocationsEnable,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetSampleLocationsEnableEXT(VkCommandBuffer commandBuffer,
+                                                            VkBool32 sampleLocationsEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetSampleLocationsEnableEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetSampleLocationsEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetSampleLocationsEnableEXT(commandBuffer, sampleLocationsEnable,
+                                            true /* do lock */);
+}
+static void entry_vkCmdSetColorBlendAdvancedEXT(
+    VkCommandBuffer commandBuffer, uint32_t firstAttachment, uint32_t attachmentCount,
+    const VkColorBlendAdvancedEXT* pColorBlendAdvanced) {
+    AEMU_SCOPED_TRACE("vkCmdSetColorBlendAdvancedEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorBlendAdvancedEXT(commandBuffer, firstAttachment, attachmentCount,
+                                         pColorBlendAdvanced, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetColorBlendAdvancedEXT(
+    VkCommandBuffer commandBuffer, uint32_t firstAttachment, uint32_t attachmentCount,
+    const VkColorBlendAdvancedEXT* pColorBlendAdvanced) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetColorBlendAdvancedEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetColorBlendAdvancedEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorBlendAdvancedEXT(commandBuffer, firstAttachment, attachmentCount,
+                                         pColorBlendAdvanced, true /* do lock */);
+}
+static void entry_vkCmdSetProvokingVertexModeEXT(VkCommandBuffer commandBuffer,
+                                                 VkProvokingVertexModeEXT provokingVertexMode) {
+    AEMU_SCOPED_TRACE("vkCmdSetProvokingVertexModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetProvokingVertexModeEXT(commandBuffer, provokingVertexMode, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetProvokingVertexModeEXT(
+    VkCommandBuffer commandBuffer, VkProvokingVertexModeEXT provokingVertexMode) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetProvokingVertexModeEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetProvokingVertexModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetProvokingVertexModeEXT(commandBuffer, provokingVertexMode, true /* do lock */);
+}
+static void entry_vkCmdSetLineRasterizationModeEXT(
+    VkCommandBuffer commandBuffer, VkLineRasterizationModeEXT lineRasterizationMode) {
+    AEMU_SCOPED_TRACE("vkCmdSetLineRasterizationModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetLineRasterizationModeEXT(commandBuffer, lineRasterizationMode,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetLineRasterizationModeEXT(
+    VkCommandBuffer commandBuffer, VkLineRasterizationModeEXT lineRasterizationMode) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetLineRasterizationModeEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetLineRasterizationModeEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetLineRasterizationModeEXT(commandBuffer, lineRasterizationMode,
+                                            true /* do lock */);
+}
+static void entry_vkCmdSetLineStippleEnableEXT(VkCommandBuffer commandBuffer,
+                                               VkBool32 stippledLineEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetLineStippleEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetLineStippleEnableEXT(commandBuffer, stippledLineEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetLineStippleEnableEXT(VkCommandBuffer commandBuffer,
+                                                        VkBool32 stippledLineEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetLineStippleEnableEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetLineStippleEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetLineStippleEnableEXT(commandBuffer, stippledLineEnable, true /* do lock */);
+}
+static void entry_vkCmdSetDepthClipNegativeOneToOneEXT(VkCommandBuffer commandBuffer,
+                                                       VkBool32 negativeOneToOne) {
+    AEMU_SCOPED_TRACE("vkCmdSetDepthClipNegativeOneToOneEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthClipNegativeOneToOneEXT(commandBuffer, negativeOneToOne,
+                                                true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetDepthClipNegativeOneToOneEXT(VkCommandBuffer commandBuffer,
+                                                                VkBool32 negativeOneToOne) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetDepthClipNegativeOneToOneEXT",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetDepthClipNegativeOneToOneEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthClipNegativeOneToOneEXT(commandBuffer, negativeOneToOne,
+                                                true /* do lock */);
+}
+static void entry_vkCmdSetViewportWScalingEnableNV(VkCommandBuffer commandBuffer,
+                                                   VkBool32 viewportWScalingEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetViewportWScalingEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportWScalingEnableNV(commandBuffer, viewportWScalingEnable,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetViewportWScalingEnableNV(VkCommandBuffer commandBuffer,
+                                                            VkBool32 viewportWScalingEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetViewportWScalingEnableNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetViewportWScalingEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportWScalingEnableNV(commandBuffer, viewportWScalingEnable,
+                                            true /* do lock */);
+}
+static void entry_vkCmdSetViewportSwizzleNV(VkCommandBuffer commandBuffer, uint32_t firstViewport,
+                                            uint32_t viewportCount,
+                                            const VkViewportSwizzleNV* pViewportSwizzles) {
+    AEMU_SCOPED_TRACE("vkCmdSetViewportSwizzleNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportSwizzleNV(commandBuffer, firstViewport, viewportCount, pViewportSwizzles,
+                                     true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetViewportSwizzleNV(VkCommandBuffer commandBuffer,
+                                                     uint32_t firstViewport, uint32_t viewportCount,
+                                                     const VkViewportSwizzleNV* pViewportSwizzles) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetViewportSwizzleNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetViewportSwizzleNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetViewportSwizzleNV(commandBuffer, firstViewport, viewportCount, pViewportSwizzles,
+                                     true /* do lock */);
+}
+static void entry_vkCmdSetCoverageToColorEnableNV(VkCommandBuffer commandBuffer,
+                                                  VkBool32 coverageToColorEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageToColorEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageToColorEnableNV(commandBuffer, coverageToColorEnable,
+                                           true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetCoverageToColorEnableNV(VkCommandBuffer commandBuffer,
+                                                           VkBool32 coverageToColorEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetCoverageToColorEnableNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageToColorEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageToColorEnableNV(commandBuffer, coverageToColorEnable,
+                                           true /* do lock */);
+}
+static void entry_vkCmdSetCoverageToColorLocationNV(VkCommandBuffer commandBuffer,
+                                                    uint32_t coverageToColorLocation) {
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageToColorLocationNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageToColorLocationNV(commandBuffer, coverageToColorLocation,
+                                             true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetCoverageToColorLocationNV(VkCommandBuffer commandBuffer,
+                                                             uint32_t coverageToColorLocation) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetCoverageToColorLocationNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageToColorLocationNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageToColorLocationNV(commandBuffer, coverageToColorLocation,
+                                             true /* do lock */);
+}
+static void entry_vkCmdSetCoverageModulationModeNV(
+    VkCommandBuffer commandBuffer, VkCoverageModulationModeNV coverageModulationMode) {
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageModulationModeNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageModulationModeNV(commandBuffer, coverageModulationMode,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetCoverageModulationModeNV(
+    VkCommandBuffer commandBuffer, VkCoverageModulationModeNV coverageModulationMode) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetCoverageModulationModeNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageModulationModeNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageModulationModeNV(commandBuffer, coverageModulationMode,
+                                            true /* do lock */);
+}
+static void entry_vkCmdSetCoverageModulationTableEnableNV(VkCommandBuffer commandBuffer,
+                                                          VkBool32 coverageModulationTableEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageModulationTableEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageModulationTableEnableNV(commandBuffer, coverageModulationTableEnable,
+                                                   true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetCoverageModulationTableEnableNV(
+    VkCommandBuffer commandBuffer, VkBool32 coverageModulationTableEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetCoverageModulationTableEnableNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageModulationTableEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageModulationTableEnableNV(commandBuffer, coverageModulationTableEnable,
+                                                   true /* do lock */);
+}
+static void entry_vkCmdSetCoverageModulationTableNV(VkCommandBuffer commandBuffer,
+                                                    uint32_t coverageModulationTableCount,
+                                                    const float* pCoverageModulationTable) {
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageModulationTableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageModulationTableNV(commandBuffer, coverageModulationTableCount,
+                                             pCoverageModulationTable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetCoverageModulationTableNV(
+    VkCommandBuffer commandBuffer, uint32_t coverageModulationTableCount,
+    const float* pCoverageModulationTable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetCoverageModulationTableNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageModulationTableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageModulationTableNV(commandBuffer, coverageModulationTableCount,
+                                             pCoverageModulationTable, true /* do lock */);
+}
+static void entry_vkCmdSetShadingRateImageEnableNV(VkCommandBuffer commandBuffer,
+                                                   VkBool32 shadingRateImageEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetShadingRateImageEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetShadingRateImageEnableNV(commandBuffer, shadingRateImageEnable,
+                                            true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetShadingRateImageEnableNV(VkCommandBuffer commandBuffer,
+                                                            VkBool32 shadingRateImageEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetShadingRateImageEnableNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetShadingRateImageEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetShadingRateImageEnableNV(commandBuffer, shadingRateImageEnable,
+                                            true /* do lock */);
+}
+static void entry_vkCmdSetRepresentativeFragmentTestEnableNV(
+    VkCommandBuffer commandBuffer, VkBool32 representativeFragmentTestEnable) {
+    AEMU_SCOPED_TRACE("vkCmdSetRepresentativeFragmentTestEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRepresentativeFragmentTestEnableNV(
+        commandBuffer, representativeFragmentTestEnable, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetRepresentativeFragmentTestEnableNV(
+    VkCommandBuffer commandBuffer, VkBool32 representativeFragmentTestEnable) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetRepresentativeFragmentTestEnableNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetRepresentativeFragmentTestEnableNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRepresentativeFragmentTestEnableNV(
+        commandBuffer, representativeFragmentTestEnable, true /* do lock */);
+}
+static void entry_vkCmdSetCoverageReductionModeNV(VkCommandBuffer commandBuffer,
+                                                  VkCoverageReductionModeNV coverageReductionMode) {
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageReductionModeNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageReductionModeNV(commandBuffer, coverageReductionMode,
+                                           true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetCoverageReductionModeNV(
+    VkCommandBuffer commandBuffer, VkCoverageReductionModeNV coverageReductionMode) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetCoverageReductionModeNV",
+                                         "VK_EXT_extended_dynamic_state3");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetCoverageReductionModeNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetCoverageReductionModeNV(commandBuffer, coverageReductionMode,
+                                           true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_subpass_merge_feedback
+#endif
+#ifdef VK_LUNARG_direct_driver_loading
+#endif
+#ifdef VK_EXT_shader_module_identifier
+static void entry_vkGetShaderModuleIdentifierEXT(VkDevice device, VkShaderModule shaderModule,
+                                                 VkShaderModuleIdentifierEXT* pIdentifier) {
+    AEMU_SCOPED_TRACE("vkGetShaderModuleIdentifierEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetShaderModuleIdentifierEXT(device, shaderModule, pIdentifier, true /* do lock */);
+}
+static void dynCheck_entry_vkGetShaderModuleIdentifierEXT(
+    VkDevice device, VkShaderModule shaderModule, VkShaderModuleIdentifierEXT* pIdentifier) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_shader_module_identifier")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetShaderModuleIdentifierEXT",
+                                         "VK_EXT_shader_module_identifier");
+    }
+    AEMU_SCOPED_TRACE("vkGetShaderModuleIdentifierEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetShaderModuleIdentifierEXT(device, shaderModule, pIdentifier, true /* do lock */);
+}
+static void entry_vkGetShaderModuleCreateInfoIdentifierEXT(
+    VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo,
+    VkShaderModuleIdentifierEXT* pIdentifier) {
+    AEMU_SCOPED_TRACE("vkGetShaderModuleCreateInfoIdentifierEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetShaderModuleCreateInfoIdentifierEXT(device, pCreateInfo, pIdentifier,
+                                                    true /* do lock */);
+}
+static void dynCheck_entry_vkGetShaderModuleCreateInfoIdentifierEXT(
+    VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo,
+    VkShaderModuleIdentifierEXT* pIdentifier) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_shader_module_identifier")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetShaderModuleCreateInfoIdentifierEXT",
+                                         "VK_EXT_shader_module_identifier");
+    }
+    AEMU_SCOPED_TRACE("vkGetShaderModuleCreateInfoIdentifierEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetShaderModuleCreateInfoIdentifierEXT(device, pCreateInfo, pIdentifier,
+                                                    true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_rasterization_order_attachment_access
+#endif
+#ifdef VK_NV_optical_flow
+static VkResult entry_vkGetPhysicalDeviceOpticalFlowImageFormatsNV(
+    VkPhysicalDevice physicalDevice,
+    const VkOpticalFlowImageFormatInfoNV* pOpticalFlowImageFormatInfo, uint32_t* pFormatCount,
+    VkOpticalFlowImageFormatPropertiesNV* pImageFormatProperties) {
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceOpticalFlowImageFormatsNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceOpticalFlowImageFormatsNV_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceOpticalFlowImageFormatsNV_VkResult_return =
+        vkEnc->vkGetPhysicalDeviceOpticalFlowImageFormatsNV(
+            physicalDevice, pOpticalFlowImageFormatInfo, pFormatCount, pImageFormatProperties,
+            true /* do lock */);
+    return vkGetPhysicalDeviceOpticalFlowImageFormatsNV_VkResult_return;
+}
+static VkResult entry_vkCreateOpticalFlowSessionNV(
+    VkDevice device, const VkOpticalFlowSessionCreateInfoNV* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkOpticalFlowSessionNV* pSession) {
+    AEMU_SCOPED_TRACE("vkCreateOpticalFlowSessionNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateOpticalFlowSessionNV_VkResult_return = (VkResult)0;
+    vkCreateOpticalFlowSessionNV_VkResult_return = vkEnc->vkCreateOpticalFlowSessionNV(
+        device, pCreateInfo, pAllocator, pSession, true /* do lock */);
+    return vkCreateOpticalFlowSessionNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateOpticalFlowSessionNV(
+    VkDevice device, const VkOpticalFlowSessionCreateInfoNV* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkOpticalFlowSessionNV* pSession) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_optical_flow")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateOpticalFlowSessionNV", "VK_NV_optical_flow");
+    }
+    AEMU_SCOPED_TRACE("vkCreateOpticalFlowSessionNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateOpticalFlowSessionNV_VkResult_return = (VkResult)0;
+    vkCreateOpticalFlowSessionNV_VkResult_return = vkEnc->vkCreateOpticalFlowSessionNV(
+        device, pCreateInfo, pAllocator, pSession, true /* do lock */);
+    return vkCreateOpticalFlowSessionNV_VkResult_return;
+}
+static void entry_vkDestroyOpticalFlowSessionNV(VkDevice device, VkOpticalFlowSessionNV session,
+                                                const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyOpticalFlowSessionNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyOpticalFlowSessionNV(device, session, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyOpticalFlowSessionNV(VkDevice device,
+                                                         VkOpticalFlowSessionNV session,
+                                                         const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_optical_flow")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyOpticalFlowSessionNV", "VK_NV_optical_flow");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyOpticalFlowSessionNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyOpticalFlowSessionNV(device, session, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkBindOpticalFlowSessionImageNV(
+    VkDevice device, VkOpticalFlowSessionNV session,
+    VkOpticalFlowSessionBindingPointNV bindingPoint, VkImageView view, VkImageLayout layout) {
+    AEMU_SCOPED_TRACE("vkBindOpticalFlowSessionImageNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBindOpticalFlowSessionImageNV_VkResult_return = (VkResult)0;
+    vkBindOpticalFlowSessionImageNV_VkResult_return = vkEnc->vkBindOpticalFlowSessionImageNV(
+        device, session, bindingPoint, view, layout, true /* do lock */);
+    return vkBindOpticalFlowSessionImageNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkBindOpticalFlowSessionImageNV(
+    VkDevice device, VkOpticalFlowSessionNV session,
+    VkOpticalFlowSessionBindingPointNV bindingPoint, VkImageView view, VkImageLayout layout) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_optical_flow")) {
+        sOnInvalidDynamicallyCheckedCall("vkBindOpticalFlowSessionImageNV", "VK_NV_optical_flow");
+    }
+    AEMU_SCOPED_TRACE("vkBindOpticalFlowSessionImageNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBindOpticalFlowSessionImageNV_VkResult_return = (VkResult)0;
+    vkBindOpticalFlowSessionImageNV_VkResult_return = vkEnc->vkBindOpticalFlowSessionImageNV(
+        device, session, bindingPoint, view, layout, true /* do lock */);
+    return vkBindOpticalFlowSessionImageNV_VkResult_return;
+}
+static void entry_vkCmdOpticalFlowExecuteNV(VkCommandBuffer commandBuffer,
+                                            VkOpticalFlowSessionNV session,
+                                            const VkOpticalFlowExecuteInfoNV* pExecuteInfo) {
+    AEMU_SCOPED_TRACE("vkCmdOpticalFlowExecuteNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdOpticalFlowExecuteNV(commandBuffer, session, pExecuteInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdOpticalFlowExecuteNV(
+    VkCommandBuffer commandBuffer, VkOpticalFlowSessionNV session,
+    const VkOpticalFlowExecuteInfoNV* pExecuteInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_NV_optical_flow")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdOpticalFlowExecuteNV", "VK_NV_optical_flow");
+    }
+    AEMU_SCOPED_TRACE("vkCmdOpticalFlowExecuteNV");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdOpticalFlowExecuteNV(commandBuffer, session, pExecuteInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_legacy_dithering
+#endif
+#ifdef VK_EXT_pipeline_protected_access
+#endif
+#ifdef VK_EXT_shader_object
+static VkResult entry_vkCreateShadersEXT(VkDevice device, uint32_t createInfoCount,
+                                         const VkShaderCreateInfoEXT* pCreateInfos,
+                                         const VkAllocationCallbacks* pAllocator,
+                                         VkShaderEXT* pShaders) {
+    AEMU_SCOPED_TRACE("vkCreateShadersEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateShadersEXT_VkResult_return = (VkResult)0;
+    vkCreateShadersEXT_VkResult_return = vkEnc->vkCreateShadersEXT(
+        device, createInfoCount, pCreateInfos, pAllocator, pShaders, true /* do lock */);
+    return vkCreateShadersEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateShadersEXT(VkDevice device, uint32_t createInfoCount,
+                                                  const VkShaderCreateInfoEXT* pCreateInfos,
+                                                  const VkAllocationCallbacks* pAllocator,
+                                                  VkShaderEXT* pShaders) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_shader_object")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateShadersEXT", "VK_EXT_shader_object");
+    }
+    AEMU_SCOPED_TRACE("vkCreateShadersEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateShadersEXT_VkResult_return = (VkResult)0;
+    vkCreateShadersEXT_VkResult_return = vkEnc->vkCreateShadersEXT(
+        device, createInfoCount, pCreateInfos, pAllocator, pShaders, true /* do lock */);
+    return vkCreateShadersEXT_VkResult_return;
+}
+static void entry_vkDestroyShaderEXT(VkDevice device, VkShaderEXT shader,
+                                     const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyShaderEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyShaderEXT(device, shader, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyShaderEXT(VkDevice device, VkShaderEXT shader,
+                                              const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_shader_object")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyShaderEXT", "VK_EXT_shader_object");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyShaderEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyShaderEXT(device, shader, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkGetShaderBinaryDataEXT(VkDevice device, VkShaderEXT shader,
+                                               size_t* pDataSize, void* pData) {
+    AEMU_SCOPED_TRACE("vkGetShaderBinaryDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetShaderBinaryDataEXT_VkResult_return = (VkResult)0;
+    vkGetShaderBinaryDataEXT_VkResult_return =
+        vkEnc->vkGetShaderBinaryDataEXT(device, shader, pDataSize, pData, true /* do lock */);
+    return vkGetShaderBinaryDataEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetShaderBinaryDataEXT(VkDevice device, VkShaderEXT shader,
+                                                        size_t* pDataSize, void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_shader_object")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetShaderBinaryDataEXT", "VK_EXT_shader_object");
+    }
+    AEMU_SCOPED_TRACE("vkGetShaderBinaryDataEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetShaderBinaryDataEXT_VkResult_return = (VkResult)0;
+    vkGetShaderBinaryDataEXT_VkResult_return =
+        vkEnc->vkGetShaderBinaryDataEXT(device, shader, pDataSize, pData, true /* do lock */);
+    return vkGetShaderBinaryDataEXT_VkResult_return;
+}
+static void entry_vkCmdBindShadersEXT(VkCommandBuffer commandBuffer, uint32_t stageCount,
+                                      const VkShaderStageFlagBits* pStages,
+                                      const VkShaderEXT* pShaders) {
+    AEMU_SCOPED_TRACE("vkCmdBindShadersEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindShadersEXT(commandBuffer, stageCount, pStages, pShaders, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBindShadersEXT(VkCommandBuffer commandBuffer, uint32_t stageCount,
+                                               const VkShaderStageFlagBits* pStages,
+                                               const VkShaderEXT* pShaders) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_shader_object")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBindShadersEXT", "VK_EXT_shader_object");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBindShadersEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindShadersEXT(commandBuffer, stageCount, pStages, pShaders, true /* do lock */);
+}
+#endif
+#ifdef VK_QCOM_tile_properties
+static VkResult entry_vkGetFramebufferTilePropertiesQCOM(VkDevice device, VkFramebuffer framebuffer,
+                                                         uint32_t* pPropertiesCount,
+                                                         VkTilePropertiesQCOM* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetFramebufferTilePropertiesQCOM");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetFramebufferTilePropertiesQCOM_VkResult_return = (VkResult)0;
+    vkGetFramebufferTilePropertiesQCOM_VkResult_return = vkEnc->vkGetFramebufferTilePropertiesQCOM(
+        device, framebuffer, pPropertiesCount, pProperties, true /* do lock */);
+    return vkGetFramebufferTilePropertiesQCOM_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetFramebufferTilePropertiesQCOM(
+    VkDevice device, VkFramebuffer framebuffer, uint32_t* pPropertiesCount,
+    VkTilePropertiesQCOM* pProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_QCOM_tile_properties")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetFramebufferTilePropertiesQCOM",
+                                         "VK_QCOM_tile_properties");
+    }
+    AEMU_SCOPED_TRACE("vkGetFramebufferTilePropertiesQCOM");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetFramebufferTilePropertiesQCOM_VkResult_return = (VkResult)0;
+    vkGetFramebufferTilePropertiesQCOM_VkResult_return = vkEnc->vkGetFramebufferTilePropertiesQCOM(
+        device, framebuffer, pPropertiesCount, pProperties, true /* do lock */);
+    return vkGetFramebufferTilePropertiesQCOM_VkResult_return;
+}
+static VkResult entry_vkGetDynamicRenderingTilePropertiesQCOM(VkDevice device,
+                                                              const VkRenderingInfo* pRenderingInfo,
+                                                              VkTilePropertiesQCOM* pProperties) {
+    AEMU_SCOPED_TRACE("vkGetDynamicRenderingTilePropertiesQCOM");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return = (VkResult)0;
+    vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return =
+        vkEnc->vkGetDynamicRenderingTilePropertiesQCOM(device, pRenderingInfo, pProperties,
+                                                       true /* do lock */);
+    return vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetDynamicRenderingTilePropertiesQCOM(
+    VkDevice device, const VkRenderingInfo* pRenderingInfo, VkTilePropertiesQCOM* pProperties) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_QCOM_tile_properties")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDynamicRenderingTilePropertiesQCOM",
+                                         "VK_QCOM_tile_properties");
+    }
+    AEMU_SCOPED_TRACE("vkGetDynamicRenderingTilePropertiesQCOM");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return = (VkResult)0;
+    vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return =
+        vkEnc->vkGetDynamicRenderingTilePropertiesQCOM(device, pRenderingInfo, pProperties,
+                                                       true /* do lock */);
+    return vkGetDynamicRenderingTilePropertiesQCOM_VkResult_return;
+}
+#endif
+#ifdef VK_SEC_amigo_profiling
+#endif
+#ifdef VK_QCOM_multiview_per_view_viewports
+#endif
+#ifdef VK_NV_ray_tracing_invocation_reorder
+#endif
+#ifdef VK_EXT_mutable_descriptor_type
+#endif
+#ifdef VK_ARM_shader_core_builtins
+#endif
+#ifdef VK_EXT_pipeline_library_group_handles
+#endif
+#ifdef VK_QCOM_multiview_per_view_render_areas
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+static void entry_vkCmdSetAttachmentFeedbackLoopEnableEXT(VkCommandBuffer commandBuffer,
+                                                          VkImageAspectFlags aspectMask) {
+    AEMU_SCOPED_TRACE("vkCmdSetAttachmentFeedbackLoopEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetAttachmentFeedbackLoopEnableEXT(commandBuffer, aspectMask, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetAttachmentFeedbackLoopEnableEXT(VkCommandBuffer commandBuffer,
+                                                                   VkImageAspectFlags aspectMask) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_attachment_feedback_loop_dynamic_state")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetAttachmentFeedbackLoopEnableEXT",
+                                         "VK_EXT_attachment_feedback_loop_dynamic_state");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetAttachmentFeedbackLoopEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetAttachmentFeedbackLoopEnableEXT(commandBuffer, aspectMask, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_acceleration_structure
+static VkResult entry_vkCreateAccelerationStructureKHR(
+    VkDevice device, const VkAccelerationStructureCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkAccelerationStructureKHR* pAccelerationStructure) {
+    AEMU_SCOPED_TRACE("vkCreateAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateAccelerationStructureKHR_VkResult_return = (VkResult)0;
+    vkCreateAccelerationStructureKHR_VkResult_return = vkEnc->vkCreateAccelerationStructureKHR(
+        device, pCreateInfo, pAllocator, pAccelerationStructure, true /* do lock */);
+    return vkCreateAccelerationStructureKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateAccelerationStructureKHR(
+    VkDevice device, const VkAccelerationStructureCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkAccelerationStructureKHR* pAccelerationStructure) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateAccelerationStructureKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCreateAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateAccelerationStructureKHR_VkResult_return = (VkResult)0;
+    vkCreateAccelerationStructureKHR_VkResult_return = vkEnc->vkCreateAccelerationStructureKHR(
+        device, pCreateInfo, pAllocator, pAccelerationStructure, true /* do lock */);
+    return vkCreateAccelerationStructureKHR_VkResult_return;
+}
+static void entry_vkDestroyAccelerationStructureKHR(
+    VkDevice device, VkAccelerationStructureKHR accelerationStructure,
+    const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("vkDestroyAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyAccelerationStructureKHR(device, accelerationStructure, pAllocator,
+                                             true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyAccelerationStructureKHR(
+    VkDevice device, VkAccelerationStructureKHR accelerationStructure,
+    const VkAllocationCallbacks* pAllocator) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyAccelerationStructureKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyAccelerationStructureKHR(device, accelerationStructure, pAllocator,
+                                             true /* do lock */);
+}
+static void entry_vkCmdBuildAccelerationStructuresKHR(
+    VkCommandBuffer commandBuffer, uint32_t infoCount,
+    const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+    const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) {
+    AEMU_SCOPED_TRACE("vkCmdBuildAccelerationStructuresKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBuildAccelerationStructuresKHR(commandBuffer, infoCount, pInfos, ppBuildRangeInfos,
+                                               true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBuildAccelerationStructuresKHR(
+    VkCommandBuffer commandBuffer, uint32_t infoCount,
+    const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+    const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBuildAccelerationStructuresKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBuildAccelerationStructuresKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBuildAccelerationStructuresKHR(commandBuffer, infoCount, pInfos, ppBuildRangeInfos,
+                                               true /* do lock */);
+}
+static void entry_vkCmdBuildAccelerationStructuresIndirectKHR(
+    VkCommandBuffer commandBuffer, uint32_t infoCount,
+    const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+    const VkDeviceAddress* pIndirectDeviceAddresses, const uint32_t* pIndirectStrides,
+    const uint32_t* const* ppMaxPrimitiveCounts) {
+    AEMU_SCOPED_TRACE("vkCmdBuildAccelerationStructuresIndirectKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBuildAccelerationStructuresIndirectKHR(commandBuffer, infoCount, pInfos,
+                                                       pIndirectDeviceAddresses, pIndirectStrides,
+                                                       ppMaxPrimitiveCounts, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdBuildAccelerationStructuresIndirectKHR(
+    VkCommandBuffer commandBuffer, uint32_t infoCount,
+    const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+    const VkDeviceAddress* pIndirectDeviceAddresses, const uint32_t* pIndirectStrides,
+    const uint32_t* const* ppMaxPrimitiveCounts) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdBuildAccelerationStructuresIndirectKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCmdBuildAccelerationStructuresIndirectKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBuildAccelerationStructuresIndirectKHR(commandBuffer, infoCount, pInfos,
+                                                       pIndirectDeviceAddresses, pIndirectStrides,
+                                                       ppMaxPrimitiveCounts, true /* do lock */);
+}
+static VkResult entry_vkBuildAccelerationStructuresKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation, uint32_t infoCount,
+    const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+    const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) {
+    AEMU_SCOPED_TRACE("vkBuildAccelerationStructuresKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBuildAccelerationStructuresKHR_VkResult_return = (VkResult)0;
+    vkBuildAccelerationStructuresKHR_VkResult_return = vkEnc->vkBuildAccelerationStructuresKHR(
+        device, deferredOperation, infoCount, pInfos, ppBuildRangeInfos, true /* do lock */);
+    return vkBuildAccelerationStructuresKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkBuildAccelerationStructuresKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation, uint32_t infoCount,
+    const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+    const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkBuildAccelerationStructuresKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkBuildAccelerationStructuresKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBuildAccelerationStructuresKHR_VkResult_return = (VkResult)0;
+    vkBuildAccelerationStructuresKHR_VkResult_return = vkEnc->vkBuildAccelerationStructuresKHR(
+        device, deferredOperation, infoCount, pInfos, ppBuildRangeInfos, true /* do lock */);
+    return vkBuildAccelerationStructuresKHR_VkResult_return;
+}
+static VkResult entry_vkCopyAccelerationStructureKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation,
+    const VkCopyAccelerationStructureInfoKHR* pInfo) {
+    AEMU_SCOPED_TRACE("vkCopyAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyAccelerationStructureKHR_VkResult_return = (VkResult)0;
+    vkCopyAccelerationStructureKHR_VkResult_return =
+        vkEnc->vkCopyAccelerationStructureKHR(device, deferredOperation, pInfo, true /* do lock */);
+    return vkCopyAccelerationStructureKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCopyAccelerationStructureKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation,
+    const VkCopyAccelerationStructureInfoKHR* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCopyAccelerationStructureKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCopyAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyAccelerationStructureKHR_VkResult_return = (VkResult)0;
+    vkCopyAccelerationStructureKHR_VkResult_return =
+        vkEnc->vkCopyAccelerationStructureKHR(device, deferredOperation, pInfo, true /* do lock */);
+    return vkCopyAccelerationStructureKHR_VkResult_return;
+}
+static VkResult entry_vkCopyAccelerationStructureToMemoryKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation,
+    const VkCopyAccelerationStructureToMemoryInfoKHR* pInfo) {
+    AEMU_SCOPED_TRACE("vkCopyAccelerationStructureToMemoryKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyAccelerationStructureToMemoryKHR_VkResult_return = (VkResult)0;
+    vkCopyAccelerationStructureToMemoryKHR_VkResult_return =
+        vkEnc->vkCopyAccelerationStructureToMemoryKHR(device, deferredOperation, pInfo,
+                                                      true /* do lock */);
+    return vkCopyAccelerationStructureToMemoryKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCopyAccelerationStructureToMemoryKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation,
+    const VkCopyAccelerationStructureToMemoryInfoKHR* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCopyAccelerationStructureToMemoryKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCopyAccelerationStructureToMemoryKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyAccelerationStructureToMemoryKHR_VkResult_return = (VkResult)0;
+    vkCopyAccelerationStructureToMemoryKHR_VkResult_return =
+        vkEnc->vkCopyAccelerationStructureToMemoryKHR(device, deferredOperation, pInfo,
+                                                      true /* do lock */);
+    return vkCopyAccelerationStructureToMemoryKHR_VkResult_return;
+}
+static VkResult entry_vkCopyMemoryToAccelerationStructureKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation,
+    const VkCopyMemoryToAccelerationStructureInfoKHR* pInfo) {
+    AEMU_SCOPED_TRACE("vkCopyMemoryToAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyMemoryToAccelerationStructureKHR_VkResult_return = (VkResult)0;
+    vkCopyMemoryToAccelerationStructureKHR_VkResult_return =
+        vkEnc->vkCopyMemoryToAccelerationStructureKHR(device, deferredOperation, pInfo,
+                                                      true /* do lock */);
+    return vkCopyMemoryToAccelerationStructureKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCopyMemoryToAccelerationStructureKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation,
+    const VkCopyMemoryToAccelerationStructureInfoKHR* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCopyMemoryToAccelerationStructureKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCopyMemoryToAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCopyMemoryToAccelerationStructureKHR_VkResult_return = (VkResult)0;
+    vkCopyMemoryToAccelerationStructureKHR_VkResult_return =
+        vkEnc->vkCopyMemoryToAccelerationStructureKHR(device, deferredOperation, pInfo,
+                                                      true /* do lock */);
+    return vkCopyMemoryToAccelerationStructureKHR_VkResult_return;
+}
+static VkResult entry_vkWriteAccelerationStructuresPropertiesKHR(
+    VkDevice device, uint32_t accelerationStructureCount,
+    const VkAccelerationStructureKHR* pAccelerationStructures, VkQueryType queryType,
+    size_t dataSize, void* pData, size_t stride) {
+    AEMU_SCOPED_TRACE("vkWriteAccelerationStructuresPropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWriteAccelerationStructuresPropertiesKHR_VkResult_return = (VkResult)0;
+    vkWriteAccelerationStructuresPropertiesKHR_VkResult_return =
+        vkEnc->vkWriteAccelerationStructuresPropertiesKHR(
+            device, accelerationStructureCount, pAccelerationStructures, queryType, dataSize, pData,
+            stride, true /* do lock */);
+    return vkWriteAccelerationStructuresPropertiesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkWriteAccelerationStructuresPropertiesKHR(
+    VkDevice device, uint32_t accelerationStructureCount,
+    const VkAccelerationStructureKHR* pAccelerationStructures, VkQueryType queryType,
+    size_t dataSize, void* pData, size_t stride) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkWriteAccelerationStructuresPropertiesKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkWriteAccelerationStructuresPropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWriteAccelerationStructuresPropertiesKHR_VkResult_return = (VkResult)0;
+    vkWriteAccelerationStructuresPropertiesKHR_VkResult_return =
+        vkEnc->vkWriteAccelerationStructuresPropertiesKHR(
+            device, accelerationStructureCount, pAccelerationStructures, queryType, dataSize, pData,
+            stride, true /* do lock */);
+    return vkWriteAccelerationStructuresPropertiesKHR_VkResult_return;
+}
+static void entry_vkCmdCopyAccelerationStructureKHR(
+    VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureInfoKHR* pInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyAccelerationStructureKHR(commandBuffer, pInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyAccelerationStructureKHR(
+    VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureInfoKHR* pInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyAccelerationStructureKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyAccelerationStructureKHR(commandBuffer, pInfo, true /* do lock */);
+}
+static void entry_vkCmdCopyAccelerationStructureToMemoryKHR(
+    VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureToMemoryInfoKHR* pInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyAccelerationStructureToMemoryKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyAccelerationStructureToMemoryKHR(commandBuffer, pInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyAccelerationStructureToMemoryKHR(
+    VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureToMemoryInfoKHR* pInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyAccelerationStructureToMemoryKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyAccelerationStructureToMemoryKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyAccelerationStructureToMemoryKHR(commandBuffer, pInfo, true /* do lock */);
+}
+static void entry_vkCmdCopyMemoryToAccelerationStructureKHR(
+    VkCommandBuffer commandBuffer, const VkCopyMemoryToAccelerationStructureInfoKHR* pInfo) {
+    AEMU_SCOPED_TRACE("vkCmdCopyMemoryToAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMemoryToAccelerationStructureKHR(commandBuffer, pInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdCopyMemoryToAccelerationStructureKHR(
+    VkCommandBuffer commandBuffer, const VkCopyMemoryToAccelerationStructureInfoKHR* pInfo) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdCopyMemoryToAccelerationStructureKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCmdCopyMemoryToAccelerationStructureKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCopyMemoryToAccelerationStructureKHR(commandBuffer, pInfo, true /* do lock */);
+}
+static VkDeviceAddress entry_vkGetAccelerationStructureDeviceAddressKHR(
+    VkDevice device, const VkAccelerationStructureDeviceAddressInfoKHR* pInfo) {
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureDeviceAddressKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkDeviceAddress vkGetAccelerationStructureDeviceAddressKHR_VkDeviceAddress_return =
+        (VkDeviceAddress)0;
+    vkGetAccelerationStructureDeviceAddressKHR_VkDeviceAddress_return =
+        vkEnc->vkGetAccelerationStructureDeviceAddressKHR(device, pInfo, true /* do lock */);
+    return vkGetAccelerationStructureDeviceAddressKHR_VkDeviceAddress_return;
+}
+static VkDeviceAddress dynCheck_entry_vkGetAccelerationStructureDeviceAddressKHR(
+    VkDevice device, const VkAccelerationStructureDeviceAddressInfoKHR* pInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetAccelerationStructureDeviceAddressKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureDeviceAddressKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkDeviceAddress vkGetAccelerationStructureDeviceAddressKHR_VkDeviceAddress_return =
+        (VkDeviceAddress)0;
+    vkGetAccelerationStructureDeviceAddressKHR_VkDeviceAddress_return =
+        vkEnc->vkGetAccelerationStructureDeviceAddressKHR(device, pInfo, true /* do lock */);
+    return vkGetAccelerationStructureDeviceAddressKHR_VkDeviceAddress_return;
+}
+static void entry_vkCmdWriteAccelerationStructuresPropertiesKHR(
+    VkCommandBuffer commandBuffer, uint32_t accelerationStructureCount,
+    const VkAccelerationStructureKHR* pAccelerationStructures, VkQueryType queryType,
+    VkQueryPool queryPool, uint32_t firstQuery) {
+    AEMU_SCOPED_TRACE("vkCmdWriteAccelerationStructuresPropertiesKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteAccelerationStructuresPropertiesKHR(commandBuffer, accelerationStructureCount,
+                                                         pAccelerationStructures, queryType,
+                                                         queryPool, firstQuery, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdWriteAccelerationStructuresPropertiesKHR(
+    VkCommandBuffer commandBuffer, uint32_t accelerationStructureCount,
+    const VkAccelerationStructureKHR* pAccelerationStructures, VkQueryType queryType,
+    VkQueryPool queryPool, uint32_t firstQuery) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdWriteAccelerationStructuresPropertiesKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkCmdWriteAccelerationStructuresPropertiesKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteAccelerationStructuresPropertiesKHR(commandBuffer, accelerationStructureCount,
+                                                         pAccelerationStructures, queryType,
+                                                         queryPool, firstQuery, true /* do lock */);
+}
+static void entry_vkGetDeviceAccelerationStructureCompatibilityKHR(
+    VkDevice device, const VkAccelerationStructureVersionInfoKHR* pVersionInfo,
+    VkAccelerationStructureCompatibilityKHR* pCompatibility) {
+    AEMU_SCOPED_TRACE("vkGetDeviceAccelerationStructureCompatibilityKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceAccelerationStructureCompatibilityKHR(device, pVersionInfo, pCompatibility,
+                                                            true /* do lock */);
+}
+static void dynCheck_entry_vkGetDeviceAccelerationStructureCompatibilityKHR(
+    VkDevice device, const VkAccelerationStructureVersionInfoKHR* pVersionInfo,
+    VkAccelerationStructureCompatibilityKHR* pCompatibility) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceAccelerationStructureCompatibilityKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceAccelerationStructureCompatibilityKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceAccelerationStructureCompatibilityKHR(device, pVersionInfo, pCompatibility,
+                                                            true /* do lock */);
+}
+static void entry_vkGetAccelerationStructureBuildSizesKHR(
+    VkDevice device, VkAccelerationStructureBuildTypeKHR buildType,
+    const VkAccelerationStructureBuildGeometryInfoKHR* pBuildInfo,
+    const uint32_t* pMaxPrimitiveCounts, VkAccelerationStructureBuildSizesInfoKHR* pSizeInfo) {
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureBuildSizesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetAccelerationStructureBuildSizesKHR(
+        device, buildType, pBuildInfo, pMaxPrimitiveCounts, pSizeInfo, true /* do lock */);
+}
+static void dynCheck_entry_vkGetAccelerationStructureBuildSizesKHR(
+    VkDevice device, VkAccelerationStructureBuildTypeKHR buildType,
+    const VkAccelerationStructureBuildGeometryInfoKHR* pBuildInfo,
+    const uint32_t* pMaxPrimitiveCounts, VkAccelerationStructureBuildSizesInfoKHR* pSizeInfo) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetAccelerationStructureBuildSizesKHR",
+                                         "VK_KHR_acceleration_structure");
+    }
+    AEMU_SCOPED_TRACE("vkGetAccelerationStructureBuildSizesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetAccelerationStructureBuildSizesKHR(
+        device, buildType, pBuildInfo, pMaxPrimitiveCounts, pSizeInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+static void entry_vkCmdTraceRaysKHR(
+    VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable, uint32_t width,
+    uint32_t height, uint32_t depth) {
+    AEMU_SCOPED_TRACE("vkCmdTraceRaysKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdTraceRaysKHR(commandBuffer, pRaygenShaderBindingTable, pMissShaderBindingTable,
+                             pHitShaderBindingTable, pCallableShaderBindingTable, width, height,
+                             depth, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdTraceRaysKHR(
+    VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable, uint32_t width,
+    uint32_t height, uint32_t depth) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdTraceRaysKHR", "VK_KHR_ray_tracing_pipeline");
+    }
+    AEMU_SCOPED_TRACE("vkCmdTraceRaysKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdTraceRaysKHR(commandBuffer, pRaygenShaderBindingTable, pMissShaderBindingTable,
+                             pHitShaderBindingTable, pCallableShaderBindingTable, width, height,
+                             depth, true /* do lock */);
+}
+static VkResult entry_vkCreateRayTracingPipelinesKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation, VkPipelineCache pipelineCache,
+    uint32_t createInfoCount, const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
+    AEMU_SCOPED_TRACE("vkCreateRayTracingPipelinesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateRayTracingPipelinesKHR_VkResult_return = (VkResult)0;
+    vkCreateRayTracingPipelinesKHR_VkResult_return = vkEnc->vkCreateRayTracingPipelinesKHR(
+        device, deferredOperation, pipelineCache, createInfoCount, pCreateInfos, pAllocator,
+        pPipelines, true /* do lock */);
+    return vkCreateRayTracingPipelinesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateRayTracingPipelinesKHR(
+    VkDevice device, VkDeferredOperationKHR deferredOperation, VkPipelineCache pipelineCache,
+    uint32_t createInfoCount, const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline")) {
+        sOnInvalidDynamicallyCheckedCall("vkCreateRayTracingPipelinesKHR",
+                                         "VK_KHR_ray_tracing_pipeline");
+    }
+    AEMU_SCOPED_TRACE("vkCreateRayTracingPipelinesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateRayTracingPipelinesKHR_VkResult_return = (VkResult)0;
+    vkCreateRayTracingPipelinesKHR_VkResult_return = vkEnc->vkCreateRayTracingPipelinesKHR(
+        device, deferredOperation, pipelineCache, createInfoCount, pCreateInfos, pAllocator,
+        pPipelines, true /* do lock */);
+    return vkCreateRayTracingPipelinesKHR_VkResult_return;
+}
+static VkResult entry_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+    VkDevice device, VkPipeline pipeline, uint32_t firstGroup, uint32_t groupCount, size_t dataSize,
+    void* pData) {
+    AEMU_SCOPED_TRACE("vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return = (VkResult)0;
+    vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return =
+        vkEnc->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+            device, pipeline, firstGroup, groupCount, dataSize, pData, true /* do lock */);
+    return vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+    VkDevice device, VkPipeline pipeline, uint32_t firstGroup, uint32_t groupCount, size_t dataSize,
+    void* pData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetRayTracingCaptureReplayShaderGroupHandlesKHR",
+                                         "VK_KHR_ray_tracing_pipeline");
+    }
+    AEMU_SCOPED_TRACE("vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return = (VkResult)0;
+    vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return =
+        vkEnc->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+            device, pipeline, firstGroup, groupCount, dataSize, pData, true /* do lock */);
+    return vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return;
+}
+static void entry_vkCmdTraceRaysIndirectKHR(
+    VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+    VkDeviceAddress indirectDeviceAddress) {
+    AEMU_SCOPED_TRACE("vkCmdTraceRaysIndirectKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdTraceRaysIndirectKHR(
+        commandBuffer, pRaygenShaderBindingTable, pMissShaderBindingTable, pHitShaderBindingTable,
+        pCallableShaderBindingTable, indirectDeviceAddress, true /* do lock */);
+}
+static void dynCheck_entry_vkCmdTraceRaysIndirectKHR(
+    VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+    VkDeviceAddress indirectDeviceAddress) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdTraceRaysIndirectKHR",
+                                         "VK_KHR_ray_tracing_pipeline");
+    }
+    AEMU_SCOPED_TRACE("vkCmdTraceRaysIndirectKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdTraceRaysIndirectKHR(
+        commandBuffer, pRaygenShaderBindingTable, pMissShaderBindingTable, pHitShaderBindingTable,
+        pCallableShaderBindingTable, indirectDeviceAddress, true /* do lock */);
+}
+static VkDeviceSize entry_vkGetRayTracingShaderGroupStackSizeKHR(
+    VkDevice device, VkPipeline pipeline, uint32_t group, VkShaderGroupShaderKHR groupShader) {
+    AEMU_SCOPED_TRACE("vkGetRayTracingShaderGroupStackSizeKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkDeviceSize vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return = (VkDeviceSize)0;
+    vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return =
+        vkEnc->vkGetRayTracingShaderGroupStackSizeKHR(device, pipeline, group, groupShader,
+                                                      true /* do lock */);
+    return vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return;
+}
+static VkDeviceSize dynCheck_entry_vkGetRayTracingShaderGroupStackSizeKHR(
+    VkDevice device, VkPipeline pipeline, uint32_t group, VkShaderGroupShaderKHR groupShader) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline")) {
+        sOnInvalidDynamicallyCheckedCall("vkGetRayTracingShaderGroupStackSizeKHR",
+                                         "VK_KHR_ray_tracing_pipeline");
+    }
+    AEMU_SCOPED_TRACE("vkGetRayTracingShaderGroupStackSizeKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkDeviceSize vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return = (VkDeviceSize)0;
+    vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return =
+        vkEnc->vkGetRayTracingShaderGroupStackSizeKHR(device, pipeline, group, groupShader,
+                                                      true /* do lock */);
+    return vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return;
+}
+static void entry_vkCmdSetRayTracingPipelineStackSizeKHR(VkCommandBuffer commandBuffer,
+                                                         uint32_t pipelineStackSize) {
+    AEMU_SCOPED_TRACE("vkCmdSetRayTracingPipelineStackSizeKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRayTracingPipelineStackSizeKHR(commandBuffer, pipelineStackSize,
+                                                  true /* do lock */);
+}
+static void dynCheck_entry_vkCmdSetRayTracingPipelineStackSizeKHR(VkCommandBuffer commandBuffer,
+                                                                  uint32_t pipelineStackSize) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdSetRayTracingPipelineStackSizeKHR",
+                                         "VK_KHR_ray_tracing_pipeline");
+    }
+    AEMU_SCOPED_TRACE("vkCmdSetRayTracingPipelineStackSizeKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRayTracingPipelineStackSizeKHR(commandBuffer, pipelineStackSize,
+                                                  true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_ray_query
+#endif
+#ifdef VK_EXT_mesh_shader
+static void entry_vkCmdDrawMeshTasksEXT(VkCommandBuffer commandBuffer, uint32_t groupCountX,
+                                        uint32_t groupCountY, uint32_t groupCountZ) {
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksEXT(commandBuffer, groupCountX, groupCountY, groupCountZ,
+                                 true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawMeshTasksEXT(VkCommandBuffer commandBuffer,
+                                                 uint32_t groupCountX, uint32_t groupCountY,
+                                                 uint32_t groupCountZ) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_mesh_shader")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawMeshTasksEXT", "VK_EXT_mesh_shader");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksEXT(commandBuffer, groupCountX, groupCountY, groupCountZ,
+                                 true /* do lock */);
+}
+static void entry_vkCmdDrawMeshTasksIndirectEXT(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                                VkDeviceSize offset, uint32_t drawCount,
+                                                uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksIndirectEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksIndirectEXT(commandBuffer, buffer, offset, drawCount, stride,
+                                         true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawMeshTasksIndirectEXT(VkCommandBuffer commandBuffer,
+                                                         VkBuffer buffer, VkDeviceSize offset,
+                                                         uint32_t drawCount, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_mesh_shader")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawMeshTasksIndirectEXT", "VK_EXT_mesh_shader");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksIndirectEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksIndirectEXT(commandBuffer, buffer, offset, drawCount, stride,
+                                         true /* do lock */);
+}
+static void entry_vkCmdDrawMeshTasksIndirectCountEXT(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                                     VkDeviceSize offset, VkBuffer countBuffer,
+                                                     VkDeviceSize countBufferOffset,
+                                                     uint32_t maxDrawCount, uint32_t stride) {
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksIndirectCountEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksIndirectCountEXT(commandBuffer, buffer, offset, countBuffer,
+                                              countBufferOffset, maxDrawCount, stride,
+                                              true /* do lock */);
+}
+static void dynCheck_entry_vkCmdDrawMeshTasksIndirectCountEXT(
+    VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
+    VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) {
+    auto resources = ResourceTracker::get();
+    VkDevice device = resources->getDevice(commandBuffer);
+    ;
+    if (!resources->hasDeviceExtension(device, "VK_EXT_mesh_shader")) {
+        sOnInvalidDynamicallyCheckedCall("vkCmdDrawMeshTasksIndirectCountEXT",
+                                         "VK_EXT_mesh_shader");
+    }
+    AEMU_SCOPED_TRACE("vkCmdDrawMeshTasksIndirectCountEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMeshTasksIndirectCountEXT(commandBuffer, buffer, offset, countBuffer,
+                                              countBufferOffset, maxDrawCount, stride,
+                                              true /* do lock */);
+}
 #endif
 void* goldfish_vulkan_get_proc_address(const char* name) {
 #ifdef VK_VERSION_1_0
@@ -4258,8 +12176,165 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
 #endif
+#ifdef VK_KHR_surface
+    if (!strcmp(name, "vkDestroySurfaceKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceSupportKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormatsKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModesKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_swapchain
+    if (!strcmp(name, "vkCreateSwapchainKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroySwapchainKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetSwapchainImagesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkAcquireNextImageKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueuePresentKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkAcquireNextImage2KHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_display
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPropertiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneSupportedDisplaysKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModePropertiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayModeKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilitiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayPlaneSurfaceKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_display_swapchain
+    if (!strcmp(name, "vkCreateSharedSwapchainsKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_xlib_surface
+    if (!strcmp(name, "vkCreateXlibSurfaceKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXlibPresentationSupportKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_xcb_surface
+    if (!strcmp(name, "vkCreateXcbSurfaceKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXcbPresentationSupportKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_wayland_surface
+    if (!strcmp(name, "vkCreateWaylandSurfaceKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWaylandPresentationSupportKHR")) {
+        return nullptr;
+    }
+#endif
 #ifdef VK_KHR_android_surface
     if (!strcmp(name, "vkCreateAndroidSurfaceKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_win32_surface
+    if (!strcmp(name, "vkCreateWin32SurfaceKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWin32PresentationSupportKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_queue
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoCapabilitiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoFormatPropertiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetVideoSessionMemoryRequirementsKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkBindVideoSessionMemoryKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionParametersKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkUpdateVideoSessionParametersKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionParametersKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginVideoCodingKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndVideoCodingKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdControlVideoCodingKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_decode_queue
+    if (!strcmp(name, "vkCmdDecodeVideoKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_dynamic_rendering
+    if (!strcmp(name, "vkCmdBeginRenderingKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndRenderingKHR")) {
         return nullptr;
     }
 #endif
@@ -4286,8 +12361,24 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
 #endif
+#ifdef VK_KHR_device_group
+    if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeaturesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDeviceMaskKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDispatchBaseKHR")) {
+        return nullptr;
+    }
+#endif
 #ifdef VK_KHR_maintenance1
     if (!strcmp(name, "vkTrimCommandPoolKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_device_group_creation
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceGroupsKHR")) {
         return nullptr;
     }
 #endif
@@ -4296,8 +12387,32 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
 #endif
+#ifdef VK_KHR_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryWin32HandlePropertiesKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_memory_fd
+    if (!strcmp(name, "vkGetMemoryFdKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryFdPropertiesKHR")) {
+        return nullptr;
+    }
+#endif
 #ifdef VK_KHR_external_semaphore_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalSemaphorePropertiesKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_semaphore_win32
+    if (!strcmp(name, "vkImportSemaphoreWin32HandleKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreWin32HandleKHR")) {
         return nullptr;
     }
 #endif
@@ -4306,6 +12421,14 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
     if (!strcmp(name, "vkGetSemaphoreFdKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_push_descriptor
+    if (!strcmp(name, "vkCmdPushDescriptorSetKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdPushDescriptorSetWithTemplateKHR")) {
         return nullptr;
     }
 #endif
@@ -4334,8 +12457,21 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
 #endif
+#ifdef VK_KHR_shared_presentable_image
+    if (!strcmp(name, "vkGetSwapchainStatusKHR")) {
+        return nullptr;
+    }
+#endif
 #ifdef VK_KHR_external_fence_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalFencePropertiesKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_fence_win32
+    if (!strcmp(name, "vkImportFenceWin32HandleKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetFenceWin32HandleKHR")) {
         return nullptr;
     }
 #endif
@@ -4344,6 +12480,42 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
     if (!strcmp(name, "vkGetFenceFdKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_performance_query
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkAcquireProfilingLockKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkReleaseProfilingLockKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_surface_capabilities2
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormats2KHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_display_properties2
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayProperties2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlaneProperties2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModeProperties2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilities2KHR")) {
         return nullptr;
     }
 #endif
@@ -4379,6 +12551,38 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
 #endif
+#ifdef VK_KHR_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_timeline_semaphore
+    if (!strcmp(name, "vkGetSemaphoreCounterValueKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkWaitSemaphoresKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkSignalSemaphoreKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+    if (!strcmp(name, "vkGetPhysicalDeviceFragmentShadingRatesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetFragmentShadingRateKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_present_wait
+    if (!strcmp(name, "vkWaitForPresentKHR")) {
+        return nullptr;
+    }
+#endif
 #ifdef VK_KHR_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressKHR")) {
         return nullptr;
@@ -4387,6 +12591,23 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
     if (!strcmp(name, "vkGetDeviceMemoryOpaqueCaptureAddressKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_deferred_host_operations
+    if (!strcmp(name, "vkCreateDeferredOperationKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDeferredOperationKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeferredOperationMaxConcurrencyKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeferredOperationResultKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDeferredOperationJoinKHR")) {
         return nullptr;
     }
 #endif
@@ -4401,6 +12622,81 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
 #endif
+#ifdef VK_KHR_map_memory2
+    if (!strcmp(name, "vkMapMemory2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkUnmapMemory2KHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_encode_queue
+    if (!strcmp(name, "vkCmdEncodeVideoKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_synchronization2
+    if (!strcmp(name, "vkCmdSetEvent2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdResetEvent2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdWaitEvents2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdPipelineBarrier2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteTimestamp2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmit2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteBufferMarker2AMD")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointData2NV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_copy_commands2
+    if (!strcmp(name, "vkCmdCopyBuffer2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyImage2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyBufferToImage2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyImageToBuffer2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBlitImage2KHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdResolveImage2KHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+    if (!strcmp(name, "vkCmdTraceRaysIndirect2KHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_maintenance4
+    if (!strcmp(name, "vkGetDeviceBufferMemoryRequirementsKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceImageMemoryRequirementsKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceImageSparseMemoryRequirementsKHR")) {
+        return nullptr;
+    }
+#endif
 #ifdef VK_ANDROID_native_buffer
     if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID")) {
         return nullptr;
@@ -4412,6 +12708,34 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
     if (!strcmp(name, "vkGetSwapchainGrallocUsage2ANDROID")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_report
+    if (!strcmp(name, "vkCreateDebugReportCallbackEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugReportCallbackEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDebugReportMessageEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_marker
+    if (!strcmp(name, "vkDebugMarkerSetObjectTagEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDebugMarkerSetObjectNameEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerBeginEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerEndEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerInsertEXT")) {
         return nullptr;
     }
 #endif
@@ -4435,6 +12759,178 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
 #endif
+#ifdef VK_NVX_binary_import
+    if (!strcmp(name, "vkCreateCuModuleNVX")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateCuFunctionNVX")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyCuModuleNVX")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyCuFunctionNVX")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCuLaunchKernelNVX")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NVX_image_view_handle
+    if (!strcmp(name, "vkGetImageViewHandleNVX")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetImageViewAddressNVX")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_AMD_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountAMD")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountAMD")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_AMD_shader_info
+    if (!strcmp(name, "vkGetShaderInfoAMD")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_GGP_stream_descriptor_surface
+    if (!strcmp(name, "vkCreateStreamDescriptorSurfaceGGP")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalImageFormatPropertiesNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NN_vi_surface
+    if (!strcmp(name, "vkCreateViSurfaceNN")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_conditional_rendering
+    if (!strcmp(name, "vkCmdBeginConditionalRenderingEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndConditionalRenderingEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+    if (!strcmp(name, "vkCmdSetViewportWScalingNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_direct_mode_display
+    if (!strcmp(name, "vkReleaseDisplayEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+    if (!strcmp(name, "vkAcquireXlibDisplayEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetRandROutputDisplayEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_surface_counter
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2EXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_control
+    if (!strcmp(name, "vkDisplayPowerControlEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkRegisterDeviceEventEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkRegisterDisplayEventEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetSwapchainCounterEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_display_timing
+    if (!strcmp(name, "vkGetRefreshCycleDurationGOOGLE")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPastPresentationTimingGOOGLE")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_discard_rectangles
+    if (!strcmp(name, "vkCmdSetDiscardRectangleEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDiscardRectangleEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDiscardRectangleModeEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_hdr_metadata
+    if (!strcmp(name, "vkSetHdrMetadataEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_MVK_ios_surface
+    if (!strcmp(name, "vkCreateIOSSurfaceMVK")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_MVK_macos_surface
+    if (!strcmp(name, "vkCreateMacOSSurfaceMVK")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_utils
+    if (!strcmp(name, "vkSetDebugUtilsObjectNameEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkSetDebugUtilsObjectTagEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueueBeginDebugUtilsLabelEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueueEndDebugUtilsLabelEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueueInsertDebugUtilsLabelEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginDebugUtilsLabelEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndDebugUtilsLabelEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdInsertDebugUtilsLabelEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateDebugUtilsMessengerEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugUtilsMessengerEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkSubmitDebugUtilsMessageEXT")) {
+        return nullptr;
+    }
+#endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
     if (!strcmp(name, "vkGetAndroidHardwareBufferPropertiesANDROID")) {
         return nullptr;
@@ -4443,8 +12939,467 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
 #endif
+#ifdef VK_EXT_sample_locations
+    if (!strcmp(name, "vkCmdSetSampleLocationsEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMultisamplePropertiesEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+    if (!strcmp(name, "vkGetImageDrmFormatModifierPropertiesEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_validation_cache
+    if (!strcmp(name, "vkCreateValidationCacheEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyValidationCacheEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkMergeValidationCachesEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetValidationCacheDataEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_shading_rate_image
+    if (!strcmp(name, "vkCmdBindShadingRateImageNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetViewportShadingRatePaletteNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoarseSampleOrderNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_ray_tracing
+    if (!strcmp(name, "vkCreateAccelerationStructureNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyAccelerationStructureNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureMemoryRequirementsNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkBindAccelerationStructureMemoryNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBuildAccelerationStructureNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyAccelerationStructureNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdTraceRaysNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateRayTracingPipelinesNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetRayTracingShaderGroupHandlesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetRayTracingShaderGroupHandlesNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureHandleNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteAccelerationStructuresPropertiesNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCompileDeferredNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_external_memory_host
+    if (!strcmp(name, "vkGetMemoryHostPointerPropertiesEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_AMD_buffer_marker
+    if (!strcmp(name, "vkCmdWriteBufferMarkerAMD")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_calibrated_timestamps
+    if (!strcmp(name, "vkGetPhysicalDeviceCalibrateableTimeDomainsEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetCalibratedTimestampsEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_mesh_shader
+    if (!strcmp(name, "vkCmdDrawMeshTasksNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectCountNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_scissor_exclusive
+    if (!strcmp(name, "vkCmdSetExclusiveScissorEnableNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetExclusiveScissorNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    if (!strcmp(name, "vkCmdSetCheckpointNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointDataNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_INTEL_performance_query
+    if (!strcmp(name, "vkInitializePerformanceApiINTEL")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkUninitializePerformanceApiINTEL")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPerformanceMarkerINTEL")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPerformanceStreamMarkerINTEL")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPerformanceOverrideINTEL")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkAcquirePerformanceConfigurationINTEL")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkReleasePerformanceConfigurationINTEL")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueueSetPerformanceConfigurationINTEL")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPerformanceParameterINTEL")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_AMD_display_native_hdr
+    if (!strcmp(name, "vkSetLocalDimmingAMD")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_imagepipe_surface
+    if (!strcmp(name, "vkCreateImagePipeSurfaceFUCHSIA")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_metal_surface
+    if (!strcmp(name, "vkCreateMetalSurfaceEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_buffer_device_address
+    if (!strcmp(name, "vkGetBufferDeviceAddressEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_tooling_info
+    if (!strcmp(name, "vkGetPhysicalDeviceToolPropertiesEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_cooperative_matrix
+    if (!strcmp(name, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+    if (!strcmp(name, "vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_full_screen_exclusive
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModes2EXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkAcquireFullScreenExclusiveModeEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkReleaseFullScreenExclusiveModeEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModes2EXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_headless_surface
+    if (!strcmp(name, "vkCreateHeadlessSurfaceEXT")) {
+        return nullptr;
+    }
+#endif
 #ifdef VK_EXT_line_rasterization
     if (!strcmp(name, "vkCmdSetLineStippleEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_host_query_reset
+    if (!strcmp(name, "vkResetQueryPoolEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+    if (!strcmp(name, "vkCmdSetCullModeEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetFrontFaceEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPrimitiveTopologyEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetViewportWithCountEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetScissorWithCountEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindVertexBuffers2EXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthTestEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthWriteEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthCompareOpEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBoundsTestEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetStencilTestEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetStencilOpEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+    if (!strcmp(name, "vkReleaseSwapchainImagesEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_device_generated_commands
+    if (!strcmp(name, "vkGetGeneratedCommandsMemoryRequirementsNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdPreprocessGeneratedCommandsNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdExecuteGeneratedCommandsNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindPipelineShaderGroupNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateIndirectCommandsLayoutNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyIndirectCommandsLayoutNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_acquire_drm_display
+    if (!strcmp(name, "vkAcquireDrmDisplayEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDrmDisplayEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_private_data
+    if (!strcmp(name, "vkCreatePrivateDataSlotEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyPrivateDataSlotEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkSetPrivateDataEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPrivateDataEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_metal_objects
+    if (!strcmp(name, "vkExportMetalObjectsEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_descriptor_buffer
+    if (!strcmp(name, "vkGetDescriptorSetLayoutSizeEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDescriptorSetLayoutBindingOffsetEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDescriptorEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindDescriptorBuffersEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDescriptorBufferOffsetsEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindDescriptorBufferEmbeddedSamplersEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferOpaqueCaptureDescriptorDataEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetImageOpaqueCaptureDescriptorDataEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetImageViewOpaqueCaptureDescriptorDataEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetSamplerOpaqueCaptureDescriptorDataEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+    if (!strcmp(name, "vkCmdSetFragmentShadingRateEnumNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_image_compression_control
+    if (!strcmp(name, "vkGetImageSubresourceLayout2EXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_device_fault
+    if (!strcmp(name, "vkGetDeviceFaultInfoEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_acquire_winrt_display
+    if (!strcmp(name, "vkAcquireWinrtDisplayNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetWinrtDisplayNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_directfb_surface
+    if (!strcmp(name, "vkCreateDirectFBSurfaceEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDirectFBPresentationSupportEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+    if (!strcmp(name, "vkCmdSetVertexInputEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_memory
+    if (!strcmp(name, "vkGetMemoryZirconHandleFUCHSIA")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+    if (!strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+    if (!strcmp(name, "vkCreateBufferCollectionFUCHSIA")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyBufferCollectionFUCHSIA")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+    if (!strcmp(name, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSubpassShadingHUAWEI")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+    if (!strcmp(name, "vkCmdBindInvocationMaskHUAWEI")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_rdma
+    if (!strcmp(name, "vkGetMemoryRemoteAddressNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_pipeline_properties
+    if (!strcmp(name, "vkGetPipelinePropertiesEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+    if (!strcmp(name, "vkCmdSetPatchControlPointsEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizerDiscardEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBiasEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLogicOpEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPrimitiveRestartEnableEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_QNX_screen_surface
+    if (!strcmp(name, "vkCreateScreenSurfaceQNX")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceScreenPresentationSupportQNX")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_color_write_enable
+    if (!strcmp(name, "vkCmdSetColorWriteEnableEXT")) {
         return nullptr;
     }
 #endif
@@ -4513,6 +13468,323 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
     if (!strcmp(name, "vkGetBlobGOOGLE")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_multi_draw
+    if (!strcmp(name, "vkCmdDrawMultiEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMultiIndexedEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_opacity_micromap
+    if (!strcmp(name, "vkCreateMicromapEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyMicromapEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBuildMicromapsEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkBuildMicromapsEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCopyMicromapEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCopyMicromapToMemoryEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCopyMemoryToMicromapEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkWriteMicromapsPropertiesEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMicromapEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMicromapToMemoryEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMemoryToMicromapEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteMicromapsPropertiesEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceMicromapCompatibilityEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetMicromapBuildSizesEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+    if (!strcmp(name, "vkCmdDrawClusterHUAWEI")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawClusterIndirectHUAWEI")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+    if (!strcmp(name, "vkSetDeviceMemoryPriorityEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+    if (!strcmp(name, "vkGetDescriptorSetLayoutHostMappingInfoVALVE")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDescriptorSetHostMappingVALVE")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_copy_memory_indirect
+    if (!strcmp(name, "vkCmdCopyMemoryIndirectNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMemoryToImageIndirectNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_memory_decompression
+    if (!strcmp(name, "vkCmdDecompressMemoryNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDecompressMemoryIndirectCountNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+    if (!strcmp(name, "vkCmdSetTessellationDomainOriginEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthClampEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPolygonModeEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizationSamplesEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetSampleMaskEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetAlphaToCoverageEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetAlphaToOneEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLogicOpEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetColorBlendEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetColorBlendEquationEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetColorWriteMaskEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizationStreamEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetConservativeRasterizationModeEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetExtraPrimitiveOverestimationSizeEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthClipEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetSampleLocationsEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetColorBlendAdvancedEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetProvokingVertexModeEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLineRasterizationModeEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLineStippleEnableEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthClipNegativeOneToOneEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetViewportWScalingEnableNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetViewportSwizzleNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageToColorEnableNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageToColorLocationNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageModulationModeNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageModulationTableEnableNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageModulationTableNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetShadingRateImageEnableNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRepresentativeFragmentTestEnableNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageReductionModeNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_shader_module_identifier
+    if (!strcmp(name, "vkGetShaderModuleIdentifierEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetShaderModuleCreateInfoIdentifierEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_optical_flow
+    if (!strcmp(name, "vkGetPhysicalDeviceOpticalFlowImageFormatsNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateOpticalFlowSessionNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyOpticalFlowSessionNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkBindOpticalFlowSessionImageNV")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdOpticalFlowExecuteNV")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_shader_object
+    if (!strcmp(name, "vkCreateShadersEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyShaderEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetShaderBinaryDataEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindShadersEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_QCOM_tile_properties
+    if (!strcmp(name, "vkGetFramebufferTilePropertiesQCOM")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDynamicRenderingTilePropertiesQCOM")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+    if (!strcmp(name, "vkCmdSetAttachmentFeedbackLoopEnableEXT")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_acceleration_structure
+    if (!strcmp(name, "vkCreateAccelerationStructureKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyAccelerationStructureKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBuildAccelerationStructuresKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBuildAccelerationStructuresIndirectKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkBuildAccelerationStructuresKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCopyAccelerationStructureKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCopyAccelerationStructureToMemoryKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCopyMemoryToAccelerationStructureKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkWriteAccelerationStructuresPropertiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyAccelerationStructureKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyAccelerationStructureToMemoryKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMemoryToAccelerationStructureKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureDeviceAddressKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteAccelerationStructuresPropertiesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceAccelerationStructureCompatibilityKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureBuildSizesKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    if (!strcmp(name, "vkCmdTraceRaysKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateRayTracingPipelinesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdTraceRaysIndirectKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetRayTracingShaderGroupStackSizeKHR")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRayTracingPipelineStackSizeKHR")) {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_mesh_shader
+    if (!strcmp(name, "vkCmdDrawMeshTasksEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectEXT")) {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectCountEXT")) {
         return nullptr;
     }
 #endif
@@ -5214,10 +14486,212 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkGetDeviceImageSparseMemoryRequirements;
     }
 #endif
+#ifdef VK_KHR_surface
+    if (!strcmp(name, "vkDestroySurfaceKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkDestroySurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceSupportKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceSupportKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormatsKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceFormatsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModesKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfacePresentModesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_swapchain
+    if (!strcmp(name, "vkCreateSwapchainKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateSwapchainKHR;
+    }
+    if (!strcmp(name, "vkDestroySwapchainKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroySwapchainKHR;
+    }
+    if (!strcmp(name, "vkGetSwapchainImagesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetSwapchainImagesKHR;
+    }
+    if (!strcmp(name, "vkAcquireNextImageKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkAcquireNextImageKHR;
+    }
+    if (!strcmp(name, "vkQueuePresentKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkQueuePresentKHR;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceGroupPresentCapabilitiesKHR;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceGroupSurfacePresentModesKHR;
+    }
+    if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDevicePresentRectanglesKHR;
+    }
+    if (!strcmp(name, "vkAcquireNextImage2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkAcquireNextImage2KHR;
+    }
+#endif
+#ifdef VK_KHR_display
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPropertiesKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPlanePropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneSupportedDisplaysKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneSupportedDisplaysKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModePropertiesKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayModePropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayModeKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkCreateDisplayModeKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilitiesKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayPlaneSurfaceKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkCreateDisplayPlaneSurfaceKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_display_swapchain
+    if (!strcmp(name, "vkCreateSharedSwapchainsKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateSharedSwapchainsKHR;
+    }
+#endif
+#ifdef VK_KHR_xlib_surface
+    if (!strcmp(name, "vkCreateXlibSurfaceKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_xlib_surface");
+        return hasExt ? (void*)entry_vkCreateXlibSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXlibPresentationSupportKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_xlib_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceXlibPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_xcb_surface
+    if (!strcmp(name, "vkCreateXcbSurfaceKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_xcb_surface");
+        return hasExt ? (void*)entry_vkCreateXcbSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXcbPresentationSupportKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_xcb_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceXcbPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_wayland_surface
+    if (!strcmp(name, "vkCreateWaylandSurfaceKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_wayland_surface");
+        return hasExt ? (void*)entry_vkCreateWaylandSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWaylandPresentationSupportKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_wayland_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceWaylandPresentationSupportKHR : nullptr;
+    }
+#endif
 #ifdef VK_KHR_android_surface
     if (!strcmp(name, "vkCreateAndroidSurfaceKHR")) {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_android_surface");
         return hasExt ? (void*)entry_vkCreateAndroidSurfaceKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_win32_surface
+    if (!strcmp(name, "vkCreateWin32SurfaceKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_win32_surface");
+        return hasExt ? (void*)entry_vkCreateWin32SurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWin32PresentationSupportKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_win32_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceWin32PresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_queue
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoCapabilitiesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceVideoCapabilitiesKHR;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoFormatPropertiesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceVideoFormatPropertiesKHR;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateVideoSessionKHR;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyVideoSessionKHR;
+    }
+    if (!strcmp(name, "vkGetVideoSessionMemoryRequirementsKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetVideoSessionMemoryRequirementsKHR;
+    }
+    if (!strcmp(name, "vkBindVideoSessionMemoryKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkBindVideoSessionMemoryKHR;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionParametersKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateVideoSessionParametersKHR;
+    }
+    if (!strcmp(name, "vkUpdateVideoSessionParametersKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkUpdateVideoSessionParametersKHR;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionParametersKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyVideoSessionParametersKHR;
+    }
+    if (!strcmp(name, "vkCmdBeginVideoCodingKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBeginVideoCodingKHR;
+    }
+    if (!strcmp(name, "vkCmdEndVideoCodingKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdEndVideoCodingKHR;
+    }
+    if (!strcmp(name, "vkCmdControlVideoCodingKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdControlVideoCodingKHR;
+    }
+#endif
+#ifdef VK_KHR_video_decode_queue
+    if (!strcmp(name, "vkCmdDecodeVideoKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDecodeVideoKHR;
+    }
+#endif
+#ifdef VK_KHR_dynamic_rendering
+    if (!strcmp(name, "vkCmdBeginRenderingKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBeginRenderingKHR;
+    }
+    if (!strcmp(name, "vkCmdEndRenderingKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdEndRenderingKHR;
     }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
@@ -5257,10 +14731,30 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties2KHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_device_group
+    if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeaturesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceGroupPeerMemoryFeaturesKHR;
+    }
+    if (!strcmp(name, "vkCmdSetDeviceMaskKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDeviceMaskKHR;
+    }
+    if (!strcmp(name, "vkCmdDispatchBaseKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDispatchBaseKHR;
+    }
+#endif
 #ifdef VK_KHR_maintenance1
     if (!strcmp(name, "vkTrimCommandPoolKHR")) {
         // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkTrimCommandPoolKHR;
+    }
+#endif
+#ifdef VK_KHR_device_group_creation
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceGroupsKHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_device_group_creation");
+        return hasExt ? (void*)entry_vkEnumeratePhysicalDeviceGroupsKHR : nullptr;
     }
 #endif
 #ifdef VK_KHR_external_memory_capabilities
@@ -5270,11 +14764,41 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalBufferPropertiesKHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMemoryWin32HandleKHR;
+    }
+    if (!strcmp(name, "vkGetMemoryWin32HandlePropertiesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMemoryWin32HandlePropertiesKHR;
+    }
+#endif
+#ifdef VK_KHR_external_memory_fd
+    if (!strcmp(name, "vkGetMemoryFdKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMemoryFdKHR;
+    }
+    if (!strcmp(name, "vkGetMemoryFdPropertiesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMemoryFdPropertiesKHR;
+    }
+#endif
 #ifdef VK_KHR_external_semaphore_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalSemaphorePropertiesKHR")) {
         bool hasExt =
             resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_capabilities");
         return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_semaphore_win32
+    if (!strcmp(name, "vkImportSemaphoreWin32HandleKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkImportSemaphoreWin32HandleKHR;
+    }
+    if (!strcmp(name, "vkGetSemaphoreWin32HandleKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetSemaphoreWin32HandleKHR;
     }
 #endif
 #ifdef VK_KHR_external_semaphore_fd
@@ -5285,6 +14809,16 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkGetSemaphoreFdKHR")) {
         // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSemaphoreFdKHR;
+    }
+#endif
+#ifdef VK_KHR_push_descriptor
+    if (!strcmp(name, "vkCmdPushDescriptorSetKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdPushDescriptorSetKHR;
+    }
+    if (!strcmp(name, "vkCmdPushDescriptorSetWithTemplateKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdPushDescriptorSetWithTemplateKHR;
     }
 #endif
 #ifdef VK_KHR_descriptor_update_template
@@ -5319,11 +14853,27 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkCmdEndRenderPass2KHR;
     }
 #endif
+#ifdef VK_KHR_shared_presentable_image
+    if (!strcmp(name, "vkGetSwapchainStatusKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetSwapchainStatusKHR;
+    }
+#endif
 #ifdef VK_KHR_external_fence_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalFencePropertiesKHR")) {
         bool hasExt =
             resources->hasInstanceExtension(instance, "VK_KHR_external_fence_capabilities");
         return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalFencePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_fence_win32
+    if (!strcmp(name, "vkImportFenceWin32HandleKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkImportFenceWin32HandleKHR;
+    }
+    if (!strcmp(name, "vkGetFenceWin32HandleKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetFenceWin32HandleKHR;
     }
 #endif
 #ifdef VK_KHR_external_fence_fd
@@ -5334,6 +14884,52 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkGetFenceFdKHR")) {
         // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetFenceFdKHR;
+    }
+#endif
+#ifdef VK_KHR_performance_query
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR;
+    }
+    if (!strcmp(name, "vkAcquireProfilingLockKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkAcquireProfilingLockKHR;
+    }
+    if (!strcmp(name, "vkReleaseProfilingLockKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkReleaseProfilingLockKHR;
+    }
+#endif
+#ifdef VK_KHR_get_surface_capabilities2
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2KHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_surface_capabilities2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormats2KHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_surface_capabilities2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceFormats2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_display_properties2
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayProperties2KHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlaneProperties2KHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPlaneProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModeProperties2KHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetDisplayModeProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilities2KHR")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneCapabilities2KHR : nullptr;
     }
 #endif
 #ifdef VK_KHR_get_memory_requirements2
@@ -5376,6 +14972,46 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkGetDescriptorSetLayoutSupportKHR;
     }
 #endif
+#ifdef VK_KHR_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawIndirectCountKHR;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawIndexedIndirectCountKHR;
+    }
+#endif
+#ifdef VK_KHR_timeline_semaphore
+    if (!strcmp(name, "vkGetSemaphoreCounterValueKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetSemaphoreCounterValueKHR;
+    }
+    if (!strcmp(name, "vkWaitSemaphoresKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkWaitSemaphoresKHR;
+    }
+    if (!strcmp(name, "vkSignalSemaphoreKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkSignalSemaphoreKHR;
+    }
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+    if (!strcmp(name, "vkGetPhysicalDeviceFragmentShadingRatesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceFragmentShadingRatesKHR;
+    }
+    if (!strcmp(name, "vkCmdSetFragmentShadingRateKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetFragmentShadingRateKHR;
+    }
+#endif
+#ifdef VK_KHR_present_wait
+    if (!strcmp(name, "vkWaitForPresentKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkWaitForPresentKHR;
+    }
+#endif
 #ifdef VK_KHR_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressKHR")) {
         // TODO(b/236246382): Check support for device extension;
@@ -5390,6 +15026,28 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkGetDeviceMemoryOpaqueCaptureAddressKHR;
     }
 #endif
+#ifdef VK_KHR_deferred_host_operations
+    if (!strcmp(name, "vkCreateDeferredOperationKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateDeferredOperationKHR;
+    }
+    if (!strcmp(name, "vkDestroyDeferredOperationKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyDeferredOperationKHR;
+    }
+    if (!strcmp(name, "vkGetDeferredOperationMaxConcurrencyKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeferredOperationMaxConcurrencyKHR;
+    }
+    if (!strcmp(name, "vkGetDeferredOperationResultKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeferredOperationResultKHR;
+    }
+    if (!strcmp(name, "vkDeferredOperationJoinKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDeferredOperationJoinKHR;
+    }
+#endif
 #ifdef VK_KHR_pipeline_executable_properties
     if (!strcmp(name, "vkGetPipelineExecutablePropertiesKHR")) {
         // TODO(b/236246382): Check support for device extension;
@@ -5402,6 +15060,102 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkGetPipelineExecutableInternalRepresentationsKHR")) {
         // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetPipelineExecutableInternalRepresentationsKHR;
+    }
+#endif
+#ifdef VK_KHR_map_memory2
+    if (!strcmp(name, "vkMapMemory2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkMapMemory2KHR;
+    }
+    if (!strcmp(name, "vkUnmapMemory2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkUnmapMemory2KHR;
+    }
+#endif
+#ifdef VK_KHR_video_encode_queue
+    if (!strcmp(name, "vkCmdEncodeVideoKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdEncodeVideoKHR;
+    }
+#endif
+#ifdef VK_KHR_synchronization2
+    if (!strcmp(name, "vkCmdSetEvent2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetEvent2KHR;
+    }
+    if (!strcmp(name, "vkCmdResetEvent2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdResetEvent2KHR;
+    }
+    if (!strcmp(name, "vkCmdWaitEvents2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdWaitEvents2KHR;
+    }
+    if (!strcmp(name, "vkCmdPipelineBarrier2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdPipelineBarrier2KHR;
+    }
+    if (!strcmp(name, "vkCmdWriteTimestamp2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdWriteTimestamp2KHR;
+    }
+    if (!strcmp(name, "vkQueueSubmit2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkQueueSubmit2KHR;
+    }
+    if (!strcmp(name, "vkCmdWriteBufferMarker2AMD")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdWriteBufferMarker2AMD;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointData2NV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetQueueCheckpointData2NV;
+    }
+#endif
+#ifdef VK_KHR_copy_commands2
+    if (!strcmp(name, "vkCmdCopyBuffer2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyBuffer2KHR;
+    }
+    if (!strcmp(name, "vkCmdCopyImage2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyImage2KHR;
+    }
+    if (!strcmp(name, "vkCmdCopyBufferToImage2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyBufferToImage2KHR;
+    }
+    if (!strcmp(name, "vkCmdCopyImageToBuffer2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyImageToBuffer2KHR;
+    }
+    if (!strcmp(name, "vkCmdBlitImage2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBlitImage2KHR;
+    }
+    if (!strcmp(name, "vkCmdResolveImage2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdResolveImage2KHR;
+    }
+#endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+    if (!strcmp(name, "vkCmdTraceRaysIndirect2KHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdTraceRaysIndirect2KHR;
+    }
+#endif
+#ifdef VK_KHR_maintenance4
+    if (!strcmp(name, "vkGetDeviceBufferMemoryRequirementsKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceBufferMemoryRequirementsKHR;
+    }
+    if (!strcmp(name, "vkGetDeviceImageMemoryRequirementsKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceImageMemoryRequirementsKHR;
+    }
+    if (!strcmp(name, "vkGetDeviceImageSparseMemoryRequirementsKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceImageSparseMemoryRequirementsKHR;
     }
 #endif
 #ifdef VK_ANDROID_native_buffer
@@ -5420,6 +15174,42 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkGetSwapchainGrallocUsage2ANDROID")) {
         // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSwapchainGrallocUsage2ANDROID;
+    }
+#endif
+#ifdef VK_EXT_debug_report
+    if (!strcmp(name, "vkCreateDebugReportCallbackEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkCreateDebugReportCallbackEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugReportCallbackEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkDestroyDebugReportCallbackEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDebugReportMessageEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkDebugReportMessageEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_marker
+    if (!strcmp(name, "vkDebugMarkerSetObjectTagEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDebugMarkerSetObjectTagEXT;
+    }
+    if (!strcmp(name, "vkDebugMarkerSetObjectNameEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDebugMarkerSetObjectNameEXT;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerBeginEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDebugMarkerBeginEXT;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerEndEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDebugMarkerEndEXT;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerInsertEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDebugMarkerInsertEXT;
     }
 #endif
 #ifdef VK_EXT_transform_feedback
@@ -5448,6 +15238,223 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkCmdDrawIndirectByteCountEXT;
     }
 #endif
+#ifdef VK_NVX_binary_import
+    if (!strcmp(name, "vkCreateCuModuleNVX")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateCuModuleNVX;
+    }
+    if (!strcmp(name, "vkCreateCuFunctionNVX")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateCuFunctionNVX;
+    }
+    if (!strcmp(name, "vkDestroyCuModuleNVX")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyCuModuleNVX;
+    }
+    if (!strcmp(name, "vkDestroyCuFunctionNVX")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyCuFunctionNVX;
+    }
+    if (!strcmp(name, "vkCmdCuLaunchKernelNVX")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCuLaunchKernelNVX;
+    }
+#endif
+#ifdef VK_NVX_image_view_handle
+    if (!strcmp(name, "vkGetImageViewHandleNVX")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetImageViewHandleNVX;
+    }
+    if (!strcmp(name, "vkGetImageViewAddressNVX")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetImageViewAddressNVX;
+    }
+#endif
+#ifdef VK_AMD_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountAMD")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawIndirectCountAMD;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountAMD")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawIndexedIndirectCountAMD;
+    }
+#endif
+#ifdef VK_AMD_shader_info
+    if (!strcmp(name, "vkGetShaderInfoAMD")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetShaderInfoAMD;
+    }
+#endif
+#ifdef VK_GGP_stream_descriptor_surface
+    if (!strcmp(name, "vkCreateStreamDescriptorSurfaceGGP")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GGP_stream_descriptor_surface");
+        return hasExt ? (void*)entry_vkCreateStreamDescriptorSurfaceGGP : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalImageFormatPropertiesNV")) {
+        bool hasExt =
+            resources->hasInstanceExtension(instance, "VK_NV_external_memory_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalImageFormatPropertiesNV : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMemoryWin32HandleNV;
+    }
+#endif
+#ifdef VK_NN_vi_surface
+    if (!strcmp(name, "vkCreateViSurfaceNN")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NN_vi_surface");
+        return hasExt ? (void*)entry_vkCreateViSurfaceNN : nullptr;
+    }
+#endif
+#ifdef VK_EXT_conditional_rendering
+    if (!strcmp(name, "vkCmdBeginConditionalRenderingEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBeginConditionalRenderingEXT;
+    }
+    if (!strcmp(name, "vkCmdEndConditionalRenderingEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdEndConditionalRenderingEXT;
+    }
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+    if (!strcmp(name, "vkCmdSetViewportWScalingNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetViewportWScalingNV;
+    }
+#endif
+#ifdef VK_EXT_direct_mode_display
+    if (!strcmp(name, "vkReleaseDisplayEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_direct_mode_display");
+        return hasExt ? (void*)entry_vkReleaseDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+    if (!strcmp(name, "vkAcquireXlibDisplayEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_acquire_xlib_display");
+        return hasExt ? (void*)entry_vkAcquireXlibDisplayEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetRandROutputDisplayEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_acquire_xlib_display");
+        return hasExt ? (void*)entry_vkGetRandROutputDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_surface_counter
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2EXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_surface_counter");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2EXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_control
+    if (!strcmp(name, "vkDisplayPowerControlEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDisplayPowerControlEXT;
+    }
+    if (!strcmp(name, "vkRegisterDeviceEventEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkRegisterDeviceEventEXT;
+    }
+    if (!strcmp(name, "vkRegisterDisplayEventEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkRegisterDisplayEventEXT;
+    }
+    if (!strcmp(name, "vkGetSwapchainCounterEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetSwapchainCounterEXT;
+    }
+#endif
+#ifdef VK_GOOGLE_display_timing
+    if (!strcmp(name, "vkGetRefreshCycleDurationGOOGLE")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetRefreshCycleDurationGOOGLE;
+    }
+    if (!strcmp(name, "vkGetPastPresentationTimingGOOGLE")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetPastPresentationTimingGOOGLE;
+    }
+#endif
+#ifdef VK_EXT_discard_rectangles
+    if (!strcmp(name, "vkCmdSetDiscardRectangleEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDiscardRectangleEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDiscardRectangleEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDiscardRectangleEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDiscardRectangleModeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDiscardRectangleModeEXT;
+    }
+#endif
+#ifdef VK_EXT_hdr_metadata
+    if (!strcmp(name, "vkSetHdrMetadataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkSetHdrMetadataEXT;
+    }
+#endif
+#ifdef VK_MVK_ios_surface
+    if (!strcmp(name, "vkCreateIOSSurfaceMVK")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_ios_surface");
+        return hasExt ? (void*)entry_vkCreateIOSSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_MVK_macos_surface
+    if (!strcmp(name, "vkCreateMacOSSurfaceMVK")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_macos_surface");
+        return hasExt ? (void*)entry_vkCreateMacOSSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_utils
+    if (!strcmp(name, "vkSetDebugUtilsObjectNameEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)dynCheck_entry_vkSetDebugUtilsObjectNameEXT : nullptr;
+    }
+    if (!strcmp(name, "vkSetDebugUtilsObjectTagEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)dynCheck_entry_vkSetDebugUtilsObjectTagEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueBeginDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueBeginDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueEndDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueEndDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueInsertDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueInsertDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdBeginDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdEndDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdInsertDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdInsertDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDebugUtilsMessengerEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCreateDebugUtilsMessengerEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugUtilsMessengerEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkDestroyDebugUtilsMessengerEXT : nullptr;
+    }
+    if (!strcmp(name, "vkSubmitDebugUtilsMessageEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSubmitDebugUtilsMessageEXT : nullptr;
+    }
+#endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
     if (!strcmp(name, "vkGetAndroidHardwareBufferPropertiesANDROID")) {
         // TODO(b/236246382): Check support for device extension;
@@ -5458,10 +15465,592 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkGetMemoryAndroidHardwareBufferANDROID;
     }
 #endif
+#ifdef VK_EXT_sample_locations
+    if (!strcmp(name, "vkCmdSetSampleLocationsEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetSampleLocationsEXT;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMultisamplePropertiesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceMultisamplePropertiesEXT;
+    }
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+    if (!strcmp(name, "vkGetImageDrmFormatModifierPropertiesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetImageDrmFormatModifierPropertiesEXT;
+    }
+#endif
+#ifdef VK_EXT_validation_cache
+    if (!strcmp(name, "vkCreateValidationCacheEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateValidationCacheEXT;
+    }
+    if (!strcmp(name, "vkDestroyValidationCacheEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyValidationCacheEXT;
+    }
+    if (!strcmp(name, "vkMergeValidationCachesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkMergeValidationCachesEXT;
+    }
+    if (!strcmp(name, "vkGetValidationCacheDataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetValidationCacheDataEXT;
+    }
+#endif
+#ifdef VK_NV_shading_rate_image
+    if (!strcmp(name, "vkCmdBindShadingRateImageNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBindShadingRateImageNV;
+    }
+    if (!strcmp(name, "vkCmdSetViewportShadingRatePaletteNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetViewportShadingRatePaletteNV;
+    }
+    if (!strcmp(name, "vkCmdSetCoarseSampleOrderNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetCoarseSampleOrderNV;
+    }
+#endif
+#ifdef VK_NV_ray_tracing
+    if (!strcmp(name, "vkCreateAccelerationStructureNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateAccelerationStructureNV;
+    }
+    if (!strcmp(name, "vkDestroyAccelerationStructureNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyAccelerationStructureNV;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureMemoryRequirementsNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetAccelerationStructureMemoryRequirementsNV;
+    }
+    if (!strcmp(name, "vkBindAccelerationStructureMemoryNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkBindAccelerationStructureMemoryNV;
+    }
+    if (!strcmp(name, "vkCmdBuildAccelerationStructureNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBuildAccelerationStructureNV;
+    }
+    if (!strcmp(name, "vkCmdCopyAccelerationStructureNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyAccelerationStructureNV;
+    }
+    if (!strcmp(name, "vkCmdTraceRaysNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdTraceRaysNV;
+    }
+    if (!strcmp(name, "vkCreateRayTracingPipelinesNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateRayTracingPipelinesNV;
+    }
+    if (!strcmp(name, "vkGetRayTracingShaderGroupHandlesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetRayTracingShaderGroupHandlesKHR;
+    }
+    if (!strcmp(name, "vkGetRayTracingShaderGroupHandlesNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetRayTracingShaderGroupHandlesNV;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureHandleNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetAccelerationStructureHandleNV;
+    }
+    if (!strcmp(name, "vkCmdWriteAccelerationStructuresPropertiesNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdWriteAccelerationStructuresPropertiesNV;
+    }
+    if (!strcmp(name, "vkCompileDeferredNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCompileDeferredNV;
+    }
+#endif
+#ifdef VK_EXT_external_memory_host
+    if (!strcmp(name, "vkGetMemoryHostPointerPropertiesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMemoryHostPointerPropertiesEXT;
+    }
+#endif
+#ifdef VK_AMD_buffer_marker
+    if (!strcmp(name, "vkCmdWriteBufferMarkerAMD")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdWriteBufferMarkerAMD;
+    }
+#endif
+#ifdef VK_EXT_calibrated_timestamps
+    if (!strcmp(name, "vkGetPhysicalDeviceCalibrateableTimeDomainsEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
+    }
+    if (!strcmp(name, "vkGetCalibratedTimestampsEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetCalibratedTimestampsEXT;
+    }
+#endif
+#ifdef VK_NV_mesh_shader
+    if (!strcmp(name, "vkCmdDrawMeshTasksNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawMeshTasksNV;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawMeshTasksIndirectNV;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectCountNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawMeshTasksIndirectCountNV;
+    }
+#endif
+#ifdef VK_NV_scissor_exclusive
+    if (!strcmp(name, "vkCmdSetExclusiveScissorEnableNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetExclusiveScissorEnableNV;
+    }
+    if (!strcmp(name, "vkCmdSetExclusiveScissorNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetExclusiveScissorNV;
+    }
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    if (!strcmp(name, "vkCmdSetCheckpointNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetCheckpointNV;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointDataNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetQueueCheckpointDataNV;
+    }
+#endif
+#ifdef VK_INTEL_performance_query
+    if (!strcmp(name, "vkInitializePerformanceApiINTEL")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkInitializePerformanceApiINTEL;
+    }
+    if (!strcmp(name, "vkUninitializePerformanceApiINTEL")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkUninitializePerformanceApiINTEL;
+    }
+    if (!strcmp(name, "vkCmdSetPerformanceMarkerINTEL")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetPerformanceMarkerINTEL;
+    }
+    if (!strcmp(name, "vkCmdSetPerformanceStreamMarkerINTEL")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetPerformanceStreamMarkerINTEL;
+    }
+    if (!strcmp(name, "vkCmdSetPerformanceOverrideINTEL")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetPerformanceOverrideINTEL;
+    }
+    if (!strcmp(name, "vkAcquirePerformanceConfigurationINTEL")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkAcquirePerformanceConfigurationINTEL;
+    }
+    if (!strcmp(name, "vkReleasePerformanceConfigurationINTEL")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkReleasePerformanceConfigurationINTEL;
+    }
+    if (!strcmp(name, "vkQueueSetPerformanceConfigurationINTEL")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkQueueSetPerformanceConfigurationINTEL;
+    }
+    if (!strcmp(name, "vkGetPerformanceParameterINTEL")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetPerformanceParameterINTEL;
+    }
+#endif
+#ifdef VK_AMD_display_native_hdr
+    if (!strcmp(name, "vkSetLocalDimmingAMD")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkSetLocalDimmingAMD;
+    }
+#endif
+#ifdef VK_FUCHSIA_imagepipe_surface
+    if (!strcmp(name, "vkCreateImagePipeSurfaceFUCHSIA")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_FUCHSIA_imagepipe_surface");
+        return hasExt ? (void*)entry_vkCreateImagePipeSurfaceFUCHSIA : nullptr;
+    }
+#endif
+#ifdef VK_EXT_metal_surface
+    if (!strcmp(name, "vkCreateMetalSurfaceEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_metal_surface");
+        return hasExt ? (void*)entry_vkCreateMetalSurfaceEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_buffer_device_address
+    if (!strcmp(name, "vkGetBufferDeviceAddressEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetBufferDeviceAddressEXT;
+    }
+#endif
+#ifdef VK_EXT_tooling_info
+    if (!strcmp(name, "vkGetPhysicalDeviceToolPropertiesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceToolPropertiesEXT;
+    }
+#endif
+#ifdef VK_NV_cooperative_matrix
+    if (!strcmp(name, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+    }
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+    if (!strcmp(name, "vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
+    }
+#endif
+#ifdef VK_EXT_full_screen_exclusive
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModes2EXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceSurfacePresentModes2EXT;
+    }
+    if (!strcmp(name, "vkAcquireFullScreenExclusiveModeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkAcquireFullScreenExclusiveModeEXT;
+    }
+    if (!strcmp(name, "vkReleaseFullScreenExclusiveModeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkReleaseFullScreenExclusiveModeEXT;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModes2EXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceGroupSurfacePresentModes2EXT;
+    }
+#endif
+#ifdef VK_EXT_headless_surface
+    if (!strcmp(name, "vkCreateHeadlessSurfaceEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_headless_surface");
+        return hasExt ? (void*)entry_vkCreateHeadlessSurfaceEXT : nullptr;
+    }
+#endif
 #ifdef VK_EXT_line_rasterization
     if (!strcmp(name, "vkCmdSetLineStippleEXT")) {
         // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetLineStippleEXT;
+    }
+#endif
+#ifdef VK_EXT_host_query_reset
+    if (!strcmp(name, "vkResetQueryPoolEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkResetQueryPoolEXT;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+    if (!strcmp(name, "vkCmdSetCullModeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetCullModeEXT;
+    }
+    if (!strcmp(name, "vkCmdSetFrontFaceEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetFrontFaceEXT;
+    }
+    if (!strcmp(name, "vkCmdSetPrimitiveTopologyEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetPrimitiveTopologyEXT;
+    }
+    if (!strcmp(name, "vkCmdSetViewportWithCountEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetViewportWithCountEXT;
+    }
+    if (!strcmp(name, "vkCmdSetScissorWithCountEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetScissorWithCountEXT;
+    }
+    if (!strcmp(name, "vkCmdBindVertexBuffers2EXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBindVertexBuffers2EXT;
+    }
+    if (!strcmp(name, "vkCmdSetDepthTestEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDepthTestEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDepthWriteEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDepthWriteEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDepthCompareOpEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDepthCompareOpEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBoundsTestEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDepthBoundsTestEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetStencilTestEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetStencilTestEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetStencilOpEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetStencilOpEXT;
+    }
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+    if (!strcmp(name, "vkReleaseSwapchainImagesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkReleaseSwapchainImagesEXT;
+    }
+#endif
+#ifdef VK_NV_device_generated_commands
+    if (!strcmp(name, "vkGetGeneratedCommandsMemoryRequirementsNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetGeneratedCommandsMemoryRequirementsNV;
+    }
+    if (!strcmp(name, "vkCmdPreprocessGeneratedCommandsNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdPreprocessGeneratedCommandsNV;
+    }
+    if (!strcmp(name, "vkCmdExecuteGeneratedCommandsNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdExecuteGeneratedCommandsNV;
+    }
+    if (!strcmp(name, "vkCmdBindPipelineShaderGroupNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBindPipelineShaderGroupNV;
+    }
+    if (!strcmp(name, "vkCreateIndirectCommandsLayoutNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateIndirectCommandsLayoutNV;
+    }
+    if (!strcmp(name, "vkDestroyIndirectCommandsLayoutNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyIndirectCommandsLayoutNV;
+    }
+#endif
+#ifdef VK_EXT_acquire_drm_display
+    if (!strcmp(name, "vkAcquireDrmDisplayEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_acquire_drm_display");
+        return hasExt ? (void*)entry_vkAcquireDrmDisplayEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetDrmDisplayEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_acquire_drm_display");
+        return hasExt ? (void*)entry_vkGetDrmDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_private_data
+    if (!strcmp(name, "vkCreatePrivateDataSlotEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreatePrivateDataSlotEXT;
+    }
+    if (!strcmp(name, "vkDestroyPrivateDataSlotEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyPrivateDataSlotEXT;
+    }
+    if (!strcmp(name, "vkSetPrivateDataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkSetPrivateDataEXT;
+    }
+    if (!strcmp(name, "vkGetPrivateDataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetPrivateDataEXT;
+    }
+#endif
+#ifdef VK_EXT_metal_objects
+    if (!strcmp(name, "vkExportMetalObjectsEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkExportMetalObjectsEXT;
+    }
+#endif
+#ifdef VK_EXT_descriptor_buffer
+    if (!strcmp(name, "vkGetDescriptorSetLayoutSizeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDescriptorSetLayoutSizeEXT;
+    }
+    if (!strcmp(name, "vkGetDescriptorSetLayoutBindingOffsetEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDescriptorSetLayoutBindingOffsetEXT;
+    }
+    if (!strcmp(name, "vkGetDescriptorEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDescriptorEXT;
+    }
+    if (!strcmp(name, "vkCmdBindDescriptorBuffersEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBindDescriptorBuffersEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDescriptorBufferOffsetsEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDescriptorBufferOffsetsEXT;
+    }
+    if (!strcmp(name, "vkCmdBindDescriptorBufferEmbeddedSamplersEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBindDescriptorBufferEmbeddedSamplersEXT;
+    }
+    if (!strcmp(name, "vkGetBufferOpaqueCaptureDescriptorDataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetBufferOpaqueCaptureDescriptorDataEXT;
+    }
+    if (!strcmp(name, "vkGetImageOpaqueCaptureDescriptorDataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetImageOpaqueCaptureDescriptorDataEXT;
+    }
+    if (!strcmp(name, "vkGetImageViewOpaqueCaptureDescriptorDataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetImageViewOpaqueCaptureDescriptorDataEXT;
+    }
+    if (!strcmp(name, "vkGetSamplerOpaqueCaptureDescriptorDataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetSamplerOpaqueCaptureDescriptorDataEXT;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT;
+    }
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+    if (!strcmp(name, "vkCmdSetFragmentShadingRateEnumNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetFragmentShadingRateEnumNV;
+    }
+#endif
+#ifdef VK_EXT_image_compression_control
+    if (!strcmp(name, "vkGetImageSubresourceLayout2EXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetImageSubresourceLayout2EXT;
+    }
+#endif
+#ifdef VK_EXT_device_fault
+    if (!strcmp(name, "vkGetDeviceFaultInfoEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceFaultInfoEXT;
+    }
+#endif
+#ifdef VK_NV_acquire_winrt_display
+    if (!strcmp(name, "vkAcquireWinrtDisplayNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkAcquireWinrtDisplayNV;
+    }
+    if (!strcmp(name, "vkGetWinrtDisplayNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetWinrtDisplayNV;
+    }
+#endif
+#ifdef VK_EXT_directfb_surface
+    if (!strcmp(name, "vkCreateDirectFBSurfaceEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_directfb_surface");
+        return hasExt ? (void*)entry_vkCreateDirectFBSurfaceEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDirectFBPresentationSupportEXT")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_directfb_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+    if (!strcmp(name, "vkCmdSetVertexInputEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetVertexInputEXT;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_memory
+    if (!strcmp(name, "vkGetMemoryZirconHandleFUCHSIA")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMemoryZirconHandleFUCHSIA;
+    }
+    if (!strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMemoryZirconHandlePropertiesFUCHSIA;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+    if (!strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkImportSemaphoreZirconHandleFUCHSIA;
+    }
+    if (!strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetSemaphoreZirconHandleFUCHSIA;
+    }
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+    if (!strcmp(name, "vkCreateBufferCollectionFUCHSIA")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateBufferCollectionFUCHSIA;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkSetBufferCollectionImageConstraintsFUCHSIA;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkSetBufferCollectionBufferConstraintsFUCHSIA;
+    }
+    if (!strcmp(name, "vkDestroyBufferCollectionFUCHSIA")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyBufferCollectionFUCHSIA;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetBufferCollectionPropertiesFUCHSIA;
+    }
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+    if (!strcmp(name, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
+    }
+    if (!strcmp(name, "vkCmdSubpassShadingHUAWEI")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSubpassShadingHUAWEI;
+    }
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+    if (!strcmp(name, "vkCmdBindInvocationMaskHUAWEI")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBindInvocationMaskHUAWEI;
+    }
+#endif
+#ifdef VK_NV_external_memory_rdma
+    if (!strcmp(name, "vkGetMemoryRemoteAddressNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMemoryRemoteAddressNV;
+    }
+#endif
+#ifdef VK_EXT_pipeline_properties
+    if (!strcmp(name, "vkGetPipelinePropertiesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetPipelinePropertiesEXT;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+    if (!strcmp(name, "vkCmdSetPatchControlPointsEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetPatchControlPointsEXT;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizerDiscardEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetRasterizerDiscardEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBiasEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDepthBiasEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetLogicOpEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetLogicOpEXT;
+    }
+    if (!strcmp(name, "vkCmdSetPrimitiveRestartEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetPrimitiveRestartEnableEXT;
+    }
+#endif
+#ifdef VK_QNX_screen_surface
+    if (!strcmp(name, "vkCreateScreenSurfaceQNX")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_QNX_screen_surface");
+        return hasExt ? (void*)entry_vkCreateScreenSurfaceQNX : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceScreenPresentationSupportQNX")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_QNX_screen_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceScreenPresentationSupportQNX : nullptr;
+    }
+#endif
+#ifdef VK_EXT_color_write_enable
+    if (!strcmp(name, "vkCmdSetColorWriteEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetColorWriteEnableEXT;
     }
 #endif
 #ifdef VK_GOOGLE_gfxstream
@@ -5553,6 +16142,418 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkGetBlobGOOGLE")) {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)dynCheck_entry_vkGetBlobGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_EXT_multi_draw
+    if (!strcmp(name, "vkCmdDrawMultiEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawMultiEXT;
+    }
+    if (!strcmp(name, "vkCmdDrawMultiIndexedEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawMultiIndexedEXT;
+    }
+#endif
+#ifdef VK_EXT_opacity_micromap
+    if (!strcmp(name, "vkCreateMicromapEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateMicromapEXT;
+    }
+    if (!strcmp(name, "vkDestroyMicromapEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyMicromapEXT;
+    }
+    if (!strcmp(name, "vkCmdBuildMicromapsEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBuildMicromapsEXT;
+    }
+    if (!strcmp(name, "vkBuildMicromapsEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkBuildMicromapsEXT;
+    }
+    if (!strcmp(name, "vkCopyMicromapEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCopyMicromapEXT;
+    }
+    if (!strcmp(name, "vkCopyMicromapToMemoryEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCopyMicromapToMemoryEXT;
+    }
+    if (!strcmp(name, "vkCopyMemoryToMicromapEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCopyMemoryToMicromapEXT;
+    }
+    if (!strcmp(name, "vkWriteMicromapsPropertiesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkWriteMicromapsPropertiesEXT;
+    }
+    if (!strcmp(name, "vkCmdCopyMicromapEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyMicromapEXT;
+    }
+    if (!strcmp(name, "vkCmdCopyMicromapToMemoryEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyMicromapToMemoryEXT;
+    }
+    if (!strcmp(name, "vkCmdCopyMemoryToMicromapEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyMemoryToMicromapEXT;
+    }
+    if (!strcmp(name, "vkCmdWriteMicromapsPropertiesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdWriteMicromapsPropertiesEXT;
+    }
+    if (!strcmp(name, "vkGetDeviceMicromapCompatibilityEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceMicromapCompatibilityEXT;
+    }
+    if (!strcmp(name, "vkGetMicromapBuildSizesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetMicromapBuildSizesEXT;
+    }
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+    if (!strcmp(name, "vkCmdDrawClusterHUAWEI")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawClusterHUAWEI;
+    }
+    if (!strcmp(name, "vkCmdDrawClusterIndirectHUAWEI")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawClusterIndirectHUAWEI;
+    }
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+    if (!strcmp(name, "vkSetDeviceMemoryPriorityEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkSetDeviceMemoryPriorityEXT;
+    }
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+    if (!strcmp(name, "vkGetDescriptorSetLayoutHostMappingInfoVALVE")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDescriptorSetLayoutHostMappingInfoVALVE;
+    }
+    if (!strcmp(name, "vkGetDescriptorSetHostMappingVALVE")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDescriptorSetHostMappingVALVE;
+    }
+#endif
+#ifdef VK_NV_copy_memory_indirect
+    if (!strcmp(name, "vkCmdCopyMemoryIndirectNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyMemoryIndirectNV;
+    }
+    if (!strcmp(name, "vkCmdCopyMemoryToImageIndirectNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyMemoryToImageIndirectNV;
+    }
+#endif
+#ifdef VK_NV_memory_decompression
+    if (!strcmp(name, "vkCmdDecompressMemoryNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDecompressMemoryNV;
+    }
+    if (!strcmp(name, "vkCmdDecompressMemoryIndirectCountNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDecompressMemoryIndirectCountNV;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+    if (!strcmp(name, "vkCmdSetTessellationDomainOriginEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetTessellationDomainOriginEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDepthClampEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDepthClampEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetPolygonModeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetPolygonModeEXT;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizationSamplesEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetRasterizationSamplesEXT;
+    }
+    if (!strcmp(name, "vkCmdSetSampleMaskEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetSampleMaskEXT;
+    }
+    if (!strcmp(name, "vkCmdSetAlphaToCoverageEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetAlphaToCoverageEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetAlphaToOneEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetAlphaToOneEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetLogicOpEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetLogicOpEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetColorBlendEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetColorBlendEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetColorBlendEquationEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetColorBlendEquationEXT;
+    }
+    if (!strcmp(name, "vkCmdSetColorWriteMaskEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetColorWriteMaskEXT;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizationStreamEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetRasterizationStreamEXT;
+    }
+    if (!strcmp(name, "vkCmdSetConservativeRasterizationModeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetConservativeRasterizationModeEXT;
+    }
+    if (!strcmp(name, "vkCmdSetExtraPrimitiveOverestimationSizeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetExtraPrimitiveOverestimationSizeEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDepthClipEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDepthClipEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetSampleLocationsEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetSampleLocationsEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetColorBlendAdvancedEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetColorBlendAdvancedEXT;
+    }
+    if (!strcmp(name, "vkCmdSetProvokingVertexModeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetProvokingVertexModeEXT;
+    }
+    if (!strcmp(name, "vkCmdSetLineRasterizationModeEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetLineRasterizationModeEXT;
+    }
+    if (!strcmp(name, "vkCmdSetLineStippleEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetLineStippleEnableEXT;
+    }
+    if (!strcmp(name, "vkCmdSetDepthClipNegativeOneToOneEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetDepthClipNegativeOneToOneEXT;
+    }
+    if (!strcmp(name, "vkCmdSetViewportWScalingEnableNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetViewportWScalingEnableNV;
+    }
+    if (!strcmp(name, "vkCmdSetViewportSwizzleNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetViewportSwizzleNV;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageToColorEnableNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetCoverageToColorEnableNV;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageToColorLocationNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetCoverageToColorLocationNV;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageModulationModeNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetCoverageModulationModeNV;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageModulationTableEnableNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetCoverageModulationTableEnableNV;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageModulationTableNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetCoverageModulationTableNV;
+    }
+    if (!strcmp(name, "vkCmdSetShadingRateImageEnableNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetShadingRateImageEnableNV;
+    }
+    if (!strcmp(name, "vkCmdSetRepresentativeFragmentTestEnableNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetRepresentativeFragmentTestEnableNV;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageReductionModeNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetCoverageReductionModeNV;
+    }
+#endif
+#ifdef VK_EXT_shader_module_identifier
+    if (!strcmp(name, "vkGetShaderModuleIdentifierEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetShaderModuleIdentifierEXT;
+    }
+    if (!strcmp(name, "vkGetShaderModuleCreateInfoIdentifierEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetShaderModuleCreateInfoIdentifierEXT;
+    }
+#endif
+#ifdef VK_NV_optical_flow
+    if (!strcmp(name, "vkGetPhysicalDeviceOpticalFlowImageFormatsNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceOpticalFlowImageFormatsNV;
+    }
+    if (!strcmp(name, "vkCreateOpticalFlowSessionNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateOpticalFlowSessionNV;
+    }
+    if (!strcmp(name, "vkDestroyOpticalFlowSessionNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyOpticalFlowSessionNV;
+    }
+    if (!strcmp(name, "vkBindOpticalFlowSessionImageNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkBindOpticalFlowSessionImageNV;
+    }
+    if (!strcmp(name, "vkCmdOpticalFlowExecuteNV")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdOpticalFlowExecuteNV;
+    }
+#endif
+#ifdef VK_EXT_shader_object
+    if (!strcmp(name, "vkCreateShadersEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateShadersEXT;
+    }
+    if (!strcmp(name, "vkDestroyShaderEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyShaderEXT;
+    }
+    if (!strcmp(name, "vkGetShaderBinaryDataEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetShaderBinaryDataEXT;
+    }
+    if (!strcmp(name, "vkCmdBindShadersEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBindShadersEXT;
+    }
+#endif
+#ifdef VK_QCOM_tile_properties
+    if (!strcmp(name, "vkGetFramebufferTilePropertiesQCOM")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetFramebufferTilePropertiesQCOM;
+    }
+    if (!strcmp(name, "vkGetDynamicRenderingTilePropertiesQCOM")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDynamicRenderingTilePropertiesQCOM;
+    }
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+    if (!strcmp(name, "vkCmdSetAttachmentFeedbackLoopEnableEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetAttachmentFeedbackLoopEnableEXT;
+    }
+#endif
+#ifdef VK_KHR_acceleration_structure
+    if (!strcmp(name, "vkCreateAccelerationStructureKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateAccelerationStructureKHR;
+    }
+    if (!strcmp(name, "vkDestroyAccelerationStructureKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkDestroyAccelerationStructureKHR;
+    }
+    if (!strcmp(name, "vkCmdBuildAccelerationStructuresKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBuildAccelerationStructuresKHR;
+    }
+    if (!strcmp(name, "vkCmdBuildAccelerationStructuresIndirectKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdBuildAccelerationStructuresIndirectKHR;
+    }
+    if (!strcmp(name, "vkBuildAccelerationStructuresKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkBuildAccelerationStructuresKHR;
+    }
+    if (!strcmp(name, "vkCopyAccelerationStructureKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCopyAccelerationStructureKHR;
+    }
+    if (!strcmp(name, "vkCopyAccelerationStructureToMemoryKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCopyAccelerationStructureToMemoryKHR;
+    }
+    if (!strcmp(name, "vkCopyMemoryToAccelerationStructureKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCopyMemoryToAccelerationStructureKHR;
+    }
+    if (!strcmp(name, "vkWriteAccelerationStructuresPropertiesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkWriteAccelerationStructuresPropertiesKHR;
+    }
+    if (!strcmp(name, "vkCmdCopyAccelerationStructureKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyAccelerationStructureKHR;
+    }
+    if (!strcmp(name, "vkCmdCopyAccelerationStructureToMemoryKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyAccelerationStructureToMemoryKHR;
+    }
+    if (!strcmp(name, "vkCmdCopyMemoryToAccelerationStructureKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdCopyMemoryToAccelerationStructureKHR;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureDeviceAddressKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetAccelerationStructureDeviceAddressKHR;
+    }
+    if (!strcmp(name, "vkCmdWriteAccelerationStructuresPropertiesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdWriteAccelerationStructuresPropertiesKHR;
+    }
+    if (!strcmp(name, "vkGetDeviceAccelerationStructureCompatibilityKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetDeviceAccelerationStructureCompatibilityKHR;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureBuildSizesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetAccelerationStructureBuildSizesKHR;
+    }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    if (!strcmp(name, "vkCmdTraceRaysKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdTraceRaysKHR;
+    }
+    if (!strcmp(name, "vkCreateRayTracingPipelinesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCreateRayTracingPipelinesKHR;
+    }
+    if (!strcmp(name, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR;
+    }
+    if (!strcmp(name, "vkCmdTraceRaysIndirectKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdTraceRaysIndirectKHR;
+    }
+    if (!strcmp(name, "vkGetRayTracingShaderGroupStackSizeKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkGetRayTracingShaderGroupStackSizeKHR;
+    }
+    if (!strcmp(name, "vkCmdSetRayTracingPipelineStackSizeKHR")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdSetRayTracingPipelineStackSizeKHR;
+    }
+#endif
+#ifdef VK_EXT_mesh_shader
+    if (!strcmp(name, "vkCmdDrawMeshTasksEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawMeshTasksEXT;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawMeshTasksIndirectEXT;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectCountEXT")) {
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)dynCheck_entry_vkCmdDrawMeshTasksIndirectCountEXT;
     }
 #endif
     return nullptr;
@@ -6265,10 +17266,212 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetDeviceImageSparseMemoryRequirements : nullptr;
     }
 #endif
+#ifdef VK_KHR_surface
+    if (!strcmp(name, "vkDestroySurfaceKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkDestroySurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceSupportKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceSupportKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormatsKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceFormatsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfacePresentModesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_swapchain
+    if (!strcmp(name, "vkCreateSwapchainKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkCreateSwapchainKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroySwapchainKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkDestroySwapchainKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetSwapchainImagesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetSwapchainImagesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireNextImageKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkAcquireNextImageKHR : nullptr;
+    }
+    if (!strcmp(name, "vkQueuePresentKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkQueuePresentKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetDeviceGroupPresentCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetDeviceGroupSurfacePresentModesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetPhysicalDevicePresentRectanglesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireNextImage2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkAcquireNextImage2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_display
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPropertiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPlanePropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneSupportedDisplaysKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneSupportedDisplaysKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModePropertiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayModePropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayModeKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkCreateDisplayModeKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilitiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayPlaneSurfaceKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkCreateDisplayPlaneSurfaceKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_display_swapchain
+    if (!strcmp(name, "vkCreateSharedSwapchainsKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display_swapchain");
+        return hasExt ? (void*)entry_vkCreateSharedSwapchainsKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_xlib_surface
+    if (!strcmp(name, "vkCreateXlibSurfaceKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_xlib_surface");
+        return hasExt ? (void*)entry_vkCreateXlibSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXlibPresentationSupportKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_xlib_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceXlibPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_xcb_surface
+    if (!strcmp(name, "vkCreateXcbSurfaceKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_xcb_surface");
+        return hasExt ? (void*)entry_vkCreateXcbSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXcbPresentationSupportKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_xcb_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceXcbPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_wayland_surface
+    if (!strcmp(name, "vkCreateWaylandSurfaceKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_wayland_surface");
+        return hasExt ? (void*)entry_vkCreateWaylandSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWaylandPresentationSupportKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_wayland_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceWaylandPresentationSupportKHR : nullptr;
+    }
+#endif
 #ifdef VK_KHR_android_surface
     if (!strcmp(name, "vkCreateAndroidSurfaceKHR")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_android_surface");
         return hasExt ? (void*)entry_vkCreateAndroidSurfaceKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_win32_surface
+    if (!strcmp(name, "vkCreateWin32SurfaceKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_win32_surface");
+        return hasExt ? (void*)entry_vkCreateWin32SurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWin32PresentationSupportKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_win32_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceWin32PresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_queue
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoCapabilitiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceVideoCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoFormatPropertiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceVideoFormatPropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCreateVideoSessionKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkDestroyVideoSessionKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetVideoSessionMemoryRequirementsKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkGetVideoSessionMemoryRequirementsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkBindVideoSessionMemoryKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkBindVideoSessionMemoryKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionParametersKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCreateVideoSessionParametersKHR : nullptr;
+    }
+    if (!strcmp(name, "vkUpdateVideoSessionParametersKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkUpdateVideoSessionParametersKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionParametersKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkDestroyVideoSessionParametersKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginVideoCodingKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCmdBeginVideoCodingKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndVideoCodingKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCmdEndVideoCodingKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdControlVideoCodingKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCmdControlVideoCodingKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_decode_queue
+    if (!strcmp(name, "vkCmdDecodeVideoKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_decode_queue");
+        return hasExt ? (void*)entry_vkCmdDecodeVideoKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_dynamic_rendering
+    if (!strcmp(name, "vkCmdBeginRenderingKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_dynamic_rendering");
+        return hasExt ? (void*)entry_vkCmdBeginRenderingKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndRenderingKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_dynamic_rendering");
+        return hasExt ? (void*)entry_vkCmdEndRenderingKHR : nullptr;
     }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
@@ -6308,10 +17511,30 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties2KHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_device_group
+    if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeaturesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_device_group");
+        return hasExt ? (void*)entry_vkGetDeviceGroupPeerMemoryFeaturesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDeviceMaskKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_device_group");
+        return hasExt ? (void*)entry_vkCmdSetDeviceMaskKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDispatchBaseKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_device_group");
+        return hasExt ? (void*)entry_vkCmdDispatchBaseKHR : nullptr;
+    }
+#endif
 #ifdef VK_KHR_maintenance1
     if (!strcmp(name, "vkTrimCommandPoolKHR")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_maintenance1");
         return hasExt ? (void*)entry_vkTrimCommandPoolKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_device_group_creation
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceGroupsKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_device_group_creation");
+        return hasExt ? (void*)entry_vkEnumeratePhysicalDeviceGroupsKHR : nullptr;
     }
 #endif
 #ifdef VK_KHR_external_memory_capabilities
@@ -6320,11 +17543,41 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalBufferPropertiesKHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_memory_win32");
+        return hasExt ? (void*)entry_vkGetMemoryWin32HandleKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryWin32HandlePropertiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_memory_win32");
+        return hasExt ? (void*)entry_vkGetMemoryWin32HandlePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_memory_fd
+    if (!strcmp(name, "vkGetMemoryFdKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_memory_fd");
+        return hasExt ? (void*)entry_vkGetMemoryFdKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryFdPropertiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_memory_fd");
+        return hasExt ? (void*)entry_vkGetMemoryFdPropertiesKHR : nullptr;
+    }
+#endif
 #ifdef VK_KHR_external_semaphore_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalSemaphorePropertiesKHR")) {
         bool hasExt =
             resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_capabilities");
         return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_semaphore_win32
+    if (!strcmp(name, "vkImportSemaphoreWin32HandleKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_win32");
+        return hasExt ? (void*)entry_vkImportSemaphoreWin32HandleKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreWin32HandleKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_win32");
+        return hasExt ? (void*)entry_vkGetSemaphoreWin32HandleKHR : nullptr;
     }
 #endif
 #ifdef VK_KHR_external_semaphore_fd
@@ -6335,6 +17588,16 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     if (!strcmp(name, "vkGetSemaphoreFdKHR")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_fd");
         return hasExt ? (void*)entry_vkGetSemaphoreFdKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_push_descriptor
+    if (!strcmp(name, "vkCmdPushDescriptorSetKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_push_descriptor");
+        return hasExt ? (void*)entry_vkCmdPushDescriptorSetKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdPushDescriptorSetWithTemplateKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_push_descriptor");
+        return hasExt ? (void*)entry_vkCmdPushDescriptorSetWithTemplateKHR : nullptr;
     }
 #endif
 #ifdef VK_KHR_descriptor_update_template
@@ -6369,10 +17632,26 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkCmdEndRenderPass2KHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_shared_presentable_image
+    if (!strcmp(name, "vkGetSwapchainStatusKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_shared_presentable_image");
+        return hasExt ? (void*)entry_vkGetSwapchainStatusKHR : nullptr;
+    }
+#endif
 #ifdef VK_KHR_external_fence_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalFencePropertiesKHR")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_fence_capabilities");
         return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalFencePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_fence_win32
+    if (!strcmp(name, "vkImportFenceWin32HandleKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_fence_win32");
+        return hasExt ? (void*)entry_vkImportFenceWin32HandleKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetFenceWin32HandleKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_fence_win32");
+        return hasExt ? (void*)entry_vkGetFenceWin32HandleKHR : nullptr;
     }
 #endif
 #ifdef VK_KHR_external_fence_fd
@@ -6383,6 +17662,54 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     if (!strcmp(name, "vkGetFenceFdKHR")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_fence_fd");
         return hasExt ? (void*)entry_vkGetFenceFdKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_performance_query
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_performance_query");
+        return hasExt ? (void*)entry_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR
+                      : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_performance_query");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR
+                      : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireProfilingLockKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_performance_query");
+        return hasExt ? (void*)entry_vkAcquireProfilingLockKHR : nullptr;
+    }
+    if (!strcmp(name, "vkReleaseProfilingLockKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_performance_query");
+        return hasExt ? (void*)entry_vkReleaseProfilingLockKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_surface_capabilities2
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_surface_capabilities2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormats2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_surface_capabilities2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceFormats2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_display_properties2
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayProperties2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlaneProperties2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPlaneProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModeProperties2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetDisplayModeProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilities2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneCapabilities2KHR : nullptr;
     }
 #endif
 #ifdef VK_KHR_get_memory_requirements2
@@ -6425,6 +17752,46 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetDescriptorSetLayoutSupportKHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndirectCountKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndexedIndirectCountKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_timeline_semaphore
+    if (!strcmp(name, "vkGetSemaphoreCounterValueKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_timeline_semaphore");
+        return hasExt ? (void*)entry_vkGetSemaphoreCounterValueKHR : nullptr;
+    }
+    if (!strcmp(name, "vkWaitSemaphoresKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_timeline_semaphore");
+        return hasExt ? (void*)entry_vkWaitSemaphoresKHR : nullptr;
+    }
+    if (!strcmp(name, "vkSignalSemaphoreKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_timeline_semaphore");
+        return hasExt ? (void*)entry_vkSignalSemaphoreKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+    if (!strcmp(name, "vkGetPhysicalDeviceFragmentShadingRatesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_fragment_shading_rate");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceFragmentShadingRatesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetFragmentShadingRateKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_fragment_shading_rate");
+        return hasExt ? (void*)entry_vkCmdSetFragmentShadingRateKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_present_wait
+    if (!strcmp(name, "vkWaitForPresentKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_present_wait");
+        return hasExt ? (void*)entry_vkWaitForPresentKHR : nullptr;
+    }
+#endif
 #ifdef VK_KHR_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressKHR")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_buffer_device_address");
@@ -6437,6 +17804,28 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     if (!strcmp(name, "vkGetDeviceMemoryOpaqueCaptureAddressKHR")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_buffer_device_address");
         return hasExt ? (void*)entry_vkGetDeviceMemoryOpaqueCaptureAddressKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_deferred_host_operations
+    if (!strcmp(name, "vkCreateDeferredOperationKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations");
+        return hasExt ? (void*)entry_vkCreateDeferredOperationKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDeferredOperationKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations");
+        return hasExt ? (void*)entry_vkDestroyDeferredOperationKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeferredOperationMaxConcurrencyKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations");
+        return hasExt ? (void*)entry_vkGetDeferredOperationMaxConcurrencyKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeferredOperationResultKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations");
+        return hasExt ? (void*)entry_vkGetDeferredOperationResultKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDeferredOperationJoinKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_deferred_host_operations");
+        return hasExt ? (void*)entry_vkDeferredOperationJoinKHR : nullptr;
     }
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
@@ -6456,6 +17845,102 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetPipelineExecutableInternalRepresentationsKHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_map_memory2
+    if (!strcmp(name, "vkMapMemory2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_map_memory2");
+        return hasExt ? (void*)entry_vkMapMemory2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkUnmapMemory2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_map_memory2");
+        return hasExt ? (void*)entry_vkUnmapMemory2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_encode_queue
+    if (!strcmp(name, "vkCmdEncodeVideoKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_encode_queue");
+        return hasExt ? (void*)entry_vkCmdEncodeVideoKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_synchronization2
+    if (!strcmp(name, "vkCmdSetEvent2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdSetEvent2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdResetEvent2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdResetEvent2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWaitEvents2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdWaitEvents2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdPipelineBarrier2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdPipelineBarrier2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteTimestamp2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdWriteTimestamp2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmit2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkQueueSubmit2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteBufferMarker2AMD")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdWriteBufferMarker2AMD : nullptr;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointData2NV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkGetQueueCheckpointData2NV : nullptr;
+    }
+#endif
+#ifdef VK_KHR_copy_commands2
+    if (!strcmp(name, "vkCmdCopyBuffer2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_copy_commands2");
+        return hasExt ? (void*)entry_vkCmdCopyBuffer2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyImage2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_copy_commands2");
+        return hasExt ? (void*)entry_vkCmdCopyImage2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyBufferToImage2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_copy_commands2");
+        return hasExt ? (void*)entry_vkCmdCopyBufferToImage2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyImageToBuffer2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_copy_commands2");
+        return hasExt ? (void*)entry_vkCmdCopyImageToBuffer2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBlitImage2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_copy_commands2");
+        return hasExt ? (void*)entry_vkCmdBlitImage2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdResolveImage2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_copy_commands2");
+        return hasExt ? (void*)entry_vkCmdResolveImage2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+    if (!strcmp(name, "vkCmdTraceRaysIndirect2KHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_maintenance1");
+        return hasExt ? (void*)entry_vkCmdTraceRaysIndirect2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_maintenance4
+    if (!strcmp(name, "vkGetDeviceBufferMemoryRequirementsKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_maintenance4");
+        return hasExt ? (void*)entry_vkGetDeviceBufferMemoryRequirementsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceImageMemoryRequirementsKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_maintenance4");
+        return hasExt ? (void*)entry_vkGetDeviceImageMemoryRequirementsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceImageSparseMemoryRequirementsKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_maintenance4");
+        return hasExt ? (void*)entry_vkGetDeviceImageSparseMemoryRequirementsKHR : nullptr;
+    }
+#endif
 #ifdef VK_ANDROID_native_buffer
     if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_ANDROID_native_buffer");
@@ -6472,6 +17957,42 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     if (!strcmp(name, "vkGetSwapchainGrallocUsage2ANDROID")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_ANDROID_native_buffer");
         return hasExt ? (void*)entry_vkGetSwapchainGrallocUsage2ANDROID : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_report
+    if (!strcmp(name, "vkCreateDebugReportCallbackEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkCreateDebugReportCallbackEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugReportCallbackEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkDestroyDebugReportCallbackEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDebugReportMessageEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkDebugReportMessageEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_marker
+    if (!strcmp(name, "vkDebugMarkerSetObjectTagEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkDebugMarkerSetObjectTagEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDebugMarkerSetObjectNameEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkDebugMarkerSetObjectNameEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerBeginEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkCmdDebugMarkerBeginEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerEndEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkCmdDebugMarkerEndEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerInsertEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkCmdDebugMarkerInsertEXT : nullptr;
     }
 #endif
 #ifdef VK_EXT_transform_feedback
@@ -6500,6 +18021,222 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkCmdDrawIndirectByteCountEXT : nullptr;
     }
 #endif
+#ifdef VK_NVX_binary_import
+    if (!strcmp(name, "vkCreateCuModuleNVX")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkCreateCuModuleNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCreateCuFunctionNVX")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkCreateCuFunctionNVX : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyCuModuleNVX")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkDestroyCuModuleNVX : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyCuFunctionNVX")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkDestroyCuFunctionNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCuLaunchKernelNVX")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkCmdCuLaunchKernelNVX : nullptr;
+    }
+#endif
+#ifdef VK_NVX_image_view_handle
+    if (!strcmp(name, "vkGetImageViewHandleNVX")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_image_view_handle");
+        return hasExt ? (void*)entry_vkGetImageViewHandleNVX : nullptr;
+    }
+    if (!strcmp(name, "vkGetImageViewAddressNVX")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_image_view_handle");
+        return hasExt ? (void*)entry_vkGetImageViewAddressNVX : nullptr;
+    }
+#endif
+#ifdef VK_AMD_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountAMD")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_AMD_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndirectCountAMD : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountAMD")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_AMD_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndexedIndirectCountAMD : nullptr;
+    }
+#endif
+#ifdef VK_AMD_shader_info
+    if (!strcmp(name, "vkGetShaderInfoAMD")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_AMD_shader_info");
+        return hasExt ? (void*)entry_vkGetShaderInfoAMD : nullptr;
+    }
+#endif
+#ifdef VK_GGP_stream_descriptor_surface
+    if (!strcmp(name, "vkCreateStreamDescriptorSurfaceGGP")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GGP_stream_descriptor_surface");
+        return hasExt ? (void*)entry_vkCreateStreamDescriptorSurfaceGGP : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalImageFormatPropertiesNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_external_memory_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalImageFormatPropertiesNV : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_external_memory_win32");
+        return hasExt ? (void*)entry_vkGetMemoryWin32HandleNV : nullptr;
+    }
+#endif
+#ifdef VK_NN_vi_surface
+    if (!strcmp(name, "vkCreateViSurfaceNN")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NN_vi_surface");
+        return hasExt ? (void*)entry_vkCreateViSurfaceNN : nullptr;
+    }
+#endif
+#ifdef VK_EXT_conditional_rendering
+    if (!strcmp(name, "vkCmdBeginConditionalRenderingEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_conditional_rendering");
+        return hasExt ? (void*)entry_vkCmdBeginConditionalRenderingEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndConditionalRenderingEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_conditional_rendering");
+        return hasExt ? (void*)entry_vkCmdEndConditionalRenderingEXT : nullptr;
+    }
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+    if (!strcmp(name, "vkCmdSetViewportWScalingNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_clip_space_w_scaling");
+        return hasExt ? (void*)entry_vkCmdSetViewportWScalingNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_direct_mode_display
+    if (!strcmp(name, "vkReleaseDisplayEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_direct_mode_display");
+        return hasExt ? (void*)entry_vkReleaseDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+    if (!strcmp(name, "vkAcquireXlibDisplayEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_acquire_xlib_display");
+        return hasExt ? (void*)entry_vkAcquireXlibDisplayEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetRandROutputDisplayEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_acquire_xlib_display");
+        return hasExt ? (void*)entry_vkGetRandROutputDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_surface_counter
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2EXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_surface_counter");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2EXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_control
+    if (!strcmp(name, "vkDisplayPowerControlEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkDisplayPowerControlEXT : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterDeviceEventEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkRegisterDeviceEventEXT : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterDisplayEventEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkRegisterDisplayEventEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetSwapchainCounterEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkGetSwapchainCounterEXT : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_display_timing
+    if (!strcmp(name, "vkGetRefreshCycleDurationGOOGLE")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_display_timing");
+        return hasExt ? (void*)entry_vkGetRefreshCycleDurationGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkGetPastPresentationTimingGOOGLE")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_display_timing");
+        return hasExt ? (void*)entry_vkGetPastPresentationTimingGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_EXT_discard_rectangles
+    if (!strcmp(name, "vkCmdSetDiscardRectangleEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_discard_rectangles");
+        return hasExt ? (void*)entry_vkCmdSetDiscardRectangleEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDiscardRectangleEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_discard_rectangles");
+        return hasExt ? (void*)entry_vkCmdSetDiscardRectangleEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDiscardRectangleModeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_discard_rectangles");
+        return hasExt ? (void*)entry_vkCmdSetDiscardRectangleModeEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_hdr_metadata
+    if (!strcmp(name, "vkSetHdrMetadataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_hdr_metadata");
+        return hasExt ? (void*)entry_vkSetHdrMetadataEXT : nullptr;
+    }
+#endif
+#ifdef VK_MVK_ios_surface
+    if (!strcmp(name, "vkCreateIOSSurfaceMVK")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_ios_surface");
+        return hasExt ? (void*)entry_vkCreateIOSSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_MVK_macos_surface
+    if (!strcmp(name, "vkCreateMacOSSurfaceMVK")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_macos_surface");
+        return hasExt ? (void*)entry_vkCreateMacOSSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_utils
+    if (!strcmp(name, "vkSetDebugUtilsObjectNameEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSetDebugUtilsObjectNameEXT : nullptr;
+    }
+    if (!strcmp(name, "vkSetDebugUtilsObjectTagEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSetDebugUtilsObjectTagEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueBeginDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueBeginDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueEndDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueEndDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueInsertDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueInsertDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdBeginDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdEndDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdInsertDebugUtilsLabelEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdInsertDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDebugUtilsMessengerEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCreateDebugUtilsMessengerEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugUtilsMessengerEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkDestroyDebugUtilsMessengerEXT : nullptr;
+    }
+    if (!strcmp(name, "vkSubmitDebugUtilsMessageEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSubmitDebugUtilsMessageEXT : nullptr;
+    }
+#endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
     if (!strcmp(name, "vkGetAndroidHardwareBufferPropertiesANDROID")) {
         bool hasExt = resources->hasDeviceExtension(
@@ -6512,10 +18249,595 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetMemoryAndroidHardwareBufferANDROID : nullptr;
     }
 #endif
+#ifdef VK_EXT_sample_locations
+    if (!strcmp(name, "vkCmdSetSampleLocationsEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_sample_locations");
+        return hasExt ? (void*)entry_vkCmdSetSampleLocationsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMultisamplePropertiesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_sample_locations");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceMultisamplePropertiesEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+    if (!strcmp(name, "vkGetImageDrmFormatModifierPropertiesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_image_drm_format_modifier");
+        return hasExt ? (void*)entry_vkGetImageDrmFormatModifierPropertiesEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_validation_cache
+    if (!strcmp(name, "vkCreateValidationCacheEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkCreateValidationCacheEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyValidationCacheEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkDestroyValidationCacheEXT : nullptr;
+    }
+    if (!strcmp(name, "vkMergeValidationCachesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkMergeValidationCachesEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetValidationCacheDataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkGetValidationCacheDataEXT : nullptr;
+    }
+#endif
+#ifdef VK_NV_shading_rate_image
+    if (!strcmp(name, "vkCmdBindShadingRateImageNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_shading_rate_image");
+        return hasExt ? (void*)entry_vkCmdBindShadingRateImageNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetViewportShadingRatePaletteNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_shading_rate_image");
+        return hasExt ? (void*)entry_vkCmdSetViewportShadingRatePaletteNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoarseSampleOrderNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_shading_rate_image");
+        return hasExt ? (void*)entry_vkCmdSetCoarseSampleOrderNV : nullptr;
+    }
+#endif
+#ifdef VK_NV_ray_tracing
+    if (!strcmp(name, "vkCreateAccelerationStructureNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkCreateAccelerationStructureNV : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyAccelerationStructureNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkDestroyAccelerationStructureNV : nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureMemoryRequirementsNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkGetAccelerationStructureMemoryRequirementsNV : nullptr;
+    }
+    if (!strcmp(name, "vkBindAccelerationStructureMemoryNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkBindAccelerationStructureMemoryNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBuildAccelerationStructureNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkCmdBuildAccelerationStructureNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyAccelerationStructureNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkCmdCopyAccelerationStructureNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdTraceRaysNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkCmdTraceRaysNV : nullptr;
+    }
+    if (!strcmp(name, "vkCreateRayTracingPipelinesNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkCreateRayTracingPipelinesNV : nullptr;
+    }
+    if (!strcmp(name, "vkGetRayTracingShaderGroupHandlesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkGetRayTracingShaderGroupHandlesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetRayTracingShaderGroupHandlesNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkGetRayTracingShaderGroupHandlesNV : nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureHandleNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkGetAccelerationStructureHandleNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteAccelerationStructuresPropertiesNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkCmdWriteAccelerationStructuresPropertiesNV : nullptr;
+    }
+    if (!strcmp(name, "vkCompileDeferredNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_ray_tracing");
+        return hasExt ? (void*)entry_vkCompileDeferredNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_external_memory_host
+    if (!strcmp(name, "vkGetMemoryHostPointerPropertiesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_external_memory_host");
+        return hasExt ? (void*)entry_vkGetMemoryHostPointerPropertiesEXT : nullptr;
+    }
+#endif
+#ifdef VK_AMD_buffer_marker
+    if (!strcmp(name, "vkCmdWriteBufferMarkerAMD")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_AMD_buffer_marker");
+        return hasExt ? (void*)entry_vkCmdWriteBufferMarkerAMD : nullptr;
+    }
+#endif
+#ifdef VK_EXT_calibrated_timestamps
+    if (!strcmp(name, "vkGetPhysicalDeviceCalibrateableTimeDomainsEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_calibrated_timestamps");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetCalibratedTimestampsEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_calibrated_timestamps");
+        return hasExt ? (void*)entry_vkGetCalibratedTimestampsEXT : nullptr;
+    }
+#endif
+#ifdef VK_NV_mesh_shader
+    if (!strcmp(name, "vkCmdDrawMeshTasksNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_mesh_shader");
+        return hasExt ? (void*)entry_vkCmdDrawMeshTasksNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_mesh_shader");
+        return hasExt ? (void*)entry_vkCmdDrawMeshTasksIndirectNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectCountNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_mesh_shader");
+        return hasExt ? (void*)entry_vkCmdDrawMeshTasksIndirectCountNV : nullptr;
+    }
+#endif
+#ifdef VK_NV_scissor_exclusive
+    if (!strcmp(name, "vkCmdSetExclusiveScissorEnableNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_scissor_exclusive");
+        return hasExt ? (void*)entry_vkCmdSetExclusiveScissorEnableNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetExclusiveScissorNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_scissor_exclusive");
+        return hasExt ? (void*)entry_vkCmdSetExclusiveScissorNV : nullptr;
+    }
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    if (!strcmp(name, "vkCmdSetCheckpointNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_diagnostic_checkpoints");
+        return hasExt ? (void*)entry_vkCmdSetCheckpointNV : nullptr;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointDataNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_diagnostic_checkpoints");
+        return hasExt ? (void*)entry_vkGetQueueCheckpointDataNV : nullptr;
+    }
+#endif
+#ifdef VK_INTEL_performance_query
+    if (!strcmp(name, "vkInitializePerformanceApiINTEL")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_INTEL_performance_query");
+        return hasExt ? (void*)entry_vkInitializePerformanceApiINTEL : nullptr;
+    }
+    if (!strcmp(name, "vkUninitializePerformanceApiINTEL")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_INTEL_performance_query");
+        return hasExt ? (void*)entry_vkUninitializePerformanceApiINTEL : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPerformanceMarkerINTEL")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_INTEL_performance_query");
+        return hasExt ? (void*)entry_vkCmdSetPerformanceMarkerINTEL : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPerformanceStreamMarkerINTEL")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_INTEL_performance_query");
+        return hasExt ? (void*)entry_vkCmdSetPerformanceStreamMarkerINTEL : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPerformanceOverrideINTEL")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_INTEL_performance_query");
+        return hasExt ? (void*)entry_vkCmdSetPerformanceOverrideINTEL : nullptr;
+    }
+    if (!strcmp(name, "vkAcquirePerformanceConfigurationINTEL")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_INTEL_performance_query");
+        return hasExt ? (void*)entry_vkAcquirePerformanceConfigurationINTEL : nullptr;
+    }
+    if (!strcmp(name, "vkReleasePerformanceConfigurationINTEL")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_INTEL_performance_query");
+        return hasExt ? (void*)entry_vkReleasePerformanceConfigurationINTEL : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSetPerformanceConfigurationINTEL")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_INTEL_performance_query");
+        return hasExt ? (void*)entry_vkQueueSetPerformanceConfigurationINTEL : nullptr;
+    }
+    if (!strcmp(name, "vkGetPerformanceParameterINTEL")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_INTEL_performance_query");
+        return hasExt ? (void*)entry_vkGetPerformanceParameterINTEL : nullptr;
+    }
+#endif
+#ifdef VK_AMD_display_native_hdr
+    if (!strcmp(name, "vkSetLocalDimmingAMD")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_AMD_display_native_hdr");
+        return hasExt ? (void*)entry_vkSetLocalDimmingAMD : nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_imagepipe_surface
+    if (!strcmp(name, "vkCreateImagePipeSurfaceFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_imagepipe_surface");
+        return hasExt ? (void*)entry_vkCreateImagePipeSurfaceFUCHSIA : nullptr;
+    }
+#endif
+#ifdef VK_EXT_metal_surface
+    if (!strcmp(name, "vkCreateMetalSurfaceEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_metal_surface");
+        return hasExt ? (void*)entry_vkCreateMetalSurfaceEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_buffer_device_address
+    if (!strcmp(name, "vkGetBufferDeviceAddressEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_buffer_device_address");
+        return hasExt ? (void*)entry_vkGetBufferDeviceAddressEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_tooling_info
+    if (!strcmp(name, "vkGetPhysicalDeviceToolPropertiesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_tooling_info");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceToolPropertiesEXT : nullptr;
+    }
+#endif
+#ifdef VK_NV_cooperative_matrix
+    if (!strcmp(name, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_cooperative_matrix");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV : nullptr;
+    }
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+    if (!strcmp(name, "vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_coverage_reduction_mode");
+        return hasExt
+                   ? (void*)entry_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV
+                   : nullptr;
+    }
+#endif
+#ifdef VK_EXT_full_screen_exclusive
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModes2EXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_full_screen_exclusive");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfacePresentModes2EXT : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireFullScreenExclusiveModeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_full_screen_exclusive");
+        return hasExt ? (void*)entry_vkAcquireFullScreenExclusiveModeEXT : nullptr;
+    }
+    if (!strcmp(name, "vkReleaseFullScreenExclusiveModeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_full_screen_exclusive");
+        return hasExt ? (void*)entry_vkReleaseFullScreenExclusiveModeEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModes2EXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_full_screen_exclusive");
+        return hasExt ? (void*)entry_vkGetDeviceGroupSurfacePresentModes2EXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_headless_surface
+    if (!strcmp(name, "vkCreateHeadlessSurfaceEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_headless_surface");
+        return hasExt ? (void*)entry_vkCreateHeadlessSurfaceEXT : nullptr;
+    }
+#endif
 #ifdef VK_EXT_line_rasterization
     if (!strcmp(name, "vkCmdSetLineStippleEXT")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_line_rasterization");
         return hasExt ? (void*)entry_vkCmdSetLineStippleEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_host_query_reset
+    if (!strcmp(name, "vkResetQueryPoolEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_host_query_reset");
+        return hasExt ? (void*)entry_vkResetQueryPoolEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+    if (!strcmp(name, "vkCmdSetCullModeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetCullModeEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetFrontFaceEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetFrontFaceEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPrimitiveTopologyEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetPrimitiveTopologyEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetViewportWithCountEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetViewportWithCountEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetScissorWithCountEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetScissorWithCountEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindVertexBuffers2EXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdBindVertexBuffers2EXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthTestEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetDepthTestEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthWriteEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetDepthWriteEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthCompareOpEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetDepthCompareOpEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBoundsTestEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetDepthBoundsTestEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetStencilTestEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetStencilTestEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetStencilOpEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetStencilOpEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+    if (!strcmp(name, "vkReleaseSwapchainImagesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_swapchain_maintenance1");
+        return hasExt ? (void*)entry_vkReleaseSwapchainImagesEXT : nullptr;
+    }
+#endif
+#ifdef VK_NV_device_generated_commands
+    if (!strcmp(name, "vkGetGeneratedCommandsMemoryRequirementsNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_generated_commands");
+        return hasExt ? (void*)entry_vkGetGeneratedCommandsMemoryRequirementsNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdPreprocessGeneratedCommandsNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_generated_commands");
+        return hasExt ? (void*)entry_vkCmdPreprocessGeneratedCommandsNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdExecuteGeneratedCommandsNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_generated_commands");
+        return hasExt ? (void*)entry_vkCmdExecuteGeneratedCommandsNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindPipelineShaderGroupNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_generated_commands");
+        return hasExt ? (void*)entry_vkCmdBindPipelineShaderGroupNV : nullptr;
+    }
+    if (!strcmp(name, "vkCreateIndirectCommandsLayoutNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_generated_commands");
+        return hasExt ? (void*)entry_vkCreateIndirectCommandsLayoutNV : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyIndirectCommandsLayoutNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_generated_commands");
+        return hasExt ? (void*)entry_vkDestroyIndirectCommandsLayoutNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_acquire_drm_display
+    if (!strcmp(name, "vkAcquireDrmDisplayEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_acquire_drm_display");
+        return hasExt ? (void*)entry_vkAcquireDrmDisplayEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetDrmDisplayEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_acquire_drm_display");
+        return hasExt ? (void*)entry_vkGetDrmDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_private_data
+    if (!strcmp(name, "vkCreatePrivateDataSlotEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_private_data");
+        return hasExt ? (void*)entry_vkCreatePrivateDataSlotEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyPrivateDataSlotEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_private_data");
+        return hasExt ? (void*)entry_vkDestroyPrivateDataSlotEXT : nullptr;
+    }
+    if (!strcmp(name, "vkSetPrivateDataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_private_data");
+        return hasExt ? (void*)entry_vkSetPrivateDataEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetPrivateDataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_private_data");
+        return hasExt ? (void*)entry_vkGetPrivateDataEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_metal_objects
+    if (!strcmp(name, "vkExportMetalObjectsEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_metal_objects");
+        return hasExt ? (void*)entry_vkExportMetalObjectsEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_descriptor_buffer
+    if (!strcmp(name, "vkGetDescriptorSetLayoutSizeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkGetDescriptorSetLayoutSizeEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetDescriptorSetLayoutBindingOffsetEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkGetDescriptorSetLayoutBindingOffsetEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetDescriptorEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkGetDescriptorEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindDescriptorBuffersEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkCmdBindDescriptorBuffersEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDescriptorBufferOffsetsEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkCmdSetDescriptorBufferOffsetsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindDescriptorBufferEmbeddedSamplersEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkCmdBindDescriptorBufferEmbeddedSamplersEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferOpaqueCaptureDescriptorDataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkGetBufferOpaqueCaptureDescriptorDataEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetImageOpaqueCaptureDescriptorDataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkGetImageOpaqueCaptureDescriptorDataEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetImageViewOpaqueCaptureDescriptorDataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkGetImageViewOpaqueCaptureDescriptorDataEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetSamplerOpaqueCaptureDescriptorDataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkGetSamplerOpaqueCaptureDescriptorDataEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_descriptor_buffer");
+        return hasExt ? (void*)entry_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT
+                      : nullptr;
+    }
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+    if (!strcmp(name, "vkCmdSetFragmentShadingRateEnumNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_fragment_shading_rate_enums");
+        return hasExt ? (void*)entry_vkCmdSetFragmentShadingRateEnumNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_image_compression_control
+    if (!strcmp(name, "vkGetImageSubresourceLayout2EXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_image_compression_control");
+        return hasExt ? (void*)entry_vkGetImageSubresourceLayout2EXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_device_fault
+    if (!strcmp(name, "vkGetDeviceFaultInfoEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_device_fault");
+        return hasExt ? (void*)entry_vkGetDeviceFaultInfoEXT : nullptr;
+    }
+#endif
+#ifdef VK_NV_acquire_winrt_display
+    if (!strcmp(name, "vkAcquireWinrtDisplayNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_acquire_winrt_display");
+        return hasExt ? (void*)entry_vkAcquireWinrtDisplayNV : nullptr;
+    }
+    if (!strcmp(name, "vkGetWinrtDisplayNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_acquire_winrt_display");
+        return hasExt ? (void*)entry_vkGetWinrtDisplayNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_directfb_surface
+    if (!strcmp(name, "vkCreateDirectFBSurfaceEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_directfb_surface");
+        return hasExt ? (void*)entry_vkCreateDirectFBSurfaceEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDirectFBPresentationSupportEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_directfb_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+    if (!strcmp(name, "vkCmdSetVertexInputEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_vertex_input_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetVertexInputEXT : nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_memory
+    if (!strcmp(name, "vkGetMemoryZirconHandleFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_external_memory");
+        return hasExt ? (void*)entry_vkGetMemoryZirconHandleFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_external_memory");
+        return hasExt ? (void*)entry_vkGetMemoryZirconHandlePropertiesFUCHSIA : nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+    if (!strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_external_semaphore");
+        return hasExt ? (void*)entry_vkImportSemaphoreZirconHandleFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_external_semaphore");
+        return hasExt ? (void*)entry_vkGetSemaphoreZirconHandleFUCHSIA : nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+    if (!strcmp(name, "vkCreateBufferCollectionFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkCreateBufferCollectionFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkSetBufferCollectionImageConstraintsFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkSetBufferCollectionBufferConstraintsFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyBufferCollectionFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkDestroyBufferCollectionFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkGetBufferCollectionPropertiesFUCHSIA : nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+    if (!strcmp(name, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_HUAWEI_subpass_shading");
+        return hasExt ? (void*)entry_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSubpassShadingHUAWEI")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_HUAWEI_subpass_shading");
+        return hasExt ? (void*)entry_vkCmdSubpassShadingHUAWEI : nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+    if (!strcmp(name, "vkCmdBindInvocationMaskHUAWEI")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_HUAWEI_invocation_mask");
+        return hasExt ? (void*)entry_vkCmdBindInvocationMaskHUAWEI : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_rdma
+    if (!strcmp(name, "vkGetMemoryRemoteAddressNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_external_memory_rdma");
+        return hasExt ? (void*)entry_vkGetMemoryRemoteAddressNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_pipeline_properties
+    if (!strcmp(name, "vkGetPipelinePropertiesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_pipeline_properties");
+        return hasExt ? (void*)entry_vkGetPipelinePropertiesEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+    if (!strcmp(name, "vkCmdSetPatchControlPointsEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetPatchControlPointsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizerDiscardEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetRasterizerDiscardEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBiasEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetDepthBiasEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLogicOpEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetLogicOpEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPrimitiveRestartEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetPrimitiveRestartEnableEXT : nullptr;
+    }
+#endif
+#ifdef VK_QNX_screen_surface
+    if (!strcmp(name, "vkCreateScreenSurfaceQNX")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_QNX_screen_surface");
+        return hasExt ? (void*)entry_vkCreateScreenSurfaceQNX : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceScreenPresentationSupportQNX")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_QNX_screen_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceScreenPresentationSupportQNX : nullptr;
+    }
+#endif
+#ifdef VK_EXT_color_write_enable
+    if (!strcmp(name, "vkCmdSetColorWriteEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_color_write_enable");
+        return hasExt ? (void*)entry_vkCmdSetColorWriteEnableEXT : nullptr;
     }
 #endif
 #ifdef VK_GOOGLE_gfxstream
@@ -6606,6 +18928,419 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     if (!strcmp(name, "vkGetBlobGOOGLE")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkGetBlobGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_EXT_multi_draw
+    if (!strcmp(name, "vkCmdDrawMultiEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_multi_draw");
+        return hasExt ? (void*)entry_vkCmdDrawMultiEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMultiIndexedEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_multi_draw");
+        return hasExt ? (void*)entry_vkCmdDrawMultiIndexedEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_opacity_micromap
+    if (!strcmp(name, "vkCreateMicromapEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkCreateMicromapEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyMicromapEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkDestroyMicromapEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBuildMicromapsEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkCmdBuildMicromapsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkBuildMicromapsEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkBuildMicromapsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCopyMicromapEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkCopyMicromapEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCopyMicromapToMemoryEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkCopyMicromapToMemoryEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCopyMemoryToMicromapEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkCopyMemoryToMicromapEXT : nullptr;
+    }
+    if (!strcmp(name, "vkWriteMicromapsPropertiesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkWriteMicromapsPropertiesEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMicromapEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkCmdCopyMicromapEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMicromapToMemoryEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkCmdCopyMicromapToMemoryEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMemoryToMicromapEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkCmdCopyMemoryToMicromapEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteMicromapsPropertiesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkCmdWriteMicromapsPropertiesEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceMicromapCompatibilityEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkGetDeviceMicromapCompatibilityEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetMicromapBuildSizesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_opacity_micromap");
+        return hasExt ? (void*)entry_vkGetMicromapBuildSizesEXT : nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+    if (!strcmp(name, "vkCmdDrawClusterHUAWEI")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_HUAWEI_cluster_culling_shader");
+        return hasExt ? (void*)entry_vkCmdDrawClusterHUAWEI : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawClusterIndirectHUAWEI")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_HUAWEI_cluster_culling_shader");
+        return hasExt ? (void*)entry_vkCmdDrawClusterIndirectHUAWEI : nullptr;
+    }
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+    if (!strcmp(name, "vkSetDeviceMemoryPriorityEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_pageable_device_local_memory");
+        return hasExt ? (void*)entry_vkSetDeviceMemoryPriorityEXT : nullptr;
+    }
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+    if (!strcmp(name, "vkGetDescriptorSetLayoutHostMappingInfoVALVE")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_VALVE_descriptor_set_host_mapping");
+        return hasExt ? (void*)entry_vkGetDescriptorSetLayoutHostMappingInfoVALVE : nullptr;
+    }
+    if (!strcmp(name, "vkGetDescriptorSetHostMappingVALVE")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_VALVE_descriptor_set_host_mapping");
+        return hasExt ? (void*)entry_vkGetDescriptorSetHostMappingVALVE : nullptr;
+    }
+#endif
+#ifdef VK_NV_copy_memory_indirect
+    if (!strcmp(name, "vkCmdCopyMemoryIndirectNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_copy_memory_indirect");
+        return hasExt ? (void*)entry_vkCmdCopyMemoryIndirectNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMemoryToImageIndirectNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_copy_memory_indirect");
+        return hasExt ? (void*)entry_vkCmdCopyMemoryToImageIndirectNV : nullptr;
+    }
+#endif
+#ifdef VK_NV_memory_decompression
+    if (!strcmp(name, "vkCmdDecompressMemoryNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_memory_decompression");
+        return hasExt ? (void*)entry_vkCmdDecompressMemoryNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDecompressMemoryIndirectCountNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_memory_decompression");
+        return hasExt ? (void*)entry_vkCmdDecompressMemoryIndirectCountNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+    if (!strcmp(name, "vkCmdSetTessellationDomainOriginEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetTessellationDomainOriginEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthClampEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetDepthClampEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPolygonModeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetPolygonModeEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizationSamplesEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetRasterizationSamplesEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetSampleMaskEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetSampleMaskEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetAlphaToCoverageEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetAlphaToCoverageEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetAlphaToOneEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetAlphaToOneEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLogicOpEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetLogicOpEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetColorBlendEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetColorBlendEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetColorBlendEquationEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetColorBlendEquationEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetColorWriteMaskEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetColorWriteMaskEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizationStreamEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetRasterizationStreamEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetConservativeRasterizationModeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetConservativeRasterizationModeEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetExtraPrimitiveOverestimationSizeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetExtraPrimitiveOverestimationSizeEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthClipEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetDepthClipEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetSampleLocationsEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetSampleLocationsEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetColorBlendAdvancedEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetColorBlendAdvancedEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetProvokingVertexModeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetProvokingVertexModeEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLineRasterizationModeEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetLineRasterizationModeEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLineStippleEnableEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetLineStippleEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthClipNegativeOneToOneEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetDepthClipNegativeOneToOneEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetViewportWScalingEnableNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetViewportWScalingEnableNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetViewportSwizzleNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetViewportSwizzleNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageToColorEnableNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetCoverageToColorEnableNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageToColorLocationNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetCoverageToColorLocationNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageModulationModeNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetCoverageModulationModeNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageModulationTableEnableNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetCoverageModulationTableEnableNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageModulationTableNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetCoverageModulationTableNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetShadingRateImageEnableNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetShadingRateImageEnableNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRepresentativeFragmentTestEnableNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetRepresentativeFragmentTestEnableNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetCoverageReductionModeNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state3");
+        return hasExt ? (void*)entry_vkCmdSetCoverageReductionModeNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_shader_module_identifier
+    if (!strcmp(name, "vkGetShaderModuleIdentifierEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_shader_module_identifier");
+        return hasExt ? (void*)entry_vkGetShaderModuleIdentifierEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetShaderModuleCreateInfoIdentifierEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_shader_module_identifier");
+        return hasExt ? (void*)entry_vkGetShaderModuleCreateInfoIdentifierEXT : nullptr;
+    }
+#endif
+#ifdef VK_NV_optical_flow
+    if (!strcmp(name, "vkGetPhysicalDeviceOpticalFlowImageFormatsNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_optical_flow");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceOpticalFlowImageFormatsNV : nullptr;
+    }
+    if (!strcmp(name, "vkCreateOpticalFlowSessionNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_optical_flow");
+        return hasExt ? (void*)entry_vkCreateOpticalFlowSessionNV : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyOpticalFlowSessionNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_optical_flow");
+        return hasExt ? (void*)entry_vkDestroyOpticalFlowSessionNV : nullptr;
+    }
+    if (!strcmp(name, "vkBindOpticalFlowSessionImageNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_optical_flow");
+        return hasExt ? (void*)entry_vkBindOpticalFlowSessionImageNV : nullptr;
+    }
+    if (!strcmp(name, "vkCmdOpticalFlowExecuteNV")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_optical_flow");
+        return hasExt ? (void*)entry_vkCmdOpticalFlowExecuteNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_shader_object
+    if (!strcmp(name, "vkCreateShadersEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_shader_object");
+        return hasExt ? (void*)entry_vkCreateShadersEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyShaderEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_shader_object");
+        return hasExt ? (void*)entry_vkDestroyShaderEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetShaderBinaryDataEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_shader_object");
+        return hasExt ? (void*)entry_vkGetShaderBinaryDataEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBindShadersEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_shader_object");
+        return hasExt ? (void*)entry_vkCmdBindShadersEXT : nullptr;
+    }
+#endif
+#ifdef VK_QCOM_tile_properties
+    if (!strcmp(name, "vkGetFramebufferTilePropertiesQCOM")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_QCOM_tile_properties");
+        return hasExt ? (void*)entry_vkGetFramebufferTilePropertiesQCOM : nullptr;
+    }
+    if (!strcmp(name, "vkGetDynamicRenderingTilePropertiesQCOM")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_QCOM_tile_properties");
+        return hasExt ? (void*)entry_vkGetDynamicRenderingTilePropertiesQCOM : nullptr;
+    }
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+    if (!strcmp(name, "vkCmdSetAttachmentFeedbackLoopEnableEXT")) {
+        bool hasExt =
+            resources->hasDeviceExtension(device, "VK_EXT_attachment_feedback_loop_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetAttachmentFeedbackLoopEnableEXT : nullptr;
+    }
+#endif
+#ifdef VK_KHR_acceleration_structure
+    if (!strcmp(name, "vkCreateAccelerationStructureKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCreateAccelerationStructureKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyAccelerationStructureKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkDestroyAccelerationStructureKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBuildAccelerationStructuresKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCmdBuildAccelerationStructuresKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBuildAccelerationStructuresIndirectKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCmdBuildAccelerationStructuresIndirectKHR : nullptr;
+    }
+    if (!strcmp(name, "vkBuildAccelerationStructuresKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkBuildAccelerationStructuresKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCopyAccelerationStructureKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCopyAccelerationStructureKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCopyAccelerationStructureToMemoryKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCopyAccelerationStructureToMemoryKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCopyMemoryToAccelerationStructureKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCopyMemoryToAccelerationStructureKHR : nullptr;
+    }
+    if (!strcmp(name, "vkWriteAccelerationStructuresPropertiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkWriteAccelerationStructuresPropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyAccelerationStructureKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCmdCopyAccelerationStructureKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyAccelerationStructureToMemoryKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCmdCopyAccelerationStructureToMemoryKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCopyMemoryToAccelerationStructureKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCmdCopyMemoryToAccelerationStructureKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureDeviceAddressKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkGetAccelerationStructureDeviceAddressKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteAccelerationStructuresPropertiesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkCmdWriteAccelerationStructuresPropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceAccelerationStructureCompatibilityKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkGetDeviceAccelerationStructureCompatibilityKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetAccelerationStructureBuildSizesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_acceleration_structure");
+        return hasExt ? (void*)entry_vkGetAccelerationStructureBuildSizesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    if (!strcmp(name, "vkCmdTraceRaysKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline");
+        return hasExt ? (void*)entry_vkCmdTraceRaysKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateRayTracingPipelinesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline");
+        return hasExt ? (void*)entry_vkCreateRayTracingPipelinesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline");
+        return hasExt ? (void*)entry_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdTraceRaysIndirectKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline");
+        return hasExt ? (void*)entry_vkCmdTraceRaysIndirectKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetRayTracingShaderGroupStackSizeKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline");
+        return hasExt ? (void*)entry_vkGetRayTracingShaderGroupStackSizeKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRayTracingPipelineStackSizeKHR")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_ray_tracing_pipeline");
+        return hasExt ? (void*)entry_vkCmdSetRayTracingPipelineStackSizeKHR : nullptr;
+    }
+#endif
+#ifdef VK_EXT_mesh_shader
+    if (!strcmp(name, "vkCmdDrawMeshTasksEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_mesh_shader");
+        return hasExt ? (void*)entry_vkCmdDrawMeshTasksEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_mesh_shader");
+        return hasExt ? (void*)entry_vkCmdDrawMeshTasksIndirectEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMeshTasksIndirectCountEXT")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_mesh_shader");
+        return hasExt ? (void*)entry_vkCmdDrawMeshTasksIndirectCountEXT : nullptr;
     }
 #endif
     return nullptr;
