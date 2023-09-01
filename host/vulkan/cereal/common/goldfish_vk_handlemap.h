@@ -814,14 +814,214 @@ void handlemap_VkDeviceImageMemoryRequirements(VulkanHandleMapping* handlemap,
 
 #endif
 #ifdef VK_KHR_surface
+void handlemap_VkSurfaceCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                        VkSurfaceCapabilitiesKHR* toMap);
+
+void handlemap_VkSurfaceFormatKHR(VulkanHandleMapping* handlemap, VkSurfaceFormatKHR* toMap);
+
 #endif
 #ifdef VK_KHR_swapchain
+void handlemap_VkSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                        VkSwapchainCreateInfoKHR* toMap);
+
+void handlemap_VkPresentInfoKHR(VulkanHandleMapping* handlemap, VkPresentInfoKHR* toMap);
+
+void handlemap_VkImageSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkImageSwapchainCreateInfoKHR* toMap);
+
+void handlemap_VkBindImageMemorySwapchainInfoKHR(VulkanHandleMapping* handlemap,
+                                                 VkBindImageMemorySwapchainInfoKHR* toMap);
+
+void handlemap_VkAcquireNextImageInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkAcquireNextImageInfoKHR* toMap);
+
+void handlemap_VkDeviceGroupPresentCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                                   VkDeviceGroupPresentCapabilitiesKHR* toMap);
+
+void handlemap_VkDeviceGroupPresentInfoKHR(VulkanHandleMapping* handlemap,
+                                           VkDeviceGroupPresentInfoKHR* toMap);
+
+void handlemap_VkDeviceGroupSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                                   VkDeviceGroupSwapchainCreateInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_display
+void handlemap_VkDisplayModeParametersKHR(VulkanHandleMapping* handlemap,
+                                          VkDisplayModeParametersKHR* toMap);
+
+void handlemap_VkDisplayModeCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                          VkDisplayModeCreateInfoKHR* toMap);
+
+void handlemap_VkDisplayModePropertiesKHR(VulkanHandleMapping* handlemap,
+                                          VkDisplayModePropertiesKHR* toMap);
+
+void handlemap_VkDisplayPlaneCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                             VkDisplayPlaneCapabilitiesKHR* toMap);
+
+void handlemap_VkDisplayPlanePropertiesKHR(VulkanHandleMapping* handlemap,
+                                           VkDisplayPlanePropertiesKHR* toMap);
+
+void handlemap_VkDisplayPropertiesKHR(VulkanHandleMapping* handlemap,
+                                      VkDisplayPropertiesKHR* toMap);
+
+void handlemap_VkDisplaySurfaceCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkDisplaySurfaceCreateInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_display_swapchain
+void handlemap_VkDisplayPresentInfoKHR(VulkanHandleMapping* handlemap,
+                                       VkDisplayPresentInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_xlib_surface
+void handlemap_VkXlibSurfaceCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                          VkXlibSurfaceCreateInfoKHR* toMap);
+
 #endif
 #ifdef VK_KHR_xcb_surface
+void handlemap_VkXcbSurfaceCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkXcbSurfaceCreateInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_wayland_surface
+void handlemap_VkWaylandSurfaceCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkWaylandSurfaceCreateInfoKHR* toMap);
+
 #endif
 #ifdef VK_KHR_android_surface
+void handlemap_VkAndroidSurfaceCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkAndroidSurfaceCreateInfoKHR* toMap);
+
 #endif
 #ifdef VK_KHR_win32_surface
+void handlemap_VkWin32SurfaceCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                           VkWin32SurfaceCreateInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_sampler_mirror_clamp_to_edge
+#endif
+#ifdef VK_KHR_video_queue
+void handlemap_VkQueueFamilyQueryResultStatusPropertiesKHR(
+    VulkanHandleMapping* handlemap, VkQueueFamilyQueryResultStatusPropertiesKHR* toMap);
+
+void handlemap_VkQueueFamilyVideoPropertiesKHR(VulkanHandleMapping* handlemap,
+                                               VkQueueFamilyVideoPropertiesKHR* toMap);
+
+void handlemap_VkVideoProfileInfoKHR(VulkanHandleMapping* handlemap, VkVideoProfileInfoKHR* toMap);
+
+void handlemap_VkVideoProfileListInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkVideoProfileListInfoKHR* toMap);
+
+void handlemap_VkVideoCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                      VkVideoCapabilitiesKHR* toMap);
+
+void handlemap_VkPhysicalDeviceVideoFormatInfoKHR(VulkanHandleMapping* handlemap,
+                                                  VkPhysicalDeviceVideoFormatInfoKHR* toMap);
+
+void handlemap_VkVideoFormatPropertiesKHR(VulkanHandleMapping* handlemap,
+                                          VkVideoFormatPropertiesKHR* toMap);
+
+void handlemap_VkVideoPictureResourceInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkVideoPictureResourceInfoKHR* toMap);
+
+void handlemap_VkVideoReferenceSlotInfoKHR(VulkanHandleMapping* handlemap,
+                                           VkVideoReferenceSlotInfoKHR* toMap);
+
+void handlemap_VkVideoSessionMemoryRequirementsKHR(VulkanHandleMapping* handlemap,
+                                                   VkVideoSessionMemoryRequirementsKHR* toMap);
+
+void handlemap_VkBindVideoSessionMemoryInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkBindVideoSessionMemoryInfoKHR* toMap);
+
+void handlemap_VkVideoSessionCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                           VkVideoSessionCreateInfoKHR* toMap);
+
+void handlemap_VkVideoSessionParametersCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                                     VkVideoSessionParametersCreateInfoKHR* toMap);
+
+void handlemap_VkVideoSessionParametersUpdateInfoKHR(VulkanHandleMapping* handlemap,
+                                                     VkVideoSessionParametersUpdateInfoKHR* toMap);
+
+void handlemap_VkVideoBeginCodingInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkVideoBeginCodingInfoKHR* toMap);
+
+void handlemap_VkVideoEndCodingInfoKHR(VulkanHandleMapping* handlemap,
+                                       VkVideoEndCodingInfoKHR* toMap);
+
+void handlemap_VkVideoCodingControlInfoKHR(VulkanHandleMapping* handlemap,
+                                           VkVideoCodingControlInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_video_decode_queue
+void handlemap_VkVideoDecodeCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                            VkVideoDecodeCapabilitiesKHR* toMap);
+
+void handlemap_VkVideoDecodeUsageInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkVideoDecodeUsageInfoKHR* toMap);
+
+void handlemap_VkVideoDecodeInfoKHR(VulkanHandleMapping* handlemap, VkVideoDecodeInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_video_decode_h264
+void handlemap_VkVideoDecodeH264ProfileInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkVideoDecodeH264ProfileInfoKHR* toMap);
+
+void handlemap_VkVideoDecodeH264CapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                                VkVideoDecodeH264CapabilitiesKHR* toMap);
+
+void handlemap_VkVideoDecodeH264SessionParametersAddInfoKHR(
+    VulkanHandleMapping* handlemap, VkVideoDecodeH264SessionParametersAddInfoKHR* toMap);
+
+void handlemap_VkVideoDecodeH264SessionParametersCreateInfoKHR(
+    VulkanHandleMapping* handlemap, VkVideoDecodeH264SessionParametersCreateInfoKHR* toMap);
+
+void handlemap_VkVideoDecodeH264PictureInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkVideoDecodeH264PictureInfoKHR* toMap);
+
+void handlemap_VkVideoDecodeH264DpbSlotInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkVideoDecodeH264DpbSlotInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_dynamic_rendering
+DEFINE_ALIAS_FUNCTION(handlemap_VkRenderingInfo, handlemap_VkRenderingInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkRenderingAttachmentInfo, handlemap_VkRenderingAttachmentInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineRenderingCreateInfo,
+                      handlemap_VkPipelineRenderingCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceDynamicRenderingFeatures,
+                      handlemap_VkPhysicalDeviceDynamicRenderingFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkCommandBufferInheritanceRenderingInfo,
+                      handlemap_VkCommandBufferInheritanceRenderingInfoKHR)
+
+void handlemap_VkRenderingFragmentShadingRateAttachmentInfoKHR(
+    VulkanHandleMapping* handlemap, VkRenderingFragmentShadingRateAttachmentInfoKHR* toMap);
+
+void handlemap_VkRenderingFragmentDensityMapAttachmentInfoEXT(
+    VulkanHandleMapping* handlemap, VkRenderingFragmentDensityMapAttachmentInfoEXT* toMap);
+
+void handlemap_VkAttachmentSampleCountInfoAMD(VulkanHandleMapping* handlemap,
+                                              VkAttachmentSampleCountInfoAMD* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkAttachmentSampleCountInfoAMD,
+                      handlemap_VkAttachmentSampleCountInfoNV)
+
+void handlemap_VkMultiviewPerViewAttributesInfoNVX(VulkanHandleMapping* handlemap,
+                                                   VkMultiviewPerViewAttributesInfoNVX* toMap);
+
+#endif
+#ifdef VK_KHR_multiview
+DEFINE_ALIAS_FUNCTION(handlemap_VkRenderPassMultiviewCreateInfo,
+                      handlemap_VkRenderPassMultiviewCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceMultiviewFeatures,
+                      handlemap_VkPhysicalDeviceMultiviewFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceMultiviewProperties,
+                      handlemap_VkPhysicalDeviceMultiviewPropertiesKHR)
+
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceFeatures2, handlemap_VkPhysicalDeviceFeatures2KHR)
@@ -848,7 +1048,38 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceSparseImageFormatInfo2,
                       handlemap_VkPhysicalDeviceSparseImageFormatInfo2KHR)
 
 #endif
+#ifdef VK_KHR_device_group
+DEFINE_ALIAS_FUNCTION(handlemap_VkMemoryAllocateFlagsInfo, handlemap_VkMemoryAllocateFlagsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDeviceGroupRenderPassBeginInfo,
+                      handlemap_VkDeviceGroupRenderPassBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDeviceGroupCommandBufferBeginInfo,
+                      handlemap_VkDeviceGroupCommandBufferBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDeviceGroupSubmitInfo, handlemap_VkDeviceGroupSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDeviceGroupBindSparseInfo,
+                      handlemap_VkDeviceGroupBindSparseInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkBindBufferMemoryDeviceGroupInfo,
+                      handlemap_VkBindBufferMemoryDeviceGroupInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkBindImageMemoryDeviceGroupInfo,
+                      handlemap_VkBindImageMemoryDeviceGroupInfoKHR)
+
+#endif
+#ifdef VK_KHR_shader_draw_parameters
+#endif
 #ifdef VK_KHR_maintenance1
+#endif
+#ifdef VK_KHR_device_group_creation
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceGroupProperties,
+                      handlemap_VkPhysicalDeviceGroupPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDeviceGroupDeviceCreateInfo,
+                      handlemap_VkDeviceGroupDeviceCreateInfoKHR)
+
 #endif
 #ifdef VK_KHR_external_memory_capabilities
 DEFINE_ALIAS_FUNCTION(handlemap_VkExternalMemoryProperties, handlemap_VkExternalMemoryPropertiesKHR)
@@ -879,8 +1110,33 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkExportMemoryAllocateInfo, handlemap_VkExportMe
 
 #endif
 #ifdef VK_KHR_external_memory_win32
+void handlemap_VkImportMemoryWin32HandleInfoKHR(VulkanHandleMapping* handlemap,
+                                                VkImportMemoryWin32HandleInfoKHR* toMap);
+
+void handlemap_VkExportMemoryWin32HandleInfoKHR(VulkanHandleMapping* handlemap,
+                                                VkExportMemoryWin32HandleInfoKHR* toMap);
+
+void handlemap_VkMemoryWin32HandlePropertiesKHR(VulkanHandleMapping* handlemap,
+                                                VkMemoryWin32HandlePropertiesKHR* toMap);
+
+void handlemap_VkMemoryGetWin32HandleInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkMemoryGetWin32HandleInfoKHR* toMap);
+
 #endif
 #ifdef VK_KHR_external_memory_fd
+void handlemap_VkImportMemoryFdInfoKHR(VulkanHandleMapping* handlemap,
+                                       VkImportMemoryFdInfoKHR* toMap);
+
+void handlemap_VkMemoryFdPropertiesKHR(VulkanHandleMapping* handlemap,
+                                       VkMemoryFdPropertiesKHR* toMap);
+
+void handlemap_VkMemoryGetFdInfoKHR(VulkanHandleMapping* handlemap, VkMemoryGetFdInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_win32_keyed_mutex
+void handlemap_VkWin32KeyedMutexAcquireReleaseInfoKHR(
+    VulkanHandleMapping* handlemap, VkWin32KeyedMutexAcquireReleaseInfoKHR* toMap);
+
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceExternalSemaphoreInfo,
@@ -896,6 +1152,18 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkExportSemaphoreCreateInfo,
 
 #endif
 #ifdef VK_KHR_external_semaphore_win32
+void handlemap_VkImportSemaphoreWin32HandleInfoKHR(VulkanHandleMapping* handlemap,
+                                                   VkImportSemaphoreWin32HandleInfoKHR* toMap);
+
+void handlemap_VkExportSemaphoreWin32HandleInfoKHR(VulkanHandleMapping* handlemap,
+                                                   VkExportSemaphoreWin32HandleInfoKHR* toMap);
+
+void handlemap_VkD3D12FenceSubmitInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkD3D12FenceSubmitInfoKHR* toMap);
+
+void handlemap_VkSemaphoreGetWin32HandleInfoKHR(VulkanHandleMapping* handlemap,
+                                                VkSemaphoreGetWin32HandleInfoKHR* toMap);
+
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 void handlemap_VkImportSemaphoreFdInfoKHR(VulkanHandleMapping* handlemap,
@@ -905,12 +1173,22 @@ void handlemap_VkSemaphoreGetFdInfoKHR(VulkanHandleMapping* handlemap,
                                        VkSemaphoreGetFdInfoKHR* toMap);
 
 #endif
+#ifdef VK_KHR_push_descriptor
+void handlemap_VkPhysicalDevicePushDescriptorPropertiesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePushDescriptorPropertiesKHR* toMap);
+
+#endif
 #ifdef VK_KHR_shader_float16_int8
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceShaderFloat16Int8Features,
                       handlemap_VkPhysicalDeviceShaderFloat16Int8FeaturesKHR)
 
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceShaderFloat16Int8Features,
                       handlemap_VkPhysicalDeviceFloat16Int8FeaturesKHR)
+
+#endif
+#ifdef VK_KHR_16bit_storage
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDevice16BitStorageFeatures,
+                      handlemap_VkPhysicalDevice16BitStorageFeaturesKHR)
 
 #endif
 #ifdef VK_KHR_incremental_present
@@ -959,6 +1237,11 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkSubpassBeginInfo, handlemap_VkSubpassBeginInfo
 DEFINE_ALIAS_FUNCTION(handlemap_VkSubpassEndInfo, handlemap_VkSubpassEndInfoKHR)
 
 #endif
+#ifdef VK_KHR_shared_presentable_image
+void handlemap_VkSharedPresentSurfaceCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                                     VkSharedPresentSurfaceCapabilitiesKHR* toMap);
+
+#endif
 #ifdef VK_KHR_external_fence_capabilities
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceExternalFenceInfo,
                       handlemap_VkPhysicalDeviceExternalFenceInfoKHR)
@@ -970,11 +1253,48 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkExternalFenceProperties, handlemap_VkExternalF
 DEFINE_ALIAS_FUNCTION(handlemap_VkExportFenceCreateInfo, handlemap_VkExportFenceCreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_external_fence_win32
+void handlemap_VkImportFenceWin32HandleInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkImportFenceWin32HandleInfoKHR* toMap);
+
+void handlemap_VkExportFenceWin32HandleInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkExportFenceWin32HandleInfoKHR* toMap);
+
+void handlemap_VkFenceGetWin32HandleInfoKHR(VulkanHandleMapping* handlemap,
+                                            VkFenceGetWin32HandleInfoKHR* toMap);
+
+#endif
 #ifdef VK_KHR_external_fence_fd
 void handlemap_VkImportFenceFdInfoKHR(VulkanHandleMapping* handlemap,
                                       VkImportFenceFdInfoKHR* toMap);
 
 void handlemap_VkFenceGetFdInfoKHR(VulkanHandleMapping* handlemap, VkFenceGetFdInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_performance_query
+void handlemap_VkPhysicalDevicePerformanceQueryFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePerformanceQueryFeaturesKHR* toMap);
+
+void handlemap_VkPhysicalDevicePerformanceQueryPropertiesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePerformanceQueryPropertiesKHR* toMap);
+
+void handlemap_VkPerformanceCounterKHR(VulkanHandleMapping* handlemap,
+                                       VkPerformanceCounterKHR* toMap);
+
+void handlemap_VkPerformanceCounterDescriptionKHR(VulkanHandleMapping* handlemap,
+                                                  VkPerformanceCounterDescriptionKHR* toMap);
+
+void handlemap_VkQueryPoolPerformanceCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                                   VkQueryPoolPerformanceCreateInfoKHR* toMap);
+
+void handlemap_VkPerformanceCounterResultKHR(VulkanHandleMapping* handlemap,
+                                             VkPerformanceCounterResultKHR* toMap);
+
+void handlemap_VkAcquireProfilingLockInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkAcquireProfilingLockInfoKHR* toMap);
+
+void handlemap_VkPerformanceQuerySubmitInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkPerformanceQuerySubmitInfoKHR* toMap);
 
 #endif
 #ifdef VK_KHR_maintenance2
@@ -993,6 +1313,41 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineTessellationDomainOriginStateCreateInf
                       handlemap_VkPipelineTessellationDomainOriginStateCreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_get_surface_capabilities2
+void handlemap_VkPhysicalDeviceSurfaceInfo2KHR(VulkanHandleMapping* handlemap,
+                                               VkPhysicalDeviceSurfaceInfo2KHR* toMap);
+
+void handlemap_VkSurfaceCapabilities2KHR(VulkanHandleMapping* handlemap,
+                                         VkSurfaceCapabilities2KHR* toMap);
+
+void handlemap_VkSurfaceFormat2KHR(VulkanHandleMapping* handlemap, VkSurfaceFormat2KHR* toMap);
+
+#endif
+#ifdef VK_KHR_variable_pointers
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceVariablePointersFeatures,
+                      handlemap_VkPhysicalDeviceVariablePointerFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceVariablePointersFeatures,
+                      handlemap_VkPhysicalDeviceVariablePointersFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_get_display_properties2
+void handlemap_VkDisplayProperties2KHR(VulkanHandleMapping* handlemap,
+                                       VkDisplayProperties2KHR* toMap);
+
+void handlemap_VkDisplayPlaneProperties2KHR(VulkanHandleMapping* handlemap,
+                                            VkDisplayPlaneProperties2KHR* toMap);
+
+void handlemap_VkDisplayModeProperties2KHR(VulkanHandleMapping* handlemap,
+                                           VkDisplayModeProperties2KHR* toMap);
+
+void handlemap_VkDisplayPlaneInfo2KHR(VulkanHandleMapping* handlemap,
+                                      VkDisplayPlaneInfo2KHR* toMap);
+
+void handlemap_VkDisplayPlaneCapabilities2KHR(VulkanHandleMapping* handlemap,
+                                              VkDisplayPlaneCapabilities2KHR* toMap);
+
+#endif
 #ifdef VK_KHR_dedicated_allocation
 DEFINE_ALIAS_FUNCTION(handlemap_VkMemoryDedicatedRequirements,
                       handlemap_VkMemoryDedicatedRequirementsKHR)
@@ -1002,6 +1357,8 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkMemoryDedicatedAllocateInfo,
 
 #endif
 #ifdef VK_KHR_storage_buffer_storage_class
+#endif
+#ifdef VK_KHR_relaxed_block_layout
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 DEFINE_ALIAS_FUNCTION(handlemap_VkBufferMemoryRequirementsInfo2,
@@ -1049,6 +1406,14 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkBindBufferMemoryInfo, handlemap_VkBindBufferMe
 DEFINE_ALIAS_FUNCTION(handlemap_VkBindImageMemoryInfo, handlemap_VkBindImageMemoryInfoKHR)
 
 #endif
+#ifdef VK_KHR_portability_subset
+void handlemap_VkPhysicalDevicePortabilitySubsetFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePortabilitySubsetFeaturesKHR* toMap);
+
+void handlemap_VkPhysicalDevicePortabilitySubsetPropertiesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePortabilitySubsetPropertiesKHR* toMap);
+
+#endif
 #ifdef VK_KHR_maintenance3
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceMaintenance3Properties,
                       handlemap_VkPhysicalDeviceMaintenance3PropertiesKHR)
@@ -1057,9 +1422,96 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkDescriptorSetLayoutSupport,
                       handlemap_VkDescriptorSetLayoutSupportKHR)
 
 #endif
+#ifdef VK_KHR_draw_indirect_count
+#endif
 #ifdef VK_KHR_shader_subgroup_extended_types
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures,
                       handlemap_VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_8bit_storage
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDevice8BitStorageFeatures,
+                      handlemap_VkPhysicalDevice8BitStorageFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_shader_atomic_int64
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceShaderAtomicInt64Features,
+                      handlemap_VkPhysicalDeviceShaderAtomicInt64FeaturesKHR)
+
+#endif
+#ifdef VK_KHR_shader_clock
+void handlemap_VkPhysicalDeviceShaderClockFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderClockFeaturesKHR* toMap);
+
+#endif
+#ifdef VK_KHR_video_decode_h265
+void handlemap_VkVideoDecodeH265ProfileInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkVideoDecodeH265ProfileInfoKHR* toMap);
+
+void handlemap_VkVideoDecodeH265CapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                                VkVideoDecodeH265CapabilitiesKHR* toMap);
+
+void handlemap_VkVideoDecodeH265SessionParametersAddInfoKHR(
+    VulkanHandleMapping* handlemap, VkVideoDecodeH265SessionParametersAddInfoKHR* toMap);
+
+void handlemap_VkVideoDecodeH265SessionParametersCreateInfoKHR(
+    VulkanHandleMapping* handlemap, VkVideoDecodeH265SessionParametersCreateInfoKHR* toMap);
+
+void handlemap_VkVideoDecodeH265PictureInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkVideoDecodeH265PictureInfoKHR* toMap);
+
+void handlemap_VkVideoDecodeH265DpbSlotInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkVideoDecodeH265DpbSlotInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_global_priority
+void handlemap_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VulkanHandleMapping* handlemap, VkDeviceQueueGlobalPriorityCreateInfoKHR* toMap);
+
+void handlemap_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* toMap);
+
+void handlemap_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VulkanHandleMapping* handlemap, VkQueueFamilyGlobalPriorityPropertiesKHR* toMap);
+
+#endif
+#ifdef VK_KHR_driver_properties
+DEFINE_ALIAS_FUNCTION(handlemap_VkConformanceVersion, handlemap_VkConformanceVersionKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceDriverProperties,
+                      handlemap_VkPhysicalDeviceDriverPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_shader_float_controls
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceFloatControlsProperties,
+                      handlemap_VkPhysicalDeviceFloatControlsPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_depth_stencil_resolve
+DEFINE_ALIAS_FUNCTION(handlemap_VkSubpassDescriptionDepthStencilResolve,
+                      handlemap_VkSubpassDescriptionDepthStencilResolveKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceDepthStencilResolveProperties,
+                      handlemap_VkPhysicalDeviceDepthStencilResolvePropertiesKHR)
+
+#endif
+#ifdef VK_KHR_swapchain_mutable_format
+#endif
+#ifdef VK_KHR_timeline_semaphore
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceTimelineSemaphoreFeatures,
+                      handlemap_VkPhysicalDeviceTimelineSemaphoreFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceTimelineSemaphoreProperties,
+                      handlemap_VkPhysicalDeviceTimelineSemaphorePropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkSemaphoreTypeCreateInfo, handlemap_VkSemaphoreTypeCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkTimelineSemaphoreSubmitInfo,
+                      handlemap_VkTimelineSemaphoreSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkSemaphoreWaitInfo, handlemap_VkSemaphoreWaitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkSemaphoreSignalInfo, handlemap_VkSemaphoreSignalInfoKHR)
 
 #endif
 #ifdef VK_KHR_vulkan_memory_model
@@ -1070,6 +1522,51 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceVulkanMemoryModelFeatures,
 #ifdef VK_KHR_shader_terminate_invocation
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceShaderTerminateInvocationFeatures,
                       handlemap_VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+void handlemap_VkFragmentShadingRateAttachmentInfoKHR(
+    VulkanHandleMapping* handlemap, VkFragmentShadingRateAttachmentInfoKHR* toMap);
+
+void handlemap_VkPipelineFragmentShadingRateStateCreateInfoKHR(
+    VulkanHandleMapping* handlemap, VkPipelineFragmentShadingRateStateCreateInfoKHR* toMap);
+
+void handlemap_VkPhysicalDeviceFragmentShadingRateFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentShadingRateFeaturesKHR* toMap);
+
+void handlemap_VkPhysicalDeviceFragmentShadingRatePropertiesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentShadingRatePropertiesKHR* toMap);
+
+void handlemap_VkPhysicalDeviceFragmentShadingRateKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentShadingRateKHR* toMap);
+
+#endif
+#ifdef VK_KHR_spirv_1_4
+#endif
+#ifdef VK_KHR_surface_protected_capabilities
+void handlemap_VkSurfaceProtectedCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                                 VkSurfaceProtectedCapabilitiesKHR* toMap);
+
+#endif
+#ifdef VK_KHR_separate_depth_stencil_layouts
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures,
+                      handlemap_VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkAttachmentReferenceStencilLayout,
+                      handlemap_VkAttachmentReferenceStencilLayoutKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkAttachmentDescriptionStencilLayout,
+                      handlemap_VkAttachmentDescriptionStencilLayoutKHR)
+
+#endif
+#ifdef VK_KHR_present_wait
+void handlemap_VkPhysicalDevicePresentWaitFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePresentWaitFeaturesKHR* toMap);
+
+#endif
+#ifdef VK_KHR_uniform_buffer_standard_layout
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceUniformBufferStandardLayoutFeatures,
+                      handlemap_VkPhysicalDeviceUniformBufferStandardLayoutFeaturesKHR)
 
 #endif
 #ifdef VK_KHR_buffer_device_address
@@ -1087,6 +1584,8 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkMemoryOpaqueCaptureAddressAllocateInfo,
 DEFINE_ALIAS_FUNCTION(handlemap_VkDeviceMemoryOpaqueCaptureAddressInfo,
                       handlemap_VkDeviceMemoryOpaqueCaptureAddressInfoKHR)
 
+#endif
+#ifdef VK_KHR_deferred_host_operations
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 void handlemap_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
@@ -1110,6 +1609,159 @@ void handlemap_VkPipelineExecutableInternalRepresentationKHR(
     VulkanHandleMapping* handlemap, VkPipelineExecutableInternalRepresentationKHR* toMap);
 
 #endif
+#ifdef VK_KHR_map_memory2
+void handlemap_VkMemoryMapInfoKHR(VulkanHandleMapping* handlemap, VkMemoryMapInfoKHR* toMap);
+
+void handlemap_VkMemoryUnmapInfoKHR(VulkanHandleMapping* handlemap, VkMemoryUnmapInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_shader_integer_dot_product
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceShaderIntegerDotProductFeatures,
+                      handlemap_VkPhysicalDeviceShaderIntegerDotProductFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceShaderIntegerDotProductProperties,
+                      handlemap_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_pipeline_library
+void handlemap_VkPipelineLibraryCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                              VkPipelineLibraryCreateInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_shader_non_semantic_info
+#endif
+#ifdef VK_KHR_present_id
+void handlemap_VkPresentIdKHR(VulkanHandleMapping* handlemap, VkPresentIdKHR* toMap);
+
+void handlemap_VkPhysicalDevicePresentIdFeaturesKHR(VulkanHandleMapping* handlemap,
+                                                    VkPhysicalDevicePresentIdFeaturesKHR* toMap);
+
+#endif
+#ifdef VK_KHR_video_encode_queue
+void handlemap_VkVideoEncodeInfoKHR(VulkanHandleMapping* handlemap, VkVideoEncodeInfoKHR* toMap);
+
+void handlemap_VkVideoEncodeCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                            VkVideoEncodeCapabilitiesKHR* toMap);
+
+void handlemap_VkQueryPoolVideoEncodeFeedbackCreateInfoKHR(
+    VulkanHandleMapping* handlemap, VkQueryPoolVideoEncodeFeedbackCreateInfoKHR* toMap);
+
+void handlemap_VkVideoEncodeUsageInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkVideoEncodeUsageInfoKHR* toMap);
+
+void handlemap_VkVideoEncodeRateControlLayerInfoKHR(VulkanHandleMapping* handlemap,
+                                                    VkVideoEncodeRateControlLayerInfoKHR* toMap);
+
+void handlemap_VkVideoEncodeRateControlInfoKHR(VulkanHandleMapping* handlemap,
+                                               VkVideoEncodeRateControlInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_synchronization2
+DEFINE_ALIAS_FUNCTION(handlemap_VkMemoryBarrier2, handlemap_VkMemoryBarrier2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkBufferMemoryBarrier2, handlemap_VkBufferMemoryBarrier2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkImageMemoryBarrier2, handlemap_VkImageMemoryBarrier2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDependencyInfo, handlemap_VkDependencyInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkSubmitInfo2, handlemap_VkSubmitInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkSemaphoreSubmitInfo, handlemap_VkSemaphoreSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkCommandBufferSubmitInfo, handlemap_VkCommandBufferSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceSynchronization2Features,
+                      handlemap_VkPhysicalDeviceSynchronization2FeaturesKHR)
+
+void handlemap_VkQueueFamilyCheckpointProperties2NV(VulkanHandleMapping* handlemap,
+                                                    VkQueueFamilyCheckpointProperties2NV* toMap);
+
+void handlemap_VkCheckpointData2NV(VulkanHandleMapping* handlemap, VkCheckpointData2NV* toMap);
+
+#endif
+#ifdef VK_KHR_fragment_shader_barycentric
+void handlemap_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR* toMap);
+
+void handlemap_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR* toMap);
+
+#endif
+#ifdef VK_KHR_shader_subgroup_uniform_control_flow
+void handlemap_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR(
+    VulkanHandleMapping* handlemap,
+    VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR* toMap);
+
+#endif
+#ifdef VK_KHR_zero_initialize_workgroup_memory
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures,
+                      handlemap_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_workgroup_memory_explicit_layout
+void handlemap_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR(
+    VulkanHandleMapping* handlemap,
+    VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR* toMap);
+
+#endif
+#ifdef VK_KHR_copy_commands2
+DEFINE_ALIAS_FUNCTION(handlemap_VkCopyBufferInfo2, handlemap_VkCopyBufferInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkCopyImageInfo2, handlemap_VkCopyImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkCopyBufferToImageInfo2, handlemap_VkCopyBufferToImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkCopyImageToBufferInfo2, handlemap_VkCopyImageToBufferInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkBlitImageInfo2, handlemap_VkBlitImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkResolveImageInfo2, handlemap_VkResolveImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkBufferCopy2, handlemap_VkBufferCopy2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkImageCopy2, handlemap_VkImageCopy2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkImageBlit2, handlemap_VkImageBlit2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkBufferImageCopy2, handlemap_VkBufferImageCopy2KHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkImageResolve2, handlemap_VkImageResolve2KHR)
+
+#endif
+#ifdef VK_KHR_format_feature_flags2
+DEFINE_ALIAS_FUNCTION(handlemap_VkFormatProperties3, handlemap_VkFormatProperties3KHR)
+
+#endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+void handlemap_VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR* toMap);
+
+void handlemap_VkTraceRaysIndirectCommand2KHR(VulkanHandleMapping* handlemap,
+                                              VkTraceRaysIndirectCommand2KHR* toMap);
+
+#endif
+#ifdef VK_KHR_portability_enumeration
+#endif
+#ifdef VK_KHR_maintenance4
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceMaintenance4Features,
+                      handlemap_VkPhysicalDeviceMaintenance4FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceMaintenance4Properties,
+                      handlemap_VkPhysicalDeviceMaintenance4PropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDeviceBufferMemoryRequirements,
+                      handlemap_VkDeviceBufferMemoryRequirementsKHR)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDeviceImageMemoryRequirements,
+                      handlemap_VkDeviceImageMemoryRequirementsKHR)
+
+#endif
+#ifdef VK_KHR_ray_tracing_position_fetch
+void handlemap_VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR* toMap);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void handlemap_VkNativeBufferUsage2ANDROID(VulkanHandleMapping* handlemap,
                                            VkNativeBufferUsage2ANDROID* toMap);
@@ -1123,6 +1775,50 @@ void handlemap_VkPhysicalDevicePresentationPropertiesANDROID(
     VulkanHandleMapping* handlemap, VkPhysicalDevicePresentationPropertiesANDROID* toMap);
 
 #endif
+#ifdef VK_EXT_debug_report
+void handlemap_VkDebugReportCallbackCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                                  VkDebugReportCallbackCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_NV_glsl_shader
+#endif
+#ifdef VK_EXT_depth_range_unrestricted
+#endif
+#ifdef VK_IMG_filter_cubic
+#endif
+#ifdef VK_AMD_rasterization_order
+void handlemap_VkPipelineRasterizationStateRasterizationOrderAMD(
+    VulkanHandleMapping* handlemap, VkPipelineRasterizationStateRasterizationOrderAMD* toMap);
+
+#endif
+#ifdef VK_AMD_shader_trinary_minmax
+#endif
+#ifdef VK_AMD_shader_explicit_vertex_parameter
+#endif
+#ifdef VK_EXT_debug_marker
+void handlemap_VkDebugMarkerObjectNameInfoEXT(VulkanHandleMapping* handlemap,
+                                              VkDebugMarkerObjectNameInfoEXT* toMap);
+
+void handlemap_VkDebugMarkerObjectTagInfoEXT(VulkanHandleMapping* handlemap,
+                                             VkDebugMarkerObjectTagInfoEXT* toMap);
+
+void handlemap_VkDebugMarkerMarkerInfoEXT(VulkanHandleMapping* handlemap,
+                                          VkDebugMarkerMarkerInfoEXT* toMap);
+
+#endif
+#ifdef VK_AMD_gcn_shader
+#endif
+#ifdef VK_NV_dedicated_allocation
+void handlemap_VkDedicatedAllocationImageCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkDedicatedAllocationImageCreateInfoNV* toMap);
+
+void handlemap_VkDedicatedAllocationBufferCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkDedicatedAllocationBufferCreateInfoNV* toMap);
+
+void handlemap_VkDedicatedAllocationMemoryAllocateInfoNV(
+    VulkanHandleMapping* handlemap, VkDedicatedAllocationMemoryAllocateInfoNV* toMap);
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void handlemap_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanHandleMapping* handlemap, VkPhysicalDeviceTransformFeedbackFeaturesEXT* toMap);
@@ -1134,21 +1830,759 @@ void handlemap_VkPipelineRasterizationStateStreamCreateInfoEXT(
     VulkanHandleMapping* handlemap, VkPipelineRasterizationStateStreamCreateInfoEXT* toMap);
 
 #endif
+#ifdef VK_NVX_binary_import
+void handlemap_VkCuModuleCreateInfoNVX(VulkanHandleMapping* handlemap,
+                                       VkCuModuleCreateInfoNVX* toMap);
+
+void handlemap_VkCuFunctionCreateInfoNVX(VulkanHandleMapping* handlemap,
+                                         VkCuFunctionCreateInfoNVX* toMap);
+
+void handlemap_VkCuLaunchInfoNVX(VulkanHandleMapping* handlemap, VkCuLaunchInfoNVX* toMap);
+
+#endif
+#ifdef VK_NVX_image_view_handle
+void handlemap_VkImageViewHandleInfoNVX(VulkanHandleMapping* handlemap,
+                                        VkImageViewHandleInfoNVX* toMap);
+
+void handlemap_VkImageViewAddressPropertiesNVX(VulkanHandleMapping* handlemap,
+                                               VkImageViewAddressPropertiesNVX* toMap);
+
+#endif
+#ifdef VK_AMD_draw_indirect_count
+#endif
+#ifdef VK_AMD_negative_viewport_height
+#endif
 #ifdef VK_AMD_gpu_shader_half_float
 #endif
+#ifdef VK_AMD_shader_ballot
+#endif
+#ifdef VK_EXT_video_encode_h264
+void handlemap_VkVideoEncodeH264CapabilitiesEXT(VulkanHandleMapping* handlemap,
+                                                VkVideoEncodeH264CapabilitiesEXT* toMap);
+
+void handlemap_VkVideoEncodeH264SessionParametersAddInfoEXT(
+    VulkanHandleMapping* handlemap, VkVideoEncodeH264SessionParametersAddInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH264SessionParametersCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkVideoEncodeH264SessionParametersCreateInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH264NaluSliceInfoEXT(VulkanHandleMapping* handlemap,
+                                                 VkVideoEncodeH264NaluSliceInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH264VclFrameInfoEXT(VulkanHandleMapping* handlemap,
+                                                VkVideoEncodeH264VclFrameInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH264DpbSlotInfoEXT(VulkanHandleMapping* handlemap,
+                                               VkVideoEncodeH264DpbSlotInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH264ProfileInfoEXT(VulkanHandleMapping* handlemap,
+                                               VkVideoEncodeH264ProfileInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH264RateControlInfoEXT(VulkanHandleMapping* handlemap,
+                                                   VkVideoEncodeH264RateControlInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH264QpEXT(VulkanHandleMapping* handlemap,
+                                      VkVideoEncodeH264QpEXT* toMap);
+
+void handlemap_VkVideoEncodeH264FrameSizeEXT(VulkanHandleMapping* handlemap,
+                                             VkVideoEncodeH264FrameSizeEXT* toMap);
+
+void handlemap_VkVideoEncodeH264RateControlLayerInfoEXT(
+    VulkanHandleMapping* handlemap, VkVideoEncodeH264RateControlLayerInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_video_encode_h265
+void handlemap_VkVideoEncodeH265CapabilitiesEXT(VulkanHandleMapping* handlemap,
+                                                VkVideoEncodeH265CapabilitiesEXT* toMap);
+
+void handlemap_VkVideoEncodeH265SessionParametersAddInfoEXT(
+    VulkanHandleMapping* handlemap, VkVideoEncodeH265SessionParametersAddInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH265SessionParametersCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkVideoEncodeH265SessionParametersCreateInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH265NaluSliceSegmentInfoEXT(
+    VulkanHandleMapping* handlemap, VkVideoEncodeH265NaluSliceSegmentInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH265VclFrameInfoEXT(VulkanHandleMapping* handlemap,
+                                                VkVideoEncodeH265VclFrameInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH265DpbSlotInfoEXT(VulkanHandleMapping* handlemap,
+                                               VkVideoEncodeH265DpbSlotInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH265ProfileInfoEXT(VulkanHandleMapping* handlemap,
+                                               VkVideoEncodeH265ProfileInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH265RateControlInfoEXT(VulkanHandleMapping* handlemap,
+                                                   VkVideoEncodeH265RateControlInfoEXT* toMap);
+
+void handlemap_VkVideoEncodeH265QpEXT(VulkanHandleMapping* handlemap,
+                                      VkVideoEncodeH265QpEXT* toMap);
+
+void handlemap_VkVideoEncodeH265FrameSizeEXT(VulkanHandleMapping* handlemap,
+                                             VkVideoEncodeH265FrameSizeEXT* toMap);
+
+void handlemap_VkVideoEncodeH265RateControlLayerInfoEXT(
+    VulkanHandleMapping* handlemap, VkVideoEncodeH265RateControlLayerInfoEXT* toMap);
+
+#endif
+#ifdef VK_AMD_texture_gather_bias_lod
+void handlemap_VkTextureLODGatherFormatPropertiesAMD(VulkanHandleMapping* handlemap,
+                                                     VkTextureLODGatherFormatPropertiesAMD* toMap);
+
+#endif
+#ifdef VK_AMD_shader_info
+void handlemap_VkShaderResourceUsageAMD(VulkanHandleMapping* handlemap,
+                                        VkShaderResourceUsageAMD* toMap);
+
+void handlemap_VkShaderStatisticsInfoAMD(VulkanHandleMapping* handlemap,
+                                         VkShaderStatisticsInfoAMD* toMap);
+
+#endif
+#ifdef VK_AMD_shader_image_load_store_lod
+#endif
+#ifdef VK_GGP_stream_descriptor_surface
+void handlemap_VkStreamDescriptorSurfaceCreateInfoGGP(
+    VulkanHandleMapping* handlemap, VkStreamDescriptorSurfaceCreateInfoGGP* toMap);
+
+#endif
+#ifdef VK_NV_corner_sampled_image
+void handlemap_VkPhysicalDeviceCornerSampledImageFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceCornerSampledImageFeaturesNV* toMap);
+
+#endif
+#ifdef VK_IMG_format_pvrtc
+#endif
+#ifdef VK_NV_external_memory_capabilities
+void handlemap_VkExternalImageFormatPropertiesNV(VulkanHandleMapping* handlemap,
+                                                 VkExternalImageFormatPropertiesNV* toMap);
+
+#endif
+#ifdef VK_NV_external_memory
+void handlemap_VkExternalMemoryImageCreateInfoNV(VulkanHandleMapping* handlemap,
+                                                 VkExternalMemoryImageCreateInfoNV* toMap);
+
+void handlemap_VkExportMemoryAllocateInfoNV(VulkanHandleMapping* handlemap,
+                                            VkExportMemoryAllocateInfoNV* toMap);
+
+#endif
+#ifdef VK_NV_external_memory_win32
+void handlemap_VkImportMemoryWin32HandleInfoNV(VulkanHandleMapping* handlemap,
+                                               VkImportMemoryWin32HandleInfoNV* toMap);
+
+void handlemap_VkExportMemoryWin32HandleInfoNV(VulkanHandleMapping* handlemap,
+                                               VkExportMemoryWin32HandleInfoNV* toMap);
+
+#endif
+#ifdef VK_NV_win32_keyed_mutex
+void handlemap_VkWin32KeyedMutexAcquireReleaseInfoNV(VulkanHandleMapping* handlemap,
+                                                     VkWin32KeyedMutexAcquireReleaseInfoNV* toMap);
+
+#endif
+#ifdef VK_EXT_validation_flags
+void handlemap_VkValidationFlagsEXT(VulkanHandleMapping* handlemap, VkValidationFlagsEXT* toMap);
+
+#endif
+#ifdef VK_NN_vi_surface
+void handlemap_VkViSurfaceCreateInfoNN(VulkanHandleMapping* handlemap,
+                                       VkViSurfaceCreateInfoNN* toMap);
+
+#endif
+#ifdef VK_EXT_shader_subgroup_ballot
+#endif
+#ifdef VK_EXT_shader_subgroup_vote
+#endif
+#ifdef VK_EXT_texture_compression_astc_hdr
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceTextureCompressionASTCHDRFeatures,
+                      handlemap_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
+
+#endif
+#ifdef VK_EXT_astc_decode_mode
+void handlemap_VkImageViewASTCDecodeModeEXT(VulkanHandleMapping* handlemap,
+                                            VkImageViewASTCDecodeModeEXT* toMap);
+
+void handlemap_VkPhysicalDeviceASTCDecodeFeaturesEXT(VulkanHandleMapping* handlemap,
+                                                     VkPhysicalDeviceASTCDecodeFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_pipeline_robustness
+void handlemap_VkPhysicalDevicePipelineRobustnessFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePipelineRobustnessFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDevicePipelineRobustnessPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePipelineRobustnessPropertiesEXT* toMap);
+
+void handlemap_VkPipelineRobustnessCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                                 VkPipelineRobustnessCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_conditional_rendering
+void handlemap_VkConditionalRenderingBeginInfoEXT(VulkanHandleMapping* handlemap,
+                                                  VkConditionalRenderingBeginInfoEXT* toMap);
+
+void handlemap_VkPhysicalDeviceConditionalRenderingFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceConditionalRenderingFeaturesEXT* toMap);
+
+void handlemap_VkCommandBufferInheritanceConditionalRenderingInfoEXT(
+    VulkanHandleMapping* handlemap, VkCommandBufferInheritanceConditionalRenderingInfoEXT* toMap);
+
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+void handlemap_VkViewportWScalingNV(VulkanHandleMapping* handlemap, VkViewportWScalingNV* toMap);
+
+void handlemap_VkPipelineViewportWScalingStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineViewportWScalingStateCreateInfoNV* toMap);
+
+#endif
+#ifdef VK_EXT_direct_mode_display
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+#endif
+#ifdef VK_EXT_display_surface_counter
+void handlemap_VkSurfaceCapabilities2EXT(VulkanHandleMapping* handlemap,
+                                         VkSurfaceCapabilities2EXT* toMap);
+
+#endif
+#ifdef VK_EXT_display_control
+void handlemap_VkDisplayPowerInfoEXT(VulkanHandleMapping* handlemap, VkDisplayPowerInfoEXT* toMap);
+
+void handlemap_VkDeviceEventInfoEXT(VulkanHandleMapping* handlemap, VkDeviceEventInfoEXT* toMap);
+
+void handlemap_VkDisplayEventInfoEXT(VulkanHandleMapping* handlemap, VkDisplayEventInfoEXT* toMap);
+
+void handlemap_VkSwapchainCounterCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                               VkSwapchainCounterCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_GOOGLE_display_timing
+void handlemap_VkRefreshCycleDurationGOOGLE(VulkanHandleMapping* handlemap,
+                                            VkRefreshCycleDurationGOOGLE* toMap);
+
+void handlemap_VkPastPresentationTimingGOOGLE(VulkanHandleMapping* handlemap,
+                                              VkPastPresentationTimingGOOGLE* toMap);
+
+void handlemap_VkPresentTimeGOOGLE(VulkanHandleMapping* handlemap, VkPresentTimeGOOGLE* toMap);
+
+void handlemap_VkPresentTimesInfoGOOGLE(VulkanHandleMapping* handlemap,
+                                        VkPresentTimesInfoGOOGLE* toMap);
+
+#endif
+#ifdef VK_NV_sample_mask_override_coverage
+#endif
+#ifdef VK_NV_geometry_shader_passthrough
+#endif
+#ifdef VK_NV_viewport_array2
+#endif
+#ifdef VK_NVX_multiview_per_view_attributes
+void handlemap_VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX* toMap);
+
+#endif
+#ifdef VK_NV_viewport_swizzle
+void handlemap_VkViewportSwizzleNV(VulkanHandleMapping* handlemap, VkViewportSwizzleNV* toMap);
+
+void handlemap_VkPipelineViewportSwizzleStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineViewportSwizzleStateCreateInfoNV* toMap);
+
+#endif
+#ifdef VK_EXT_discard_rectangles
+void handlemap_VkPhysicalDeviceDiscardRectanglePropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDiscardRectanglePropertiesEXT* toMap);
+
+void handlemap_VkPipelineDiscardRectangleStateCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineDiscardRectangleStateCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_conservative_rasterization
+void handlemap_VkPhysicalDeviceConservativeRasterizationPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceConservativeRasterizationPropertiesEXT* toMap);
+
+void handlemap_VkPipelineRasterizationConservativeStateCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineRasterizationConservativeStateCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_depth_clip_enable
+void handlemap_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDepthClipEnableFeaturesEXT* toMap);
+
+void handlemap_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineRasterizationDepthClipStateCreateInfoEXT* toMap);
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
+#endif
+#ifdef VK_EXT_hdr_metadata
+void handlemap_VkXYColorEXT(VulkanHandleMapping* handlemap, VkXYColorEXT* toMap);
+
+void handlemap_VkHdrMetadataEXT(VulkanHandleMapping* handlemap, VkHdrMetadataEXT* toMap);
+
+#endif
+#ifdef VK_MVK_ios_surface
+void handlemap_VkIOSSurfaceCreateInfoMVK(VulkanHandleMapping* handlemap,
+                                         VkIOSSurfaceCreateInfoMVK* toMap);
+
+#endif
+#ifdef VK_MVK_macos_surface
+void handlemap_VkMacOSSurfaceCreateInfoMVK(VulkanHandleMapping* handlemap,
+                                           VkMacOSSurfaceCreateInfoMVK* toMap);
+
+#endif
+#ifdef VK_EXT_external_memory_dma_buf
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+void handlemap_VkDebugUtilsLabelEXT(VulkanHandleMapping* handlemap, VkDebugUtilsLabelEXT* toMap);
+
+void handlemap_VkDebugUtilsObjectNameInfoEXT(VulkanHandleMapping* handlemap,
+                                             VkDebugUtilsObjectNameInfoEXT* toMap);
+
+void handlemap_VkDebugUtilsMessengerCallbackDataEXT(VulkanHandleMapping* handlemap,
+                                                    VkDebugUtilsMessengerCallbackDataEXT* toMap);
+
+void handlemap_VkDebugUtilsMessengerCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                                  VkDebugUtilsMessengerCreateInfoEXT* toMap);
+
+void handlemap_VkDebugUtilsObjectTagInfoEXT(VulkanHandleMapping* handlemap,
+                                            VkDebugUtilsObjectTagInfoEXT* toMap);
+
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
+void handlemap_VkAndroidHardwareBufferUsageANDROID(VulkanHandleMapping* handlemap,
+                                                   VkAndroidHardwareBufferUsageANDROID* toMap);
+
+void handlemap_VkAndroidHardwareBufferPropertiesANDROID(
+    VulkanHandleMapping* handlemap, VkAndroidHardwareBufferPropertiesANDROID* toMap);
+
+void handlemap_VkAndroidHardwareBufferFormatPropertiesANDROID(
+    VulkanHandleMapping* handlemap, VkAndroidHardwareBufferFormatPropertiesANDROID* toMap);
+
+void handlemap_VkImportAndroidHardwareBufferInfoANDROID(
+    VulkanHandleMapping* handlemap, VkImportAndroidHardwareBufferInfoANDROID* toMap);
+
+void handlemap_VkMemoryGetAndroidHardwareBufferInfoANDROID(
+    VulkanHandleMapping* handlemap, VkMemoryGetAndroidHardwareBufferInfoANDROID* toMap);
+
+void handlemap_VkExternalFormatANDROID(VulkanHandleMapping* handlemap,
+                                       VkExternalFormatANDROID* toMap);
+
+void handlemap_VkAndroidHardwareBufferFormatProperties2ANDROID(
+    VulkanHandleMapping* handlemap, VkAndroidHardwareBufferFormatProperties2ANDROID* toMap);
+
+#endif
+#ifdef VK_EXT_sampler_filter_minmax
+DEFINE_ALIAS_FUNCTION(handlemap_VkSamplerReductionModeCreateInfo,
+                      handlemap_VkSamplerReductionModeCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceSamplerFilterMinmaxProperties,
+                      handlemap_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT)
+
+#endif
+#ifdef VK_AMD_gpu_shader_int16
+#endif
+#ifdef VK_AMD_mixed_attachment_samples
+#endif
+#ifdef VK_AMD_shader_fragment_mask
+#endif
+#ifdef VK_EXT_inline_uniform_block
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceInlineUniformBlockFeatures,
+                      handlemap_VkPhysicalDeviceInlineUniformBlockFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceInlineUniformBlockProperties,
+                      handlemap_VkPhysicalDeviceInlineUniformBlockPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkWriteDescriptorSetInlineUniformBlock,
+                      handlemap_VkWriteDescriptorSetInlineUniformBlockEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDescriptorPoolInlineUniformBlockCreateInfo,
+                      handlemap_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
+
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_sample_locations
+void handlemap_VkSampleLocationEXT(VulkanHandleMapping* handlemap, VkSampleLocationEXT* toMap);
+
+void handlemap_VkSampleLocationsInfoEXT(VulkanHandleMapping* handlemap,
+                                        VkSampleLocationsInfoEXT* toMap);
+
+void handlemap_VkAttachmentSampleLocationsEXT(VulkanHandleMapping* handlemap,
+                                              VkAttachmentSampleLocationsEXT* toMap);
+
+void handlemap_VkSubpassSampleLocationsEXT(VulkanHandleMapping* handlemap,
+                                           VkSubpassSampleLocationsEXT* toMap);
+
+void handlemap_VkRenderPassSampleLocationsBeginInfoEXT(
+    VulkanHandleMapping* handlemap, VkRenderPassSampleLocationsBeginInfoEXT* toMap);
+
+void handlemap_VkPipelineSampleLocationsStateCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineSampleLocationsStateCreateInfoEXT* toMap);
+
+void handlemap_VkPhysicalDeviceSampleLocationsPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceSampleLocationsPropertiesEXT* toMap);
+
+void handlemap_VkMultisamplePropertiesEXT(VulkanHandleMapping* handlemap,
+                                          VkMultisamplePropertiesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_blend_operation_advanced
+void handlemap_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT* toMap);
+
+void handlemap_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineColorBlendAdvancedStateCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_NV_fragment_coverage_to_color
+void handlemap_VkPipelineCoverageToColorStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineCoverageToColorStateCreateInfoNV* toMap);
+
+#endif
+#ifdef VK_NV_framebuffer_mixed_samples
+void handlemap_VkPipelineCoverageModulationStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineCoverageModulationStateCreateInfoNV* toMap);
+
+#endif
+#ifdef VK_NV_fill_rectangle
+#endif
+#ifdef VK_NV_shader_sm_builtins
+void handlemap_VkPhysicalDeviceShaderSMBuiltinsPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderSMBuiltinsPropertiesNV* toMap);
+
+void handlemap_VkPhysicalDeviceShaderSMBuiltinsFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderSMBuiltinsFeaturesNV* toMap);
+
+#endif
+#ifdef VK_EXT_post_depth_coverage
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+void handlemap_VkDrmFormatModifierPropertiesEXT(VulkanHandleMapping* handlemap,
+                                                VkDrmFormatModifierPropertiesEXT* toMap);
+
+void handlemap_VkDrmFormatModifierPropertiesListEXT(VulkanHandleMapping* handlemap,
+                                                    VkDrmFormatModifierPropertiesListEXT* toMap);
+
+void handlemap_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceImageDrmFormatModifierInfoEXT* toMap);
+
+void handlemap_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkImageDrmFormatModifierListCreateInfoEXT* toMap);
+
+void handlemap_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkImageDrmFormatModifierExplicitCreateInfoEXT* toMap);
+
+void handlemap_VkImageDrmFormatModifierPropertiesEXT(VulkanHandleMapping* handlemap,
+                                                     VkImageDrmFormatModifierPropertiesEXT* toMap);
+
+void handlemap_VkDrmFormatModifierProperties2EXT(VulkanHandleMapping* handlemap,
+                                                 VkDrmFormatModifierProperties2EXT* toMap);
+
+void handlemap_VkDrmFormatModifierPropertiesList2EXT(VulkanHandleMapping* handlemap,
+                                                     VkDrmFormatModifierPropertiesList2EXT* toMap);
+
+#endif
+#ifdef VK_EXT_validation_cache
+void handlemap_VkValidationCacheCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                              VkValidationCacheCreateInfoEXT* toMap);
+
+void handlemap_VkShaderModuleValidationCacheCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkShaderModuleValidationCacheCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_descriptor_indexing
+DEFINE_ALIAS_FUNCTION(handlemap_VkDescriptorSetLayoutBindingFlagsCreateInfo,
+                      handlemap_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceDescriptorIndexingFeatures,
+                      handlemap_VkPhysicalDeviceDescriptorIndexingFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceDescriptorIndexingProperties,
+                      handlemap_VkPhysicalDeviceDescriptorIndexingPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDescriptorSetVariableDescriptorCountAllocateInfo,
+                      handlemap_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDescriptorSetVariableDescriptorCountLayoutSupport,
+                      handlemap_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT)
+
+#endif
+#ifdef VK_EXT_shader_viewport_index_layer
+#endif
+#ifdef VK_NV_shading_rate_image
+void handlemap_VkShadingRatePaletteNV(VulkanHandleMapping* handlemap,
+                                      VkShadingRatePaletteNV* toMap);
+
+void handlemap_VkPipelineViewportShadingRateImageStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineViewportShadingRateImageStateCreateInfoNV* toMap);
+
+void handlemap_VkPhysicalDeviceShadingRateImageFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShadingRateImageFeaturesNV* toMap);
+
+void handlemap_VkPhysicalDeviceShadingRateImagePropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShadingRateImagePropertiesNV* toMap);
+
+void handlemap_VkCoarseSampleLocationNV(VulkanHandleMapping* handlemap,
+                                        VkCoarseSampleLocationNV* toMap);
+
+void handlemap_VkCoarseSampleOrderCustomNV(VulkanHandleMapping* handlemap,
+                                           VkCoarseSampleOrderCustomNV* toMap);
+
+void handlemap_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineViewportCoarseSampleOrderStateCreateInfoNV* toMap);
+
+#endif
+#ifdef VK_NV_ray_tracing
+void handlemap_VkRayTracingShaderGroupCreateInfoNV(VulkanHandleMapping* handlemap,
+                                                   VkRayTracingShaderGroupCreateInfoNV* toMap);
+
+void handlemap_VkRayTracingPipelineCreateInfoNV(VulkanHandleMapping* handlemap,
+                                                VkRayTracingPipelineCreateInfoNV* toMap);
+
+void handlemap_VkGeometryTrianglesNV(VulkanHandleMapping* handlemap, VkGeometryTrianglesNV* toMap);
+
+void handlemap_VkGeometryAABBNV(VulkanHandleMapping* handlemap, VkGeometryAABBNV* toMap);
+
+void handlemap_VkGeometryDataNV(VulkanHandleMapping* handlemap, VkGeometryDataNV* toMap);
+
+void handlemap_VkGeometryNV(VulkanHandleMapping* handlemap, VkGeometryNV* toMap);
+
+void handlemap_VkAccelerationStructureInfoNV(VulkanHandleMapping* handlemap,
+                                             VkAccelerationStructureInfoNV* toMap);
+
+void handlemap_VkAccelerationStructureCreateInfoNV(VulkanHandleMapping* handlemap,
+                                                   VkAccelerationStructureCreateInfoNV* toMap);
+
+void handlemap_VkBindAccelerationStructureMemoryInfoNV(
+    VulkanHandleMapping* handlemap, VkBindAccelerationStructureMemoryInfoNV* toMap);
+
+void handlemap_VkWriteDescriptorSetAccelerationStructureNV(
+    VulkanHandleMapping* handlemap, VkWriteDescriptorSetAccelerationStructureNV* toMap);
+
+void handlemap_VkAccelerationStructureMemoryRequirementsInfoNV(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureMemoryRequirementsInfoNV* toMap);
+
+void handlemap_VkPhysicalDeviceRayTracingPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRayTracingPropertiesNV* toMap);
+
+void handlemap_VkTransformMatrixKHR(VulkanHandleMapping* handlemap, VkTransformMatrixKHR* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkTransformMatrixKHR, handlemap_VkTransformMatrixNV)
+
+void handlemap_VkAabbPositionsKHR(VulkanHandleMapping* handlemap, VkAabbPositionsKHR* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkAabbPositionsKHR, handlemap_VkAabbPositionsNV)
+
+void handlemap_VkAccelerationStructureInstanceKHR(VulkanHandleMapping* handlemap,
+                                                  VkAccelerationStructureInstanceKHR* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkAccelerationStructureInstanceKHR,
+                      handlemap_VkAccelerationStructureInstanceNV)
+
+#endif
+#ifdef VK_NV_representative_fragment_test
+void handlemap_VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV* toMap);
+
+void handlemap_VkPipelineRepresentativeFragmentTestStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineRepresentativeFragmentTestStateCreateInfoNV* toMap);
+
+#endif
+#ifdef VK_EXT_filter_cubic
+void handlemap_VkPhysicalDeviceImageViewImageFormatInfoEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceImageViewImageFormatInfoEXT* toMap);
+
+void handlemap_VkFilterCubicImageViewImageFormatPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkFilterCubicImageViewImageFormatPropertiesEXT* toMap);
+
+#endif
+#ifdef VK_QCOM_render_pass_shader_resolve
+#endif
+#ifdef VK_EXT_global_priority
+DEFINE_ALIAS_FUNCTION(handlemap_VkDeviceQueueGlobalPriorityCreateInfoKHR,
+                      handlemap_VkDeviceQueueGlobalPriorityCreateInfoEXT)
+
+#endif
+#ifdef VK_EXT_external_memory_host
+void handlemap_VkImportMemoryHostPointerInfoEXT(VulkanHandleMapping* handlemap,
+                                                VkImportMemoryHostPointerInfoEXT* toMap);
+
+void handlemap_VkMemoryHostPointerPropertiesEXT(VulkanHandleMapping* handlemap,
+                                                VkMemoryHostPointerPropertiesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceExternalMemoryHostPropertiesEXT* toMap);
+
+#endif
+#ifdef VK_AMD_buffer_marker
+#endif
+#ifdef VK_AMD_pipeline_compiler_control
+void handlemap_VkPipelineCompilerControlCreateInfoAMD(
+    VulkanHandleMapping* handlemap, VkPipelineCompilerControlCreateInfoAMD* toMap);
+
+#endif
+#ifdef VK_EXT_calibrated_timestamps
+void handlemap_VkCalibratedTimestampInfoEXT(VulkanHandleMapping* handlemap,
+                                            VkCalibratedTimestampInfoEXT* toMap);
+
+#endif
+#ifdef VK_AMD_shader_core_properties
+void handlemap_VkPhysicalDeviceShaderCorePropertiesAMD(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderCorePropertiesAMD* toMap);
+
+#endif
+#ifdef VK_AMD_memory_overallocation_behavior
+void handlemap_VkDeviceMemoryOverallocationCreateInfoAMD(
+    VulkanHandleMapping* handlemap, VkDeviceMemoryOverallocationCreateInfoAMD* toMap);
+
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void handlemap_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toMap);
+
+void handlemap_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanHandleMapping* handlemap, VkVertexInputBindingDivisorDescriptionEXT* toMap);
+
+void handlemap_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineVertexInputDivisorStateCreateInfoEXT* toMap);
+
+void handlemap_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_GGP_frame_token
+void handlemap_VkPresentFrameTokenGGP(VulkanHandleMapping* handlemap,
+                                      VkPresentFrameTokenGGP* toMap);
+
+#endif
+#ifdef VK_EXT_pipeline_creation_feedback
+DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineCreationFeedbackCreateInfo,
+                      handlemap_VkPipelineCreationFeedbackCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineCreationFeedback, handlemap_VkPipelineCreationFeedbackEXT)
+
+#endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
+#ifdef VK_NV_compute_shader_derivatives
+void handlemap_VkPhysicalDeviceComputeShaderDerivativesFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceComputeShaderDerivativesFeaturesNV* toMap);
+
+#endif
+#ifdef VK_NV_mesh_shader
+void handlemap_VkPhysicalDeviceMeshShaderFeaturesNV(VulkanHandleMapping* handlemap,
+                                                    VkPhysicalDeviceMeshShaderFeaturesNV* toMap);
+
+void handlemap_VkPhysicalDeviceMeshShaderPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMeshShaderPropertiesNV* toMap);
+
+void handlemap_VkDrawMeshTasksIndirectCommandNV(VulkanHandleMapping* handlemap,
+                                                VkDrawMeshTasksIndirectCommandNV* toMap);
+
+#endif
+#ifdef VK_NV_fragment_shader_barycentric
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR,
+                      handlemap_VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV)
+
+#endif
+#ifdef VK_NV_shader_image_footprint
+void handlemap_VkPhysicalDeviceShaderImageFootprintFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderImageFootprintFeaturesNV* toMap);
+
+#endif
+#ifdef VK_NV_scissor_exclusive
+void handlemap_VkPipelineViewportExclusiveScissorStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineViewportExclusiveScissorStateCreateInfoNV* toMap);
+
+void handlemap_VkPhysicalDeviceExclusiveScissorFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceExclusiveScissorFeaturesNV* toMap);
+
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+void handlemap_VkQueueFamilyCheckpointPropertiesNV(VulkanHandleMapping* handlemap,
+                                                   VkQueueFamilyCheckpointPropertiesNV* toMap);
+
+void handlemap_VkCheckpointDataNV(VulkanHandleMapping* handlemap, VkCheckpointDataNV* toMap);
+
+#endif
+#ifdef VK_INTEL_shader_integer_functions2
+void handlemap_VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL* toMap);
+
+#endif
+#ifdef VK_INTEL_performance_query
+void handlemap_VkPerformanceValueDataINTEL(VulkanHandleMapping* handlemap,
+                                           VkPerformanceValueDataINTEL* toMap);
+
+void handlemap_VkPerformanceValueINTEL(VulkanHandleMapping* handlemap,
+                                       VkPerformanceValueINTEL* toMap);
+
+void handlemap_VkInitializePerformanceApiInfoINTEL(VulkanHandleMapping* handlemap,
+                                                   VkInitializePerformanceApiInfoINTEL* toMap);
+
+void handlemap_VkQueryPoolPerformanceQueryCreateInfoINTEL(
+    VulkanHandleMapping* handlemap, VkQueryPoolPerformanceQueryCreateInfoINTEL* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkQueryPoolPerformanceQueryCreateInfoINTEL,
+                      handlemap_VkQueryPoolCreateInfoINTEL)
+
+void handlemap_VkPerformanceMarkerInfoINTEL(VulkanHandleMapping* handlemap,
+                                            VkPerformanceMarkerInfoINTEL* toMap);
+
+void handlemap_VkPerformanceStreamMarkerInfoINTEL(VulkanHandleMapping* handlemap,
+                                                  VkPerformanceStreamMarkerInfoINTEL* toMap);
+
+void handlemap_VkPerformanceOverrideInfoINTEL(VulkanHandleMapping* handlemap,
+                                              VkPerformanceOverrideInfoINTEL* toMap);
+
+void handlemap_VkPerformanceConfigurationAcquireInfoINTEL(
+    VulkanHandleMapping* handlemap, VkPerformanceConfigurationAcquireInfoINTEL* toMap);
+
+#endif
+#ifdef VK_EXT_pci_bus_info
+void handlemap_VkPhysicalDevicePCIBusInfoPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePCIBusInfoPropertiesEXT* toMap);
+
+#endif
+#ifdef VK_AMD_display_native_hdr
+void handlemap_VkDisplayNativeHdrSurfaceCapabilitiesAMD(
+    VulkanHandleMapping* handlemap, VkDisplayNativeHdrSurfaceCapabilitiesAMD* toMap);
+
+void handlemap_VkSwapchainDisplayNativeHdrCreateInfoAMD(
+    VulkanHandleMapping* handlemap, VkSwapchainDisplayNativeHdrCreateInfoAMD* toMap);
+
+#endif
+#ifdef VK_FUCHSIA_imagepipe_surface
+void handlemap_VkImagePipeSurfaceCreateInfoFUCHSIA(VulkanHandleMapping* handlemap,
+                                                   VkImagePipeSurfaceCreateInfoFUCHSIA* toMap);
+
+#endif
 #ifdef VK_EXT_metal_surface
+void handlemap_VkMetalSurfaceCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                           VkMetalSurfaceCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_fragment_density_map
+void handlemap_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toMap);
+
+void handlemap_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkRenderPassFragmentDensityMapCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      handlemap_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
+#endif
+#ifdef VK_GOOGLE_hlsl_functionality1
+#endif
+#ifdef VK_GOOGLE_decorate_string
 #endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceSubgroupSizeControlFeatures,
@@ -1159,6 +2593,100 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceSubgroupSizeControlProperties,
 
 DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineShaderStageRequiredSubgroupSizeCreateInfo,
                       handlemap_VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT)
+
+#endif
+#ifdef VK_AMD_shader_core_properties2
+void handlemap_VkPhysicalDeviceShaderCoreProperties2AMD(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderCoreProperties2AMD* toMap);
+
+#endif
+#ifdef VK_AMD_device_coherent_memory
+void handlemap_VkPhysicalDeviceCoherentMemoryFeaturesAMD(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceCoherentMemoryFeaturesAMD* toMap);
+
+#endif
+#ifdef VK_EXT_shader_image_atomic_int64
+void handlemap_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_memory_budget
+void handlemap_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMemoryBudgetPropertiesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_memory_priority
+void handlemap_VkPhysicalDeviceMemoryPriorityFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMemoryPriorityFeaturesEXT* toMap);
+
+void handlemap_VkMemoryPriorityAllocateInfoEXT(VulkanHandleMapping* handlemap,
+                                               VkMemoryPriorityAllocateInfoEXT* toMap);
+
+#endif
+#ifdef VK_NV_dedicated_allocation_image_aliasing
+void handlemap_VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV(
+    VulkanHandleMapping* handlemap,
+    VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV* toMap);
+
+#endif
+#ifdef VK_EXT_buffer_device_address
+void handlemap_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceBufferDeviceAddressFeaturesEXT* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT,
+                      handlemap_VkPhysicalDeviceBufferAddressFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkBufferDeviceAddressInfo, handlemap_VkBufferDeviceAddressInfoEXT)
+
+void handlemap_VkBufferDeviceAddressCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                                  VkBufferDeviceAddressCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_tooling_info
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceToolProperties,
+                      handlemap_VkPhysicalDeviceToolPropertiesEXT)
+
+#endif
+#ifdef VK_EXT_separate_stencil_usage
+DEFINE_ALIAS_FUNCTION(handlemap_VkImageStencilUsageCreateInfo,
+                      handlemap_VkImageStencilUsageCreateInfoEXT)
+
+#endif
+#ifdef VK_EXT_validation_features
+void handlemap_VkValidationFeaturesEXT(VulkanHandleMapping* handlemap,
+                                       VkValidationFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_NV_cooperative_matrix
+void handlemap_VkCooperativeMatrixPropertiesNV(VulkanHandleMapping* handlemap,
+                                               VkCooperativeMatrixPropertiesNV* toMap);
+
+void handlemap_VkPhysicalDeviceCooperativeMatrixFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceCooperativeMatrixFeaturesNV* toMap);
+
+void handlemap_VkPhysicalDeviceCooperativeMatrixPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceCooperativeMatrixPropertiesNV* toMap);
+
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+void handlemap_VkPhysicalDeviceCoverageReductionModeFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceCoverageReductionModeFeaturesNV* toMap);
+
+void handlemap_VkPipelineCoverageReductionStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineCoverageReductionStateCreateInfoNV* toMap);
+
+void handlemap_VkFramebufferMixedSamplesCombinationNV(
+    VulkanHandleMapping* handlemap, VkFramebufferMixedSamplesCombinationNV* toMap);
+
+#endif
+#ifdef VK_EXT_fragment_shader_interlock
+void handlemap_VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_ycbcr_image_arrays
+void handlemap_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceYcbcrImageArraysFeaturesEXT* toMap);
 
 #endif
 #ifdef VK_EXT_provoking_vertex
@@ -1173,6 +2701,22 @@ void handlemap_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* toMap);
 
 #endif
+#ifdef VK_EXT_full_screen_exclusive
+void handlemap_VkSurfaceFullScreenExclusiveInfoEXT(VulkanHandleMapping* handlemap,
+                                                   VkSurfaceFullScreenExclusiveInfoEXT* toMap);
+
+void handlemap_VkSurfaceCapabilitiesFullScreenExclusiveEXT(
+    VulkanHandleMapping* handlemap, VkSurfaceCapabilitiesFullScreenExclusiveEXT* toMap);
+
+void handlemap_VkSurfaceFullScreenExclusiveWin32InfoEXT(
+    VulkanHandleMapping* handlemap, VkSurfaceFullScreenExclusiveWin32InfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_headless_surface
+void handlemap_VkHeadlessSurfaceCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                              VkHeadlessSurfaceCreateInfoEXT* toMap);
+
+#endif
 #ifdef VK_EXT_line_rasterization
 void handlemap_VkPhysicalDeviceLineRasterizationFeaturesEXT(
     VulkanHandleMapping* handlemap, VkPhysicalDeviceLineRasterizationFeaturesEXT* toMap);
@@ -1184,9 +2728,130 @@ void handlemap_VkPipelineRasterizationLineStateCreateInfoEXT(
     VulkanHandleMapping* handlemap, VkPipelineRasterizationLineStateCreateInfoEXT* toMap);
 
 #endif
+#ifdef VK_EXT_shader_atomic_float
+void handlemap_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderAtomicFloatFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_host_query_reset
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceHostQueryResetFeatures,
+                      handlemap_VkPhysicalDeviceHostQueryResetFeaturesEXT)
+
+#endif
 #ifdef VK_EXT_index_type_uint8
 void handlemap_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
     VulkanHandleMapping* handlemap, VkPhysicalDeviceIndexTypeUint8FeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+void handlemap_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceExtendedDynamicStateFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_shader_atomic_float2
+void handlemap_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_surface_maintenance1
+void handlemap_VkSurfacePresentModeEXT(VulkanHandleMapping* handlemap,
+                                       VkSurfacePresentModeEXT* toMap);
+
+void handlemap_VkSurfacePresentScalingCapabilitiesEXT(
+    VulkanHandleMapping* handlemap, VkSurfacePresentScalingCapabilitiesEXT* toMap);
+
+void handlemap_VkSurfacePresentModeCompatibilityEXT(VulkanHandleMapping* handlemap,
+                                                    VkSurfacePresentModeCompatibilityEXT* toMap);
+
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+void handlemap_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT* toMap);
+
+void handlemap_VkSwapchainPresentFenceInfoEXT(VulkanHandleMapping* handlemap,
+                                              VkSwapchainPresentFenceInfoEXT* toMap);
+
+void handlemap_VkSwapchainPresentModesCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                                    VkSwapchainPresentModesCreateInfoEXT* toMap);
+
+void handlemap_VkSwapchainPresentModeInfoEXT(VulkanHandleMapping* handlemap,
+                                             VkSwapchainPresentModeInfoEXT* toMap);
+
+void handlemap_VkSwapchainPresentScalingCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkSwapchainPresentScalingCreateInfoEXT* toMap);
+
+void handlemap_VkReleaseSwapchainImagesInfoEXT(VulkanHandleMapping* handlemap,
+                                               VkReleaseSwapchainImagesInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_shader_demote_to_helper_invocation
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures,
+                      handlemap_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT)
+
+#endif
+#ifdef VK_NV_device_generated_commands
+void handlemap_VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV* toMap);
+
+void handlemap_VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV* toMap);
+
+void handlemap_VkGraphicsShaderGroupCreateInfoNV(VulkanHandleMapping* handlemap,
+                                                 VkGraphicsShaderGroupCreateInfoNV* toMap);
+
+void handlemap_VkGraphicsPipelineShaderGroupsCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkGraphicsPipelineShaderGroupsCreateInfoNV* toMap);
+
+void handlemap_VkBindShaderGroupIndirectCommandNV(VulkanHandleMapping* handlemap,
+                                                  VkBindShaderGroupIndirectCommandNV* toMap);
+
+void handlemap_VkBindIndexBufferIndirectCommandNV(VulkanHandleMapping* handlemap,
+                                                  VkBindIndexBufferIndirectCommandNV* toMap);
+
+void handlemap_VkBindVertexBufferIndirectCommandNV(VulkanHandleMapping* handlemap,
+                                                   VkBindVertexBufferIndirectCommandNV* toMap);
+
+void handlemap_VkSetStateFlagsIndirectCommandNV(VulkanHandleMapping* handlemap,
+                                                VkSetStateFlagsIndirectCommandNV* toMap);
+
+void handlemap_VkIndirectCommandsStreamNV(VulkanHandleMapping* handlemap,
+                                          VkIndirectCommandsStreamNV* toMap);
+
+void handlemap_VkIndirectCommandsLayoutTokenNV(VulkanHandleMapping* handlemap,
+                                               VkIndirectCommandsLayoutTokenNV* toMap);
+
+void handlemap_VkIndirectCommandsLayoutCreateInfoNV(VulkanHandleMapping* handlemap,
+                                                    VkIndirectCommandsLayoutCreateInfoNV* toMap);
+
+void handlemap_VkGeneratedCommandsInfoNV(VulkanHandleMapping* handlemap,
+                                         VkGeneratedCommandsInfoNV* toMap);
+
+void handlemap_VkGeneratedCommandsMemoryRequirementsInfoNV(
+    VulkanHandleMapping* handlemap, VkGeneratedCommandsMemoryRequirementsInfoNV* toMap);
+
+#endif
+#ifdef VK_NV_inherited_viewport_scissor
+void handlemap_VkPhysicalDeviceInheritedViewportScissorFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceInheritedViewportScissorFeaturesNV* toMap);
+
+void handlemap_VkCommandBufferInheritanceViewportScissorInfoNV(
+    VulkanHandleMapping* handlemap, VkCommandBufferInheritanceViewportScissorInfoNV* toMap);
+
+#endif
+#ifdef VK_EXT_texel_buffer_alignment
+void handlemap_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceTexelBufferAlignmentProperties,
+                      handlemap_VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT)
+
+#endif
+#ifdef VK_QCOM_render_pass_transform
+void handlemap_VkRenderPassTransformBeginInfoQCOM(VulkanHandleMapping* handlemap,
+                                                  VkRenderPassTransformBeginInfoQCOM* toMap);
+
+void handlemap_VkCommandBufferInheritanceRenderPassTransformInfoQCOM(
+    VulkanHandleMapping* handlemap, VkCommandBufferInheritanceRenderPassTransformInfoQCOM* toMap);
 
 #endif
 #ifdef VK_EXT_device_memory_report
@@ -1200,6 +2865,16 @@ void handlemap_VkDeviceDeviceMemoryReportCreateInfoEXT(
     VulkanHandleMapping* handlemap, VkDeviceDeviceMemoryReportCreateInfoEXT* toMap);
 
 #endif
+#ifdef VK_EXT_acquire_drm_display
+#endif
+#ifdef VK_EXT_robustness2
+void handlemap_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRobustness2FeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRobustness2PropertiesEXT* toMap);
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void handlemap_VkSamplerCustomBorderColorCreateInfoEXT(
     VulkanHandleMapping* handlemap, VkSamplerCustomBorderColorCreateInfoEXT* toMap);
@@ -1211,14 +2886,452 @@ void handlemap_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
     VulkanHandleMapping* handlemap, VkPhysicalDeviceCustomBorderColorFeaturesEXT* toMap);
 
 #endif
+#ifdef VK_GOOGLE_user_type
+#endif
+#ifdef VK_NV_present_barrier
+void handlemap_VkPhysicalDevicePresentBarrierFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePresentBarrierFeaturesNV* toMap);
+
+void handlemap_VkSurfaceCapabilitiesPresentBarrierNV(VulkanHandleMapping* handlemap,
+                                                     VkSurfaceCapabilitiesPresentBarrierNV* toMap);
+
+void handlemap_VkSwapchainPresentBarrierCreateInfoNV(VulkanHandleMapping* handlemap,
+                                                     VkSwapchainPresentBarrierCreateInfoNV* toMap);
+
+#endif
+#ifdef VK_EXT_private_data
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDevicePrivateDataFeatures,
+                      handlemap_VkPhysicalDevicePrivateDataFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkDevicePrivateDataCreateInfo,
+                      handlemap_VkDevicePrivateDataCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPrivateDataSlotCreateInfo,
+                      handlemap_VkPrivateDataSlotCreateInfoEXT)
+
+#endif
+#ifdef VK_EXT_pipeline_creation_cache_control
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDevicePipelineCreationCacheControlFeatures,
+                      handlemap_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
+
+#endif
+#ifdef VK_NV_device_diagnostics_config
+void handlemap_VkPhysicalDeviceDiagnosticsConfigFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDiagnosticsConfigFeaturesNV* toMap);
+
+void handlemap_VkDeviceDiagnosticsConfigCreateInfoNV(VulkanHandleMapping* handlemap,
+                                                     VkDeviceDiagnosticsConfigCreateInfoNV* toMap);
+
+#endif
+#ifdef VK_QCOM_render_pass_store_ops
+#endif
+#ifdef VK_NV_low_latency
+void handlemap_VkQueryLowLatencySupportNV(VulkanHandleMapping* handlemap,
+                                          VkQueryLowLatencySupportNV* toMap);
+
+#endif
+#ifdef VK_EXT_metal_objects
+void handlemap_VkExportMetalObjectCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                                VkExportMetalObjectCreateInfoEXT* toMap);
+
+void handlemap_VkExportMetalObjectsInfoEXT(VulkanHandleMapping* handlemap,
+                                           VkExportMetalObjectsInfoEXT* toMap);
+
+void handlemap_VkExportMetalDeviceInfoEXT(VulkanHandleMapping* handlemap,
+                                          VkExportMetalDeviceInfoEXT* toMap);
+
+void handlemap_VkExportMetalCommandQueueInfoEXT(VulkanHandleMapping* handlemap,
+                                                VkExportMetalCommandQueueInfoEXT* toMap);
+
+void handlemap_VkExportMetalBufferInfoEXT(VulkanHandleMapping* handlemap,
+                                          VkExportMetalBufferInfoEXT* toMap);
+
+void handlemap_VkImportMetalBufferInfoEXT(VulkanHandleMapping* handlemap,
+                                          VkImportMetalBufferInfoEXT* toMap);
+
+void handlemap_VkExportMetalTextureInfoEXT(VulkanHandleMapping* handlemap,
+                                           VkExportMetalTextureInfoEXT* toMap);
+
+void handlemap_VkImportMetalTextureInfoEXT(VulkanHandleMapping* handlemap,
+                                           VkImportMetalTextureInfoEXT* toMap);
+
+void handlemap_VkExportMetalIOSurfaceInfoEXT(VulkanHandleMapping* handlemap,
+                                             VkExportMetalIOSurfaceInfoEXT* toMap);
+
+void handlemap_VkImportMetalIOSurfaceInfoEXT(VulkanHandleMapping* handlemap,
+                                             VkImportMetalIOSurfaceInfoEXT* toMap);
+
+void handlemap_VkExportMetalSharedEventInfoEXT(VulkanHandleMapping* handlemap,
+                                               VkExportMetalSharedEventInfoEXT* toMap);
+
+void handlemap_VkImportMetalSharedEventInfoEXT(VulkanHandleMapping* handlemap,
+                                               VkImportMetalSharedEventInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_descriptor_buffer
+void handlemap_VkPhysicalDeviceDescriptorBufferPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDescriptorBufferPropertiesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceDescriptorBufferFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDescriptorBufferFeaturesEXT* toMap);
+
+void handlemap_VkDescriptorAddressInfoEXT(VulkanHandleMapping* handlemap,
+                                          VkDescriptorAddressInfoEXT* toMap);
+
+void handlemap_VkDescriptorBufferBindingInfoEXT(VulkanHandleMapping* handlemap,
+                                                VkDescriptorBufferBindingInfoEXT* toMap);
+
+void handlemap_VkDescriptorBufferBindingPushDescriptorBufferHandleEXT(
+    VulkanHandleMapping* handlemap, VkDescriptorBufferBindingPushDescriptorBufferHandleEXT* toMap);
+
+void handlemap_VkDescriptorDataEXT(VulkanHandleMapping* handlemap, VkDescriptorDataEXT* toMap);
+
+void handlemap_VkDescriptorGetInfoEXT(VulkanHandleMapping* handlemap,
+                                      VkDescriptorGetInfoEXT* toMap);
+
+void handlemap_VkBufferCaptureDescriptorDataInfoEXT(VulkanHandleMapping* handlemap,
+                                                    VkBufferCaptureDescriptorDataInfoEXT* toMap);
+
+void handlemap_VkImageCaptureDescriptorDataInfoEXT(VulkanHandleMapping* handlemap,
+                                                   VkImageCaptureDescriptorDataInfoEXT* toMap);
+
+void handlemap_VkImageViewCaptureDescriptorDataInfoEXT(
+    VulkanHandleMapping* handlemap, VkImageViewCaptureDescriptorDataInfoEXT* toMap);
+
+void handlemap_VkSamplerCaptureDescriptorDataInfoEXT(VulkanHandleMapping* handlemap,
+                                                     VkSamplerCaptureDescriptorDataInfoEXT* toMap);
+
+void handlemap_VkOpaqueCaptureDescriptorDataCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkOpaqueCaptureDescriptorDataCreateInfoEXT* toMap);
+
+void handlemap_VkAccelerationStructureCaptureDescriptorDataInfoEXT(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureCaptureDescriptorDataInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toMap);
+
+void handlemap_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkGraphicsPipelineLibraryCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_AMD_shader_early_and_late_fragment_tests
+void handlemap_VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD(
+    VulkanHandleMapping* handlemap,
+    VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD* toMap);
+
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+void handlemap_VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV* toMap);
+
+void handlemap_VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV* toMap);
+
+void handlemap_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(
+    VulkanHandleMapping* handlemap, VkPipelineFragmentShadingRateEnumStateCreateInfoNV* toMap);
+
+#endif
+#ifdef VK_NV_ray_tracing_motion_blur
+void handlemap_VkDeviceOrHostAddressConstKHR(VulkanHandleMapping* handlemap,
+                                             VkDeviceOrHostAddressConstKHR* toMap);
+
+void handlemap_VkAccelerationStructureGeometryMotionTrianglesDataNV(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureGeometryMotionTrianglesDataNV* toMap);
+
+void handlemap_VkAccelerationStructureMotionInfoNV(VulkanHandleMapping* handlemap,
+                                                   VkAccelerationStructureMotionInfoNV* toMap);
+
+void handlemap_VkAccelerationStructureMatrixMotionInstanceNV(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureMatrixMotionInstanceNV* toMap);
+
+void handlemap_VkSRTDataNV(VulkanHandleMapping* handlemap, VkSRTDataNV* toMap);
+
+void handlemap_VkAccelerationStructureSRTMotionInstanceNV(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureSRTMotionInstanceNV* toMap);
+
+void handlemap_VkAccelerationStructureMotionInstanceDataNV(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureMotionInstanceDataNV* toMap);
+
+void handlemap_VkAccelerationStructureMotionInstanceNV(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureMotionInstanceNV* toMap);
+
+void handlemap_VkPhysicalDeviceRayTracingMotionBlurFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRayTracingMotionBlurFeaturesNV* toMap);
+
+#endif
+#ifdef VK_EXT_ycbcr_2plane_444_formats
+void handlemap_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_fragment_density_map2
+void handlemap_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentDensityMap2FeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceFragmentDensityMap2PropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentDensityMap2PropertiesEXT* toMap);
+
+#endif
+#ifdef VK_QCOM_rotated_copy_commands
+void handlemap_VkCopyCommandTransformInfoQCOM(VulkanHandleMapping* handlemap,
+                                              VkCopyCommandTransformInfoQCOM* toMap);
+
+#endif
 #ifdef VK_EXT_image_robustness
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceImageRobustnessFeatures,
                       handlemap_VkPhysicalDeviceImageRobustnessFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_image_compression_control
+void handlemap_VkPhysicalDeviceImageCompressionControlFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceImageCompressionControlFeaturesEXT* toMap);
+
+void handlemap_VkImageCompressionControlEXT(VulkanHandleMapping* handlemap,
+                                            VkImageCompressionControlEXT* toMap);
+
+void handlemap_VkSubresourceLayout2EXT(VulkanHandleMapping* handlemap,
+                                       VkSubresourceLayout2EXT* toMap);
+
+void handlemap_VkImageSubresource2EXT(VulkanHandleMapping* handlemap,
+                                      VkImageSubresource2EXT* toMap);
+
+void handlemap_VkImageCompressionPropertiesEXT(VulkanHandleMapping* handlemap,
+                                               VkImageCompressionPropertiesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_layout
+void handlemap_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_4444_formats
+void handlemap_VkPhysicalDevice4444FormatsFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDevice4444FormatsFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_device_fault
+void handlemap_VkPhysicalDeviceFaultFeaturesEXT(VulkanHandleMapping* handlemap,
+                                                VkPhysicalDeviceFaultFeaturesEXT* toMap);
+
+void handlemap_VkDeviceFaultCountsEXT(VulkanHandleMapping* handlemap,
+                                      VkDeviceFaultCountsEXT* toMap);
+
+void handlemap_VkDeviceFaultAddressInfoEXT(VulkanHandleMapping* handlemap,
+                                           VkDeviceFaultAddressInfoEXT* toMap);
+
+void handlemap_VkDeviceFaultVendorInfoEXT(VulkanHandleMapping* handlemap,
+                                          VkDeviceFaultVendorInfoEXT* toMap);
+
+void handlemap_VkDeviceFaultInfoEXT(VulkanHandleMapping* handlemap, VkDeviceFaultInfoEXT* toMap);
+
+void handlemap_VkDeviceFaultVendorBinaryHeaderVersionOneEXT(
+    VulkanHandleMapping* handlemap, VkDeviceFaultVendorBinaryHeaderVersionOneEXT* toMap);
+
+#endif
+#ifdef VK_ARM_rasterization_order_attachment_access
+void handlemap_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT(
+    VulkanHandleMapping* handlemap,
+    VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT,
+                      handlemap_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesARM)
+
+#endif
+#ifdef VK_EXT_rgba10x6_formats
+void handlemap_VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_NV_acquire_winrt_display
+#endif
+#ifdef VK_EXT_directfb_surface
+void handlemap_VkDirectFBSurfaceCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                              VkDirectFBSurfaceCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_VALVE_mutable_descriptor_type
+void handlemap_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT,
+                      handlemap_VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE)
+
+void handlemap_VkMutableDescriptorTypeListEXT(VulkanHandleMapping* handlemap,
+                                              VkMutableDescriptorTypeListEXT* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkMutableDescriptorTypeListEXT,
+                      handlemap_VkMutableDescriptorTypeListVALVE)
+
+void handlemap_VkMutableDescriptorTypeCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                                    VkMutableDescriptorTypeCreateInfoEXT* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkMutableDescriptorTypeCreateInfoEXT,
+                      handlemap_VkMutableDescriptorTypeCreateInfoVALVE)
+
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+void handlemap_VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT* toMap);
+
+void handlemap_VkVertexInputBindingDescription2EXT(VulkanHandleMapping* handlemap,
+                                                   VkVertexInputBindingDescription2EXT* toMap);
+
+void handlemap_VkVertexInputAttributeDescription2EXT(VulkanHandleMapping* handlemap,
+                                                     VkVertexInputAttributeDescription2EXT* toMap);
+
+#endif
+#ifdef VK_EXT_physical_device_drm
+void handlemap_VkPhysicalDeviceDrmPropertiesEXT(VulkanHandleMapping* handlemap,
+                                                VkPhysicalDeviceDrmPropertiesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_device_address_binding_report
+void handlemap_VkPhysicalDeviceAddressBindingReportFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceAddressBindingReportFeaturesEXT* toMap);
+
+void handlemap_VkDeviceAddressBindingCallbackDataEXT(VulkanHandleMapping* handlemap,
+                                                     VkDeviceAddressBindingCallbackDataEXT* toMap);
+
+#endif
+#ifdef VK_EXT_depth_clip_control
+void handlemap_VkPhysicalDeviceDepthClipControlFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDepthClipControlFeaturesEXT* toMap);
+
+void handlemap_VkPipelineViewportDepthClipControlCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineViewportDepthClipControlCreateInfoEXT* toMap);
+
+#endif
 #ifdef VK_EXT_primitive_topology_list_restart
 void handlemap_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
     VulkanHandleMapping* handlemap, VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_FUCHSIA_external_memory
+void handlemap_VkImportMemoryZirconHandleInfoFUCHSIA(VulkanHandleMapping* handlemap,
+                                                     VkImportMemoryZirconHandleInfoFUCHSIA* toMap);
+
+void handlemap_VkMemoryZirconHandlePropertiesFUCHSIA(VulkanHandleMapping* handlemap,
+                                                     VkMemoryZirconHandlePropertiesFUCHSIA* toMap);
+
+void handlemap_VkMemoryGetZirconHandleInfoFUCHSIA(VulkanHandleMapping* handlemap,
+                                                  VkMemoryGetZirconHandleInfoFUCHSIA* toMap);
+
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+void handlemap_VkImportSemaphoreZirconHandleInfoFUCHSIA(
+    VulkanHandleMapping* handlemap, VkImportSemaphoreZirconHandleInfoFUCHSIA* toMap);
+
+void handlemap_VkSemaphoreGetZirconHandleInfoFUCHSIA(VulkanHandleMapping* handlemap,
+                                                     VkSemaphoreGetZirconHandleInfoFUCHSIA* toMap);
+
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+void handlemap_VkBufferCollectionCreateInfoFUCHSIA(VulkanHandleMapping* handlemap,
+                                                   VkBufferCollectionCreateInfoFUCHSIA* toMap);
+
+void handlemap_VkImportMemoryBufferCollectionFUCHSIA(VulkanHandleMapping* handlemap,
+                                                     VkImportMemoryBufferCollectionFUCHSIA* toMap);
+
+void handlemap_VkBufferCollectionImageCreateInfoFUCHSIA(
+    VulkanHandleMapping* handlemap, VkBufferCollectionImageCreateInfoFUCHSIA* toMap);
+
+void handlemap_VkBufferCollectionConstraintsInfoFUCHSIA(
+    VulkanHandleMapping* handlemap, VkBufferCollectionConstraintsInfoFUCHSIA* toMap);
+
+void handlemap_VkBufferConstraintsInfoFUCHSIA(VulkanHandleMapping* handlemap,
+                                              VkBufferConstraintsInfoFUCHSIA* toMap);
+
+void handlemap_VkBufferCollectionBufferCreateInfoFUCHSIA(
+    VulkanHandleMapping* handlemap, VkBufferCollectionBufferCreateInfoFUCHSIA* toMap);
+
+void handlemap_VkSysmemColorSpaceFUCHSIA(VulkanHandleMapping* handlemap,
+                                         VkSysmemColorSpaceFUCHSIA* toMap);
+
+void handlemap_VkBufferCollectionPropertiesFUCHSIA(VulkanHandleMapping* handlemap,
+                                                   VkBufferCollectionPropertiesFUCHSIA* toMap);
+
+void handlemap_VkImageFormatConstraintsInfoFUCHSIA(VulkanHandleMapping* handlemap,
+                                                   VkImageFormatConstraintsInfoFUCHSIA* toMap);
+
+void handlemap_VkImageConstraintsInfoFUCHSIA(VulkanHandleMapping* handlemap,
+                                             VkImageConstraintsInfoFUCHSIA* toMap);
+
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+void handlemap_VkSubpassShadingPipelineCreateInfoHUAWEI(
+    VulkanHandleMapping* handlemap, VkSubpassShadingPipelineCreateInfoHUAWEI* toMap);
+
+void handlemap_VkPhysicalDeviceSubpassShadingFeaturesHUAWEI(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceSubpassShadingFeaturesHUAWEI* toMap);
+
+void handlemap_VkPhysicalDeviceSubpassShadingPropertiesHUAWEI(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceSubpassShadingPropertiesHUAWEI* toMap);
+
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+void handlemap_VkPhysicalDeviceInvocationMaskFeaturesHUAWEI(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceInvocationMaskFeaturesHUAWEI* toMap);
+
+#endif
+#ifdef VK_NV_external_memory_rdma
+void handlemap_VkMemoryGetRemoteAddressInfoNV(VulkanHandleMapping* handlemap,
+                                              VkMemoryGetRemoteAddressInfoNV* toMap);
+
+void handlemap_VkPhysicalDeviceExternalMemoryRDMAFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceExternalMemoryRDMAFeaturesNV* toMap);
+
+#endif
+#ifdef VK_EXT_pipeline_properties
+DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineInfoKHR, handlemap_VkPipelineInfoEXT)
+
+void handlemap_VkPipelinePropertiesIdentifierEXT(VulkanHandleMapping* handlemap,
+                                                 VkPipelinePropertiesIdentifierEXT* toMap);
+
+void handlemap_VkPhysicalDevicePipelinePropertiesFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePipelinePropertiesFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_multisampled_render_to_single_sampled
+void handlemap_VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT(
+    VulkanHandleMapping* handlemap,
+    VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT* toMap);
+
+void handlemap_VkSubpassResolvePerformanceQueryEXT(VulkanHandleMapping* handlemap,
+                                                   VkSubpassResolvePerformanceQueryEXT* toMap);
+
+void handlemap_VkMultisampledRenderToSingleSampledInfoEXT(
+    VulkanHandleMapping* handlemap, VkMultisampledRenderToSingleSampledInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+void handlemap_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* toMap);
+
+#endif
+#ifdef VK_QNX_screen_surface
+void handlemap_VkScreenSurfaceCreateInfoQNX(VulkanHandleMapping* handlemap,
+                                            VkScreenSurfaceCreateInfoQNX* toMap);
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void handlemap_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceColorWriteEnableFeaturesEXT* toMap);
+
+void handlemap_VkPipelineColorWriteCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                                 VkPipelineColorWriteCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_primitives_generated_query
+void handlemap_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* toMap);
 
 #endif
 #ifdef VK_GOOGLE_gfxstream
@@ -1230,7 +3343,466 @@ void handlemap_VkImportBufferGOOGLE(VulkanHandleMapping* handlemap, VkImportBuff
 void handlemap_VkCreateBlobGOOGLE(VulkanHandleMapping* handlemap, VkCreateBlobGOOGLE* toMap);
 
 #endif
+#ifdef VK_EXT_global_priority_query
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR,
+                      handlemap_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkQueueFamilyGlobalPriorityPropertiesKHR,
+                      handlemap_VkQueueFamilyGlobalPriorityPropertiesEXT)
+
+#endif
+#ifdef VK_EXT_image_view_min_lod
+void handlemap_VkPhysicalDeviceImageViewMinLodFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceImageViewMinLodFeaturesEXT* toMap);
+
+void handlemap_VkImageViewMinLodCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                              VkImageViewMinLodCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_multi_draw
+void handlemap_VkPhysicalDeviceMultiDrawFeaturesEXT(VulkanHandleMapping* handlemap,
+                                                    VkPhysicalDeviceMultiDrawFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceMultiDrawPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMultiDrawPropertiesEXT* toMap);
+
+void handlemap_VkMultiDrawInfoEXT(VulkanHandleMapping* handlemap, VkMultiDrawInfoEXT* toMap);
+
+void handlemap_VkMultiDrawIndexedInfoEXT(VulkanHandleMapping* handlemap,
+                                         VkMultiDrawIndexedInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_image_2d_view_of_3d
+void handlemap_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceImage2DViewOf3DFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_shader_tile_image
+void handlemap_VkPhysicalDeviceShaderTileImageFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderTileImageFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceShaderTileImagePropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderTileImagePropertiesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_opacity_micromap
+void handlemap_VkMicromapUsageEXT(VulkanHandleMapping* handlemap, VkMicromapUsageEXT* toMap);
+
+void handlemap_VkDeviceOrHostAddressKHR(VulkanHandleMapping* handlemap,
+                                        VkDeviceOrHostAddressKHR* toMap);
+
+void handlemap_VkMicromapBuildInfoEXT(VulkanHandleMapping* handlemap,
+                                      VkMicromapBuildInfoEXT* toMap);
+
+void handlemap_VkMicromapCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                       VkMicromapCreateInfoEXT* toMap);
+
+void handlemap_VkPhysicalDeviceOpacityMicromapFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceOpacityMicromapFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceOpacityMicromapPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceOpacityMicromapPropertiesEXT* toMap);
+
+void handlemap_VkMicromapVersionInfoEXT(VulkanHandleMapping* handlemap,
+                                        VkMicromapVersionInfoEXT* toMap);
+
+void handlemap_VkCopyMicromapToMemoryInfoEXT(VulkanHandleMapping* handlemap,
+                                             VkCopyMicromapToMemoryInfoEXT* toMap);
+
+void handlemap_VkCopyMemoryToMicromapInfoEXT(VulkanHandleMapping* handlemap,
+                                             VkCopyMemoryToMicromapInfoEXT* toMap);
+
+void handlemap_VkCopyMicromapInfoEXT(VulkanHandleMapping* handlemap, VkCopyMicromapInfoEXT* toMap);
+
+void handlemap_VkMicromapBuildSizesInfoEXT(VulkanHandleMapping* handlemap,
+                                           VkMicromapBuildSizesInfoEXT* toMap);
+
+void handlemap_VkAccelerationStructureTrianglesOpacityMicromapEXT(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureTrianglesOpacityMicromapEXT* toMap);
+
+void handlemap_VkMicromapTriangleEXT(VulkanHandleMapping* handlemap, VkMicromapTriangleEXT* toMap);
+
+#endif
+#ifdef VK_NV_displacement_micromap
+void handlemap_VkPhysicalDeviceDisplacementMicromapFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDisplacementMicromapFeaturesNV* toMap);
+
+void handlemap_VkPhysicalDeviceDisplacementMicromapPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDisplacementMicromapPropertiesNV* toMap);
+
+void handlemap_VkAccelerationStructureTrianglesDisplacementMicromapNV(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureTrianglesDisplacementMicromapNV* toMap);
+
+#endif
 #ifdef VK_EXT_load_store_op_none
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+void handlemap_VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI* toMap);
+
+void handlemap_VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI* toMap);
+
+#endif
+#ifdef VK_EXT_border_color_swizzle
+void handlemap_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* toMap);
+
+void handlemap_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkSamplerBorderColorComponentMappingCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+void handlemap_VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_ARM_shader_core_properties
+void handlemap_VkPhysicalDeviceShaderCorePropertiesARM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderCorePropertiesARM* toMap);
+
+#endif
+#ifdef VK_EXT_image_sliced_view_of_3d
+void handlemap_VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT* toMap);
+
+void handlemap_VkImageViewSlicedCreateInfoEXT(VulkanHandleMapping* handlemap,
+                                              VkImageViewSlicedCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+void handlemap_VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE* toMap);
+
+void handlemap_VkDescriptorSetBindingReferenceVALVE(VulkanHandleMapping* handlemap,
+                                                    VkDescriptorSetBindingReferenceVALVE* toMap);
+
+void handlemap_VkDescriptorSetLayoutHostMappingInfoVALVE(
+    VulkanHandleMapping* handlemap, VkDescriptorSetLayoutHostMappingInfoVALVE* toMap);
+
+#endif
+#ifdef VK_EXT_depth_clamp_zero_one
+void handlemap_VkPhysicalDeviceDepthClampZeroOneFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceDepthClampZeroOneFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_non_seamless_cube_map
+void handlemap_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_QCOM_fragment_density_map_offset
+void handlemap_VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM* toMap);
+
+void handlemap_VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM* toMap);
+
+void handlemap_VkSubpassFragmentDensityMapOffsetEndInfoQCOM(
+    VulkanHandleMapping* handlemap, VkSubpassFragmentDensityMapOffsetEndInfoQCOM* toMap);
+
+#endif
+#ifdef VK_NV_copy_memory_indirect
+void handlemap_VkCopyMemoryIndirectCommandNV(VulkanHandleMapping* handlemap,
+                                             VkCopyMemoryIndirectCommandNV* toMap);
+
+void handlemap_VkCopyMemoryToImageIndirectCommandNV(VulkanHandleMapping* handlemap,
+                                                    VkCopyMemoryToImageIndirectCommandNV* toMap);
+
+void handlemap_VkPhysicalDeviceCopyMemoryIndirectFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceCopyMemoryIndirectFeaturesNV* toMap);
+
+void handlemap_VkPhysicalDeviceCopyMemoryIndirectPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceCopyMemoryIndirectPropertiesNV* toMap);
+
+#endif
+#ifdef VK_NV_memory_decompression
+void handlemap_VkDecompressMemoryRegionNV(VulkanHandleMapping* handlemap,
+                                          VkDecompressMemoryRegionNV* toMap);
+
+void handlemap_VkPhysicalDeviceMemoryDecompressionFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMemoryDecompressionFeaturesNV* toMap);
+
+void handlemap_VkPhysicalDeviceMemoryDecompressionPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMemoryDecompressionPropertiesNV* toMap);
+
+#endif
+#ifdef VK_NV_linear_color_attachment
+void handlemap_VkPhysicalDeviceLinearColorAttachmentFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceLinearColorAttachmentFeaturesNV* toMap);
+
+#endif
+#ifdef VK_GOOGLE_surfaceless_query
+#endif
+#ifdef VK_EXT_image_compression_control_swapchain
+void handlemap_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
+    VulkanHandleMapping* handlemap,
+    VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_QCOM_image_processing
+void handlemap_VkImageViewSampleWeightCreateInfoQCOM(VulkanHandleMapping* handlemap,
+                                                     VkImageViewSampleWeightCreateInfoQCOM* toMap);
+
+void handlemap_VkPhysicalDeviceImageProcessingFeaturesQCOM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceImageProcessingFeaturesQCOM* toMap);
+
+void handlemap_VkPhysicalDeviceImageProcessingPropertiesQCOM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceImageProcessingPropertiesQCOM* toMap);
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+void handlemap_VkPhysicalDeviceExtendedDynamicState3FeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceExtendedDynamicState3FeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceExtendedDynamicState3PropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceExtendedDynamicState3PropertiesEXT* toMap);
+
+void handlemap_VkColorBlendEquationEXT(VulkanHandleMapping* handlemap,
+                                       VkColorBlendEquationEXT* toMap);
+
+void handlemap_VkColorBlendAdvancedEXT(VulkanHandleMapping* handlemap,
+                                       VkColorBlendAdvancedEXT* toMap);
+
+#endif
+#ifdef VK_EXT_subpass_merge_feedback
+void handlemap_VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT* toMap);
+
+void handlemap_VkRenderPassCreationControlEXT(VulkanHandleMapping* handlemap,
+                                              VkRenderPassCreationControlEXT* toMap);
+
+void handlemap_VkRenderPassCreationFeedbackInfoEXT(VulkanHandleMapping* handlemap,
+                                                   VkRenderPassCreationFeedbackInfoEXT* toMap);
+
+void handlemap_VkRenderPassCreationFeedbackCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkRenderPassCreationFeedbackCreateInfoEXT* toMap);
+
+void handlemap_VkRenderPassSubpassFeedbackInfoEXT(VulkanHandleMapping* handlemap,
+                                                  VkRenderPassSubpassFeedbackInfoEXT* toMap);
+
+void handlemap_VkRenderPassSubpassFeedbackCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkRenderPassSubpassFeedbackCreateInfoEXT* toMap);
+
+#endif
+#ifdef VK_LUNARG_direct_driver_loading
+void handlemap_VkDirectDriverLoadingInfoLUNARG(VulkanHandleMapping* handlemap,
+                                               VkDirectDriverLoadingInfoLUNARG* toMap);
+
+void handlemap_VkDirectDriverLoadingListLUNARG(VulkanHandleMapping* handlemap,
+                                               VkDirectDriverLoadingListLUNARG* toMap);
+
+#endif
+#ifdef VK_EXT_shader_module_identifier
+void handlemap_VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT* toMap);
+
+void handlemap_VkPipelineShaderStageModuleIdentifierCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineShaderStageModuleIdentifierCreateInfoEXT* toMap);
+
+void handlemap_VkShaderModuleIdentifierEXT(VulkanHandleMapping* handlemap,
+                                           VkShaderModuleIdentifierEXT* toMap);
+
+#endif
+#ifdef VK_EXT_rasterization_order_attachment_access
+#endif
+#ifdef VK_NV_optical_flow
+void handlemap_VkPhysicalDeviceOpticalFlowFeaturesNV(VulkanHandleMapping* handlemap,
+                                                     VkPhysicalDeviceOpticalFlowFeaturesNV* toMap);
+
+void handlemap_VkPhysicalDeviceOpticalFlowPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceOpticalFlowPropertiesNV* toMap);
+
+void handlemap_VkOpticalFlowImageFormatInfoNV(VulkanHandleMapping* handlemap,
+                                              VkOpticalFlowImageFormatInfoNV* toMap);
+
+void handlemap_VkOpticalFlowImageFormatPropertiesNV(VulkanHandleMapping* handlemap,
+                                                    VkOpticalFlowImageFormatPropertiesNV* toMap);
+
+void handlemap_VkOpticalFlowSessionCreateInfoNV(VulkanHandleMapping* handlemap,
+                                                VkOpticalFlowSessionCreateInfoNV* toMap);
+
+void handlemap_VkOpticalFlowSessionCreatePrivateDataInfoNV(
+    VulkanHandleMapping* handlemap, VkOpticalFlowSessionCreatePrivateDataInfoNV* toMap);
+
+void handlemap_VkOpticalFlowExecuteInfoNV(VulkanHandleMapping* handlemap,
+                                          VkOpticalFlowExecuteInfoNV* toMap);
+
+#endif
+#ifdef VK_EXT_legacy_dithering
+void handlemap_VkPhysicalDeviceLegacyDitheringFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceLegacyDitheringFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_pipeline_protected_access
+void handlemap_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePipelineProtectedAccessFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_EXT_shader_object
+void handlemap_VkPhysicalDeviceShaderObjectFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderObjectFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceShaderObjectPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderObjectPropertiesEXT* toMap);
+
+void handlemap_VkShaderCreateInfoEXT(VulkanHandleMapping* handlemap, VkShaderCreateInfoEXT* toMap);
+
+DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineShaderStageRequiredSubgroupSizeCreateInfo,
+                      handlemap_VkShaderRequiredSubgroupSizeCreateInfoEXT)
+
+#endif
+#ifdef VK_QCOM_tile_properties
+void handlemap_VkPhysicalDeviceTilePropertiesFeaturesQCOM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceTilePropertiesFeaturesQCOM* toMap);
+
+void handlemap_VkTilePropertiesQCOM(VulkanHandleMapping* handlemap, VkTilePropertiesQCOM* toMap);
+
+#endif
+#ifdef VK_SEC_amigo_profiling
+void handlemap_VkPhysicalDeviceAmigoProfilingFeaturesSEC(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceAmigoProfilingFeaturesSEC* toMap);
+
+void handlemap_VkAmigoProfilingSubmitInfoSEC(VulkanHandleMapping* handlemap,
+                                             VkAmigoProfilingSubmitInfoSEC* toMap);
+
+#endif
+#ifdef VK_QCOM_multiview_per_view_viewports
+void handlemap_VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM* toMap);
+
+#endif
+#ifdef VK_NV_ray_tracing_invocation_reorder
+void handlemap_VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV* toMap);
+
+void handlemap_VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV* toMap);
+
+#endif
+#ifdef VK_EXT_mutable_descriptor_type
+#endif
+#ifdef VK_ARM_shader_core_builtins
+void handlemap_VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM* toMap);
+
+void handlemap_VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM* toMap);
+
+#endif
+#ifdef VK_EXT_pipeline_library_group_handles
+void handlemap_VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_QCOM_multiview_per_view_render_areas
+void handlemap_VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM* toMap);
+
+void handlemap_VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM(
+    VulkanHandleMapping* handlemap, VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM* toMap);
+
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+void handlemap_VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT(
+    VulkanHandleMapping* handlemap,
+    VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT* toMap);
+
+#endif
+#ifdef VK_KHR_acceleration_structure
+void handlemap_VkAccelerationStructureBuildRangeInfoKHR(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureBuildRangeInfoKHR* toMap);
+
+void handlemap_VkAccelerationStructureGeometryTrianglesDataKHR(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureGeometryTrianglesDataKHR* toMap);
+
+void handlemap_VkAccelerationStructureGeometryAabbsDataKHR(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureGeometryAabbsDataKHR* toMap);
+
+void handlemap_VkAccelerationStructureGeometryInstancesDataKHR(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureGeometryInstancesDataKHR* toMap);
+
+void handlemap_VkAccelerationStructureGeometryDataKHR(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureGeometryDataKHR* toMap);
+
+void handlemap_VkAccelerationStructureGeometryKHR(VulkanHandleMapping* handlemap,
+                                                  VkAccelerationStructureGeometryKHR* toMap);
+
+void handlemap_VkAccelerationStructureBuildGeometryInfoKHR(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureBuildGeometryInfoKHR* toMap);
+
+void handlemap_VkAccelerationStructureCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                                    VkAccelerationStructureCreateInfoKHR* toMap);
+
+void handlemap_VkWriteDescriptorSetAccelerationStructureKHR(
+    VulkanHandleMapping* handlemap, VkWriteDescriptorSetAccelerationStructureKHR* toMap);
+
+void handlemap_VkPhysicalDeviceAccelerationStructureFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceAccelerationStructureFeaturesKHR* toMap);
+
+void handlemap_VkPhysicalDeviceAccelerationStructurePropertiesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceAccelerationStructurePropertiesKHR* toMap);
+
+void handlemap_VkAccelerationStructureDeviceAddressInfoKHR(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureDeviceAddressInfoKHR* toMap);
+
+void handlemap_VkAccelerationStructureVersionInfoKHR(VulkanHandleMapping* handlemap,
+                                                     VkAccelerationStructureVersionInfoKHR* toMap);
+
+void handlemap_VkCopyAccelerationStructureToMemoryInfoKHR(
+    VulkanHandleMapping* handlemap, VkCopyAccelerationStructureToMemoryInfoKHR* toMap);
+
+void handlemap_VkCopyMemoryToAccelerationStructureInfoKHR(
+    VulkanHandleMapping* handlemap, VkCopyMemoryToAccelerationStructureInfoKHR* toMap);
+
+void handlemap_VkCopyAccelerationStructureInfoKHR(VulkanHandleMapping* handlemap,
+                                                  VkCopyAccelerationStructureInfoKHR* toMap);
+
+void handlemap_VkAccelerationStructureBuildSizesInfoKHR(
+    VulkanHandleMapping* handlemap, VkAccelerationStructureBuildSizesInfoKHR* toMap);
+
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void handlemap_VkRayTracingShaderGroupCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                                    VkRayTracingShaderGroupCreateInfoKHR* toMap);
+
+void handlemap_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanHandleMapping* handlemap, VkRayTracingPipelineInterfaceCreateInfoKHR* toMap);
+
+void handlemap_VkRayTracingPipelineCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                                 VkRayTracingPipelineCreateInfoKHR* toMap);
+
+void handlemap_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRayTracingPipelineFeaturesKHR* toMap);
+
+void handlemap_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceRayTracingPipelinePropertiesKHR* toMap);
+
+void handlemap_VkStridedDeviceAddressRegionKHR(VulkanHandleMapping* handlemap,
+                                               VkStridedDeviceAddressRegionKHR* toMap);
+
+void handlemap_VkTraceRaysIndirectCommandKHR(VulkanHandleMapping* handlemap,
+                                             VkTraceRaysIndirectCommandKHR* toMap);
+
+#endif
+#ifdef VK_KHR_ray_query
+void handlemap_VkPhysicalDeviceRayQueryFeaturesKHR(VulkanHandleMapping* handlemap,
+                                                   VkPhysicalDeviceRayQueryFeaturesKHR* toMap);
+
+#endif
+#ifdef VK_EXT_mesh_shader
+void handlemap_VkPhysicalDeviceMeshShaderFeaturesEXT(VulkanHandleMapping* handlemap,
+                                                     VkPhysicalDeviceMeshShaderFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceMeshShaderPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceMeshShaderPropertiesEXT* toMap);
+
+void handlemap_VkDrawMeshTasksIndirectCommandEXT(VulkanHandleMapping* handlemap,
+                                                 VkDrawMeshTasksIndirectCommandEXT* toMap);
+
 #endif
 
 }  // namespace vk
