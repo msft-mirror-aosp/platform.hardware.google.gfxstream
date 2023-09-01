@@ -7284,32 +7284,1560 @@ void reservedmarshal_VkDeviceImageMemoryRequirements(
 
 #endif
 #ifdef VK_KHR_surface
+void reservedmarshal_VkSurfaceCapabilitiesKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkSurfaceCapabilitiesKHR* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minImageCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxImageCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->currentExtent),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->minImageExtent),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->maxImageExtent),
+                               ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxImageArrayLayers, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkSurfaceTransformFlagsKHR*)&forMarshaling->supportedTransforms,
+           sizeof(VkSurfaceTransformFlagsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagsKHR);
+    memcpy(*ptr, (VkSurfaceTransformFlagBitsKHR*)&forMarshaling->currentTransform,
+           sizeof(VkSurfaceTransformFlagBitsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagBitsKHR);
+    memcpy(*ptr, (VkCompositeAlphaFlagsKHR*)&forMarshaling->supportedCompositeAlpha,
+           sizeof(VkCompositeAlphaFlagsKHR));
+    *ptr += sizeof(VkCompositeAlphaFlagsKHR);
+    memcpy(*ptr, (VkImageUsageFlags*)&forMarshaling->supportedUsageFlags,
+           sizeof(VkImageUsageFlags));
+    *ptr += sizeof(VkImageUsageFlags);
+}
+
+void reservedmarshal_VkSurfaceFormatKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                        const VkSurfaceFormatKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkFormat*)&forMarshaling->format, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (VkColorSpaceKHR*)&forMarshaling->colorSpace, sizeof(VkColorSpaceKHR));
+    *ptr += sizeof(VkColorSpaceKHR);
+}
+
 #endif
 #ifdef VK_KHR_swapchain
+void reservedmarshal_VkSwapchainCreateInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkSwapchainCreateInfoKHR* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSwapchainCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkSwapchainCreateFlagsKHR));
+    *ptr += sizeof(VkSwapchainCreateFlagsKHR);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSurfaceKHR((*&forMarshaling->surface));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minImageCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->imageFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (VkColorSpaceKHR*)&forMarshaling->imageColorSpace, sizeof(VkColorSpaceKHR));
+    *ptr += sizeof(VkColorSpaceKHR);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->imageExtent), ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->imageArrayLayers, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkImageUsageFlags*)&forMarshaling->imageUsage, sizeof(VkImageUsageFlags));
+    *ptr += sizeof(VkImageUsageFlags);
+    memcpy(*ptr, (VkSharingMode*)&forMarshaling->imageSharingMode, sizeof(VkSharingMode));
+    *ptr += sizeof(VkSharingMode);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->queueFamilyIndexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pQueueFamilyIndices;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pQueueFamilyIndices) {
+        memcpy(*ptr, (const uint32_t*)forMarshaling->pQueueFamilyIndices,
+               forMarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
+        *ptr += forMarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+    }
+    memcpy(*ptr, (VkSurfaceTransformFlagBitsKHR*)&forMarshaling->preTransform,
+           sizeof(VkSurfaceTransformFlagBitsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagBitsKHR);
+    memcpy(*ptr, (VkCompositeAlphaFlagBitsKHR*)&forMarshaling->compositeAlpha,
+           sizeof(VkCompositeAlphaFlagBitsKHR));
+    *ptr += sizeof(VkCompositeAlphaFlagBitsKHR);
+    memcpy(*ptr, (VkPresentModeKHR*)&forMarshaling->presentMode, sizeof(VkPresentModeKHR));
+    *ptr += sizeof(VkPresentModeKHR);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->clipped, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkSwapchainKHR((*&forMarshaling->oldSwapchain));
+    memcpy(*ptr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkPresentInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                      const VkPresentInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->waitSemaphoreCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->waitSemaphoreCount) {
+        uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pWaitSemaphores[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->waitSemaphoreCount;
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->swapchainCount) {
+        uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->swapchainCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkSwapchainKHR(forMarshaling->pSwapchains[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->swapchainCount;
+    }
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pImageIndices,
+           forMarshaling->swapchainCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->swapchainCount * sizeof(const uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pResults;
+    memcpy((*ptr), &cgen_var_2, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pResults) {
+        memcpy(*ptr, (VkResult*)forMarshaling->pResults,
+               forMarshaling->swapchainCount * sizeof(VkResult));
+        *ptr += forMarshaling->swapchainCount * sizeof(VkResult);
+    }
+}
+
+void reservedmarshal_VkImageSwapchainCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageSwapchainCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSwapchainKHR((*&forMarshaling->swapchain));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkBindImageMemorySwapchainInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBindImageMemorySwapchainInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSwapchainKHR((*&forMarshaling->swapchain));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->imageIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkAcquireNextImageInfoKHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkAcquireNextImageInfoKHR* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSwapchainKHR((*&forMarshaling->swapchain));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint64_t*)&forMarshaling->timeout, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSemaphore((*&forMarshaling->semaphore));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkFence((*&forMarshaling->fence));
+    memcpy(*ptr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->deviceMask, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkDeviceGroupPresentCapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceGroupPresentCapabilitiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)forMarshaling->presentMask,
+           VK_MAX_DEVICE_GROUP_SIZE * sizeof(uint32_t));
+    *ptr += VK_MAX_DEVICE_GROUP_SIZE * sizeof(uint32_t);
+    memcpy(*ptr, (VkDeviceGroupPresentModeFlagsKHR*)&forMarshaling->modes,
+           sizeof(VkDeviceGroupPresentModeFlagsKHR));
+    *ptr += sizeof(VkDeviceGroupPresentModeFlagsKHR);
+}
+
+void reservedmarshal_VkDeviceGroupPresentInfoKHR(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkDeviceGroupPresentInfoKHR* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pDeviceMasks,
+           forMarshaling->swapchainCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->swapchainCount * sizeof(const uint32_t);
+    memcpy(*ptr, (VkDeviceGroupPresentModeFlagBitsKHR*)&forMarshaling->mode,
+           sizeof(VkDeviceGroupPresentModeFlagBitsKHR));
+    *ptr += sizeof(VkDeviceGroupPresentModeFlagBitsKHR);
+}
+
+void reservedmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceGroupSwapchainCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceGroupPresentModeFlagsKHR*)&forMarshaling->modes,
+           sizeof(VkDeviceGroupPresentModeFlagsKHR));
+    *ptr += sizeof(VkDeviceGroupPresentModeFlagsKHR);
+}
+
+#endif
+#ifdef VK_KHR_display
+void reservedmarshal_VkDisplayModeParametersKHR(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkDisplayModeParametersKHR* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->visibleRegion),
+                               ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->refreshRate, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkDisplayModeCreateInfoKHR(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkDisplayModeCreateInfoKHR* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDisplayModeCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkDisplayModeCreateFlagsKHR));
+    *ptr += sizeof(VkDisplayModeCreateFlagsKHR);
+    reservedmarshal_VkDisplayModeParametersKHR(
+        vkStream, rootType, (VkDisplayModeParametersKHR*)(&forMarshaling->parameters), ptr);
+}
+
+void reservedmarshal_VkDisplayModePropertiesKHR(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkDisplayModePropertiesKHR* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDisplayModeKHR((*&forMarshaling->displayMode));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    reservedmarshal_VkDisplayModeParametersKHR(
+        vkStream, rootType, (VkDisplayModeParametersKHR*)(&forMarshaling->parameters), ptr);
+}
+
+void reservedmarshal_VkDisplayPlaneCapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDisplayPlaneCapabilitiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDisplayPlaneAlphaFlagsKHR*)&forMarshaling->supportedAlpha,
+           sizeof(VkDisplayPlaneAlphaFlagsKHR));
+    *ptr += sizeof(VkDisplayPlaneAlphaFlagsKHR);
+    reservedmarshal_VkOffset2D(vkStream, rootType, (VkOffset2D*)(&forMarshaling->minSrcPosition),
+                               ptr);
+    reservedmarshal_VkOffset2D(vkStream, rootType, (VkOffset2D*)(&forMarshaling->maxSrcPosition),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->minSrcExtent),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->maxSrcExtent),
+                               ptr);
+    reservedmarshal_VkOffset2D(vkStream, rootType, (VkOffset2D*)(&forMarshaling->minDstPosition),
+                               ptr);
+    reservedmarshal_VkOffset2D(vkStream, rootType, (VkOffset2D*)(&forMarshaling->maxDstPosition),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->minDstExtent),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->maxDstExtent),
+                               ptr);
+}
+
+void reservedmarshal_VkDisplayPlanePropertiesKHR(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkDisplayPlanePropertiesKHR* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDisplayKHR((*&forMarshaling->currentDisplay));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->currentStackIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkDisplayPropertiesKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkDisplayPropertiesKHR* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDisplayKHR((*&forMarshaling->display));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    {
+        uint32_t l = forMarshaling->displayName ? strlen(forMarshaling->displayName) : 0;
+        memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+        android::base::Stream::toBe32((uint8_t*)*ptr);
+        *ptr += sizeof(uint32_t);
+        memcpy(*ptr, (char*)forMarshaling->displayName, l);
+        *ptr += l;
+    }
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->physicalDimensions), ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->physicalResolution), ptr);
+    memcpy(*ptr, (VkSurfaceTransformFlagsKHR*)&forMarshaling->supportedTransforms,
+           sizeof(VkSurfaceTransformFlagsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagsKHR);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->planeReorderPossible, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->persistentContent, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkDisplaySurfaceCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDisplaySurfaceCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDisplaySurfaceCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkDisplaySurfaceCreateFlagsKHR));
+    *ptr += sizeof(VkDisplaySurfaceCreateFlagsKHR);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDisplayModeKHR((*&forMarshaling->displayMode));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->planeIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->planeStackIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkSurfaceTransformFlagBitsKHR*)&forMarshaling->transform,
+           sizeof(VkSurfaceTransformFlagBitsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagBitsKHR);
+    memcpy(*ptr, (float*)&forMarshaling->globalAlpha, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (VkDisplayPlaneAlphaFlagBitsKHR*)&forMarshaling->alphaMode,
+           sizeof(VkDisplayPlaneAlphaFlagBitsKHR));
+    *ptr += sizeof(VkDisplayPlaneAlphaFlagBitsKHR);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->imageExtent), ptr);
+}
+
+#endif
+#ifdef VK_KHR_display_swapchain
+void reservedmarshal_VkDisplayPresentInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkDisplayPresentInfoKHR* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkRect2D(vkStream, rootType, (VkRect2D*)(&forMarshaling->srcRect), ptr);
+    reservedmarshal_VkRect2D(vkStream, rootType, (VkRect2D*)(&forMarshaling->dstRect), ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->persistent, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_xlib_surface
+void reservedmarshal_VkXlibSurfaceCreateInfoKHR(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkXlibSurfaceCreateInfoKHR* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkXlibSurfaceCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkXlibSurfaceCreateFlagsKHR));
+    *ptr += sizeof(VkXlibSurfaceCreateFlagsKHR);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->dpy;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->dpy) {
+        memcpy(*ptr, (Display*)forMarshaling->dpy, sizeof(Display));
+        *ptr += sizeof(Display);
+    }
+    memcpy(*ptr, (Window*)&forMarshaling->window, sizeof(Window));
+    *ptr += sizeof(Window);
+}
+
 #endif
 #ifdef VK_KHR_xcb_surface
+void reservedmarshal_VkXcbSurfaceCreateInfoKHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkXcbSurfaceCreateInfoKHR* forMarshaling,
+                                               uint8_t** ptr) {
+    // This struct should never be marshaled / unmarshaled.
+    __builtin_trap();
+}
+
+#endif
+#ifdef VK_KHR_wayland_surface
+void reservedmarshal_VkWaylandSurfaceCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkWaylandSurfaceCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkWaylandSurfaceCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkWaylandSurfaceCreateFlagsKHR));
+    *ptr += sizeof(VkWaylandSurfaceCreateFlagsKHR);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->display;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->display) {
+        memcpy(*ptr, (wl_display*)forMarshaling->display, sizeof(wl_display));
+        *ptr += sizeof(wl_display);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->surface;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->surface) {
+        memcpy(*ptr, (wl_surface*)forMarshaling->surface, sizeof(wl_surface));
+        *ptr += sizeof(wl_surface);
+    }
+}
+
 #endif
 #ifdef VK_KHR_android_surface
+void reservedmarshal_VkAndroidSurfaceCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAndroidSurfaceCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkAndroidSurfaceCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkAndroidSurfaceCreateFlagsKHR));
+    *ptr += sizeof(VkAndroidSurfaceCreateFlagsKHR);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->window;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->window) {
+        memcpy(*ptr, (ANativeWindow*)forMarshaling->window, sizeof(ANativeWindow));
+        *ptr += sizeof(ANativeWindow);
+    }
+}
+
 #endif
 #ifdef VK_KHR_win32_surface
+void reservedmarshal_VkWin32SurfaceCreateInfoKHR(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkWin32SurfaceCreateInfoKHR* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkWin32SurfaceCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkWin32SurfaceCreateFlagsKHR));
+    *ptr += sizeof(VkWin32SurfaceCreateFlagsKHR);
+    memcpy(*ptr, (HINSTANCE*)&forMarshaling->hinstance, sizeof(HINSTANCE));
+    *ptr += sizeof(HINSTANCE);
+    memcpy(*ptr, (HWND*)&forMarshaling->hwnd, sizeof(HWND));
+    *ptr += sizeof(HWND);
+}
+
+#endif
+#ifdef VK_KHR_sampler_mirror_clamp_to_edge
+#endif
+#ifdef VK_KHR_video_queue
+void reservedmarshal_VkQueueFamilyQueryResultStatusPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkQueueFamilyQueryResultStatusPropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->queryResultStatusSupport, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkQueueFamilyVideoPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkQueueFamilyVideoPropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoCodecOperationFlagsKHR*)&forMarshaling->videoCodecOperations,
+           sizeof(VkVideoCodecOperationFlagsKHR));
+    *ptr += sizeof(VkVideoCodecOperationFlagsKHR);
+}
+
+void reservedmarshal_VkVideoProfileInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                           const VkVideoProfileInfoKHR* forMarshaling,
+                                           uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoCodecOperationFlagBitsKHR*)&forMarshaling->videoCodecOperation,
+           sizeof(VkVideoCodecOperationFlagBitsKHR));
+    *ptr += sizeof(VkVideoCodecOperationFlagBitsKHR);
+    memcpy(*ptr, (VkVideoChromaSubsamplingFlagsKHR*)&forMarshaling->chromaSubsampling,
+           sizeof(VkVideoChromaSubsamplingFlagsKHR));
+    *ptr += sizeof(VkVideoChromaSubsamplingFlagsKHR);
+    memcpy(*ptr, (VkVideoComponentBitDepthFlagsKHR*)&forMarshaling->lumaBitDepth,
+           sizeof(VkVideoComponentBitDepthFlagsKHR));
+    *ptr += sizeof(VkVideoComponentBitDepthFlagsKHR);
+    memcpy(*ptr, (VkVideoComponentBitDepthFlagsKHR*)&forMarshaling->chromaBitDepth,
+           sizeof(VkVideoComponentBitDepthFlagsKHR));
+    *ptr += sizeof(VkVideoComponentBitDepthFlagsKHR);
+}
+
+void reservedmarshal_VkVideoProfileListInfoKHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkVideoProfileListInfoKHR* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->profileCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->profileCount; ++i) {
+        reservedmarshal_VkVideoProfileInfoKHR(
+            vkStream, rootType, (const VkVideoProfileInfoKHR*)(forMarshaling->pProfiles + i), ptr);
+    }
+}
+
+void reservedmarshal_VkVideoCapabilitiesKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkVideoCapabilitiesKHR* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoCapabilityFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkVideoCapabilityFlagsKHR));
+    *ptr += sizeof(VkVideoCapabilityFlagsKHR);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->minBitstreamBufferOffsetAlignment,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->minBitstreamBufferSizeAlignment,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->pictureAccessGranularity), ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->minCodedExtent),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->maxCodedExtent),
+                               ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDpbSlots, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxActiveReferencePictures, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkExtensionProperties(
+        vkStream, rootType, (VkExtensionProperties*)(&forMarshaling->stdHeaderVersion), ptr);
+}
+
+void reservedmarshal_VkPhysicalDeviceVideoFormatInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVideoFormatInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkImageUsageFlags*)&forMarshaling->imageUsage, sizeof(VkImageUsageFlags));
+    *ptr += sizeof(VkImageUsageFlags);
+}
+
+void reservedmarshal_VkVideoFormatPropertiesKHR(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkVideoFormatPropertiesKHR* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->format, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    reservedmarshal_VkComponentMapping(
+        vkStream, rootType, (VkComponentMapping*)(&forMarshaling->componentMapping), ptr);
+    memcpy(*ptr, (VkImageCreateFlags*)&forMarshaling->imageCreateFlags, sizeof(VkImageCreateFlags));
+    *ptr += sizeof(VkImageCreateFlags);
+    memcpy(*ptr, (VkImageType*)&forMarshaling->imageType, sizeof(VkImageType));
+    *ptr += sizeof(VkImageType);
+    memcpy(*ptr, (VkImageTiling*)&forMarshaling->imageTiling, sizeof(VkImageTiling));
+    *ptr += sizeof(VkImageTiling);
+    memcpy(*ptr, (VkImageUsageFlags*)&forMarshaling->imageUsageFlags, sizeof(VkImageUsageFlags));
+    *ptr += sizeof(VkImageUsageFlags);
+}
+
+void reservedmarshal_VkVideoPictureResourceInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoPictureResourceInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkOffset2D(vkStream, rootType, (VkOffset2D*)(&forMarshaling->codedOffset), ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->codedExtent), ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->baseArrayLayer, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkImageView((*&forMarshaling->imageViewBinding));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkVideoReferenceSlotInfoKHR(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkVideoReferenceSlotInfoKHR* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (int32_t*)&forMarshaling->slotIndex, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pPictureResource;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pPictureResource) {
+        reservedmarshal_VkVideoPictureResourceInfoKHR(
+            vkStream, rootType,
+            (const VkVideoPictureResourceInfoKHR*)(forMarshaling->pPictureResource), ptr);
+    }
+}
+
+void reservedmarshal_VkVideoSessionMemoryRequirementsKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoSessionMemoryRequirementsKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->memoryBindIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkMemoryRequirements(
+        vkStream, rootType, (VkMemoryRequirements*)(&forMarshaling->memoryRequirements), ptr);
+}
+
+void reservedmarshal_VkBindVideoSessionMemoryInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBindVideoSessionMemoryInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->memoryBindIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->memoryOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->memorySize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkVideoSessionCreateInfoKHR(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkVideoSessionCreateInfoKHR* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->queueFamilyIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkVideoSessionCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkVideoSessionCreateFlagsKHR));
+    *ptr += sizeof(VkVideoSessionCreateFlagsKHR);
+    reservedmarshal_VkVideoProfileInfoKHR(
+        vkStream, rootType, (const VkVideoProfileInfoKHR*)(forMarshaling->pVideoProfile), ptr);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->pictureFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->maxCodedExtent),
+                               ptr);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->referencePictureFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDpbSlots, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxActiveReferencePictures, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkExtensionProperties(
+        vkStream, rootType, (const VkExtensionProperties*)(forMarshaling->pStdHeaderVersion), ptr);
+}
+
+void reservedmarshal_VkVideoSessionParametersCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoSessionParametersCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoSessionParametersCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkVideoSessionParametersCreateFlagsKHR));
+    *ptr += sizeof(VkVideoSessionParametersCreateFlagsKHR);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->videoSessionParametersTemplate;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_1 = (uint64_t)forMarshaling->videoSession;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+}
+
+void reservedmarshal_VkVideoSessionParametersUpdateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoSessionParametersUpdateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->updateSequenceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVideoBeginCodingInfoKHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkVideoBeginCodingInfoKHR* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoBeginCodingFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkVideoBeginCodingFlagsKHR));
+    *ptr += sizeof(VkVideoBeginCodingFlagsKHR);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->videoSession;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_1 = (uint64_t)forMarshaling->videoSessionParameters;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->referenceSlotCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->referenceSlotCount; ++i) {
+        reservedmarshal_VkVideoReferenceSlotInfoKHR(
+            vkStream, rootType,
+            (const VkVideoReferenceSlotInfoKHR*)(forMarshaling->pReferenceSlots + i), ptr);
+    }
+}
+
+void reservedmarshal_VkVideoEndCodingInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkVideoEndCodingInfoKHR* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoEndCodingFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkVideoEndCodingFlagsKHR));
+    *ptr += sizeof(VkVideoEndCodingFlagsKHR);
+}
+
+void reservedmarshal_VkVideoCodingControlInfoKHR(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkVideoCodingControlInfoKHR* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoCodingControlFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkVideoCodingControlFlagsKHR));
+    *ptr += sizeof(VkVideoCodingControlFlagsKHR);
+}
+
+#endif
+#ifdef VK_KHR_video_decode_queue
+void reservedmarshal_VkVideoDecodeCapabilitiesKHR(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkVideoDecodeCapabilitiesKHR* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoDecodeCapabilityFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkVideoDecodeCapabilityFlagsKHR));
+    *ptr += sizeof(VkVideoDecodeCapabilityFlagsKHR);
+}
+
+void reservedmarshal_VkVideoDecodeUsageInfoKHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkVideoDecodeUsageInfoKHR* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoDecodeUsageFlagsKHR*)&forMarshaling->videoUsageHints,
+           sizeof(VkVideoDecodeUsageFlagsKHR));
+    *ptr += sizeof(VkVideoDecodeUsageFlagsKHR);
+}
+
+void reservedmarshal_VkVideoDecodeInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkVideoDecodeInfoKHR* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoDecodeFlagsKHR*)&forMarshaling->flags, sizeof(VkVideoDecodeFlagsKHR));
+    *ptr += sizeof(VkVideoDecodeFlagsKHR);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->srcBuffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->srcBufferOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->srcBufferRange, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    reservedmarshal_VkVideoPictureResourceInfoKHR(
+        vkStream, rootType, (VkVideoPictureResourceInfoKHR*)(&forMarshaling->dstPictureResource),
+        ptr);
+    reservedmarshal_VkVideoReferenceSlotInfoKHR(
+        vkStream, rootType,
+        (const VkVideoReferenceSlotInfoKHR*)(forMarshaling->pSetupReferenceSlot), ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->referenceSlotCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->referenceSlotCount; ++i) {
+        reservedmarshal_VkVideoReferenceSlotInfoKHR(
+            vkStream, rootType,
+            (const VkVideoReferenceSlotInfoKHR*)(forMarshaling->pReferenceSlots + i), ptr);
+    }
+}
+
+#endif
+#ifdef VK_KHR_video_decode_h264
+void reservedmarshal_VkVideoDecodeH264ProfileInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH264ProfileInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (StdVideoH264ProfileIdc*)&forMarshaling->stdProfileIdc,
+           sizeof(StdVideoH264ProfileIdc));
+    *ptr += sizeof(StdVideoH264ProfileIdc);
+    memcpy(*ptr, (VkVideoDecodeH264PictureLayoutFlagBitsKHR*)&forMarshaling->pictureLayout,
+           sizeof(VkVideoDecodeH264PictureLayoutFlagBitsKHR));
+    *ptr += sizeof(VkVideoDecodeH264PictureLayoutFlagBitsKHR);
+}
+
+void reservedmarshal_VkVideoDecodeH264CapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH264CapabilitiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (StdVideoH264LevelIdc*)&forMarshaling->maxLevelIdc, sizeof(StdVideoH264LevelIdc));
+    *ptr += sizeof(StdVideoH264LevelIdc);
+    reservedmarshal_VkOffset2D(vkStream, rootType,
+                               (VkOffset2D*)(&forMarshaling->fieldOffsetGranularity), ptr);
+}
+
+void reservedmarshal_VkVideoDecodeH264SessionParametersAddInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH264SessionParametersAddInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdSPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const StdVideoH264SequenceParameterSet*)forMarshaling->pStdSPSs,
+           forMarshaling->stdSPSCount * sizeof(const StdVideoH264SequenceParameterSet));
+    *ptr += forMarshaling->stdSPSCount * sizeof(const StdVideoH264SequenceParameterSet);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdPPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const StdVideoH264PictureParameterSet*)forMarshaling->pStdPPSs,
+           forMarshaling->stdPPSCount * sizeof(const StdVideoH264PictureParameterSet));
+    *ptr += forMarshaling->stdPPSCount * sizeof(const StdVideoH264PictureParameterSet);
+}
+
+void reservedmarshal_VkVideoDecodeH264SessionParametersCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH264SessionParametersCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdSPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdPPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pParametersAddInfo;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pParametersAddInfo) {
+        reservedmarshal_VkVideoDecodeH264SessionParametersAddInfoKHR(
+            vkStream, rootType,
+            (const VkVideoDecodeH264SessionParametersAddInfoKHR*)(forMarshaling
+                                                                      ->pParametersAddInfo),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkVideoDecodeH264PictureInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH264PictureInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (const StdVideoDecodeH264PictureInfo*)forMarshaling->pStdPictureInfo,
+           sizeof(const StdVideoDecodeH264PictureInfo));
+    *ptr += sizeof(const StdVideoDecodeH264PictureInfo);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sliceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pSliceOffsets,
+           forMarshaling->sliceCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->sliceCount * sizeof(const uint32_t);
+}
+
+void reservedmarshal_VkVideoDecodeH264DpbSlotInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH264DpbSlotInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (const StdVideoDecodeH264ReferenceInfo*)forMarshaling->pStdReferenceInfo,
+           sizeof(const StdVideoDecodeH264ReferenceInfo));
+    *ptr += sizeof(const StdVideoDecodeH264ReferenceInfo);
+}
+
+#endif
+#ifdef VK_KHR_dynamic_rendering
+void reservedmarshal_VkRenderingFragmentShadingRateAttachmentInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderingFragmentShadingRateAttachmentInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkImageView((*&forMarshaling->imageView));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkImageLayout*)&forMarshaling->imageLayout, sizeof(VkImageLayout));
+    *ptr += sizeof(VkImageLayout);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->shadingRateAttachmentTexelSize), ptr);
+}
+
+void reservedmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderingFragmentDensityMapAttachmentInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkImageView((*&forMarshaling->imageView));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkImageLayout*)&forMarshaling->imageLayout, sizeof(VkImageLayout));
+    *ptr += sizeof(VkImageLayout);
+}
+
+void reservedmarshal_VkAttachmentSampleCountInfoAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAttachmentSampleCountInfoAMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->colorAttachmentCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pColorAttachmentSamples;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pColorAttachmentSamples) {
+        memcpy(*ptr, (const VkSampleCountFlagBits*)forMarshaling->pColorAttachmentSamples,
+               forMarshaling->colorAttachmentCount * sizeof(const VkSampleCountFlagBits));
+        *ptr += forMarshaling->colorAttachmentCount * sizeof(const VkSampleCountFlagBits);
+    }
+    memcpy(*ptr, (VkSampleCountFlagBits*)&forMarshaling->depthStencilAttachmentSamples,
+           sizeof(VkSampleCountFlagBits));
+    *ptr += sizeof(VkSampleCountFlagBits);
+}
+
+void reservedmarshal_VkMultiviewPerViewAttributesInfoNVX(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMultiviewPerViewAttributesInfoNVX* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->perViewAttributes, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->perViewAttributesPositionXOnly, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_multiview
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 #endif
+#ifdef VK_KHR_device_group
+#endif
+#ifdef VK_KHR_shader_draw_parameters
+#endif
 #ifdef VK_KHR_maintenance1
+#endif
+#ifdef VK_KHR_device_group_creation
 #endif
 #ifdef VK_KHR_external_memory_capabilities
 #endif
 #ifdef VK_KHR_external_memory
 #endif
 #ifdef VK_KHR_external_memory_win32
+void reservedmarshal_VkImportMemoryWin32HandleInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportMemoryWin32HandleInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalMemoryHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagBits);
+    memcpy(*ptr, (HANDLE*)&forMarshaling->handle, sizeof(HANDLE));
+    *ptr += sizeof(HANDLE);
+    memcpy(*ptr, (LPCWSTR*)&forMarshaling->name, sizeof(LPCWSTR));
+    *ptr += sizeof(LPCWSTR);
+}
+
+void reservedmarshal_VkExportMemoryWin32HandleInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExportMemoryWin32HandleInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pAttributes;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pAttributes) {
+        memcpy(*ptr, (const SECURITY_ATTRIBUTES*)forMarshaling->pAttributes,
+               sizeof(const SECURITY_ATTRIBUTES));
+        *ptr += sizeof(const SECURITY_ATTRIBUTES);
+    }
+    memcpy(*ptr, (DWORD*)&forMarshaling->dwAccess, sizeof(DWORD));
+    *ptr += sizeof(DWORD);
+    memcpy(*ptr, (LPCWSTR*)&forMarshaling->name, sizeof(LPCWSTR));
+    *ptr += sizeof(LPCWSTR);
+}
+
+void reservedmarshal_VkMemoryWin32HandlePropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMemoryWin32HandlePropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkMemoryGetWin32HandleInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMemoryGetWin32HandleInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalMemoryHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagBits);
+}
+
 #endif
 #ifdef VK_KHR_external_memory_fd
+void reservedmarshal_VkImportMemoryFdInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkImportMemoryFdInfoKHR* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalMemoryHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagBits);
+    memcpy(*ptr, (int*)&forMarshaling->fd, sizeof(int));
+    *ptr += sizeof(int);
+}
+
+void reservedmarshal_VkMemoryFdPropertiesKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkMemoryFdPropertiesKHR* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkMemoryGetFdInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkMemoryGetFdInfoKHR* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalMemoryHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagBits);
+}
+
+#endif
+#ifdef VK_KHR_win32_keyed_mutex
+void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkWin32KeyedMutexAcquireReleaseInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->acquireCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->acquireCount) {
+        uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->acquireCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pAcquireSyncs[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->acquireCount;
+    }
+    memcpy(*ptr, (const uint64_t*)forMarshaling->pAcquireKeys,
+           forMarshaling->acquireCount * sizeof(const uint64_t));
+    *ptr += forMarshaling->acquireCount * sizeof(const uint64_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pAcquireTimeouts,
+           forMarshaling->acquireCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->acquireCount * sizeof(const uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->releaseCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->releaseCount) {
+        uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->releaseCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pReleaseSyncs[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->releaseCount;
+    }
+    memcpy(*ptr, (const uint64_t*)forMarshaling->pReleaseKeys,
+           forMarshaling->releaseCount * sizeof(const uint64_t));
+    *ptr += forMarshaling->releaseCount * sizeof(const uint64_t);
+}
+
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
 #endif
 #ifdef VK_KHR_external_semaphore
 #endif
 #ifdef VK_KHR_external_semaphore_win32
+void reservedmarshal_VkImportSemaphoreWin32HandleInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportSemaphoreWin32HandleInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSemaphore((*&forMarshaling->semaphore));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkSemaphoreImportFlags*)&forMarshaling->flags, sizeof(VkSemaphoreImportFlags));
+    *ptr += sizeof(VkSemaphoreImportFlags);
+    memcpy(*ptr, (VkExternalSemaphoreHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalSemaphoreHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalSemaphoreHandleTypeFlagBits);
+    memcpy(*ptr, (HANDLE*)&forMarshaling->handle, sizeof(HANDLE));
+    *ptr += sizeof(HANDLE);
+    memcpy(*ptr, (LPCWSTR*)&forMarshaling->name, sizeof(LPCWSTR));
+    *ptr += sizeof(LPCWSTR);
+}
+
+void reservedmarshal_VkExportSemaphoreWin32HandleInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExportSemaphoreWin32HandleInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pAttributes;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pAttributes) {
+        memcpy(*ptr, (const SECURITY_ATTRIBUTES*)forMarshaling->pAttributes,
+               sizeof(const SECURITY_ATTRIBUTES));
+        *ptr += sizeof(const SECURITY_ATTRIBUTES);
+    }
+    memcpy(*ptr, (DWORD*)&forMarshaling->dwAccess, sizeof(DWORD));
+    *ptr += sizeof(DWORD);
+    memcpy(*ptr, (LPCWSTR*)&forMarshaling->name, sizeof(LPCWSTR));
+    *ptr += sizeof(LPCWSTR);
+}
+
+void reservedmarshal_VkD3D12FenceSubmitInfoKHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkD3D12FenceSubmitInfoKHR* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->waitSemaphoreValuesCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pWaitSemaphoreValues;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pWaitSemaphoreValues) {
+        memcpy(*ptr, (const uint64_t*)forMarshaling->pWaitSemaphoreValues,
+               forMarshaling->waitSemaphoreValuesCount * sizeof(const uint64_t));
+        *ptr += forMarshaling->waitSemaphoreValuesCount * sizeof(const uint64_t);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->signalSemaphoreValuesCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pSignalSemaphoreValues;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pSignalSemaphoreValues) {
+        memcpy(*ptr, (const uint64_t*)forMarshaling->pSignalSemaphoreValues,
+               forMarshaling->signalSemaphoreValuesCount * sizeof(const uint64_t));
+        *ptr += forMarshaling->signalSemaphoreValuesCount * sizeof(const uint64_t);
+    }
+}
+
+void reservedmarshal_VkSemaphoreGetWin32HandleInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSemaphoreGetWin32HandleInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSemaphore((*&forMarshaling->semaphore));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkExternalSemaphoreHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalSemaphoreHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalSemaphoreHandleTypeFlagBits);
+}
+
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 void reservedmarshal_VkImportSemaphoreFdInfoKHR(VulkanStreamGuest* vkStream,
@@ -7358,7 +8886,26 @@ void reservedmarshal_VkSemaphoreGetFdInfoKHR(VulkanStreamGuest* vkStream, VkStru
 }
 
 #endif
+#ifdef VK_KHR_push_descriptor
+void reservedmarshal_VkPhysicalDevicePushDescriptorPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePushDescriptorPropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxPushDescriptors, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
 #ifdef VK_KHR_shader_float16_int8
+#endif
+#ifdef VK_KHR_16bit_storage
 #endif
 #ifdef VK_KHR_incremental_present
 void reservedmarshal_VkRectLayerKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -7422,9 +8969,103 @@ void reservedmarshal_VkPresentRegionsKHR(VulkanStreamGuest* vkStream, VkStructur
 #endif
 #ifdef VK_KHR_create_renderpass2
 #endif
+#ifdef VK_KHR_shared_presentable_image
+void reservedmarshal_VkSharedPresentSurfaceCapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSharedPresentSurfaceCapabilitiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkImageUsageFlags*)&forMarshaling->sharedPresentSupportedUsageFlags,
+           sizeof(VkImageUsageFlags));
+    *ptr += sizeof(VkImageUsageFlags);
+}
+
+#endif
 #ifdef VK_KHR_external_fence_capabilities
 #endif
 #ifdef VK_KHR_external_fence
+#endif
+#ifdef VK_KHR_external_fence_win32
+void reservedmarshal_VkImportFenceWin32HandleInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportFenceWin32HandleInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkFence((*&forMarshaling->fence));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkFenceImportFlags*)&forMarshaling->flags, sizeof(VkFenceImportFlags));
+    *ptr += sizeof(VkFenceImportFlags);
+    memcpy(*ptr, (VkExternalFenceHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalFenceHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalFenceHandleTypeFlagBits);
+    memcpy(*ptr, (HANDLE*)&forMarshaling->handle, sizeof(HANDLE));
+    *ptr += sizeof(HANDLE);
+    memcpy(*ptr, (LPCWSTR*)&forMarshaling->name, sizeof(LPCWSTR));
+    *ptr += sizeof(LPCWSTR);
+}
+
+void reservedmarshal_VkExportFenceWin32HandleInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExportFenceWin32HandleInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pAttributes;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pAttributes) {
+        memcpy(*ptr, (const SECURITY_ATTRIBUTES*)forMarshaling->pAttributes,
+               sizeof(const SECURITY_ATTRIBUTES));
+        *ptr += sizeof(const SECURITY_ATTRIBUTES);
+    }
+    memcpy(*ptr, (DWORD*)&forMarshaling->dwAccess, sizeof(DWORD));
+    *ptr += sizeof(DWORD);
+    memcpy(*ptr, (LPCWSTR*)&forMarshaling->name, sizeof(LPCWSTR));
+    *ptr += sizeof(LPCWSTR);
+}
+
+void reservedmarshal_VkFenceGetWin32HandleInfoKHR(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkFenceGetWin32HandleInfoKHR* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkFence((*&forMarshaling->fence));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkExternalFenceHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalFenceHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalFenceHandleTypeFlagBits);
+}
+
 #endif
 #ifdef VK_KHR_external_fence_fd
 void reservedmarshal_VkImportFenceFdInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -7471,11 +9112,291 @@ void reservedmarshal_VkFenceGetFdInfoKHR(VulkanStreamGuest* vkStream, VkStructur
 }
 
 #endif
+#ifdef VK_KHR_performance_query
+void reservedmarshal_VkPhysicalDevicePerformanceQueryFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePerformanceQueryFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->performanceCounterQueryPools, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->performanceCounterMultipleQueryPools, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDevicePerformanceQueryPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePerformanceQueryPropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->allowCommandBufferQueryCopies, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPerformanceCounterKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkPerformanceCounterKHR* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPerformanceCounterUnitKHR*)&forMarshaling->unit,
+           sizeof(VkPerformanceCounterUnitKHR));
+    *ptr += sizeof(VkPerformanceCounterUnitKHR);
+    memcpy(*ptr, (VkPerformanceCounterScopeKHR*)&forMarshaling->scope,
+           sizeof(VkPerformanceCounterScopeKHR));
+    *ptr += sizeof(VkPerformanceCounterScopeKHR);
+    memcpy(*ptr, (VkPerformanceCounterStorageKHR*)&forMarshaling->storage,
+           sizeof(VkPerformanceCounterStorageKHR));
+    *ptr += sizeof(VkPerformanceCounterStorageKHR);
+    memcpy(*ptr, (uint8_t*)forMarshaling->uuid, VK_UUID_SIZE * sizeof(uint8_t));
+    *ptr += VK_UUID_SIZE * sizeof(uint8_t);
+}
+
+void reservedmarshal_VkPerformanceCounterDescriptionKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPerformanceCounterDescriptionKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPerformanceCounterDescriptionFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkPerformanceCounterDescriptionFlagsKHR));
+    *ptr += sizeof(VkPerformanceCounterDescriptionFlagsKHR);
+    memcpy(*ptr, (char*)forMarshaling->name, VK_MAX_DESCRIPTION_SIZE * sizeof(char));
+    *ptr += VK_MAX_DESCRIPTION_SIZE * sizeof(char);
+    memcpy(*ptr, (char*)forMarshaling->category, VK_MAX_DESCRIPTION_SIZE * sizeof(char));
+    *ptr += VK_MAX_DESCRIPTION_SIZE * sizeof(char);
+    memcpy(*ptr, (char*)forMarshaling->description, VK_MAX_DESCRIPTION_SIZE * sizeof(char));
+    *ptr += VK_MAX_DESCRIPTION_SIZE * sizeof(char);
+}
+
+void reservedmarshal_VkQueryPoolPerformanceCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkQueryPoolPerformanceCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->queueFamilyIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->counterIndexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pCounterIndices,
+           forMarshaling->counterIndexCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->counterIndexCount * sizeof(const uint32_t);
+}
+
+void reservedmarshal_VkPerformanceCounterResultKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPerformanceCounterResultKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (int32_t*)&forMarshaling->int32, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+}
+
+void reservedmarshal_VkAcquireProfilingLockInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAcquireProfilingLockInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkAcquireProfilingLockFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkAcquireProfilingLockFlagsKHR));
+    *ptr += sizeof(VkAcquireProfilingLockFlagsKHR);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->timeout, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkPerformanceQuerySubmitInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPerformanceQuerySubmitInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->counterPassIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
 #ifdef VK_KHR_maintenance2
+#endif
+#ifdef VK_KHR_get_surface_capabilities2
+void reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSurfaceInfo2KHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSurfaceKHR((*&forMarshaling->surface));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkSurfaceCapabilities2KHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkSurfaceCapabilities2KHR* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkSurfaceCapabilitiesKHR(
+        vkStream, rootType, (VkSurfaceCapabilitiesKHR*)(&forMarshaling->surfaceCapabilities), ptr);
+}
+
+void reservedmarshal_VkSurfaceFormat2KHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                         const VkSurfaceFormat2KHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkSurfaceFormatKHR(vkStream, rootType,
+                                       (VkSurfaceFormatKHR*)(&forMarshaling->surfaceFormat), ptr);
+}
+
+#endif
+#ifdef VK_KHR_variable_pointers
+#endif
+#ifdef VK_KHR_get_display_properties2
+void reservedmarshal_VkDisplayProperties2KHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkDisplayProperties2KHR* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkDisplayPropertiesKHR(
+        vkStream, rootType, (VkDisplayPropertiesKHR*)(&forMarshaling->displayProperties), ptr);
+}
+
+void reservedmarshal_VkDisplayPlaneProperties2KHR(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkDisplayPlaneProperties2KHR* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkDisplayPlanePropertiesKHR(
+        vkStream, rootType, (VkDisplayPlanePropertiesKHR*)(&forMarshaling->displayPlaneProperties),
+        ptr);
+}
+
+void reservedmarshal_VkDisplayModeProperties2KHR(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkDisplayModeProperties2KHR* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkDisplayModePropertiesKHR(
+        vkStream, rootType, (VkDisplayModePropertiesKHR*)(&forMarshaling->displayModeProperties),
+        ptr);
+}
+
+void reservedmarshal_VkDisplayPlaneInfo2KHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkDisplayPlaneInfo2KHR* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDisplayModeKHR((*&forMarshaling->mode));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->planeIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkDisplayPlaneCapabilities2KHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDisplayPlaneCapabilities2KHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkDisplayPlaneCapabilitiesKHR(
+        vkStream, rootType, (VkDisplayPlaneCapabilitiesKHR*)(&forMarshaling->capabilities), ptr);
+}
+
 #endif
 #ifdef VK_KHR_dedicated_allocation
 #endif
 #ifdef VK_KHR_storage_buffer_storage_class
+#endif
+#ifdef VK_KHR_relaxed_block_layout
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 #endif
@@ -7485,15 +9406,474 @@ void reservedmarshal_VkFenceGetFdInfoKHR(VulkanStreamGuest* vkStream, VkStructur
 #endif
 #ifdef VK_KHR_bind_memory2
 #endif
+#ifdef VK_KHR_portability_subset
+void reservedmarshal_VkPhysicalDevicePortabilitySubsetFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePortabilitySubsetFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->constantAlphaColorBlendFactors, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->events, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->imageViewFormatReinterpretation, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->imageViewFormatSwizzle, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->imageView2DOn3DImage, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->multisampleArrayImage, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->mutableComparisonSamplers, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->pointPolygons, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->samplerMipLodBias, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->separateStencilMaskRef, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSampleRateInterpolationFunctions,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->tessellationIsolines, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->tessellationPointMode, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->triangleFans, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->vertexAttributeAccessBeyondStride, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDevicePortabilitySubsetPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePortabilitySubsetPropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minVertexInputBindingStrideAlignment, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
 #ifdef VK_KHR_maintenance3
 #endif
+#ifdef VK_KHR_draw_indirect_count
+#endif
 #ifdef VK_KHR_shader_subgroup_extended_types
+#endif
+#ifdef VK_KHR_8bit_storage
+#endif
+#ifdef VK_KHR_shader_atomic_int64
+#endif
+#ifdef VK_KHR_shader_clock
+void reservedmarshal_VkPhysicalDeviceShaderClockFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderClockFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSubgroupClock, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderDeviceClock, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_video_decode_h265
+void reservedmarshal_VkVideoDecodeH265ProfileInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH265ProfileInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (StdVideoH265ProfileIdc*)&forMarshaling->stdProfileIdc,
+           sizeof(StdVideoH265ProfileIdc));
+    *ptr += sizeof(StdVideoH265ProfileIdc);
+}
+
+void reservedmarshal_VkVideoDecodeH265CapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH265CapabilitiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (StdVideoH265LevelIdc*)&forMarshaling->maxLevelIdc, sizeof(StdVideoH265LevelIdc));
+    *ptr += sizeof(StdVideoH265LevelIdc);
+}
+
+void reservedmarshal_VkVideoDecodeH265SessionParametersAddInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH265SessionParametersAddInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdVPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const StdVideoH265VideoParameterSet*)forMarshaling->pStdVPSs,
+           forMarshaling->stdVPSCount * sizeof(const StdVideoH265VideoParameterSet));
+    *ptr += forMarshaling->stdVPSCount * sizeof(const StdVideoH265VideoParameterSet);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdSPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const StdVideoH265SequenceParameterSet*)forMarshaling->pStdSPSs,
+           forMarshaling->stdSPSCount * sizeof(const StdVideoH265SequenceParameterSet));
+    *ptr += forMarshaling->stdSPSCount * sizeof(const StdVideoH265SequenceParameterSet);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdPPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const StdVideoH265PictureParameterSet*)forMarshaling->pStdPPSs,
+           forMarshaling->stdPPSCount * sizeof(const StdVideoH265PictureParameterSet));
+    *ptr += forMarshaling->stdPPSCount * sizeof(const StdVideoH265PictureParameterSet);
+}
+
+void reservedmarshal_VkVideoDecodeH265SessionParametersCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH265SessionParametersCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdVPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdSPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdPPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pParametersAddInfo;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pParametersAddInfo) {
+        reservedmarshal_VkVideoDecodeH265SessionParametersAddInfoKHR(
+            vkStream, rootType,
+            (const VkVideoDecodeH265SessionParametersAddInfoKHR*)(forMarshaling
+                                                                      ->pParametersAddInfo),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkVideoDecodeH265PictureInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH265PictureInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (const StdVideoDecodeH265PictureInfo*)forMarshaling->pStdPictureInfo,
+           sizeof(const StdVideoDecodeH265PictureInfo));
+    *ptr += sizeof(const StdVideoDecodeH265PictureInfo);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sliceSegmentCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pSliceSegmentOffsets,
+           forMarshaling->sliceSegmentCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->sliceSegmentCount * sizeof(const uint32_t);
+}
+
+void reservedmarshal_VkVideoDecodeH265DpbSlotInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH265DpbSlotInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (const StdVideoDecodeH265ReferenceInfo*)forMarshaling->pStdReferenceInfo,
+           sizeof(const StdVideoDecodeH265ReferenceInfo));
+    *ptr += sizeof(const StdVideoDecodeH265ReferenceInfo);
+}
+
+#endif
+#ifdef VK_KHR_global_priority
+void reservedmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceQueueGlobalPriorityCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkQueueGlobalPriorityKHR*)&forMarshaling->globalPriority,
+           sizeof(VkQueueGlobalPriorityKHR));
+    *ptr += sizeof(VkQueueGlobalPriorityKHR);
+}
+
+void reservedmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->globalPriorityQuery, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkQueueFamilyGlobalPriorityPropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->priorityCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkQueueGlobalPriorityKHR*)forMarshaling->priorities,
+           VK_MAX_GLOBAL_PRIORITY_SIZE_KHR * sizeof(VkQueueGlobalPriorityKHR));
+    *ptr += VK_MAX_GLOBAL_PRIORITY_SIZE_KHR * sizeof(VkQueueGlobalPriorityKHR);
+}
+
+#endif
+#ifdef VK_KHR_driver_properties
+#endif
+#ifdef VK_KHR_shader_float_controls
+#endif
+#ifdef VK_KHR_depth_stencil_resolve
+#endif
+#ifdef VK_KHR_swapchain_mutable_format
+#endif
+#ifdef VK_KHR_timeline_semaphore
 #endif
 #ifdef VK_KHR_vulkan_memory_model
 #endif
 #ifdef VK_KHR_shader_terminate_invocation
 #endif
+#ifdef VK_KHR_fragment_shading_rate
+void reservedmarshal_VkFragmentShadingRateAttachmentInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkFragmentShadingRateAttachmentInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pFragmentShadingRateAttachment;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pFragmentShadingRateAttachment) {
+        reservedmarshal_VkAttachmentReference2(
+            vkStream, rootType,
+            (const VkAttachmentReference2*)(forMarshaling->pFragmentShadingRateAttachment), ptr);
+    }
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->shadingRateAttachmentTexelSize), ptr);
+}
+
+void reservedmarshal_VkPipelineFragmentShadingRateStateCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineFragmentShadingRateStateCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->fragmentSize),
+                               ptr);
+    memcpy(*ptr, (VkFragmentShadingRateCombinerOpKHR*)forMarshaling->combinerOps,
+           2 * sizeof(VkFragmentShadingRateCombinerOpKHR));
+    *ptr += 2 * sizeof(VkFragmentShadingRateCombinerOpKHR);
+}
+
+void reservedmarshal_VkPhysicalDeviceFragmentShadingRateFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRateFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->pipelineFragmentShadingRate, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->primitiveFragmentShadingRate, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->attachmentFragmentShadingRate, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceFragmentShadingRatePropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRatePropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkExtent2D(
+        vkStream, rootType,
+        (VkExtent2D*)(&forMarshaling->minFragmentShadingRateAttachmentTexelSize), ptr);
+    reservedmarshal_VkExtent2D(
+        vkStream, rootType,
+        (VkExtent2D*)(&forMarshaling->maxFragmentShadingRateAttachmentTexelSize), ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxFragmentShadingRateAttachmentTexelSizeAspectRatio,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->primitiveFragmentShadingRateWithMultipleViewports,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->layeredShadingRateAttachments, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShadingRateNonTrivialCombinerOps,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->maxFragmentSize),
+                               ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxFragmentSizeAspectRatio, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxFragmentShadingRateCoverageSamples,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkSampleCountFlagBits*)&forMarshaling->maxFragmentShadingRateRasterizationSamples,
+           sizeof(VkSampleCountFlagBits));
+    *ptr += sizeof(VkSampleCountFlagBits);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShadingRateWithShaderDepthStencilWrites,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShadingRateWithSampleMask, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShadingRateWithShaderSampleMask,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShadingRateWithConservativeRasterization,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShadingRateWithFragmentShaderInterlock,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShadingRateWithCustomSampleLocations,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShadingRateStrictMultiplyCombiner,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceFragmentShadingRateKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRateKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSampleCountFlags*)&forMarshaling->sampleCounts, sizeof(VkSampleCountFlags));
+    *ptr += sizeof(VkSampleCountFlags);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->fragmentSize),
+                               ptr);
+}
+
+#endif
+#ifdef VK_KHR_spirv_1_4
+#endif
+#ifdef VK_KHR_surface_protected_capabilities
+void reservedmarshal_VkSurfaceProtectedCapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSurfaceProtectedCapabilitiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->supportsProtected, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_separate_depth_stencil_layouts
+#endif
+#ifdef VK_KHR_present_wait
+void reservedmarshal_VkPhysicalDevicePresentWaitFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePresentWaitFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->presentWait, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_uniform_buffer_standard_layout
+#endif
 #ifdef VK_KHR_buffer_device_address
+#endif
+#ifdef VK_KHR_deferred_host_operations
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 void reservedmarshal_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
@@ -7632,6 +10012,494 @@ void reservedmarshal_VkPipelineExecutableInternalRepresentationKHR(
 }
 
 #endif
+#ifdef VK_KHR_map_memory2
+void reservedmarshal_VkMemoryMapInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                        const VkMemoryMapInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkMemoryMapFlags*)&forMarshaling->flags, sizeof(VkMemoryMapFlags));
+    *ptr += sizeof(VkMemoryMapFlags);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->offset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkMemoryUnmapInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkMemoryUnmapInfoKHR* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkMemoryUnmapFlagsKHR*)&forMarshaling->flags, sizeof(VkMemoryUnmapFlagsKHR));
+    *ptr += sizeof(VkMemoryUnmapFlagsKHR);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+#endif
+#ifdef VK_KHR_shader_integer_dot_product
+#endif
+#ifdef VK_KHR_pipeline_library
+void reservedmarshal_VkPipelineLibraryCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineLibraryCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->libraryCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->libraryCount) {
+        uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->libraryCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkPipeline(forMarshaling->pLibraries[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->libraryCount;
+    }
+}
+
+#endif
+#ifdef VK_KHR_shader_non_semantic_info
+#endif
+#ifdef VK_KHR_present_id
+void reservedmarshal_VkPresentIdKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                    const VkPresentIdKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pPresentIds;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pPresentIds) {
+        memcpy(*ptr, (const uint64_t*)forMarshaling->pPresentIds,
+               forMarshaling->swapchainCount * sizeof(const uint64_t));
+        *ptr += forMarshaling->swapchainCount * sizeof(const uint64_t);
+    }
+}
+
+void reservedmarshal_VkPhysicalDevicePresentIdFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePresentIdFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->presentId, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_video_encode_queue
+void reservedmarshal_VkVideoEncodeInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkVideoEncodeInfoKHR* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoEncodeFlagsKHR*)&forMarshaling->flags, sizeof(VkVideoEncodeFlagsKHR));
+    *ptr += sizeof(VkVideoEncodeFlagsKHR);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->qualityLevel, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->dstBuffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->dstBufferOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->dstBufferRange, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    reservedmarshal_VkVideoPictureResourceInfoKHR(
+        vkStream, rootType, (VkVideoPictureResourceInfoKHR*)(&forMarshaling->srcPictureResource),
+        ptr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pSetupReferenceSlot;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pSetupReferenceSlot) {
+        reservedmarshal_VkVideoReferenceSlotInfoKHR(
+            vkStream, rootType,
+            (const VkVideoReferenceSlotInfoKHR*)(forMarshaling->pSetupReferenceSlot), ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->referenceSlotCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->referenceSlotCount; ++i) {
+        reservedmarshal_VkVideoReferenceSlotInfoKHR(
+            vkStream, rootType,
+            (const VkVideoReferenceSlotInfoKHR*)(forMarshaling->pReferenceSlots + i), ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->precedingExternallyEncodedBytes, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVideoEncodeCapabilitiesKHR(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkVideoEncodeCapabilitiesKHR* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoEncodeCapabilityFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkVideoEncodeCapabilityFlagsKHR));
+    *ptr += sizeof(VkVideoEncodeCapabilityFlagsKHR);
+    memcpy(*ptr, (VkVideoEncodeRateControlModeFlagsKHR*)&forMarshaling->rateControlModes,
+           sizeof(VkVideoEncodeRateControlModeFlagsKHR));
+    *ptr += sizeof(VkVideoEncodeRateControlModeFlagsKHR);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxRateControlLayers, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxQualityLevels, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->inputImageDataFillAlignment), ptr);
+    memcpy(*ptr, (VkVideoEncodeFeedbackFlagsKHR*)&forMarshaling->supportedEncodeFeedbackFlags,
+           sizeof(VkVideoEncodeFeedbackFlagsKHR));
+    *ptr += sizeof(VkVideoEncodeFeedbackFlagsKHR);
+}
+
+void reservedmarshal_VkQueryPoolVideoEncodeFeedbackCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkQueryPoolVideoEncodeFeedbackCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoEncodeFeedbackFlagsKHR*)&forMarshaling->encodeFeedbackFlags,
+           sizeof(VkVideoEncodeFeedbackFlagsKHR));
+    *ptr += sizeof(VkVideoEncodeFeedbackFlagsKHR);
+}
+
+void reservedmarshal_VkVideoEncodeUsageInfoKHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkVideoEncodeUsageInfoKHR* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoEncodeUsageFlagsKHR*)&forMarshaling->videoUsageHints,
+           sizeof(VkVideoEncodeUsageFlagsKHR));
+    *ptr += sizeof(VkVideoEncodeUsageFlagsKHR);
+    memcpy(*ptr, (VkVideoEncodeContentFlagsKHR*)&forMarshaling->videoContentHints,
+           sizeof(VkVideoEncodeContentFlagsKHR));
+    *ptr += sizeof(VkVideoEncodeContentFlagsKHR);
+    memcpy(*ptr, (VkVideoEncodeTuningModeKHR*)&forMarshaling->tuningMode,
+           sizeof(VkVideoEncodeTuningModeKHR));
+    *ptr += sizeof(VkVideoEncodeTuningModeKHR);
+}
+
+void reservedmarshal_VkVideoEncodeRateControlLayerInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeRateControlLayerInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->averageBitrate, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->maxBitrate, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->frameRateNumerator, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->frameRateDenominator, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->virtualBufferSizeInMs, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->initialVirtualBufferSizeInMs, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVideoEncodeRateControlInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeRateControlInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoEncodeRateControlFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkVideoEncodeRateControlFlagsKHR));
+    *ptr += sizeof(VkVideoEncodeRateControlFlagsKHR);
+    memcpy(*ptr, (VkVideoEncodeRateControlModeFlagBitsKHR*)&forMarshaling->rateControlMode,
+           sizeof(VkVideoEncodeRateControlModeFlagBitsKHR));
+    *ptr += sizeof(VkVideoEncodeRateControlModeFlagBitsKHR);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->layerCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->layerCount; ++i) {
+        reservedmarshal_VkVideoEncodeRateControlLayerInfoKHR(
+            vkStream, rootType,
+            (const VkVideoEncodeRateControlLayerInfoKHR*)(forMarshaling->pLayers + i), ptr);
+    }
+}
+
+#endif
+#ifdef VK_KHR_synchronization2
+void reservedmarshal_VkQueueFamilyCheckpointProperties2NV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkQueueFamilyCheckpointProperties2NV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineStageFlags2*)&forMarshaling->checkpointExecutionStageMask,
+           sizeof(VkPipelineStageFlags2));
+    *ptr += sizeof(VkPipelineStageFlags2);
+}
+
+void reservedmarshal_VkCheckpointData2NV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                         const VkCheckpointData2NV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineStageFlags2*)&forMarshaling->stage, sizeof(VkPipelineStageFlags2));
+    *ptr += sizeof(VkPipelineStageFlags2);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pCheckpointMarker;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pCheckpointMarker) {
+        memcpy(*ptr, (void*)forMarshaling->pCheckpointMarker, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+#endif
+#ifdef VK_KHR_fragment_shader_barycentric
+void reservedmarshal_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShaderBarycentric, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->triStripVertexOrderIndependentOfProvokingVertex,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_shader_subgroup_uniform_control_flow
+void reservedmarshal_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR* forMarshaling,
+    uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSubgroupUniformControlFlow, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_zero_initialize_workgroup_memory
+#endif
+#ifdef VK_KHR_workgroup_memory_explicit_layout
+void reservedmarshal_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->workgroupMemoryExplicitLayout, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->workgroupMemoryExplicitLayoutScalarBlockLayout,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->workgroupMemoryExplicitLayout8BitAccess,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->workgroupMemoryExplicitLayout16BitAccess,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_copy_commands2
+#endif
+#ifdef VK_KHR_format_feature_flags2
+#endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+void reservedmarshal_VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingMaintenance1, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingPipelineTraceRaysIndirect2, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkTraceRaysIndirectCommand2KHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkTraceRaysIndirectCommand2KHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->raygenShaderRecordAddress,
+           sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->raygenShaderRecordSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->missShaderBindingTableAddress,
+           sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->missShaderBindingTableSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->missShaderBindingTableStride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->hitShaderBindingTableAddress,
+           sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->hitShaderBindingTableSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->hitShaderBindingTableStride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->callableShaderBindingTableAddress,
+           sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->callableShaderBindingTableSize,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->callableShaderBindingTableStride,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->width, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->height, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->depth, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_KHR_portability_enumeration
+#endif
+#ifdef VK_KHR_maintenance4
+#endif
+#ifdef VK_KHR_ray_tracing_position_fetch
+void reservedmarshal_VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingPositionFetch, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void reservedmarshal_VkNativeBufferUsage2ANDROID(VulkanStreamGuest* vkStream,
                                                  VkStructureType rootType,
@@ -7704,6 +10572,197 @@ void reservedmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
     reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
     memcpy(*ptr, (VkBool32*)&forMarshaling->sharedImage, sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_debug_report
+void reservedmarshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDebugReportCallbackCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDebugReportFlagsEXT*)&forMarshaling->flags, sizeof(VkDebugReportFlagsEXT));
+    *ptr += sizeof(VkDebugReportFlagsEXT);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->pfnCallback;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pUserData;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pUserData) {
+        memcpy(*ptr, (void*)forMarshaling->pUserData, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+#endif
+#ifdef VK_NV_glsl_shader
+#endif
+#ifdef VK_EXT_depth_range_unrestricted
+#endif
+#ifdef VK_IMG_filter_cubic
+#endif
+#ifdef VK_AMD_rasterization_order
+void reservedmarshal_VkPipelineRasterizationStateRasterizationOrderAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationStateRasterizationOrderAMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkRasterizationOrderAMD*)&forMarshaling->rasterizationOrder,
+           sizeof(VkRasterizationOrderAMD));
+    *ptr += sizeof(VkRasterizationOrderAMD);
+}
+
+#endif
+#ifdef VK_AMD_shader_trinary_minmax
+#endif
+#ifdef VK_AMD_shader_explicit_vertex_parameter
+#endif
+#ifdef VK_EXT_debug_marker
+void reservedmarshal_VkDebugMarkerObjectNameInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDebugMarkerObjectNameInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDebugReportObjectTypeEXT*)&forMarshaling->objectType,
+           sizeof(VkDebugReportObjectTypeEXT));
+    *ptr += sizeof(VkDebugReportObjectTypeEXT);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->object, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    {
+        uint32_t l = forMarshaling->pObjectName ? strlen(forMarshaling->pObjectName) : 0;
+        memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+        android::base::Stream::toBe32((uint8_t*)*ptr);
+        *ptr += sizeof(uint32_t);
+        memcpy(*ptr, (char*)forMarshaling->pObjectName, l);
+        *ptr += l;
+    }
+}
+
+void reservedmarshal_VkDebugMarkerObjectTagInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDebugMarkerObjectTagInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDebugReportObjectTypeEXT*)&forMarshaling->objectType,
+           sizeof(VkDebugReportObjectTypeEXT));
+    *ptr += sizeof(VkDebugReportObjectTypeEXT);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->object, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->tagName, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->tagSize;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (const void*)forMarshaling->pTag, forMarshaling->tagSize * sizeof(const uint8_t));
+    *ptr += forMarshaling->tagSize * sizeof(const uint8_t);
+}
+
+void reservedmarshal_VkDebugMarkerMarkerInfoEXT(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkDebugMarkerMarkerInfoEXT* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    {
+        uint32_t l = forMarshaling->pMarkerName ? strlen(forMarshaling->pMarkerName) : 0;
+        memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+        android::base::Stream::toBe32((uint8_t*)*ptr);
+        *ptr += sizeof(uint32_t);
+        memcpy(*ptr, (char*)forMarshaling->pMarkerName, l);
+        *ptr += l;
+    }
+    memcpy(*ptr, (float*)forMarshaling->color, 4 * sizeof(float));
+    *ptr += 4 * sizeof(float);
+}
+
+#endif
+#ifdef VK_AMD_gcn_shader
+#endif
+#ifdef VK_NV_dedicated_allocation
+void reservedmarshal_VkDedicatedAllocationImageCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDedicatedAllocationImageCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->dedicatedAllocation, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkDedicatedAllocationBufferCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDedicatedAllocationBufferCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->dedicatedAllocation, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkDedicatedAllocationMemoryAllocateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDedicatedAllocationMemoryAllocateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkImage((*&forMarshaling->image));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkBuffer((*&forMarshaling->buffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
 }
 
 #endif
@@ -7780,23 +10839,4275 @@ void reservedmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
 }
 
 #endif
+#ifdef VK_NVX_binary_import
+void reservedmarshal_VkCuModuleCreateInfoNVX(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkCuModuleCreateInfoNVX* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->dataSize;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (const void*)forMarshaling->pData,
+           forMarshaling->dataSize * sizeof(const uint8_t));
+    *ptr += forMarshaling->dataSize * sizeof(const uint8_t);
+}
+
+void reservedmarshal_VkCuFunctionCreateInfoNVX(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkCuFunctionCreateInfoNVX* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->module;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    {
+        uint32_t l = forMarshaling->pName ? strlen(forMarshaling->pName) : 0;
+        memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+        android::base::Stream::toBe32((uint8_t*)*ptr);
+        *ptr += sizeof(uint32_t);
+        memcpy(*ptr, (char*)forMarshaling->pName, l);
+        *ptr += l;
+    }
+}
+
+void reservedmarshal_VkCuLaunchInfoNVX(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                       const VkCuLaunchInfoNVX* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->function;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->gridDimX, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->gridDimY, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->gridDimZ, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->blockDimX, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->blockDimY, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->blockDimZ, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sharedMemBytes, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    uint64_t cgen_var_1 = (uint64_t)forMarshaling->paramCount;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_2 = (uint64_t)forMarshaling->extraCount;
+    memcpy((*ptr), &cgen_var_2, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+}
+
+#endif
+#ifdef VK_NVX_image_view_handle
+void reservedmarshal_VkImageViewHandleInfoNVX(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkImageViewHandleInfoNVX* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkImageView((*&forMarshaling->imageView));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDescriptorType*)&forMarshaling->descriptorType, sizeof(VkDescriptorType));
+    *ptr += sizeof(VkDescriptorType);
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSampler((*&forMarshaling->sampler));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkImageViewAddressPropertiesNVX(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageViewAddressPropertiesNVX* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->deviceAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+#endif
+#ifdef VK_AMD_draw_indirect_count
+#endif
+#ifdef VK_AMD_negative_viewport_height
+#endif
 #ifdef VK_AMD_gpu_shader_half_float
 #endif
+#ifdef VK_AMD_shader_ballot
+#endif
+#ifdef VK_EXT_video_encode_h264
+void reservedmarshal_VkVideoEncodeH264CapabilitiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264CapabilitiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoEncodeH264CapabilityFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkVideoEncodeH264CapabilityFlagsEXT));
+    *ptr += sizeof(VkVideoEncodeH264CapabilityFlagsEXT);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxPPictureL0ReferenceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxBPictureL0ReferenceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxL1ReferenceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->motionVectorsOverPicBoundariesFlag, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxBytesPerPicDenom, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxBitsPerMbDenom, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->log2MaxMvLengthHorizontal, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->log2MaxMvLengthVertical, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVideoEncodeH264SessionParametersAddInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264SessionParametersAddInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdSPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pStdSPSs;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pStdSPSs) {
+        memcpy(*ptr, (const StdVideoH264SequenceParameterSet*)forMarshaling->pStdSPSs,
+               forMarshaling->stdSPSCount * sizeof(const StdVideoH264SequenceParameterSet));
+        *ptr += forMarshaling->stdSPSCount * sizeof(const StdVideoH264SequenceParameterSet);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdPPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pStdPPSs;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pStdPPSs) {
+        memcpy(*ptr, (const StdVideoH264PictureParameterSet*)forMarshaling->pStdPPSs,
+               forMarshaling->stdPPSCount * sizeof(const StdVideoH264PictureParameterSet));
+        *ptr += forMarshaling->stdPPSCount * sizeof(const StdVideoH264PictureParameterSet);
+    }
+}
+
+void reservedmarshal_VkVideoEncodeH264SessionParametersCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264SessionParametersCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdSPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdPPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pParametersAddInfo;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pParametersAddInfo) {
+        reservedmarshal_VkVideoEncodeH264SessionParametersAddInfoEXT(
+            vkStream, rootType,
+            (const VkVideoEncodeH264SessionParametersAddInfoEXT*)(forMarshaling
+                                                                      ->pParametersAddInfo),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkVideoEncodeH264NaluSliceInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264NaluSliceInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->mbCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pStdReferenceFinalLists;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pStdReferenceFinalLists) {
+        memcpy(*ptr,
+               (const StdVideoEncodeH264ReferenceListsInfo*)forMarshaling->pStdReferenceFinalLists,
+               sizeof(const StdVideoEncodeH264ReferenceListsInfo));
+        *ptr += sizeof(const StdVideoEncodeH264ReferenceListsInfo);
+    }
+    memcpy(*ptr, (const StdVideoEncodeH264SliceHeader*)forMarshaling->pStdSliceHeader,
+           sizeof(const StdVideoEncodeH264SliceHeader));
+    *ptr += sizeof(const StdVideoEncodeH264SliceHeader);
+}
+
+void reservedmarshal_VkVideoEncodeH264VclFrameInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264VclFrameInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pStdReferenceFinalLists;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pStdReferenceFinalLists) {
+        memcpy(*ptr,
+               (const StdVideoEncodeH264ReferenceListsInfo*)forMarshaling->pStdReferenceFinalLists,
+               sizeof(const StdVideoEncodeH264ReferenceListsInfo));
+        *ptr += sizeof(const StdVideoEncodeH264ReferenceListsInfo);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->naluSliceEntryCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->naluSliceEntryCount; ++i) {
+        reservedmarshal_VkVideoEncodeH264NaluSliceInfoEXT(
+            vkStream, rootType,
+            (const VkVideoEncodeH264NaluSliceInfoEXT*)(forMarshaling->pNaluSliceEntries + i), ptr);
+    }
+    memcpy(*ptr, (const StdVideoEncodeH264PictureInfo*)forMarshaling->pStdPictureInfo,
+           sizeof(const StdVideoEncodeH264PictureInfo));
+    *ptr += sizeof(const StdVideoEncodeH264PictureInfo);
+}
+
+void reservedmarshal_VkVideoEncodeH264DpbSlotInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264DpbSlotInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (const StdVideoEncodeH264ReferenceInfo*)forMarshaling->pStdReferenceInfo,
+           sizeof(const StdVideoEncodeH264ReferenceInfo));
+    *ptr += sizeof(const StdVideoEncodeH264ReferenceInfo);
+}
+
+void reservedmarshal_VkVideoEncodeH264ProfileInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264ProfileInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (StdVideoH264ProfileIdc*)&forMarshaling->stdProfileIdc,
+           sizeof(StdVideoH264ProfileIdc));
+    *ptr += sizeof(StdVideoH264ProfileIdc);
+}
+
+void reservedmarshal_VkVideoEncodeH264RateControlInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264RateControlInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->gopFrameCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->idrPeriod, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->consecutiveBFrameCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkVideoEncodeH264RateControlStructureEXT*)&forMarshaling->rateControlStructure,
+           sizeof(VkVideoEncodeH264RateControlStructureEXT));
+    *ptr += sizeof(VkVideoEncodeH264RateControlStructureEXT);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->temporalLayerCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVideoEncodeH264QpEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkVideoEncodeH264QpEXT* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (int32_t*)&forMarshaling->qpI, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+    memcpy(*ptr, (int32_t*)&forMarshaling->qpP, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+    memcpy(*ptr, (int32_t*)&forMarshaling->qpB, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+}
+
+void reservedmarshal_VkVideoEncodeH264FrameSizeEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264FrameSizeEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->frameISize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->framePSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->frameBSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVideoEncodeH264RateControlLayerInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264RateControlLayerInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->temporalLayerId, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->useInitialRcQp, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkVideoEncodeH264QpEXT(
+        vkStream, rootType, (VkVideoEncodeH264QpEXT*)(&forMarshaling->initialRcQp), ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->useMinQp, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkVideoEncodeH264QpEXT(vkStream, rootType,
+                                           (VkVideoEncodeH264QpEXT*)(&forMarshaling->minQp), ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->useMaxQp, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkVideoEncodeH264QpEXT(vkStream, rootType,
+                                           (VkVideoEncodeH264QpEXT*)(&forMarshaling->maxQp), ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->useMaxFrameSize, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkVideoEncodeH264FrameSizeEXT(
+        vkStream, rootType, (VkVideoEncodeH264FrameSizeEXT*)(&forMarshaling->maxFrameSize), ptr);
+}
+
+#endif
+#ifdef VK_EXT_video_encode_h265
+void reservedmarshal_VkVideoEncodeH265CapabilitiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265CapabilitiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkVideoEncodeH265CapabilityFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkVideoEncodeH265CapabilityFlagsEXT));
+    *ptr += sizeof(VkVideoEncodeH265CapabilityFlagsEXT);
+    memcpy(*ptr, (VkVideoEncodeH265CtbSizeFlagsEXT*)&forMarshaling->ctbSizes,
+           sizeof(VkVideoEncodeH265CtbSizeFlagsEXT));
+    *ptr += sizeof(VkVideoEncodeH265CtbSizeFlagsEXT);
+    memcpy(*ptr, (VkVideoEncodeH265TransformBlockSizeFlagsEXT*)&forMarshaling->transformBlockSizes,
+           sizeof(VkVideoEncodeH265TransformBlockSizeFlagsEXT));
+    *ptr += sizeof(VkVideoEncodeH265TransformBlockSizeFlagsEXT);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxPPictureL0ReferenceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxBPictureL0ReferenceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxL1ReferenceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxSubLayersCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minLog2MinLumaCodingBlockSizeMinus3, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxLog2MinLumaCodingBlockSizeMinus3, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minLog2MinLumaTransformBlockSizeMinus2,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxLog2MinLumaTransformBlockSizeMinus2,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minMaxTransformHierarchyDepthInter, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMaxTransformHierarchyDepthInter, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minMaxTransformHierarchyDepthIntra, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMaxTransformHierarchyDepthIntra, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDiffCuQpDeltaDepth, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minMaxNumMergeCand, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMaxNumMergeCand, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVideoEncodeH265SessionParametersAddInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265SessionParametersAddInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdVPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pStdVPSs;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pStdVPSs) {
+        memcpy(*ptr, (const StdVideoH265VideoParameterSet*)forMarshaling->pStdVPSs,
+               forMarshaling->stdVPSCount * sizeof(const StdVideoH265VideoParameterSet));
+        *ptr += forMarshaling->stdVPSCount * sizeof(const StdVideoH265VideoParameterSet);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdSPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pStdSPSs;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pStdSPSs) {
+        memcpy(*ptr, (const StdVideoH265SequenceParameterSet*)forMarshaling->pStdSPSs,
+               forMarshaling->stdSPSCount * sizeof(const StdVideoH265SequenceParameterSet));
+        *ptr += forMarshaling->stdSPSCount * sizeof(const StdVideoH265SequenceParameterSet);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stdPPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pStdPPSs;
+    memcpy((*ptr), &cgen_var_2, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pStdPPSs) {
+        memcpy(*ptr, (const StdVideoH265PictureParameterSet*)forMarshaling->pStdPPSs,
+               forMarshaling->stdPPSCount * sizeof(const StdVideoH265PictureParameterSet));
+        *ptr += forMarshaling->stdPPSCount * sizeof(const StdVideoH265PictureParameterSet);
+    }
+}
+
+void reservedmarshal_VkVideoEncodeH265SessionParametersCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265SessionParametersCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdVPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdSPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxStdPPSCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pParametersAddInfo;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pParametersAddInfo) {
+        reservedmarshal_VkVideoEncodeH265SessionParametersAddInfoEXT(
+            vkStream, rootType,
+            (const VkVideoEncodeH265SessionParametersAddInfoEXT*)(forMarshaling
+                                                                      ->pParametersAddInfo),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkVideoEncodeH265NaluSliceSegmentInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265NaluSliceSegmentInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->ctbCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pStdReferenceFinalLists;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pStdReferenceFinalLists) {
+        memcpy(*ptr,
+               (const StdVideoEncodeH265ReferenceListsInfo*)forMarshaling->pStdReferenceFinalLists,
+               sizeof(const StdVideoEncodeH265ReferenceListsInfo));
+        *ptr += sizeof(const StdVideoEncodeH265ReferenceListsInfo);
+    }
+    memcpy(*ptr, (const StdVideoEncodeH265SliceSegmentHeader*)forMarshaling->pStdSliceSegmentHeader,
+           sizeof(const StdVideoEncodeH265SliceSegmentHeader));
+    *ptr += sizeof(const StdVideoEncodeH265SliceSegmentHeader);
+}
+
+void reservedmarshal_VkVideoEncodeH265VclFrameInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265VclFrameInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pStdReferenceFinalLists;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pStdReferenceFinalLists) {
+        memcpy(*ptr,
+               (const StdVideoEncodeH265ReferenceListsInfo*)forMarshaling->pStdReferenceFinalLists,
+               sizeof(const StdVideoEncodeH265ReferenceListsInfo));
+        *ptr += sizeof(const StdVideoEncodeH265ReferenceListsInfo);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->naluSliceSegmentEntryCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->naluSliceSegmentEntryCount; ++i) {
+        reservedmarshal_VkVideoEncodeH265NaluSliceSegmentInfoEXT(
+            vkStream, rootType,
+            (const VkVideoEncodeH265NaluSliceSegmentInfoEXT*)(forMarshaling
+                                                                  ->pNaluSliceSegmentEntries +
+                                                              i),
+            ptr);
+    }
+    memcpy(*ptr, (const StdVideoEncodeH265PictureInfo*)forMarshaling->pStdPictureInfo,
+           sizeof(const StdVideoEncodeH265PictureInfo));
+    *ptr += sizeof(const StdVideoEncodeH265PictureInfo);
+}
+
+void reservedmarshal_VkVideoEncodeH265DpbSlotInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265DpbSlotInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (const StdVideoEncodeH265ReferenceInfo*)forMarshaling->pStdReferenceInfo,
+           sizeof(const StdVideoEncodeH265ReferenceInfo));
+    *ptr += sizeof(const StdVideoEncodeH265ReferenceInfo);
+}
+
+void reservedmarshal_VkVideoEncodeH265ProfileInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265ProfileInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (StdVideoH265ProfileIdc*)&forMarshaling->stdProfileIdc,
+           sizeof(StdVideoH265ProfileIdc));
+    *ptr += sizeof(StdVideoH265ProfileIdc);
+}
+
+void reservedmarshal_VkVideoEncodeH265RateControlInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265RateControlInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->gopFrameCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->idrPeriod, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->consecutiveBFrameCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkVideoEncodeH265RateControlStructureEXT*)&forMarshaling->rateControlStructure,
+           sizeof(VkVideoEncodeH265RateControlStructureEXT));
+    *ptr += sizeof(VkVideoEncodeH265RateControlStructureEXT);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->subLayerCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVideoEncodeH265QpEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkVideoEncodeH265QpEXT* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (int32_t*)&forMarshaling->qpI, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+    memcpy(*ptr, (int32_t*)&forMarshaling->qpP, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+    memcpy(*ptr, (int32_t*)&forMarshaling->qpB, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+}
+
+void reservedmarshal_VkVideoEncodeH265FrameSizeEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265FrameSizeEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->frameISize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->framePSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->frameBSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVideoEncodeH265RateControlLayerInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265RateControlLayerInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->temporalId, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->useInitialRcQp, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkVideoEncodeH265QpEXT(
+        vkStream, rootType, (VkVideoEncodeH265QpEXT*)(&forMarshaling->initialRcQp), ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->useMinQp, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkVideoEncodeH265QpEXT(vkStream, rootType,
+                                           (VkVideoEncodeH265QpEXT*)(&forMarshaling->minQp), ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->useMaxQp, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkVideoEncodeH265QpEXT(vkStream, rootType,
+                                           (VkVideoEncodeH265QpEXT*)(&forMarshaling->maxQp), ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->useMaxFrameSize, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkVideoEncodeH265FrameSizeEXT(
+        vkStream, rootType, (VkVideoEncodeH265FrameSizeEXT*)(&forMarshaling->maxFrameSize), ptr);
+}
+
+#endif
+#ifdef VK_AMD_texture_gather_bias_lod
+void reservedmarshal_VkTextureLODGatherFormatPropertiesAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkTextureLODGatherFormatPropertiesAMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->supportsTextureGatherLODBiasAMD, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_AMD_shader_info
+void reservedmarshal_VkShaderResourceUsageAMD(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkShaderResourceUsageAMD* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->numUsedVgprs, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->numUsedSgprs, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->ldsSizePerLocalWorkGroup, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->ldsUsageSizeInBytes;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_1 = (uint64_t)forMarshaling->scratchMemUsageInBytes;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+}
+
+void reservedmarshal_VkShaderStatisticsInfoAMD(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkShaderStatisticsInfoAMD* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkShaderStageFlags*)&forMarshaling->shaderStageMask, sizeof(VkShaderStageFlags));
+    *ptr += sizeof(VkShaderStageFlags);
+    reservedmarshal_VkShaderResourceUsageAMD(
+        vkStream, rootType, (VkShaderResourceUsageAMD*)(&forMarshaling->resourceUsage), ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->numPhysicalVgprs, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->numPhysicalSgprs, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->numAvailableVgprs, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->numAvailableSgprs, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)forMarshaling->computeWorkGroupSize, 3 * sizeof(uint32_t));
+    *ptr += 3 * sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_AMD_shader_image_load_store_lod
+#endif
+#ifdef VK_GGP_stream_descriptor_surface
+void reservedmarshal_VkStreamDescriptorSurfaceCreateInfoGGP(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkStreamDescriptorSurfaceCreateInfoGGP* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkStreamDescriptorSurfaceCreateFlagsGGP*)&forMarshaling->flags,
+           sizeof(VkStreamDescriptorSurfaceCreateFlagsGGP));
+    *ptr += sizeof(VkStreamDescriptorSurfaceCreateFlagsGGP);
+    memcpy(*ptr, (GgpStreamDescriptor*)&forMarshaling->streamDescriptor,
+           sizeof(GgpStreamDescriptor));
+    *ptr += sizeof(GgpStreamDescriptor);
+}
+
+#endif
+#ifdef VK_NV_corner_sampled_image
+void reservedmarshal_VkPhysicalDeviceCornerSampledImageFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCornerSampledImageFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->cornerSampledImage, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_IMG_format_pvrtc
+#endif
+#ifdef VK_NV_external_memory_capabilities
+void reservedmarshal_VkExternalImageFormatPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExternalImageFormatPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    reservedmarshal_VkImageFormatProperties(
+        vkStream, rootType, (VkImageFormatProperties*)(&forMarshaling->imageFormatProperties), ptr);
+    memcpy(*ptr, (VkExternalMemoryFeatureFlagsNV*)&forMarshaling->externalMemoryFeatures,
+           sizeof(VkExternalMemoryFeatureFlagsNV));
+    *ptr += sizeof(VkExternalMemoryFeatureFlagsNV);
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagsNV*)&forMarshaling->exportFromImportedHandleTypes,
+           sizeof(VkExternalMemoryHandleTypeFlagsNV));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagsNV*)&forMarshaling->compatibleHandleTypes,
+           sizeof(VkExternalMemoryHandleTypeFlagsNV));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
+}
+
+#endif
+#ifdef VK_NV_external_memory
+void reservedmarshal_VkExternalMemoryImageCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExternalMemoryImageCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagsNV*)&forMarshaling->handleTypes,
+           sizeof(VkExternalMemoryHandleTypeFlagsNV));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
+}
+
+void reservedmarshal_VkExportMemoryAllocateInfoNV(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkExportMemoryAllocateInfoNV* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagsNV*)&forMarshaling->handleTypes,
+           sizeof(VkExternalMemoryHandleTypeFlagsNV));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
+}
+
+#endif
+#ifdef VK_NV_external_memory_win32
+void reservedmarshal_VkImportMemoryWin32HandleInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportMemoryWin32HandleInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagsNV*)&forMarshaling->handleType,
+           sizeof(VkExternalMemoryHandleTypeFlagsNV));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
+    memcpy(*ptr, (HANDLE*)&forMarshaling->handle, sizeof(HANDLE));
+    *ptr += sizeof(HANDLE);
+}
+
+void reservedmarshal_VkExportMemoryWin32HandleInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExportMemoryWin32HandleInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pAttributes;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pAttributes) {
+        memcpy(*ptr, (const SECURITY_ATTRIBUTES*)forMarshaling->pAttributes,
+               sizeof(const SECURITY_ATTRIBUTES));
+        *ptr += sizeof(const SECURITY_ATTRIBUTES);
+    }
+    memcpy(*ptr, (DWORD*)&forMarshaling->dwAccess, sizeof(DWORD));
+    *ptr += sizeof(DWORD);
+}
+
+#endif
+#ifdef VK_NV_win32_keyed_mutex
+void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkWin32KeyedMutexAcquireReleaseInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->acquireCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->acquireCount) {
+        uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->acquireCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pAcquireSyncs[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->acquireCount;
+    }
+    memcpy(*ptr, (const uint64_t*)forMarshaling->pAcquireKeys,
+           forMarshaling->acquireCount * sizeof(const uint64_t));
+    *ptr += forMarshaling->acquireCount * sizeof(const uint64_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pAcquireTimeoutMilliseconds,
+           forMarshaling->acquireCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->acquireCount * sizeof(const uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->releaseCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->releaseCount) {
+        uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->releaseCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pReleaseSyncs[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->releaseCount;
+    }
+    memcpy(*ptr, (const uint64_t*)forMarshaling->pReleaseKeys,
+           forMarshaling->releaseCount * sizeof(const uint64_t));
+    *ptr += forMarshaling->releaseCount * sizeof(const uint64_t);
+}
+
+#endif
+#ifdef VK_EXT_validation_flags
+void reservedmarshal_VkValidationFlagsEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkValidationFlagsEXT* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->disabledValidationCheckCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const VkValidationCheckEXT*)forMarshaling->pDisabledValidationChecks,
+           forMarshaling->disabledValidationCheckCount * sizeof(const VkValidationCheckEXT));
+    *ptr += forMarshaling->disabledValidationCheckCount * sizeof(const VkValidationCheckEXT);
+}
+
+#endif
+#ifdef VK_NN_vi_surface
+void reservedmarshal_VkViSurfaceCreateInfoNN(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkViSurfaceCreateInfoNN* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkViSurfaceCreateFlagsNN*)&forMarshaling->flags,
+           sizeof(VkViSurfaceCreateFlagsNN));
+    *ptr += sizeof(VkViSurfaceCreateFlagsNN);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->window;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->window) {
+        memcpy(*ptr, (void*)forMarshaling->window, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+#endif
+#ifdef VK_EXT_shader_subgroup_ballot
+#endif
+#ifdef VK_EXT_shader_subgroup_vote
+#endif
+#ifdef VK_EXT_texture_compression_astc_hdr
+#endif
+#ifdef VK_EXT_astc_decode_mode
+void reservedmarshal_VkImageViewASTCDecodeModeEXT(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkImageViewASTCDecodeModeEXT* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->decodeMode, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+}
+
+void reservedmarshal_VkPhysicalDeviceASTCDecodeFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceASTCDecodeFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->decodeModeSharedExponent, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_pipeline_robustness
+void reservedmarshal_VkPhysicalDevicePipelineRobustnessFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelineRobustnessFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->pipelineRobustness, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDevicePipelineRobustnessPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelineRobustnessPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr,
+           (VkPipelineRobustnessBufferBehaviorEXT*)&forMarshaling->defaultRobustnessStorageBuffers,
+           sizeof(VkPipelineRobustnessBufferBehaviorEXT));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehaviorEXT);
+    memcpy(*ptr,
+           (VkPipelineRobustnessBufferBehaviorEXT*)&forMarshaling->defaultRobustnessUniformBuffers,
+           sizeof(VkPipelineRobustnessBufferBehaviorEXT));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehaviorEXT);
+    memcpy(*ptr,
+           (VkPipelineRobustnessBufferBehaviorEXT*)&forMarshaling->defaultRobustnessVertexInputs,
+           sizeof(VkPipelineRobustnessBufferBehaviorEXT));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehaviorEXT);
+    memcpy(*ptr, (VkPipelineRobustnessImageBehaviorEXT*)&forMarshaling->defaultRobustnessImages,
+           sizeof(VkPipelineRobustnessImageBehaviorEXT));
+    *ptr += sizeof(VkPipelineRobustnessImageBehaviorEXT);
+}
+
+void reservedmarshal_VkPipelineRobustnessCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRobustnessCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineRobustnessBufferBehaviorEXT*)&forMarshaling->storageBuffers,
+           sizeof(VkPipelineRobustnessBufferBehaviorEXT));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehaviorEXT);
+    memcpy(*ptr, (VkPipelineRobustnessBufferBehaviorEXT*)&forMarshaling->uniformBuffers,
+           sizeof(VkPipelineRobustnessBufferBehaviorEXT));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehaviorEXT);
+    memcpy(*ptr, (VkPipelineRobustnessBufferBehaviorEXT*)&forMarshaling->vertexInputs,
+           sizeof(VkPipelineRobustnessBufferBehaviorEXT));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehaviorEXT);
+    memcpy(*ptr, (VkPipelineRobustnessImageBehaviorEXT*)&forMarshaling->images,
+           sizeof(VkPipelineRobustnessImageBehaviorEXT));
+    *ptr += sizeof(VkPipelineRobustnessImageBehaviorEXT);
+}
+
+#endif
+#ifdef VK_EXT_conditional_rendering
+void reservedmarshal_VkConditionalRenderingBeginInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkConditionalRenderingBeginInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->buffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->offset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkConditionalRenderingFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkConditionalRenderingFlagsEXT));
+    *ptr += sizeof(VkConditionalRenderingFlagsEXT);
+}
+
+void reservedmarshal_VkPhysicalDeviceConditionalRenderingFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceConditionalRenderingFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->conditionalRendering, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->inheritedConditionalRendering, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkCommandBufferInheritanceConditionalRenderingInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCommandBufferInheritanceConditionalRenderingInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->conditionalRenderingEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+void reservedmarshal_VkViewportWScalingNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkViewportWScalingNV* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (float*)&forMarshaling->xcoeff, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->ycoeff, sizeof(float));
+    *ptr += sizeof(float);
+}
+
+void reservedmarshal_VkPipelineViewportWScalingStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineViewportWScalingStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->viewportWScalingEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->viewportCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pViewportWScalings;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pViewportWScalings) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->viewportCount; ++i) {
+            reservedmarshal_VkViewportWScalingNV(
+                vkStream, rootType,
+                (const VkViewportWScalingNV*)(forMarshaling->pViewportWScalings + i), ptr);
+        }
+    }
+}
+
+#endif
+#ifdef VK_EXT_direct_mode_display
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+#endif
+#ifdef VK_EXT_display_surface_counter
+void reservedmarshal_VkSurfaceCapabilities2EXT(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkSurfaceCapabilities2EXT* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minImageCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxImageCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->currentExtent),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->minImageExtent),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->maxImageExtent),
+                               ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxImageArrayLayers, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkSurfaceTransformFlagsKHR*)&forMarshaling->supportedTransforms,
+           sizeof(VkSurfaceTransformFlagsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagsKHR);
+    memcpy(*ptr, (VkSurfaceTransformFlagBitsKHR*)&forMarshaling->currentTransform,
+           sizeof(VkSurfaceTransformFlagBitsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagBitsKHR);
+    memcpy(*ptr, (VkCompositeAlphaFlagsKHR*)&forMarshaling->supportedCompositeAlpha,
+           sizeof(VkCompositeAlphaFlagsKHR));
+    *ptr += sizeof(VkCompositeAlphaFlagsKHR);
+    memcpy(*ptr, (VkImageUsageFlags*)&forMarshaling->supportedUsageFlags,
+           sizeof(VkImageUsageFlags));
+    *ptr += sizeof(VkImageUsageFlags);
+    memcpy(*ptr, (VkSurfaceCounterFlagsEXT*)&forMarshaling->supportedSurfaceCounters,
+           sizeof(VkSurfaceCounterFlagsEXT));
+    *ptr += sizeof(VkSurfaceCounterFlagsEXT);
+}
+
+#endif
+#ifdef VK_EXT_display_control
+void reservedmarshal_VkDisplayPowerInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                           const VkDisplayPowerInfoEXT* forMarshaling,
+                                           uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDisplayPowerStateEXT*)&forMarshaling->powerState,
+           sizeof(VkDisplayPowerStateEXT));
+    *ptr += sizeof(VkDisplayPowerStateEXT);
+}
+
+void reservedmarshal_VkDeviceEventInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkDeviceEventInfoEXT* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceEventTypeEXT*)&forMarshaling->deviceEvent, sizeof(VkDeviceEventTypeEXT));
+    *ptr += sizeof(VkDeviceEventTypeEXT);
+}
+
+void reservedmarshal_VkDisplayEventInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                           const VkDisplayEventInfoEXT* forMarshaling,
+                                           uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDisplayEventTypeEXT*)&forMarshaling->displayEvent,
+           sizeof(VkDisplayEventTypeEXT));
+    *ptr += sizeof(VkDisplayEventTypeEXT);
+}
+
+void reservedmarshal_VkSwapchainCounterCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSwapchainCounterCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSurfaceCounterFlagsEXT*)&forMarshaling->surfaceCounters,
+           sizeof(VkSurfaceCounterFlagsEXT));
+    *ptr += sizeof(VkSurfaceCounterFlagsEXT);
+}
+
+#endif
+#ifdef VK_GOOGLE_display_timing
+void reservedmarshal_VkRefreshCycleDurationGOOGLE(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkRefreshCycleDurationGOOGLE* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint64_t*)&forMarshaling->refreshDuration, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkPastPresentationTimingGOOGLE(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPastPresentationTimingGOOGLE* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->presentID, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->desiredPresentTime, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->actualPresentTime, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->earliestPresentTime, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->presentMargin, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkPresentTimeGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                         const VkPresentTimeGOOGLE* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->presentID, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->desiredPresentTime, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkPresentTimesInfoGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkPresentTimesInfoGOOGLE* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pTimes;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pTimes) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->swapchainCount; ++i) {
+            reservedmarshal_VkPresentTimeGOOGLE(
+                vkStream, rootType, (const VkPresentTimeGOOGLE*)(forMarshaling->pTimes + i), ptr);
+        }
+    }
+}
+
+#endif
+#ifdef VK_NV_sample_mask_override_coverage
+#endif
+#ifdef VK_NV_geometry_shader_passthrough
+#endif
+#ifdef VK_NV_viewport_array2
+#endif
+#ifdef VK_NVX_multiview_per_view_attributes
+void reservedmarshal_VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->perViewPositionAllComponents, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_NV_viewport_swizzle
+void reservedmarshal_VkViewportSwizzleNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                         const VkViewportSwizzleNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkViewportCoordinateSwizzleNV*)&forMarshaling->x,
+           sizeof(VkViewportCoordinateSwizzleNV));
+    *ptr += sizeof(VkViewportCoordinateSwizzleNV);
+    memcpy(*ptr, (VkViewportCoordinateSwizzleNV*)&forMarshaling->y,
+           sizeof(VkViewportCoordinateSwizzleNV));
+    *ptr += sizeof(VkViewportCoordinateSwizzleNV);
+    memcpy(*ptr, (VkViewportCoordinateSwizzleNV*)&forMarshaling->z,
+           sizeof(VkViewportCoordinateSwizzleNV));
+    *ptr += sizeof(VkViewportCoordinateSwizzleNV);
+    memcpy(*ptr, (VkViewportCoordinateSwizzleNV*)&forMarshaling->w,
+           sizeof(VkViewportCoordinateSwizzleNV));
+    *ptr += sizeof(VkViewportCoordinateSwizzleNV);
+}
+
+void reservedmarshal_VkPipelineViewportSwizzleStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineViewportSwizzleStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineViewportSwizzleStateCreateFlagsNV*)&forMarshaling->flags,
+           sizeof(VkPipelineViewportSwizzleStateCreateFlagsNV));
+    *ptr += sizeof(VkPipelineViewportSwizzleStateCreateFlagsNV);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->viewportCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->viewportCount; ++i) {
+        reservedmarshal_VkViewportSwizzleNV(
+            vkStream, rootType, (const VkViewportSwizzleNV*)(forMarshaling->pViewportSwizzles + i),
+            ptr);
+    }
+}
+
+#endif
+#ifdef VK_EXT_discard_rectangles
+void reservedmarshal_VkPhysicalDeviceDiscardRectanglePropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDiscardRectanglePropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDiscardRectangles, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkPipelineDiscardRectangleStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineDiscardRectangleStateCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineDiscardRectangleStateCreateFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkPipelineDiscardRectangleStateCreateFlagsEXT));
+    *ptr += sizeof(VkPipelineDiscardRectangleStateCreateFlagsEXT);
+    memcpy(*ptr, (VkDiscardRectangleModeEXT*)&forMarshaling->discardRectangleMode,
+           sizeof(VkDiscardRectangleModeEXT));
+    *ptr += sizeof(VkDiscardRectangleModeEXT);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->discardRectangleCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pDiscardRectangles;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pDiscardRectangles) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->discardRectangleCount; ++i) {
+            reservedmarshal_VkRect2D(vkStream, rootType,
+                                     (const VkRect2D*)(forMarshaling->pDiscardRectangles + i), ptr);
+        }
+    }
+}
+
+#endif
+#ifdef VK_EXT_conservative_rasterization
+void reservedmarshal_VkPhysicalDeviceConservativeRasterizationPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceConservativeRasterizationPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (float*)&forMarshaling->primitiveOverestimationSize, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->maxExtraPrimitiveOverestimationSize, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->extraPrimitiveOverestimationSizeGranularity,
+           sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->primitiveUnderestimation, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->conservativePointAndLineRasterization,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->degenerateTrianglesRasterized, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->degenerateLinesRasterized, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fullyCoveredFragmentShaderInputVariable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->conservativeRasterizationPostDepthCoverage,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPipelineRasterizationConservativeStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationConservativeStateCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineRasterizationConservativeStateCreateFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkPipelineRasterizationConservativeStateCreateFlagsEXT));
+    *ptr += sizeof(VkPipelineRasterizationConservativeStateCreateFlagsEXT);
+    memcpy(*ptr, (VkConservativeRasterizationModeEXT*)&forMarshaling->conservativeRasterizationMode,
+           sizeof(VkConservativeRasterizationModeEXT));
+    *ptr += sizeof(VkConservativeRasterizationModeEXT);
+    memcpy(*ptr, (float*)&forMarshaling->extraPrimitiveOverestimationSize, sizeof(float));
+    *ptr += sizeof(float);
+}
+
+#endif
+#ifdef VK_EXT_depth_clip_enable
+void reservedmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->depthClipEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineRasterizationDepthClipStateCreateFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT));
+    *ptr += sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->depthClipEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
+#endif
+#ifdef VK_EXT_hdr_metadata
+void reservedmarshal_VkXYColorEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                  const VkXYColorEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (float*)&forMarshaling->x, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->y, sizeof(float));
+    *ptr += sizeof(float);
+}
+
+void reservedmarshal_VkHdrMetadataEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                      const VkHdrMetadataEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkXYColorEXT(vkStream, rootType,
+                                 (VkXYColorEXT*)(&forMarshaling->displayPrimaryRed), ptr);
+    reservedmarshal_VkXYColorEXT(vkStream, rootType,
+                                 (VkXYColorEXT*)(&forMarshaling->displayPrimaryGreen), ptr);
+    reservedmarshal_VkXYColorEXT(vkStream, rootType,
+                                 (VkXYColorEXT*)(&forMarshaling->displayPrimaryBlue), ptr);
+    reservedmarshal_VkXYColorEXT(vkStream, rootType, (VkXYColorEXT*)(&forMarshaling->whitePoint),
+                                 ptr);
+    memcpy(*ptr, (float*)&forMarshaling->maxLuminance, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->minLuminance, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->maxContentLightLevel, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->maxFrameAverageLightLevel, sizeof(float));
+    *ptr += sizeof(float);
+}
+
+#endif
+#ifdef VK_MVK_ios_surface
+void reservedmarshal_VkIOSSurfaceCreateInfoMVK(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkIOSSurfaceCreateInfoMVK* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkIOSSurfaceCreateFlagsMVK*)&forMarshaling->flags,
+           sizeof(VkIOSSurfaceCreateFlagsMVK));
+    *ptr += sizeof(VkIOSSurfaceCreateFlagsMVK);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pView;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pView) {
+        memcpy(*ptr, (const void*)forMarshaling->pView, sizeof(const uint8_t));
+        *ptr += sizeof(const uint8_t);
+    }
+}
+
+#endif
+#ifdef VK_MVK_macos_surface
+void reservedmarshal_VkMacOSSurfaceCreateInfoMVK(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkMacOSSurfaceCreateInfoMVK* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkMacOSSurfaceCreateFlagsMVK*)&forMarshaling->flags,
+           sizeof(VkMacOSSurfaceCreateFlagsMVK));
+    *ptr += sizeof(VkMacOSSurfaceCreateFlagsMVK);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pView;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pView) {
+        memcpy(*ptr, (const void*)forMarshaling->pView, sizeof(const uint8_t));
+        *ptr += sizeof(const uint8_t);
+    }
+}
+
+#endif
+#ifdef VK_EXT_external_memory_dma_buf
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+void reservedmarshal_VkDebugUtilsLabelEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkDebugUtilsLabelEXT* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    {
+        uint32_t l = forMarshaling->pLabelName ? strlen(forMarshaling->pLabelName) : 0;
+        memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+        android::base::Stream::toBe32((uint8_t*)*ptr);
+        *ptr += sizeof(uint32_t);
+        memcpy(*ptr, (char*)forMarshaling->pLabelName, l);
+        *ptr += l;
+    }
+    memcpy(*ptr, (float*)forMarshaling->color, 4 * sizeof(float));
+    *ptr += 4 * sizeof(float);
+}
+
+void reservedmarshal_VkDebugUtilsObjectNameInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDebugUtilsObjectNameInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkObjectType*)&forMarshaling->objectType, sizeof(VkObjectType));
+    *ptr += sizeof(VkObjectType);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->objectHandle, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
+        // WARNING PTR CHECK
+        uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pObjectName;
+        memcpy((*ptr), &cgen_var_0, 8);
+        android::base::Stream::toBe64((uint8_t*)(*ptr));
+        *ptr += 8;
+        if (forMarshaling->pObjectName) {
+            {
+                uint32_t l = forMarshaling->pObjectName ? strlen(forMarshaling->pObjectName) : 0;
+                memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+                android::base::Stream::toBe32((uint8_t*)*ptr);
+                *ptr += sizeof(uint32_t);
+                memcpy(*ptr, (char*)forMarshaling->pObjectName, l);
+                *ptr += l;
+            }
+        }
+    } else {
+        {
+            uint32_t l = forMarshaling->pObjectName ? strlen(forMarshaling->pObjectName) : 0;
+            memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+            android::base::Stream::toBe32((uint8_t*)*ptr);
+            *ptr += sizeof(uint32_t);
+            memcpy(*ptr, (char*)forMarshaling->pObjectName, l);
+            *ptr += l;
+        }
+    }
+}
+
+void reservedmarshal_VkDebugUtilsMessengerCallbackDataEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDebugUtilsMessengerCallbackDataEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDebugUtilsMessengerCallbackDataFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkDebugUtilsMessengerCallbackDataFlagsEXT));
+    *ptr += sizeof(VkDebugUtilsMessengerCallbackDataFlagsEXT);
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
+        // WARNING PTR CHECK
+        uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pMessageIdName;
+        memcpy((*ptr), &cgen_var_0, 8);
+        android::base::Stream::toBe64((uint8_t*)(*ptr));
+        *ptr += 8;
+        if (forMarshaling->pMessageIdName) {
+            {
+                uint32_t l =
+                    forMarshaling->pMessageIdName ? strlen(forMarshaling->pMessageIdName) : 0;
+                memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+                android::base::Stream::toBe32((uint8_t*)*ptr);
+                *ptr += sizeof(uint32_t);
+                memcpy(*ptr, (char*)forMarshaling->pMessageIdName, l);
+                *ptr += l;
+            }
+        }
+    } else {
+        {
+            uint32_t l = forMarshaling->pMessageIdName ? strlen(forMarshaling->pMessageIdName) : 0;
+            memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+            android::base::Stream::toBe32((uint8_t*)*ptr);
+            *ptr += sizeof(uint32_t);
+            memcpy(*ptr, (char*)forMarshaling->pMessageIdName, l);
+            *ptr += l;
+        }
+    }
+    memcpy(*ptr, (int32_t*)&forMarshaling->messageIdNumber, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+    {
+        uint32_t l = forMarshaling->pMessage ? strlen(forMarshaling->pMessage) : 0;
+        memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+        android::base::Stream::toBe32((uint8_t*)*ptr);
+        *ptr += sizeof(uint32_t);
+        memcpy(*ptr, (char*)forMarshaling->pMessage, l);
+        *ptr += l;
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->queueLabelCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->queueLabelCount; ++i) {
+        reservedmarshal_VkDebugUtilsLabelEXT(
+            vkStream, rootType, (const VkDebugUtilsLabelEXT*)(forMarshaling->pQueueLabels + i),
+            ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->cmdBufLabelCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->cmdBufLabelCount; ++i) {
+        reservedmarshal_VkDebugUtilsLabelEXT(
+            vkStream, rootType, (const VkDebugUtilsLabelEXT*)(forMarshaling->pCmdBufLabels + i),
+            ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->objectCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->objectCount; ++i) {
+        reservedmarshal_VkDebugUtilsObjectNameInfoEXT(
+            vkStream, rootType, (const VkDebugUtilsObjectNameInfoEXT*)(forMarshaling->pObjects + i),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkDebugUtilsMessengerCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDebugUtilsMessengerCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDebugUtilsMessengerCreateFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkDebugUtilsMessengerCreateFlagsEXT));
+    *ptr += sizeof(VkDebugUtilsMessengerCreateFlagsEXT);
+    memcpy(*ptr, (VkDebugUtilsMessageSeverityFlagsEXT*)&forMarshaling->messageSeverity,
+           sizeof(VkDebugUtilsMessageSeverityFlagsEXT));
+    *ptr += sizeof(VkDebugUtilsMessageSeverityFlagsEXT);
+    memcpy(*ptr, (VkDebugUtilsMessageTypeFlagsEXT*)&forMarshaling->messageType,
+           sizeof(VkDebugUtilsMessageTypeFlagsEXT));
+    *ptr += sizeof(VkDebugUtilsMessageTypeFlagsEXT);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->pfnUserCallback;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pUserData;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pUserData) {
+        memcpy(*ptr, (void*)forMarshaling->pUserData, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+void reservedmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkDebugUtilsObjectTagInfoEXT* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkObjectType*)&forMarshaling->objectType, sizeof(VkObjectType));
+    *ptr += sizeof(VkObjectType);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->objectHandle, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->tagName, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->tagSize;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (const void*)forMarshaling->pTag, forMarshaling->tagSize * sizeof(const uint8_t));
+    *ptr += forMarshaling->tagSize * sizeof(const uint8_t);
+}
+
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
+void reservedmarshal_VkAndroidHardwareBufferUsageANDROID(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAndroidHardwareBufferUsageANDROID* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->androidHardwareBufferUsage, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkAndroidHardwareBufferPropertiesANDROID(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAndroidHardwareBufferPropertiesANDROID* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->allocationSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkAndroidHardwareBufferFormatPropertiesANDROID(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAndroidHardwareBufferFormatPropertiesANDROID* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->format, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->externalFormat, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (VkFormatFeatureFlags*)&forMarshaling->formatFeatures,
+           sizeof(VkFormatFeatureFlags));
+    *ptr += sizeof(VkFormatFeatureFlags);
+    reservedmarshal_VkComponentMapping(
+        vkStream, rootType, (VkComponentMapping*)(&forMarshaling->samplerYcbcrConversionComponents),
+        ptr);
+    memcpy(*ptr, (VkSamplerYcbcrModelConversion*)&forMarshaling->suggestedYcbcrModel,
+           sizeof(VkSamplerYcbcrModelConversion));
+    *ptr += sizeof(VkSamplerYcbcrModelConversion);
+    memcpy(*ptr, (VkSamplerYcbcrRange*)&forMarshaling->suggestedYcbcrRange,
+           sizeof(VkSamplerYcbcrRange));
+    *ptr += sizeof(VkSamplerYcbcrRange);
+    memcpy(*ptr, (VkChromaLocation*)&forMarshaling->suggestedXChromaOffset,
+           sizeof(VkChromaLocation));
+    *ptr += sizeof(VkChromaLocation);
+    memcpy(*ptr, (VkChromaLocation*)&forMarshaling->suggestedYChromaOffset,
+           sizeof(VkChromaLocation));
+    *ptr += sizeof(VkChromaLocation);
+}
+
+void reservedmarshal_VkImportAndroidHardwareBufferInfoANDROID(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportAndroidHardwareBufferInfoANDROID* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (AHardwareBuffer*)forMarshaling->buffer, sizeof(AHardwareBuffer));
+    *ptr += sizeof(AHardwareBuffer);
+}
+
+void reservedmarshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMemoryGetAndroidHardwareBufferInfoANDROID* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkExternalFormatANDROID(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkExternalFormatANDROID* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->externalFormat, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkAndroidHardwareBufferFormatProperties2ANDROID(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAndroidHardwareBufferFormatProperties2ANDROID* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->format, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->externalFormat, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (VkFormatFeatureFlags2*)&forMarshaling->formatFeatures,
+           sizeof(VkFormatFeatureFlags2));
+    *ptr += sizeof(VkFormatFeatureFlags2);
+    reservedmarshal_VkComponentMapping(
+        vkStream, rootType, (VkComponentMapping*)(&forMarshaling->samplerYcbcrConversionComponents),
+        ptr);
+    memcpy(*ptr, (VkSamplerYcbcrModelConversion*)&forMarshaling->suggestedYcbcrModel,
+           sizeof(VkSamplerYcbcrModelConversion));
+    *ptr += sizeof(VkSamplerYcbcrModelConversion);
+    memcpy(*ptr, (VkSamplerYcbcrRange*)&forMarshaling->suggestedYcbcrRange,
+           sizeof(VkSamplerYcbcrRange));
+    *ptr += sizeof(VkSamplerYcbcrRange);
+    memcpy(*ptr, (VkChromaLocation*)&forMarshaling->suggestedXChromaOffset,
+           sizeof(VkChromaLocation));
+    *ptr += sizeof(VkChromaLocation);
+    memcpy(*ptr, (VkChromaLocation*)&forMarshaling->suggestedYChromaOffset,
+           sizeof(VkChromaLocation));
+    *ptr += sizeof(VkChromaLocation);
+}
+
+#endif
+#ifdef VK_EXT_sampler_filter_minmax
+#endif
+#ifdef VK_AMD_gpu_shader_int16
+#endif
+#ifdef VK_AMD_mixed_attachment_samples
+#endif
+#ifdef VK_AMD_shader_fragment_mask
+#endif
+#ifdef VK_EXT_inline_uniform_block
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_sample_locations
+void reservedmarshal_VkSampleLocationEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                         const VkSampleLocationEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (float*)&forMarshaling->x, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->y, sizeof(float));
+    *ptr += sizeof(float);
+}
+
+void reservedmarshal_VkSampleLocationsInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkSampleLocationsInfoEXT* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSampleCountFlagBits*)&forMarshaling->sampleLocationsPerPixel,
+           sizeof(VkSampleCountFlagBits));
+    *ptr += sizeof(VkSampleCountFlagBits);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->sampleLocationGridSize), ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sampleLocationsCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->sampleLocationsCount; ++i) {
+        reservedmarshal_VkSampleLocationEXT(
+            vkStream, rootType, (const VkSampleLocationEXT*)(forMarshaling->pSampleLocations + i),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkAttachmentSampleLocationsEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAttachmentSampleLocationsEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->attachmentIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkSampleLocationsInfoEXT(
+        vkStream, rootType, (VkSampleLocationsInfoEXT*)(&forMarshaling->sampleLocationsInfo), ptr);
+}
+
+void reservedmarshal_VkSubpassSampleLocationsEXT(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkSubpassSampleLocationsEXT* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->subpassIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkSampleLocationsInfoEXT(
+        vkStream, rootType, (VkSampleLocationsInfoEXT*)(&forMarshaling->sampleLocationsInfo), ptr);
+}
+
+void reservedmarshal_VkRenderPassSampleLocationsBeginInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderPassSampleLocationsBeginInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->attachmentInitialSampleLocationsCount,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->attachmentInitialSampleLocationsCount; ++i) {
+        reservedmarshal_VkAttachmentSampleLocationsEXT(
+            vkStream, rootType,
+            (const VkAttachmentSampleLocationsEXT*)(forMarshaling
+                                                        ->pAttachmentInitialSampleLocations +
+                                                    i),
+            ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->postSubpassSampleLocationsCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->postSubpassSampleLocationsCount; ++i) {
+        reservedmarshal_VkSubpassSampleLocationsEXT(
+            vkStream, rootType,
+            (const VkSubpassSampleLocationsEXT*)(forMarshaling->pPostSubpassSampleLocations + i),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkPipelineSampleLocationsStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineSampleLocationsStateCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->sampleLocationsEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkSampleLocationsInfoEXT(
+        vkStream, rootType, (VkSampleLocationsInfoEXT*)(&forMarshaling->sampleLocationsInfo), ptr);
+}
+
+void reservedmarshal_VkPhysicalDeviceSampleLocationsPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSampleLocationsPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSampleCountFlags*)&forMarshaling->sampleLocationSampleCounts,
+           sizeof(VkSampleCountFlags));
+    *ptr += sizeof(VkSampleCountFlags);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->maxSampleLocationGridSize), ptr);
+    memcpy(*ptr, (float*)forMarshaling->sampleLocationCoordinateRange, 2 * sizeof(float));
+    *ptr += 2 * sizeof(float);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sampleLocationSubPixelBits, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->variableSampleLocations, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkMultisamplePropertiesEXT(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkMultisamplePropertiesEXT* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->maxSampleLocationGridSize), ptr);
+}
+
+#endif
+#ifdef VK_EXT_blend_operation_advanced
+void reservedmarshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->advancedBlendCoherentOperations, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->advancedBlendMaxColorAttachments, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->advancedBlendIndependentBlend, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->advancedBlendNonPremultipliedSrcColor,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->advancedBlendNonPremultipliedDstColor,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->advancedBlendCorrelatedOverlap, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->advancedBlendAllOperations, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineColorBlendAdvancedStateCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->srcPremultiplied, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->dstPremultiplied, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBlendOverlapEXT*)&forMarshaling->blendOverlap, sizeof(VkBlendOverlapEXT));
+    *ptr += sizeof(VkBlendOverlapEXT);
+}
+
+#endif
+#ifdef VK_NV_fragment_coverage_to_color
+void reservedmarshal_VkPipelineCoverageToColorStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineCoverageToColorStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineCoverageToColorStateCreateFlagsNV*)&forMarshaling->flags,
+           sizeof(VkPipelineCoverageToColorStateCreateFlagsNV));
+    *ptr += sizeof(VkPipelineCoverageToColorStateCreateFlagsNV);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->coverageToColorEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->coverageToColorLocation, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_NV_framebuffer_mixed_samples
+void reservedmarshal_VkPipelineCoverageModulationStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineCoverageModulationStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineCoverageModulationStateCreateFlagsNV*)&forMarshaling->flags,
+           sizeof(VkPipelineCoverageModulationStateCreateFlagsNV));
+    *ptr += sizeof(VkPipelineCoverageModulationStateCreateFlagsNV);
+    memcpy(*ptr, (VkCoverageModulationModeNV*)&forMarshaling->coverageModulationMode,
+           sizeof(VkCoverageModulationModeNV));
+    *ptr += sizeof(VkCoverageModulationModeNV);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->coverageModulationTableEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->coverageModulationTableCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pCoverageModulationTable;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pCoverageModulationTable) {
+        memcpy(*ptr, (const float*)forMarshaling->pCoverageModulationTable,
+               forMarshaling->coverageModulationTableCount * sizeof(const float));
+        *ptr += forMarshaling->coverageModulationTableCount * sizeof(const float);
+    }
+}
+
+#endif
+#ifdef VK_NV_fill_rectangle
+#endif
+#ifdef VK_NV_shader_sm_builtins
+void reservedmarshal_VkPhysicalDeviceShaderSMBuiltinsPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderSMBuiltinsPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderSMCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderWarpsPerSM, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkPhysicalDeviceShaderSMBuiltinsFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderSMBuiltinsFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSMBuiltins, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_post_depth_coverage
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+void reservedmarshal_VkDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierPlaneCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkFormatFeatureFlags*)&forMarshaling->drmFormatModifierTilingFeatures,
+           sizeof(VkFormatFeatureFlags));
+    *ptr += sizeof(VkFormatFeatureFlags);
+}
+
+void reservedmarshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesListEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pDrmFormatModifierProperties;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pDrmFormatModifierProperties) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->drmFormatModifierCount; ++i) {
+            reservedmarshal_VkDrmFormatModifierPropertiesEXT(
+                vkStream, rootType,
+                (VkDrmFormatModifierPropertiesEXT*)(forMarshaling->pDrmFormatModifierProperties +
+                                                    i),
+                ptr);
+        }
+    }
+}
+
+void reservedmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (VkSharingMode*)&forMarshaling->sharingMode, sizeof(VkSharingMode));
+    *ptr += sizeof(VkSharingMode);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->queueFamilyIndexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pQueueFamilyIndices;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pQueueFamilyIndices) {
+        memcpy(*ptr, (const uint32_t*)forMarshaling->pQueueFamilyIndices,
+               forMarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
+        *ptr += forMarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+    }
+}
+
+void reservedmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint64_t*)forMarshaling->pDrmFormatModifiers,
+           forMarshaling->drmFormatModifierCount * sizeof(const uint64_t));
+    *ptr += forMarshaling->drmFormatModifierCount * sizeof(const uint64_t);
+}
+
+void reservedmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierPlaneCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->drmFormatModifierPlaneCount; ++i) {
+        reservedmarshal_VkSubresourceLayout(
+            vkStream, rootType, (const VkSubresourceLayout*)(forMarshaling->pPlaneLayouts + i),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierProperties2EXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierPlaneCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkFormatFeatureFlags2*)&forMarshaling->drmFormatModifierTilingFeatures,
+           sizeof(VkFormatFeatureFlags2));
+    *ptr += sizeof(VkFormatFeatureFlags2);
+}
+
+void reservedmarshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesList2EXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pDrmFormatModifierProperties;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pDrmFormatModifierProperties) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->drmFormatModifierCount; ++i) {
+            reservedmarshal_VkDrmFormatModifierProperties2EXT(
+                vkStream, rootType,
+                (VkDrmFormatModifierProperties2EXT*)(forMarshaling->pDrmFormatModifierProperties +
+                                                     i),
+                ptr);
+        }
+    }
+}
+
+#endif
+#ifdef VK_EXT_validation_cache
+void reservedmarshal_VkValidationCacheCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkValidationCacheCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkValidationCacheCreateFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkValidationCacheCreateFlagsEXT));
+    *ptr += sizeof(VkValidationCacheCreateFlagsEXT);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->initialDataSize;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (const void*)forMarshaling->pInitialData,
+           forMarshaling->initialDataSize * sizeof(const uint8_t));
+    *ptr += forMarshaling->initialDataSize * sizeof(const uint8_t);
+}
+
+void reservedmarshal_VkShaderModuleValidationCacheCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkShaderModuleValidationCacheCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkValidationCacheEXT((*&forMarshaling->validationCache));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+#endif
+#ifdef VK_EXT_descriptor_indexing
+#endif
+#ifdef VK_EXT_shader_viewport_index_layer
+#endif
+#ifdef VK_NV_shading_rate_image
+void reservedmarshal_VkShadingRatePaletteNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkShadingRatePaletteNV* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shadingRatePaletteEntryCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const VkShadingRatePaletteEntryNV*)forMarshaling->pShadingRatePaletteEntries,
+           forMarshaling->shadingRatePaletteEntryCount * sizeof(const VkShadingRatePaletteEntryNV));
+    *ptr += forMarshaling->shadingRatePaletteEntryCount * sizeof(const VkShadingRatePaletteEntryNV);
+}
+
+void reservedmarshal_VkPipelineViewportShadingRateImageStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineViewportShadingRateImageStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shadingRateImageEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->viewportCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pShadingRatePalettes;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pShadingRatePalettes) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->viewportCount; ++i) {
+            reservedmarshal_VkShadingRatePaletteNV(
+                vkStream, rootType,
+                (const VkShadingRatePaletteNV*)(forMarshaling->pShadingRatePalettes + i), ptr);
+        }
+    }
+}
+
+void reservedmarshal_VkPhysicalDeviceShadingRateImageFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShadingRateImageFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shadingRateImage, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shadingRateCoarseSampleOrder, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceShadingRateImagePropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShadingRateImagePropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->shadingRateTexelSize), ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shadingRatePaletteSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shadingRateMaxCoarseSamples, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkCoarseSampleLocationNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkCoarseSampleLocationNV* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pixelX, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pixelY, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sample, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkCoarseSampleOrderCustomNV(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkCoarseSampleOrderCustomNV* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkShadingRatePaletteEntryNV*)&forMarshaling->shadingRate,
+           sizeof(VkShadingRatePaletteEntryNV));
+    *ptr += sizeof(VkShadingRatePaletteEntryNV);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sampleCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sampleLocationCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->sampleLocationCount; ++i) {
+        reservedmarshal_VkCoarseSampleLocationNV(
+            vkStream, rootType,
+            (const VkCoarseSampleLocationNV*)(forMarshaling->pSampleLocations + i), ptr);
+    }
+}
+
+void reservedmarshal_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineViewportCoarseSampleOrderStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkCoarseSampleOrderTypeNV*)&forMarshaling->sampleOrderType,
+           sizeof(VkCoarseSampleOrderTypeNV));
+    *ptr += sizeof(VkCoarseSampleOrderTypeNV);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->customSampleOrderCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->customSampleOrderCount; ++i) {
+        reservedmarshal_VkCoarseSampleOrderCustomNV(
+            vkStream, rootType,
+            (const VkCoarseSampleOrderCustomNV*)(forMarshaling->pCustomSampleOrders + i), ptr);
+    }
+}
+
+#endif
+#ifdef VK_NV_ray_tracing
+void reservedmarshal_VkRayTracingShaderGroupCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRayTracingShaderGroupCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkRayTracingShaderGroupTypeKHR*)&forMarshaling->type,
+           sizeof(VkRayTracingShaderGroupTypeKHR));
+    *ptr += sizeof(VkRayTracingShaderGroupTypeKHR);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->generalShader, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->closestHitShader, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->anyHitShader, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->intersectionShader, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkRayTracingPipelineCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineCreateFlags));
+    *ptr += sizeof(VkPipelineCreateFlags);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stageCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->stageCount; ++i) {
+        reservedmarshal_VkPipelineShaderStageCreateInfo(
+            vkStream, rootType,
+            (const VkPipelineShaderStageCreateInfo*)(forMarshaling->pStages + i), ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->groupCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->groupCount; ++i) {
+        reservedmarshal_VkRayTracingShaderGroupCreateInfoNV(
+            vkStream, rootType,
+            (const VkRayTracingShaderGroupCreateInfoNV*)(forMarshaling->pGroups + i), ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxRecursionDepth, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkPipelineLayout((*&forMarshaling->layout));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkPipeline((*&forMarshaling->basePipelineHandle));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (int32_t*)&forMarshaling->basePipelineIndex, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+}
+
+void reservedmarshal_VkGeometryTrianglesNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                           const VkGeometryTrianglesNV* forMarshaling,
+                                           uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->vertexData));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->vertexOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->vertexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->vertexStride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->vertexFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkBuffer((*&forMarshaling->indexData));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->indexOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->indexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkIndexType*)&forMarshaling->indexType, sizeof(VkIndexType));
+    *ptr += sizeof(VkIndexType);
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkBuffer((*&forMarshaling->transformData));
+    memcpy(*ptr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->transformOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkGeometryAABBNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                      const VkGeometryAABBNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->aabbData));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->numAABBs, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stride, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->offset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkGeometryDataNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                      const VkGeometryDataNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    reservedmarshal_VkGeometryTrianglesNV(vkStream, rootType,
+                                          (VkGeometryTrianglesNV*)(&forMarshaling->triangles), ptr);
+    reservedmarshal_VkGeometryAABBNV(vkStream, rootType, (VkGeometryAABBNV*)(&forMarshaling->aabbs),
+                                     ptr);
+}
+
+void reservedmarshal_VkGeometryNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                  const VkGeometryNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkGeometryTypeKHR*)&forMarshaling->geometryType, sizeof(VkGeometryTypeKHR));
+    *ptr += sizeof(VkGeometryTypeKHR);
+    reservedmarshal_VkGeometryDataNV(vkStream, rootType,
+                                     (VkGeometryDataNV*)(&forMarshaling->geometry), ptr);
+    memcpy(*ptr, (VkGeometryFlagsKHR*)&forMarshaling->flags, sizeof(VkGeometryFlagsKHR));
+    *ptr += sizeof(VkGeometryFlagsKHR);
+}
+
+void reservedmarshal_VkAccelerationStructureInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkAccelerationStructureTypeNV*)&forMarshaling->type,
+           sizeof(VkAccelerationStructureTypeNV));
+    *ptr += sizeof(VkAccelerationStructureTypeNV);
+    memcpy(*ptr, (VkBuildAccelerationStructureFlagsNV*)&forMarshaling->flags,
+           sizeof(VkBuildAccelerationStructureFlagsNV));
+    *ptr += sizeof(VkBuildAccelerationStructureFlagsNV);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->instanceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->geometryCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->geometryCount; ++i) {
+        reservedmarshal_VkGeometryNV(vkStream, rootType,
+                                     (const VkGeometryNV*)(forMarshaling->pGeometries + i), ptr);
+    }
+}
+
+void reservedmarshal_VkAccelerationStructureCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->compactedSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    reservedmarshal_VkAccelerationStructureInfoNV(
+        vkStream, rootType, (VkAccelerationStructureInfoNV*)(&forMarshaling->info), ptr);
+}
+
+void reservedmarshal_VkBindAccelerationStructureMemoryInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBindAccelerationStructureMemoryInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkAccelerationStructureNV((*&forMarshaling->accelerationStructure));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->memoryOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->deviceIndexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pDeviceIndices,
+           forMarshaling->deviceIndexCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->deviceIndexCount * sizeof(const uint32_t);
+}
+
+void reservedmarshal_VkWriteDescriptorSetAccelerationStructureNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkWriteDescriptorSetAccelerationStructureNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->accelerationStructureCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pAccelerationStructures;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pAccelerationStructures) {
+        if (forMarshaling->accelerationStructureCount) {
+            uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
+            if (forMarshaling) {
+                for (uint32_t k = 0; k < forMarshaling->accelerationStructureCount; ++k) {
+                    uint64_t tmpval = get_host_u64_VkAccelerationStructureNV(
+                        forMarshaling->pAccelerationStructures[k]);
+                    memcpy(cgen_var_0_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
+            }
+            *ptr += 8 * forMarshaling->accelerationStructureCount;
+        }
+    }
+}
+
+void reservedmarshal_VkAccelerationStructureMemoryRequirementsInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMemoryRequirementsInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkAccelerationStructureMemoryRequirementsTypeNV*)&forMarshaling->type,
+           sizeof(VkAccelerationStructureMemoryRequirementsTypeNV));
+    *ptr += sizeof(VkAccelerationStructureMemoryRequirementsTypeNV);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkAccelerationStructureNV((*&forMarshaling->accelerationStructure));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkPhysicalDeviceRayTracingPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderGroupHandleSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxRecursionDepth, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxShaderGroupStride, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderGroupBaseAlignment, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->maxGeometryCount, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->maxInstanceCount, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->maxTriangleCount, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDescriptorSetAccelerationStructures,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkTransformMatrixKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkTransformMatrixKHR* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (float*)forMarshaling->matrix, ((3) * (4)) * sizeof(float));
+    *ptr += ((3) * (4)) * sizeof(float);
+}
+
+void reservedmarshal_VkAabbPositionsKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                        const VkAabbPositionsKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (float*)&forMarshaling->minX, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->minY, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->minZ, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->maxX, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->maxY, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->maxZ, sizeof(float));
+    *ptr += sizeof(float);
+}
+
+void reservedmarshal_VkAccelerationStructureInstanceKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureInstanceKHR* forMarshaling, uint8_t** ptr) {
+    typedef struct VkAccelerationStructureInstanceKHRWithoutBitFields {
+        VkTransformMatrixKHR transform;
+        uint32_t dwords[2];
+        uint64_t accelerationStructureReference;
+    } VkAccelerationStructureInstanceKHRWithoutBitFields;
+
+    (void)vkStream;
+    const VkAccelerationStructureInstanceKHRWithoutBitFields* forMarshaling_new =
+        (const VkAccelerationStructureInstanceKHRWithoutBitFields*)(forMarshaling);
+    reservedmarshal_VkTransformMatrixKHR(
+        vkStream, rootType, (VkTransformMatrixKHR*)(&forMarshaling_new->transform), ptr);
+    for (uint32_t i = 0; i < 2; i++) {
+        memcpy(*ptr, (uint32_t*)&(forMarshaling_new->dwords[i]), sizeof(uint32_t));
+        *ptr += sizeof(uint32_t);
+    }
+    memcpy(*ptr, (uint64_t*)&forMarshaling_new->accelerationStructureReference, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+#endif
+#ifdef VK_NV_representative_fragment_test
+void reservedmarshal_VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->representativeFragmentTest, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPipelineRepresentativeFragmentTestStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRepresentativeFragmentTestStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->representativeFragmentTestEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_filter_cubic
+void reservedmarshal_VkPhysicalDeviceImageViewImageFormatInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageViewImageFormatInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkImageViewType*)&forMarshaling->imageViewType, sizeof(VkImageViewType));
+    *ptr += sizeof(VkImageViewType);
+}
+
+void reservedmarshal_VkFilterCubicImageViewImageFormatPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkFilterCubicImageViewImageFormatPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->filterCubic, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->filterCubicMinmax, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_QCOM_render_pass_shader_resolve
+#endif
+#ifdef VK_EXT_global_priority
+#endif
+#ifdef VK_EXT_external_memory_host
+void reservedmarshal_VkImportMemoryHostPointerInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportMemoryHostPointerInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalMemoryHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagBits);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pHostPointer;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pHostPointer) {
+        memcpy(*ptr, (void*)forMarshaling->pHostPointer, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+void reservedmarshal_VkMemoryHostPointerPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMemoryHostPointerPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExternalMemoryHostPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->minImportedHostPointerAlignment,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+#endif
+#ifdef VK_AMD_buffer_marker
+#endif
+#ifdef VK_AMD_pipeline_compiler_control
+void reservedmarshal_VkPipelineCompilerControlCreateInfoAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineCompilerControlCreateInfoAMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineCompilerControlFlagsAMD*)&forMarshaling->compilerControlFlags,
+           sizeof(VkPipelineCompilerControlFlagsAMD));
+    *ptr += sizeof(VkPipelineCompilerControlFlagsAMD);
+}
+
+#endif
+#ifdef VK_EXT_calibrated_timestamps
+void reservedmarshal_VkCalibratedTimestampInfoEXT(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkCalibratedTimestampInfoEXT* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkTimeDomainEXT*)&forMarshaling->timeDomain, sizeof(VkTimeDomainEXT));
+    *ptr += sizeof(VkTimeDomainEXT);
+}
+
+#endif
+#ifdef VK_AMD_shader_core_properties
+void reservedmarshal_VkPhysicalDeviceShaderCorePropertiesAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCorePropertiesAMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderEngineCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderArraysPerEngineCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->computeUnitsPerShaderArray, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->simdPerComputeUnit, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->wavefrontsPerSimd, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->wavefrontSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sgprsPerSimd, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minSgprAllocation, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxSgprAllocation, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sgprAllocationGranularity, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->vgprsPerSimd, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minVgprAllocation, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxVgprAllocation, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->vgprAllocationGranularity, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_AMD_memory_overallocation_behavior
+void reservedmarshal_VkDeviceMemoryOverallocationCreateInfoAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceMemoryOverallocationCreateInfoAMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkMemoryOverallocationBehaviorAMD*)&forMarshaling->overallocationBehavior,
+           sizeof(VkMemoryOverallocationBehaviorAMD));
+    *ptr += sizeof(VkMemoryOverallocationBehaviorAMD);
+}
+
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void reservedmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxVertexAttribDivisor, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->binding, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->divisor, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->vertexBindingDivisorCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->vertexBindingDivisorCount; ++i) {
+        reservedmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+            vkStream, rootType,
+            (const VkVertexInputBindingDivisorDescriptionEXT*)(forMarshaling
+                                                                   ->pVertexBindingDivisors +
+                                                               i),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->vertexAttributeInstanceRateDivisor, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->vertexAttributeInstanceRateZeroDivisor,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_GGP_frame_token
+void reservedmarshal_VkPresentFrameTokenGGP(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkPresentFrameTokenGGP* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (GgpFrameToken*)&forMarshaling->frameToken, sizeof(GgpFrameToken));
+    *ptr += sizeof(GgpFrameToken);
+}
+
+#endif
+#ifdef VK_EXT_pipeline_creation_feedback
+#endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
+#ifdef VK_NV_compute_shader_derivatives
+void reservedmarshal_VkPhysicalDeviceComputeShaderDerivativesFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceComputeShaderDerivativesFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->computeDerivativeGroupQuads, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->computeDerivativeGroupLinear, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_NV_mesh_shader
+void reservedmarshal_VkPhysicalDeviceMeshShaderFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMeshShaderFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->taskShader, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->meshShader, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceMeshShaderPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMeshShaderPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDrawMeshTasksCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxTaskWorkGroupInvocations, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)forMarshaling->maxTaskWorkGroupSize, 3 * sizeof(uint32_t));
+    *ptr += 3 * sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxTaskTotalMemorySize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxTaskOutputCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshWorkGroupInvocations, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)forMarshaling->maxMeshWorkGroupSize, 3 * sizeof(uint32_t));
+    *ptr += 3 * sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshTotalMemorySize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshOutputVertices, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshOutputPrimitives, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshMultiviewViewCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->meshOutputPerVertexGranularity, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->meshOutputPerPrimitiveGranularity, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkDrawMeshTasksIndirectCommandNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrawMeshTasksIndirectCommandNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->taskCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->firstTask, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_NV_fragment_shader_barycentric
+#endif
+#ifdef VK_NV_shader_image_footprint
+void reservedmarshal_VkPhysicalDeviceShaderImageFootprintFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderImageFootprintFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->imageFootprint, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_NV_scissor_exclusive
+void reservedmarshal_VkPipelineViewportExclusiveScissorStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineViewportExclusiveScissorStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->exclusiveScissorCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pExclusiveScissors;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pExclusiveScissors) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->exclusiveScissorCount; ++i) {
+            reservedmarshal_VkRect2D(vkStream, rootType,
+                                     (const VkRect2D*)(forMarshaling->pExclusiveScissors + i), ptr);
+        }
+    }
+}
+
+void reservedmarshal_VkPhysicalDeviceExclusiveScissorFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExclusiveScissorFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->exclusiveScissor, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+void reservedmarshal_VkQueueFamilyCheckpointPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkQueueFamilyCheckpointPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineStageFlags*)&forMarshaling->checkpointExecutionStageMask,
+           sizeof(VkPipelineStageFlags));
+    *ptr += sizeof(VkPipelineStageFlags);
+}
+
+void reservedmarshal_VkCheckpointDataNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                        const VkCheckpointDataNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineStageFlagBits*)&forMarshaling->stage, sizeof(VkPipelineStageFlagBits));
+    *ptr += sizeof(VkPipelineStageFlagBits);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pCheckpointMarker;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pCheckpointMarker) {
+        memcpy(*ptr, (void*)forMarshaling->pCheckpointMarker, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+#endif
+#ifdef VK_INTEL_shader_integer_functions2
+void reservedmarshal_VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderIntegerFunctions2, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_INTEL_performance_query
+void reservedmarshal_VkPerformanceValueDataINTEL(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkPerformanceValueDataINTEL* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->value32, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkPerformanceValueINTEL(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkPerformanceValueINTEL* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkPerformanceValueTypeINTEL*)&forMarshaling->type,
+           sizeof(VkPerformanceValueTypeINTEL));
+    *ptr += sizeof(VkPerformanceValueTypeINTEL);
+    reservedmarshal_VkPerformanceValueDataINTEL(
+        vkStream, rootType, (VkPerformanceValueDataINTEL*)(&forMarshaling->data), ptr);
+}
+
+void reservedmarshal_VkInitializePerformanceApiInfoINTEL(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkInitializePerformanceApiInfoINTEL* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pUserData;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pUserData) {
+        memcpy(*ptr, (void*)forMarshaling->pUserData, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+void reservedmarshal_VkQueryPoolPerformanceQueryCreateInfoINTEL(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkQueryPoolPerformanceQueryCreateInfoINTEL* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkQueryPoolSamplingModeINTEL*)&forMarshaling->performanceCountersSampling,
+           sizeof(VkQueryPoolSamplingModeINTEL));
+    *ptr += sizeof(VkQueryPoolSamplingModeINTEL);
+}
+
+void reservedmarshal_VkPerformanceMarkerInfoINTEL(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkPerformanceMarkerInfoINTEL* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->marker, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkPerformanceStreamMarkerInfoINTEL(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPerformanceStreamMarkerInfoINTEL* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->marker, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkPerformanceOverrideInfoINTEL(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPerformanceOverrideInfoINTEL* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPerformanceOverrideTypeINTEL*)&forMarshaling->type,
+           sizeof(VkPerformanceOverrideTypeINTEL));
+    *ptr += sizeof(VkPerformanceOverrideTypeINTEL);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->enable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->parameter, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkPerformanceConfigurationAcquireInfoINTEL(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPerformanceConfigurationAcquireInfoINTEL* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPerformanceConfigurationTypeINTEL*)&forMarshaling->type,
+           sizeof(VkPerformanceConfigurationTypeINTEL));
+    *ptr += sizeof(VkPerformanceConfigurationTypeINTEL);
+}
+
+#endif
+#ifdef VK_EXT_pci_bus_info
+void reservedmarshal_VkPhysicalDevicePCIBusInfoPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePCIBusInfoPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pciDomain, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pciBus, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pciDevice, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pciFunction, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_AMD_display_native_hdr
+void reservedmarshal_VkDisplayNativeHdrSurfaceCapabilitiesAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDisplayNativeHdrSurfaceCapabilitiesAMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->localDimmingSupport, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkSwapchainDisplayNativeHdrCreateInfoAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSwapchainDisplayNativeHdrCreateInfoAMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->localDimmingEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_FUCHSIA_imagepipe_surface
+void reservedmarshal_VkImagePipeSurfaceCreateInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImagePipeSurfaceCreateInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkImagePipeSurfaceCreateFlagsFUCHSIA*)&forMarshaling->flags,
+           sizeof(VkImagePipeSurfaceCreateFlagsFUCHSIA));
+    *ptr += sizeof(VkImagePipeSurfaceCreateFlagsFUCHSIA);
+    memcpy(*ptr, (zx_handle_t*)&forMarshaling->imagePipeHandle, sizeof(zx_handle_t));
+    *ptr += sizeof(zx_handle_t);
+}
+
+#endif
 #ifdef VK_EXT_metal_surface
+void reservedmarshal_VkMetalSurfaceCreateInfoEXT(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkMetalSurfaceCreateInfoEXT* forMarshaling,
+                                                 uint8_t** ptr) {
+    // This struct should never be marshaled / unmarshaled.
+    __builtin_trap();
+}
+
+#endif
+#ifdef VK_EXT_fragment_density_map
+void reservedmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentDensityMap, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentDensityMapDynamic, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentDensityMapNonSubsampledImages,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->minFragmentDensityTexelSize), ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->maxFragmentDensityTexelSize), ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentDensityInvocations, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderPassFragmentDensityMapCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkAttachmentReference(
+        vkStream, rootType, (VkAttachmentReference*)(&forMarshaling->fragmentDensityMapAttachment),
+        ptr);
+}
+
+#endif
+#ifdef VK_EXT_scalar_block_layout
+#endif
+#ifdef VK_GOOGLE_hlsl_functionality1
+#endif
+#ifdef VK_GOOGLE_decorate_string
 #endif
 #ifdef VK_EXT_subgroup_size_control
+#endif
+#ifdef VK_AMD_shader_core_properties2
+void reservedmarshal_VkPhysicalDeviceShaderCoreProperties2AMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCoreProperties2AMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkShaderCorePropertiesFlagsAMD*)&forMarshaling->shaderCoreFeatures,
+           sizeof(VkShaderCorePropertiesFlagsAMD));
+    *ptr += sizeof(VkShaderCorePropertiesFlagsAMD);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->activeComputeUnitCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_AMD_device_coherent_memory
+void reservedmarshal_VkPhysicalDeviceCoherentMemoryFeaturesAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCoherentMemoryFeaturesAMD* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->deviceCoherentMemory, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_shader_image_atomic_int64
+void reservedmarshal_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderImageInt64Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->sparseImageInt64Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_memory_budget
+void reservedmarshal_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMemoryBudgetPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceSize*)forMarshaling->heapBudget,
+           VK_MAX_MEMORY_HEAPS * sizeof(VkDeviceSize));
+    *ptr += VK_MAX_MEMORY_HEAPS * sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)forMarshaling->heapUsage,
+           VK_MAX_MEMORY_HEAPS * sizeof(VkDeviceSize));
+    *ptr += VK_MAX_MEMORY_HEAPS * sizeof(VkDeviceSize);
+}
+
+#endif
+#ifdef VK_EXT_memory_priority
+void reservedmarshal_VkPhysicalDeviceMemoryPriorityFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMemoryPriorityFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->memoryPriority, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkMemoryPriorityAllocateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMemoryPriorityAllocateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (float*)&forMarshaling->priority, sizeof(float));
+    *ptr += sizeof(float);
+}
+
+#endif
+#ifdef VK_NV_dedicated_allocation_image_aliasing
+void reservedmarshal_VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV* forMarshaling,
+    uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->dedicatedAllocationImageAliasing, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_buffer_device_address
+void reservedmarshal_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBufferDeviceAddressFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->bufferDeviceAddress, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->bufferDeviceAddressCaptureReplay, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->bufferDeviceAddressMultiDevice, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkBufferDeviceAddressCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBufferDeviceAddressCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->deviceAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+}
+
+#endif
+#ifdef VK_EXT_tooling_info
+#endif
+#ifdef VK_EXT_separate_stencil_usage
+#endif
+#ifdef VK_EXT_validation_features
+void reservedmarshal_VkValidationFeaturesEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkValidationFeaturesEXT* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->enabledValidationFeatureCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(
+        *ptr, (const VkValidationFeatureEnableEXT*)forMarshaling->pEnabledValidationFeatures,
+        forMarshaling->enabledValidationFeatureCount * sizeof(const VkValidationFeatureEnableEXT));
+    *ptr +=
+        forMarshaling->enabledValidationFeatureCount * sizeof(const VkValidationFeatureEnableEXT);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->disabledValidationFeatureCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const VkValidationFeatureDisableEXT*)forMarshaling->pDisabledValidationFeatures,
+           forMarshaling->disabledValidationFeatureCount *
+               sizeof(const VkValidationFeatureDisableEXT));
+    *ptr +=
+        forMarshaling->disabledValidationFeatureCount * sizeof(const VkValidationFeatureDisableEXT);
+}
+
+#endif
+#ifdef VK_NV_cooperative_matrix
+void reservedmarshal_VkCooperativeMatrixPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCooperativeMatrixPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->MSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->NSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->KSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkComponentTypeNV*)&forMarshaling->AType, sizeof(VkComponentTypeNV));
+    *ptr += sizeof(VkComponentTypeNV);
+    memcpy(*ptr, (VkComponentTypeNV*)&forMarshaling->BType, sizeof(VkComponentTypeNV));
+    *ptr += sizeof(VkComponentTypeNV);
+    memcpy(*ptr, (VkComponentTypeNV*)&forMarshaling->CType, sizeof(VkComponentTypeNV));
+    *ptr += sizeof(VkComponentTypeNV);
+    memcpy(*ptr, (VkComponentTypeNV*)&forMarshaling->DType, sizeof(VkComponentTypeNV));
+    *ptr += sizeof(VkComponentTypeNV);
+    memcpy(*ptr, (VkScopeNV*)&forMarshaling->scope, sizeof(VkScopeNV));
+    *ptr += sizeof(VkScopeNV);
+}
+
+void reservedmarshal_VkPhysicalDeviceCooperativeMatrixFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCooperativeMatrixFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->cooperativeMatrix, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->cooperativeMatrixRobustBufferAccess, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceCooperativeMatrixPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCooperativeMatrixPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkShaderStageFlags*)&forMarshaling->cooperativeMatrixSupportedStages,
+           sizeof(VkShaderStageFlags));
+    *ptr += sizeof(VkShaderStageFlags);
+}
+
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+void reservedmarshal_VkPhysicalDeviceCoverageReductionModeFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCoverageReductionModeFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->coverageReductionMode, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPipelineCoverageReductionStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineCoverageReductionStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineCoverageReductionStateCreateFlagsNV*)&forMarshaling->flags,
+           sizeof(VkPipelineCoverageReductionStateCreateFlagsNV));
+    *ptr += sizeof(VkPipelineCoverageReductionStateCreateFlagsNV);
+    memcpy(*ptr, (VkCoverageReductionModeNV*)&forMarshaling->coverageReductionMode,
+           sizeof(VkCoverageReductionModeNV));
+    *ptr += sizeof(VkCoverageReductionModeNV);
+}
+
+void reservedmarshal_VkFramebufferMixedSamplesCombinationNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkFramebufferMixedSamplesCombinationNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkCoverageReductionModeNV*)&forMarshaling->coverageReductionMode,
+           sizeof(VkCoverageReductionModeNV));
+    *ptr += sizeof(VkCoverageReductionModeNV);
+    memcpy(*ptr, (VkSampleCountFlagBits*)&forMarshaling->rasterizationSamples,
+           sizeof(VkSampleCountFlagBits));
+    *ptr += sizeof(VkSampleCountFlagBits);
+    memcpy(*ptr, (VkSampleCountFlags*)&forMarshaling->depthStencilSamples,
+           sizeof(VkSampleCountFlags));
+    *ptr += sizeof(VkSampleCountFlags);
+    memcpy(*ptr, (VkSampleCountFlags*)&forMarshaling->colorSamples, sizeof(VkSampleCountFlags));
+    *ptr += sizeof(VkSampleCountFlags);
+}
+
+#endif
+#ifdef VK_EXT_fragment_shader_interlock
+void reservedmarshal_VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShaderSampleInterlock, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShaderPixelInterlock, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShaderShadingRateInterlock, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_ycbcr_image_arrays
+void reservedmarshal_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceYcbcrImageArraysFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->ycbcrImageArrays, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
 #endif
 #ifdef VK_EXT_provoking_vertex
 void reservedmarshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -7849,6 +15160,72 @@ void reservedmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     memcpy(*ptr, (VkProvokingVertexModeEXT*)&forMarshaling->provokingVertexMode,
            sizeof(VkProvokingVertexModeEXT));
     *ptr += sizeof(VkProvokingVertexModeEXT);
+}
+
+#endif
+#ifdef VK_EXT_full_screen_exclusive
+void reservedmarshal_VkSurfaceFullScreenExclusiveInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSurfaceFullScreenExclusiveInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkFullScreenExclusiveEXT*)&forMarshaling->fullScreenExclusive,
+           sizeof(VkFullScreenExclusiveEXT));
+    *ptr += sizeof(VkFullScreenExclusiveEXT);
+}
+
+void reservedmarshal_VkSurfaceCapabilitiesFullScreenExclusiveEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSurfaceCapabilitiesFullScreenExclusiveEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fullScreenExclusiveSupported, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkSurfaceFullScreenExclusiveWin32InfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSurfaceFullScreenExclusiveWin32InfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (HMONITOR*)&forMarshaling->hmonitor, sizeof(HMONITOR));
+    *ptr += sizeof(HMONITOR);
+}
+
+#endif
+#ifdef VK_EXT_headless_surface
+void reservedmarshal_VkHeadlessSurfaceCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkHeadlessSurfaceCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkHeadlessSurfaceCreateFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkHeadlessSurfaceCreateFlagsEXT));
+    *ptr += sizeof(VkHeadlessSurfaceCreateFlagsEXT);
 }
 
 #endif
@@ -7916,6 +15293,47 @@ void reservedmarshal_VkPipelineRasterizationLineStateCreateInfoEXT(
 }
 
 #endif
+#ifdef VK_EXT_shader_atomic_float
+void reservedmarshal_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderAtomicFloatFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderBufferFloat32Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderBufferFloat32AtomicAdd, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderBufferFloat64Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderBufferFloat64AtomicAdd, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSharedFloat32Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSharedFloat32AtomicAdd, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSharedFloat64Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSharedFloat64AtomicAdd, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderImageFloat32Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderImageFloat32AtomicAdd, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->sparseImageFloat32Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->sparseImageFloat32AtomicAdd, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_host_query_reset
+#endif
 #ifdef VK_EXT_index_type_uint8
 void reservedmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -7930,6 +15348,689 @@ void reservedmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
     reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
     memcpy(*ptr, (VkBool32*)&forMarshaling->indexTypeUint8, sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+void reservedmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_shader_atomic_float2
+void reservedmarshal_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderBufferFloat16Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderBufferFloat16AtomicAdd, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderBufferFloat16AtomicMinMax, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderBufferFloat32AtomicMinMax, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderBufferFloat64AtomicMinMax, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSharedFloat16Atomics, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSharedFloat16AtomicAdd, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSharedFloat16AtomicMinMax, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSharedFloat32AtomicMinMax, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderSharedFloat64AtomicMinMax, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderImageFloat32AtomicMinMax, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->sparseImageFloat32AtomicMinMax, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_surface_maintenance1
+void reservedmarshal_VkSurfacePresentModeEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkSurfacePresentModeEXT* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPresentModeKHR*)&forMarshaling->presentMode, sizeof(VkPresentModeKHR));
+    *ptr += sizeof(VkPresentModeKHR);
+}
+
+void reservedmarshal_VkSurfacePresentScalingCapabilitiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSurfacePresentScalingCapabilitiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPresentScalingFlagsEXT*)&forMarshaling->supportedPresentScaling,
+           sizeof(VkPresentScalingFlagsEXT));
+    *ptr += sizeof(VkPresentScalingFlagsEXT);
+    memcpy(*ptr, (VkPresentGravityFlagsEXT*)&forMarshaling->supportedPresentGravityX,
+           sizeof(VkPresentGravityFlagsEXT));
+    *ptr += sizeof(VkPresentGravityFlagsEXT);
+    memcpy(*ptr, (VkPresentGravityFlagsEXT*)&forMarshaling->supportedPresentGravityY,
+           sizeof(VkPresentGravityFlagsEXT));
+    *ptr += sizeof(VkPresentGravityFlagsEXT);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->minScaledImageExtent), ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->maxScaledImageExtent), ptr);
+}
+
+void reservedmarshal_VkSurfacePresentModeCompatibilityEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSurfacePresentModeCompatibilityEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->presentModeCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pPresentModes;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pPresentModes) {
+        memcpy(*ptr, (VkPresentModeKHR*)forMarshaling->pPresentModes,
+               forMarshaling->presentModeCount * sizeof(VkPresentModeKHR));
+        *ptr += forMarshaling->presentModeCount * sizeof(VkPresentModeKHR);
+    }
+}
+
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+void reservedmarshal_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->swapchainMaintenance1, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkSwapchainPresentFenceInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSwapchainPresentFenceInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->swapchainCount) {
+        uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->swapchainCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkFence(forMarshaling->pFences[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->swapchainCount;
+    }
+}
+
+void reservedmarshal_VkSwapchainPresentModesCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSwapchainPresentModesCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->presentModeCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const VkPresentModeKHR*)forMarshaling->pPresentModes,
+           forMarshaling->presentModeCount * sizeof(const VkPresentModeKHR));
+    *ptr += forMarshaling->presentModeCount * sizeof(const VkPresentModeKHR);
+}
+
+void reservedmarshal_VkSwapchainPresentModeInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSwapchainPresentModeInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const VkPresentModeKHR*)forMarshaling->pPresentModes,
+           forMarshaling->swapchainCount * sizeof(const VkPresentModeKHR));
+    *ptr += forMarshaling->swapchainCount * sizeof(const VkPresentModeKHR);
+}
+
+void reservedmarshal_VkSwapchainPresentScalingCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSwapchainPresentScalingCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPresentScalingFlagsEXT*)&forMarshaling->scalingBehavior,
+           sizeof(VkPresentScalingFlagsEXT));
+    *ptr += sizeof(VkPresentScalingFlagsEXT);
+    memcpy(*ptr, (VkPresentGravityFlagsEXT*)&forMarshaling->presentGravityX,
+           sizeof(VkPresentGravityFlagsEXT));
+    *ptr += sizeof(VkPresentGravityFlagsEXT);
+    memcpy(*ptr, (VkPresentGravityFlagsEXT*)&forMarshaling->presentGravityY,
+           sizeof(VkPresentGravityFlagsEXT));
+    *ptr += sizeof(VkPresentGravityFlagsEXT);
+}
+
+void reservedmarshal_VkReleaseSwapchainImagesInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkReleaseSwapchainImagesInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSwapchainKHR((*&forMarshaling->swapchain));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->imageIndexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pImageIndices,
+           forMarshaling->imageIndexCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->imageIndexCount * sizeof(const uint32_t);
+}
+
+#endif
+#ifdef VK_EXT_shader_demote_to_helper_invocation
+#endif
+#ifdef VK_NV_device_generated_commands
+void reservedmarshal_VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxGraphicsShaderGroupCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxIndirectSequenceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxIndirectCommandsTokenCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxIndirectCommandsStreamCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxIndirectCommandsTokenOffset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxIndirectCommandsStreamStride, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minSequencesCountBufferOffsetAlignment,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minSequencesIndexBufferOffsetAlignment,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minIndirectCommandsBufferOffsetAlignment,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->deviceGeneratedCommands, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkGraphicsShaderGroupCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkGraphicsShaderGroupCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stageCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->stageCount; ++i) {
+        reservedmarshal_VkPipelineShaderStageCreateInfo(
+            vkStream, rootType,
+            (const VkPipelineShaderStageCreateInfo*)(forMarshaling->pStages + i), ptr);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pVertexInputState;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pVertexInputState) {
+        reservedmarshal_VkPipelineVertexInputStateCreateInfo(
+            vkStream, rootType,
+            (const VkPipelineVertexInputStateCreateInfo*)(forMarshaling->pVertexInputState), ptr);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pTessellationState;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pTessellationState) {
+        reservedmarshal_VkPipelineTessellationStateCreateInfo(
+            vkStream, rootType,
+            (const VkPipelineTessellationStateCreateInfo*)(forMarshaling->pTessellationState), ptr);
+    }
+}
+
+void reservedmarshal_VkGraphicsPipelineShaderGroupsCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkGraphicsPipelineShaderGroupsCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->groupCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->groupCount; ++i) {
+        reservedmarshal_VkGraphicsShaderGroupCreateInfoNV(
+            vkStream, rootType,
+            (const VkGraphicsShaderGroupCreateInfoNV*)(forMarshaling->pGroups + i), ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pipelineCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->pipelineCount) {
+        uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->pipelineCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkPipeline(forMarshaling->pPipelines[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->pipelineCount;
+    }
+}
+
+void reservedmarshal_VkBindShaderGroupIndirectCommandNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBindShaderGroupIndirectCommandNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->groupIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkBindIndexBufferIndirectCommandNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBindIndexBufferIndirectCommandNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->bufferAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->size, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkIndexType*)&forMarshaling->indexType, sizeof(VkIndexType));
+    *ptr += sizeof(VkIndexType);
+}
+
+void reservedmarshal_VkBindVertexBufferIndirectCommandNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBindVertexBufferIndirectCommandNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->bufferAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->size, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stride, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkSetStateFlagsIndirectCommandNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSetStateFlagsIndirectCommandNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->data, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkIndirectCommandsStreamNV(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkIndirectCommandsStreamNV* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->buffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->offset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkIndirectCommandsLayoutTokenNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkIndirectCommandsLayoutTokenNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkIndirectCommandsTokenTypeNV*)&forMarshaling->tokenType,
+           sizeof(VkIndirectCommandsTokenTypeNV));
+    *ptr += sizeof(VkIndirectCommandsTokenTypeNV);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stream, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->offset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->vertexBindingUnit, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->vertexDynamicStride, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkPipelineLayout((*&forMarshaling->pushconstantPipelineLayout));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkShaderStageFlags*)&forMarshaling->pushconstantShaderStageFlags,
+           sizeof(VkShaderStageFlags));
+    *ptr += sizeof(VkShaderStageFlags);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pushconstantOffset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pushconstantSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkIndirectStateFlagsNV*)&forMarshaling->indirectStateFlags,
+           sizeof(VkIndirectStateFlagsNV));
+    *ptr += sizeof(VkIndirectStateFlagsNV);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->indexTypeCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const VkIndexType*)forMarshaling->pIndexTypes,
+           forMarshaling->indexTypeCount * sizeof(const VkIndexType));
+    *ptr += forMarshaling->indexTypeCount * sizeof(const VkIndexType);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pIndexTypeValues,
+           forMarshaling->indexTypeCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->indexTypeCount * sizeof(const uint32_t);
+}
+
+void reservedmarshal_VkIndirectCommandsLayoutCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkIndirectCommandsLayoutCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkIndirectCommandsLayoutUsageFlagsNV*)&forMarshaling->flags,
+           sizeof(VkIndirectCommandsLayoutUsageFlagsNV));
+    *ptr += sizeof(VkIndirectCommandsLayoutUsageFlagsNV);
+    memcpy(*ptr, (VkPipelineBindPoint*)&forMarshaling->pipelineBindPoint,
+           sizeof(VkPipelineBindPoint));
+    *ptr += sizeof(VkPipelineBindPoint);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->tokenCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->tokenCount; ++i) {
+        reservedmarshal_VkIndirectCommandsLayoutTokenNV(
+            vkStream, rootType,
+            (const VkIndirectCommandsLayoutTokenNV*)(forMarshaling->pTokens + i), ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->streamCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pStreamStrides,
+           forMarshaling->streamCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->streamCount * sizeof(const uint32_t);
+}
+
+void reservedmarshal_VkGeneratedCommandsInfoNV(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkGeneratedCommandsInfoNV* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineBindPoint*)&forMarshaling->pipelineBindPoint,
+           sizeof(VkPipelineBindPoint));
+    *ptr += sizeof(VkPipelineBindPoint);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkPipeline((*&forMarshaling->pipeline));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 =
+        get_host_u64_VkIndirectCommandsLayoutNV((*&forMarshaling->indirectCommandsLayout));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->streamCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->streamCount; ++i) {
+        reservedmarshal_VkIndirectCommandsStreamNV(
+            vkStream, rootType, (const VkIndirectCommandsStreamNV*)(forMarshaling->pStreams + i),
+            ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sequencesCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkBuffer((*&forMarshaling->preprocessBuffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->preprocessOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->preprocessSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    uint64_t cgen_var_3;
+    *&cgen_var_3 = get_host_u64_VkBuffer((*&forMarshaling->sequencesCountBuffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_3, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->sequencesCountOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    uint64_t cgen_var_4;
+    *&cgen_var_4 = get_host_u64_VkBuffer((*&forMarshaling->sequencesIndexBuffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_4, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->sequencesIndexOffset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkGeneratedCommandsMemoryRequirementsInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkGeneratedCommandsMemoryRequirementsInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineBindPoint*)&forMarshaling->pipelineBindPoint,
+           sizeof(VkPipelineBindPoint));
+    *ptr += sizeof(VkPipelineBindPoint);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkPipeline((*&forMarshaling->pipeline));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 =
+        get_host_u64_VkIndirectCommandsLayoutNV((*&forMarshaling->indirectCommandsLayout));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxSequencesCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_NV_inherited_viewport_scissor
+void reservedmarshal_VkPhysicalDeviceInheritedViewportScissorFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceInheritedViewportScissorFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->inheritedViewportScissor2D, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkCommandBufferInheritanceViewportScissorInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCommandBufferInheritanceViewportScissorInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->viewportScissor2D, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->viewportDepthCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pViewportDepths;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pViewportDepths) {
+        reservedmarshal_VkViewport(vkStream, rootType,
+                                   (const VkViewport*)(forMarshaling->pViewportDepths), ptr);
+    }
+}
+
+#endif
+#ifdef VK_EXT_texel_buffer_alignment
+void reservedmarshal_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->texelBufferAlignment, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_QCOM_render_pass_transform
+void reservedmarshal_VkRenderPassTransformBeginInfoQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderPassTransformBeginInfoQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSurfaceTransformFlagBitsKHR*)&forMarshaling->transform,
+           sizeof(VkSurfaceTransformFlagBitsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagBitsKHR);
+}
+
+void reservedmarshal_VkCommandBufferInheritanceRenderPassTransformInfoQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCommandBufferInheritanceRenderPassTransformInfoQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSurfaceTransformFlagBitsKHR*)&forMarshaling->transform,
+           sizeof(VkSurfaceTransformFlagBitsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagBitsKHR);
+    reservedmarshal_VkRect2D(vkStream, rootType, (VkRect2D*)(&forMarshaling->renderArea), ptr);
 }
 
 #endif
@@ -8001,6 +16102,48 @@ void reservedmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
 }
 
 #endif
+#ifdef VK_EXT_acquire_drm_display
+#endif
+#ifdef VK_EXT_robustness2
+void reservedmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->robustBufferAccess2, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->robustImageAccess2, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->nullDescriptor, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->robustStorageBufferAccessSizeAlignment,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->robustUniformBufferAccessSizeAlignment,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void reservedmarshal_VkSamplerCustomBorderColorCreateInfoEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -8052,7 +16195,1629 @@ void reservedmarshal_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 }
 
 #endif
+#ifdef VK_GOOGLE_user_type
+#endif
+#ifdef VK_NV_present_barrier
+void reservedmarshal_VkPhysicalDevicePresentBarrierFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePresentBarrierFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->presentBarrier, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkSurfaceCapabilitiesPresentBarrierNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSurfaceCapabilitiesPresentBarrierNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->presentBarrierSupported, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkSwapchainPresentBarrierCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSwapchainPresentBarrierCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->presentBarrierEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_private_data
+#endif
+#ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_NV_device_diagnostics_config
+void reservedmarshal_VkPhysicalDeviceDiagnosticsConfigFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDiagnosticsConfigFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->diagnosticsConfig, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkDeviceDiagnosticsConfigCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceDiagnosticsConfigCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceDiagnosticsConfigFlagsNV*)&forMarshaling->flags,
+           sizeof(VkDeviceDiagnosticsConfigFlagsNV));
+    *ptr += sizeof(VkDeviceDiagnosticsConfigFlagsNV);
+}
+
+#endif
+#ifdef VK_QCOM_render_pass_store_ops
+#endif
+#ifdef VK_NV_low_latency
+void reservedmarshal_VkQueryLowLatencySupportNV(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkQueryLowLatencySupportNV* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (void*)forMarshaling->pQueriedLowLatencyData, sizeof(uint8_t));
+    *ptr += sizeof(uint8_t);
+}
+
+#endif
+#ifdef VK_EXT_metal_objects
+void reservedmarshal_VkExportMetalObjectCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExportMetalObjectCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkExportMetalObjectTypeFlagBitsEXT*)&forMarshaling->exportObjectType,
+           sizeof(VkExportMetalObjectTypeFlagBitsEXT));
+    *ptr += sizeof(VkExportMetalObjectTypeFlagBitsEXT);
+}
+
+void reservedmarshal_VkExportMetalObjectsInfoEXT(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkExportMetalObjectsInfoEXT* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+}
+
+void reservedmarshal_VkExportMetalDeviceInfoEXT(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkExportMetalDeviceInfoEXT* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (MTLDevice_id*)&forMarshaling->mtlDevice, sizeof(MTLDevice_id));
+    *ptr += sizeof(MTLDevice_id);
+}
+
+void reservedmarshal_VkExportMetalCommandQueueInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExportMetalCommandQueueInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkQueue((*&forMarshaling->queue));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (MTLCommandQueue_id*)&forMarshaling->mtlCommandQueue, sizeof(MTLCommandQueue_id));
+    *ptr += sizeof(MTLCommandQueue_id);
+}
+
+void reservedmarshal_VkExportMetalBufferInfoEXT(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkExportMetalBufferInfoEXT* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (MTLBuffer_id*)&forMarshaling->mtlBuffer, sizeof(MTLBuffer_id));
+    *ptr += sizeof(MTLBuffer_id);
+}
+
+void reservedmarshal_VkImportMetalBufferInfoEXT(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkImportMetalBufferInfoEXT* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (MTLBuffer_id*)&forMarshaling->mtlBuffer, sizeof(MTLBuffer_id));
+    *ptr += sizeof(MTLBuffer_id);
+}
+
+void reservedmarshal_VkExportMetalTextureInfoEXT(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkExportMetalTextureInfoEXT* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkImage((*&forMarshaling->image));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkImageView((*&forMarshaling->imageView));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkBufferView((*&forMarshaling->bufferView));
+    memcpy(*ptr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkImageAspectFlagBits*)&forMarshaling->plane, sizeof(VkImageAspectFlagBits));
+    *ptr += sizeof(VkImageAspectFlagBits);
+    memcpy(*ptr, (MTLTexture_id*)&forMarshaling->mtlTexture, sizeof(MTLTexture_id));
+    *ptr += sizeof(MTLTexture_id);
+}
+
+void reservedmarshal_VkImportMetalTextureInfoEXT(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkImportMetalTextureInfoEXT* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkImageAspectFlagBits*)&forMarshaling->plane, sizeof(VkImageAspectFlagBits));
+    *ptr += sizeof(VkImageAspectFlagBits);
+    memcpy(*ptr, (MTLTexture_id*)&forMarshaling->mtlTexture, sizeof(MTLTexture_id));
+    *ptr += sizeof(MTLTexture_id);
+}
+
+void reservedmarshal_VkExportMetalIOSurfaceInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExportMetalIOSurfaceInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkImage((*&forMarshaling->image));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (IOSurfaceRef*)&forMarshaling->ioSurface, sizeof(IOSurfaceRef));
+    *ptr += sizeof(IOSurfaceRef);
+}
+
+void reservedmarshal_VkImportMetalIOSurfaceInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportMetalIOSurfaceInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (IOSurfaceRef*)&forMarshaling->ioSurface, sizeof(IOSurfaceRef));
+    *ptr += sizeof(IOSurfaceRef);
+}
+
+void reservedmarshal_VkExportMetalSharedEventInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkExportMetalSharedEventInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSemaphore((*&forMarshaling->semaphore));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkEvent((*&forMarshaling->event));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (MTLSharedEvent_id*)&forMarshaling->mtlSharedEvent, sizeof(MTLSharedEvent_id));
+    *ptr += sizeof(MTLSharedEvent_id);
+}
+
+void reservedmarshal_VkImportMetalSharedEventInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportMetalSharedEventInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (MTLSharedEvent_id*)&forMarshaling->mtlSharedEvent, sizeof(MTLSharedEvent_id));
+    *ptr += sizeof(MTLSharedEvent_id);
+}
+
+#endif
+#ifdef VK_EXT_descriptor_buffer
+void reservedmarshal_VkPhysicalDeviceDescriptorBufferPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDescriptorBufferPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->combinedImageSamplerDescriptorSingleArray,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->bufferlessPushDescriptors, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->allowSamplerImageViewPostSubmitCreation,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->descriptorBufferOffsetAlignment,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDescriptorBufferBindings, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxResourceDescriptorBufferBindings, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxSamplerDescriptorBufferBindings, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxEmbeddedImmutableSamplerBindings, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxEmbeddedImmutableSamplers, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->bufferCaptureReplayDescriptorDataSize;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_1 = (uint64_t)forMarshaling->imageCaptureReplayDescriptorDataSize;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_2 = (uint64_t)forMarshaling->imageViewCaptureReplayDescriptorDataSize;
+    memcpy((*ptr), &cgen_var_2, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_3 = (uint64_t)forMarshaling->samplerCaptureReplayDescriptorDataSize;
+    memcpy((*ptr), &cgen_var_3, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_4 =
+        (uint64_t)forMarshaling->accelerationStructureCaptureReplayDescriptorDataSize;
+    memcpy((*ptr), &cgen_var_4, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_5 = (uint64_t)forMarshaling->samplerDescriptorSize;
+    memcpy((*ptr), &cgen_var_5, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_6 = (uint64_t)forMarshaling->combinedImageSamplerDescriptorSize;
+    memcpy((*ptr), &cgen_var_6, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_7 = (uint64_t)forMarshaling->sampledImageDescriptorSize;
+    memcpy((*ptr), &cgen_var_7, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_8 = (uint64_t)forMarshaling->storageImageDescriptorSize;
+    memcpy((*ptr), &cgen_var_8, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_9 = (uint64_t)forMarshaling->uniformTexelBufferDescriptorSize;
+    memcpy((*ptr), &cgen_var_9, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_10 = (uint64_t)forMarshaling->robustUniformTexelBufferDescriptorSize;
+    memcpy((*ptr), &cgen_var_10, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_11 = (uint64_t)forMarshaling->storageTexelBufferDescriptorSize;
+    memcpy((*ptr), &cgen_var_11, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_12 = (uint64_t)forMarshaling->robustStorageTexelBufferDescriptorSize;
+    memcpy((*ptr), &cgen_var_12, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_13 = (uint64_t)forMarshaling->uniformBufferDescriptorSize;
+    memcpy((*ptr), &cgen_var_13, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_14 = (uint64_t)forMarshaling->robustUniformBufferDescriptorSize;
+    memcpy((*ptr), &cgen_var_14, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_15 = (uint64_t)forMarshaling->storageBufferDescriptorSize;
+    memcpy((*ptr), &cgen_var_15, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_16 = (uint64_t)forMarshaling->robustStorageBufferDescriptorSize;
+    memcpy((*ptr), &cgen_var_16, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_17 = (uint64_t)forMarshaling->inputAttachmentDescriptorSize;
+    memcpy((*ptr), &cgen_var_17, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_18 = (uint64_t)forMarshaling->accelerationStructureDescriptorSize;
+    memcpy((*ptr), &cgen_var_18, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->maxSamplerDescriptorBufferRange,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->maxResourceDescriptorBufferRange,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->samplerDescriptorBufferAddressSpaceSize,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->resourceDescriptorBufferAddressSpaceSize,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->descriptorBufferAddressSpaceSize,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->combinedImageSamplerDensityMapDescriptorSize;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+}
+
+void reservedmarshal_VkPhysicalDeviceDescriptorBufferFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDescriptorBufferFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->descriptorBuffer, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->descriptorBufferCaptureReplay, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->descriptorBufferImageLayoutIgnored, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->descriptorBufferPushDescriptors, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkDescriptorAddressInfoEXT(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkDescriptorAddressInfoEXT* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->address, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->range, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->format, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+}
+
+void reservedmarshal_VkDescriptorBufferBindingInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDescriptorBufferBindingInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->address, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkBufferUsageFlags*)&forMarshaling->usage, sizeof(VkBufferUsageFlags));
+    *ptr += sizeof(VkBufferUsageFlags);
+}
+
+void reservedmarshal_VkDescriptorBufferBindingPushDescriptorBufferHandleEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDescriptorBufferBindingPushDescriptorBufferHandleEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->buffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkDescriptorDataEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                         const VkDescriptorDataEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSampler((*forMarshaling->pSampler));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 8);
+    *ptr += 8;
+}
+
+void reservedmarshal_VkDescriptorGetInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkDescriptorGetInfoEXT* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDescriptorType*)&forMarshaling->type, sizeof(VkDescriptorType));
+    *ptr += sizeof(VkDescriptorType);
+    reservedmarshal_VkDescriptorDataEXT(vkStream, rootType,
+                                        (VkDescriptorDataEXT*)(&forMarshaling->data), ptr);
+}
+
+void reservedmarshal_VkBufferCaptureDescriptorDataInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBufferCaptureDescriptorDataInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->buffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkImageCaptureDescriptorDataInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageCaptureDescriptorDataInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkImage((*&forMarshaling->image));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkImageViewCaptureDescriptorDataInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageViewCaptureDescriptorDataInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkImageView((*&forMarshaling->imageView));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkSamplerCaptureDescriptorDataInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSamplerCaptureDescriptorDataInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSampler((*&forMarshaling->sampler));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkOpaqueCaptureDescriptorDataCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkOpaqueCaptureDescriptorDataCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (const void*)forMarshaling->opaqueCaptureDescriptorData, sizeof(const uint8_t));
+    *ptr += sizeof(const uint8_t);
+}
+
+void reservedmarshal_VkAccelerationStructureCaptureDescriptorDataInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureCaptureDescriptorDataInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 =
+        get_host_u64_VkAccelerationStructureKHR((*&forMarshaling->accelerationStructure));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 =
+        get_host_u64_VkAccelerationStructureNV((*&forMarshaling->accelerationStructureNV));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+void reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->graphicsPipelineLibrary, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->graphicsPipelineLibraryFastLinking, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr,
+           (VkBool32*)&forMarshaling->graphicsPipelineLibraryIndependentInterpolationDecoration,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkGraphicsPipelineLibraryCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkGraphicsPipelineLibraryFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkGraphicsPipelineLibraryFlagsEXT));
+    *ptr += sizeof(VkGraphicsPipelineLibraryFlagsEXT);
+}
+
+#endif
+#ifdef VK_AMD_shader_early_and_late_fragment_tests
+void reservedmarshal_VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD* forMarshaling,
+    uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderEarlyAndLateFragmentTests, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+void reservedmarshal_VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentShadingRateEnums, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->supersampleFragmentShadingRates, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->noInvocationFragmentShadingRates, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSampleCountFlagBits*)&forMarshaling->maxFragmentShadingRateInvocationCount,
+           sizeof(VkSampleCountFlagBits));
+    *ptr += sizeof(VkSampleCountFlagBits);
+}
+
+void reservedmarshal_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineFragmentShadingRateEnumStateCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkFragmentShadingRateTypeNV*)&forMarshaling->shadingRateType,
+           sizeof(VkFragmentShadingRateTypeNV));
+    *ptr += sizeof(VkFragmentShadingRateTypeNV);
+    memcpy(*ptr, (VkFragmentShadingRateNV*)&forMarshaling->shadingRate,
+           sizeof(VkFragmentShadingRateNV));
+    *ptr += sizeof(VkFragmentShadingRateNV);
+    memcpy(*ptr, (VkFragmentShadingRateCombinerOpKHR*)forMarshaling->combinerOps,
+           2 * sizeof(VkFragmentShadingRateCombinerOpKHR));
+    *ptr += 2 * sizeof(VkFragmentShadingRateCombinerOpKHR);
+}
+
+#endif
+#ifdef VK_NV_ray_tracing_motion_blur
+void reservedmarshal_VkDeviceOrHostAddressConstKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceOrHostAddressConstKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->deviceAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+}
+
+void reservedmarshal_VkAccelerationStructureGeometryMotionTrianglesDataNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryMotionTrianglesDataNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->vertexData), ptr);
+}
+
+void reservedmarshal_VkAccelerationStructureMotionInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMotionInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxInstances, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkAccelerationStructureMotionInfoFlagsNV*)&forMarshaling->flags,
+           sizeof(VkAccelerationStructureMotionInfoFlagsNV));
+    *ptr += sizeof(VkAccelerationStructureMotionInfoFlagsNV);
+}
+
+void reservedmarshal_VkAccelerationStructureMatrixMotionInstanceNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMatrixMotionInstanceNV* forMarshaling, uint8_t** ptr) {
+    typedef struct VkAccelerationStructureMatrixMotionInstanceNVWithoutBitFields {
+        VkTransformMatrixKHR transformT0;
+        VkTransformMatrixKHR transformT1;
+        uint32_t dwords[2];
+        uint64_t accelerationStructureReference;
+    } VkAccelerationStructureMatrixMotionInstanceNVWithoutBitFields;
+
+    (void)vkStream;
+    const VkAccelerationStructureMatrixMotionInstanceNVWithoutBitFields* forMarshaling_new =
+        (const VkAccelerationStructureMatrixMotionInstanceNVWithoutBitFields*)(forMarshaling);
+    reservedmarshal_VkTransformMatrixKHR(
+        vkStream, rootType, (VkTransformMatrixKHR*)(&forMarshaling_new->transformT0), ptr);
+    reservedmarshal_VkTransformMatrixKHR(
+        vkStream, rootType, (VkTransformMatrixKHR*)(&forMarshaling_new->transformT1), ptr);
+    for (uint32_t i = 0; i < 2; i++) {
+        memcpy(*ptr, (uint32_t*)&(forMarshaling_new->dwords[i]), sizeof(uint32_t));
+        *ptr += sizeof(uint32_t);
+    }
+    memcpy(*ptr, (uint64_t*)&forMarshaling_new->accelerationStructureReference, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkSRTDataNV(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                 const VkSRTDataNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (float*)&forMarshaling->sx, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->a, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->b, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->pvx, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->sy, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->c, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->pvy, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->sz, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->pvz, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->qx, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->qy, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->qz, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->qw, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->tx, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->ty, sizeof(float));
+    *ptr += sizeof(float);
+    memcpy(*ptr, (float*)&forMarshaling->tz, sizeof(float));
+    *ptr += sizeof(float);
+}
+
+void reservedmarshal_VkAccelerationStructureSRTMotionInstanceNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureSRTMotionInstanceNV* forMarshaling, uint8_t** ptr) {
+    typedef struct VkAccelerationStructureSRTMotionInstanceNVWithoutBitFields {
+        VkSRTDataNV transformT0;
+        VkSRTDataNV transformT1;
+        uint32_t dwords[2];
+        uint64_t accelerationStructureReference;
+    } VkAccelerationStructureSRTMotionInstanceNVWithoutBitFields;
+
+    (void)vkStream;
+    const VkAccelerationStructureSRTMotionInstanceNVWithoutBitFields* forMarshaling_new =
+        (const VkAccelerationStructureSRTMotionInstanceNVWithoutBitFields*)(forMarshaling);
+    reservedmarshal_VkSRTDataNV(vkStream, rootType, (VkSRTDataNV*)(&forMarshaling_new->transformT0),
+                                ptr);
+    reservedmarshal_VkSRTDataNV(vkStream, rootType, (VkSRTDataNV*)(&forMarshaling_new->transformT1),
+                                ptr);
+    for (uint32_t i = 0; i < 2; i++) {
+        memcpy(*ptr, (uint32_t*)&(forMarshaling_new->dwords[i]), sizeof(uint32_t));
+        *ptr += sizeof(uint32_t);
+    }
+    memcpy(*ptr, (uint64_t*)&forMarshaling_new->accelerationStructureReference, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkAccelerationStructureMotionInstanceDataNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMotionInstanceDataNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    reservedmarshal_VkAccelerationStructureInstanceKHR(
+        vkStream, rootType, (VkAccelerationStructureInstanceKHR*)(&forMarshaling->staticInstance),
+        ptr);
+}
+
+void reservedmarshal_VkAccelerationStructureMotionInstanceNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMotionInstanceNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkAccelerationStructureMotionInstanceTypeNV*)&forMarshaling->type,
+           sizeof(VkAccelerationStructureMotionInstanceTypeNV));
+    *ptr += sizeof(VkAccelerationStructureMotionInstanceTypeNV);
+    memcpy(*ptr, (VkAccelerationStructureMotionInstanceFlagsNV*)&forMarshaling->flags,
+           sizeof(VkAccelerationStructureMotionInstanceFlagsNV));
+    *ptr += sizeof(VkAccelerationStructureMotionInstanceFlagsNV);
+    reservedmarshal_VkAccelerationStructureMotionInstanceDataNV(
+        vkStream, rootType, (VkAccelerationStructureMotionInstanceDataNV*)(&forMarshaling->data),
+        ptr);
+}
+
+void reservedmarshal_VkPhysicalDeviceRayTracingMotionBlurFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingMotionBlurFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingMotionBlur, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingMotionBlurPipelineTraceRaysIndirect,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_ycbcr_2plane_444_formats
+void reservedmarshal_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->ycbcr2plane444Formats, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_fragment_density_map2
+void reservedmarshal_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMap2FeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentDensityMapDeferred, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceFragmentDensityMap2PropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMap2PropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->subsampledLoads, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->subsampledCoarseReconstructionEarlyAccess,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxSubsampledArrayLayers, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDescriptorSetSubsampledSamplers, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_QCOM_rotated_copy_commands
+void reservedmarshal_VkCopyCommandTransformInfoQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCopyCommandTransformInfoQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSurfaceTransformFlagBitsKHR*)&forMarshaling->transform,
+           sizeof(VkSurfaceTransformFlagBitsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagBitsKHR);
+}
+
+#endif
 #ifdef VK_EXT_image_robustness
+#endif
+#ifdef VK_EXT_image_compression_control
+void reservedmarshal_VkPhysicalDeviceImageCompressionControlFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageCompressionControlFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->imageCompressionControl, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkImageCompressionControlEXT(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkImageCompressionControlEXT* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkImageCompressionFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkImageCompressionFlagsEXT));
+    *ptr += sizeof(VkImageCompressionFlagsEXT);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->compressionControlPlaneCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pFixedRateFlags;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pFixedRateFlags) {
+        memcpy(*ptr, (VkImageCompressionFixedRateFlagsEXT*)forMarshaling->pFixedRateFlags,
+               forMarshaling->compressionControlPlaneCount *
+                   sizeof(VkImageCompressionFixedRateFlagsEXT));
+        *ptr += forMarshaling->compressionControlPlaneCount *
+                sizeof(VkImageCompressionFixedRateFlagsEXT);
+    }
+}
+
+void reservedmarshal_VkSubresourceLayout2EXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkSubresourceLayout2EXT* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkSubresourceLayout(
+        vkStream, rootType, (VkSubresourceLayout*)(&forMarshaling->subresourceLayout), ptr);
+}
+
+void reservedmarshal_VkImageSubresource2EXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkImageSubresource2EXT* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkImageSubresource(
+        vkStream, rootType, (VkImageSubresource*)(&forMarshaling->imageSubresource), ptr);
+}
+
+void reservedmarshal_VkImageCompressionPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageCompressionPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkImageCompressionFlagsEXT*)&forMarshaling->imageCompressionFlags,
+           sizeof(VkImageCompressionFlagsEXT));
+    *ptr += sizeof(VkImageCompressionFlagsEXT);
+    memcpy(*ptr,
+           (VkImageCompressionFixedRateFlagsEXT*)&forMarshaling->imageCompressionFixedRateFlags,
+           sizeof(VkImageCompressionFixedRateFlagsEXT));
+    *ptr += sizeof(VkImageCompressionFixedRateFlagsEXT);
+}
+
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_layout
+void reservedmarshal_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->attachmentFeedbackLoopLayout, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_4444_formats
+void reservedmarshal_VkPhysicalDevice4444FormatsFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevice4444FormatsFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->formatA4R4G4B4, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->formatA4B4G4R4, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_device_fault
+void reservedmarshal_VkPhysicalDeviceFaultFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFaultFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->deviceFault, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->deviceFaultVendorBinary, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkDeviceFaultCountsEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkDeviceFaultCountsEXT* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->addressInfoCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->vendorInfoCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->vendorBinarySize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkDeviceFaultAddressInfoEXT(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkDeviceFaultAddressInfoEXT* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceFaultAddressTypeEXT*)&forMarshaling->addressType,
+           sizeof(VkDeviceFaultAddressTypeEXT));
+    *ptr += sizeof(VkDeviceFaultAddressTypeEXT);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->reportedAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->addressPrecision, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkDeviceFaultVendorInfoEXT(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkDeviceFaultVendorInfoEXT* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (char*)forMarshaling->description, VK_MAX_DESCRIPTION_SIZE * sizeof(char));
+    *ptr += VK_MAX_DESCRIPTION_SIZE * sizeof(char);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->vendorFaultCode, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->vendorFaultData, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkDeviceFaultInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkDeviceFaultInfoEXT* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (char*)forMarshaling->description, VK_MAX_DESCRIPTION_SIZE * sizeof(char));
+    *ptr += VK_MAX_DESCRIPTION_SIZE * sizeof(char);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pAddressInfos;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pAddressInfos) {
+        reservedmarshal_VkDeviceFaultAddressInfoEXT(
+            vkStream, rootType, (VkDeviceFaultAddressInfoEXT*)(forMarshaling->pAddressInfos), ptr);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pVendorInfos;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pVendorInfos) {
+        reservedmarshal_VkDeviceFaultVendorInfoEXT(
+            vkStream, rootType, (VkDeviceFaultVendorInfoEXT*)(forMarshaling->pVendorInfos), ptr);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pVendorBinaryData;
+    memcpy((*ptr), &cgen_var_2, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pVendorBinaryData) {
+        memcpy(*ptr, (void*)forMarshaling->pVendorBinaryData, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+void reservedmarshal_VkDeviceFaultVendorBinaryHeaderVersionOneEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceFaultVendorBinaryHeaderVersionOneEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->headerSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkDeviceFaultVendorBinaryHeaderVersionEXT*)&forMarshaling->headerVersion,
+           sizeof(VkDeviceFaultVendorBinaryHeaderVersionEXT));
+    *ptr += sizeof(VkDeviceFaultVendorBinaryHeaderVersionEXT);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->vendorID, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->deviceID, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->driverVersion, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint8_t*)forMarshaling->pipelineCacheUUID, VK_UUID_SIZE * sizeof(uint8_t));
+    *ptr += VK_UUID_SIZE * sizeof(uint8_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->applicationNameOffset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->applicationVersion, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->engineNameOffset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->engineVersion, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->apiVersion, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_ARM_rasterization_order_attachment_access
+void reservedmarshal_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT* forMarshaling,
+    uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rasterizationOrderColorAttachmentAccess,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rasterizationOrderDepthAttachmentAccess,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rasterizationOrderStencilAttachmentAccess,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_rgba10x6_formats
+void reservedmarshal_VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->formatRgba10x6WithoutYCbCrSampler, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_NV_acquire_winrt_display
+#endif
+#ifdef VK_EXT_directfb_surface
+void reservedmarshal_VkDirectFBSurfaceCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDirectFBSurfaceCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDirectFBSurfaceCreateFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkDirectFBSurfaceCreateFlagsEXT));
+    *ptr += sizeof(VkDirectFBSurfaceCreateFlagsEXT);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->dfb;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->dfb) {
+        memcpy(*ptr, (IDirectFB*)forMarshaling->dfb, sizeof(IDirectFB));
+        *ptr += sizeof(IDirectFB);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->surface;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->surface) {
+        memcpy(*ptr, (IDirectFBSurface*)forMarshaling->surface, sizeof(IDirectFBSurface));
+        *ptr += sizeof(IDirectFBSurface);
+    }
+}
+
+#endif
+#ifdef VK_VALVE_mutable_descriptor_type
+void reservedmarshal_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->mutableDescriptorType, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkMutableDescriptorTypeListEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMutableDescriptorTypeListEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->descriptorTypeCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const VkDescriptorType*)forMarshaling->pDescriptorTypes,
+           forMarshaling->descriptorTypeCount * sizeof(const VkDescriptorType));
+    *ptr += forMarshaling->descriptorTypeCount * sizeof(const VkDescriptorType);
+}
+
+void reservedmarshal_VkMutableDescriptorTypeCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMutableDescriptorTypeCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->mutableDescriptorTypeListCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->mutableDescriptorTypeListCount; ++i) {
+        reservedmarshal_VkMutableDescriptorTypeListEXT(
+            vkStream, rootType,
+            (const VkMutableDescriptorTypeListEXT*)(forMarshaling->pMutableDescriptorTypeLists + i),
+            ptr);
+    }
+}
+
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+void reservedmarshal_VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->vertexInputDynamicState, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkVertexInputBindingDescription2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVertexInputBindingDescription2EXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->binding, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stride, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkVertexInputRate*)&forMarshaling->inputRate, sizeof(VkVertexInputRate));
+    *ptr += sizeof(VkVertexInputRate);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->divisor, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkVertexInputAttributeDescription2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVertexInputAttributeDescription2EXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->location, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->binding, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->format, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->offset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_EXT_physical_device_drm
+void reservedmarshal_VkPhysicalDeviceDrmPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDrmPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->hasPrimary, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->hasRender, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (int64_t*)&forMarshaling->primaryMajor, sizeof(int64_t));
+    *ptr += sizeof(int64_t);
+    memcpy(*ptr, (int64_t*)&forMarshaling->primaryMinor, sizeof(int64_t));
+    *ptr += sizeof(int64_t);
+    memcpy(*ptr, (int64_t*)&forMarshaling->renderMajor, sizeof(int64_t));
+    *ptr += sizeof(int64_t);
+    memcpy(*ptr, (int64_t*)&forMarshaling->renderMinor, sizeof(int64_t));
+    *ptr += sizeof(int64_t);
+}
+
+#endif
+#ifdef VK_EXT_device_address_binding_report
+void reservedmarshal_VkPhysicalDeviceAddressBindingReportFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAddressBindingReportFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->reportAddressBinding, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkDeviceAddressBindingCallbackDataEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceAddressBindingCallbackDataEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceAddressBindingFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkDeviceAddressBindingFlagsEXT));
+    *ptr += sizeof(VkDeviceAddressBindingFlagsEXT);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->baseAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceAddressBindingTypeEXT*)&forMarshaling->bindingType,
+           sizeof(VkDeviceAddressBindingTypeEXT));
+    *ptr += sizeof(VkDeviceAddressBindingTypeEXT);
+}
+
+#endif
+#ifdef VK_EXT_depth_clip_control
+void reservedmarshal_VkPhysicalDeviceDepthClipControlFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipControlFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->depthClipControl, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPipelineViewportDepthClipControlCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineViewportDepthClipControlCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->negativeOneToOne, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
 #endif
 #ifdef VK_EXT_primitive_topology_list_restart
 void reservedmarshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
@@ -8069,6 +17834,649 @@ void reservedmarshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
     memcpy(*ptr, (VkBool32*)&forMarshaling->primitiveTopologyListRestart, sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
     memcpy(*ptr, (VkBool32*)&forMarshaling->primitiveTopologyPatchListRestart, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_FUCHSIA_external_memory
+void reservedmarshal_VkImportMemoryZirconHandleInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportMemoryZirconHandleInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalMemoryHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagBits);
+    memcpy(*ptr, (zx_handle_t*)&forMarshaling->handle, sizeof(zx_handle_t));
+    *ptr += sizeof(zx_handle_t);
+}
+
+void reservedmarshal_VkMemoryZirconHandlePropertiesFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMemoryZirconHandlePropertiesFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkMemoryGetZirconHandleInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMemoryGetZirconHandleInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalMemoryHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagBits);
+}
+
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+void reservedmarshal_VkImportSemaphoreZirconHandleInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportSemaphoreZirconHandleInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSemaphore((*&forMarshaling->semaphore));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkSemaphoreImportFlags*)&forMarshaling->flags, sizeof(VkSemaphoreImportFlags));
+    *ptr += sizeof(VkSemaphoreImportFlags);
+    memcpy(*ptr, (VkExternalSemaphoreHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalSemaphoreHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalSemaphoreHandleTypeFlagBits);
+    memcpy(*ptr, (zx_handle_t*)&forMarshaling->zirconHandle, sizeof(zx_handle_t));
+    *ptr += sizeof(zx_handle_t);
+}
+
+void reservedmarshal_VkSemaphoreGetZirconHandleInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSemaphoreGetZirconHandleInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSemaphore((*&forMarshaling->semaphore));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkExternalSemaphoreHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalSemaphoreHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalSemaphoreHandleTypeFlagBits);
+}
+
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+void reservedmarshal_VkBufferCollectionCreateInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBufferCollectionCreateInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (zx_handle_t*)&forMarshaling->collectionToken, sizeof(zx_handle_t));
+    *ptr += sizeof(zx_handle_t);
+}
+
+void reservedmarshal_VkImportMemoryBufferCollectionFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImportMemoryBufferCollectionFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->collection;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->index, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkBufferCollectionImageCreateInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBufferCollectionImageCreateInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->collection;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->index, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkBufferCollectionConstraintsInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBufferCollectionConstraintsInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minBufferCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxBufferCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minBufferCountForCamping, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minBufferCountForDedicatedSlack, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minBufferCountForSharedSlack, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkBufferConstraintsInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBufferConstraintsInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkBufferCreateInfo(vkStream, rootType,
+                                       (VkBufferCreateInfo*)(&forMarshaling->createInfo), ptr);
+    memcpy(*ptr, (VkFormatFeatureFlags*)&forMarshaling->requiredFormatFeatures,
+           sizeof(VkFormatFeatureFlags));
+    *ptr += sizeof(VkFormatFeatureFlags);
+    reservedmarshal_VkBufferCollectionConstraintsInfoFUCHSIA(
+        vkStream, rootType,
+        (VkBufferCollectionConstraintsInfoFUCHSIA*)(&forMarshaling->bufferCollectionConstraints),
+        ptr);
+}
+
+void reservedmarshal_VkBufferCollectionBufferCreateInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBufferCollectionBufferCreateInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->collection;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->index, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkSysmemColorSpaceFUCHSIA(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkSysmemColorSpaceFUCHSIA* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->colorSpace, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkBufferCollectionPropertiesFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBufferCollectionPropertiesFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->bufferCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->createInfoIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->sysmemPixelFormat, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (VkFormatFeatureFlags*)&forMarshaling->formatFeatures,
+           sizeof(VkFormatFeatureFlags));
+    *ptr += sizeof(VkFormatFeatureFlags);
+    reservedmarshal_VkSysmemColorSpaceFUCHSIA(
+        vkStream, rootType, (VkSysmemColorSpaceFUCHSIA*)(&forMarshaling->sysmemColorSpaceIndex),
+        ptr);
+    reservedmarshal_VkComponentMapping(
+        vkStream, rootType, (VkComponentMapping*)(&forMarshaling->samplerYcbcrConversionComponents),
+        ptr);
+    memcpy(*ptr, (VkSamplerYcbcrModelConversion*)&forMarshaling->suggestedYcbcrModel,
+           sizeof(VkSamplerYcbcrModelConversion));
+    *ptr += sizeof(VkSamplerYcbcrModelConversion);
+    memcpy(*ptr, (VkSamplerYcbcrRange*)&forMarshaling->suggestedYcbcrRange,
+           sizeof(VkSamplerYcbcrRange));
+    *ptr += sizeof(VkSamplerYcbcrRange);
+    memcpy(*ptr, (VkChromaLocation*)&forMarshaling->suggestedXChromaOffset,
+           sizeof(VkChromaLocation));
+    *ptr += sizeof(VkChromaLocation);
+    memcpy(*ptr, (VkChromaLocation*)&forMarshaling->suggestedYChromaOffset,
+           sizeof(VkChromaLocation));
+    *ptr += sizeof(VkChromaLocation);
+}
+
+void reservedmarshal_VkImageFormatConstraintsInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageFormatConstraintsInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkImageCreateInfo(vkStream, rootType,
+                                      (VkImageCreateInfo*)(&forMarshaling->imageCreateInfo), ptr);
+    memcpy(*ptr, (VkFormatFeatureFlags*)&forMarshaling->requiredFormatFeatures,
+           sizeof(VkFormatFeatureFlags));
+    *ptr += sizeof(VkFormatFeatureFlags);
+    memcpy(*ptr, (VkImageFormatConstraintsFlagsFUCHSIA*)&forMarshaling->flags,
+           sizeof(VkImageFormatConstraintsFlagsFUCHSIA));
+    *ptr += sizeof(VkImageFormatConstraintsFlagsFUCHSIA);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->sysmemPixelFormat, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->colorSpaceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->colorSpaceCount; ++i) {
+        reservedmarshal_VkSysmemColorSpaceFUCHSIA(
+            vkStream, rootType, (const VkSysmemColorSpaceFUCHSIA*)(forMarshaling->pColorSpaces + i),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkImageConstraintsInfoFUCHSIA(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageConstraintsInfoFUCHSIA* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->formatConstraintsCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->formatConstraintsCount; ++i) {
+        reservedmarshal_VkImageFormatConstraintsInfoFUCHSIA(
+            vkStream, rootType,
+            (const VkImageFormatConstraintsInfoFUCHSIA*)(forMarshaling->pFormatConstraints + i),
+            ptr);
+    }
+    reservedmarshal_VkBufferCollectionConstraintsInfoFUCHSIA(
+        vkStream, rootType,
+        (VkBufferCollectionConstraintsInfoFUCHSIA*)(&forMarshaling->bufferCollectionConstraints),
+        ptr);
+    memcpy(*ptr, (VkImageConstraintsInfoFlagsFUCHSIA*)&forMarshaling->flags,
+           sizeof(VkImageConstraintsInfoFlagsFUCHSIA));
+    *ptr += sizeof(VkImageConstraintsInfoFlagsFUCHSIA);
+}
+
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+void reservedmarshal_VkSubpassShadingPipelineCreateInfoHUAWEI(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSubpassShadingPipelineCreateInfoHUAWEI* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkRenderPass((*&forMarshaling->renderPass));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->subpass, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkPhysicalDeviceSubpassShadingFeaturesHUAWEI(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSubpassShadingFeaturesHUAWEI* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->subpassShading, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceSubpassShadingPropertiesHUAWEI(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSubpassShadingPropertiesHUAWEI* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxSubpassShadingWorkgroupSizeAspectRatio,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+void reservedmarshal_VkPhysicalDeviceInvocationMaskFeaturesHUAWEI(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceInvocationMaskFeaturesHUAWEI* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->invocationMask, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_NV_external_memory_rdma
+void reservedmarshal_VkMemoryGetRemoteAddressInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMemoryGetRemoteAddressInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDeviceMemory((*&forMarshaling->memory));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType,
+           sizeof(VkExternalMemoryHandleTypeFlagBits));
+    *ptr += sizeof(VkExternalMemoryHandleTypeFlagBits);
+}
+
+void reservedmarshal_VkPhysicalDeviceExternalMemoryRDMAFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExternalMemoryRDMAFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->externalMemoryRDMA, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_pipeline_properties
+void reservedmarshal_VkPipelinePropertiesIdentifierEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelinePropertiesIdentifierEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint8_t*)forMarshaling->pipelineIdentifier, VK_UUID_SIZE * sizeof(uint8_t));
+    *ptr += VK_UUID_SIZE * sizeof(uint8_t);
+}
+
+void reservedmarshal_VkPhysicalDevicePipelinePropertiesFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelinePropertiesFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->pipelinePropertiesIdentifier, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_multisampled_render_to_single_sampled
+void reservedmarshal_VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT* forMarshaling,
+    uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->multisampledRenderToSingleSampled, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkSubpassResolvePerformanceQueryEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSubpassResolvePerformanceQueryEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->optimal, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkMultisampledRenderToSingleSampledInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMultisampledRenderToSingleSampledInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->multisampledRenderToSingleSampledEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkSampleCountFlagBits*)&forMarshaling->rasterizationSamples,
+           sizeof(VkSampleCountFlagBits));
+    *ptr += sizeof(VkSampleCountFlagBits);
+}
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+void reservedmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState2, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState2LogicOp, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState2PatchControlPoints,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_QNX_screen_surface
+void reservedmarshal_VkScreenSurfaceCreateInfoQNX(VulkanStreamGuest* vkStream,
+                                                  VkStructureType rootType,
+                                                  const VkScreenSurfaceCreateInfoQNX* forMarshaling,
+                                                  uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkScreenSurfaceCreateFlagsQNX*)&forMarshaling->flags,
+           sizeof(VkScreenSurfaceCreateFlagsQNX));
+    *ptr += sizeof(VkScreenSurfaceCreateFlagsQNX);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->context;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->context) {
+        memcpy(*ptr, (_screen_context*)forMarshaling->context, sizeof(_screen_context));
+        *ptr += sizeof(_screen_context);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->window;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->window) {
+        memcpy(*ptr, (_screen_window*)forMarshaling->window, sizeof(_screen_window));
+        *ptr += sizeof(_screen_window);
+    }
+}
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void reservedmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->colorWriteEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const VkBool32*)forMarshaling->pColorWriteEnables,
+           forMarshaling->attachmentCount * sizeof(const VkBool32));
+    *ptr += forMarshaling->attachmentCount * sizeof(const VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_primitives_generated_query
+void reservedmarshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->primitivesGeneratedQuery, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->primitivesGeneratedQueryWithRasterizerDiscard,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->primitivesGeneratedQueryWithNonZeroStreams,
+           sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
 }
 
@@ -8124,7 +18532,2682 @@ void reservedmarshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructure
 }
 
 #endif
+#ifdef VK_EXT_global_priority_query
+#endif
+#ifdef VK_EXT_image_view_min_lod
+void reservedmarshal_VkPhysicalDeviceImageViewMinLodFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageViewMinLodFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->minLod, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkImageViewMinLodCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageViewMinLodCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (float*)&forMarshaling->minLod, sizeof(float));
+    *ptr += sizeof(float);
+}
+
+#endif
+#ifdef VK_EXT_multi_draw
+void reservedmarshal_VkPhysicalDeviceMultiDrawFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiDrawFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->multiDraw, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceMultiDrawPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiDrawPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMultiDrawCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkMultiDrawInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                        const VkMultiDrawInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->firstVertex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->vertexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkMultiDrawIndexedInfoEXT(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkMultiDrawIndexedInfoEXT* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->firstIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->indexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (int32_t*)&forMarshaling->vertexOffset, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+}
+
+#endif
+#ifdef VK_EXT_image_2d_view_of_3d
+void reservedmarshal_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImage2DViewOf3DFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->image2DViewOf3D, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->sampler2DViewOf3D, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_shader_tile_image
+void reservedmarshal_VkPhysicalDeviceShaderTileImageFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderTileImageFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderTileImageColorReadAccess, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderTileImageDepthReadAccess, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderTileImageStencilReadAccess, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceShaderTileImagePropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderTileImagePropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderTileImageCoherentReadAccelerated,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderTileImageReadSampleFromPixelRateInvocation,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderTileImageReadFromHelperInvocation,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_opacity_micromap
+void reservedmarshal_VkMicromapUsageEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                        const VkMicromapUsageEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->count, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->subdivisionLevel, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->format, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkDeviceOrHostAddressKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkDeviceOrHostAddressKHR* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->deviceAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+}
+
+void reservedmarshal_VkMicromapBuildInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                            const VkMicromapBuildInfoEXT* forMarshaling,
+                                            uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkMicromapTypeEXT*)&forMarshaling->type, sizeof(VkMicromapTypeEXT));
+    *ptr += sizeof(VkMicromapTypeEXT);
+    memcpy(*ptr, (VkBuildMicromapFlagsEXT*)&forMarshaling->flags, sizeof(VkBuildMicromapFlagsEXT));
+    *ptr += sizeof(VkBuildMicromapFlagsEXT);
+    memcpy(*ptr, (VkBuildMicromapModeEXT*)&forMarshaling->mode, sizeof(VkBuildMicromapModeEXT));
+    *ptr += sizeof(VkBuildMicromapModeEXT);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->dstMicromap;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->usageCountsCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pUsageCounts;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pUsageCounts) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->usageCountsCount; ++i) {
+            reservedmarshal_VkMicromapUsageEXT(
+                vkStream, rootType, (const VkMicromapUsageEXT*)(forMarshaling->pUsageCounts + i),
+                ptr);
+        }
+    }
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->data), ptr);
+    reservedmarshal_VkDeviceOrHostAddressKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressKHR*)(&forMarshaling->scratchData), ptr);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->triangleArray), ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->triangleArrayStride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkMicromapCreateInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkMicromapCreateInfoEXT* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkMicromapCreateFlagsEXT*)&forMarshaling->createFlags,
+           sizeof(VkMicromapCreateFlagsEXT));
+    *ptr += sizeof(VkMicromapCreateFlagsEXT);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->buffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->offset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkMicromapTypeEXT*)&forMarshaling->type, sizeof(VkMicromapTypeEXT));
+    *ptr += sizeof(VkMicromapTypeEXT);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->deviceAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+}
+
+void reservedmarshal_VkPhysicalDeviceOpacityMicromapFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceOpacityMicromapFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->micromap, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->micromapCaptureReplay, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->micromapHostCommands, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceOpacityMicromapPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceOpacityMicromapPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxOpacity2StateSubdivisionLevel, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxOpacity4StateSubdivisionLevel, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkMicromapVersionInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkMicromapVersionInfoEXT* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (const uint8_t*)forMarshaling->pVersionData,
+           2 * VK_UUID_SIZE * sizeof(const uint8_t));
+    *ptr += 2 * VK_UUID_SIZE * sizeof(const uint8_t);
+}
+
+void reservedmarshal_VkCopyMicromapToMemoryInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCopyMicromapToMemoryInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->src;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    reservedmarshal_VkDeviceOrHostAddressKHR(vkStream, rootType,
+                                             (VkDeviceOrHostAddressKHR*)(&forMarshaling->dst), ptr);
+    memcpy(*ptr, (VkCopyMicromapModeEXT*)&forMarshaling->mode, sizeof(VkCopyMicromapModeEXT));
+    *ptr += sizeof(VkCopyMicromapModeEXT);
+}
+
+void reservedmarshal_VkCopyMemoryToMicromapInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCopyMemoryToMicromapInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->src), ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->dst;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (VkCopyMicromapModeEXT*)&forMarshaling->mode, sizeof(VkCopyMicromapModeEXT));
+    *ptr += sizeof(VkCopyMicromapModeEXT);
+}
+
+void reservedmarshal_VkCopyMicromapInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                           const VkCopyMicromapInfoEXT* forMarshaling,
+                                           uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->src;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    uint64_t cgen_var_1 = (uint64_t)forMarshaling->dst;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (VkCopyMicromapModeEXT*)&forMarshaling->mode, sizeof(VkCopyMicromapModeEXT));
+    *ptr += sizeof(VkCopyMicromapModeEXT);
+}
+
+void reservedmarshal_VkMicromapBuildSizesInfoEXT(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkMicromapBuildSizesInfoEXT* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->micromapSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->buildScratchSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->discardable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkAccelerationStructureTrianglesOpacityMicromapEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureTrianglesOpacityMicromapEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkIndexType*)&forMarshaling->indexType, sizeof(VkIndexType));
+    *ptr += sizeof(VkIndexType);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->indexBuffer), ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->indexStride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->baseTriangle, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->usageCountsCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pUsageCounts;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pUsageCounts) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->usageCountsCount; ++i) {
+            reservedmarshal_VkMicromapUsageEXT(
+                vkStream, rootType, (const VkMicromapUsageEXT*)(forMarshaling->pUsageCounts + i),
+                ptr);
+        }
+    }
+    uint64_t cgen_var_1 = (uint64_t)forMarshaling->micromap;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+}
+
+void reservedmarshal_VkMicromapTriangleEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                           const VkMicromapTriangleEXT* forMarshaling,
+                                           uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->dataOffset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint16_t*)&forMarshaling->subdivisionLevel, sizeof(uint16_t));
+    *ptr += sizeof(uint16_t);
+    memcpy(*ptr, (uint16_t*)&forMarshaling->format, sizeof(uint16_t));
+    *ptr += sizeof(uint16_t);
+}
+
+#endif
+#ifdef VK_NV_displacement_micromap
+void reservedmarshal_VkPhysicalDeviceDisplacementMicromapFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDisplacementMicromapFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->displacementMicromap, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceDisplacementMicromapPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDisplacementMicromapPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDisplacementMicromapSubdivisionLevel,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkAccelerationStructureTrianglesDisplacementMicromapNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureTrianglesDisplacementMicromapNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->displacementBiasAndScaleFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->displacementVectorFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType,
+        (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->displacementBiasAndScaleBuffer), ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->displacementBiasAndScaleStride,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType,
+        (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->displacementVectorBuffer), ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->displacementVectorStride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType,
+        (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->displacedMicromapPrimitiveFlags), ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->displacedMicromapPrimitiveFlagsStride,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkIndexType*)&forMarshaling->indexType, sizeof(VkIndexType));
+    *ptr += sizeof(VkIndexType);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->indexBuffer), ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->indexStride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->baseTriangle, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->usageCountsCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pUsageCounts;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pUsageCounts) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->usageCountsCount; ++i) {
+            reservedmarshal_VkMicromapUsageEXT(
+                vkStream, rootType, (const VkMicromapUsageEXT*)(forMarshaling->pUsageCounts + i),
+                ptr);
+        }
+    }
+    uint64_t cgen_var_1 = (uint64_t)forMarshaling->micromap;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+}
+
+#endif
 #ifdef VK_EXT_load_store_op_none
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+void reservedmarshal_VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->clustercullingShader, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->multiviewClusterCullingShader, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)forMarshaling->maxWorkGroupCount, 3 * sizeof(uint32_t));
+    *ptr += 3 * sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)forMarshaling->maxWorkGroupSize, 3 * sizeof(uint32_t));
+    *ptr += 3 * sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxOutputClusterCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->indirectBufferOffsetAlignment,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+#endif
+#ifdef VK_EXT_border_color_swizzle
+void reservedmarshal_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->borderColorSwizzle, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->borderColorSwizzleFromImage, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSamplerBorderColorComponentMappingCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkComponentMapping(vkStream, rootType,
+                                       (VkComponentMapping*)(&forMarshaling->components), ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->srgb, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+void reservedmarshal_VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->pageableDeviceLocalMemory, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_ARM_shader_core_properties
+void reservedmarshal_VkPhysicalDeviceShaderCorePropertiesARM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCorePropertiesARM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pixelRate, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->texelRate, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->fmaRate, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_EXT_image_sliced_view_of_3d
+void reservedmarshal_VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->imageSlicedViewOf3D, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkImageViewSlicedCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageViewSlicedCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sliceOffset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->sliceCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+void reservedmarshal_VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->descriptorSetHostMapping, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkDescriptorSetBindingReferenceVALVE(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDescriptorSetBindingReferenceVALVE* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDescriptorSetLayout((*&forMarshaling->descriptorSetLayout));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->binding, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkDescriptorSetLayoutHostMappingInfoVALVE(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDescriptorSetLayoutHostMappingInfoVALVE* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->descriptorOffset;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->descriptorSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_EXT_depth_clamp_zero_one
+void reservedmarshal_VkPhysicalDeviceDepthClampZeroOneFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClampZeroOneFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->depthClampZeroOne, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_non_seamless_cube_map
+void reservedmarshal_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->nonSeamlessCubeMap, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_QCOM_fragment_density_map_offset
+void reservedmarshal_VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->fragmentDensityMapOffset, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkExtent2D(
+        vkStream, rootType, (VkExtent2D*)(&forMarshaling->fragmentDensityOffsetGranularity), ptr);
+}
+
+void reservedmarshal_VkSubpassFragmentDensityMapOffsetEndInfoQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkSubpassFragmentDensityMapOffsetEndInfoQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->fragmentDensityOffsetCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->fragmentDensityOffsetCount; ++i) {
+        reservedmarshal_VkOffset2D(vkStream, rootType,
+                                   (const VkOffset2D*)(forMarshaling->pFragmentDensityOffsets + i),
+                                   ptr);
+    }
+}
+
+#endif
+#ifdef VK_NV_copy_memory_indirect
+void reservedmarshal_VkCopyMemoryIndirectCommandNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCopyMemoryIndirectCommandNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->srcAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->dstAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkCopyMemoryToImageIndirectCommandNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCopyMemoryToImageIndirectCommandNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->srcAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->bufferRowLength, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->bufferImageHeight, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkImageSubresourceLayers(
+        vkStream, rootType, (VkImageSubresourceLayers*)(&forMarshaling->imageSubresource), ptr);
+    reservedmarshal_VkOffset3D(vkStream, rootType, (VkOffset3D*)(&forMarshaling->imageOffset), ptr);
+    reservedmarshal_VkExtent3D(vkStream, rootType, (VkExtent3D*)(&forMarshaling->imageExtent), ptr);
+}
+
+void reservedmarshal_VkPhysicalDeviceCopyMemoryIndirectFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCopyMemoryIndirectFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->indirectCopy, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceCopyMemoryIndirectPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCopyMemoryIndirectPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkQueueFlags*)&forMarshaling->supportedQueues, sizeof(VkQueueFlags));
+    *ptr += sizeof(VkQueueFlags);
+}
+
+#endif
+#ifdef VK_NV_memory_decompression
+void reservedmarshal_VkDecompressMemoryRegionNV(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkDecompressMemoryRegionNV* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->srcAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->dstAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->compressedSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->decompressedSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkMemoryDecompressionMethodFlagsNV*)&forMarshaling->decompressionMethod,
+           sizeof(VkMemoryDecompressionMethodFlagsNV));
+    *ptr += sizeof(VkMemoryDecompressionMethodFlagsNV);
+}
+
+void reservedmarshal_VkPhysicalDeviceMemoryDecompressionFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMemoryDecompressionFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->memoryDecompression, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceMemoryDecompressionPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMemoryDecompressionPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkMemoryDecompressionMethodFlagsNV*)&forMarshaling->decompressionMethods,
+           sizeof(VkMemoryDecompressionMethodFlagsNV));
+    *ptr += sizeof(VkMemoryDecompressionMethodFlagsNV);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->maxDecompressionIndirectCount, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+#endif
+#ifdef VK_NV_linear_color_attachment
+void reservedmarshal_VkPhysicalDeviceLinearColorAttachmentFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLinearColorAttachmentFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->linearColorAttachment, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_GOOGLE_surfaceless_query
+#endif
+#ifdef VK_EXT_image_compression_control_swapchain
+void reservedmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forMarshaling,
+    uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->imageCompressionControlSwapchain, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_QCOM_image_processing
+void reservedmarshal_VkImageViewSampleWeightCreateInfoQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageViewSampleWeightCreateInfoQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkOffset2D(vkStream, rootType, (VkOffset2D*)(&forMarshaling->filterCenter),
+                               ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->filterSize), ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->numPhases, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkPhysicalDeviceImageProcessingFeaturesQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageProcessingFeaturesQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->textureSampleWeighted, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->textureBoxFilter, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->textureBlockMatch, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceImageProcessingPropertiesQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageProcessingPropertiesQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxWeightFilterPhases, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->maxWeightFilterDimension), ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->maxBlockMatchRegion), ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType,
+                               (VkExtent2D*)(&forMarshaling->maxBoxFilterBlockSize), ptr);
+}
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+void reservedmarshal_VkPhysicalDeviceExtendedDynamicState3FeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExtendedDynamicState3FeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3TessellationDomainOrigin,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3DepthClampEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3PolygonMode, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3RasterizationSamples,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3SampleMask, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3AlphaToCoverageEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3AlphaToOneEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3LogicOpEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ColorBlendEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ColorBlendEquation,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ColorWriteMask, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3RasterizationStream,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ConservativeRasterizationMode,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ExtraPrimitiveOverestimationSize,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3DepthClipEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3SampleLocationsEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ColorBlendAdvanced,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ProvokingVertexMode,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3LineRasterizationMode,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3LineStippleEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3DepthClipNegativeOneToOne,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ViewportWScalingEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ViewportSwizzle, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3CoverageToColorEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3CoverageToColorLocation,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3CoverageModulationMode,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3CoverageModulationTableEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3CoverageModulationTable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3CoverageReductionMode,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3RepresentativeFragmentTestEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState3ShadingRateImageEnable,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceExtendedDynamicState3PropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExtendedDynamicState3PropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->dynamicPrimitiveTopologyUnrestricted, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkColorBlendEquationEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkColorBlendEquationEXT* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkBlendFactor*)&forMarshaling->srcColorBlendFactor, sizeof(VkBlendFactor));
+    *ptr += sizeof(VkBlendFactor);
+    memcpy(*ptr, (VkBlendFactor*)&forMarshaling->dstColorBlendFactor, sizeof(VkBlendFactor));
+    *ptr += sizeof(VkBlendFactor);
+    memcpy(*ptr, (VkBlendOp*)&forMarshaling->colorBlendOp, sizeof(VkBlendOp));
+    *ptr += sizeof(VkBlendOp);
+    memcpy(*ptr, (VkBlendFactor*)&forMarshaling->srcAlphaBlendFactor, sizeof(VkBlendFactor));
+    *ptr += sizeof(VkBlendFactor);
+    memcpy(*ptr, (VkBlendFactor*)&forMarshaling->dstAlphaBlendFactor, sizeof(VkBlendFactor));
+    *ptr += sizeof(VkBlendFactor);
+    memcpy(*ptr, (VkBlendOp*)&forMarshaling->alphaBlendOp, sizeof(VkBlendOp));
+    *ptr += sizeof(VkBlendOp);
+}
+
+void reservedmarshal_VkColorBlendAdvancedEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             const VkColorBlendAdvancedEXT* forMarshaling,
+                                             uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkBlendOp*)&forMarshaling->advancedBlendOp, sizeof(VkBlendOp));
+    *ptr += sizeof(VkBlendOp);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->srcPremultiplied, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->dstPremultiplied, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBlendOverlapEXT*)&forMarshaling->blendOverlap, sizeof(VkBlendOverlapEXT));
+    *ptr += sizeof(VkBlendOverlapEXT);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->clampResults, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_subpass_merge_feedback
+void reservedmarshal_VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->subpassMergeFeedback, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkRenderPassCreationControlEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderPassCreationControlEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->disallowMerging, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkRenderPassCreationFeedbackInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderPassCreationFeedbackInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->postMergeSubpassCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkRenderPassCreationFeedbackCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderPassCreationFeedbackCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkRenderPassCreationFeedbackInfoEXT(
+        vkStream, rootType,
+        (VkRenderPassCreationFeedbackInfoEXT*)(forMarshaling->pRenderPassFeedback), ptr);
+}
+
+void reservedmarshal_VkRenderPassSubpassFeedbackInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderPassSubpassFeedbackInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkSubpassMergeStatusEXT*)&forMarshaling->subpassMergeStatus,
+           sizeof(VkSubpassMergeStatusEXT));
+    *ptr += sizeof(VkSubpassMergeStatusEXT);
+    memcpy(*ptr, (char*)forMarshaling->description, VK_MAX_DESCRIPTION_SIZE * sizeof(char));
+    *ptr += VK_MAX_DESCRIPTION_SIZE * sizeof(char);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->postMergeIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkRenderPassSubpassFeedbackCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderPassSubpassFeedbackCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkRenderPassSubpassFeedbackInfoEXT(
+        vkStream, rootType, (VkRenderPassSubpassFeedbackInfoEXT*)(forMarshaling->pSubpassFeedback),
+        ptr);
+}
+
+#endif
+#ifdef VK_LUNARG_direct_driver_loading
+void reservedmarshal_VkDirectDriverLoadingInfoLUNARG(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDirectDriverLoadingInfoLUNARG* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDirectDriverLoadingFlagsLUNARG*)&forMarshaling->flags,
+           sizeof(VkDirectDriverLoadingFlagsLUNARG));
+    *ptr += sizeof(VkDirectDriverLoadingFlagsLUNARG);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->pfnGetInstanceProcAddr;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+}
+
+void reservedmarshal_VkDirectDriverLoadingListLUNARG(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDirectDriverLoadingListLUNARG* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDirectDriverLoadingModeLUNARG*)&forMarshaling->mode,
+           sizeof(VkDirectDriverLoadingModeLUNARG));
+    *ptr += sizeof(VkDirectDriverLoadingModeLUNARG);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->driverCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->driverCount; ++i) {
+        reservedmarshal_VkDirectDriverLoadingInfoLUNARG(
+            vkStream, rootType,
+            (const VkDirectDriverLoadingInfoLUNARG*)(forMarshaling->pDrivers + i), ptr);
+    }
+}
+
+#endif
+#ifdef VK_EXT_shader_module_identifier
+void reservedmarshal_VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderModuleIdentifier, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint8_t*)forMarshaling->shaderModuleIdentifierAlgorithmUUID,
+           VK_UUID_SIZE * sizeof(uint8_t));
+    *ptr += VK_UUID_SIZE * sizeof(uint8_t);
+}
+
+void reservedmarshal_VkPipelineShaderStageModuleIdentifierCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineShaderStageModuleIdentifierCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->identifierSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint8_t*)forMarshaling->pIdentifier,
+           forMarshaling->identifierSize * sizeof(const uint8_t));
+    *ptr += forMarshaling->identifierSize * sizeof(const uint8_t);
+}
+
+void reservedmarshal_VkShaderModuleIdentifierEXT(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkShaderModuleIdentifierEXT* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->identifierSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint8_t*)forMarshaling->identifier,
+           VK_MAX_SHADER_MODULE_IDENTIFIER_SIZE_EXT * sizeof(uint8_t));
+    *ptr += VK_MAX_SHADER_MODULE_IDENTIFIER_SIZE_EXT * sizeof(uint8_t);
+}
+
+#endif
+#ifdef VK_EXT_rasterization_order_attachment_access
+#endif
+#ifdef VK_NV_optical_flow
+void reservedmarshal_VkPhysicalDeviceOpticalFlowFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceOpticalFlowFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->opticalFlow, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceOpticalFlowPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceOpticalFlowPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkOpticalFlowGridSizeFlagsNV*)&forMarshaling->supportedOutputGridSizes,
+           sizeof(VkOpticalFlowGridSizeFlagsNV));
+    *ptr += sizeof(VkOpticalFlowGridSizeFlagsNV);
+    memcpy(*ptr, (VkOpticalFlowGridSizeFlagsNV*)&forMarshaling->supportedHintGridSizes,
+           sizeof(VkOpticalFlowGridSizeFlagsNV));
+    *ptr += sizeof(VkOpticalFlowGridSizeFlagsNV);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->hintSupported, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->costSupported, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->bidirectionalFlowSupported, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->globalFlowSupported, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minWidth, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minHeight, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxWidth, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxHeight, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxNumRegionsOfInterest, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkOpticalFlowImageFormatInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkOpticalFlowImageFormatInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkOpticalFlowUsageFlagsNV*)&forMarshaling->usage,
+           sizeof(VkOpticalFlowUsageFlagsNV));
+    *ptr += sizeof(VkOpticalFlowUsageFlagsNV);
+}
+
+void reservedmarshal_VkOpticalFlowImageFormatPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkOpticalFlowImageFormatPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->format, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+}
+
+void reservedmarshal_VkOpticalFlowSessionCreateInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkOpticalFlowSessionCreateInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->width, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->height, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->imageFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->flowVectorFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->costFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (VkOpticalFlowGridSizeFlagsNV*)&forMarshaling->outputGridSize,
+           sizeof(VkOpticalFlowGridSizeFlagsNV));
+    *ptr += sizeof(VkOpticalFlowGridSizeFlagsNV);
+    memcpy(*ptr, (VkOpticalFlowGridSizeFlagsNV*)&forMarshaling->hintGridSize,
+           sizeof(VkOpticalFlowGridSizeFlagsNV));
+    *ptr += sizeof(VkOpticalFlowGridSizeFlagsNV);
+    memcpy(*ptr, (VkOpticalFlowPerformanceLevelNV*)&forMarshaling->performanceLevel,
+           sizeof(VkOpticalFlowPerformanceLevelNV));
+    *ptr += sizeof(VkOpticalFlowPerformanceLevelNV);
+    memcpy(*ptr, (VkOpticalFlowSessionCreateFlagsNV*)&forMarshaling->flags,
+           sizeof(VkOpticalFlowSessionCreateFlagsNV));
+    *ptr += sizeof(VkOpticalFlowSessionCreateFlagsNV);
+}
+
+void reservedmarshal_VkOpticalFlowSessionCreatePrivateDataInfoNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkOpticalFlowSessionCreatePrivateDataInfoNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->id, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->size, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const void*)forMarshaling->pPrivateData, sizeof(const uint8_t));
+    *ptr += sizeof(const uint8_t);
+}
+
+void reservedmarshal_VkOpticalFlowExecuteInfoNV(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                const VkOpticalFlowExecuteInfoNV* forMarshaling,
+                                                uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkOpticalFlowExecuteFlagsNV*)&forMarshaling->flags,
+           sizeof(VkOpticalFlowExecuteFlagsNV));
+    *ptr += sizeof(VkOpticalFlowExecuteFlagsNV);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->regionCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->regionCount; ++i) {
+        reservedmarshal_VkRect2D(vkStream, rootType, (const VkRect2D*)(forMarshaling->pRegions + i),
+                                 ptr);
+    }
+}
+
+#endif
+#ifdef VK_EXT_legacy_dithering
+void reservedmarshal_VkPhysicalDeviceLegacyDitheringFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLegacyDitheringFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->legacyDithering, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_pipeline_protected_access
+void reservedmarshal_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelineProtectedAccessFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->pipelineProtectedAccess, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_shader_object
+void reservedmarshal_VkPhysicalDeviceShaderObjectFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderObjectFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderObject, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceShaderObjectPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderObjectPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint8_t*)forMarshaling->shaderBinaryUUID, VK_UUID_SIZE * sizeof(uint8_t));
+    *ptr += VK_UUID_SIZE * sizeof(uint8_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderBinaryVersion, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkShaderCreateInfoEXT(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                           const VkShaderCreateInfoEXT* forMarshaling,
+                                           uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkShaderCreateFlagsEXT*)&forMarshaling->flags, sizeof(VkShaderCreateFlagsEXT));
+    *ptr += sizeof(VkShaderCreateFlagsEXT);
+    memcpy(*ptr, (VkShaderStageFlagBits*)&forMarshaling->stage, sizeof(VkShaderStageFlagBits));
+    *ptr += sizeof(VkShaderStageFlagBits);
+    memcpy(*ptr, (VkShaderStageFlags*)&forMarshaling->nextStage, sizeof(VkShaderStageFlags));
+    *ptr += sizeof(VkShaderStageFlags);
+    memcpy(*ptr, (VkShaderCodeTypeEXT*)&forMarshaling->codeType, sizeof(VkShaderCodeTypeEXT));
+    *ptr += sizeof(VkShaderCodeTypeEXT);
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->codeSize;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    memcpy(*ptr, (const void*)forMarshaling->pCode,
+           forMarshaling->codeSize * sizeof(const uint8_t));
+    *ptr += forMarshaling->codeSize * sizeof(const uint8_t);
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
+        // WARNING PTR CHECK
+        uint64_t cgen_var_0_0 = (uint64_t)(uintptr_t)forMarshaling->pName;
+        memcpy((*ptr), &cgen_var_0_0, 8);
+        android::base::Stream::toBe64((uint8_t*)(*ptr));
+        *ptr += 8;
+        if (forMarshaling->pName) {
+            {
+                uint32_t l = forMarshaling->pName ? strlen(forMarshaling->pName) : 0;
+                memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+                android::base::Stream::toBe32((uint8_t*)*ptr);
+                *ptr += sizeof(uint32_t);
+                memcpy(*ptr, (char*)forMarshaling->pName, l);
+                *ptr += l;
+            }
+        }
+    } else {
+        {
+            uint32_t l = forMarshaling->pName ? strlen(forMarshaling->pName) : 0;
+            memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
+            android::base::Stream::toBe32((uint8_t*)*ptr);
+            *ptr += sizeof(uint32_t);
+            memcpy(*ptr, (char*)forMarshaling->pName, l);
+            *ptr += l;
+        }
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->setLayoutCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pSetLayouts;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pSetLayouts) {
+        if (forMarshaling->setLayoutCount) {
+            uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*ptr);
+            if (forMarshaling) {
+                for (uint32_t k = 0; k < forMarshaling->setLayoutCount; ++k) {
+                    uint64_t tmpval =
+                        get_host_u64_VkDescriptorSetLayout(forMarshaling->pSetLayouts[k]);
+                    memcpy(cgen_var_1_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
+            }
+            *ptr += 8 * forMarshaling->setLayoutCount;
+        }
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->pushConstantRangeCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pPushConstantRanges;
+    memcpy((*ptr), &cgen_var_2, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pPushConstantRanges) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->pushConstantRangeCount; ++i) {
+            reservedmarshal_VkPushConstantRange(
+                vkStream, rootType,
+                (const VkPushConstantRange*)(forMarshaling->pPushConstantRanges + i), ptr);
+        }
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_3 = (uint64_t)(uintptr_t)forMarshaling->pSpecializationInfo;
+    memcpy((*ptr), &cgen_var_3, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pSpecializationInfo) {
+        reservedmarshal_VkSpecializationInfo(
+            vkStream, rootType, (const VkSpecializationInfo*)(forMarshaling->pSpecializationInfo),
+            ptr);
+    }
+}
+
+#endif
+#ifdef VK_QCOM_tile_properties
+void reservedmarshal_VkPhysicalDeviceTilePropertiesFeaturesQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceTilePropertiesFeaturesQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->tileProperties, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkTilePropertiesQCOM(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                          const VkTilePropertiesQCOM* forMarshaling,
+                                          uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkExtent3D(vkStream, rootType, (VkExtent3D*)(&forMarshaling->tileSize), ptr);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->apronSize), ptr);
+    reservedmarshal_VkOffset2D(vkStream, rootType, (VkOffset2D*)(&forMarshaling->origin), ptr);
+}
+
+#endif
+#ifdef VK_SEC_amigo_profiling
+void reservedmarshal_VkPhysicalDeviceAmigoProfilingFeaturesSEC(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAmigoProfilingFeaturesSEC* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->amigoProfiling, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkAmigoProfilingSubmitInfoSEC(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAmigoProfilingSubmitInfoSEC* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->firstDrawTimestamp, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->swapBufferTimestamp, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+#endif
+#ifdef VK_QCOM_multiview_per_view_viewports
+void reservedmarshal_VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->multiviewPerViewViewports, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_NV_ray_tracing_invocation_reorder
+void reservedmarshal_VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr,
+           (VkRayTracingInvocationReorderModeNV*)&forMarshaling
+               ->rayTracingInvocationReorderReorderingHint,
+           sizeof(VkRayTracingInvocationReorderModeNV));
+    *ptr += sizeof(VkRayTracingInvocationReorderModeNV);
+}
+
+void reservedmarshal_VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingInvocationReorder, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_mutable_descriptor_type
+#endif
+#ifdef VK_ARM_shader_core_builtins
+void reservedmarshal_VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->shaderCoreBuiltins, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->shaderCoreMask, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderCoreCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderWarpsPerCore, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_EXT_pipeline_library_group_handles
+void reservedmarshal_VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->pipelineLibraryGroupHandles, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_QCOM_multiview_per_view_render_areas
+void reservedmarshal_VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->multiviewPerViewRenderAreas, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->perViewRenderAreaCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->perViewRenderAreaCount; ++i) {
+        reservedmarshal_VkRect2D(vkStream, rootType,
+                                 (const VkRect2D*)(forMarshaling->pPerViewRenderAreas + i), ptr);
+    }
+}
+
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+void reservedmarshal_VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT* forMarshaling,
+    uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->attachmentFeedbackLoopDynamicState, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_KHR_acceleration_structure
+void reservedmarshal_VkAccelerationStructureBuildRangeInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureBuildRangeInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->primitiveCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->primitiveOffset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->firstVertex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->transformOffset, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkAccelerationStructureGeometryTrianglesDataKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryTrianglesDataKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->vertexFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->vertexData), ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->vertexStride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxVertex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkIndexType*)&forMarshaling->indexType, sizeof(VkIndexType));
+    *ptr += sizeof(VkIndexType);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->indexData), ptr);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->transformData), ptr);
+}
+
+void reservedmarshal_VkAccelerationStructureGeometryAabbsDataKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryAabbsDataKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->data), ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->stride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkAccelerationStructureGeometryInstancesDataKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryInstancesDataKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->arrayOfPointers, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->data), ptr);
+}
+
+void reservedmarshal_VkAccelerationStructureGeometryDataKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryDataKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    reservedmarshal_VkAccelerationStructureGeometryTrianglesDataKHR(
+        vkStream, rootType,
+        (VkAccelerationStructureGeometryTrianglesDataKHR*)(&forMarshaling->triangles), ptr);
+}
+
+void reservedmarshal_VkAccelerationStructureGeometryKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkGeometryTypeKHR*)&forMarshaling->geometryType, sizeof(VkGeometryTypeKHR));
+    *ptr += sizeof(VkGeometryTypeKHR);
+    reservedmarshal_VkAccelerationStructureGeometryDataKHR(
+        vkStream, rootType, (VkAccelerationStructureGeometryDataKHR*)(&forMarshaling->geometry),
+        ptr);
+    memcpy(*ptr, (VkGeometryFlagsKHR*)&forMarshaling->flags, sizeof(VkGeometryFlagsKHR));
+    *ptr += sizeof(VkGeometryFlagsKHR);
+}
+
+void reservedmarshal_VkAccelerationStructureBuildGeometryInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureBuildGeometryInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkAccelerationStructureTypeKHR*)&forMarshaling->type,
+           sizeof(VkAccelerationStructureTypeKHR));
+    *ptr += sizeof(VkAccelerationStructureTypeKHR);
+    memcpy(*ptr, (VkBuildAccelerationStructureFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkBuildAccelerationStructureFlagsKHR));
+    *ptr += sizeof(VkBuildAccelerationStructureFlagsKHR);
+    memcpy(*ptr, (VkBuildAccelerationStructureModeKHR*)&forMarshaling->mode,
+           sizeof(VkBuildAccelerationStructureModeKHR));
+    *ptr += sizeof(VkBuildAccelerationStructureModeKHR);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 =
+        get_host_u64_VkAccelerationStructureKHR((*&forMarshaling->srcAccelerationStructure));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 =
+        get_host_u64_VkAccelerationStructureKHR((*&forMarshaling->dstAccelerationStructure));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->geometryCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pGeometries;
+    memcpy((*ptr), &cgen_var_2, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pGeometries) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->geometryCount; ++i) {
+            reservedmarshal_VkAccelerationStructureGeometryKHR(
+                vkStream, rootType,
+                (const VkAccelerationStructureGeometryKHR*)(forMarshaling->pGeometries + i), ptr);
+        }
+    }
+    reservedmarshal_VkDeviceOrHostAddressKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressKHR*)(&forMarshaling->scratchData), ptr);
+}
+
+void reservedmarshal_VkAccelerationStructureCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkAccelerationStructureCreateFlagsKHR*)&forMarshaling->createFlags,
+           sizeof(VkAccelerationStructureCreateFlagsKHR));
+    *ptr += sizeof(VkAccelerationStructureCreateFlagsKHR);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkBuffer((*&forMarshaling->buffer));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->offset, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkAccelerationStructureTypeKHR*)&forMarshaling->type,
+           sizeof(VkAccelerationStructureTypeKHR));
+    *ptr += sizeof(VkAccelerationStructureTypeKHR);
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->deviceAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+}
+
+void reservedmarshal_VkWriteDescriptorSetAccelerationStructureKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkWriteDescriptorSetAccelerationStructureKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->accelerationStructureCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pAccelerationStructures;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pAccelerationStructures) {
+        if (forMarshaling->accelerationStructureCount) {
+            uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
+            if (forMarshaling) {
+                for (uint32_t k = 0; k < forMarshaling->accelerationStructureCount; ++k) {
+                    uint64_t tmpval = get_host_u64_VkAccelerationStructureKHR(
+                        forMarshaling->pAccelerationStructures[k]);
+                    memcpy(cgen_var_0_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
+            }
+            *ptr += 8 * forMarshaling->accelerationStructureCount;
+        }
+    }
+}
+
+void reservedmarshal_VkPhysicalDeviceAccelerationStructureFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAccelerationStructureFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->accelerationStructure, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->accelerationStructureCaptureReplay, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->accelerationStructureIndirectBuild, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->accelerationStructureHostCommands, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->descriptorBindingAccelerationStructureUpdateAfterBind,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceAccelerationStructurePropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAccelerationStructurePropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->maxGeometryCount, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->maxInstanceCount, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->maxPrimitiveCount, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxPerStageDescriptorAccelerationStructures,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr,
+           (uint32_t*)&forMarshaling->maxPerStageDescriptorUpdateAfterBindAccelerationStructures,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDescriptorSetAccelerationStructures,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxDescriptorSetUpdateAfterBindAccelerationStructures,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minAccelerationStructureScratchOffsetAlignment,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkAccelerationStructureDeviceAddressInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureDeviceAddressInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 =
+        get_host_u64_VkAccelerationStructureKHR((*&forMarshaling->accelerationStructure));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkAccelerationStructureVersionInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureVersionInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (const uint8_t*)forMarshaling->pVersionData,
+           2 * VK_UUID_SIZE * sizeof(const uint8_t));
+    *ptr += 2 * VK_UUID_SIZE * sizeof(const uint8_t);
+}
+
+void reservedmarshal_VkCopyAccelerationStructureToMemoryInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCopyAccelerationStructureToMemoryInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkAccelerationStructureKHR((*&forMarshaling->src));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    reservedmarshal_VkDeviceOrHostAddressKHR(vkStream, rootType,
+                                             (VkDeviceOrHostAddressKHR*)(&forMarshaling->dst), ptr);
+    memcpy(*ptr, (VkCopyAccelerationStructureModeKHR*)&forMarshaling->mode,
+           sizeof(VkCopyAccelerationStructureModeKHR));
+    *ptr += sizeof(VkCopyAccelerationStructureModeKHR);
+}
+
+void reservedmarshal_VkCopyMemoryToAccelerationStructureInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCopyMemoryToAccelerationStructureInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    reservedmarshal_VkDeviceOrHostAddressConstKHR(
+        vkStream, rootType, (VkDeviceOrHostAddressConstKHR*)(&forMarshaling->src), ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkAccelerationStructureKHR((*&forMarshaling->dst));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkCopyAccelerationStructureModeKHR*)&forMarshaling->mode,
+           sizeof(VkCopyAccelerationStructureModeKHR));
+    *ptr += sizeof(VkCopyAccelerationStructureModeKHR);
+}
+
+void reservedmarshal_VkCopyAccelerationStructureInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkCopyAccelerationStructureInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkAccelerationStructureKHR((*&forMarshaling->src));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkAccelerationStructureKHR((*&forMarshaling->dst));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (VkCopyAccelerationStructureModeKHR*)&forMarshaling->mode,
+           sizeof(VkCopyAccelerationStructureModeKHR));
+    *ptr += sizeof(VkCopyAccelerationStructureModeKHR);
+}
+
+void reservedmarshal_VkAccelerationStructureBuildSizesInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureBuildSizesInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->accelerationStructureSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->updateScratchSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->buildScratchSize, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void reservedmarshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRayTracingShaderGroupCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkRayTracingShaderGroupTypeKHR*)&forMarshaling->type,
+           sizeof(VkRayTracingShaderGroupTypeKHR));
+    *ptr += sizeof(VkRayTracingShaderGroupTypeKHR);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->generalShader, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->closestHitShader, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->anyHitShader, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->intersectionShader, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pShaderGroupCaptureReplayHandle;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pShaderGroupCaptureReplayHandle) {
+        memcpy(*ptr, (const void*)forMarshaling->pShaderGroupCaptureReplayHandle,
+               sizeof(const uint8_t));
+        *ptr += sizeof(const uint8_t);
+    }
+}
+
+void reservedmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineInterfaceCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxPipelineRayPayloadSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxPipelineRayHitAttributeSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineCreateFlags));
+    *ptr += sizeof(VkPipelineCreateFlags);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->stageCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->stageCount; ++i) {
+        reservedmarshal_VkPipelineShaderStageCreateInfo(
+            vkStream, rootType,
+            (const VkPipelineShaderStageCreateInfo*)(forMarshaling->pStages + i), ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->groupCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->groupCount; ++i) {
+        reservedmarshal_VkRayTracingShaderGroupCreateInfoKHR(
+            vkStream, rootType,
+            (const VkRayTracingShaderGroupCreateInfoKHR*)(forMarshaling->pGroups + i), ptr);
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxPipelineRayRecursionDepth, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pLibraryInfo;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pLibraryInfo) {
+        reservedmarshal_VkPipelineLibraryCreateInfoKHR(
+            vkStream, rootType,
+            (const VkPipelineLibraryCreateInfoKHR*)(forMarshaling->pLibraryInfo), ptr);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pLibraryInterface;
+    memcpy((*ptr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pLibraryInterface) {
+        reservedmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+            vkStream, rootType,
+            (const VkRayTracingPipelineInterfaceCreateInfoKHR*)(forMarshaling->pLibraryInterface),
+            ptr);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pDynamicState;
+    memcpy((*ptr), &cgen_var_2, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pDynamicState) {
+        reservedmarshal_VkPipelineDynamicStateCreateInfo(
+            vkStream, rootType,
+            (const VkPipelineDynamicStateCreateInfo*)(forMarshaling->pDynamicState), ptr);
+    }
+    uint64_t cgen_var_3;
+    *&cgen_var_3 = get_host_u64_VkPipelineLayout((*&forMarshaling->layout));
+    memcpy(*ptr, (uint64_t*)&cgen_var_3, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_4;
+    *&cgen_var_4 = get_host_u64_VkPipeline((*&forMarshaling->basePipelineHandle));
+    memcpy(*ptr, (uint64_t*)&cgen_var_4, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (int32_t*)&forMarshaling->basePipelineIndex, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+}
+
+void reservedmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingPipeline, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingPipelineShaderGroupHandleCaptureReplay,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingPipelineShaderGroupHandleCaptureReplayMixed,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTracingPipelineTraceRaysIndirect, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayTraversalPrimitiveCulling, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderGroupHandleSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxRayRecursionDepth, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxShaderGroupStride, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderGroupBaseAlignment, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderGroupHandleCaptureReplaySize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxRayDispatchInvocationCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->shaderGroupHandleAlignment, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxRayHitAttributeSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkStridedDeviceAddressRegionKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkStridedDeviceAddressRegionKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkDeviceAddress*)&forMarshaling->deviceAddress, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->stride, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy(*ptr, (VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedmarshal_VkTraceRaysIndirectCommandKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkTraceRaysIndirectCommandKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->width, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->height, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->depth, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
+#ifdef VK_KHR_ray_query
+void reservedmarshal_VkPhysicalDeviceRayQueryFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayQueryFeaturesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->rayQuery, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_mesh_shader
+void reservedmarshal_VkPhysicalDeviceMeshShaderFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMeshShaderFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->taskShader, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->meshShader, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->multiviewMeshShader, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->primitiveFragmentShadingRateMeshShader,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->meshShaderQueries, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceMeshShaderPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMeshShaderPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxTaskWorkGroupTotalCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)forMarshaling->maxTaskWorkGroupCount, 3 * sizeof(uint32_t));
+    *ptr += 3 * sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxTaskWorkGroupInvocations, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)forMarshaling->maxTaskWorkGroupSize, 3 * sizeof(uint32_t));
+    *ptr += 3 * sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxTaskPayloadSize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxTaskSharedMemorySize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxTaskPayloadAndSharedMemorySize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshWorkGroupTotalCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)forMarshaling->maxMeshWorkGroupCount, 3 * sizeof(uint32_t));
+    *ptr += 3 * sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshWorkGroupInvocations, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)forMarshaling->maxMeshWorkGroupSize, 3 * sizeof(uint32_t));
+    *ptr += 3 * sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshSharedMemorySize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshPayloadAndSharedMemorySize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshOutputMemorySize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshPayloadAndOutputMemorySize, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshOutputComponents, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshOutputVertices, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshOutputPrimitives, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshOutputLayers, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxMeshMultiviewViewCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->meshOutputPerVertexGranularity, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->meshOutputPerPrimitiveGranularity, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxPreferredTaskWorkGroupInvocations, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->maxPreferredMeshWorkGroupInvocations, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->prefersLocalInvocationVertexOutput, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->prefersLocalInvocationPrimitiveOutput,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->prefersCompactVertexOutput, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->prefersCompactPrimitiveOutput, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkDrawMeshTasksIndirectCommandEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrawMeshTasksIndirectCommandEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->groupCountX, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->groupCountY, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->groupCountZ, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
 #endif
 void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                       const void* structExtension, uint8_t** ptr) {
@@ -8893,10 +21976,407 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
             break;
         }
 #endif
+#ifdef VK_KHR_swapchain
+        case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR: {
+            reservedmarshal_VkImageSwapchainCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageSwapchainCreateInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR: {
+            reservedmarshal_VkBindImageMemorySwapchainInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkBindImageMemorySwapchainInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR: {
+            reservedmarshal_VkDeviceGroupPresentInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkDeviceGroupPresentInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR: {
+            reservedmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkDeviceGroupSwapchainCreateInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_display_swapchain
+        case VK_STRUCTURE_TYPE_DISPLAY_PRESENT_INFO_KHR: {
+            reservedmarshal_VkDisplayPresentInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkDisplayPresentInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_video_queue
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_QUERY_RESULT_STATUS_PROPERTIES_KHR: {
+            reservedmarshal_VkQueueFamilyQueryResultStatusPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueueFamilyQueryResultStatusPropertiesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_VIDEO_PROPERTIES_KHR: {
+            reservedmarshal_VkQueueFamilyVideoPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueueFamilyVideoPropertiesKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_PROFILE_INFO_KHR: {
+            reservedmarshal_VkVideoProfileInfoKHR(
+                vkStream, rootType, reinterpret_cast<const VkVideoProfileInfoKHR*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR: {
+            reservedmarshal_VkVideoProfileListInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoProfileListInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_video_decode_queue
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR: {
+            reservedmarshal_VkVideoDecodeCapabilitiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeCapabilitiesKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_USAGE_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeUsageInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeUsageInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_video_decode_h264
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PROFILE_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH264ProfileInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH264ProfileInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_KHR: {
+            reservedmarshal_VkVideoDecodeH264CapabilitiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH264CapabilitiesKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_ADD_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH264SessionParametersAddInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH264SessionParametersAddInfoKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH264SessionParametersCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH264SessionParametersCreateInfoKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PICTURE_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH264PictureInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH264PictureInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_DPB_SLOT_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH264DpbSlotInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH264DpbSlotInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_dynamic_rendering
+        case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR: {
+            reservedmarshal_VkRenderingFragmentShadingRateAttachmentInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkRenderingFragmentShadingRateAttachmentInfoKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_DENSITY_MAP_ATTACHMENT_INFO_EXT: {
+            reservedmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkRenderingFragmentDensityMapAttachmentInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_ATTACHMENT_SAMPLE_COUNT_INFO_AMD: {
+            reservedmarshal_VkAttachmentSampleCountInfoAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkAttachmentSampleCountInfoAMD*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_ATTRIBUTES_INFO_NVX: {
+            reservedmarshal_VkMultiviewPerViewAttributesInfoNVX(
+                vkStream, rootType,
+                reinterpret_cast<const VkMultiviewPerViewAttributesInfoNVX*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_external_memory_win32
+        case VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR: {
+            reservedmarshal_VkImportMemoryWin32HandleInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMemoryWin32HandleInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_KHR: {
+            reservedmarshal_VkExportMemoryWin32HandleInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMemoryWin32HandleInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_external_memory_fd
+        case VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR: {
+            reservedmarshal_VkImportMemoryFdInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMemoryFdInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_win32_keyed_mutex
+        case VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_KHR: {
+            reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkWin32KeyedMutexAcquireReleaseInfoKHR*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_external_semaphore_win32
+        case VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR: {
+            reservedmarshal_VkExportSemaphoreWin32HandleInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportSemaphoreWin32HandleInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_D3D12_FENCE_SUBMIT_INFO_KHR: {
+            reservedmarshal_VkD3D12FenceSubmitInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkD3D12FenceSubmitInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_push_descriptor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES_KHR: {
+            reservedmarshal_VkPhysicalDevicePushDescriptorPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePushDescriptorPropertiesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
 #ifdef VK_KHR_incremental_present
         case VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR: {
             reservedmarshal_VkPresentRegionsKHR(
                 vkStream, rootType, reinterpret_cast<const VkPresentRegionsKHR*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_shared_presentable_image
+        case VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR: {
+            reservedmarshal_VkSharedPresentSurfaceCapabilitiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkSharedPresentSurfaceCapabilitiesKHR*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_external_fence_win32
+        case VK_STRUCTURE_TYPE_EXPORT_FENCE_WIN32_HANDLE_INFO_KHR: {
+            reservedmarshal_VkExportFenceWin32HandleInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportFenceWin32HandleInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_performance_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDevicePerformanceQueryFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePerformanceQueryFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_PROPERTIES_KHR: {
+            reservedmarshal_VkPhysicalDevicePerformanceQueryPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePerformanceQueryPropertiesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_CREATE_INFO_KHR: {
+            reservedmarshal_VkQueryPoolPerformanceCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueryPoolPerformanceCreateInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PERFORMANCE_QUERY_SUBMIT_INFO_KHR: {
+            reservedmarshal_VkPerformanceQuerySubmitInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPerformanceQuerySubmitInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_portability_subset
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDevicePortabilitySubsetFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePortabilitySubsetFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_PROPERTIES_KHR: {
+            reservedmarshal_VkPhysicalDevicePortabilitySubsetPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePortabilitySubsetPropertiesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#endif
+#ifdef VK_KHR_shader_clock
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceShaderClockFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderClockFeaturesKHR*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_video_decode_h265
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_PROFILE_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH265ProfileInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH265ProfileInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR: {
+            reservedmarshal_VkVideoDecodeH265CapabilitiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH265CapabilitiesKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_ADD_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH265SessionParametersAddInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH265SessionParametersAddInfoKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH265SessionParametersCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH265SessionParametersCreateInfoKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_PICTURE_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH265PictureInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH265PictureInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_DPB_SLOT_INFO_KHR: {
+            reservedmarshal_VkVideoDecodeH265DpbSlotInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoDecodeH265DpbSlotInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_global_priority
+        case VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR: {
+            reservedmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkDeviceQueueGlobalPriorityCreateInfoKHR*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR: {
+            reservedmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueueFamilyGlobalPriorityPropertiesKHR*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+        case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR: {
+            reservedmarshal_VkFragmentShadingRateAttachmentInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkFragmentShadingRateAttachmentInfoKHR*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR: {
+            reservedmarshal_VkPipelineFragmentShadingRateStateCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineFragmentShadingRateStateCreateInfoKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceFragmentShadingRateFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentShadingRateFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_PROPERTIES_KHR: {
+            reservedmarshal_VkPhysicalDeviceFragmentShadingRatePropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentShadingRatePropertiesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_surface_protected_capabilities
+        case VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR: {
+            reservedmarshal_VkSurfaceProtectedCapabilitiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkSurfaceProtectedCapabilitiesKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_present_wait
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_WAIT_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDevicePresentWaitFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePresentWaitFeaturesKHR*>(structExtension),
                 ptr);
             break;
         }
@@ -8911,10 +22391,186 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
             break;
         }
 #endif
+#ifdef VK_KHR_pipeline_library
+        case VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR: {
+            reservedmarshal_VkPipelineLibraryCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineLibraryCreateInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_present_id
+        case VK_STRUCTURE_TYPE_PRESENT_ID_KHR: {
+            reservedmarshal_VkPresentIdKHR(
+                vkStream, rootType, reinterpret_cast<const VkPresentIdKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDevicePresentIdFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePresentIdFeaturesKHR*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_video_encode_queue
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR: {
+            reservedmarshal_VkVideoEncodeCapabilitiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeCapabilitiesKHR*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_QUERY_POOL_VIDEO_ENCODE_FEEDBACK_CREATE_INFO_KHR: {
+            reservedmarshal_VkQueryPoolVideoEncodeFeedbackCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueryPoolVideoEncodeFeedbackCreateInfoKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_USAGE_INFO_KHR: {
+            reservedmarshal_VkVideoEncodeUsageInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeUsageInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR: {
+            reservedmarshal_VkVideoEncodeRateControlLayerInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeRateControlLayerInfoKHR*>(structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR: {
+            reservedmarshal_VkVideoEncodeRateControlInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeRateControlInfoKHR*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#endif
+#ifdef VK_KHR_synchronization2
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV: {
+            reservedmarshal_VkQueueFamilyCheckpointProperties2NV(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueueFamilyCheckpointProperties2NV*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_fragment_shader_barycentric
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR: {
+            reservedmarshal_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_shader_subgroup_uniform_control_flow
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<
+                    const VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_workgroup_memory_explicit_layout
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_tracing_position_fetch
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_POSITION_FETCH_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
 #ifdef VK_ANDROID_native_buffer
         case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID: {
             reservedmarshal_VkNativeBufferANDROID(
                 vkStream, rootType, reinterpret_cast<const VkNativeBufferANDROID*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            reservedmarshal_VkDebugReportCallbackCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDebugReportCallbackCreateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_AMD_rasterization_order
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_RASTERIZATION_ORDER_AMD: {
+            reservedmarshal_VkPipelineRasterizationStateRasterizationOrderAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineRasterizationStateRasterizationOrderAMD*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_dedicated_allocation
+        case VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_IMAGE_CREATE_INFO_NV: {
+            reservedmarshal_VkDedicatedAllocationImageCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkDedicatedAllocationImageCreateInfoNV*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_BUFFER_CREATE_INFO_NV: {
+            reservedmarshal_VkDedicatedAllocationBufferCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkDedicatedAllocationBufferCreateInfoNV*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_MEMORY_ALLOCATE_INFO_NV: {
+            reservedmarshal_VkDedicatedAllocationMemoryAllocateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkDedicatedAllocationMemoryAllocateInfoNV*>(structExtension),
                 ptr);
             break;
         }
@@ -8940,6 +22596,1076 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
             reservedmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<const VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_video_encode_h264
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_EXT: {
+            reservedmarshal_VkVideoEncodeH264CapabilitiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH264CapabilitiesEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_ADD_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH264SessionParametersAddInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH264SessionParametersAddInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_CREATE_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH264SessionParametersCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH264SessionParametersCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_VCL_FRAME_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH264VclFrameInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH264VclFrameInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_DPB_SLOT_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH264DpbSlotInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH264DpbSlotInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH264ProfileInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH264ProfileInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH264RateControlInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH264RateControlInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_LAYER_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH264RateControlLayerInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH264RateControlLayerInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#endif
+#ifdef VK_EXT_video_encode_h265
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_EXT: {
+            reservedmarshal_VkVideoEncodeH265CapabilitiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH265CapabilitiesEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_ADD_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH265SessionParametersAddInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH265SessionParametersAddInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_CREATE_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH265SessionParametersCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH265SessionParametersCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_VCL_FRAME_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH265VclFrameInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH265VclFrameInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_DPB_SLOT_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH265DpbSlotInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH265DpbSlotInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH265ProfileInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH265ProfileInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH265RateControlInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH265RateControlInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_LAYER_INFO_EXT: {
+            reservedmarshal_VkVideoEncodeH265RateControlLayerInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkVideoEncodeH265RateControlLayerInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#endif
+#ifdef VK_AMD_texture_gather_bias_lod
+        case VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD: {
+            reservedmarshal_VkTextureLODGatherFormatPropertiesAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkTextureLODGatherFormatPropertiesAMD*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_corner_sampled_image
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CORNER_SAMPLED_IMAGE_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceCornerSampledImageFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceCornerSampledImageFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_external_memory
+        case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO_NV: {
+            reservedmarshal_VkExternalMemoryImageCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkExternalMemoryImageCreateInfoNV*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_NV: {
+            reservedmarshal_VkExportMemoryAllocateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMemoryAllocateInfoNV*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_external_memory_win32
+        case VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_NV: {
+            reservedmarshal_VkImportMemoryWin32HandleInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMemoryWin32HandleInfoNV*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_NV: {
+            reservedmarshal_VkExportMemoryWin32HandleInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMemoryWin32HandleInfoNV*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_win32_keyed_mutex
+        case VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_NV: {
+            reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkWin32KeyedMutexAcquireReleaseInfoNV*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_validation_flags
+        case VK_STRUCTURE_TYPE_VALIDATION_FLAGS_EXT: {
+            reservedmarshal_VkValidationFlagsEXT(
+                vkStream, rootType, reinterpret_cast<const VkValidationFlagsEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_astc_decode_mode
+        case VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT: {
+            reservedmarshal_VkImageViewASTCDecodeModeEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageViewASTCDecodeModeEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ASTC_DECODE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceASTCDecodeFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceASTCDecodeFeaturesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_pipeline_robustness
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDevicePipelineRobustnessFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePipelineRobustnessFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDevicePipelineRobustnessPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePipelineRobustnessPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_ROBUSTNESS_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineRobustnessCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineRobustnessCreateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_conditional_rendering
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceConditionalRenderingFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceConditionalRenderingFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_CONDITIONAL_RENDERING_INFO_EXT: {
+            reservedmarshal_VkCommandBufferInheritanceConditionalRenderingInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkCommandBufferInheritanceConditionalRenderingInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_W_SCALING_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineViewportWScalingStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineViewportWScalingStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_display_control
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_COUNTER_CREATE_INFO_EXT: {
+            reservedmarshal_VkSwapchainCounterCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSwapchainCounterCreateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_GOOGLE_display_timing
+        case VK_STRUCTURE_TYPE_PRESENT_TIMES_INFO_GOOGLE: {
+            reservedmarshal_VkPresentTimesInfoGOOGLE(
+                vkStream, rootType,
+                reinterpret_cast<const VkPresentTimesInfoGOOGLE*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_NVX_multiview_per_view_attributes
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_ATTRIBUTES_PROPERTIES_NVX: {
+            reservedmarshal_VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_viewport_swizzle
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SWIZZLE_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineViewportSwizzleStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineViewportSwizzleStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_discard_rectangles
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISCARD_RECTANGLE_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceDiscardRectanglePropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDiscardRectanglePropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_DISCARD_RECTANGLE_STATE_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineDiscardRectangleStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineDiscardRectangleStateCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_conservative_rasterization
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONSERVATIVE_RASTERIZATION_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceConservativeRasterizationPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceConservativeRasterizationPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineRasterizationConservativeStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineRasterizationConservativeStateCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_debug_utils
+        case VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT: {
+            reservedmarshal_VkDebugUtilsObjectNameInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDebugUtilsObjectNameInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT: {
+            reservedmarshal_VkDebugUtilsMessengerCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDebugUtilsMessengerCreateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_ANDROID_external_memory_android_hardware_buffer
+        case VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_USAGE_ANDROID: {
+            reservedmarshal_VkAndroidHardwareBufferUsageANDROID(
+                vkStream, rootType,
+                reinterpret_cast<const VkAndroidHardwareBufferUsageANDROID*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID: {
+            reservedmarshal_VkAndroidHardwareBufferFormatPropertiesANDROID(
+                vkStream, rootType,
+                reinterpret_cast<const VkAndroidHardwareBufferFormatPropertiesANDROID*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID: {
+            reservedmarshal_VkImportAndroidHardwareBufferInfoANDROID(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportAndroidHardwareBufferInfoANDROID*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID: {
+            reservedmarshal_VkExternalFormatANDROID(
+                vkStream, rootType,
+                reinterpret_cast<const VkExternalFormatANDROID*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_2_ANDROID: {
+            reservedmarshal_VkAndroidHardwareBufferFormatProperties2ANDROID(
+                vkStream, rootType,
+                reinterpret_cast<const VkAndroidHardwareBufferFormatProperties2ANDROID*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_sample_locations
+        case VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT: {
+            reservedmarshal_VkSampleLocationsInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSampleLocationsInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_SAMPLE_LOCATIONS_BEGIN_INFO_EXT: {
+            reservedmarshal_VkRenderPassSampleLocationsBeginInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkRenderPassSampleLocationsBeginInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineSampleLocationsStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineSampleLocationsStateCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceSampleLocationsPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceSampleLocationsPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_blend_operation_advanced
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineColorBlendAdvancedStateCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_fragment_coverage_to_color
+        case VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_TO_COLOR_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineCoverageToColorStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineCoverageToColorStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_framebuffer_mixed_samples
+        case VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_MODULATION_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineCoverageModulationStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineCoverageModulationStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_shader_sm_builtins
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceShaderSMBuiltinsPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderSMBuiltinsPropertiesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceShaderSMBuiltinsFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderSMBuiltinsFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT: {
+            reservedmarshal_VkDrmFormatModifierPropertiesListEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDrmFormatModifierPropertiesListEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT: {
+            reservedmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImageDrmFormatModifierInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT: {
+            reservedmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageDrmFormatModifierListCreateInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT: {
+            reservedmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageDrmFormatModifierExplicitCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT: {
+            reservedmarshal_VkDrmFormatModifierPropertiesList2EXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDrmFormatModifierPropertiesList2EXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_validation_cache
+        case VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT: {
+            reservedmarshal_VkShaderModuleValidationCacheCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkShaderModuleValidationCacheCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_shading_rate_image
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SHADING_RATE_IMAGE_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineViewportShadingRateImageStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineViewportShadingRateImageStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceShadingRateImageFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShadingRateImageFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceShadingRateImagePropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShadingRateImagePropertiesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_COARSE_SAMPLE_ORDER_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineViewportCoarseSampleOrderStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_ray_tracing
+        case VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_NV: {
+            reservedmarshal_VkWriteDescriptorSetAccelerationStructureNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkWriteDescriptorSetAccelerationStructureNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceRayTracingPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingPropertiesNV*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_representative_fragment_test
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_REPRESENTATIVE_FRAGMENT_TEST_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_REPRESENTATIVE_FRAGMENT_TEST_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineRepresentativeFragmentTestStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineRepresentativeFragmentTestStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_filter_cubic
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_IMAGE_FORMAT_INFO_EXT: {
+            reservedmarshal_VkPhysicalDeviceImageViewImageFormatInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImageViewImageFormatInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_FILTER_CUBIC_IMAGE_VIEW_IMAGE_FORMAT_PROPERTIES_EXT: {
+            reservedmarshal_VkFilterCubicImageViewImageFormatPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkFilterCubicImageViewImageFormatPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_external_memory_host
+        case VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT: {
+            reservedmarshal_VkImportMemoryHostPointerInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMemoryHostPointerInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceExternalMemoryHostPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_AMD_pipeline_compiler_control
+        case VK_STRUCTURE_TYPE_PIPELINE_COMPILER_CONTROL_CREATE_INFO_AMD: {
+            reservedmarshal_VkPipelineCompilerControlCreateInfoAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineCompilerControlCreateInfoAMD*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_AMD_shader_core_properties
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_AMD: {
+            reservedmarshal_VkPhysicalDeviceShaderCorePropertiesAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderCorePropertiesAMD*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_AMD_memory_overallocation_behavior
+        case VK_STRUCTURE_TYPE_DEVICE_MEMORY_OVERALLOCATION_CREATE_INFO_AMD: {
+            reservedmarshal_VkDeviceMemoryOverallocationCreateInfoAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkDeviceMemoryOverallocationCreateInfoAMD*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_GGP_frame_token
+        case VK_STRUCTURE_TYPE_PRESENT_FRAME_TOKEN_GGP: {
+            reservedmarshal_VkPresentFrameTokenGGP(
+                vkStream, rootType,
+                reinterpret_cast<const VkPresentFrameTokenGGP*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_compute_shader_derivatives
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceComputeShaderDerivativesFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceComputeShaderDerivativesFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_mesh_shader
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceMeshShaderFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMeshShaderFeaturesNV*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceMeshShaderPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMeshShaderPropertiesNV*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_shader_image_footprint
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_FOOTPRINT_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceShaderImageFootprintFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderImageFootprintFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_scissor_exclusive
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_EXCLUSIVE_SCISSOR_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineViewportExclusiveScissorStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineViewportExclusiveScissorStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXCLUSIVE_SCISSOR_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceExclusiveScissorFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceExclusiveScissorFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV: {
+            reservedmarshal_VkQueueFamilyCheckpointPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueueFamilyCheckpointPropertiesNV*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_INTEL_shader_integer_functions2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_FUNCTIONS_2_FEATURES_INTEL: {
+            reservedmarshal_VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_INTEL_performance_query
+        case VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_QUERY_CREATE_INFO_INTEL: {
+            reservedmarshal_VkQueryPoolPerformanceQueryCreateInfoINTEL(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueryPoolPerformanceQueryCreateInfoINTEL*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_pci_bus_info
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PCI_BUS_INFO_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDevicePCIBusInfoPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePCIBusInfoPropertiesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_AMD_display_native_hdr
+        case VK_STRUCTURE_TYPE_DISPLAY_NATIVE_HDR_SURFACE_CAPABILITIES_AMD: {
+            reservedmarshal_VkDisplayNativeHdrSurfaceCapabilitiesAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkDisplayNativeHdrSurfaceCapabilitiesAMD*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_DISPLAY_NATIVE_HDR_CREATE_INFO_AMD: {
+            reservedmarshal_VkSwapchainDisplayNativeHdrCreateInfoAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkSwapchainDisplayNativeHdrCreateInfoAMD*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2: {
+                    reservedmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO: {
+                    reservedmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    reservedmarshal_VkImportColorBufferGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkImportColorBufferGOOGLE*>(structExtension), ptr);
+                    break;
+                }
+                default: {
+                    reservedmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension),
+                        ptr);
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2: {
+                    reservedmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    reservedmarshal_VkCreateBlobGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension), ptr);
+                    break;
+                }
+                default: {
+                    reservedmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension),
+                        ptr);
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO: {
+                    reservedmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2: {
+                    reservedmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    reservedmarshal_VkImportBufferGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkImportBufferGOOGLE*>(structExtension), ptr);
+                    break;
+                }
+                default: {
+                    reservedmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension),
+                        ptr);
+                    break;
+                }
+            }
+            break;
+        }
+#endif
+#ifdef VK_AMD_shader_core_properties2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_2_AMD: {
+            reservedmarshal_VkPhysicalDeviceShaderCoreProperties2AMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderCoreProperties2AMD*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_AMD_device_coherent_memory
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COHERENT_MEMORY_FEATURES_AMD: {
+            reservedmarshal_VkPhysicalDeviceCoherentMemoryFeaturesAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceCoherentMemoryFeaturesAMD*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_image_atomic_int64
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_memory_budget
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMemoryBudgetPropertiesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_memory_priority
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceMemoryPriorityFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMemoryPriorityFeaturesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MEMORY_PRIORITY_ALLOCATE_INFO_EXT: {
+            reservedmarshal_VkMemoryPriorityAllocateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkMemoryPriorityAllocateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_dedicated_allocation_image_aliasing
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEDICATED_ALLOCATION_IMAGE_ALIASING_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_buffer_device_address
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceBufferDeviceAddressFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT: {
+            reservedmarshal_VkBufferDeviceAddressCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkBufferDeviceAddressCreateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
+            reservedmarshal_VkValidationFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkValidationFeaturesEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_cooperative_matrix
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceCooperativeMatrixFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceCooperativeMatrixFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceCooperativeMatrixPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceCooperativeMatrixPropertiesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COVERAGE_REDUCTION_MODE_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceCoverageReductionModeFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceCoverageReductionModeFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_REDUCTION_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineCoverageReductionStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineCoverageReductionStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_shader_interlock
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_INTERLOCK_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_ycbcr_image_arrays
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceYcbcrImageArraysFeaturesEXT*>(
                     structExtension),
                 ptr);
             break;
@@ -8971,6 +23697,29 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
             break;
         }
 #endif
+#ifdef VK_EXT_full_screen_exclusive
+        case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT: {
+            reservedmarshal_VkSurfaceFullScreenExclusiveInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSurfaceFullScreenExclusiveInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT: {
+            reservedmarshal_VkSurfaceCapabilitiesFullScreenExclusiveEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSurfaceCapabilitiesFullScreenExclusiveEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT: {
+            reservedmarshal_VkSurfaceFullScreenExclusiveWin32InfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSurfaceFullScreenExclusiveWin32InfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
 #ifdef VK_EXT_line_rasterization
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT: {
             reservedmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT(
@@ -8997,11 +23746,169 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
             break;
         }
 #endif
+#ifdef VK_EXT_shader_atomic_float
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderAtomicFloatFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
 #ifdef VK_EXT_index_type_uint8
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT: {
             reservedmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
                 vkStream, rootType,
                 reinterpret_cast<const VkPhysicalDeviceIndexTypeUint8FeaturesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_atomic_float2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_surface_maintenance1
+        case VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_EXT: {
+            reservedmarshal_VkSurfacePresentModeEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSurfacePresentModeEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SURFACE_PRESENT_SCALING_CAPABILITIES_EXT: {
+            reservedmarshal_VkSurfacePresentScalingCapabilitiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSurfacePresentScalingCapabilitiesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_COMPATIBILITY_EXT: {
+            reservedmarshal_VkSurfacePresentModeCompatibilityEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSurfacePresentModeCompatibilityEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_EXT: {
+            reservedmarshal_VkSwapchainPresentFenceInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSwapchainPresentFenceInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODES_CREATE_INFO_EXT: {
+            reservedmarshal_VkSwapchainPresentModesCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSwapchainPresentModesCreateInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODE_INFO_EXT: {
+            reservedmarshal_VkSwapchainPresentModeInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSwapchainPresentModeInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_SCALING_CREATE_INFO_EXT: {
+            reservedmarshal_VkSwapchainPresentScalingCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSwapchainPresentScalingCreateInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_device_generated_commands
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_SHADER_GROUPS_CREATE_INFO_NV: {
+            reservedmarshal_VkGraphicsPipelineShaderGroupsCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkGraphicsPipelineShaderGroupsCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_inherited_viewport_scissor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INHERITED_VIEWPORT_SCISSOR_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceInheritedViewportScissorFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceInheritedViewportScissorFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_VIEWPORT_SCISSOR_INFO_NV: {
+            reservedmarshal_VkCommandBufferInheritanceViewportScissorInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkCommandBufferInheritanceViewportScissorInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_texel_buffer_alignment
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_QCOM_render_pass_transform
+        case VK_STRUCTURE_TYPE_RENDER_PASS_TRANSFORM_BEGIN_INFO_QCOM: {
+            reservedmarshal_VkRenderPassTransformBeginInfoQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkRenderPassTransformBeginInfoQCOM*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDER_PASS_TRANSFORM_INFO_QCOM: {
+            reservedmarshal_VkCommandBufferInheritanceRenderPassTransformInfoQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkCommandBufferInheritanceRenderPassTransformInfoQCOM*>(
+                    structExtension),
                 ptr);
             break;
         }
@@ -9019,6 +23926,22 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
             reservedmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<const VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension),
                 ptr);
             break;
         }
@@ -9048,11 +23971,578 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
             break;
         }
 #endif
+#ifdef VK_NV_present_barrier
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_BARRIER_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDevicePresentBarrierFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePresentBarrierFeaturesNV*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_PRESENT_BARRIER_NV: {
+            reservedmarshal_VkSurfaceCapabilitiesPresentBarrierNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkSurfaceCapabilitiesPresentBarrierNV*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_BARRIER_CREATE_INFO_NV: {
+            reservedmarshal_VkSwapchainPresentBarrierCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkSwapchainPresentBarrierCreateInfoNV*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_device_diagnostics_config
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceDiagnosticsConfigFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDiagnosticsConfigFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV: {
+            reservedmarshal_VkDeviceDiagnosticsConfigCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkDeviceDiagnosticsConfigCreateInfoNV*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_low_latency
+        case VK_STRUCTURE_TYPE_QUERY_LOW_LATENCY_SUPPORT_NV: {
+            reservedmarshal_VkQueryLowLatencySupportNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueryLowLatencySupportNV*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_metal_objects
+        case VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECT_CREATE_INFO_EXT: {
+            reservedmarshal_VkExportMetalObjectCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMetalObjectCreateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXPORT_METAL_DEVICE_INFO_EXT: {
+            reservedmarshal_VkExportMetalDeviceInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMetalDeviceInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXPORT_METAL_COMMAND_QUEUE_INFO_EXT: {
+            reservedmarshal_VkExportMetalCommandQueueInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMetalCommandQueueInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXPORT_METAL_BUFFER_INFO_EXT: {
+            reservedmarshal_VkExportMetalBufferInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMetalBufferInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMPORT_METAL_BUFFER_INFO_EXT: {
+            reservedmarshal_VkImportMetalBufferInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMetalBufferInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXPORT_METAL_TEXTURE_INFO_EXT: {
+            reservedmarshal_VkExportMetalTextureInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMetalTextureInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMPORT_METAL_TEXTURE_INFO_EXT: {
+            reservedmarshal_VkImportMetalTextureInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMetalTextureInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXPORT_METAL_IO_SURFACE_INFO_EXT: {
+            reservedmarshal_VkExportMetalIOSurfaceInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMetalIOSurfaceInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMPORT_METAL_IO_SURFACE_INFO_EXT: {
+            reservedmarshal_VkImportMetalIOSurfaceInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMetalIOSurfaceInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_EXPORT_METAL_SHARED_EVENT_INFO_EXT: {
+            reservedmarshal_VkExportMetalSharedEventInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkExportMetalSharedEventInfoEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMPORT_METAL_SHARED_EVENT_INFO_EXT: {
+            reservedmarshal_VkImportMetalSharedEventInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMetalSharedEventInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_descriptor_buffer
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceDescriptorBufferPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDescriptorBufferPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_DENSITY_MAP_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceDescriptorBufferFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDescriptorBufferFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_PUSH_DESCRIPTOR_BUFFER_HANDLE_EXT: {
+            reservedmarshal_VkDescriptorBufferBindingPushDescriptorBufferHandleEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDescriptorBufferBindingPushDescriptorBufferHandleEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_OPAQUE_CAPTURE_DESCRIPTOR_DATA_CREATE_INFO_EXT: {
+            reservedmarshal_VkOpaqueCaptureDescriptorDataCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkOpaqueCaptureDescriptorDataCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: {
+            reservedmarshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkGraphicsPipelineLibraryCreateInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_AMD_shader_early_and_late_fragment_tests
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_EARLY_AND_LATE_FRAGMENT_TESTS_FEATURES_AMD: {
+            reservedmarshal_VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_ENUM_STATE_CREATE_INFO_NV: {
+            reservedmarshal_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineFragmentShadingRateEnumStateCreateInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_ray_tracing_motion_blur
+        case VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_MOTION_TRIANGLES_DATA_NV: {
+            reservedmarshal_VkAccelerationStructureGeometryMotionTrianglesDataNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkAccelerationStructureGeometryMotionTrianglesDataNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MOTION_INFO_NV: {
+            reservedmarshal_VkAccelerationStructureMotionInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkAccelerationStructureMotionInfoNV*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MOTION_BLUR_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceRayTracingMotionBlurFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingMotionBlurFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_ycbcr_2plane_444_formats
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_2_PLANE_444_FORMATS_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentDensityMap2FeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceFragmentDensityMap2PropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentDensityMap2PropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_QCOM_rotated_copy_commands
+        case VK_STRUCTURE_TYPE_COPY_COMMAND_TRANSFORM_INFO_QCOM: {
+            reservedmarshal_VkCopyCommandTransformInfoQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkCopyCommandTransformInfoQCOM*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_compression_control
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceImageCompressionControlFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImageCompressionControlFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_CONTROL_EXT: {
+            reservedmarshal_VkImageCompressionControlEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageCompressionControlEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_PROPERTIES_EXT: {
+            reservedmarshal_VkImageCompressionPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageCompressionPropertiesEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_layout
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_4444_formats
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDevice4444FormatsFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevice4444FormatsFeaturesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_device_fault
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FAULT_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceFaultFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFaultFeaturesEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_ARM_rasterization_order_attachment_access
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<
+                    const VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_rgba10x6_formats
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RGBA10X6_FORMATS_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_VALVE_mutable_descriptor_type
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT: {
+            reservedmarshal_VkMutableDescriptorTypeCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkMutableDescriptorTypeCreateInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_physical_device_drm
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceDrmPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDrmPropertiesEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_device_address_binding_report
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ADDRESS_BINDING_REPORT_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceAddressBindingReportFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceAddressBindingReportFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_ADDRESS_BINDING_CALLBACK_DATA_EXT: {
+            reservedmarshal_VkDeviceAddressBindingCallbackDataEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDeviceAddressBindingCallbackDataEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clip_control
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceDepthClipControlFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDepthClipControlFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLIP_CONTROL_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineViewportDepthClipControlCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineViewportDepthClipControlCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
 #ifdef VK_EXT_primitive_topology_list_restart
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_TOPOLOGY_LIST_RESTART_FEATURES_EXT: {
             reservedmarshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
                 vkStream, rootType,
                 reinterpret_cast<const VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_FUCHSIA_external_memory
+        case VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA: {
+            reservedmarshal_VkImportMemoryZirconHandleInfoFUCHSIA(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMemoryZirconHandleInfoFUCHSIA*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+        case VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA: {
+            reservedmarshal_VkImportMemoryBufferCollectionFUCHSIA(
+                vkStream, rootType,
+                reinterpret_cast<const VkImportMemoryBufferCollectionFUCHSIA*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA: {
+            reservedmarshal_VkBufferCollectionImageCreateInfoFUCHSIA(
+                vkStream, rootType,
+                reinterpret_cast<const VkBufferCollectionImageCreateInfoFUCHSIA*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BUFFER_COLLECTION_BUFFER_CREATE_INFO_FUCHSIA: {
+            reservedmarshal_VkBufferCollectionBufferCreateInfoFUCHSIA(
+                vkStream, rootType,
+                reinterpret_cast<const VkBufferCollectionBufferCreateInfoFUCHSIA*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+        case VK_STRUCTURE_TYPE_SUBPASS_SHADING_PIPELINE_CREATE_INFO_HUAWEI: {
+            reservedmarshal_VkSubpassShadingPipelineCreateInfoHUAWEI(
+                vkStream, rootType,
+                reinterpret_cast<const VkSubpassShadingPipelineCreateInfoHUAWEI*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_FEATURES_HUAWEI: {
+            reservedmarshal_VkPhysicalDeviceSubpassShadingFeaturesHUAWEI(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceSubpassShadingFeaturesHUAWEI*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_PROPERTIES_HUAWEI: {
+            reservedmarshal_VkPhysicalDeviceSubpassShadingPropertiesHUAWEI(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceSubpassShadingPropertiesHUAWEI*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INVOCATION_MASK_FEATURES_HUAWEI: {
+            reservedmarshal_VkPhysicalDeviceInvocationMaskFeaturesHUAWEI(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceInvocationMaskFeaturesHUAWEI*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_external_memory_rdma
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_RDMA_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceExternalMemoryRDMAFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceExternalMemoryRDMAFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_pipeline_properties
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROPERTIES_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDevicePipelinePropertiesFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePipelinePropertiesFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_multisampled_render_to_single_sampled
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<
+                    const VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SUBPASS_RESOLVE_PERFORMANCE_QUERY_EXT: {
+            reservedmarshal_VkSubpassResolvePerformanceQueryEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSubpassResolvePerformanceQueryEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT: {
+            reservedmarshal_VkMultisampledRenderToSingleSampledInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkMultisampledRenderToSingleSampledInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineColorWriteCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineColorWriteCreateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_primitives_generated_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVES_GENERATED_QUERY_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT*>(
                     structExtension),
                 ptr);
             break;
@@ -9074,6 +24564,659 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
         case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
             reservedmarshal_VkCreateBlobGOOGLE(
                 vkStream, rootType, reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_view_min_lod
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_MIN_LOD_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceImageViewMinLodFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImageViewMinLodFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_VIEW_MIN_LOD_CREATE_INFO_EXT: {
+            reservedmarshal_VkImageViewMinLodCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageViewMinLodCreateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_multi_draw
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceMultiDrawFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMultiDrawFeaturesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceMultiDrawPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMultiDrawPropertiesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_2d_view_of_3d
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_2D_VIEW_OF_3D_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImage2DViewOf3DFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_tile_image
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TILE_IMAGE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceShaderTileImageFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderTileImageFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TILE_IMAGE_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceShaderTileImagePropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderTileImagePropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_opacity_micromap
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPACITY_MICROMAP_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceOpacityMicromapFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceOpacityMicromapFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPACITY_MICROMAP_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceOpacityMicromapPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceOpacityMicromapPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_OPACITY_MICROMAP_EXT: {
+            reservedmarshal_VkAccelerationStructureTrianglesOpacityMicromapEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkAccelerationStructureTrianglesOpacityMicromapEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_displacement_micromap
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISPLACEMENT_MICROMAP_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceDisplacementMicromapFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDisplacementMicromapFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISPLACEMENT_MICROMAP_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceDisplacementMicromapPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDisplacementMicromapPropertiesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+        case VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_DISPLACEMENT_MICROMAP_NV: {
+            reservedmarshal_VkAccelerationStructureTrianglesDisplacementMicromapNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkAccelerationStructureTrianglesDisplacementMicromapNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif  // VK_ENABLE_BETA_EXTENSIONS
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_FEATURES_HUAWEI: {
+            reservedmarshal_VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_PROPERTIES_HUAWEI: {
+            reservedmarshal_VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_border_color_swizzle
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceBorderColorSwizzleFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT: {
+            reservedmarshal_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkSamplerBorderColorComponentMappingCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_ARM_shader_core_properties
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_ARM: {
+            reservedmarshal_VkPhysicalDeviceShaderCorePropertiesARM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderCorePropertiesARM*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_sliced_view_of_3d
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_SLICED_VIEW_OF_3D_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_VIEW_SLICED_CREATE_INFO_EXT: {
+            reservedmarshal_VkImageViewSlicedCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageViewSlicedCreateInfoEXT*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_SET_HOST_MAPPING_FEATURES_VALVE: {
+            reservedmarshal_VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clamp_zero_one
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceDepthClampZeroOneFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDepthClampZeroOneFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_non_seamless_cube_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NON_SEAMLESS_CUBE_MAP_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_QCOM_fragment_density_map_offset
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_FEATURES_QCOM: {
+            reservedmarshal_VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_PROPERTIES_QCOM: {
+            reservedmarshal_VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SUBPASS_FRAGMENT_DENSITY_MAP_OFFSET_END_INFO_QCOM: {
+            reservedmarshal_VkSubpassFragmentDensityMapOffsetEndInfoQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkSubpassFragmentDensityMapOffsetEndInfoQCOM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_copy_memory_indirect
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceCopyMemoryIndirectFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceCopyMemoryIndirectFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceCopyMemoryIndirectPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceCopyMemoryIndirectPropertiesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_memory_decompression
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceMemoryDecompressionFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMemoryDecompressionFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceMemoryDecompressionPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMemoryDecompressionPropertiesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_linear_color_attachment
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINEAR_COLOR_ATTACHMENT_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceLinearColorAttachmentFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceLinearColorAttachmentFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_compression_control_swapchain
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<
+                    const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_QCOM_image_processing
+        case VK_STRUCTURE_TYPE_IMAGE_VIEW_SAMPLE_WEIGHT_CREATE_INFO_QCOM: {
+            reservedmarshal_VkImageViewSampleWeightCreateInfoQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageViewSampleWeightCreateInfoQCOM*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_FEATURES_QCOM: {
+            reservedmarshal_VkPhysicalDeviceImageProcessingFeaturesQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImageProcessingFeaturesQCOM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_PROPERTIES_QCOM: {
+            reservedmarshal_VkPhysicalDeviceImageProcessingPropertiesQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImageProcessingPropertiesQCOM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceExtendedDynamicState3FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState3FeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceExtendedDynamicState3PropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState3PropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_subpass_merge_feedback
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_MERGE_FEEDBACK_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_CONTROL_EXT: {
+            reservedmarshal_VkRenderPassCreationControlEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkRenderPassCreationControlEXT*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_FEEDBACK_CREATE_INFO_EXT: {
+            reservedmarshal_VkRenderPassCreationFeedbackCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkRenderPassCreationFeedbackCreateInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_SUBPASS_FEEDBACK_CREATE_INFO_EXT: {
+            reservedmarshal_VkRenderPassSubpassFeedbackCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkRenderPassSubpassFeedbackCreateInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_LUNARG_direct_driver_loading
+        case VK_STRUCTURE_TYPE_DIRECT_DRIVER_LOADING_LIST_LUNARG: {
+            reservedmarshal_VkDirectDriverLoadingListLUNARG(
+                vkStream, rootType,
+                reinterpret_cast<const VkDirectDriverLoadingListLUNARG*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_module_identifier
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MODULE_IDENTIFIER_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MODULE_IDENTIFIER_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_MODULE_IDENTIFIER_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineShaderStageModuleIdentifierCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineShaderStageModuleIdentifierCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_optical_flow
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPTICAL_FLOW_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceOpticalFlowFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceOpticalFlowFeaturesNV*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPTICAL_FLOW_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceOpticalFlowPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceOpticalFlowPropertiesNV*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_OPTICAL_FLOW_IMAGE_FORMAT_INFO_NV: {
+            reservedmarshal_VkOpticalFlowImageFormatInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkOpticalFlowImageFormatInfoNV*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_OPTICAL_FLOW_SESSION_CREATE_PRIVATE_DATA_INFO_NV: {
+            reservedmarshal_VkOpticalFlowSessionCreatePrivateDataInfoNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkOpticalFlowSessionCreatePrivateDataInfoNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_legacy_dithering
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_DITHERING_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceLegacyDitheringFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceLegacyDitheringFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_pipeline_protected_access
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROTECTED_ACCESS_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePipelineProtectedAccessFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_object
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceShaderObjectFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderObjectFeaturesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceShaderObjectPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderObjectPropertiesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_QCOM_tile_properties
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_PROPERTIES_FEATURES_QCOM: {
+            reservedmarshal_VkPhysicalDeviceTilePropertiesFeaturesQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceTilePropertiesFeaturesQCOM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_SEC_amigo_profiling
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_AMIGO_PROFILING_FEATURES_SEC: {
+            reservedmarshal_VkPhysicalDeviceAmigoProfilingFeaturesSEC(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceAmigoProfilingFeaturesSEC*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_AMIGO_PROFILING_SUBMIT_INFO_SEC: {
+            reservedmarshal_VkAmigoProfilingSubmitInfoSEC(
+                vkStream, rootType,
+                reinterpret_cast<const VkAmigoProfilingSubmitInfoSEC*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_QCOM_multiview_per_view_viewports
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_VIEWPORTS_FEATURES_QCOM: {
+            reservedmarshal_VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_NV_ray_tracing_invocation_reorder
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_PROPERTIES_NV: {
+            reservedmarshal_VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_FEATURES_NV: {
+            reservedmarshal_VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_ARM_shader_core_builtins
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_FEATURES_ARM: {
+            reservedmarshal_VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPERTIES_ARM: {
+            reservedmarshal_VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_pipeline_library_group_handles
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_QCOM_multiview_per_view_render_areas
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_RENDER_AREAS_FEATURES_QCOM: {
+            reservedmarshal_VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_RENDER_AREAS_RENDER_PASS_BEGIN_INFO_QCOM: {
+            reservedmarshal_VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM(
+                vkStream, rootType,
+                reinterpret_cast<const VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_DYNAMIC_STATE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<
+                    const VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_acceleration_structure
+        case VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR: {
+            reservedmarshal_VkWriteDescriptorSetAccelerationStructureKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkWriteDescriptorSetAccelerationStructureKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceAccelerationStructureFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceAccelerationStructureFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR: {
+            reservedmarshal_VkPhysicalDeviceAccelerationStructurePropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceAccelerationStructurePropertiesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingPipelineFeaturesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR: {
+            reservedmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingPipelinePropertiesKHR*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR: {
+            reservedmarshal_VkPhysicalDeviceRayQueryFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayQueryFeaturesKHR*>(structExtension), ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_mesh_shader
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceMeshShaderFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMeshShaderFeaturesEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceMeshShaderPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceMeshShaderPropertiesEXT*>(structExtension),
                 ptr);
             break;
         }
