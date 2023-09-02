@@ -620,60 +620,6 @@ VkResult GetBufferCollectionPropertiesFUCHSIA(
 }
 
 #endif
-
-uint64_t currGuestTimeNs() {
-    struct timespec ts;
-#ifdef __APPLE__
-    clock_gettime(CLOCK_REALTIME, &ts);
-#else
-    clock_gettime(CLOCK_BOOTTIME, &ts);
-#endif
-    uint64_t res = (uint64_t)(ts.tv_sec * 1000000000ULL + ts.tv_nsec);
-    return res;
-}
-
-struct FrameTracingState {
-    uint32_t frameNumber = 0;
-    bool tracingEnabled = false;
-    void onSwapBuffersSuccessful(ExtendedRCEncoderContext* rcEnc) {
-#ifdef GFXSTREAM
-        bool current = android::base::isTracingEnabled();
-        // edge trigger
-        if (current && !tracingEnabled) {
-            if (rcEnc->hasHostSideTracing()) {
-                rcEnc->rcSetTracingForPuid(rcEnc, getPuid(), 1, currGuestTimeNs());
-            }
-        }
-        if (!current && tracingEnabled) {
-            if (rcEnc->hasHostSideTracing()) {
-                rcEnc->rcSetTracingForPuid(rcEnc, getPuid(), 0, currGuestTimeNs());
-            }
-        }
-        tracingEnabled = current;
-#endif
-        ++frameNumber;
-    }
-};
-
-static FrameTracingState sFrameTracingState;
-
-static PFN_vkVoidFunction sQueueSignalReleaseImageAndroidImpl = 0;
-
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-static VkResult
-QueueSignalReleaseImageANDROID(
-    VkQueue queue,
-    uint32_t waitSemaphoreCount,
-    const VkSemaphore* pWaitSemaphores,
-    VkImage image,
-    int* pNativeFenceFd)
-{
-    sFrameTracingState.onSwapBuffersSuccessful(HostConnection::get()->rcEncoder());
-    ((PFN_vkQueueSignalReleaseImageANDROID)sQueueSignalReleaseImageAndroidImpl)(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
-    return VK_SUCCESS;
-}
-#endif
-
 static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     AEMU_SCOPED_TRACE("goldfish_vulkan::GetDeviceProcAddr");
 
@@ -712,16 +658,6 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
         return (PFN_vkVoidFunction)GetBufferCollectionPropertiesFUCHSIA;
     }
 #endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-    if (!strcmp(name, "vkQueueSignalReleaseImageANDROID")) {
-        if (!sQueueSignalReleaseImageAndroidImpl) {
-            sQueueSignalReleaseImageAndroidImpl =
-                (PFN_vkVoidFunction)(
-                    gfxstream::vk::goldfish_vulkan_get_device_proc_address(device, "vkQueueSignalReleaseImageANDROID"));
-        }
-        return (PFN_vkVoidFunction)QueueSignalReleaseImageANDROID;
-    }
-#endif
     if (!strcmp(name, "vkGetDeviceProcAddr")) {
         return (PFN_vkVoidFunction)(GetDeviceProcAddr);
     }
@@ -747,16 +683,6 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
     if (!strcmp(name, "vkGetDeviceProcAddr")) {
         return (PFN_vkVoidFunction)(GetDeviceProcAddr);
     }
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-    if (!strcmp(name, "vkQueueSignalReleaseImageANDROID")) {
-        if (!sQueueSignalReleaseImageAndroidImpl) {
-            sQueueSignalReleaseImageAndroidImpl =
-                (PFN_vkVoidFunction)(
-                    gfxstream::vk::goldfish_vulkan_get_instance_proc_address(instance, "vkQueueSignalReleaseImageANDROID"));
-        }
-        return (PFN_vkVoidFunction)QueueSignalReleaseImageANDROID;
-    }
-#endif
     return (PFN_vkVoidFunction)(gfxstream::vk::goldfish_vulkan_get_instance_proc_address(instance, name));
 }
 

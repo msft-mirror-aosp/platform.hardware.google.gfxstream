@@ -42,7 +42,6 @@ LOCAL_CFLAGS += \
     -DVK_GOOGLE_gfxstream \
     -Wno-missing-field-initializers \
     -Werror \
-    -Wno-unused-parameter \
     -fstrict-aliasing \
     -DVK_USE_PLATFORM_ANDROID_KHR \
     -DVK_NO_PROTOTYPES \
