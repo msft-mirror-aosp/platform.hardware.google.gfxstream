@@ -12,7 +12,6 @@ commonSources := \
         glUtils.cpp \
         IndexRangeCache.cpp \
         SocketStream.cpp \
-        TcpStream.cpp \
         auto_goldfish_dma_context.cpp \
         etc.cpp \
 

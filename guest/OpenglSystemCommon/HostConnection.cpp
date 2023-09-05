@@ -94,7 +94,6 @@ using gfxstream::vk::VkEncoder;
 
 #include "ProcessPipe.h"
 #include "QemuPipeStream.h"
-#include "TcpStream.h"
 #include "ThreadInfo.h"
 #include <gralloc_cb_bp.h>
 #include <unistd.h>
@@ -160,7 +159,6 @@ static HostConnectionType getConnectionTypeFromProperty() {
 
     if (!transportValue[0]) return HOST_CONNECTION_QEMU_PIPE;
 
-    if (!strcmp("tcp", transportValue)) return HOST_CONNECTION_TCP;
     if (!strcmp("pipe", transportValue)) return HOST_CONNECTION_QEMU_PIPE;
     if (!strcmp("asg", transportValue)) return HOST_CONNECTION_ADDRESS_SPACE;
     if (!strcmp("virtio-gpu-pipe", transportValue)) return HOST_CONNECTION_VIRTIO_GPU_PIPE;
@@ -503,30 +501,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
             con->m_grallocHelper = &m_goldfishGralloc;
             con->m_processPipe = &m_goldfishProcessPipe;
             break;
-        }
-        case HOST_CONNECTION_TCP: {
-#ifndef __ANDROID__
-            ALOGE("Failed to create TCP connection on non-Android guest\n");
-            return nullptr;
-            break;
-#else
-            auto stream = new TcpStream(STREAM_BUFFER_SIZE);
-            if (!stream) {
-                ALOGE("Failed to create TcpStream for host connection\n");
-                return nullptr;
-            }
-
-            if (stream->connect("10.0.2.2", STREAM_PORT_NUM) < 0) {
-                ALOGE("Failed to connect to host (TcpStream)\n");
-                return nullptr;
-            }
-            con->m_connectionType = HOST_CONNECTION_TCP;
-            con->m_grallocType = GRALLOC_TYPE_RANCHU;
-            con->m_stream = stream;
-            con->m_grallocHelper = &m_goldfishGralloc;
-            con->m_processPipe = &m_goldfishProcessPipe;
-            break;
-#endif
         }
 #if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
