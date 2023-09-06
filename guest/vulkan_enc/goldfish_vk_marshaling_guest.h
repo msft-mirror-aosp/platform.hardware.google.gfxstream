@@ -7756,6 +7756,7 @@ void unmarshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructureType r
 #define OP_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE 243985229
 #define OP_vkQueueFlushCommandsFromAuxMemoryGOOGLE 290633483
 #define OP_vkGetBlobGOOGLE 20341
+#define OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE 244782974
 #endif
 #ifdef VK_EXT_global_priority_query
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR,
