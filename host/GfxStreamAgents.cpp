@@ -243,7 +243,11 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
             }
             mMultiDisplay[displayId].cb = colorBuffer;
             return 0;
-        }};
+        },
+       .isPixelFold = [] () {
+           return false;
+       },
+    };
 
 static bool sIsFolded = false;
 

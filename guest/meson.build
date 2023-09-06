@@ -1,8 +1,8 @@
 # Copyright 2022 Android Open Source Project
 # SPDX-License-Identifier: MIT
 
-project('gfxstream', 'cpp', 'c',
-         version : '0.0.1',
+project('gfxstream_frontend', 'cpp', 'c',
+         version : '0.1.2',
          license : 'MIT OR Apache-2.0',
          default_options : ['cpp_std=gnu++17'])
 
@@ -32,9 +32,6 @@ cpp_args += '-DGFXSTREAM'
 cpp_args += '-DLINUX_GUEST_BUILD'
 # Don't want to goldfish OpenGL
 cpp_args += '-DGOLDFISH_NO_GL'
-# This is a good number for PAGE_SIZE
-# But we should really do getpagesize(..).
-cpp_args += '-DPAGE_SIZE=4096'
 # This should just be called NO_TRACE eventually
 cpp_args += '-DFUCHSIA_NO_TRACE'
 # Include the gfxstream private VkStructureType definitions

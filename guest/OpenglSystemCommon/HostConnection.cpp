@@ -115,6 +115,11 @@ using android::base::guest::getCurrentThreadId;
 #if defined(__linux__) || defined(__ANDROID__)
 #include <fstream>
 #include <string>
+#include <unistd.h>
+
+static const size_t kPageSize = getpagesize();
+#else
+constexpr size_t kPageSize = PAGE_SIZE;
 #endif
 
 #undef LOG_TAG
@@ -264,7 +269,7 @@ public:
         res_create.last_level = 0;
         res_create.nr_samples = 0;
         res_create.stride = bpp * width;
-        res_create.size = align_up(bpp * width * height, PAGE_SIZE);
+        res_create.size = align_up(bpp * width * height, kPageSize);
 
         int ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE, &res_create);
         if (ret) {
@@ -558,7 +563,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
         }
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
             VirtGpuDevice& instance =
-                VirtGpuDevice::getInstance((enum VirtGpuCapset)kCapsetGfxStream);
+                VirtGpuDevice::getInstance((enum VirtGpuCapset)kCapsetGfxStreamVulkan);
             auto deviceHandle = instance.getDeviceHandle();
             auto stream = createVirtioGpuAddressSpaceStream(getGlobalHealthMonitor());
             if (!stream) {

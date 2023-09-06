@@ -18,6 +18,7 @@ from xml.etree.ElementTree import Element
 from generator import noneStr
 
 from copy import copy
+from dataclasses import dataclass
 from string import whitespace
 
 # Holds information about core Vulkan objects
@@ -159,13 +160,50 @@ NON_ABI_PORTABLE_TYPE_CATEGORIES = [
     "funcpointer",
 ]
 
-DEVICE_MEMORY_INFO_KEYS = [
-    "devicememoryhandle",
-    "devicememoryoffset",
-    "devicememorysize",
-    "devicememorytypeindex",
-    "devicememorytypebits",
-]
+# A class for holding the parameter indices corresponding to various
+# attributes about a VkDeviceMemory, such as the handle, size, offset, etc.
+@dataclass
+class DeviceMemoryInfoParameterIndices:
+    handle: int = -1
+    offset: int = -1
+    size: int = -1
+    typeIndex: int = -1
+    typeBits: int = -1
+
+DEVICE_MEMORY_STRUCTS = {
+    "VkMemoryAllocateInfo": {"1": DeviceMemoryInfoParameterIndices(typeIndex = 3)},
+    "VkMemoryRequirements": {"1": DeviceMemoryInfoParameterIndices(typeBits = 2)},
+    "VkMappedMemoryRange": {"1": DeviceMemoryInfoParameterIndices(handle = 2, offset = 3, size = 4)},
+    "VkSparseMemoryBind": {"1": DeviceMemoryInfoParameterIndices(handle = 2, offset = 3)},
+    "VkSparseImageMemoryBind": {"1": DeviceMemoryInfoParameterIndices(handle = 3, offset = 4)},
+    "VkWin32KeyedMutexAcquireReleaseInfoNV": {"1": DeviceMemoryInfoParameterIndices(handle = 3), "2": DeviceMemoryInfoParameterIndices(handle = 7)},
+    "VkMemoryWin32HandlePropertiesKHR": {"1": DeviceMemoryInfoParameterIndices(typeBits = 2)},
+    "VkMemoryGetWin32HandleInfoKHR": {"1": DeviceMemoryInfoParameterIndices(handle = 2)},
+    "VkMemoryFdPropertiesKHR": {"1": DeviceMemoryInfoParameterIndices(typeBits = 2)},
+    "VkMemoryGetFdInfoKHR": {"1": DeviceMemoryInfoParameterIndices(handle = 2)},
+    "VkWin32KeyedMutexAcquireReleaseInfoKHR": {"1": DeviceMemoryInfoParameterIndices(handle = 3), "2": DeviceMemoryInfoParameterIndices(handle = 7)},
+    "VkBindBufferMemoryInfo": {"1": DeviceMemoryInfoParameterIndices(handle = 3, offset = 4)},
+    "VkBindImageMemoryInfo": {"1": DeviceMemoryInfoParameterIndices(handle = 3, offset = 4)},
+    "VkMemoryHostPointerPropertiesEXT": {"1": DeviceMemoryInfoParameterIndices(typeBits = 2)},
+    "VkAndroidHardwareBufferPropertiesANDROID": {"1": DeviceMemoryInfoParameterIndices(typeBits = 3)},
+    "VkMemoryGetAndroidHardwareBufferInfoANDROID": {"1": DeviceMemoryInfoParameterIndices(handle = 2)},
+    "VkBindAccelerationStructureMemoryInfoNV": {"1": DeviceMemoryInfoParameterIndices(handle = 3, offset = 4)},
+    "VkDeviceMemoryOpaqueCaptureAddressInfo": {"1": DeviceMemoryInfoParameterIndices(handle = 2)},
+}
+
+DEVICE_MEMORY_COMMANDS = {
+    "vkFreeMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkMapMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkUnmapMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkGetDeviceMemoryCommitment": {"1": DeviceMemoryInfoParameterIndices(handle = 1, offset = 2)},
+    "vkBindBufferMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 2, offset = 3)},
+    "vkBindImageMemory": {"1": DeviceMemoryInfoParameterIndices(handle = 2, offset = 3)},
+    "vkGetBlobGOOGLE": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkGetMemoryWin32HandleNV": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkMapMemoryIntoAddressSpaceGOOGLE": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkGetMemoryHostAddressInfoGOOGLE": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+    "vkFreeMemorySyncGOOGLE": {"1": DeviceMemoryInfoParameterIndices(handle = 1)},
+}
 
 TRIVIAL_TRANSFORMED_TYPES = [
     "VkPhysicalDeviceExternalImageFormatInfo",
@@ -183,6 +221,81 @@ NON_TRIVIAL_TRANSFORMED_TYPES = [
 ]
 
 TRANSFORMED_TYPES = TRIVIAL_TRANSFORMED_TYPES + NON_TRIVIAL_TRANSFORMED_TYPES
+
+STRUCT_STREAM_FEATURE = {
+    "VkPhysicalDeviceShaderFloat16Int8Features": "VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT",
+    "VkPhysicalDeviceShaderFloat16Int8FeaturesKHR": "VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT",
+    "VkPhysicalDeviceFloat16Int8FeaturesKHR": "VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT",
+}
+
+STRUCT_MEMBER_STREAM_FEATURE = {
+    "VkGraphicsPipelineCreateInfo.pVertexInputState": "VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT",
+    "VkGraphicsPipelineCreateInfo.pInputAssemblyState": "VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT",
+    "VkGraphicsPipelineCreateInfo.pRasterizationState": "VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT",
+}
+
+STRUCT_ENV_STR = {
+    "VkGraphicsPipelineCreateInfo": {
+        "hasTessellation": "(arrayany pStages 0 stageCount (lambda ((s VkPipelineShaderStageCreateInfo)) (or (eq (getfield s stage) VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) (eq (getfield s stage) VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT))))",
+        "hasRasterization" : "(if (eq 0 pRasterizationState) 0 (not (getfield pRasterizationState rasterizerDiscardEnable)))",
+    },
+}
+
+STRUCT_MEMBER_FILTER_VAR = {
+    "VkGraphicsPipelineCreateInfo.pTessellationState": "hasTessellation",
+    "VkGraphicsPipelineCreateInfo.pViewportState": "hasRasterization",
+    "VkGraphicsPipelineCreateInfo.pMultisampleState": "hasRasterization",
+    "VkGraphicsPipelineCreateInfo.pDepthStencilState": "hasRasterization",
+    "VkGraphicsPipelineCreateInfo.pColorBlendState": "hasRasterization",
+    "VkWriteDescriptorSet.pImageInfo": "descriptorType",
+    "VkWriteDescriptorSet.pBufferInfo": "descriptorType",
+    "VkWriteDescriptorSet.pTexelBufferView": "descriptorType",
+    "VkFramebufferCreateInfo.pAttachments": "flags",
+}
+
+STRUCT_MEMBER_FILTER_VALS = {
+    "VkWriteDescriptorSet.pImageInfo": [
+        "VK_DESCRIPTOR_TYPE_SAMPLER",
+        "VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER",
+        "VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE",
+        "VK_DESCRIPTOR_TYPE_STORAGE_IMAGE",
+        "VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT"
+    ],
+    "VkWriteDescriptorSet.pBufferInfo": [
+        "VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER",
+        "VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC",
+        "VK_DESCRIPTOR_TYPE_STORAGE_BUFFER",
+        "VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC",
+    ],
+    "VkWriteDescriptorSet.pTexelBufferView": [
+        "VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER",
+        "VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER",
+    ],
+}
+
+STRUCT_MEMBER_FILTER_FUNC = {
+    "VkFramebufferCreateInfo.pAttachments": "(eq (bitwise_and flags VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) 0)",
+}
+
+# vk.xml added optional to some of the existing fields. For backward compatibility
+# we need to ignore those optionals.
+# We might want to add more complex safety checks in future.
+STRUCT_MEMBER_IGNORE_OPTIONAL = {
+    "VkSubmitInfo.pWaitDstStageMask",
+    "VkPipelineLayoutCreateInfo.pSetLayouts",
+    "VkGraphicsPipelineCreateInfo.pStages",
+    "VkPipelineColorBlendStateCreateInfo.pAttachments",
+    "VkFramebufferCreateInfo.attachmentCount",
+    "VkFramebufferCreateInfo.pAttachments",
+    "VkVideoProfileInfoKHR.chromaBitDepth",
+    "VkVideoDecodeInfoKHR.pSetupReferenceSlot",
+    "vkCmdBindDescriptorSets.pDescriptorSets",
+    "vkCmdBindDescriptorSets.local_pDescriptorSets",
+    "vkCmdBindVertexBuffers.pBuffers",
+    "vkCmdBindVertexBuffers.local_pBuffers",
+    "vkCmdClearColorImage.pColor",
+    "vkCmdClearColorImage.local_pColor",
+}
 
 # Holds information about a Vulkan type instance (i.e., not a type definition).
 # Type instances are used as struct field definitions or function parameters,
@@ -229,12 +342,7 @@ class VulkanType(object):
         # Device memory annotations
 
         # self.deviceMemoryAttrib/Val stores
-        # device memory info attributes from the XML.
-        # devicememoryhandle
-        # devicememoryoffset
-        # devicememorysize
-        # devicememorytypeindex
-        # devicememorytypebits
+        # device memory info attributes
         self.deviceMemoryAttrib = None
         self.deviceMemoryVal = None
 
@@ -281,6 +389,14 @@ class VulkanType(object):
         if self.staticArrExpr != "":
             return self.staticArrExpr
         if self.lenExpr:
+            # Use a simple lookup table for latexmath.
+            known_expressions = {
+                r"latexmath:[\lceil{\mathit{samples} \over 32}\rceil]":
+                    "int(samples / 32)",
+                r"latexmath:[2 \times \mathtt{VK\_UUID\_SIZE}]": "2 * VK_UUID_SIZE",
+            }
+            if self.lenExpr in known_expressions:
+                return known_expressions[self.lenExpr]
             return self.lenExpr
         return None
 
@@ -362,6 +478,8 @@ class VulkanType(object):
                self.isNonDispatchableHandleType()
 
     def isCreatedBy(self, api):
+        if self.shouldSkip():
+            return False
         if self.typeName in HANDLE_INFO.keys():
             nonKhrRes = HANDLE_INFO[self.typeName].isCreateApi(api.name)
             if nonKhrRes:
@@ -378,6 +496,8 @@ class VulkanType(object):
         return False
 
     def isDestroyedBy(self, api):
+        if self.shouldSkip():
+            return False
         if self.typeName in HANDLE_INFO.keys():
             nonKhrRes = HANDLE_INFO[self.typeName].isDestroyApi(api.name)
             if nonKhrRes:
@@ -427,9 +547,34 @@ class VulkanType(object):
         return None
     def isOptionalPointer(self) -> bool:
         return self.isOptional and \
+               (not self.isForceOptional()) and\
                self.pointerIndirectionLevels > 0 and \
                (not self.isNextPointer())
 
+    def isForceOptional(self) -> bool:
+        """
+        Returns true if we should generate a placeholder for null.
+
+        Vulkan updates change certain pointers from non-optional to
+        optional. We want to keep our encoder/decoder backward compatible.
+        Thus we should generate a placeholder for such APIs.
+        """
+        return self.getFullName() in STRUCT_MEMBER_IGNORE_OPTIONAL
+
+    def getFullName(self) -> str:
+        if self.parent is None:
+            return self.paramName
+        return f"{self.parent.name}.{self.paramName}" 
+
+    def getProtectStreamFeature(self) -> Optional[str]:
+        key = self.getFullName()
+        if key in STRUCT_MEMBER_STREAM_FEATURE.keys():
+            return STRUCT_MEMBER_STREAM_FEATURE[key]
+        return None
+
+    def shouldSkip(self) -> bool:
+        return ("api" in self.attribs.keys()
+                and not "vulkan" == self.attribs["api"])
 
 # Is an S-expression w/ the following spec:
 # From https://gist.github.com/pib/240957
@@ -537,7 +682,7 @@ def parseLetBodyExpr(expr):
     return res
 
 
-def makeVulkanTypeFromXMLTag(typeInfo, tag: Element) -> VulkanType:
+def makeVulkanTypeFromXMLTag(typeInfo, parentName: str, tag: Element) -> VulkanType:
     res = VulkanType()
 
     # Process the length expression
@@ -622,25 +767,16 @@ def makeVulkanTypeFromXMLTag(typeInfo, tag: Element) -> VulkanType:
         bindPairsSplit = map(lambda p: p.split(":"), bindPairs)
         res.binds = dict(map(lambda sp: (sp[0].strip(), sp[1].strip()), bindPairsSplit))
 
-    # Annotations: Device memory
-    for k in DEVICE_MEMORY_INFO_KEYS:
-        if tag.attrib.get(k) is not None:
-            res.deviceMemoryAttrib = k
-            res.deviceMemoryVal = tag.attrib.get(k)
-            break
-
     # Annotations: Filters
-    if tag.attrib.get("filterVar") is not None:
-        res.filterVar = tag.attrib.get("filterVar").strip()
+    structMemberName = f"{parentName}.{res.paramName}"
+    if structMemberName in STRUCT_MEMBER_FILTER_VAR.keys():
+        res.filterVar = STRUCT_MEMBER_FILTER_VAR[structMemberName]
 
-    if tag.attrib.get("filterVals") is not None:
-        res.filterVals = \
-            list(map(lambda v: v.strip(),
-                    tag.attrib.get("filterVals").strip().split(",")))
-        print("Filtervals: %s" % res.filterVals)
+    if structMemberName in STRUCT_MEMBER_FILTER_VALS.keys():
+        res.filterVals = STRUCT_MEMBER_FILTER_VALS[structMemberName]
 
-    if tag.attrib.get("filterFunc") is not None:
-        res.filterFunc = parseFilterFuncExpr(tag.attrib.get("filterFunc"))
+    if structMemberName in STRUCT_MEMBER_FILTER_FUNC.keys():
+        res.filterFunc = parseFilterFuncExpr(STRUCT_MEMBER_FILTER_FUNC[structMemberName])
 
     if tag.attrib.get("filterOtherwise") is not None:
         res.Otherwise = tag.attrib.get("filterOtherwise")
@@ -666,55 +802,6 @@ def makeVulkanTypeSimple(isConst,
 
     return res
 
-# A class for holding the parameter indices corresponding to various
-# attributes about a VkDeviceMemory, such as the handle, size, offset, etc.
-class DeviceMemoryInfoParameterIndices(object):
-    def __init__(self, handle, offset, size, typeIndex, typeBits):
-        self.handle = handle
-        self.offset = offset
-        self.size = size
-        self.typeIndex = typeIndex
-        self.typeBits = typeBits
-
-# initializes DeviceMemoryInfoParameterIndices for each
-# abstract VkDeviceMemory encountered over |parameters|
-def initDeviceMemoryInfoParameterIndices(parameters):
-
-    use = False
-    deviceMemoryInfoById = {}
-
-    for (i, p) in enumerate(parameters):
-        a = p.deviceMemoryAttrib
-        if not a:
-            continue
-
-        if a in DEVICE_MEMORY_INFO_KEYS:
-            use = True
-            deviceMemoryInfoById[p.deviceMemoryVal] =  DeviceMemoryInfoParameterIndices(
-                        None, None, None, None, None)
-
-    for (i, p) in enumerate(parameters):
-        a = p.deviceMemoryAttrib
-        if not a:
-            continue
-
-        info = deviceMemoryInfoById[p.deviceMemoryVal]
-
-        if a == "devicememoryhandle":
-            info.handle = i
-        if a == "devicememoryoffset":
-            info.offset = i
-        if a == "devicememorysize":
-            info.size = i
-        if a == "devicememorytypeindex":
-            info.typeIndex = i
-        if a == "devicememorytypebits":
-            info.typeBits = i
-
-    if not use:
-        return None
-
-    return deviceMemoryInfoById
 
 # Classes for describing aggregate types (unions, structs) and API calls.
 class VulkanCompoundType(object):
@@ -728,7 +815,10 @@ class VulkanCompoundType(object):
         self.structEnumExpr = structEnumExpr
         self.structExtendsExpr = structExtendsExpr
         self.feature = feature
-        self.deviceMemoryInfoParameterIndices = initDeviceMemoryInfoParameterIndices(self.members)
+        if name in DEVICE_MEMORY_STRUCTS:
+            self.deviceMemoryInfoParameterIndices = DEVICE_MEMORY_STRUCTS[name]
+        else:
+            self.deviceMemoryInfoParameterIndices = None
         self.isTransformed = name in TRANSFORMED_TYPES
         self.copy = None
         self.optionalStr = optional
@@ -748,15 +838,24 @@ class VulkanCompoundType(object):
     def getStructEnumExpr(self,):
         return self.structEnumExpr
 
+    def getProtectStreamFeature(self) -> Optional[str]:
+        if not self.name in STRUCT_STREAM_FEATURE.keys():
+            return None
+        return STRUCT_STREAM_FEATURE[self.name]
+
+
 class VulkanAPI(object):
 
     def __init__(self, name: str, retType: VulkanType, parameters, origName=None):
         self.name: str = name
         self.origName = name
         self.retType: VulkanType = retType
-        self.parameters: List[VulkanType] = parameters
+        self.parameters: List[VulkanType] = list(filter(lambda param: not param.shouldSkip(), parameters))
 
-        self.deviceMemoryInfoParameterIndices = initDeviceMemoryInfoParameterIndices(self.parameters)
+        if name in DEVICE_MEMORY_COMMANDS.keys():
+            self.deviceMemoryInfoParameterIndices = DEVICE_MEMORY_COMMANDS[name]
+        else:
+            self.deviceMemoryInfoParameterIndices = None
 
         self.copy = None
 
@@ -846,6 +945,9 @@ class VulkanTypeInfo(object):
         # Maps all enum names to their values.
         # For aliases, the value is the name of the canonical enum
         self.enumValues: Dict[str, Union[int, str]] = {}
+
+        # Maps enum to their xml element
+        self.enumElem = {}
 
         self.feature = None
 
@@ -951,11 +1053,9 @@ class VulkanTypeInfo(object):
                         "body" : None,
                     }
 
-            letenvStr = typeinfo.elem.get("let")
-            if letenvStr != None:
-                comma_separated = letenvStr.split(",")
-                name_body_pairs = map(lambda cs: tuple(map(lambda t: t.strip(), cs.split(":"))), comma_separated)
-                for (name, body) in name_body_pairs:
+            if typeName in STRUCT_ENV_STR.keys():
+                name_body_pairs = STRUCT_ENV_STR[typeName]
+                for (name, body) in name_body_pairs.items():
                     initialEnv[name] = {
                         "type" : "uint32_t",
                         "binding" : name,
@@ -964,7 +1064,9 @@ class VulkanTypeInfo(object):
                     }
 
             for member in typeinfo.elem.findall(".//member"):
-                vulkanType = makeVulkanTypeFromXMLTag(self, member)
+                if "api" in member.attrib.keys() and not "vulkan" == member.attrib["api"]:
+                    continue
+                vulkanType = makeVulkanTypeFromXMLTag(self, typeName, member)
                 initialEnv[vulkanType.paramName] = {
                     "type": vulkanType.typeName,
                     "binding": vulkanType.paramName,
@@ -994,11 +1096,13 @@ class VulkanTypeInfo(object):
         for enum in enums:
             intVal, strVal = self.generator.enumToValue(enum, True)
             self.enumValues[enum.get('name')] = intVal if intVal is not None else strVal
+            self.enumElem[enum.get('name')] = enum
 
 
     def onGenEnum(self, enuminfo, name: str, alias):
         self.initType(name, "enum")
         value: str = enuminfo.elem.get("value")
+        self.enumElem[name] = enuminfo.elem
         if value and value.isdigit():
             self.enumValues[name] = int(value)
         elif value and value[0] == '"' and value[-1] == '"':
@@ -1020,8 +1124,8 @@ class VulkanTypeInfo(object):
         self.apis[name] = \
             VulkanAPI(
                 name,
-                makeVulkanTypeFromXMLTag(self, proto),
-                list(map(lambda p: makeVulkanTypeFromXMLTag(self, p),
+                makeVulkanTypeFromXMLTag(self, name, proto),
+                list(map(lambda p: makeVulkanTypeFromXMLTag(self, name, p),
                          params)))
         self.apis[name].initCopies()
 
@@ -1040,6 +1144,9 @@ def iterateVulkanType(typeInfo: VulkanTypeInfo, vulkanType: VulkanType, forEachT
     if not vulkanType.isArrayOfStrings():
         if vulkanType.isPointerToConstPointer:
             return False
+
+    if vulkanType.shouldSkip():
+        return False
 
     forEachType.registerTypeInfo(typeInfo)
 

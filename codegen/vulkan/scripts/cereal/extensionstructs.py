@@ -92,17 +92,16 @@ class VulkanExtensionStructs(VulkanWrapperGenerator):
             cgen.stmt("return sizeof(%s)" % ext.name)
 
         def forEachExtensionReturnSizeProtectedByFeature(ext, _, cgen):
-            featureProtected = (ext.optionalStr is not None) and (ext.optionalStr.startswith("streamFeature:"))
-            if featureProtected:
-                splitted = ext.optionalStr.split(":")
-                cgen.beginIf("%s & %s" % ("streamFeatures", splitted[1]))
+            streamFeature = ext.getProtectStreamFeature()
+            if streamFeature is None:
                 cgen.stmt("return sizeof(%s)" % ext.name)
-                cgen.endIf()
-                cgen.beginElse()
-                cgen.stmt("return 0")
-                cgen.endIf()
-            else:
-                cgen.stmt("return sizeof(%s)" % ext.name)
+                return
+            cgen.beginIf("%s & %s" % ("streamFeatures", streamFeature))
+            cgen.stmt("return sizeof(%s)" % ext.name)
+            cgen.endIf()
+            cgen.beginElse()
+            cgen.stmt("return 0")
+            cgen.endIf()
 
         self.module.appendImpl(
             self.codegen.makeFuncImpl(
