@@ -721,6 +721,7 @@ custom_decodes = {
     "vkDestroyDescriptorUpdateTemplate" : emit_global_state_wrapped_decoding,
     "vkDestroyDescriptorUpdateTemplateKHR" : emit_global_state_wrapped_decoding,
     "vkUpdateDescriptorSetWithTemplateSizedGOOGLE" : emit_global_state_wrapped_decoding,
+    "vkUpdateDescriptorSetWithTemplateSized2GOOGLE" : emit_global_state_wrapped_decoding,
 
     # VK_GOOGLE_gfxstream
     "vkBeginCommandBufferAsyncGOOGLE" : emit_global_state_wrapped_decoding_with_context,
