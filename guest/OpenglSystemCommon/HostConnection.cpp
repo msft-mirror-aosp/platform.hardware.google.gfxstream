@@ -251,6 +251,7 @@ HostConnection::~HostConnection()
 // static
 std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset) {
     const enum HostConnectionType connType = getConnectionTypeFromProperty(capset);
+    uint32_t noRenderControlEnc = 0;
 
     // Use "new" to access a non-public constructor.
     auto con = std::unique_ptr<HostConnection>(new HostConnection);
@@ -370,8 +371,16 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     *pClientFlags = 0;
     con->m_stream->commitBuffer(sizeof(unsigned int));
 
+    if (capset == kCapsetGfxStreamMagma) {
+        noRenderControlEnc = 1;
+    } else if (capset == kCapsetGfxStreamVulkan) {
+        VirtGpuDevice* instance = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
+        auto caps = instance->getCaps();
+        noRenderControlEnc = caps.vulkanCapset.noRenderControlEnc;
+    }
+
     auto fd = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
-    processPipeInit(fd, connType);
+    processPipeInit(fd, connType, noRenderControlEnc);
     return con;
 }
 

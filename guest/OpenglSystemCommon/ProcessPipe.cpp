@@ -86,12 +86,15 @@ static bool sProcessPipeEnabled = true;
 
 }  // namespace
 
-static void processPipeDoInit() {
+static void processPipeDoInit(uint32_t noRenderControlEnc) {
     initSeqno();
 
     if (!sProcessPipeEnabled) {
         return;
     }
+
+    // No need to setup auxiliary pipe stream in this case
+    if (noRenderControlEnc) return;
 
     switch (sConnType) {
         // TODO: Move those over too
@@ -109,7 +112,7 @@ static void processPipeDoInit() {
 }
 #endif // !__Fuchsia__
 
-bool processPipeInit(int streamHandle, HostConnectionType connType) {
+bool processPipeInit(int streamHandle, HostConnectionType connType, uint32_t noRenderControlEnc) {
     sConnType = connType;
 #ifndef __Fuchsia__
     sStreamHandle = streamHandle;
@@ -120,7 +123,11 @@ bool processPipeInit(int streamHandle, HostConnectionType connType) {
 
         if (sNeedInit) {
             sNeedInit = false;
-            processPipeDoInit();
+            processPipeDoInit(noRenderControlEnc);
+
+            if (noRenderControlEnc) {
+                return true;
+            }
 
 #ifndef __Fuchsia__
             if (!sProcPipe && !sVirtioGpuPipeStream) {

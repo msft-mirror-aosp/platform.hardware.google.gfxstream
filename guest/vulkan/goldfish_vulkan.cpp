@@ -81,20 +81,26 @@ gfxstream::vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = {
 };
 
 VkResult SetupInstance(void) {
+    uint32_t noRenderControlEnc = 0;
     HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan);
     if (!hostCon) {
         ALOGE("vulkan: Failed to get host connection\n");
         return VK_ERROR_DEVICE_LOST;
     }
 
-    gfxstream::vk::ResourceTracker::get()->setupCaps();
-    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();
-    if (!rcEnc) {
-        ALOGE("vulkan: Failed to get renderControl encoder context\n");
-        return VK_ERROR_DEVICE_LOST;
+    gfxstream::vk::ResourceTracker::get()->setupCaps(noRenderControlEnc);
+    // Legacy goldfish path: could be deleted once goldfish not used guest-side.
+    if (!noRenderControlEnc) {
+        // Implicitly sets up sequence number
+        ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();
+        if (!rcEnc) {
+            ALOGE("vulkan: Failed to get renderControl encoder context\n");
+            return VK_ERROR_DEVICE_LOST;
+        }
+
+        gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const());
     }
 
-    gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const());
     gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks);
     gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess());
     gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();
