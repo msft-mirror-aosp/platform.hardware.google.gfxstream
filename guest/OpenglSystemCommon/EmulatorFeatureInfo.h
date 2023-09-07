@@ -207,7 +207,6 @@ struct EmulatorFeatureInfo {
 };
 
 enum HostConnectionType {
-    HOST_CONNECTION_TCP = 0,
     HOST_CONNECTION_QEMU_PIPE = 1,
     HOST_CONNECTION_ADDRESS_SPACE = 2,
     HOST_CONNECTION_VIRTIO_GPU_PIPE = 3,

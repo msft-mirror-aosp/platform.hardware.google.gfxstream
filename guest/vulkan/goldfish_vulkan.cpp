@@ -356,35 +356,35 @@ int CloseDevice(struct hw_device_t* /*device*/) {
 
 #endif
 
-#define VK_HOST_CONNECTION(ret) \
-    HostConnection *hostCon = HostConnection::getOrCreate(VIRTIO_GPU_CAPSET_GFXSTREAM); \
-    if (!hostCon) { \
-        ALOGE("vulkan: Failed to get host connection\n"); \
-        return ret; \
-    } \
-    ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
-    if (!rcEnc) { \
-        ALOGE("vulkan: Failed to get renderControl encoder context\n"); \
-        return ret; \
-    } \
-    gfxstream::vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = { \
-        [] { \
-          auto hostCon = HostConnection::get(); \
-          hostCon->rcEncoder(); \
-          return hostCon; \
-        }, \
-        [](HostConnection* hostCon) { return hostCon->vkEncoder(); }, \
-    }; \
-    gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks); \
-    gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
-    gfxstream::vk::ResourceTracker::get()->setupCaps();                                    \
-    gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess()); \
-    auto hostSupportsVulkan = gfxstream::vk::ResourceTracker::get()->hostSupportsVulkan(); \
-    gfxstream::vk::VkEncoder *vkEnc = hostCon->vkEncoder(); \
-    if (!vkEnc) { \
-        ALOGE("vulkan: Failed to get Vulkan encoder\n"); \
-        return ret; \
-    } \
+#define VK_HOST_CONNECTION(ret)                                                              \
+    HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan);           \
+    if (!hostCon) {                                                                          \
+        ALOGE("vulkan: Failed to get host connection\n");                                    \
+        return ret;                                                                          \
+    }                                                                                        \
+    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();                                  \
+    if (!rcEnc) {                                                                            \
+        ALOGE("vulkan: Failed to get renderControl encoder context\n");                      \
+        return ret;                                                                          \
+    }                                                                                        \
+    gfxstream::vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = {                \
+        [] {                                                                                 \
+            auto hostCon = HostConnection::get();                                            \
+            hostCon->rcEncoder();                                                            \
+            return hostCon;                                                                  \
+        },                                                                                   \
+        [](HostConnection* hostCon) { return hostCon->vkEncoder(); },                        \
+    };                                                                                       \
+    gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks);        \
+    gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const());        \
+    gfxstream::vk::ResourceTracker::get()->setupCaps();                                      \
+    gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess());             \
+    auto hostSupportsVulkan = gfxstream::vk::ResourceTracker::get() -> hostSupportsVulkan(); \
+    gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();                                  \
+    if (!vkEnc) {                                                                            \
+        ALOGE("vulkan: Failed to get Vulkan encoder\n");                                     \
+        return ret;                                                                          \
+    }
 
 VKAPI_ATTR
 VkResult EnumerateInstanceExtensionProperties(

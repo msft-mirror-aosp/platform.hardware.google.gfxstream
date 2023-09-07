@@ -16,10 +16,12 @@
 #ifndef __COMMON_HOST_CONNECTION_H
 #define __COMMON_HOST_CONNECTION_H
 
+#include "ChecksumCalculator.h"
 #include "EmulatorFeatureInfo.h"
 #include "IOStream.h"
+#include "VirtGpu.h"
 #include "renderControl_enc.h"
-#include "ChecksumCalculator.h"
+
 #ifdef __Fuchsia__
 struct goldfish_dma_context;
 #else
@@ -163,26 +165,18 @@ public:
 
 struct EGLThreadInfo;
 
-// Rutabaga capsets.
-#define VIRTIO_GPU_CAPSET_NONE 0
-#define VIRTIO_GPU_CAPSET_VIRGL 1
-#define VIRTIO_GPU_CAPSET_VIRGL2 2
-#define VIRTIO_GPU_CAPSET_GFXSTREAM 3
-#define VIRTIO_GPU_CAPSET_VENUS 4
-#define VIRTIO_GPU_CAPSET_CROSS_DOMAIN 5
-
 class HostConnection
 {
 public:
     static HostConnection *get();
-    static HostConnection *getOrCreate(uint32_t capset_id);
+    static HostConnection* getOrCreate(enum VirtGpuCapset capset = kCapsetNone);
 
-    static HostConnection *getWithThreadInfo(EGLThreadInfo* tInfo,
-                                             uint32_t capset_id = VIRTIO_GPU_CAPSET_NONE);
+    static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo,
+                                             enum VirtGpuCapset capset = kCapsetNone);
     static void exit();
     static void exitUnclean(); // for testing purposes
 
-    static std::unique_ptr<HostConnection> createUnique(uint32_t capset_id = VIRTIO_GPU_CAPSET_NONE);
+    static std::unique_ptr<HostConnection> createUnique(enum VirtGpuCapset capset = kCapsetNone);
     HostConnection(const HostConnection&) = delete;
 
     ~HostConnection();
@@ -224,45 +218,45 @@ public:
 private:
     // If the connection failed, |conn| is deleted.
     // Returns NULL if connection failed.
-    static std::unique_ptr<HostConnection> connect(uint32_t capset_id);
+ static std::unique_ptr<HostConnection> connect(enum VirtGpuCapset capset);
 
-    HostConnection();
-    static gl_client_context_t  *s_getGLContext();
-    static gl2_client_context_t *s_getGL2Context();
+ HostConnection();
+ static gl_client_context_t* s_getGLContext();
+ static gl2_client_context_t* s_getGL2Context();
 
-    const std::string& queryHostExtensions(ExtendedRCEncoderContext *rcEnc);
-    // setProtocol initilizes GL communication protocol for checksums
-    // should be called when m_rcEnc is created
-    void setChecksumHelper(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetGLESMaxVersion(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetNoErrorState(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetDirectMemSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanIgnoredHandles(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetYUVCache(ExtendedRCEncoderContext *mrcEnc);
-    void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVirtioGpuNext(ExtendedRCEncoderContext *rcEnc);
-    void queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetSyncBufferData(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetReadColorBufferDma(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc);
-    void queryAndSetVulkanAuxCommandBufferMemory(ExtendedRCEncoderContext* rcEnc);
-    GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
+ const std::string& queryHostExtensions(ExtendedRCEncoderContext* rcEnc);
+ // setProtocol initializes GL communication protocol for checksums
+ // should be called when m_rcEnc is created
+ void setChecksumHelper(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetSyncImpl(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetDmaImpl(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetGLESMaxVersion(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetNoErrorState(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetHostCompositionImpl(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetDirectMemSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanIgnoredHandles(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetYUVCache(ExtendedRCEncoderContext* mrcEnc);
+ void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVirtioGpuNext(ExtendedRCEncoderContext* rcEnc);
+ void queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetSyncBufferData(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetReadColorBufferDma(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanAuxCommandBufferMemory(ExtendedRCEncoderContext* rcEnc);
+ GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
 
 private:
     HostConnectionType m_connectionType;
