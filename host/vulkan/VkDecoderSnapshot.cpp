@@ -4711,6 +4711,17 @@ class VkDecoderSnapshot::Impl {
                          VkDeviceMemory memory) {
         // TODO: Implement
     }
+    void vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkDevice device, VkDescriptorSet descriptorSet,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+        uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+        const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+        const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+        const uint8_t* pInlineUniformBlockData) {
+        // TODO: Implement
+    }
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
@@ -10917,6 +10928,23 @@ void VkDecoderSnapshot::vkGetBlobGOOGLE(const uint8_t* snapshotTraceBegin,
                                         VkDeviceMemory memory) {
     mImpl->vkGetBlobGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
                            memory);
+}
+#endif
+#ifdef VK_GOOGLE_gfxstream
+void VkDecoderSnapshot::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkDevice device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+    uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+    const uint8_t* pInlineUniformBlockData) {
+    mImpl->vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        snapshotTraceBegin, snapshotTraceBytes, pool, device, descriptorSet,
+        descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
+        inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
+        pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData);
 }
 #endif
 #ifdef VK_EXT_multi_draw

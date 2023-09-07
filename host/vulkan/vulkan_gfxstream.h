@@ -119,6 +119,14 @@ typedef void(VKAPI_PTR* PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)(VkQueue que
                                                                      VkDeviceSize dataOffset,
                                                                      VkDeviceSize dataSize);
 typedef VkResult(VKAPI_PTR* PFN_vkGetBlobGOOGLE)(VkDevice device, VkDeviceMemory memory);
+typedef void(VKAPI_PTR* PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE)(
+    VkDevice device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+    uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+    const uint8_t* pInlineUniformBlockData);
 
 #ifndef VK_NO_PROTOTYPES
 VKAPI_ATTR VkResult VKAPI_CALL vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device,
@@ -208,6 +216,15 @@ VKAPI_ATTR void VKAPI_CALL vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue
                                                                    VkDeviceSize dataSize);
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetBlobGOOGLE(VkDevice device, VkDeviceMemory memory);
+
+VKAPI_ATTR void VKAPI_CALL vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+    VkDevice device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+    uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+    const uint8_t* pInlineUniformBlockData);
 #endif
 
 #ifdef __cplusplus
