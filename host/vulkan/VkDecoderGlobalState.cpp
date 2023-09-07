@@ -4174,6 +4174,34 @@ class VkDecoderGlobalState::Impl {
                                               info->data.data());
     }
 
+    void on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        android::base::BumpPool* pool, VkDevice boxed_device, VkDescriptorSet descriptorSet,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+        uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+        const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+        const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+        const uint8_t* pInlineUniformBlockData) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        auto* info = android::base::find(mDescriptorUpdateTemplateInfo, descriptorUpdateTemplate);
+        if (!info) return;
+
+        memcpy(info->data.data() + info->imageInfoStart, pImageInfos,
+               imageInfoCount * sizeof(VkDescriptorImageInfo));
+        memcpy(info->data.data() + info->bufferInfoStart, pBufferInfos,
+               bufferInfoCount * sizeof(VkDescriptorBufferInfo));
+        memcpy(info->data.data() + info->bufferViewStart, pBufferViews,
+               bufferViewCount * sizeof(VkBufferView));
+        memcpy(info->data.data() + info->inlineUniformBlockStart, pInlineUniformBlockData,
+               inlineUniformBlockCount);
+
+        vk->vkUpdateDescriptorSetWithTemplate(device, descriptorSet, descriptorUpdateTemplate,
+                                              info->data.data());
+    }
+
     void hostSyncCommandBuffer(const char* tag, VkCommandBuffer boxed_commandBuffer,
                                uint32_t needHostSync, uint32_t sequenceNumber) {
         auto nextDeadline = []() {
@@ -5880,6 +5908,7 @@ class VkDecoderGlobalState::Impl {
         size_t imageInfoStart;
         size_t bufferInfoStart;
         size_t bufferViewStart;
+        size_t inlineUniformBlockStart;
     };
 
     DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
@@ -5890,6 +5919,7 @@ class VkDecoderGlobalState::Impl {
         size_t numImageInfos = 0;
         size_t numBufferInfos = 0;
         size_t numBufferViews = 0;
+        size_t numInlineUniformBlocks = 0;
 
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
@@ -5901,6 +5931,8 @@ class VkDecoderGlobalState::Impl {
                 numBufferInfos += count;
             } else if (isDescriptorTypeBufferView(type)) {
                 numBufferViews += count;
+            } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
+                numInlineUniformBlocks += count;
             } else {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "unknown descriptor type 0x" << std::hex << type;
@@ -5910,15 +5942,19 @@ class VkDecoderGlobalState::Impl {
         size_t imageInfoBytes = numImageInfos * sizeof(VkDescriptorImageInfo);
         size_t bufferInfoBytes = numBufferInfos * sizeof(VkDescriptorBufferInfo);
         size_t bufferViewBytes = numBufferViews * sizeof(VkBufferView);
+        size_t inlineUniformBlockBytes = numInlineUniformBlocks;
 
-        res.data.resize(imageInfoBytes + bufferInfoBytes + bufferViewBytes);
+        res.data.resize(imageInfoBytes + bufferInfoBytes + bufferViewBytes +
+                        inlineUniformBlockBytes);
         res.imageInfoStart = 0;
         res.bufferInfoStart = imageInfoBytes;
         res.bufferViewStart = imageInfoBytes + bufferInfoBytes;
+        res.inlineUniformBlockStart = imageInfoBytes + bufferInfoBytes + bufferViewBytes;
 
         size_t imageInfoCount = 0;
         size_t bufferInfoCount = 0;
         size_t bufferViewCount = 0;
+        size_t inlineUniformBlockCount = 0;
 
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
@@ -5940,6 +5976,10 @@ class VkDecoderGlobalState::Impl {
                 entryForHost.offset = res.bufferViewStart + bufferViewCount * sizeof(VkBufferView);
                 entryForHost.stride = sizeof(VkBufferView);
                 ++bufferViewCount;
+            } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
+                entryForHost.offset = res.inlineUniformBlockStart + inlineUniformBlockCount;
+                entryForHost.stride = 0;
+                inlineUniformBlockCount += entryForHost.descriptorCount;
             } else {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "unknown descriptor type 0x" << std::hex << type;
@@ -7114,6 +7154,21 @@ void VkDecoderGlobalState::on_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
         pool, boxed_device, descriptorSet, descriptorUpdateTemplate, imageInfoCount,
         bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
         pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews);
+}
+
+void VkDecoderGlobalState::on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+    android::base::BumpPool* pool, VkDevice boxed_device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+    uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+    const uint8_t* pInlineUniformBlockData) {
+    mImpl->on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        pool, boxed_device, descriptorSet, descriptorUpdateTemplate, imageInfoCount,
+        bufferInfoCount, bufferViewCount, inlineUniformBlockCount, pImageInfoEntryIndices,
+        pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews,
+        pInlineUniformBlockData);
 }
 
 VkResult VkDecoderGlobalState::on_vkBeginCommandBuffer(android::base::BumpPool* pool,

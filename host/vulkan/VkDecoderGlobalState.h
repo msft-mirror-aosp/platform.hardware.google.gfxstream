@@ -511,6 +511,15 @@ class VkDecoderGlobalState {
         const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
         const VkBufferView* pBufferViews);
 
+    void on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        android::base::BumpPool* pool, VkDevice boxed_device, VkDescriptorSet descriptorSet,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+        uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+        const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+        const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+        const uint8_t* pInlineUniformBlockData);
+
     VkResult on_vkBeginCommandBuffer(android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
                                      const VkCommandBufferBeginInfo* pBeginInfo,
                                      const VkDecoderContext& context);
