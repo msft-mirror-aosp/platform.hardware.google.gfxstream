@@ -1388,6 +1388,7 @@ class PipeVirglRenderer {
                         *vk_emu->representativeColorBufferMemoryTypeIndex;
                 }
 
+                capset->noRenderControlEnc = 1;
                 capset->blobAlignment = mPageSize;
                 if (vk_emu && vk_emu->live) {
                     capset->deferredMapping = 1;
