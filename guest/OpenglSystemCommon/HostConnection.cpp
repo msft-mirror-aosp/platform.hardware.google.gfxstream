@@ -94,7 +94,6 @@ using gfxstream::vk::VkEncoder;
 
 #include "ProcessPipe.h"
 #include "QemuPipeStream.h"
-#include "TcpStream.h"
 #include "ThreadInfo.h"
 #include <gralloc_cb_bp.h>
 #include <unistd.h>
@@ -133,6 +132,8 @@ constexpr size_t kPageSize = PAGE_SIZE;
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 #define STREAM_PORT_NUM     22468
 
+constexpr const auto kEglProp = "ro.hardware.egl";
+
 HealthMonitor<>* getGlobalHealthMonitor() {
     // Initialize HealthMonitor
     // Rather than inject as a construct arg, we keep it as a static variable in the .cpp
@@ -142,7 +143,7 @@ HealthMonitor<>* getGlobalHealthMonitor() {
     return sHealthMonitor.get();
 }
 
-static HostConnectionType getConnectionTypeFromProperty() {
+static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capset) {
 #ifdef __Fuchsia__
     return HOST_CONNECTION_ADDRESS_SPACE;
 #elif defined(__ANDROID__) || defined(HOST_BUILD)
@@ -160,11 +161,19 @@ static HostConnectionType getConnectionTypeFromProperty() {
 
     if (!transportValue[0]) return HOST_CONNECTION_QEMU_PIPE;
 
-    if (!strcmp("tcp", transportValue)) return HOST_CONNECTION_TCP;
     if (!strcmp("pipe", transportValue)) return HOST_CONNECTION_QEMU_PIPE;
     if (!strcmp("asg", transportValue)) return HOST_CONNECTION_ADDRESS_SPACE;
-    if (!strcmp("virtio-gpu-pipe", transportValue)) return HOST_CONNECTION_VIRTIO_GPU_PIPE;
-    if (!strcmp("virtio-gpu-asg", transportValue)) return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
+    if (!strcmp("virtio-gpu-pipe", transportValue) || !strcmp("virtio-gpu-asg", transportValue)) {
+        char eglProp[PROPERTY_VALUE_MAX] = "";
+        property_get(kEglProp, eglProp, "");
+        // ANGLE doesn't work well without ASG, particularly if HostComposer uses a pipe
+        // transport and VK uses ASG.
+        if (capset == kCapsetGfxStreamVulkan || !strcmp(eglProp, "angle")) {
+            return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
+        } else {
+            return HOST_CONNECTION_VIRTIO_GPU_PIPE;
+        }
+    }
 
     return HOST_CONNECTION_QEMU_PIPE;
 #else
@@ -467,8 +476,8 @@ HostConnection::~HostConnection()
 
 
 // static
-std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
-    const enum HostConnectionType connType = getConnectionTypeFromProperty();
+std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset) {
+    const enum HostConnectionType connType = getConnectionTypeFromProperty(capset);
 
     // Use "new" to access a non-public constructor.
     auto con = std::unique_ptr<HostConnection>(new HostConnection);
@@ -503,30 +512,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
             con->m_grallocHelper = &m_goldfishGralloc;
             con->m_processPipe = &m_goldfishProcessPipe;
             break;
-        }
-        case HOST_CONNECTION_TCP: {
-#ifndef __ANDROID__
-            ALOGE("Failed to create TCP connection on non-Android guest\n");
-            return nullptr;
-            break;
-#else
-            auto stream = new TcpStream(STREAM_BUFFER_SIZE);
-            if (!stream) {
-                ALOGE("Failed to create TcpStream for host connection\n");
-                return nullptr;
-            }
-
-            if (stream->connect("10.0.2.2", STREAM_PORT_NUM) < 0) {
-                ALOGE("Failed to connect to host (TcpStream)\n");
-                return nullptr;
-            }
-            con->m_connectionType = HOST_CONNECTION_TCP;
-            con->m_grallocType = GRALLOC_TYPE_RANCHU;
-            con->m_stream = stream;
-            con->m_grallocHelper = &m_goldfishGralloc;
-            con->m_processPipe = &m_goldfishProcessPipe;
-            break;
-#endif
         }
 #if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
@@ -618,22 +603,20 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
     return con;
 }
 
-HostConnection *HostConnection::get() {
-    return getWithThreadInfo(getEGLThreadInfo(), VIRTIO_GPU_CAPSET_NONE);
+HostConnection* HostConnection::get() { return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone); }
+
+HostConnection* HostConnection::getOrCreate(enum VirtGpuCapset capset) {
+    return getWithThreadInfo(getEGLThreadInfo(), capset);
 }
 
-HostConnection *HostConnection::getOrCreate(uint32_t capset_id) {
-    return getWithThreadInfo(getEGLThreadInfo(), capset_id);
-}
-
-HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo, uint32_t capset_id) {
+HostConnection* HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo, enum VirtGpuCapset capset) {
     // Get thread info
     if (!tinfo) {
         return NULL;
     }
 
     if (tinfo->hostConn == NULL) {
-        tinfo->hostConn = HostConnection::createUnique(capset_id);
+        tinfo->hostConn = HostConnection::createUnique(capset);
     }
 
     return tinfo->hostConn.get();
@@ -659,8 +642,8 @@ void HostConnection::exitUnclean() {
 }
 
 // static
-std::unique_ptr<HostConnection> HostConnection::createUnique(uint32_t capset_id) {
-    return connect(capset_id);
+std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset capset) {
+    return connect(capset);
 }
 
 GLEncoder *HostConnection::glEncoder()
