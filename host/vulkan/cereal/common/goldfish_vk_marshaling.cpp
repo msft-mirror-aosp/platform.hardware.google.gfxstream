@@ -50057,6 +50057,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCmdWaitEvents2";
         }
 #endif
+#ifdef VK_GOOGLE_gfxstream
+        case OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE: {
+            return "OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE";
+        }
+#endif
 #ifdef VK_EXT_extended_dynamic_state3
         case OP_vkCmdSetRepresentativeFragmentTestEnableNV: {
             return "OP_vkCmdSetRepresentativeFragmentTestEnableNV";
