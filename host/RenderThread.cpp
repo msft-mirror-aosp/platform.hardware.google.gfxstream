@@ -429,16 +429,16 @@ intptr_t RenderThread::main() {
             std::unique_ptr<EventHangMetadata::HangAnnotations> renderThreadData =
                 std::make_unique<EventHangMetadata::HangAnnotations>();
 
-            const char* processName = nullptr;
-            if (tInfo.m_processName) {
-                processName = tInfo.m_processName.value().c_str();
+            const char* contextName = nullptr;
+            if (mNameOpt) {
+                contextName = (*mNameOpt).c_str();
             }
 
             auto* healthMonitor = FrameBuffer::getFB()->getHealthMonitor();
             if (healthMonitor) {
-                if (processName) {
+                if (contextName) {
                     renderThreadData->insert(
-                        {{"renderthread_guest_process", processName}});
+                        {{"renderthread_guest_process", contextName}});
                 }
                 if (readBuf.validData() >= 4) {
                     renderThreadData->insert(
@@ -472,7 +472,7 @@ intptr_t RenderThread::main() {
             if (tInfo.m_vkInfo) {
                 tInfo.m_vkInfo->ctx_id = mContextId;
                 VkDecoderContext context = {
-                    .processName = processName,
+                    .processName = contextName,
                     .gfxApiLogger = &gfxLogger,
                     .healthMonitor = FrameBuffer::getFB()->getHealthMonitor(),
                     .metricsLogger = &metricsLogger,
