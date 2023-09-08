@@ -1640,7 +1640,7 @@ static VkResult dynCheck_entry_vkCreateRenderPass2(VkDevice device,
                                                    const VkAllocationCallbacks* pAllocator,
                                                    VkRenderPass* pRenderPass) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_2")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_2) {
         sOnInvalidDynamicallyCheckedCall("vkCreateRenderPass2", "VK_VERSION_1_2");
     }
     AEMU_SCOPED_TRACE("vkCreateRenderPass2");
@@ -1680,7 +1680,7 @@ static void entry_vkResetQueryPool(VkDevice device, VkQueryPool queryPool, uint3
 static void dynCheck_entry_vkResetQueryPool(VkDevice device, VkQueryPool queryPool,
                                             uint32_t firstQuery, uint32_t queryCount) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_2")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_2) {
         sOnInvalidDynamicallyCheckedCall("vkResetQueryPool", "VK_VERSION_1_2");
     }
     AEMU_SCOPED_TRACE("vkResetQueryPool");
@@ -1699,7 +1699,7 @@ static VkResult entry_vkGetSemaphoreCounterValue(VkDevice device, VkSemaphore se
 static VkResult dynCheck_entry_vkGetSemaphoreCounterValue(VkDevice device, VkSemaphore semaphore,
                                                           uint64_t* pValue) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_2")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_2) {
         sOnInvalidDynamicallyCheckedCall("vkGetSemaphoreCounterValue", "VK_VERSION_1_2");
     }
     AEMU_SCOPED_TRACE("vkGetSemaphoreCounterValue");
@@ -1722,7 +1722,7 @@ static VkResult dynCheck_entry_vkWaitSemaphores(VkDevice device,
                                                 const VkSemaphoreWaitInfo* pWaitInfo,
                                                 uint64_t timeout) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_2")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_2) {
         sOnInvalidDynamicallyCheckedCall("vkWaitSemaphores", "VK_VERSION_1_2");
     }
     AEMU_SCOPED_TRACE("vkWaitSemaphores");
@@ -1743,7 +1743,7 @@ static VkResult entry_vkSignalSemaphore(VkDevice device, const VkSemaphoreSignal
 static VkResult dynCheck_entry_vkSignalSemaphore(VkDevice device,
                                                  const VkSemaphoreSignalInfo* pSignalInfo) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_2")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_2) {
         sOnInvalidDynamicallyCheckedCall("vkSignalSemaphore", "VK_VERSION_1_2");
     }
     AEMU_SCOPED_TRACE("vkSignalSemaphore");
@@ -1765,7 +1765,7 @@ static VkDeviceAddress entry_vkGetBufferDeviceAddress(VkDevice device,
 static VkDeviceAddress dynCheck_entry_vkGetBufferDeviceAddress(
     VkDevice device, const VkBufferDeviceAddressInfo* pInfo) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_2")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_2) {
         sOnInvalidDynamicallyCheckedCall("vkGetBufferDeviceAddress", "VK_VERSION_1_2");
     }
     AEMU_SCOPED_TRACE("vkGetBufferDeviceAddress");
@@ -1787,7 +1787,7 @@ static uint64_t entry_vkGetBufferOpaqueCaptureAddress(VkDevice device,
 static uint64_t dynCheck_entry_vkGetBufferOpaqueCaptureAddress(
     VkDevice device, const VkBufferDeviceAddressInfo* pInfo) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_2")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_2) {
         sOnInvalidDynamicallyCheckedCall("vkGetBufferOpaqueCaptureAddress", "VK_VERSION_1_2");
     }
     AEMU_SCOPED_TRACE("vkGetBufferOpaqueCaptureAddress");
@@ -1809,7 +1809,7 @@ static uint64_t entry_vkGetDeviceMemoryOpaqueCaptureAddress(
 static uint64_t dynCheck_entry_vkGetDeviceMemoryOpaqueCaptureAddress(
     VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_2")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_2) {
         sOnInvalidDynamicallyCheckedCall("vkGetDeviceMemoryOpaqueCaptureAddress", "VK_VERSION_1_2");
     }
     AEMU_SCOPED_TRACE("vkGetDeviceMemoryOpaqueCaptureAddress");
@@ -1846,7 +1846,7 @@ static VkResult dynCheck_entry_vkCreatePrivateDataSlot(
     VkDevice device, const VkPrivateDataSlotCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkPrivateDataSlot* pPrivateDataSlot) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_3")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_3) {
         sOnInvalidDynamicallyCheckedCall("vkCreatePrivateDataSlot", "VK_VERSION_1_3");
     }
     AEMU_SCOPED_TRACE("vkCreatePrivateDataSlot");
@@ -1866,7 +1866,7 @@ static void dynCheck_entry_vkDestroyPrivateDataSlot(VkDevice device,
                                                     VkPrivateDataSlot privateDataSlot,
                                                     const VkAllocationCallbacks* pAllocator) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_3")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_3) {
         sOnInvalidDynamicallyCheckedCall("vkDestroyPrivateDataSlot", "VK_VERSION_1_3");
     }
     AEMU_SCOPED_TRACE("vkDestroyPrivateDataSlot");
@@ -1887,7 +1887,7 @@ static VkResult dynCheck_entry_vkSetPrivateData(VkDevice device, VkObjectType ob
                                                 uint64_t objectHandle,
                                                 VkPrivateDataSlot privateDataSlot, uint64_t data) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_3")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_3) {
         sOnInvalidDynamicallyCheckedCall("vkSetPrivateData", "VK_VERSION_1_3");
     }
     AEMU_SCOPED_TRACE("vkSetPrivateData");
@@ -1908,7 +1908,7 @@ static void dynCheck_entry_vkGetPrivateData(VkDevice device, VkObjectType object
                                             uint64_t objectHandle,
                                             VkPrivateDataSlot privateDataSlot, uint64_t* pData) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_3")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_3) {
         sOnInvalidDynamicallyCheckedCall("vkGetPrivateData", "VK_VERSION_1_3");
     }
     AEMU_SCOPED_TRACE("vkGetPrivateData");
@@ -2109,7 +2109,7 @@ static void dynCheck_entry_vkGetDeviceBufferMemoryRequirements(
     VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_3")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_3) {
         sOnInvalidDynamicallyCheckedCall("vkGetDeviceBufferMemoryRequirements", "VK_VERSION_1_3");
     }
     AEMU_SCOPED_TRACE("vkGetDeviceBufferMemoryRequirements");
@@ -2129,7 +2129,7 @@ static void dynCheck_entry_vkGetDeviceImageMemoryRequirements(
     VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_3")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_3) {
         sOnInvalidDynamicallyCheckedCall("vkGetDeviceImageMemoryRequirements", "VK_VERSION_1_3");
     }
     AEMU_SCOPED_TRACE("vkGetDeviceImageMemoryRequirements");
@@ -2151,7 +2151,7 @@ static void dynCheck_entry_vkGetDeviceImageSparseMemoryRequirements(
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_VERSION_1_3")) {
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_3) {
         sOnInvalidDynamicallyCheckedCall("vkGetDeviceImageSparseMemoryRequirements",
                                          "VK_VERSION_1_3");
     }
@@ -13834,6 +13834,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     auto resources = ResourceTracker::get();
     bool has1_1OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_1;
     bool has1_2OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_2;
+    bool has1_3OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_3;
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance")) {
         return (void*)entry_vkCreateInstance;
@@ -14378,151 +14379,114 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #endif
 #ifdef VK_VERSION_1_3
     if (!strcmp(name, "vkGetPhysicalDeviceToolProperties")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkGetPhysicalDeviceToolProperties;
+        return has1_3OrHigher ? (void*)entry_vkGetPhysicalDeviceToolProperties : nullptr;
     }
     if (!strcmp(name, "vkCreatePrivateDataSlot")) {
-        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreatePrivateDataSlot;
     }
     if (!strcmp(name, "vkDestroyPrivateDataSlot")) {
-        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyPrivateDataSlot;
     }
     if (!strcmp(name, "vkSetPrivateData")) {
-        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkSetPrivateData;
     }
     if (!strcmp(name, "vkGetPrivateData")) {
-        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetPrivateData;
     }
     if (!strcmp(name, "vkCmdSetEvent2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetEvent2;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetEvent2 : nullptr;
     }
     if (!strcmp(name, "vkCmdResetEvent2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdResetEvent2;
+        return has1_3OrHigher ? (void*)entry_vkCmdResetEvent2 : nullptr;
     }
     if (!strcmp(name, "vkCmdWaitEvents2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdWaitEvents2;
+        return has1_3OrHigher ? (void*)entry_vkCmdWaitEvents2 : nullptr;
     }
     if (!strcmp(name, "vkCmdPipelineBarrier2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdPipelineBarrier2;
+        return has1_3OrHigher ? (void*)entry_vkCmdPipelineBarrier2 : nullptr;
     }
     if (!strcmp(name, "vkCmdWriteTimestamp2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdWriteTimestamp2;
+        return has1_3OrHigher ? (void*)entry_vkCmdWriteTimestamp2 : nullptr;
     }
     if (!strcmp(name, "vkQueueSubmit2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkQueueSubmit2;
+        return has1_3OrHigher ? (void*)entry_vkQueueSubmit2 : nullptr;
     }
     if (!strcmp(name, "vkCmdCopyBuffer2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdCopyBuffer2;
+        return has1_3OrHigher ? (void*)entry_vkCmdCopyBuffer2 : nullptr;
     }
     if (!strcmp(name, "vkCmdCopyImage2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdCopyImage2;
+        return has1_3OrHigher ? (void*)entry_vkCmdCopyImage2 : nullptr;
     }
     if (!strcmp(name, "vkCmdCopyBufferToImage2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdCopyBufferToImage2;
+        return has1_3OrHigher ? (void*)entry_vkCmdCopyBufferToImage2 : nullptr;
     }
     if (!strcmp(name, "vkCmdCopyImageToBuffer2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdCopyImageToBuffer2;
+        return has1_3OrHigher ? (void*)entry_vkCmdCopyImageToBuffer2 : nullptr;
     }
     if (!strcmp(name, "vkCmdBlitImage2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdBlitImage2;
+        return has1_3OrHigher ? (void*)entry_vkCmdBlitImage2 : nullptr;
     }
     if (!strcmp(name, "vkCmdResolveImage2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdResolveImage2;
+        return has1_3OrHigher ? (void*)entry_vkCmdResolveImage2 : nullptr;
     }
     if (!strcmp(name, "vkCmdBeginRendering")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdBeginRendering;
+        return has1_3OrHigher ? (void*)entry_vkCmdBeginRendering : nullptr;
     }
     if (!strcmp(name, "vkCmdEndRendering")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdEndRendering;
+        return has1_3OrHigher ? (void*)entry_vkCmdEndRendering : nullptr;
     }
     if (!strcmp(name, "vkCmdSetCullMode")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetCullMode;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetCullMode : nullptr;
     }
     if (!strcmp(name, "vkCmdSetFrontFace")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetFrontFace;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetFrontFace : nullptr;
     }
     if (!strcmp(name, "vkCmdSetPrimitiveTopology")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetPrimitiveTopology;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetPrimitiveTopology : nullptr;
     }
     if (!strcmp(name, "vkCmdSetViewportWithCount")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetViewportWithCount;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetViewportWithCount : nullptr;
     }
     if (!strcmp(name, "vkCmdSetScissorWithCount")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetScissorWithCount;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetScissorWithCount : nullptr;
     }
     if (!strcmp(name, "vkCmdBindVertexBuffers2")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdBindVertexBuffers2;
+        return has1_3OrHigher ? (void*)entry_vkCmdBindVertexBuffers2 : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthTestEnable")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetDepthTestEnable;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthTestEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthWriteEnable")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetDepthWriteEnable;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthWriteEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthCompareOp")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetDepthCompareOp;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthCompareOp : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthBoundsTestEnable")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetDepthBoundsTestEnable;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthBoundsTestEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetStencilTestEnable")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetStencilTestEnable;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetStencilTestEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetStencilOp")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetStencilOp;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetStencilOp : nullptr;
     }
     if (!strcmp(name, "vkCmdSetRasterizerDiscardEnable")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetRasterizerDiscardEnable;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetRasterizerDiscardEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthBiasEnable")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetDepthBiasEnable;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthBiasEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetPrimitiveRestartEnable")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkCmdSetPrimitiveRestartEnable;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetPrimitiveRestartEnable : nullptr;
     }
     if (!strcmp(name, "vkGetDeviceBufferMemoryRequirements")) {
-        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceBufferMemoryRequirements;
     }
     if (!strcmp(name, "vkGetDeviceImageMemoryRequirements")) {
-        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceImageMemoryRequirements;
     }
     if (!strcmp(name, "vkGetDeviceImageSparseMemoryRequirements")) {
-        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceImageSparseMemoryRequirements;
     }
 #endif
@@ -16606,6 +16570,8 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name) {
     auto resources = ResourceTracker::get();
     bool has1_1OrHigher = resources->getApiVersionFromDevice(device) >= VK_API_VERSION_1_1;
+    bool has1_2OrHigher = resources->getApiVersionFromDevice(device) >= VK_API_VERSION_1_2;
+    bool has1_3OrHigher = resources->getApiVersionFromDevice(device) >= VK_API_VERSION_1_3;
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance")) {
         return (void*)entry_vkCreateInstance;
@@ -17109,206 +17075,156 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
 #endif
 #ifdef VK_VERSION_1_2
     if (!strcmp(name, "vkCmdDrawIndirectCount")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdDrawIndirectCount : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdDrawIndirectCount : nullptr;
     }
     if (!strcmp(name, "vkCmdDrawIndexedIndirectCount")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdDrawIndexedIndirectCount : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdDrawIndexedIndirectCount : nullptr;
     }
     if (!strcmp(name, "vkCreateRenderPass2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCreateRenderPass2 : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCreateRenderPass2 : nullptr;
     }
     if (!strcmp(name, "vkCmdBeginRenderPass2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdBeginRenderPass2 : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdBeginRenderPass2 : nullptr;
     }
     if (!strcmp(name, "vkCmdNextSubpass2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdNextSubpass2 : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdNextSubpass2 : nullptr;
     }
     if (!strcmp(name, "vkCmdEndRenderPass2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdEndRenderPass2 : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdEndRenderPass2 : nullptr;
     }
     if (!strcmp(name, "vkResetQueryPool")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkResetQueryPool : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkResetQueryPool : nullptr;
     }
     if (!strcmp(name, "vkGetSemaphoreCounterValue")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkGetSemaphoreCounterValue : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkGetSemaphoreCounterValue : nullptr;
     }
     if (!strcmp(name, "vkWaitSemaphores")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkWaitSemaphores : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkWaitSemaphores : nullptr;
     }
     if (!strcmp(name, "vkSignalSemaphore")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkSignalSemaphore : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkSignalSemaphore : nullptr;
     }
     if (!strcmp(name, "vkGetBufferDeviceAddress")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkGetBufferDeviceAddress : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkGetBufferDeviceAddress : nullptr;
     }
     if (!strcmp(name, "vkGetBufferOpaqueCaptureAddress")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkGetBufferOpaqueCaptureAddress : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkGetBufferOpaqueCaptureAddress : nullptr;
     }
     if (!strcmp(name, "vkGetDeviceMemoryOpaqueCaptureAddress")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkGetDeviceMemoryOpaqueCaptureAddress : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkGetDeviceMemoryOpaqueCaptureAddress : nullptr;
     }
 #endif
 #ifdef VK_VERSION_1_3
     if (!strcmp(name, "vkGetPhysicalDeviceToolProperties")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceToolProperties : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkGetPhysicalDeviceToolProperties : nullptr;
     }
     if (!strcmp(name, "vkCreatePrivateDataSlot")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCreatePrivateDataSlot : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCreatePrivateDataSlot : nullptr;
     }
     if (!strcmp(name, "vkDestroyPrivateDataSlot")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkDestroyPrivateDataSlot : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkDestroyPrivateDataSlot : nullptr;
     }
     if (!strcmp(name, "vkSetPrivateData")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkSetPrivateData : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkSetPrivateData : nullptr;
     }
     if (!strcmp(name, "vkGetPrivateData")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkGetPrivateData : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkGetPrivateData : nullptr;
     }
     if (!strcmp(name, "vkCmdSetEvent2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetEvent2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetEvent2 : nullptr;
     }
     if (!strcmp(name, "vkCmdResetEvent2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdResetEvent2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdResetEvent2 : nullptr;
     }
     if (!strcmp(name, "vkCmdWaitEvents2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdWaitEvents2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdWaitEvents2 : nullptr;
     }
     if (!strcmp(name, "vkCmdPipelineBarrier2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdPipelineBarrier2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdPipelineBarrier2 : nullptr;
     }
     if (!strcmp(name, "vkCmdWriteTimestamp2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdWriteTimestamp2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdWriteTimestamp2 : nullptr;
     }
     if (!strcmp(name, "vkQueueSubmit2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkQueueSubmit2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkQueueSubmit2 : nullptr;
     }
     if (!strcmp(name, "vkCmdCopyBuffer2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdCopyBuffer2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdCopyBuffer2 : nullptr;
     }
     if (!strcmp(name, "vkCmdCopyImage2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdCopyImage2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdCopyImage2 : nullptr;
     }
     if (!strcmp(name, "vkCmdCopyBufferToImage2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdCopyBufferToImage2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdCopyBufferToImage2 : nullptr;
     }
     if (!strcmp(name, "vkCmdCopyImageToBuffer2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdCopyImageToBuffer2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdCopyImageToBuffer2 : nullptr;
     }
     if (!strcmp(name, "vkCmdBlitImage2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdBlitImage2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdBlitImage2 : nullptr;
     }
     if (!strcmp(name, "vkCmdResolveImage2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdResolveImage2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdResolveImage2 : nullptr;
     }
     if (!strcmp(name, "vkCmdBeginRendering")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdBeginRendering : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdBeginRendering : nullptr;
     }
     if (!strcmp(name, "vkCmdEndRendering")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdEndRendering : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdEndRendering : nullptr;
     }
     if (!strcmp(name, "vkCmdSetCullMode")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetCullMode : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetCullMode : nullptr;
     }
     if (!strcmp(name, "vkCmdSetFrontFace")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetFrontFace : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetFrontFace : nullptr;
     }
     if (!strcmp(name, "vkCmdSetPrimitiveTopology")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetPrimitiveTopology : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetPrimitiveTopology : nullptr;
     }
     if (!strcmp(name, "vkCmdSetViewportWithCount")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetViewportWithCount : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetViewportWithCount : nullptr;
     }
     if (!strcmp(name, "vkCmdSetScissorWithCount")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetScissorWithCount : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetScissorWithCount : nullptr;
     }
     if (!strcmp(name, "vkCmdBindVertexBuffers2")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdBindVertexBuffers2 : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdBindVertexBuffers2 : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthTestEnable")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetDepthTestEnable : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthTestEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthWriteEnable")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetDepthWriteEnable : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthWriteEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthCompareOp")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetDepthCompareOp : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthCompareOp : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthBoundsTestEnable")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetDepthBoundsTestEnable : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthBoundsTestEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetStencilTestEnable")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetStencilTestEnable : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetStencilTestEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetStencilOp")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetStencilOp : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetStencilOp : nullptr;
     }
     if (!strcmp(name, "vkCmdSetRasterizerDiscardEnable")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetRasterizerDiscardEnable : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetRasterizerDiscardEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetDepthBiasEnable")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetDepthBiasEnable : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetDepthBiasEnable : nullptr;
     }
     if (!strcmp(name, "vkCmdSetPrimitiveRestartEnable")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkCmdSetPrimitiveRestartEnable : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkCmdSetPrimitiveRestartEnable : nullptr;
     }
     if (!strcmp(name, "vkGetDeviceBufferMemoryRequirements")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkGetDeviceBufferMemoryRequirements : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkGetDeviceBufferMemoryRequirements : nullptr;
     }
     if (!strcmp(name, "vkGetDeviceImageMemoryRequirements")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkGetDeviceImageMemoryRequirements : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkGetDeviceImageMemoryRequirements : nullptr;
     }
     if (!strcmp(name, "vkGetDeviceImageSparseMemoryRequirements")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_VERSION_1_3");
-        return hasExt ? (void*)entry_vkGetDeviceImageSparseMemoryRequirements : nullptr;
+        return has1_3OrHigher ? (void*)entry_vkGetDeviceImageSparseMemoryRequirements : nullptr;
     }
 #endif
 #ifdef VK_KHR_surface
