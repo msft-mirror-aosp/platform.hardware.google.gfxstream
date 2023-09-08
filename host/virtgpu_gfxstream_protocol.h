@@ -78,7 +78,7 @@ struct gfxstreamPlaceholderCommandVk {
     uint32_t padding;
 };
 
-struct gfxstreamCapset {
+struct vulkanCapset {
     uint32_t protocolVersion;
 
     // ASG Ring Parameters
