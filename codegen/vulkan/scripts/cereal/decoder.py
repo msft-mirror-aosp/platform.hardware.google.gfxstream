@@ -516,27 +516,31 @@ def decode_vkFlushMappedMemoryRanges(typeInfo: VulkanTypeInfo, api, cgen):
     cgen.stmt("// This is to deal with a deficiency in the encoder,");
     cgen.stmt("// where usingDirectMapping fails to set the proper packet size,");
     cgen.stmt("// meaning we can read off the end of the packet.");
-    cgen.stmt("VkDeviceSize totalMemorySize = 8 * memoryRangeCount;")
+    cgen.stmt("uint64_t sizeLeft = end - *readStreamPtrPtr")
     cgen.beginFor("uint32_t i = 0", "i < memoryRangeCount", "++i")
-    cgen.stmt("totalMemorySize += pMemoryRanges[i].size;")
-    cgen.endFor()
-    cgen.beginIf("(end - *readStreamPtrPtr) < totalMemorySize")
-    cgen.beginIf("m_logCalls")
-    cgen.stmt("fprintf(stderr, \"stream %p: Retrying vkFlushMappedMemoryRanges\\n\", ioStream);")
+    cgen.beginIf("sizeLeft < sizeof(uint64_t)")
+    cgen.beginIf("m_prevSeqno")
+    cgen.stmt("m_prevSeqno = m_prevSeqno.value() - 1")
     cgen.endIf()
     cgen.stmt("return ptr - (unsigned char*)buf;")
     cgen.endIf()
-
-    cgen.beginFor("uint32_t i = 0", "i < memoryRangeCount", "++i")
     cgen.stmt("auto range = pMemoryRanges[i]")
     cgen.stmt("auto memory = pMemoryRanges[i].memory")
     cgen.stmt("auto size = pMemoryRanges[i].size")
     cgen.stmt("auto offset = pMemoryRanges[i].offset")
     cgen.stmt("uint64_t readStream = 0")
     cgen.stmt("memcpy(&readStream, *readStreamPtrPtr, sizeof(uint64_t)); *readStreamPtrPtr += sizeof(uint64_t)")
+    cgen.stmt("sizeLeft -= sizeof(uint64_t)")
     cgen.stmt("auto hostPtr = m_state->getMappedHostPointer(memory)")
     cgen.stmt("if (!hostPtr && readStream > 0) GFXSTREAM_ABORT(::emugl::FatalError(::emugl::ABORT_REASON_OTHER))")
     cgen.stmt("if (!hostPtr) continue")
+    cgen.beginIf("sizeLeft < readStream")
+    cgen.beginIf("m_prevSeqno")
+    cgen.stmt("m_prevSeqno = m_prevSeqno.value() - 1")
+    cgen.endIf()
+    cgen.stmt("return ptr - (unsigned char*)buf;")
+    cgen.endIf()
+    cgen.stmt("sizeLeft -= readStream")
     cgen.stmt("uint8_t* targetRange = hostPtr + offset")
     cgen.stmt("memcpy(targetRange, *readStreamPtrPtr, readStream); *readStreamPtrPtr += readStream")
     cgen.stmt("packetLen += 8 + readStream")
@@ -721,6 +725,7 @@ custom_decodes = {
     "vkDestroyDescriptorUpdateTemplate" : emit_global_state_wrapped_decoding,
     "vkDestroyDescriptorUpdateTemplateKHR" : emit_global_state_wrapped_decoding,
     "vkUpdateDescriptorSetWithTemplateSizedGOOGLE" : emit_global_state_wrapped_decoding,
+    "vkUpdateDescriptorSetWithTemplateSized2GOOGLE" : emit_global_state_wrapped_decoding,
 
     # VK_GOOGLE_gfxstream
     "vkBeginCommandBufferAsyncGOOGLE" : emit_global_state_wrapped_decoding_with_context,

@@ -2013,6 +2013,9 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)dlSymFunc(
             lib, "vkQueueFlushCommandsFromAuxMemoryGOOGLE");
     out->vkGetBlobGOOGLE = (PFN_vkGetBlobGOOGLE)dlSymFunc(lib, "vkGetBlobGOOGLE");
+    out->vkUpdateDescriptorSetWithTemplateSized2GOOGLE =
+        (PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE)dlSymFunc(
+            lib, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
 #endif
 #ifdef VK_EXT_multi_draw
     out->vkCmdDrawMultiEXT = (PFN_vkCmdDrawMultiEXT)dlSymFunc(lib, "vkCmdDrawMultiEXT");
@@ -3852,6 +3855,9 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
             instance, "vkQueueFlushCommandsFromAuxMemoryGOOGLE");
     out->vkGetBlobGOOGLE =
         (PFN_vkGetBlobGOOGLE)vk->vkGetInstanceProcAddr(instance, "vkGetBlobGOOGLE");
+    out->vkUpdateDescriptorSetWithTemplateSized2GOOGLE =
+        (PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE)vk->vkGetInstanceProcAddr(
+            instance, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
 #endif
 #ifdef VK_EXT_multi_draw
     out->vkCmdDrawMultiEXT =
@@ -5705,6 +5711,9 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)vk->vkGetDeviceProcAddr(
             device, "vkQueueFlushCommandsFromAuxMemoryGOOGLE");
     out->vkGetBlobGOOGLE = (PFN_vkGetBlobGOOGLE)vk->vkGetDeviceProcAddr(device, "vkGetBlobGOOGLE");
+    out->vkUpdateDescriptorSetWithTemplateSized2GOOGLE =
+        (PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE)vk->vkGetDeviceProcAddr(
+            device, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
 #endif
 #ifdef VK_EXT_multi_draw
     out->vkCmdDrawMultiEXT =

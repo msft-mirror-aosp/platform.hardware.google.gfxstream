@@ -2226,6 +2226,14 @@ class VkEncoder {
                                                  VkDeviceSize dataOffset, VkDeviceSize dataSize,
                                                  uint32_t doLock);
     VkResult vkGetBlobGOOGLE(VkDevice device, VkDeviceMemory memory, uint32_t doLock);
+    void vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        VkDevice device, VkDescriptorSet descriptorSet,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+        uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+        const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+        const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+        const uint8_t* pInlineUniformBlockData, uint32_t doLock);
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
