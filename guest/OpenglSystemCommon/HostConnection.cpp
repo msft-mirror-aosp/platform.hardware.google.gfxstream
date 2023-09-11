@@ -587,19 +587,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     *pClientFlags = 0;
     con->m_stream->commitBuffer(sizeof(unsigned int));
 
-#if defined(__linux__) || defined(__ANDROID__)
-    auto rcEnc = con->rcEncoder();
-    if (rcEnc != nullptr) {
-        auto processName = android::base::guest::getProcessName();
-        if (!processName.empty()) {
-            rcEnc->rcSetProcessMetadata(
-                rcEnc, const_cast<char*>("process_name"),
-                const_cast<RenderControlByte*>(processName.c_str()),
-                strlen(processName.c_str())+ 1);
-        }
-    }
-#endif
-
     return con;
 }
 
