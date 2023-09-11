@@ -2166,14 +2166,474 @@ void unmarshal_VkDeviceImageMemoryRequirements(VulkanStream* vkStream, VkStructu
 #define OP_vkGetDeviceImageSparseMemoryRequirements 233707261
 #endif
 #ifdef VK_KHR_surface
+void marshal_VkSurfaceCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                      const VkSurfaceCapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkSurfaceCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkSurfaceCapabilitiesKHR* forUnmarshaling);
+
+void marshal_VkSurfaceFormatKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                const VkSurfaceFormatKHR* forMarshaling);
+
+void unmarshal_VkSurfaceFormatKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                  VkSurfaceFormatKHR* forUnmarshaling);
+
+#define OP_vkDestroySurfaceKHR 20165
+#define OP_vkGetPhysicalDeviceSurfaceSupportKHR 20166
+#define OP_vkGetPhysicalDeviceSurfaceCapabilitiesKHR 20167
+#define OP_vkGetPhysicalDeviceSurfaceFormatsKHR 20168
+#define OP_vkGetPhysicalDeviceSurfacePresentModesKHR 20169
 #endif
 #ifdef VK_KHR_swapchain
+void marshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                      const VkSwapchainCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkSwapchainCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                              const VkPresentInfoKHR* forMarshaling);
+
+void unmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                VkPresentInfoKHR* forUnmarshaling);
+
+#define OP_vkCreateSwapchainKHR 20170
+#define OP_vkDestroySwapchainKHR 20171
+#define OP_vkGetSwapchainImagesKHR 20172
+#define OP_vkAcquireNextImageKHR 20173
+#define OP_vkQueuePresentKHR 20174
+void marshal_VkImageSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkImageSwapchainCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkImageSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkImageSwapchainCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkBindImageMemorySwapchainInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBindImageMemorySwapchainInfoKHR* forMarshaling);
+
+void unmarshal_VkBindImageMemorySwapchainInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBindImageMemorySwapchainInfoKHR* forUnmarshaling);
+
+void marshal_VkAcquireNextImageInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkAcquireNextImageInfoKHR* forMarshaling);
+
+void unmarshal_VkAcquireNextImageInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkAcquireNextImageInfoKHR* forUnmarshaling);
+
+void marshal_VkDeviceGroupPresentCapabilitiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDeviceGroupPresentCapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkDeviceGroupPresentCapabilitiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceGroupPresentCapabilitiesKHR* forUnmarshaling);
+
+void marshal_VkDeviceGroupPresentInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkDeviceGroupPresentInfoKHR* forMarshaling);
+
+void unmarshal_VkDeviceGroupPresentInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkDeviceGroupPresentInfoKHR* forUnmarshaling);
+
+void marshal_VkDeviceGroupSwapchainCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDeviceGroupSwapchainCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceGroupSwapchainCreateInfoKHR* forUnmarshaling);
+
+#define OP_vkGetDeviceGroupPresentCapabilitiesKHR 20175
+#define OP_vkGetDeviceGroupSurfacePresentModesKHR 20176
+#define OP_vkGetPhysicalDevicePresentRectanglesKHR 20177
+#define OP_vkAcquireNextImage2KHR 20178
+#endif
+#ifdef VK_KHR_display
+void marshal_VkDisplayModeParametersKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkDisplayModeParametersKHR* forMarshaling);
+
+void unmarshal_VkDisplayModeParametersKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkDisplayModeParametersKHR* forUnmarshaling);
+
+void marshal_VkDisplayModeCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkDisplayModeCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkDisplayModeCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkDisplayModeCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkDisplayModePropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkDisplayModePropertiesKHR* forMarshaling);
+
+void unmarshal_VkDisplayModePropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkDisplayModePropertiesKHR* forUnmarshaling);
+
+void marshal_VkDisplayPlaneCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkDisplayPlaneCapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkDisplayPlaneCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkDisplayPlaneCapabilitiesKHR* forUnmarshaling);
+
+void marshal_VkDisplayPlanePropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkDisplayPlanePropertiesKHR* forMarshaling);
+
+void unmarshal_VkDisplayPlanePropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkDisplayPlanePropertiesKHR* forUnmarshaling);
+
+void marshal_VkDisplayPropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkDisplayPropertiesKHR* forMarshaling);
+
+void unmarshal_VkDisplayPropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkDisplayPropertiesKHR* forUnmarshaling);
+
+void marshal_VkDisplaySurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkDisplaySurfaceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkDisplaySurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkDisplaySurfaceCreateInfoKHR* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceDisplayPropertiesKHR 20179
+#define OP_vkGetPhysicalDeviceDisplayPlanePropertiesKHR 20180
+#define OP_vkGetDisplayPlaneSupportedDisplaysKHR 20181
+#define OP_vkGetDisplayModePropertiesKHR 20182
+#define OP_vkCreateDisplayModeKHR 20183
+#define OP_vkGetDisplayPlaneCapabilitiesKHR 20184
+#define OP_vkCreateDisplayPlaneSurfaceKHR 20185
+#endif
+#ifdef VK_KHR_display_swapchain
+void marshal_VkDisplayPresentInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkDisplayPresentInfoKHR* forMarshaling);
+
+void unmarshal_VkDisplayPresentInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkDisplayPresentInfoKHR* forUnmarshaling);
+
+#define OP_vkCreateSharedSwapchainsKHR 20186
+#endif
+#ifdef VK_KHR_xlib_surface
+void marshal_VkXlibSurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkXlibSurfaceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkXlibSurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkXlibSurfaceCreateInfoKHR* forUnmarshaling);
+
+#define OP_vkCreateXlibSurfaceKHR 20187
+#define OP_vkGetPhysicalDeviceXlibPresentationSupportKHR 20188
 #endif
 #ifdef VK_KHR_xcb_surface
+void marshal_VkXcbSurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkXcbSurfaceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkXcbSurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkXcbSurfaceCreateInfoKHR* forUnmarshaling);
+
+#define OP_vkCreateXcbSurfaceKHR 20189
+#define OP_vkGetPhysicalDeviceXcbPresentationSupportKHR 20190
+#endif
+#ifdef VK_KHR_wayland_surface
+void marshal_VkWaylandSurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkWaylandSurfaceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkWaylandSurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkWaylandSurfaceCreateInfoKHR* forUnmarshaling);
+
+#define OP_vkCreateWaylandSurfaceKHR 20191
+#define OP_vkGetPhysicalDeviceWaylandPresentationSupportKHR 20192
 #endif
 #ifdef VK_KHR_android_surface
+void marshal_VkAndroidSurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkAndroidSurfaceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkAndroidSurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkAndroidSurfaceCreateInfoKHR* forUnmarshaling);
+
+#define OP_vkCreateAndroidSurfaceKHR 20195
 #endif
 #ifdef VK_KHR_win32_surface
+void marshal_VkWin32SurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkWin32SurfaceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkWin32SurfaceCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkWin32SurfaceCreateInfoKHR* forUnmarshaling);
+
+#define OP_vkCreateWin32SurfaceKHR 20196
+#define OP_vkGetPhysicalDeviceWin32PresentationSupportKHR 20197
+#endif
+#ifdef VK_KHR_sampler_mirror_clamp_to_edge
+#endif
+#ifdef VK_KHR_video_queue
+void marshal_VkQueueFamilyQueryResultStatusPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkQueueFamilyQueryResultStatusPropertiesKHR* forMarshaling);
+
+void unmarshal_VkQueueFamilyQueryResultStatusPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueueFamilyQueryResultStatusPropertiesKHR* forUnmarshaling);
+
+void marshal_VkQueueFamilyVideoPropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkQueueFamilyVideoPropertiesKHR* forMarshaling);
+
+void unmarshal_VkQueueFamilyVideoPropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkQueueFamilyVideoPropertiesKHR* forUnmarshaling);
+
+void marshal_VkVideoProfileInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                   const VkVideoProfileInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoProfileInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                     VkVideoProfileInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoProfileListInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkVideoProfileListInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoProfileListInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkVideoProfileListInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkVideoCapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkVideoCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkVideoCapabilitiesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceVideoFormatInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVideoFormatInfoKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceVideoFormatInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVideoFormatInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoFormatPropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkVideoFormatPropertiesKHR* forMarshaling);
+
+void unmarshal_VkVideoFormatPropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkVideoFormatPropertiesKHR* forUnmarshaling);
+
+void marshal_VkVideoPictureResourceInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkVideoPictureResourceInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoPictureResourceInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkVideoPictureResourceInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoReferenceSlotInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkVideoReferenceSlotInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoReferenceSlotInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkVideoReferenceSlotInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoSessionMemoryRequirementsKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoSessionMemoryRequirementsKHR* forMarshaling);
+
+void unmarshal_VkVideoSessionMemoryRequirementsKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoSessionMemoryRequirementsKHR* forUnmarshaling);
+
+void marshal_VkBindVideoSessionMemoryInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkBindVideoSessionMemoryInfoKHR* forMarshaling);
+
+void unmarshal_VkBindVideoSessionMemoryInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkBindVideoSessionMemoryInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoSessionCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkVideoSessionCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoSessionCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkVideoSessionCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoSessionParametersCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoSessionParametersCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoSessionParametersCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoSessionParametersCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoSessionParametersUpdateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoSessionParametersUpdateInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoSessionParametersUpdateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoSessionParametersUpdateInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoBeginCodingInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkVideoBeginCodingInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoBeginCodingInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkVideoBeginCodingInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoEndCodingInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkVideoEndCodingInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoEndCodingInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkVideoEndCodingInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoCodingControlInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkVideoCodingControlInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoCodingControlInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkVideoCodingControlInfoKHR* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceVideoCapabilitiesKHR 248113462
+#define OP_vkGetPhysicalDeviceVideoFormatPropertiesKHR 261873967
+#define OP_vkCreateVideoSessionKHR 227974422
+#define OP_vkDestroyVideoSessionKHR 239043215
+#define OP_vkGetVideoSessionMemoryRequirementsKHR 256181716
+#define OP_vkBindVideoSessionMemoryKHR 215994619
+#define OP_vkCreateVideoSessionParametersKHR 265164680
+#define OP_vkUpdateVideoSessionParametersKHR 261262143
+#define OP_vkDestroyVideoSessionParametersKHR 237919724
+#define OP_vkCmdBeginVideoCodingKHR 239581372
+#define OP_vkCmdEndVideoCodingKHR 279828574
+#define OP_vkCmdControlVideoCodingKHR 252933003
+#endif
+#ifdef VK_KHR_video_decode_queue
+void marshal_VkVideoDecodeCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkVideoDecodeCapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkVideoDecodeCapabilitiesKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeUsageInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkVideoDecodeUsageInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeUsageInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkVideoDecodeUsageInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkVideoDecodeInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkVideoDecodeInfoKHR* forUnmarshaling);
+
+#define OP_vkCmdDecodeVideoKHR 275796951
+#endif
+#ifdef VK_KHR_video_decode_h264
+void marshal_VkVideoDecodeH264ProfileInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoDecodeH264ProfileInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH264ProfileInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoDecodeH264ProfileInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH264CapabilitiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH264CapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH264CapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkVideoDecodeH264CapabilitiesKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH264SessionParametersAddInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH264SessionParametersAddInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH264SessionParametersAddInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoDecodeH264SessionParametersAddInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH264SessionParametersCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH264SessionParametersCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH264SessionParametersCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoDecodeH264SessionParametersCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH264PictureInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoDecodeH264PictureInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH264PictureInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoDecodeH264PictureInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH264DpbSlotInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoDecodeH264DpbSlotInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH264DpbSlotInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoDecodeH264DpbSlotInfoKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_dynamic_rendering
+DEFINE_ALIAS_FUNCTION(marshal_VkRenderingInfo, marshal_VkRenderingInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkRenderingInfo, unmarshal_VkRenderingInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkRenderingAttachmentInfo, marshal_VkRenderingAttachmentInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkRenderingAttachmentInfo, unmarshal_VkRenderingAttachmentInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPipelineRenderingCreateInfo,
+                      marshal_VkPipelineRenderingCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineRenderingCreateInfo,
+                      unmarshal_VkPipelineRenderingCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDynamicRenderingFeatures,
+                      marshal_VkPhysicalDeviceDynamicRenderingFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDynamicRenderingFeatures,
+                      unmarshal_VkPhysicalDeviceDynamicRenderingFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkCommandBufferInheritanceRenderingInfo,
+                      marshal_VkCommandBufferInheritanceRenderingInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkCommandBufferInheritanceRenderingInfo,
+                      unmarshal_VkCommandBufferInheritanceRenderingInfoKHR)
+
+#define OP_vkCmdBeginRenderingKHR 298092805
+#define OP_vkCmdEndRenderingKHR 200651584
+void marshal_VkRenderingFragmentShadingRateAttachmentInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRenderingFragmentShadingRateAttachmentInfoKHR* forMarshaling);
+
+void unmarshal_VkRenderingFragmentShadingRateAttachmentInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderingFragmentShadingRateAttachmentInfoKHR* forUnmarshaling);
+
+void marshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRenderingFragmentDensityMapAttachmentInfoEXT* forMarshaling);
+
+void unmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderingFragmentDensityMapAttachmentInfoEXT* forUnmarshaling);
+
+void marshal_VkAttachmentSampleCountInfoAMD(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkAttachmentSampleCountInfoAMD* forMarshaling);
+
+void unmarshal_VkAttachmentSampleCountInfoAMD(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkAttachmentSampleCountInfoAMD* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkAttachmentSampleCountInfoAMD, marshal_VkAttachmentSampleCountInfoNV)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkAttachmentSampleCountInfoAMD,
+                      unmarshal_VkAttachmentSampleCountInfoNV)
+
+void marshal_VkMultiviewPerViewAttributesInfoNVX(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkMultiviewPerViewAttributesInfoNVX* forMarshaling);
+
+void unmarshal_VkMultiviewPerViewAttributesInfoNVX(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMultiviewPerViewAttributesInfoNVX* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_multiview
+DEFINE_ALIAS_FUNCTION(marshal_VkRenderPassMultiviewCreateInfo,
+                      marshal_VkRenderPassMultiviewCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkRenderPassMultiviewCreateInfo,
+                      unmarshal_VkRenderPassMultiviewCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMultiviewFeatures,
+                      marshal_VkPhysicalDeviceMultiviewFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceMultiviewFeatures,
+                      unmarshal_VkPhysicalDeviceMultiviewFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMultiviewProperties,
+                      marshal_VkPhysicalDeviceMultiviewPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceMultiviewProperties,
+                      unmarshal_VkPhysicalDeviceMultiviewPropertiesKHR)
+
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceFeatures2, marshal_VkPhysicalDeviceFeatures2KHR)
@@ -2229,8 +2689,67 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceSparseImageFormatInfo2,
 #define OP_vkGetPhysicalDeviceMemoryProperties2KHR 20203
 #define OP_vkGetPhysicalDeviceSparseImageFormatProperties2KHR 20204
 #endif
+#ifdef VK_KHR_device_group
+DEFINE_ALIAS_FUNCTION(marshal_VkMemoryAllocateFlagsInfo, marshal_VkMemoryAllocateFlagsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkMemoryAllocateFlagsInfo, unmarshal_VkMemoryAllocateFlagsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupRenderPassBeginInfo,
+                      marshal_VkDeviceGroupRenderPassBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupRenderPassBeginInfo,
+                      unmarshal_VkDeviceGroupRenderPassBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupCommandBufferBeginInfo,
+                      marshal_VkDeviceGroupCommandBufferBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupCommandBufferBeginInfo,
+                      unmarshal_VkDeviceGroupCommandBufferBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupSubmitInfo, marshal_VkDeviceGroupSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupSubmitInfo, unmarshal_VkDeviceGroupSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupBindSparseInfo, marshal_VkDeviceGroupBindSparseInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupBindSparseInfo,
+                      unmarshal_VkDeviceGroupBindSparseInfoKHR)
+
+#define OP_vkGetDeviceGroupPeerMemoryFeaturesKHR 20205
+#define OP_vkCmdSetDeviceMaskKHR 20206
+#define OP_vkCmdDispatchBaseKHR 20207
+DEFINE_ALIAS_FUNCTION(marshal_VkBindBufferMemoryDeviceGroupInfo,
+                      marshal_VkBindBufferMemoryDeviceGroupInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBindBufferMemoryDeviceGroupInfo,
+                      unmarshal_VkBindBufferMemoryDeviceGroupInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkBindImageMemoryDeviceGroupInfo,
+                      marshal_VkBindImageMemoryDeviceGroupInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBindImageMemoryDeviceGroupInfo,
+                      unmarshal_VkBindImageMemoryDeviceGroupInfoKHR)
+
+#endif
+#ifdef VK_KHR_shader_draw_parameters
+#endif
 #ifdef VK_KHR_maintenance1
 #define OP_vkTrimCommandPoolKHR 20208
+#endif
+#ifdef VK_KHR_device_group_creation
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceGroupProperties,
+                      marshal_VkPhysicalDeviceGroupPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceGroupProperties,
+                      unmarshal_VkPhysicalDeviceGroupPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupDeviceCreateInfo,
+                      marshal_VkDeviceGroupDeviceCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupDeviceCreateInfo,
+                      unmarshal_VkDeviceGroupDeviceCreateInfoKHR)
+
+#define OP_vkEnumeratePhysicalDeviceGroupsKHR 20209
 #endif
 #ifdef VK_KHR_external_memory_capabilities
 DEFINE_ALIAS_FUNCTION(marshal_VkExternalMemoryProperties, marshal_VkExternalMemoryPropertiesKHR)
@@ -2285,8 +2804,67 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkExportMemoryAllocateInfo, unmarshal_VkExportMe
 
 #endif
 #ifdef VK_KHR_external_memory_win32
+void marshal_VkImportMemoryWin32HandleInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImportMemoryWin32HandleInfoKHR* forMarshaling);
+
+void unmarshal_VkImportMemoryWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkImportMemoryWin32HandleInfoKHR* forUnmarshaling);
+
+void marshal_VkExportMemoryWin32HandleInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkExportMemoryWin32HandleInfoKHR* forMarshaling);
+
+void unmarshal_VkExportMemoryWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkExportMemoryWin32HandleInfoKHR* forUnmarshaling);
+
+void marshal_VkMemoryWin32HandlePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkMemoryWin32HandlePropertiesKHR* forMarshaling);
+
+void unmarshal_VkMemoryWin32HandlePropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkMemoryWin32HandlePropertiesKHR* forUnmarshaling);
+
+void marshal_VkMemoryGetWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkMemoryGetWin32HandleInfoKHR* forMarshaling);
+
+void unmarshal_VkMemoryGetWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkMemoryGetWin32HandleInfoKHR* forUnmarshaling);
+
+#define OP_vkGetMemoryWin32HandleKHR 20211
+#define OP_vkGetMemoryWin32HandlePropertiesKHR 20212
 #endif
 #ifdef VK_KHR_external_memory_fd
+void marshal_VkImportMemoryFdInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkImportMemoryFdInfoKHR* forMarshaling);
+
+void unmarshal_VkImportMemoryFdInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkImportMemoryFdInfoKHR* forUnmarshaling);
+
+void marshal_VkMemoryFdPropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkMemoryFdPropertiesKHR* forMarshaling);
+
+void unmarshal_VkMemoryFdPropertiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkMemoryFdPropertiesKHR* forUnmarshaling);
+
+void marshal_VkMemoryGetFdInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkMemoryGetFdInfoKHR* forMarshaling);
+
+void unmarshal_VkMemoryGetFdInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkMemoryGetFdInfoKHR* forUnmarshaling);
+
+#define OP_vkGetMemoryFdKHR 20213
+#define OP_vkGetMemoryFdPropertiesKHR 20214
+#endif
+#ifdef VK_KHR_win32_keyed_mutex
+void marshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkWin32KeyedMutexAcquireReleaseInfoKHR* forMarshaling);
+
+void unmarshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkWin32KeyedMutexAcquireReleaseInfoKHR* forUnmarshaling);
+
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceExternalSemaphoreInfo,
@@ -2311,6 +2889,37 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkExportSemaphoreCreateInfo,
 
 #endif
 #ifdef VK_KHR_external_semaphore_win32
+void marshal_VkImportSemaphoreWin32HandleInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImportSemaphoreWin32HandleInfoKHR* forMarshaling);
+
+void unmarshal_VkImportSemaphoreWin32HandleInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImportSemaphoreWin32HandleInfoKHR* forUnmarshaling);
+
+void marshal_VkExportSemaphoreWin32HandleInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkExportSemaphoreWin32HandleInfoKHR* forMarshaling);
+
+void unmarshal_VkExportSemaphoreWin32HandleInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkExportSemaphoreWin32HandleInfoKHR* forUnmarshaling);
+
+void marshal_VkD3D12FenceSubmitInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkD3D12FenceSubmitInfoKHR* forMarshaling);
+
+void unmarshal_VkD3D12FenceSubmitInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkD3D12FenceSubmitInfoKHR* forUnmarshaling);
+
+void marshal_VkSemaphoreGetWin32HandleInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSemaphoreGetWin32HandleInfoKHR* forMarshaling);
+
+void unmarshal_VkSemaphoreGetWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkSemaphoreGetWin32HandleInfoKHR* forUnmarshaling);
+
+#define OP_vkImportSemaphoreWin32HandleKHR 20216
+#define OP_vkGetSemaphoreWin32HandleKHR 20217
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 void marshal_VkImportSemaphoreFdInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
@@ -2328,6 +2937,18 @@ void unmarshal_VkSemaphoreGetFdInfoKHR(VulkanStream* vkStream, VkStructureType r
 #define OP_vkImportSemaphoreFdKHR 20218
 #define OP_vkGetSemaphoreFdKHR 20219
 #endif
+#ifdef VK_KHR_push_descriptor
+void marshal_VkPhysicalDevicePushDescriptorPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePushDescriptorPropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePushDescriptorPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePushDescriptorPropertiesKHR* forUnmarshaling);
+
+#define OP_vkCmdPushDescriptorSetKHR 20220
+#define OP_vkCmdPushDescriptorSetWithTemplateKHR 20221
+#endif
 #ifdef VK_KHR_shader_float16_int8
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderFloat16Int8Features,
                       marshal_VkPhysicalDeviceShaderFloat16Int8FeaturesKHR)
@@ -2340,6 +2961,14 @@ DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderFloat16Int8Features,
 
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderFloat16Int8Features,
                       unmarshal_VkPhysicalDeviceFloat16Int8FeaturesKHR)
+
+#endif
+#ifdef VK_KHR_16bit_storage
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevice16BitStorageFeatures,
+                      marshal_VkPhysicalDevice16BitStorageFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevice16BitStorageFeatures,
+                      unmarshal_VkPhysicalDevice16BitStorageFeaturesKHR)
 
 #endif
 #ifdef VK_KHR_incremental_present
@@ -2439,6 +3068,17 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkSubpassEndInfo, unmarshal_VkSubpassEndInfoKHR)
 #define OP_vkCmdNextSubpass2KHR 20227
 #define OP_vkCmdEndRenderPass2KHR 20228
 #endif
+#ifdef VK_KHR_shared_presentable_image
+void marshal_VkSharedPresentSurfaceCapabilitiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSharedPresentSurfaceCapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkSharedPresentSurfaceCapabilitiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSharedPresentSurfaceCapabilitiesKHR* forUnmarshaling);
+
+#define OP_vkGetSwapchainStatusKHR 20229
+#endif
 #ifdef VK_KHR_external_fence_capabilities
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceExternalFenceInfo,
                       marshal_VkPhysicalDeviceExternalFenceInfoKHR)
@@ -2458,6 +3098,28 @@ DEFINE_ALIAS_FUNCTION(marshal_VkExportFenceCreateInfo, marshal_VkExportFenceCrea
 DEFINE_ALIAS_FUNCTION(unmarshal_VkExportFenceCreateInfo, unmarshal_VkExportFenceCreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_external_fence_win32
+void marshal_VkImportFenceWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkImportFenceWin32HandleInfoKHR* forMarshaling);
+
+void unmarshal_VkImportFenceWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkImportFenceWin32HandleInfoKHR* forUnmarshaling);
+
+void marshal_VkExportFenceWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkExportFenceWin32HandleInfoKHR* forMarshaling);
+
+void unmarshal_VkExportFenceWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkExportFenceWin32HandleInfoKHR* forUnmarshaling);
+
+void marshal_VkFenceGetWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkFenceGetWin32HandleInfoKHR* forMarshaling);
+
+void unmarshal_VkFenceGetWin32HandleInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkFenceGetWin32HandleInfoKHR* forUnmarshaling);
+
+#define OP_vkImportFenceWin32HandleKHR 20231
+#define OP_vkGetFenceWin32HandleKHR 20232
+#endif
 #ifdef VK_KHR_external_fence_fd
 void marshal_VkImportFenceFdInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
                                     const VkImportFenceFdInfoKHR* forMarshaling);
@@ -2473,6 +3135,68 @@ void unmarshal_VkFenceGetFdInfoKHR(VulkanStream* vkStream, VkStructureType rootT
 
 #define OP_vkImportFenceFdKHR 20233
 #define OP_vkGetFenceFdKHR 20234
+#endif
+#ifdef VK_KHR_performance_query
+void marshal_VkPhysicalDevicePerformanceQueryFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePerformanceQueryFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePerformanceQueryFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePerformanceQueryFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDevicePerformanceQueryPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePerformanceQueryPropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePerformanceQueryPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePerformanceQueryPropertiesKHR* forUnmarshaling);
+
+void marshal_VkPerformanceCounterKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkPerformanceCounterKHR* forMarshaling);
+
+void unmarshal_VkPerformanceCounterKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkPerformanceCounterKHR* forUnmarshaling);
+
+void marshal_VkPerformanceCounterDescriptionKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPerformanceCounterDescriptionKHR* forMarshaling);
+
+void unmarshal_VkPerformanceCounterDescriptionKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPerformanceCounterDescriptionKHR* forUnmarshaling);
+
+void marshal_VkQueryPoolPerformanceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkQueryPoolPerformanceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkQueryPoolPerformanceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueryPoolPerformanceCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkPerformanceCounterResultKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkPerformanceCounterResultKHR* forMarshaling);
+
+void unmarshal_VkPerformanceCounterResultKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkPerformanceCounterResultKHR* forUnmarshaling);
+
+void marshal_VkAcquireProfilingLockInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkAcquireProfilingLockInfoKHR* forMarshaling);
+
+void unmarshal_VkAcquireProfilingLockInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkAcquireProfilingLockInfoKHR* forUnmarshaling);
+
+void marshal_VkPerformanceQuerySubmitInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkPerformanceQuerySubmitInfoKHR* forMarshaling);
+
+void unmarshal_VkPerformanceQuerySubmitInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkPerformanceQuerySubmitInfoKHR* forUnmarshaling);
+
+#define OP_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR 299033148
+#define OP_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR 282029987
+#define OP_vkAcquireProfilingLockKHR 238952296
+#define OP_vkReleaseProfilingLockKHR 223904011
 #endif
 #ifdef VK_KHR_maintenance2
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevicePointClippingProperties,
@@ -2504,6 +3228,78 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineTessellationDomainOriginStateCreateInf
                       unmarshal_VkPipelineTessellationDomainOriginStateCreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_get_surface_capabilities2
+void marshal_VkPhysicalDeviceSurfaceInfo2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkPhysicalDeviceSurfaceInfo2KHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceSurfaceInfo2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkPhysicalDeviceSurfaceInfo2KHR* forUnmarshaling);
+
+void marshal_VkSurfaceCapabilities2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkSurfaceCapabilities2KHR* forMarshaling);
+
+void unmarshal_VkSurfaceCapabilities2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkSurfaceCapabilities2KHR* forUnmarshaling);
+
+void marshal_VkSurfaceFormat2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                 const VkSurfaceFormat2KHR* forMarshaling);
+
+void unmarshal_VkSurfaceFormat2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                   VkSurfaceFormat2KHR* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceSurfaceCapabilities2KHR 20235
+#define OP_vkGetPhysicalDeviceSurfaceFormats2KHR 20236
+#endif
+#ifdef VK_KHR_variable_pointers
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceVariablePointersFeatures,
+                      marshal_VkPhysicalDeviceVariablePointerFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceVariablePointersFeatures,
+                      unmarshal_VkPhysicalDeviceVariablePointerFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceVariablePointersFeatures,
+                      marshal_VkPhysicalDeviceVariablePointersFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceVariablePointersFeatures,
+                      unmarshal_VkPhysicalDeviceVariablePointersFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_get_display_properties2
+void marshal_VkDisplayProperties2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkDisplayProperties2KHR* forMarshaling);
+
+void unmarshal_VkDisplayProperties2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkDisplayProperties2KHR* forUnmarshaling);
+
+void marshal_VkDisplayPlaneProperties2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkDisplayPlaneProperties2KHR* forMarshaling);
+
+void unmarshal_VkDisplayPlaneProperties2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkDisplayPlaneProperties2KHR* forUnmarshaling);
+
+void marshal_VkDisplayModeProperties2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkDisplayModeProperties2KHR* forMarshaling);
+
+void unmarshal_VkDisplayModeProperties2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkDisplayModeProperties2KHR* forUnmarshaling);
+
+void marshal_VkDisplayPlaneInfo2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkDisplayPlaneInfo2KHR* forMarshaling);
+
+void unmarshal_VkDisplayPlaneInfo2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkDisplayPlaneInfo2KHR* forUnmarshaling);
+
+void marshal_VkDisplayPlaneCapabilities2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkDisplayPlaneCapabilities2KHR* forMarshaling);
+
+void unmarshal_VkDisplayPlaneCapabilities2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkDisplayPlaneCapabilities2KHR* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceDisplayProperties2KHR 20237
+#define OP_vkGetPhysicalDeviceDisplayPlaneProperties2KHR 20238
+#define OP_vkGetDisplayModeProperties2KHR 20239
+#define OP_vkGetDisplayPlaneCapabilities2KHR 20240
+#endif
 #ifdef VK_KHR_dedicated_allocation
 DEFINE_ALIAS_FUNCTION(marshal_VkMemoryDedicatedRequirements,
                       marshal_VkMemoryDedicatedRequirementsKHR)
@@ -2519,6 +3315,8 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkMemoryDedicatedAllocateInfo,
 
 #endif
 #ifdef VK_KHR_storage_buffer_storage_class
+#endif
+#ifdef VK_KHR_relaxed_block_layout
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 DEFINE_ALIAS_FUNCTION(marshal_VkBufferMemoryRequirementsInfo2,
@@ -2609,6 +3407,24 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkBindImageMemoryInfo, unmarshal_VkBindImageMemo
 #define OP_vkBindBufferMemory2KHR 20246
 #define OP_vkBindImageMemory2KHR 20247
 #endif
+#ifdef VK_KHR_portability_subset
+void marshal_VkPhysicalDevicePortabilitySubsetFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePortabilitySubsetFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePortabilitySubsetFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePortabilitySubsetFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDevicePortabilitySubsetPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePortabilitySubsetPropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePortabilitySubsetPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePortabilitySubsetPropertiesKHR* forUnmarshaling);
+
+#endif
 #ifdef VK_KHR_maintenance3
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMaintenance3Properties,
                       marshal_VkPhysicalDeviceMaintenance3PropertiesKHR)
@@ -2623,6 +3439,10 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorSetLayoutSupport,
 
 #define OP_vkGetDescriptorSetLayoutSupportKHR 20248
 #endif
+#ifdef VK_KHR_draw_indirect_count
+#define OP_vkCmdDrawIndirectCountKHR 20249
+#define OP_vkCmdDrawIndexedIndirectCountKHR 20250
+#endif
 #ifdef VK_KHR_shader_subgroup_extended_types
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures,
                       marshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR)
@@ -2630,6 +3450,172 @@ DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeature
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures,
                       unmarshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR)
 
+#endif
+#ifdef VK_KHR_8bit_storage
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevice8BitStorageFeatures,
+                      marshal_VkPhysicalDevice8BitStorageFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevice8BitStorageFeatures,
+                      unmarshal_VkPhysicalDevice8BitStorageFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_shader_atomic_int64
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderAtomicInt64Features,
+                      marshal_VkPhysicalDeviceShaderAtomicInt64FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderAtomicInt64Features,
+                      unmarshal_VkPhysicalDeviceShaderAtomicInt64FeaturesKHR)
+
+#endif
+#ifdef VK_KHR_shader_clock
+void marshal_VkPhysicalDeviceShaderClockFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderClockFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderClockFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderClockFeaturesKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_video_decode_h265
+void marshal_VkVideoDecodeH265ProfileInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoDecodeH265ProfileInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH265ProfileInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoDecodeH265ProfileInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH265CapabilitiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH265CapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH265CapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkVideoDecodeH265CapabilitiesKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH265SessionParametersAddInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH265SessionParametersAddInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH265SessionParametersAddInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoDecodeH265SessionParametersAddInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH265SessionParametersCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoDecodeH265SessionParametersCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH265SessionParametersCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoDecodeH265SessionParametersCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH265PictureInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoDecodeH265PictureInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH265PictureInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoDecodeH265PictureInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoDecodeH265DpbSlotInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoDecodeH265DpbSlotInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoDecodeH265DpbSlotInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoDecodeH265DpbSlotInfoKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_global_priority
+void marshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDeviceQueueGlobalPriorityCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceQueueGlobalPriorityCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* forUnmarshaling);
+
+void marshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkQueueFamilyGlobalPriorityPropertiesKHR* forMarshaling);
+
+void unmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueueFamilyGlobalPriorityPropertiesKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_driver_properties
+DEFINE_ALIAS_FUNCTION(marshal_VkConformanceVersion, marshal_VkConformanceVersionKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkConformanceVersion, unmarshal_VkConformanceVersionKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDriverProperties,
+                      marshal_VkPhysicalDeviceDriverPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDriverProperties,
+                      unmarshal_VkPhysicalDeviceDriverPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_shader_float_controls
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceFloatControlsProperties,
+                      marshal_VkPhysicalDeviceFloatControlsPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceFloatControlsProperties,
+                      unmarshal_VkPhysicalDeviceFloatControlsPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_depth_stencil_resolve
+DEFINE_ALIAS_FUNCTION(marshal_VkSubpassDescriptionDepthStencilResolve,
+                      marshal_VkSubpassDescriptionDepthStencilResolveKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSubpassDescriptionDepthStencilResolve,
+                      unmarshal_VkSubpassDescriptionDepthStencilResolveKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDepthStencilResolveProperties,
+                      marshal_VkPhysicalDeviceDepthStencilResolvePropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDepthStencilResolveProperties,
+                      unmarshal_VkPhysicalDeviceDepthStencilResolvePropertiesKHR)
+
+#endif
+#ifdef VK_KHR_swapchain_mutable_format
+#endif
+#ifdef VK_KHR_timeline_semaphore
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceTimelineSemaphoreFeatures,
+                      marshal_VkPhysicalDeviceTimelineSemaphoreFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceTimelineSemaphoreFeatures,
+                      unmarshal_VkPhysicalDeviceTimelineSemaphoreFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceTimelineSemaphoreProperties,
+                      marshal_VkPhysicalDeviceTimelineSemaphorePropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceTimelineSemaphoreProperties,
+                      unmarshal_VkPhysicalDeviceTimelineSemaphorePropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkSemaphoreTypeCreateInfo, marshal_VkSemaphoreTypeCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSemaphoreTypeCreateInfo, unmarshal_VkSemaphoreTypeCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkTimelineSemaphoreSubmitInfo,
+                      marshal_VkTimelineSemaphoreSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkTimelineSemaphoreSubmitInfo,
+                      unmarshal_VkTimelineSemaphoreSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkSemaphoreWaitInfo, marshal_VkSemaphoreWaitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSemaphoreWaitInfo, unmarshal_VkSemaphoreWaitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkSemaphoreSignalInfo, marshal_VkSemaphoreSignalInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSemaphoreSignalInfo, unmarshal_VkSemaphoreSignalInfoKHR)
+
+#define OP_vkGetSemaphoreCounterValueKHR 229059496
+#define OP_vkWaitSemaphoresKHR 263904357
+#define OP_vkSignalSemaphoreKHR 269919108
 #endif
 #ifdef VK_KHR_vulkan_memory_model
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceVulkanMemoryModelFeatures,
@@ -2645,6 +3631,101 @@ DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderTerminateInvocationFeatures,
 
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderTerminateInvocationFeatures,
                       unmarshal_VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+void marshal_VkFragmentShadingRateAttachmentInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkFragmentShadingRateAttachmentInfoKHR* forMarshaling);
+
+void unmarshal_VkFragmentShadingRateAttachmentInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkFragmentShadingRateAttachmentInfoKHR* forUnmarshaling);
+
+void marshal_VkPipelineFragmentShadingRateStateCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineFragmentShadingRateStateCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkPipelineFragmentShadingRateStateCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineFragmentShadingRateStateCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceFragmentShadingRateFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRateFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentShadingRateFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentShadingRateFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceFragmentShadingRatePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRatePropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentShadingRatePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentShadingRatePropertiesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceFragmentShadingRateKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRateKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentShadingRateKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentShadingRateKHR* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceFragmentShadingRatesKHR 272978593
+#define OP_vkCmdSetFragmentShadingRateKHR 204060280
+#endif
+#ifdef VK_KHR_spirv_1_4
+#endif
+#ifdef VK_KHR_surface_protected_capabilities
+void marshal_VkSurfaceProtectedCapabilitiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSurfaceProtectedCapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkSurfaceProtectedCapabilitiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSurfaceProtectedCapabilitiesKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_separate_depth_stencil_layouts
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures,
+                      marshal_VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures,
+                      unmarshal_VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkAttachmentReferenceStencilLayout,
+                      marshal_VkAttachmentReferenceStencilLayoutKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkAttachmentReferenceStencilLayout,
+                      unmarshal_VkAttachmentReferenceStencilLayoutKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkAttachmentDescriptionStencilLayout,
+                      marshal_VkAttachmentDescriptionStencilLayoutKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkAttachmentDescriptionStencilLayout,
+                      unmarshal_VkAttachmentDescriptionStencilLayoutKHR)
+
+#endif
+#ifdef VK_KHR_present_wait
+void marshal_VkPhysicalDevicePresentWaitFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePresentWaitFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePresentWaitFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePresentWaitFeaturesKHR* forUnmarshaling);
+
+#define OP_vkWaitForPresentKHR 263215580
+#endif
+#ifdef VK_KHR_uniform_buffer_standard_layout
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceUniformBufferStandardLayoutFeatures,
+                      marshal_VkPhysicalDeviceUniformBufferStandardLayoutFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceUniformBufferStandardLayoutFeatures,
+                      unmarshal_VkPhysicalDeviceUniformBufferStandardLayoutFeaturesKHR)
 
 #endif
 #ifdef VK_KHR_buffer_device_address
@@ -2679,6 +3760,13 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceMemoryOpaqueCaptureAddressInfo,
 #define OP_vkGetBufferDeviceAddressKHR 219261480
 #define OP_vkGetBufferOpaqueCaptureAddressKHR 285631711
 #define OP_vkGetDeviceMemoryOpaqueCaptureAddressKHR 294671624
+#endif
+#ifdef VK_KHR_deferred_host_operations
+#define OP_vkCreateDeferredOperationKHR 274342644
+#define OP_vkDestroyDeferredOperationKHR 215419514
+#define OP_vkGetDeferredOperationMaxConcurrencyKHR 203387076
+#define OP_vkGetDeferredOperationResultKHR 263822960
+#define OP_vkDeferredOperationJoinKHR 218492930
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 void marshal_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
@@ -2736,6 +3824,325 @@ void unmarshal_VkPipelineExecutableInternalRepresentationKHR(
 #define OP_vkGetPipelineExecutableStatisticsKHR 271191699
 #define OP_vkGetPipelineExecutableInternalRepresentationsKHR 274148497
 #endif
+#ifdef VK_KHR_map_memory2
+void marshal_VkMemoryMapInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                const VkMemoryMapInfoKHR* forMarshaling);
+
+void unmarshal_VkMemoryMapInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                  VkMemoryMapInfoKHR* forUnmarshaling);
+
+void marshal_VkMemoryUnmapInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkMemoryUnmapInfoKHR* forMarshaling);
+
+void unmarshal_VkMemoryUnmapInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkMemoryUnmapInfoKHR* forUnmarshaling);
+
+#define OP_vkMapMemory2KHR 233122956
+#define OP_vkUnmapMemory2KHR 229780379
+#endif
+#ifdef VK_KHR_shader_integer_dot_product
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderIntegerDotProductFeatures,
+                      marshal_VkPhysicalDeviceShaderIntegerDotProductFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderIntegerDotProductFeatures,
+                      unmarshal_VkPhysicalDeviceShaderIntegerDotProductFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderIntegerDotProductProperties,
+                      marshal_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderIntegerDotProductProperties,
+                      unmarshal_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_pipeline_library
+void marshal_VkPipelineLibraryCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkPipelineLibraryCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkPipelineLibraryCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkPipelineLibraryCreateInfoKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_shader_non_semantic_info
+#endif
+#ifdef VK_KHR_present_id
+void marshal_VkPresentIdKHR(VulkanStream* vkStream, VkStructureType rootType,
+                            const VkPresentIdKHR* forMarshaling);
+
+void unmarshal_VkPresentIdKHR(VulkanStream* vkStream, VkStructureType rootType,
+                              VkPresentIdKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDevicePresentIdFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePresentIdFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePresentIdFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePresentIdFeaturesKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_video_encode_queue
+void marshal_VkVideoEncodeInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkVideoEncodeInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoEncodeInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkVideoEncodeInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoEncodeCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkVideoEncodeCapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkVideoEncodeCapabilitiesKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkVideoEncodeCapabilitiesKHR* forUnmarshaling);
+
+void marshal_VkQueryPoolVideoEncodeFeedbackCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkQueryPoolVideoEncodeFeedbackCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkQueryPoolVideoEncodeFeedbackCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueryPoolVideoEncodeFeedbackCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoEncodeUsageInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkVideoEncodeUsageInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoEncodeUsageInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkVideoEncodeUsageInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoEncodeRateControlLayerInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeRateControlLayerInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoEncodeRateControlLayerInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeRateControlLayerInfoKHR* forUnmarshaling);
+
+void marshal_VkVideoEncodeRateControlInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoEncodeRateControlInfoKHR* forMarshaling);
+
+void unmarshal_VkVideoEncodeRateControlInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoEncodeRateControlInfoKHR* forUnmarshaling);
+
+#define OP_vkCmdEncodeVideoKHR 295869356
+#endif
+#ifdef VK_KHR_synchronization2
+DEFINE_ALIAS_FUNCTION(marshal_VkMemoryBarrier2, marshal_VkMemoryBarrier2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkMemoryBarrier2, unmarshal_VkMemoryBarrier2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkBufferMemoryBarrier2, marshal_VkBufferMemoryBarrier2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBufferMemoryBarrier2, unmarshal_VkBufferMemoryBarrier2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkImageMemoryBarrier2, marshal_VkImageMemoryBarrier2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkImageMemoryBarrier2, unmarshal_VkImageMemoryBarrier2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDependencyInfo, marshal_VkDependencyInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDependencyInfo, unmarshal_VkDependencyInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkSubmitInfo2, marshal_VkSubmitInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSubmitInfo2, unmarshal_VkSubmitInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkSemaphoreSubmitInfo, marshal_VkSemaphoreSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSemaphoreSubmitInfo, unmarshal_VkSemaphoreSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkCommandBufferSubmitInfo, marshal_VkCommandBufferSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkCommandBufferSubmitInfo, unmarshal_VkCommandBufferSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceSynchronization2Features,
+                      marshal_VkPhysicalDeviceSynchronization2FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceSynchronization2Features,
+                      unmarshal_VkPhysicalDeviceSynchronization2FeaturesKHR)
+
+#define OP_vkCmdSetEvent2KHR 270411360
+#define OP_vkCmdResetEvent2KHR 283215906
+#define OP_vkCmdWaitEvents2KHR 244967758
+#define OP_vkCmdPipelineBarrier2KHR 201310066
+#define OP_vkCmdWriteTimestamp2KHR 252552241
+#define OP_vkQueueSubmit2KHR 293024240
+#define OP_vkCmdWriteBufferMarker2AMD 224701394
+void marshal_VkQueueFamilyCheckpointProperties2NV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkQueueFamilyCheckpointProperties2NV* forMarshaling);
+
+void unmarshal_VkQueueFamilyCheckpointProperties2NV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueueFamilyCheckpointProperties2NV* forUnmarshaling);
+
+void marshal_VkCheckpointData2NV(VulkanStream* vkStream, VkStructureType rootType,
+                                 const VkCheckpointData2NV* forMarshaling);
+
+void unmarshal_VkCheckpointData2NV(VulkanStream* vkStream, VkStructureType rootType,
+                                   VkCheckpointData2NV* forUnmarshaling);
+
+#define OP_vkGetQueueCheckpointData2NV 292063036
+#endif
+#ifdef VK_KHR_fragment_shader_barycentric
+void marshal_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_shader_subgroup_uniform_control_flow
+void marshal_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_zero_initialize_workgroup_memory
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures,
+                      marshal_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures,
+                      unmarshal_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_workgroup_memory_explicit_layout
+void marshal_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_copy_commands2
+DEFINE_ALIAS_FUNCTION(marshal_VkCopyBufferInfo2, marshal_VkCopyBufferInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkCopyBufferInfo2, unmarshal_VkCopyBufferInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkCopyImageInfo2, marshal_VkCopyImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkCopyImageInfo2, unmarshal_VkCopyImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkCopyBufferToImageInfo2, marshal_VkCopyBufferToImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkCopyBufferToImageInfo2, unmarshal_VkCopyBufferToImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkCopyImageToBufferInfo2, marshal_VkCopyImageToBufferInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkCopyImageToBufferInfo2, unmarshal_VkCopyImageToBufferInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkBlitImageInfo2, marshal_VkBlitImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBlitImageInfo2, unmarshal_VkBlitImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkResolveImageInfo2, marshal_VkResolveImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkResolveImageInfo2, unmarshal_VkResolveImageInfo2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkBufferCopy2, marshal_VkBufferCopy2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBufferCopy2, unmarshal_VkBufferCopy2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkImageCopy2, marshal_VkImageCopy2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkImageCopy2, unmarshal_VkImageCopy2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkImageBlit2, marshal_VkImageBlit2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkImageBlit2, unmarshal_VkImageBlit2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkBufferImageCopy2, marshal_VkBufferImageCopy2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBufferImageCopy2, unmarshal_VkBufferImageCopy2KHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkImageResolve2, marshal_VkImageResolve2KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkImageResolve2, unmarshal_VkImageResolve2KHR)
+
+#define OP_vkCmdCopyBuffer2KHR 247893766
+#define OP_vkCmdCopyImage2KHR 227008250
+#define OP_vkCmdCopyBufferToImage2KHR 248841963
+#define OP_vkCmdCopyImageToBuffer2KHR 252249060
+#define OP_vkCmdBlitImage2KHR 259838288
+#define OP_vkCmdResolveImage2KHR 254857232
+#endif
+#ifdef VK_KHR_format_feature_flags2
+DEFINE_ALIAS_FUNCTION(marshal_VkFormatProperties3, marshal_VkFormatProperties3KHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkFormatProperties3, unmarshal_VkFormatProperties3KHR)
+
+#endif
+#ifdef VK_KHR_ray_tracing_maintenance1
+void marshal_VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR* forUnmarshaling);
+
+void marshal_VkTraceRaysIndirectCommand2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkTraceRaysIndirectCommand2KHR* forMarshaling);
+
+void unmarshal_VkTraceRaysIndirectCommand2KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkTraceRaysIndirectCommand2KHR* forUnmarshaling);
+
+#define OP_vkCmdTraceRaysIndirect2KHR 261030897
+#endif
+#ifdef VK_KHR_portability_enumeration
+#endif
+#ifdef VK_KHR_maintenance4
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMaintenance4Features,
+                      marshal_VkPhysicalDeviceMaintenance4FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceMaintenance4Features,
+                      unmarshal_VkPhysicalDeviceMaintenance4FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMaintenance4Properties,
+                      marshal_VkPhysicalDeviceMaintenance4PropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceMaintenance4Properties,
+                      unmarshal_VkPhysicalDeviceMaintenance4PropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceBufferMemoryRequirements,
+                      marshal_VkDeviceBufferMemoryRequirementsKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceBufferMemoryRequirements,
+                      unmarshal_VkDeviceBufferMemoryRequirementsKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceImageMemoryRequirements,
+                      marshal_VkDeviceImageMemoryRequirementsKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceImageMemoryRequirements,
+                      unmarshal_VkDeviceImageMemoryRequirementsKHR)
+
+#define OP_vkGetDeviceBufferMemoryRequirementsKHR 201613635
+#define OP_vkGetDeviceImageMemoryRequirementsKHR 243155021
+#define OP_vkGetDeviceImageSparseMemoryRequirementsKHR 275585477
+#endif
+#ifdef VK_KHR_ray_tracing_position_fetch
+void marshal_VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR* forUnmarshaling);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void marshal_VkNativeBufferUsage2ANDROID(VulkanStream* vkStream, VkStructureType rootType,
                                          const VkNativeBufferUsage2ANDROID* forMarshaling);
@@ -2770,6 +4177,92 @@ void unmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
 #define OP_vkQueueSignalReleaseImageANDROID 20253
 #define OP_vkGetSwapchainGrallocUsage2ANDROID 287960452
 #endif
+#ifdef VK_EXT_debug_report
+void marshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugReportCallbackCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugReportCallbackCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCreateDebugReportCallbackEXT 20254
+#define OP_vkDestroyDebugReportCallbackEXT 20255
+#define OP_vkDebugReportMessageEXT 20256
+#endif
+#ifdef VK_NV_glsl_shader
+#endif
+#ifdef VK_EXT_depth_range_unrestricted
+#endif
+#ifdef VK_IMG_filter_cubic
+#endif
+#ifdef VK_AMD_rasterization_order
+void marshal_VkPipelineRasterizationStateRasterizationOrderAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationStateRasterizationOrderAMD* forMarshaling);
+
+void unmarshal_VkPipelineRasterizationStateRasterizationOrderAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationStateRasterizationOrderAMD* forUnmarshaling);
+
+#endif
+#ifdef VK_AMD_shader_trinary_minmax
+#endif
+#ifdef VK_AMD_shader_explicit_vertex_parameter
+#endif
+#ifdef VK_EXT_debug_marker
+void marshal_VkDebugMarkerObjectNameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkDebugMarkerObjectNameInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugMarkerObjectNameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkDebugMarkerObjectNameInfoEXT* forUnmarshaling);
+
+void marshal_VkDebugMarkerObjectTagInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkDebugMarkerObjectTagInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugMarkerObjectTagInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkDebugMarkerObjectTagInfoEXT* forUnmarshaling);
+
+void marshal_VkDebugMarkerMarkerInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkDebugMarkerMarkerInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugMarkerMarkerInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkDebugMarkerMarkerInfoEXT* forUnmarshaling);
+
+#define OP_vkDebugMarkerSetObjectTagEXT 20257
+#define OP_vkDebugMarkerSetObjectNameEXT 20258
+#define OP_vkCmdDebugMarkerBeginEXT 20259
+#define OP_vkCmdDebugMarkerEndEXT 20260
+#define OP_vkCmdDebugMarkerInsertEXT 20261
+#endif
+#ifdef VK_AMD_gcn_shader
+#endif
+#ifdef VK_NV_dedicated_allocation
+void marshal_VkDedicatedAllocationImageCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDedicatedAllocationImageCreateInfoNV* forMarshaling);
+
+void unmarshal_VkDedicatedAllocationImageCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDedicatedAllocationImageCreateInfoNV* forUnmarshaling);
+
+void marshal_VkDedicatedAllocationBufferCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDedicatedAllocationBufferCreateInfoNV* forMarshaling);
+
+void unmarshal_VkDedicatedAllocationBufferCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDedicatedAllocationBufferCreateInfoNV* forUnmarshaling);
+
+void marshal_VkDedicatedAllocationMemoryAllocateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDedicatedAllocationMemoryAllocateInfoNV* forMarshaling);
+
+void unmarshal_VkDedicatedAllocationMemoryAllocateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDedicatedAllocationMemoryAllocateInfoNV* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void marshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -2802,21 +4295,1658 @@ void unmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #define OP_vkCmdEndQueryIndexedEXT 279821337
 #define OP_vkCmdDrawIndirectByteCountEXT 285235943
 #endif
+#ifdef VK_NVX_binary_import
+void marshal_VkCuModuleCreateInfoNVX(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkCuModuleCreateInfoNVX* forMarshaling);
+
+void unmarshal_VkCuModuleCreateInfoNVX(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkCuModuleCreateInfoNVX* forUnmarshaling);
+
+void marshal_VkCuFunctionCreateInfoNVX(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkCuFunctionCreateInfoNVX* forMarshaling);
+
+void unmarshal_VkCuFunctionCreateInfoNVX(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkCuFunctionCreateInfoNVX* forUnmarshaling);
+
+void marshal_VkCuLaunchInfoNVX(VulkanStream* vkStream, VkStructureType rootType,
+                               const VkCuLaunchInfoNVX* forMarshaling);
+
+void unmarshal_VkCuLaunchInfoNVX(VulkanStream* vkStream, VkStructureType rootType,
+                                 VkCuLaunchInfoNVX* forUnmarshaling);
+
+#define OP_vkCreateCuModuleNVX 227747396
+#define OP_vkCreateCuFunctionNVX 207930440
+#define OP_vkDestroyCuModuleNVX 273754594
+#define OP_vkDestroyCuFunctionNVX 253295828
+#define OP_vkCmdCuLaunchKernelNVX 219961351
+#endif
+#ifdef VK_NVX_image_view_handle
+void marshal_VkImageViewHandleInfoNVX(VulkanStream* vkStream, VkStructureType rootType,
+                                      const VkImageViewHandleInfoNVX* forMarshaling);
+
+void unmarshal_VkImageViewHandleInfoNVX(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkImageViewHandleInfoNVX* forUnmarshaling);
+
+void marshal_VkImageViewAddressPropertiesNVX(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkImageViewAddressPropertiesNVX* forMarshaling);
+
+void unmarshal_VkImageViewAddressPropertiesNVX(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkImageViewAddressPropertiesNVX* forUnmarshaling);
+
+#define OP_vkGetImageViewHandleNVX 204379647
+#define OP_vkGetImageViewAddressNVX 210668576
+#endif
+#ifdef VK_AMD_draw_indirect_count
+#define OP_vkCmdDrawIndirectCountAMD 20262
+#define OP_vkCmdDrawIndexedIndirectCountAMD 20263
+#endif
+#ifdef VK_AMD_negative_viewport_height
+#endif
 #ifdef VK_AMD_gpu_shader_half_float
 #endif
+#ifdef VK_AMD_shader_ballot
+#endif
+#ifdef VK_EXT_video_encode_h264
+void marshal_VkVideoEncodeH264CapabilitiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264CapabilitiesEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264CapabilitiesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkVideoEncodeH264CapabilitiesEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264SessionParametersAddInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264SessionParametersAddInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264SessionParametersAddInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH264SessionParametersAddInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264SessionParametersCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264SessionParametersCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264SessionParametersCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH264SessionParametersCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264NaluSliceInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264NaluSliceInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264NaluSliceInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH264NaluSliceInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264VclFrameInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264VclFrameInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264VclFrameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkVideoEncodeH264VclFrameInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264DpbSlotInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoEncodeH264DpbSlotInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264DpbSlotInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoEncodeH264DpbSlotInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264ProfileInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoEncodeH264ProfileInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264ProfileInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoEncodeH264ProfileInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264RateControlInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264RateControlInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264RateControlInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH264RateControlInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264QpEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkVideoEncodeH264QpEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264QpEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkVideoEncodeH264QpEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264FrameSizeEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkVideoEncodeH264FrameSizeEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264FrameSizeEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkVideoEncodeH264FrameSizeEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH264RateControlLayerInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH264RateControlLayerInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH264RateControlLayerInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH264RateControlLayerInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_video_encode_h265
+void marshal_VkVideoEncodeH265CapabilitiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265CapabilitiesEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265CapabilitiesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkVideoEncodeH265CapabilitiesEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265SessionParametersAddInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265SessionParametersAddInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265SessionParametersAddInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH265SessionParametersAddInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265SessionParametersCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265SessionParametersCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265SessionParametersCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH265SessionParametersCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265NaluSliceSegmentInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265NaluSliceSegmentInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265NaluSliceSegmentInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH265NaluSliceSegmentInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265VclFrameInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265VclFrameInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265VclFrameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkVideoEncodeH265VclFrameInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265DpbSlotInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoEncodeH265DpbSlotInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265DpbSlotInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoEncodeH265DpbSlotInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265ProfileInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkVideoEncodeH265ProfileInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265ProfileInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkVideoEncodeH265ProfileInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265RateControlInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265RateControlInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265RateControlInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH265RateControlInfoEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265QpEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkVideoEncodeH265QpEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265QpEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkVideoEncodeH265QpEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265FrameSizeEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkVideoEncodeH265FrameSizeEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265FrameSizeEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkVideoEncodeH265FrameSizeEXT* forUnmarshaling);
+
+void marshal_VkVideoEncodeH265RateControlLayerInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVideoEncodeH265RateControlLayerInfoEXT* forMarshaling);
+
+void unmarshal_VkVideoEncodeH265RateControlLayerInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVideoEncodeH265RateControlLayerInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_AMD_texture_gather_bias_lod
+void marshal_VkTextureLODGatherFormatPropertiesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkTextureLODGatherFormatPropertiesAMD* forMarshaling);
+
+void unmarshal_VkTextureLODGatherFormatPropertiesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkTextureLODGatherFormatPropertiesAMD* forUnmarshaling);
+
+#endif
+#ifdef VK_AMD_shader_info
+void marshal_VkShaderResourceUsageAMD(VulkanStream* vkStream, VkStructureType rootType,
+                                      const VkShaderResourceUsageAMD* forMarshaling);
+
+void unmarshal_VkShaderResourceUsageAMD(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkShaderResourceUsageAMD* forUnmarshaling);
+
+void marshal_VkShaderStatisticsInfoAMD(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkShaderStatisticsInfoAMD* forMarshaling);
+
+void unmarshal_VkShaderStatisticsInfoAMD(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkShaderStatisticsInfoAMD* forUnmarshaling);
+
+#define OP_vkGetShaderInfoAMD 20264
+#endif
+#ifdef VK_AMD_shader_image_load_store_lod
+#endif
+#ifdef VK_GGP_stream_descriptor_surface
+void marshal_VkStreamDescriptorSurfaceCreateInfoGGP(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkStreamDescriptorSurfaceCreateInfoGGP* forMarshaling);
+
+void unmarshal_VkStreamDescriptorSurfaceCreateInfoGGP(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkStreamDescriptorSurfaceCreateInfoGGP* forUnmarshaling);
+
+#define OP_vkCreateStreamDescriptorSurfaceGGP 241902685
+#endif
+#ifdef VK_NV_corner_sampled_image
+void marshal_VkPhysicalDeviceCornerSampledImageFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCornerSampledImageFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceCornerSampledImageFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceCornerSampledImageFeaturesNV* forUnmarshaling);
+
+#endif
+#ifdef VK_IMG_format_pvrtc
+#endif
+#ifdef VK_NV_external_memory_capabilities
+void marshal_VkExternalImageFormatPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkExternalImageFormatPropertiesNV* forMarshaling);
+
+void unmarshal_VkExternalImageFormatPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkExternalImageFormatPropertiesNV* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceExternalImageFormatPropertiesNV 20265
+#endif
+#ifdef VK_NV_external_memory
+void marshal_VkExternalMemoryImageCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkExternalMemoryImageCreateInfoNV* forMarshaling);
+
+void unmarshal_VkExternalMemoryImageCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkExternalMemoryImageCreateInfoNV* forUnmarshaling);
+
+void marshal_VkExportMemoryAllocateInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkExportMemoryAllocateInfoNV* forMarshaling);
+
+void unmarshal_VkExportMemoryAllocateInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkExportMemoryAllocateInfoNV* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_external_memory_win32
+void marshal_VkImportMemoryWin32HandleInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkImportMemoryWin32HandleInfoNV* forMarshaling);
+
+void unmarshal_VkImportMemoryWin32HandleInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkImportMemoryWin32HandleInfoNV* forUnmarshaling);
+
+void marshal_VkExportMemoryWin32HandleInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkExportMemoryWin32HandleInfoNV* forMarshaling);
+
+void unmarshal_VkExportMemoryWin32HandleInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkExportMemoryWin32HandleInfoNV* forUnmarshaling);
+
+#define OP_vkGetMemoryWin32HandleNV 20266
+#endif
+#ifdef VK_NV_win32_keyed_mutex
+void marshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkWin32KeyedMutexAcquireReleaseInfoNV* forMarshaling);
+
+void unmarshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkWin32KeyedMutexAcquireReleaseInfoNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_validation_flags
+void marshal_VkValidationFlagsEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkValidationFlagsEXT* forMarshaling);
+
+void unmarshal_VkValidationFlagsEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkValidationFlagsEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_NN_vi_surface
+void marshal_VkViSurfaceCreateInfoNN(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkViSurfaceCreateInfoNN* forMarshaling);
+
+void unmarshal_VkViSurfaceCreateInfoNN(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkViSurfaceCreateInfoNN* forUnmarshaling);
+
+#define OP_vkCreateViSurfaceNN 20267
+#endif
+#ifdef VK_EXT_shader_subgroup_ballot
+#endif
+#ifdef VK_EXT_shader_subgroup_vote
+#endif
+#ifdef VK_EXT_texture_compression_astc_hdr
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceTextureCompressionASTCHDRFeatures,
+                      marshal_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceTextureCompressionASTCHDRFeatures,
+                      unmarshal_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
+
+#endif
+#ifdef VK_EXT_astc_decode_mode
+void marshal_VkImageViewASTCDecodeModeEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkImageViewASTCDecodeModeEXT* forMarshaling);
+
+void unmarshal_VkImageViewASTCDecodeModeEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkImageViewASTCDecodeModeEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceASTCDecodeFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceASTCDecodeFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceASTCDecodeFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceASTCDecodeFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_pipeline_robustness
+void marshal_VkPhysicalDevicePipelineRobustnessFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelineRobustnessFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePipelineRobustnessFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineRobustnessFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDevicePipelineRobustnessPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelineRobustnessPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePipelineRobustnessPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineRobustnessPropertiesEXT* forUnmarshaling);
+
+void marshal_VkPipelineRobustnessCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineRobustnessCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineRobustnessCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRobustnessCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_conditional_rendering
+void marshal_VkConditionalRenderingBeginInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkConditionalRenderingBeginInfoEXT* forMarshaling);
+
+void unmarshal_VkConditionalRenderingBeginInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkConditionalRenderingBeginInfoEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceConditionalRenderingFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceConditionalRenderingFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceConditionalRenderingFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceConditionalRenderingFeaturesEXT* forUnmarshaling);
+
+void marshal_VkCommandBufferInheritanceConditionalRenderingInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkCommandBufferInheritanceConditionalRenderingInfoEXT* forMarshaling);
+
+void unmarshal_VkCommandBufferInheritanceConditionalRenderingInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkCommandBufferInheritanceConditionalRenderingInfoEXT* forUnmarshaling);
+
+#define OP_vkCmdBeginConditionalRenderingEXT 20268
+#define OP_vkCmdEndConditionalRenderingEXT 20269
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+void marshal_VkViewportWScalingNV(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkViewportWScalingNV* forMarshaling);
+
+void unmarshal_VkViewportWScalingNV(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkViewportWScalingNV* forUnmarshaling);
+
+void marshal_VkPipelineViewportWScalingStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineViewportWScalingStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineViewportWScalingStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineViewportWScalingStateCreateInfoNV* forUnmarshaling);
+
+#define OP_vkCmdSetViewportWScalingNV 20279
+#endif
+#ifdef VK_EXT_direct_mode_display
+#define OP_vkReleaseDisplayEXT 20280
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+#define OP_vkAcquireXlibDisplayEXT 20281
+#define OP_vkGetRandROutputDisplayEXT 20282
+#endif
+#ifdef VK_EXT_display_surface_counter
+void marshal_VkSurfaceCapabilities2EXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkSurfaceCapabilities2EXT* forMarshaling);
+
+void unmarshal_VkSurfaceCapabilities2EXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkSurfaceCapabilities2EXT* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceSurfaceCapabilities2EXT 20283
+#endif
+#ifdef VK_EXT_display_control
+void marshal_VkDisplayPowerInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                   const VkDisplayPowerInfoEXT* forMarshaling);
+
+void unmarshal_VkDisplayPowerInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     VkDisplayPowerInfoEXT* forUnmarshaling);
+
+void marshal_VkDeviceEventInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkDeviceEventInfoEXT* forMarshaling);
+
+void unmarshal_VkDeviceEventInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkDeviceEventInfoEXT* forUnmarshaling);
+
+void marshal_VkDisplayEventInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                   const VkDisplayEventInfoEXT* forMarshaling);
+
+void unmarshal_VkDisplayEventInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     VkDisplayEventInfoEXT* forUnmarshaling);
+
+void marshal_VkSwapchainCounterCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkSwapchainCounterCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkSwapchainCounterCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkSwapchainCounterCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkDisplayPowerControlEXT 20284
+#define OP_vkRegisterDeviceEventEXT 20285
+#define OP_vkRegisterDisplayEventEXT 20286
+#define OP_vkGetSwapchainCounterEXT 20287
+#endif
+#ifdef VK_GOOGLE_display_timing
+void marshal_VkRefreshCycleDurationGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkRefreshCycleDurationGOOGLE* forMarshaling);
+
+void unmarshal_VkRefreshCycleDurationGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkRefreshCycleDurationGOOGLE* forUnmarshaling);
+
+void marshal_VkPastPresentationTimingGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkPastPresentationTimingGOOGLE* forMarshaling);
+
+void unmarshal_VkPastPresentationTimingGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkPastPresentationTimingGOOGLE* forUnmarshaling);
+
+void marshal_VkPresentTimeGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                 const VkPresentTimeGOOGLE* forMarshaling);
+
+void unmarshal_VkPresentTimeGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                   VkPresentTimeGOOGLE* forUnmarshaling);
+
+void marshal_VkPresentTimesInfoGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                      const VkPresentTimesInfoGOOGLE* forMarshaling);
+
+void unmarshal_VkPresentTimesInfoGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkPresentTimesInfoGOOGLE* forUnmarshaling);
+
+#define OP_vkGetRefreshCycleDurationGOOGLE 20288
+#define OP_vkGetPastPresentationTimingGOOGLE 20289
+#endif
+#ifdef VK_NV_sample_mask_override_coverage
+#endif
+#ifdef VK_NV_geometry_shader_passthrough
+#endif
+#ifdef VK_NV_viewport_array2
+#endif
+#ifdef VK_NVX_multiview_per_view_attributes
+void marshal_VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_viewport_swizzle
+void marshal_VkViewportSwizzleNV(VulkanStream* vkStream, VkStructureType rootType,
+                                 const VkViewportSwizzleNV* forMarshaling);
+
+void unmarshal_VkViewportSwizzleNV(VulkanStream* vkStream, VkStructureType rootType,
+                                   VkViewportSwizzleNV* forUnmarshaling);
+
+void marshal_VkPipelineViewportSwizzleStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineViewportSwizzleStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineViewportSwizzleStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineViewportSwizzleStateCreateInfoNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_discard_rectangles
+void marshal_VkPhysicalDeviceDiscardRectanglePropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDiscardRectanglePropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDiscardRectanglePropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDiscardRectanglePropertiesEXT* forUnmarshaling);
+
+void marshal_VkPipelineDiscardRectangleStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineDiscardRectangleStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineDiscardRectangleStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineDiscardRectangleStateCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCmdSetDiscardRectangleEXT 20290
+#define OP_vkCmdSetDiscardRectangleEnableEXT 283949626
+#define OP_vkCmdSetDiscardRectangleModeEXT 223142341
+#endif
+#ifdef VK_EXT_conservative_rasterization
+void marshal_VkPhysicalDeviceConservativeRasterizationPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceConservativeRasterizationPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceConservativeRasterizationPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceConservativeRasterizationPropertiesEXT* forUnmarshaling);
+
+void marshal_VkPipelineRasterizationConservativeStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationConservativeStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineRasterizationConservativeStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationConservativeStateCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_depth_clip_enable
+void marshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
+#endif
+#ifdef VK_EXT_hdr_metadata
+void marshal_VkXYColorEXT(VulkanStream* vkStream, VkStructureType rootType,
+                          const VkXYColorEXT* forMarshaling);
+
+void unmarshal_VkXYColorEXT(VulkanStream* vkStream, VkStructureType rootType,
+                            VkXYColorEXT* forUnmarshaling);
+
+void marshal_VkHdrMetadataEXT(VulkanStream* vkStream, VkStructureType rootType,
+                              const VkHdrMetadataEXT* forMarshaling);
+
+void unmarshal_VkHdrMetadataEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                VkHdrMetadataEXT* forUnmarshaling);
+
+#define OP_vkSetHdrMetadataEXT 20291
+#endif
+#ifdef VK_MVK_ios_surface
+void marshal_VkIOSSurfaceCreateInfoMVK(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkIOSSurfaceCreateInfoMVK* forMarshaling);
+
+void unmarshal_VkIOSSurfaceCreateInfoMVK(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkIOSSurfaceCreateInfoMVK* forUnmarshaling);
+
+#define OP_vkCreateIOSSurfaceMVK 20292
+#endif
+#ifdef VK_MVK_macos_surface
+void marshal_VkMacOSSurfaceCreateInfoMVK(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkMacOSSurfaceCreateInfoMVK* forMarshaling);
+
+void unmarshal_VkMacOSSurfaceCreateInfoMVK(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkMacOSSurfaceCreateInfoMVK* forUnmarshaling);
+
+#define OP_vkCreateMacOSSurfaceMVK 20293
+#endif
+#ifdef VK_EXT_external_memory_dma_buf
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+void marshal_VkDebugUtilsLabelEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkDebugUtilsLabelEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsLabelEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkDebugUtilsLabelEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkDebugUtilsObjectNameInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkDebugUtilsObjectNameInfoEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsMessengerCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugUtilsMessengerCallbackDataEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsMessengerCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCallbackDataEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsMessengerCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugUtilsMessengerCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsMessengerCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkDebugUtilsObjectTagInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkDebugUtilsObjectTagInfoEXT* forUnmarshaling);
+
+#define OP_vkSetDebugUtilsObjectNameEXT 20294
+#define OP_vkSetDebugUtilsObjectTagEXT 20295
+#define OP_vkQueueBeginDebugUtilsLabelEXT 20296
+#define OP_vkQueueEndDebugUtilsLabelEXT 20297
+#define OP_vkQueueInsertDebugUtilsLabelEXT 20298
+#define OP_vkCmdBeginDebugUtilsLabelEXT 20299
+#define OP_vkCmdEndDebugUtilsLabelEXT 20300
+#define OP_vkCmdInsertDebugUtilsLabelEXT 20301
+#define OP_vkCreateDebugUtilsMessengerEXT 20302
+#define OP_vkDestroyDebugUtilsMessengerEXT 20303
+#define OP_vkSubmitDebugUtilsMessageEXT 20304
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
+void marshal_VkAndroidHardwareBufferUsageANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAndroidHardwareBufferUsageANDROID* forMarshaling);
+
+void unmarshal_VkAndroidHardwareBufferUsageANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAndroidHardwareBufferUsageANDROID* forUnmarshaling);
+
+void marshal_VkAndroidHardwareBufferPropertiesANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAndroidHardwareBufferPropertiesANDROID* forMarshaling);
+
+void unmarshal_VkAndroidHardwareBufferPropertiesANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAndroidHardwareBufferPropertiesANDROID* forUnmarshaling);
+
+void marshal_VkAndroidHardwareBufferFormatPropertiesANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAndroidHardwareBufferFormatPropertiesANDROID* forMarshaling);
+
+void unmarshal_VkAndroidHardwareBufferFormatPropertiesANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAndroidHardwareBufferFormatPropertiesANDROID* forUnmarshaling);
+
+void marshal_VkImportAndroidHardwareBufferInfoANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImportAndroidHardwareBufferInfoANDROID* forMarshaling);
+
+void unmarshal_VkImportAndroidHardwareBufferInfoANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImportAndroidHardwareBufferInfoANDROID* forUnmarshaling);
+
+void marshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkMemoryGetAndroidHardwareBufferInfoANDROID* forMarshaling);
+
+void unmarshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMemoryGetAndroidHardwareBufferInfoANDROID* forUnmarshaling);
+
+void marshal_VkExternalFormatANDROID(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkExternalFormatANDROID* forMarshaling);
+
+void unmarshal_VkExternalFormatANDROID(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkExternalFormatANDROID* forUnmarshaling);
+
+#define OP_vkGetAndroidHardwareBufferPropertiesANDROID 20305
+#define OP_vkGetMemoryAndroidHardwareBufferANDROID 20306
+void marshal_VkAndroidHardwareBufferFormatProperties2ANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAndroidHardwareBufferFormatProperties2ANDROID* forMarshaling);
+
+void unmarshal_VkAndroidHardwareBufferFormatProperties2ANDROID(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAndroidHardwareBufferFormatProperties2ANDROID* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_sampler_filter_minmax
+DEFINE_ALIAS_FUNCTION(marshal_VkSamplerReductionModeCreateInfo,
+                      marshal_VkSamplerReductionModeCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSamplerReductionModeCreateInfo,
+                      unmarshal_VkSamplerReductionModeCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceSamplerFilterMinmaxProperties,
+                      marshal_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceSamplerFilterMinmaxProperties,
+                      unmarshal_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT)
+
+#endif
+#ifdef VK_AMD_gpu_shader_int16
+#endif
+#ifdef VK_AMD_mixed_attachment_samples
+#endif
+#ifdef VK_AMD_shader_fragment_mask
+#endif
+#ifdef VK_EXT_inline_uniform_block
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceInlineUniformBlockFeatures,
+                      marshal_VkPhysicalDeviceInlineUniformBlockFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceInlineUniformBlockFeatures,
+                      unmarshal_VkPhysicalDeviceInlineUniformBlockFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceInlineUniformBlockProperties,
+                      marshal_VkPhysicalDeviceInlineUniformBlockPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceInlineUniformBlockProperties,
+                      unmarshal_VkPhysicalDeviceInlineUniformBlockPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkWriteDescriptorSetInlineUniformBlock,
+                      marshal_VkWriteDescriptorSetInlineUniformBlockEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkWriteDescriptorSetInlineUniformBlock,
+                      unmarshal_VkWriteDescriptorSetInlineUniformBlockEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDescriptorPoolInlineUniformBlockCreateInfo,
+                      marshal_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfo,
+                      unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
+
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_sample_locations
+void marshal_VkSampleLocationEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                 const VkSampleLocationEXT* forMarshaling);
+
+void unmarshal_VkSampleLocationEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                   VkSampleLocationEXT* forUnmarshaling);
+
+void marshal_VkSampleLocationsInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                      const VkSampleLocationsInfoEXT* forMarshaling);
+
+void unmarshal_VkSampleLocationsInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkSampleLocationsInfoEXT* forUnmarshaling);
+
+void marshal_VkAttachmentSampleLocationsEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkAttachmentSampleLocationsEXT* forMarshaling);
+
+void unmarshal_VkAttachmentSampleLocationsEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkAttachmentSampleLocationsEXT* forUnmarshaling);
+
+void marshal_VkSubpassSampleLocationsEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkSubpassSampleLocationsEXT* forMarshaling);
+
+void unmarshal_VkSubpassSampleLocationsEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkSubpassSampleLocationsEXT* forUnmarshaling);
+
+void marshal_VkRenderPassSampleLocationsBeginInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRenderPassSampleLocationsBeginInfoEXT* forMarshaling);
+
+void unmarshal_VkRenderPassSampleLocationsBeginInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderPassSampleLocationsBeginInfoEXT* forUnmarshaling);
+
+void marshal_VkPipelineSampleLocationsStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineSampleLocationsStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineSampleLocationsStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineSampleLocationsStateCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceSampleLocationsPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSampleLocationsPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceSampleLocationsPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceSampleLocationsPropertiesEXT* forUnmarshaling);
+
+void marshal_VkMultisamplePropertiesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkMultisamplePropertiesEXT* forMarshaling);
+
+void unmarshal_VkMultisamplePropertiesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkMultisamplePropertiesEXT* forUnmarshaling);
+
+#define OP_vkCmdSetSampleLocationsEXT 20307
+#define OP_vkGetPhysicalDeviceMultisamplePropertiesEXT 20308
+#endif
+#ifdef VK_EXT_blend_operation_advanced
+void marshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT* forUnmarshaling);
+
+void marshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineColorBlendAdvancedStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineColorBlendAdvancedStateCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_fragment_coverage_to_color
+void marshal_VkPipelineCoverageToColorStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineCoverageToColorStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineCoverageToColorStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineCoverageToColorStateCreateInfoNV* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_framebuffer_mixed_samples
+void marshal_VkPipelineCoverageModulationStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineCoverageModulationStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineCoverageModulationStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineCoverageModulationStateCreateInfoNV* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_fill_rectangle
+#endif
+#ifdef VK_NV_shader_sm_builtins
+void marshal_VkPhysicalDeviceShaderSMBuiltinsPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderSMBuiltinsPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderSMBuiltinsPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderSMBuiltinsPropertiesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceShaderSMBuiltinsFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderSMBuiltinsFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderSMBuiltinsFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderSMBuiltinsFeaturesNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_post_depth_coverage
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+void marshal_VkDrmFormatModifierPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesEXT* forMarshaling);
+
+void unmarshal_VkDrmFormatModifierPropertiesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkDrmFormatModifierPropertiesEXT* forUnmarshaling);
+
+void marshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesListEXT* forMarshaling);
+
+void unmarshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesListEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forUnmarshaling);
+
+void marshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierListCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierExplicitCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierPropertiesEXT* forMarshaling);
+
+void unmarshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierPropertiesEXT* forUnmarshaling);
+
+#define OP_vkGetImageDrmFormatModifierPropertiesEXT 251301237
+void marshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierProperties2EXT* forMarshaling);
+
+void unmarshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierProperties2EXT* forUnmarshaling);
+
+void marshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesList2EXT* forMarshaling);
+
+void unmarshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesList2EXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_validation_cache
+void marshal_VkValidationCacheCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkValidationCacheCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkValidationCacheCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkValidationCacheCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkShaderModuleValidationCacheCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkShaderModuleValidationCacheCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkShaderModuleValidationCacheCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkShaderModuleValidationCacheCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCreateValidationCacheEXT 20309
+#define OP_vkDestroyValidationCacheEXT 20310
+#define OP_vkMergeValidationCachesEXT 20311
+#define OP_vkGetValidationCacheDataEXT 20312
+#endif
+#ifdef VK_EXT_descriptor_indexing
+DEFINE_ALIAS_FUNCTION(marshal_VkDescriptorSetLayoutBindingFlagsCreateInfo,
+                      marshal_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorSetLayoutBindingFlagsCreateInfo,
+                      unmarshal_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDescriptorIndexingFeatures,
+                      marshal_VkPhysicalDeviceDescriptorIndexingFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDescriptorIndexingFeatures,
+                      unmarshal_VkPhysicalDeviceDescriptorIndexingFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDescriptorIndexingProperties,
+                      marshal_VkPhysicalDeviceDescriptorIndexingPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDescriptorIndexingProperties,
+                      unmarshal_VkPhysicalDeviceDescriptorIndexingPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDescriptorSetVariableDescriptorCountAllocateInfo,
+                      marshal_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorSetVariableDescriptorCountAllocateInfo,
+                      unmarshal_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDescriptorSetVariableDescriptorCountLayoutSupport,
+                      marshal_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorSetVariableDescriptorCountLayoutSupport,
+                      unmarshal_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT)
+
+#endif
+#ifdef VK_EXT_shader_viewport_index_layer
+#endif
+#ifdef VK_NV_shading_rate_image
+void marshal_VkShadingRatePaletteNV(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkShadingRatePaletteNV* forMarshaling);
+
+void unmarshal_VkShadingRatePaletteNV(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkShadingRatePaletteNV* forUnmarshaling);
+
+void marshal_VkPipelineViewportShadingRateImageStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineViewportShadingRateImageStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineViewportShadingRateImageStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineViewportShadingRateImageStateCreateInfoNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceShadingRateImageFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShadingRateImageFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShadingRateImageFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShadingRateImageFeaturesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceShadingRateImagePropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShadingRateImagePropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShadingRateImagePropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShadingRateImagePropertiesNV* forUnmarshaling);
+
+void marshal_VkCoarseSampleLocationNV(VulkanStream* vkStream, VkStructureType rootType,
+                                      const VkCoarseSampleLocationNV* forMarshaling);
+
+void unmarshal_VkCoarseSampleLocationNV(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkCoarseSampleLocationNV* forUnmarshaling);
+
+void marshal_VkCoarseSampleOrderCustomNV(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkCoarseSampleOrderCustomNV* forMarshaling);
+
+void unmarshal_VkCoarseSampleOrderCustomNV(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkCoarseSampleOrderCustomNV* forUnmarshaling);
+
+void marshal_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineViewportCoarseSampleOrderStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineViewportCoarseSampleOrderStateCreateInfoNV* forUnmarshaling);
+
+#define OP_vkCmdBindShadingRateImageNV 238618340
+#define OP_vkCmdSetViewportShadingRatePaletteNV 215295078
+#define OP_vkCmdSetCoarseSampleOrderNV 236858637
+#endif
+#ifdef VK_NV_ray_tracing
+void marshal_VkRayTracingShaderGroupCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingShaderGroupCreateInfoNV* forMarshaling);
+
+void unmarshal_VkRayTracingShaderGroupCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingShaderGroupCreateInfoNV* forUnmarshaling);
+
+void marshal_VkRayTracingPipelineCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineCreateInfoNV* forMarshaling);
+
+void unmarshal_VkRayTracingPipelineCreateInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkRayTracingPipelineCreateInfoNV* forUnmarshaling);
+
+void marshal_VkGeometryTrianglesNV(VulkanStream* vkStream, VkStructureType rootType,
+                                   const VkGeometryTrianglesNV* forMarshaling);
+
+void unmarshal_VkGeometryTrianglesNV(VulkanStream* vkStream, VkStructureType rootType,
+                                     VkGeometryTrianglesNV* forUnmarshaling);
+
+void marshal_VkGeometryAABBNV(VulkanStream* vkStream, VkStructureType rootType,
+                              const VkGeometryAABBNV* forMarshaling);
+
+void unmarshal_VkGeometryAABBNV(VulkanStream* vkStream, VkStructureType rootType,
+                                VkGeometryAABBNV* forUnmarshaling);
+
+void marshal_VkGeometryDataNV(VulkanStream* vkStream, VkStructureType rootType,
+                              const VkGeometryDataNV* forMarshaling);
+
+void unmarshal_VkGeometryDataNV(VulkanStream* vkStream, VkStructureType rootType,
+                                VkGeometryDataNV* forUnmarshaling);
+
+void marshal_VkGeometryNV(VulkanStream* vkStream, VkStructureType rootType,
+                          const VkGeometryNV* forMarshaling);
+
+void unmarshal_VkGeometryNV(VulkanStream* vkStream, VkStructureType rootType,
+                            VkGeometryNV* forUnmarshaling);
+
+void marshal_VkAccelerationStructureInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkAccelerationStructureInfoNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkAccelerationStructureInfoNV* forUnmarshaling);
+
+void marshal_VkAccelerationStructureCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureCreateInfoNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureCreateInfoNV* forUnmarshaling);
+
+void marshal_VkBindAccelerationStructureMemoryInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBindAccelerationStructureMemoryInfoNV* forMarshaling);
+
+void unmarshal_VkBindAccelerationStructureMemoryInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBindAccelerationStructureMemoryInfoNV* forUnmarshaling);
+
+void marshal_VkWriteDescriptorSetAccelerationStructureNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkWriteDescriptorSetAccelerationStructureNV* forMarshaling);
+
+void unmarshal_VkWriteDescriptorSetAccelerationStructureNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkWriteDescriptorSetAccelerationStructureNV* forUnmarshaling);
+
+void marshal_VkAccelerationStructureMemoryRequirementsInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMemoryRequirementsInfoNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureMemoryRequirementsInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureMemoryRequirementsInfoNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRayTracingPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPropertiesNV* forUnmarshaling);
+
+void marshal_VkTransformMatrixKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkTransformMatrixKHR* forMarshaling);
+
+void unmarshal_VkTransformMatrixKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkTransformMatrixKHR* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkTransformMatrixKHR, marshal_VkTransformMatrixNV)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkTransformMatrixKHR, unmarshal_VkTransformMatrixNV)
+
+void marshal_VkAabbPositionsKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                const VkAabbPositionsKHR* forMarshaling);
+
+void unmarshal_VkAabbPositionsKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                  VkAabbPositionsKHR* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkAabbPositionsKHR, marshal_VkAabbPositionsNV)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkAabbPositionsKHR, unmarshal_VkAabbPositionsNV)
+
+void marshal_VkAccelerationStructureInstanceKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureInstanceKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureInstanceKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureInstanceKHR* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkAccelerationStructureInstanceKHR,
+                      marshal_VkAccelerationStructureInstanceNV)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkAccelerationStructureInstanceKHR,
+                      unmarshal_VkAccelerationStructureInstanceNV)
+
+#define OP_vkCreateAccelerationStructureNV 259713020
+#define OP_vkDestroyAccelerationStructureNV 252775746
+#define OP_vkGetAccelerationStructureMemoryRequirementsNV 220234370
+#define OP_vkBindAccelerationStructureMemoryNV 202856743
+#define OP_vkCmdBuildAccelerationStructureNV 269050897
+#define OP_vkCmdCopyAccelerationStructureNV 211075498
+#define OP_vkCmdTraceRaysNV 210219912
+#define OP_vkCreateRayTracingPipelinesNV 203653638
+#define OP_vkGetRayTracingShaderGroupHandlesKHR 271962641
+#define OP_vkGetRayTracingShaderGroupHandlesNV 230045846
+#define OP_vkGetAccelerationStructureHandleNV 269898134
+#define OP_vkCmdWriteAccelerationStructuresPropertiesNV 207954431
+#define OP_vkCompileDeferredNV 278731610
+#endif
+#ifdef VK_NV_representative_fragment_test
+void marshal_VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV* forUnmarshaling);
+
+void marshal_VkPipelineRepresentativeFragmentTestStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineRepresentativeFragmentTestStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineRepresentativeFragmentTestStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRepresentativeFragmentTestStateCreateInfoNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_filter_cubic
+void marshal_VkPhysicalDeviceImageViewImageFormatInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageViewImageFormatInfoEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImageViewImageFormatInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageViewImageFormatInfoEXT* forUnmarshaling);
+
+void marshal_VkFilterCubicImageViewImageFormatPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkFilterCubicImageViewImageFormatPropertiesEXT* forMarshaling);
+
+void unmarshal_VkFilterCubicImageViewImageFormatPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkFilterCubicImageViewImageFormatPropertiesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_QCOM_render_pass_shader_resolve
+#endif
+#ifdef VK_EXT_global_priority
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceQueueGlobalPriorityCreateInfoKHR,
+                      marshal_VkDeviceQueueGlobalPriorityCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR,
+                      unmarshal_VkDeviceQueueGlobalPriorityCreateInfoEXT)
+
+#endif
+#ifdef VK_EXT_external_memory_host
+void marshal_VkImportMemoryHostPointerInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImportMemoryHostPointerInfoEXT* forMarshaling);
+
+void unmarshal_VkImportMemoryHostPointerInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkImportMemoryHostPointerInfoEXT* forUnmarshaling);
+
+void marshal_VkMemoryHostPointerPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkMemoryHostPointerPropertiesEXT* forMarshaling);
+
+void unmarshal_VkMemoryHostPointerPropertiesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkMemoryHostPointerPropertiesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExternalMemoryHostPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceExternalMemoryHostPropertiesEXT* forUnmarshaling);
+
+#define OP_vkGetMemoryHostPointerPropertiesEXT 20313
+#endif
+#ifdef VK_AMD_buffer_marker
+#define OP_vkCmdWriteBufferMarkerAMD 20314
+#endif
+#ifdef VK_AMD_pipeline_compiler_control
+void marshal_VkPipelineCompilerControlCreateInfoAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineCompilerControlCreateInfoAMD* forMarshaling);
+
+void unmarshal_VkPipelineCompilerControlCreateInfoAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineCompilerControlCreateInfoAMD* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_calibrated_timestamps
+void marshal_VkCalibratedTimestampInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkCalibratedTimestampInfoEXT* forMarshaling);
+
+void unmarshal_VkCalibratedTimestampInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkCalibratedTimestampInfoEXT* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT 295643221
+#define OP_vkGetCalibratedTimestampsEXT 203583186
+#endif
+#ifdef VK_AMD_shader_core_properties
+void marshal_VkPhysicalDeviceShaderCorePropertiesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCorePropertiesAMD* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderCorePropertiesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderCorePropertiesAMD* forUnmarshaling);
+
+#endif
+#ifdef VK_AMD_memory_overallocation_behavior
+void marshal_VkDeviceMemoryOverallocationCreateInfoAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDeviceMemoryOverallocationCreateInfoAMD* forMarshaling);
+
+void unmarshal_VkDeviceMemoryOverallocationCreateInfoAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceMemoryOverallocationCreateInfoAMD* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forUnmarshaling);
+
+void marshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* forMarshaling);
+
+void unmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVertexInputBindingDivisorDescriptionEXT* forUnmarshaling);
+
+void marshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_GGP_frame_token
+void marshal_VkPresentFrameTokenGGP(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkPresentFrameTokenGGP* forMarshaling);
+
+void unmarshal_VkPresentFrameTokenGGP(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkPresentFrameTokenGGP* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_pipeline_creation_feedback
+DEFINE_ALIAS_FUNCTION(marshal_VkPipelineCreationFeedbackCreateInfo,
+                      marshal_VkPipelineCreationFeedbackCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineCreationFeedbackCreateInfo,
+                      unmarshal_VkPipelineCreationFeedbackCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPipelineCreationFeedback, marshal_VkPipelineCreationFeedbackEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineCreationFeedback, unmarshal_VkPipelineCreationFeedbackEXT)
+
+#endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
+#ifdef VK_NV_compute_shader_derivatives
+void marshal_VkPhysicalDeviceComputeShaderDerivativesFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceComputeShaderDerivativesFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceComputeShaderDerivativesFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceComputeShaderDerivativesFeaturesNV* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_mesh_shader
+void marshal_VkPhysicalDeviceMeshShaderFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMeshShaderFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMeshShaderFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMeshShaderFeaturesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceMeshShaderPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMeshShaderPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMeshShaderPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMeshShaderPropertiesNV* forUnmarshaling);
+
+void marshal_VkDrawMeshTasksIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDrawMeshTasksIndirectCommandNV* forMarshaling);
+
+void unmarshal_VkDrawMeshTasksIndirectCommandNV(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkDrawMeshTasksIndirectCommandNV* forUnmarshaling);
+
+#define OP_vkCmdDrawMeshTasksNV 207334931
+#define OP_vkCmdDrawMeshTasksIndirectNV 274079208
+#define OP_vkCmdDrawMeshTasksIndirectCountNV 223801967
+#endif
+#ifdef VK_NV_fragment_shader_barycentric
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR,
+                      marshal_VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR,
+                      unmarshal_VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV)
+
+#endif
+#ifdef VK_NV_shader_image_footprint
+void marshal_VkPhysicalDeviceShaderImageFootprintFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderImageFootprintFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderImageFootprintFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderImageFootprintFeaturesNV* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_scissor_exclusive
+void marshal_VkPipelineViewportExclusiveScissorStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineViewportExclusiveScissorStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineViewportExclusiveScissorStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineViewportExclusiveScissorStateCreateInfoNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceExclusiveScissorFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExclusiveScissorFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceExclusiveScissorFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceExclusiveScissorFeaturesNV* forUnmarshaling);
+
+#define OP_vkCmdSetExclusiveScissorEnableNV 291183995
+#define OP_vkCmdSetExclusiveScissorNV 225408194
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+void marshal_VkQueueFamilyCheckpointPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkQueueFamilyCheckpointPropertiesNV* forMarshaling);
+
+void unmarshal_VkQueueFamilyCheckpointPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueueFamilyCheckpointPropertiesNV* forUnmarshaling);
+
+void marshal_VkCheckpointDataNV(VulkanStream* vkStream, VkStructureType rootType,
+                                const VkCheckpointDataNV* forMarshaling);
+
+void unmarshal_VkCheckpointDataNV(VulkanStream* vkStream, VkStructureType rootType,
+                                  VkCheckpointDataNV* forUnmarshaling);
+
+#define OP_vkCmdSetCheckpointNV 20315
+#define OP_vkGetQueueCheckpointDataNV 20316
+#endif
+#ifdef VK_INTEL_shader_integer_functions2
+void marshal_VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL* forUnmarshaling);
+
+#endif
+#ifdef VK_INTEL_performance_query
+void marshal_VkPerformanceValueDataINTEL(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkPerformanceValueDataINTEL* forMarshaling);
+
+void unmarshal_VkPerformanceValueDataINTEL(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkPerformanceValueDataINTEL* forUnmarshaling);
+
+void marshal_VkPerformanceValueINTEL(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkPerformanceValueINTEL* forMarshaling);
+
+void unmarshal_VkPerformanceValueINTEL(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkPerformanceValueINTEL* forUnmarshaling);
+
+void marshal_VkInitializePerformanceApiInfoINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkInitializePerformanceApiInfoINTEL* forMarshaling);
+
+void unmarshal_VkInitializePerformanceApiInfoINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkInitializePerformanceApiInfoINTEL* forUnmarshaling);
+
+void marshal_VkQueryPoolPerformanceQueryCreateInfoINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkQueryPoolPerformanceQueryCreateInfoINTEL* forMarshaling);
+
+void unmarshal_VkQueryPoolPerformanceQueryCreateInfoINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueryPoolPerformanceQueryCreateInfoINTEL* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkQueryPoolPerformanceQueryCreateInfoINTEL,
+                      marshal_VkQueryPoolCreateInfoINTEL)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkQueryPoolPerformanceQueryCreateInfoINTEL,
+                      unmarshal_VkQueryPoolCreateInfoINTEL)
+
+void marshal_VkPerformanceMarkerInfoINTEL(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkPerformanceMarkerInfoINTEL* forMarshaling);
+
+void unmarshal_VkPerformanceMarkerInfoINTEL(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkPerformanceMarkerInfoINTEL* forUnmarshaling);
+
+void marshal_VkPerformanceStreamMarkerInfoINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPerformanceStreamMarkerInfoINTEL* forMarshaling);
+
+void unmarshal_VkPerformanceStreamMarkerInfoINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPerformanceStreamMarkerInfoINTEL* forUnmarshaling);
+
+void marshal_VkPerformanceOverrideInfoINTEL(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkPerformanceOverrideInfoINTEL* forMarshaling);
+
+void unmarshal_VkPerformanceOverrideInfoINTEL(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkPerformanceOverrideInfoINTEL* forUnmarshaling);
+
+void marshal_VkPerformanceConfigurationAcquireInfoINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPerformanceConfigurationAcquireInfoINTEL* forMarshaling);
+
+void unmarshal_VkPerformanceConfigurationAcquireInfoINTEL(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPerformanceConfigurationAcquireInfoINTEL* forUnmarshaling);
+
+#define OP_vkInitializePerformanceApiINTEL 203336121
+#define OP_vkUninitializePerformanceApiINTEL 296137321
+#define OP_vkCmdSetPerformanceMarkerINTEL 270016385
+#define OP_vkCmdSetPerformanceStreamMarkerINTEL 261519634
+#define OP_vkCmdSetPerformanceOverrideINTEL 251310287
+#define OP_vkAcquirePerformanceConfigurationINTEL 245737492
+#define OP_vkReleasePerformanceConfigurationINTEL 252877217
+#define OP_vkQueueSetPerformanceConfigurationINTEL 294947726
+#define OP_vkGetPerformanceParameterINTEL 213620482
+#endif
+#ifdef VK_EXT_pci_bus_info
+void marshal_VkPhysicalDevicePCIBusInfoPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePCIBusInfoPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePCIBusInfoPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePCIBusInfoPropertiesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_AMD_display_native_hdr
+void marshal_VkDisplayNativeHdrSurfaceCapabilitiesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDisplayNativeHdrSurfaceCapabilitiesAMD* forMarshaling);
+
+void unmarshal_VkDisplayNativeHdrSurfaceCapabilitiesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDisplayNativeHdrSurfaceCapabilitiesAMD* forUnmarshaling);
+
+void marshal_VkSwapchainDisplayNativeHdrCreateInfoAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSwapchainDisplayNativeHdrCreateInfoAMD* forMarshaling);
+
+void unmarshal_VkSwapchainDisplayNativeHdrCreateInfoAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSwapchainDisplayNativeHdrCreateInfoAMD* forUnmarshaling);
+
+#define OP_vkSetLocalDimmingAMD 267533472
+#endif
+#ifdef VK_FUCHSIA_imagepipe_surface
+void marshal_VkImagePipeSurfaceCreateInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImagePipeSurfaceCreateInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkImagePipeSurfaceCreateInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImagePipeSurfaceCreateInfoFUCHSIA* forUnmarshaling);
+
+#define OP_vkCreateImagePipeSurfaceFUCHSIA 261626137
+#endif
 #ifdef VK_EXT_metal_surface
+void marshal_VkMetalSurfaceCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkMetalSurfaceCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkMetalSurfaceCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkMetalSurfaceCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCreateMetalSurfaceEXT 254915953
+#endif
+#ifdef VK_EXT_fragment_density_map
+void marshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* forUnmarshaling);
+
+void marshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRenderPassFragmentDensityMapCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      marshal_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      unmarshal_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
+#endif
+#ifdef VK_GOOGLE_hlsl_functionality1
+#endif
+#ifdef VK_GOOGLE_decorate_string
 #endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceSubgroupSizeControlFeatures,
@@ -2836,6 +5966,198 @@ DEFINE_ALIAS_FUNCTION(marshal_VkPipelineShaderStageRequiredSubgroupSizeCreateInf
 
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineShaderStageRequiredSubgroupSizeCreateInfo,
                       unmarshal_VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT)
+
+#endif
+#ifdef VK_AMD_shader_core_properties2
+void marshal_VkPhysicalDeviceShaderCoreProperties2AMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCoreProperties2AMD* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderCoreProperties2AMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderCoreProperties2AMD* forUnmarshaling);
+
+#endif
+#ifdef VK_AMD_device_coherent_memory
+void marshal_VkPhysicalDeviceCoherentMemoryFeaturesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCoherentMemoryFeaturesAMD* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceCoherentMemoryFeaturesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceCoherentMemoryFeaturesAMD* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_shader_image_atomic_int64
+void marshal_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_memory_budget
+void marshal_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMemoryBudgetPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMemoryBudgetPropertiesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_memory_priority
+void marshal_VkPhysicalDeviceMemoryPriorityFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMemoryPriorityFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMemoryPriorityFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMemoryPriorityFeaturesEXT* forUnmarshaling);
+
+void marshal_VkMemoryPriorityAllocateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkMemoryPriorityAllocateInfoEXT* forMarshaling);
+
+void unmarshal_VkMemoryPriorityAllocateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkMemoryPriorityAllocateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_dedicated_allocation_image_aliasing
+void marshal_VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_buffer_device_address
+void marshal_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBufferDeviceAddressFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceBufferDeviceAddressFeaturesEXT* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT,
+                      marshal_VkPhysicalDeviceBufferAddressFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT,
+                      unmarshal_VkPhysicalDeviceBufferAddressFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkBufferDeviceAddressInfo, marshal_VkBufferDeviceAddressInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBufferDeviceAddressInfo, unmarshal_VkBufferDeviceAddressInfoEXT)
+
+void marshal_VkBufferDeviceAddressCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBufferDeviceAddressCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkBufferDeviceAddressCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBufferDeviceAddressCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkGetBufferDeviceAddressEXT 224361693
+#endif
+#ifdef VK_EXT_tooling_info
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceToolProperties,
+                      marshal_VkPhysicalDeviceToolPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceToolProperties,
+                      unmarshal_VkPhysicalDeviceToolPropertiesEXT)
+
+#define OP_vkGetPhysicalDeviceToolPropertiesEXT 282247593
+#endif
+#ifdef VK_EXT_separate_stencil_usage
+DEFINE_ALIAS_FUNCTION(marshal_VkImageStencilUsageCreateInfo,
+                      marshal_VkImageStencilUsageCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkImageStencilUsageCreateInfo,
+                      unmarshal_VkImageStencilUsageCreateInfoEXT)
+
+#endif
+#ifdef VK_EXT_validation_features
+void marshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkValidationFeaturesEXT* forMarshaling);
+
+void unmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkValidationFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_cooperative_matrix
+void marshal_VkCooperativeMatrixPropertiesNV(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkCooperativeMatrixPropertiesNV* forMarshaling);
+
+void unmarshal_VkCooperativeMatrixPropertiesNV(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkCooperativeMatrixPropertiesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceCooperativeMatrixFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCooperativeMatrixFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceCooperativeMatrixFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceCooperativeMatrixFeaturesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceCooperativeMatrixPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCooperativeMatrixPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceCooperativeMatrixPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceCooperativeMatrixPropertiesNV* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV 287711429
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+void marshal_VkPhysicalDeviceCoverageReductionModeFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCoverageReductionModeFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceCoverageReductionModeFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceCoverageReductionModeFeaturesNV* forUnmarshaling);
+
+void marshal_VkPipelineCoverageReductionStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineCoverageReductionStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineCoverageReductionStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineCoverageReductionStateCreateInfoNV* forUnmarshaling);
+
+void marshal_VkFramebufferMixedSamplesCombinationNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkFramebufferMixedSamplesCombinationNV* forMarshaling);
+
+void unmarshal_VkFramebufferMixedSamplesCombinationNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkFramebufferMixedSamplesCombinationNV* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV 292032159
+#endif
+#ifdef VK_EXT_fragment_shader_interlock
+void marshal_VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_ycbcr_image_arrays
+void marshal_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceYcbcrImageArraysFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceYcbcrImageArraysFeaturesEXT* forUnmarshaling);
 
 #endif
 #ifdef VK_EXT_provoking_vertex
@@ -2864,6 +6186,45 @@ void unmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* forUnmarshaling);
 
 #endif
+#ifdef VK_EXT_full_screen_exclusive
+void marshal_VkSurfaceFullScreenExclusiveInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSurfaceFullScreenExclusiveInfoEXT* forMarshaling);
+
+void unmarshal_VkSurfaceFullScreenExclusiveInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSurfaceFullScreenExclusiveInfoEXT* forUnmarshaling);
+
+void marshal_VkSurfaceCapabilitiesFullScreenExclusiveEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSurfaceCapabilitiesFullScreenExclusiveEXT* forMarshaling);
+
+void unmarshal_VkSurfaceCapabilitiesFullScreenExclusiveEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSurfaceCapabilitiesFullScreenExclusiveEXT* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceSurfacePresentModes2EXT 268126279
+#define OP_vkAcquireFullScreenExclusiveModeEXT 200946668
+#define OP_vkReleaseFullScreenExclusiveModeEXT 257629142
+void marshal_VkSurfaceFullScreenExclusiveWin32InfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSurfaceFullScreenExclusiveWin32InfoEXT* forMarshaling);
+
+void unmarshal_VkSurfaceFullScreenExclusiveWin32InfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSurfaceFullScreenExclusiveWin32InfoEXT* forUnmarshaling);
+
+#define OP_vkGetDeviceGroupSurfacePresentModes2EXT 206369543
+#endif
+#ifdef VK_EXT_headless_surface
+void marshal_VkHeadlessSurfaceCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkHeadlessSurfaceCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkHeadlessSurfaceCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkHeadlessSurfaceCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCreateHeadlessSurfaceEXT 298411290
+#endif
 #ifdef VK_EXT_line_rasterization
 void marshal_VkPhysicalDeviceLineRasterizationFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -2891,6 +6252,25 @@ void unmarshal_VkPipelineRasterizationLineStateCreateInfoEXT(
 
 #define OP_vkCmdSetLineStippleEXT 263855692
 #endif
+#ifdef VK_EXT_shader_atomic_float
+void marshal_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderAtomicFloatFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderAtomicFloatFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_host_query_reset
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceHostQueryResetFeatures,
+                      marshal_VkPhysicalDeviceHostQueryResetFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceHostQueryResetFeatures,
+                      unmarshal_VkPhysicalDeviceHostQueryResetFeaturesEXT)
+
+#define OP_vkResetQueryPoolEXT 242995959
+#endif
 #ifdef VK_EXT_index_type_uint8
 void marshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -2899,6 +6279,272 @@ void marshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
 void unmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPhysicalDeviceIndexTypeUint8FeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+void marshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceExtendedDynamicStateFeaturesEXT* forUnmarshaling);
+
+#define OP_vkCmdSetCullModeEXT 266285895
+#define OP_vkCmdSetFrontFaceEXT 212644406
+#define OP_vkCmdSetPrimitiveTopologyEXT 260783979
+#define OP_vkCmdSetViewportWithCountEXT 257105245
+#define OP_vkCmdSetScissorWithCountEXT 204588120
+#define OP_vkCmdBindVertexBuffers2EXT 243419921
+#define OP_vkCmdSetDepthTestEnableEXT 233771166
+#define OP_vkCmdSetDepthWriteEnableEXT 218663304
+#define OP_vkCmdSetDepthCompareOpEXT 247761589
+#define OP_vkCmdSetDepthBoundsTestEnableEXT 223213519
+#define OP_vkCmdSetStencilTestEnableEXT 286438749
+#define OP_vkCmdSetStencilOpEXT 277159578
+#endif
+#ifdef VK_EXT_shader_atomic_float2
+void marshal_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_surface_maintenance1
+void marshal_VkSurfacePresentModeEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkSurfacePresentModeEXT* forMarshaling);
+
+void unmarshal_VkSurfacePresentModeEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkSurfacePresentModeEXT* forUnmarshaling);
+
+void marshal_VkSurfacePresentScalingCapabilitiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSurfacePresentScalingCapabilitiesEXT* forMarshaling);
+
+void unmarshal_VkSurfacePresentScalingCapabilitiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSurfacePresentScalingCapabilitiesEXT* forUnmarshaling);
+
+void marshal_VkSurfacePresentModeCompatibilityEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSurfacePresentModeCompatibilityEXT* forMarshaling);
+
+void unmarshal_VkSurfacePresentModeCompatibilityEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSurfacePresentModeCompatibilityEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_swapchain_maintenance1
+void marshal_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT* forUnmarshaling);
+
+void marshal_VkSwapchainPresentFenceInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkSwapchainPresentFenceInfoEXT* forMarshaling);
+
+void unmarshal_VkSwapchainPresentFenceInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkSwapchainPresentFenceInfoEXT* forUnmarshaling);
+
+void marshal_VkSwapchainPresentModesCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSwapchainPresentModesCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkSwapchainPresentModesCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSwapchainPresentModesCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkSwapchainPresentModeInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkSwapchainPresentModeInfoEXT* forMarshaling);
+
+void unmarshal_VkSwapchainPresentModeInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkSwapchainPresentModeInfoEXT* forUnmarshaling);
+
+void marshal_VkSwapchainPresentScalingCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSwapchainPresentScalingCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkSwapchainPresentScalingCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSwapchainPresentScalingCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkReleaseSwapchainImagesInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkReleaseSwapchainImagesInfoEXT* forMarshaling);
+
+void unmarshal_VkReleaseSwapchainImagesInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkReleaseSwapchainImagesInfoEXT* forUnmarshaling);
+
+#define OP_vkReleaseSwapchainImagesEXT 230545069
+#endif
+#ifdef VK_EXT_shader_demote_to_helper_invocation
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures,
+                      marshal_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures,
+                      unmarshal_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT)
+
+#endif
+#ifdef VK_NV_device_generated_commands
+void marshal_VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV* forUnmarshaling);
+
+void marshal_VkGraphicsShaderGroupCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkGraphicsShaderGroupCreateInfoNV* forMarshaling);
+
+void unmarshal_VkGraphicsShaderGroupCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkGraphicsShaderGroupCreateInfoNV* forUnmarshaling);
+
+void marshal_VkGraphicsPipelineShaderGroupsCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkGraphicsPipelineShaderGroupsCreateInfoNV* forMarshaling);
+
+void unmarshal_VkGraphicsPipelineShaderGroupsCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkGraphicsPipelineShaderGroupsCreateInfoNV* forUnmarshaling);
+
+void marshal_VkBindShaderGroupIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBindShaderGroupIndirectCommandNV* forMarshaling);
+
+void unmarshal_VkBindShaderGroupIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBindShaderGroupIndirectCommandNV* forUnmarshaling);
+
+void marshal_VkBindIndexBufferIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBindIndexBufferIndirectCommandNV* forMarshaling);
+
+void unmarshal_VkBindIndexBufferIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBindIndexBufferIndirectCommandNV* forUnmarshaling);
+
+void marshal_VkBindVertexBufferIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBindVertexBufferIndirectCommandNV* forMarshaling);
+
+void unmarshal_VkBindVertexBufferIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBindVertexBufferIndirectCommandNV* forUnmarshaling);
+
+void marshal_VkSetStateFlagsIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSetStateFlagsIndirectCommandNV* forMarshaling);
+
+void unmarshal_VkSetStateFlagsIndirectCommandNV(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkSetStateFlagsIndirectCommandNV* forUnmarshaling);
+
+void marshal_VkIndirectCommandsStreamNV(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkIndirectCommandsStreamNV* forMarshaling);
+
+void unmarshal_VkIndirectCommandsStreamNV(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkIndirectCommandsStreamNV* forUnmarshaling);
+
+void marshal_VkIndirectCommandsLayoutTokenNV(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkIndirectCommandsLayoutTokenNV* forMarshaling);
+
+void unmarshal_VkIndirectCommandsLayoutTokenNV(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkIndirectCommandsLayoutTokenNV* forUnmarshaling);
+
+void marshal_VkIndirectCommandsLayoutCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkIndirectCommandsLayoutCreateInfoNV* forMarshaling);
+
+void unmarshal_VkIndirectCommandsLayoutCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkIndirectCommandsLayoutCreateInfoNV* forUnmarshaling);
+
+void marshal_VkGeneratedCommandsInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkGeneratedCommandsInfoNV* forMarshaling);
+
+void unmarshal_VkGeneratedCommandsInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkGeneratedCommandsInfoNV* forUnmarshaling);
+
+void marshal_VkGeneratedCommandsMemoryRequirementsInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkGeneratedCommandsMemoryRequirementsInfoNV* forMarshaling);
+
+void unmarshal_VkGeneratedCommandsMemoryRequirementsInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkGeneratedCommandsMemoryRequirementsInfoNV* forUnmarshaling);
+
+#define OP_vkGetGeneratedCommandsMemoryRequirementsNV 249047049
+#define OP_vkCmdPreprocessGeneratedCommandsNV 297624330
+#define OP_vkCmdExecuteGeneratedCommandsNV 234711184
+#define OP_vkCmdBindPipelineShaderGroupNV 270362239
+#define OP_vkCreateIndirectCommandsLayoutNV 285310710
+#define OP_vkDestroyIndirectCommandsLayoutNV 292584135
+#endif
+#ifdef VK_NV_inherited_viewport_scissor
+void marshal_VkPhysicalDeviceInheritedViewportScissorFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceInheritedViewportScissorFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceInheritedViewportScissorFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceInheritedViewportScissorFeaturesNV* forUnmarshaling);
+
+void marshal_VkCommandBufferInheritanceViewportScissorInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkCommandBufferInheritanceViewportScissorInfoNV* forMarshaling);
+
+void unmarshal_VkCommandBufferInheritanceViewportScissorInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkCommandBufferInheritanceViewportScissorInfoNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_texel_buffer_alignment
+void marshal_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceTexelBufferAlignmentProperties,
+                      marshal_VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceTexelBufferAlignmentProperties,
+                      unmarshal_VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT)
+
+#endif
+#ifdef VK_QCOM_render_pass_transform
+void marshal_VkRenderPassTransformBeginInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRenderPassTransformBeginInfoQCOM* forMarshaling);
+
+void unmarshal_VkRenderPassTransformBeginInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderPassTransformBeginInfoQCOM* forUnmarshaling);
+
+void marshal_VkCommandBufferInheritanceRenderPassTransformInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkCommandBufferInheritanceRenderPassTransformInfoQCOM* forMarshaling);
+
+void unmarshal_VkCommandBufferInheritanceRenderPassTransformInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkCommandBufferInheritanceRenderPassTransformInfoQCOM* forUnmarshaling);
 
 #endif
 #ifdef VK_EXT_device_memory_report
@@ -2927,6 +6573,28 @@ void unmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     VkDeviceDeviceMemoryReportCreateInfoEXT* forUnmarshaling);
 
 #endif
+#ifdef VK_EXT_acquire_drm_display
+#define OP_vkAcquireDrmDisplayEXT 249820259
+#define OP_vkGetDrmDisplayEXT 282532459
+#endif
+#ifdef VK_EXT_robustness2
+void marshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2FeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2PropertiesEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void marshal_VkSamplerCustomBorderColorCreateInfoEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -2953,12 +6621,714 @@ void unmarshal_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
     VkPhysicalDeviceCustomBorderColorFeaturesEXT* forUnmarshaling);
 
 #endif
+#ifdef VK_GOOGLE_user_type
+#endif
+#ifdef VK_NV_present_barrier
+void marshal_VkPhysicalDevicePresentBarrierFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePresentBarrierFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePresentBarrierFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePresentBarrierFeaturesNV* forUnmarshaling);
+
+void marshal_VkSurfaceCapabilitiesPresentBarrierNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSurfaceCapabilitiesPresentBarrierNV* forMarshaling);
+
+void unmarshal_VkSurfaceCapabilitiesPresentBarrierNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSurfaceCapabilitiesPresentBarrierNV* forUnmarshaling);
+
+void marshal_VkSwapchainPresentBarrierCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSwapchainPresentBarrierCreateInfoNV* forMarshaling);
+
+void unmarshal_VkSwapchainPresentBarrierCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSwapchainPresentBarrierCreateInfoNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_private_data
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevicePrivateDataFeatures,
+                      marshal_VkPhysicalDevicePrivateDataFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevicePrivateDataFeatures,
+                      unmarshal_VkPhysicalDevicePrivateDataFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDevicePrivateDataCreateInfo,
+                      marshal_VkDevicePrivateDataCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDevicePrivateDataCreateInfo,
+                      unmarshal_VkDevicePrivateDataCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPrivateDataSlotCreateInfo, marshal_VkPrivateDataSlotCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPrivateDataSlotCreateInfo,
+                      unmarshal_VkPrivateDataSlotCreateInfoEXT)
+
+#define OP_vkCreatePrivateDataSlotEXT 236374049
+#define OP_vkDestroyPrivateDataSlotEXT 208891309
+#define OP_vkSetPrivateDataEXT 225259406
+#define OP_vkGetPrivateDataEXT 291399427
+#endif
+#ifdef VK_EXT_pipeline_creation_cache_control
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevicePipelineCreationCacheControlFeatures,
+                      marshal_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevicePipelineCreationCacheControlFeatures,
+                      unmarshal_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
+
+#endif
+#ifdef VK_NV_device_diagnostics_config
+void marshal_VkPhysicalDeviceDiagnosticsConfigFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDiagnosticsConfigFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDiagnosticsConfigFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDiagnosticsConfigFeaturesNV* forUnmarshaling);
+
+void marshal_VkDeviceDiagnosticsConfigCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDeviceDiagnosticsConfigCreateInfoNV* forMarshaling);
+
+void unmarshal_VkDeviceDiagnosticsConfigCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceDiagnosticsConfigCreateInfoNV* forUnmarshaling);
+
+#endif
+#ifdef VK_QCOM_render_pass_store_ops
+#endif
+#ifdef VK_NV_low_latency
+void marshal_VkQueryLowLatencySupportNV(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkQueryLowLatencySupportNV* forMarshaling);
+
+void unmarshal_VkQueryLowLatencySupportNV(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkQueryLowLatencySupportNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_metal_objects
+void marshal_VkExportMetalObjectCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkExportMetalObjectCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkExportMetalObjectCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkExportMetalObjectCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkExportMetalObjectsInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkExportMetalObjectsInfoEXT* forMarshaling);
+
+void unmarshal_VkExportMetalObjectsInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkExportMetalObjectsInfoEXT* forUnmarshaling);
+
+void marshal_VkExportMetalDeviceInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkExportMetalDeviceInfoEXT* forMarshaling);
+
+void unmarshal_VkExportMetalDeviceInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkExportMetalDeviceInfoEXT* forUnmarshaling);
+
+void marshal_VkExportMetalCommandQueueInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkExportMetalCommandQueueInfoEXT* forMarshaling);
+
+void unmarshal_VkExportMetalCommandQueueInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkExportMetalCommandQueueInfoEXT* forUnmarshaling);
+
+void marshal_VkExportMetalBufferInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkExportMetalBufferInfoEXT* forMarshaling);
+
+void unmarshal_VkExportMetalBufferInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkExportMetalBufferInfoEXT* forUnmarshaling);
+
+void marshal_VkImportMetalBufferInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkImportMetalBufferInfoEXT* forMarshaling);
+
+void unmarshal_VkImportMetalBufferInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkImportMetalBufferInfoEXT* forUnmarshaling);
+
+void marshal_VkExportMetalTextureInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkExportMetalTextureInfoEXT* forMarshaling);
+
+void unmarshal_VkExportMetalTextureInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkExportMetalTextureInfoEXT* forUnmarshaling);
+
+void marshal_VkImportMetalTextureInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkImportMetalTextureInfoEXT* forMarshaling);
+
+void unmarshal_VkImportMetalTextureInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkImportMetalTextureInfoEXT* forUnmarshaling);
+
+void marshal_VkExportMetalIOSurfaceInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkExportMetalIOSurfaceInfoEXT* forMarshaling);
+
+void unmarshal_VkExportMetalIOSurfaceInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkExportMetalIOSurfaceInfoEXT* forUnmarshaling);
+
+void marshal_VkImportMetalIOSurfaceInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkImportMetalIOSurfaceInfoEXT* forMarshaling);
+
+void unmarshal_VkImportMetalIOSurfaceInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkImportMetalIOSurfaceInfoEXT* forUnmarshaling);
+
+void marshal_VkExportMetalSharedEventInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkExportMetalSharedEventInfoEXT* forMarshaling);
+
+void unmarshal_VkExportMetalSharedEventInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkExportMetalSharedEventInfoEXT* forUnmarshaling);
+
+void marshal_VkImportMetalSharedEventInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkImportMetalSharedEventInfoEXT* forMarshaling);
+
+void unmarshal_VkImportMetalSharedEventInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkImportMetalSharedEventInfoEXT* forUnmarshaling);
+
+#define OP_vkExportMetalObjectsEXT 277713148
+#endif
+#ifdef VK_EXT_descriptor_buffer
+void marshal_VkPhysicalDeviceDescriptorBufferPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDescriptorBufferPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDescriptorBufferPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDescriptorBufferPropertiesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceDescriptorBufferFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDescriptorBufferFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDescriptorBufferFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDescriptorBufferFeaturesEXT* forUnmarshaling);
+
+void marshal_VkDescriptorAddressInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkDescriptorAddressInfoEXT* forMarshaling);
+
+void unmarshal_VkDescriptorAddressInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkDescriptorAddressInfoEXT* forUnmarshaling);
+
+void marshal_VkDescriptorBufferBindingInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDescriptorBufferBindingInfoEXT* forMarshaling);
+
+void unmarshal_VkDescriptorBufferBindingInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkDescriptorBufferBindingInfoEXT* forUnmarshaling);
+
+void marshal_VkDescriptorBufferBindingPushDescriptorBufferHandleEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDescriptorBufferBindingPushDescriptorBufferHandleEXT* forMarshaling);
+
+void unmarshal_VkDescriptorBufferBindingPushDescriptorBufferHandleEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDescriptorBufferBindingPushDescriptorBufferHandleEXT* forUnmarshaling);
+
+void marshal_VkDescriptorDataEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                 const VkDescriptorDataEXT* forMarshaling);
+
+void unmarshal_VkDescriptorDataEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                   VkDescriptorDataEXT* forUnmarshaling);
+
+void marshal_VkDescriptorGetInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkDescriptorGetInfoEXT* forMarshaling);
+
+void unmarshal_VkDescriptorGetInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkDescriptorGetInfoEXT* forUnmarshaling);
+
+void marshal_VkBufferCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBufferCaptureDescriptorDataInfoEXT* forMarshaling);
+
+void unmarshal_VkBufferCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBufferCaptureDescriptorDataInfoEXT* forUnmarshaling);
+
+void marshal_VkImageCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImageCaptureDescriptorDataInfoEXT* forMarshaling);
+
+void unmarshal_VkImageCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageCaptureDescriptorDataInfoEXT* forUnmarshaling);
+
+void marshal_VkImageViewCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImageViewCaptureDescriptorDataInfoEXT* forMarshaling);
+
+void unmarshal_VkImageViewCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageViewCaptureDescriptorDataInfoEXT* forUnmarshaling);
+
+void marshal_VkSamplerCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSamplerCaptureDescriptorDataInfoEXT* forMarshaling);
+
+void unmarshal_VkSamplerCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSamplerCaptureDescriptorDataInfoEXT* forUnmarshaling);
+
+void marshal_VkOpaqueCaptureDescriptorDataCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkOpaqueCaptureDescriptorDataCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkOpaqueCaptureDescriptorDataCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkOpaqueCaptureDescriptorDataCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkGetDescriptorSetLayoutSizeEXT 232397397
+#define OP_vkGetDescriptorSetLayoutBindingOffsetEXT 221321639
+#define OP_vkGetDescriptorEXT 202393542
+#define OP_vkCmdBindDescriptorBuffersEXT 269092586
+#define OP_vkCmdSetDescriptorBufferOffsetsEXT 271032334
+#define OP_vkCmdBindDescriptorBufferEmbeddedSamplersEXT 203513976
+#define OP_vkGetBufferOpaqueCaptureDescriptorDataEXT 280732261
+#define OP_vkGetImageOpaqueCaptureDescriptorDataEXT 244010315
+#define OP_vkGetImageViewOpaqueCaptureDescriptorDataEXT 225288362
+#define OP_vkGetSamplerOpaqueCaptureDescriptorDataEXT 273812428
+void marshal_VkAccelerationStructureCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureCaptureDescriptorDataInfoEXT* forMarshaling);
+
+void unmarshal_VkAccelerationStructureCaptureDescriptorDataInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureCaptureDescriptorDataInfoEXT* forUnmarshaling);
+
+#define OP_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT 289643264
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+void marshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* forUnmarshaling);
+
+void marshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkGraphicsPipelineLibraryCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkGraphicsPipelineLibraryCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_AMD_shader_early_and_late_fragment_tests
+void marshal_VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+void marshal_VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV* forUnmarshaling);
+
+void marshal_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineFragmentShadingRateEnumStateCreateInfoNV* forMarshaling);
+
+void unmarshal_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineFragmentShadingRateEnumStateCreateInfoNV* forUnmarshaling);
+
+#define OP_vkCmdSetFragmentShadingRateEnumNV 264649847
+#endif
+#ifdef VK_NV_ray_tracing_motion_blur
+void marshal_VkDeviceOrHostAddressConstKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkDeviceOrHostAddressConstKHR* forMarshaling);
+
+void unmarshal_VkDeviceOrHostAddressConstKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkDeviceOrHostAddressConstKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureGeometryMotionTrianglesDataNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryMotionTrianglesDataNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureGeometryMotionTrianglesDataNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureGeometryMotionTrianglesDataNV* forUnmarshaling);
+
+void marshal_VkAccelerationStructureMotionInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMotionInfoNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureMotionInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureMotionInfoNV* forUnmarshaling);
+
+void marshal_VkAccelerationStructureMatrixMotionInstanceNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMatrixMotionInstanceNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureMatrixMotionInstanceNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureMatrixMotionInstanceNV* forUnmarshaling);
+
+void marshal_VkSRTDataNV(VulkanStream* vkStream, VkStructureType rootType,
+                         const VkSRTDataNV* forMarshaling);
+
+void unmarshal_VkSRTDataNV(VulkanStream* vkStream, VkStructureType rootType,
+                           VkSRTDataNV* forUnmarshaling);
+
+void marshal_VkAccelerationStructureSRTMotionInstanceNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureSRTMotionInstanceNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureSRTMotionInstanceNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureSRTMotionInstanceNV* forUnmarshaling);
+
+void marshal_VkAccelerationStructureMotionInstanceDataNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMotionInstanceDataNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureMotionInstanceDataNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureMotionInstanceDataNV* forUnmarshaling);
+
+void marshal_VkAccelerationStructureMotionInstanceNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureMotionInstanceNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureMotionInstanceNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureMotionInstanceNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRayTracingMotionBlurFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingMotionBlurFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingMotionBlurFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingMotionBlurFeaturesNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_ycbcr_2plane_444_formats
+void marshal_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_fragment_density_map2
+void marshal_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMap2FeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMap2FeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceFragmentDensityMap2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMap2PropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentDensityMap2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMap2PropertiesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_QCOM_rotated_copy_commands
+void marshal_VkCopyCommandTransformInfoQCOM(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkCopyCommandTransformInfoQCOM* forMarshaling);
+
+void unmarshal_VkCopyCommandTransformInfoQCOM(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkCopyCommandTransformInfoQCOM* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_image_robustness
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceImageRobustnessFeatures,
                       marshal_VkPhysicalDeviceImageRobustnessFeaturesEXT)
 
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceImageRobustnessFeatures,
                       unmarshal_VkPhysicalDeviceImageRobustnessFeaturesEXT)
+
+#endif
+#ifdef VK_EXT_image_compression_control
+void marshal_VkPhysicalDeviceImageCompressionControlFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageCompressionControlFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImageCompressionControlFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageCompressionControlFeaturesEXT* forUnmarshaling);
+
+void marshal_VkImageCompressionControlEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkImageCompressionControlEXT* forMarshaling);
+
+void unmarshal_VkImageCompressionControlEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkImageCompressionControlEXT* forUnmarshaling);
+
+void marshal_VkSubresourceLayout2EXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkSubresourceLayout2EXT* forMarshaling);
+
+void unmarshal_VkSubresourceLayout2EXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkSubresourceLayout2EXT* forUnmarshaling);
+
+void marshal_VkImageSubresource2EXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkImageSubresource2EXT* forMarshaling);
+
+void unmarshal_VkImageSubresource2EXT(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkImageSubresource2EXT* forUnmarshaling);
+
+void marshal_VkImageCompressionPropertiesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkImageCompressionPropertiesEXT* forMarshaling);
+
+void unmarshal_VkImageCompressionPropertiesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkImageCompressionPropertiesEXT* forUnmarshaling);
+
+#define OP_vkGetImageSubresourceLayout2EXT 296152177
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_layout
+void marshal_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_4444_formats
+void marshal_VkPhysicalDevice4444FormatsFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevice4444FormatsFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevice4444FormatsFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevice4444FormatsFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_device_fault
+void marshal_VkPhysicalDeviceFaultFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFaultFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFaultFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkPhysicalDeviceFaultFeaturesEXT* forUnmarshaling);
+
+void marshal_VkDeviceFaultCountsEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkDeviceFaultCountsEXT* forMarshaling);
+
+void unmarshal_VkDeviceFaultCountsEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkDeviceFaultCountsEXT* forUnmarshaling);
+
+void marshal_VkDeviceFaultAddressInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkDeviceFaultAddressInfoEXT* forMarshaling);
+
+void unmarshal_VkDeviceFaultAddressInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkDeviceFaultAddressInfoEXT* forUnmarshaling);
+
+void marshal_VkDeviceFaultVendorInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkDeviceFaultVendorInfoEXT* forMarshaling);
+
+void unmarshal_VkDeviceFaultVendorInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkDeviceFaultVendorInfoEXT* forUnmarshaling);
+
+void marshal_VkDeviceFaultInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkDeviceFaultInfoEXT* forMarshaling);
+
+void unmarshal_VkDeviceFaultInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkDeviceFaultInfoEXT* forUnmarshaling);
+
+void marshal_VkDeviceFaultVendorBinaryHeaderVersionOneEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDeviceFaultVendorBinaryHeaderVersionOneEXT* forMarshaling);
+
+void unmarshal_VkDeviceFaultVendorBinaryHeaderVersionOneEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceFaultVendorBinaryHeaderVersionOneEXT* forUnmarshaling);
+
+#define OP_vkGetDeviceFaultInfoEXT 278838285
+#endif
+#ifdef VK_ARM_rasterization_order_attachment_access
+void marshal_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT,
+                      marshal_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesARM)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT,
+                      unmarshal_VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesARM)
+
+#endif
+#ifdef VK_EXT_rgba10x6_formats
+void marshal_VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_acquire_winrt_display
+#define OP_vkAcquireWinrtDisplayNV 274295059
+#define OP_vkGetWinrtDisplayNV 294381219
+#endif
+#ifdef VK_EXT_directfb_surface
+void marshal_VkDirectFBSurfaceCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkDirectFBSurfaceCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkDirectFBSurfaceCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkDirectFBSurfaceCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCreateDirectFBSurfaceEXT 220792403
+#define OP_vkGetPhysicalDeviceDirectFBPresentationSupportEXT 285441990
+#endif
+#ifdef VK_VALVE_mutable_descriptor_type
+void marshal_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT,
+                      marshal_VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT,
+                      unmarshal_VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE)
+
+void marshal_VkMutableDescriptorTypeListEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkMutableDescriptorTypeListEXT* forMarshaling);
+
+void unmarshal_VkMutableDescriptorTypeListEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkMutableDescriptorTypeListEXT* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkMutableDescriptorTypeListEXT,
+                      marshal_VkMutableDescriptorTypeListVALVE)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkMutableDescriptorTypeListEXT,
+                      unmarshal_VkMutableDescriptorTypeListVALVE)
+
+void marshal_VkMutableDescriptorTypeCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkMutableDescriptorTypeCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkMutableDescriptorTypeCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMutableDescriptorTypeCreateInfoEXT* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkMutableDescriptorTypeCreateInfoEXT,
+                      marshal_VkMutableDescriptorTypeCreateInfoVALVE)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkMutableDescriptorTypeCreateInfoEXT,
+                      unmarshal_VkMutableDescriptorTypeCreateInfoVALVE)
+
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+void marshal_VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT* forUnmarshaling);
+
+void marshal_VkVertexInputBindingDescription2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVertexInputBindingDescription2EXT* forMarshaling);
+
+void unmarshal_VkVertexInputBindingDescription2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVertexInputBindingDescription2EXT* forUnmarshaling);
+
+void marshal_VkVertexInputAttributeDescription2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVertexInputAttributeDescription2EXT* forMarshaling);
+
+void unmarshal_VkVertexInputAttributeDescription2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVertexInputAttributeDescription2EXT* forUnmarshaling);
+
+#define OP_vkCmdSetVertexInputEXT 211522810
+#endif
+#ifdef VK_EXT_physical_device_drm
+void marshal_VkPhysicalDeviceDrmPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDrmPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDrmPropertiesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkPhysicalDeviceDrmPropertiesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_device_address_binding_report
+void marshal_VkPhysicalDeviceAddressBindingReportFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAddressBindingReportFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceAddressBindingReportFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceAddressBindingReportFeaturesEXT* forUnmarshaling);
+
+void marshal_VkDeviceAddressBindingCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDeviceAddressBindingCallbackDataEXT* forMarshaling);
+
+void unmarshal_VkDeviceAddressBindingCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceAddressBindingCallbackDataEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_depth_clip_control
+void marshal_VkPhysicalDeviceDepthClipControlFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipControlFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDepthClipControlFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDepthClipControlFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPipelineViewportDepthClipControlCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineViewportDepthClipControlCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineViewportDepthClipControlCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineViewportDepthClipControlCreateInfoEXT* forUnmarshaling);
 
 #endif
 #ifdef VK_EXT_primitive_topology_list_restart
@@ -2969,6 +7339,294 @@ void marshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
 void unmarshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_FUCHSIA_external_memory
+void marshal_VkImportMemoryZirconHandleInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImportMemoryZirconHandleInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkImportMemoryZirconHandleInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImportMemoryZirconHandleInfoFUCHSIA* forUnmarshaling);
+
+void marshal_VkMemoryZirconHandlePropertiesFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkMemoryZirconHandlePropertiesFUCHSIA* forMarshaling);
+
+void unmarshal_VkMemoryZirconHandlePropertiesFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMemoryZirconHandlePropertiesFUCHSIA* forUnmarshaling);
+
+void marshal_VkMemoryGetZirconHandleInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkMemoryGetZirconHandleInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkMemoryGetZirconHandleInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMemoryGetZirconHandleInfoFUCHSIA* forUnmarshaling);
+
+#define OP_vkGetMemoryZirconHandleFUCHSIA 215089868
+#define OP_vkGetMemoryZirconHandlePropertiesFUCHSIA 213247019
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+void marshal_VkImportSemaphoreZirconHandleInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImportSemaphoreZirconHandleInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkImportSemaphoreZirconHandleInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImportSemaphoreZirconHandleInfoFUCHSIA* forUnmarshaling);
+
+void marshal_VkSemaphoreGetZirconHandleInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSemaphoreGetZirconHandleInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkSemaphoreGetZirconHandleInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSemaphoreGetZirconHandleInfoFUCHSIA* forUnmarshaling);
+
+#define OP_vkImportSemaphoreZirconHandleFUCHSIA 299314530
+#define OP_vkGetSemaphoreZirconHandleFUCHSIA 248728905
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+void marshal_VkBufferCollectionCreateInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBufferCollectionCreateInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkBufferCollectionCreateInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBufferCollectionCreateInfoFUCHSIA* forUnmarshaling);
+
+void marshal_VkImportMemoryBufferCollectionFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImportMemoryBufferCollectionFUCHSIA* forMarshaling);
+
+void unmarshal_VkImportMemoryBufferCollectionFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImportMemoryBufferCollectionFUCHSIA* forUnmarshaling);
+
+void marshal_VkBufferCollectionImageCreateInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBufferCollectionImageCreateInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkBufferCollectionImageCreateInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBufferCollectionImageCreateInfoFUCHSIA* forUnmarshaling);
+
+void marshal_VkBufferCollectionConstraintsInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBufferCollectionConstraintsInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkBufferCollectionConstraintsInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBufferCollectionConstraintsInfoFUCHSIA* forUnmarshaling);
+
+void marshal_VkBufferConstraintsInfoFUCHSIA(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkBufferConstraintsInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkBufferConstraintsInfoFUCHSIA(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkBufferConstraintsInfoFUCHSIA* forUnmarshaling);
+
+void marshal_VkBufferCollectionBufferCreateInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBufferCollectionBufferCreateInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkBufferCollectionBufferCreateInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBufferCollectionBufferCreateInfoFUCHSIA* forUnmarshaling);
+
+void marshal_VkSysmemColorSpaceFUCHSIA(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkSysmemColorSpaceFUCHSIA* forMarshaling);
+
+void unmarshal_VkSysmemColorSpaceFUCHSIA(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkSysmemColorSpaceFUCHSIA* forUnmarshaling);
+
+void marshal_VkBufferCollectionPropertiesFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBufferCollectionPropertiesFUCHSIA* forMarshaling);
+
+void unmarshal_VkBufferCollectionPropertiesFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBufferCollectionPropertiesFUCHSIA* forUnmarshaling);
+
+void marshal_VkImageFormatConstraintsInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImageFormatConstraintsInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkImageFormatConstraintsInfoFUCHSIA(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageFormatConstraintsInfoFUCHSIA* forUnmarshaling);
+
+void marshal_VkImageConstraintsInfoFUCHSIA(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkImageConstraintsInfoFUCHSIA* forMarshaling);
+
+void unmarshal_VkImageConstraintsInfoFUCHSIA(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkImageConstraintsInfoFUCHSIA* forUnmarshaling);
+
+#define OP_vkCreateBufferCollectionFUCHSIA 277502099
+#define OP_vkSetBufferCollectionImageConstraintsFUCHSIA 274938613
+#define OP_vkSetBufferCollectionBufferConstraintsFUCHSIA 212810472
+#define OP_vkDestroyBufferCollectionFUCHSIA 224938328
+#define OP_vkGetBufferCollectionPropertiesFUCHSIA 242149782
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+void marshal_VkSubpassShadingPipelineCreateInfoHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSubpassShadingPipelineCreateInfoHUAWEI* forMarshaling);
+
+void unmarshal_VkSubpassShadingPipelineCreateInfoHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSubpassShadingPipelineCreateInfoHUAWEI* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceSubpassShadingFeaturesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSubpassShadingFeaturesHUAWEI* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceSubpassShadingFeaturesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceSubpassShadingFeaturesHUAWEI* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceSubpassShadingPropertiesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSubpassShadingPropertiesHUAWEI* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceSubpassShadingPropertiesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceSubpassShadingPropertiesHUAWEI* forUnmarshaling);
+
+#define OP_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI 225288634
+#define OP_vkCmdSubpassShadingHUAWEI 220327607
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+void marshal_VkPhysicalDeviceInvocationMaskFeaturesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceInvocationMaskFeaturesHUAWEI* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceInvocationMaskFeaturesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceInvocationMaskFeaturesHUAWEI* forUnmarshaling);
+
+#define OP_vkCmdBindInvocationMaskHUAWEI 299305130
+#endif
+#ifdef VK_NV_external_memory_rdma
+void marshal_VkMemoryGetRemoteAddressInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkMemoryGetRemoteAddressInfoNV* forMarshaling);
+
+void unmarshal_VkMemoryGetRemoteAddressInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkMemoryGetRemoteAddressInfoNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceExternalMemoryRDMAFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExternalMemoryRDMAFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceExternalMemoryRDMAFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceExternalMemoryRDMAFeaturesNV* forUnmarshaling);
+
+#define OP_vkGetMemoryRemoteAddressNV 256917597
+#endif
+#ifdef VK_EXT_pipeline_properties
+DEFINE_ALIAS_FUNCTION(marshal_VkPipelineInfoKHR, marshal_VkPipelineInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineInfoKHR, unmarshal_VkPipelineInfoEXT)
+
+void marshal_VkPipelinePropertiesIdentifierEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelinePropertiesIdentifierEXT* forMarshaling);
+
+void unmarshal_VkPipelinePropertiesIdentifierEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelinePropertiesIdentifierEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDevicePipelinePropertiesFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelinePropertiesFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePipelinePropertiesFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelinePropertiesFeaturesEXT* forUnmarshaling);
+
+#define OP_vkGetPipelinePropertiesEXT 243590447
+#endif
+#ifdef VK_EXT_multisampled_render_to_single_sampled
+void marshal_VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT* forUnmarshaling);
+
+void marshal_VkSubpassResolvePerformanceQueryEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSubpassResolvePerformanceQueryEXT* forMarshaling);
+
+void unmarshal_VkSubpassResolvePerformanceQueryEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSubpassResolvePerformanceQueryEXT* forUnmarshaling);
+
+void marshal_VkMultisampledRenderToSingleSampledInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkMultisampledRenderToSingleSampledInfoEXT* forMarshaling);
+
+void unmarshal_VkMultisampledRenderToSingleSampledInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMultisampledRenderToSingleSampledInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+void marshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* forUnmarshaling);
+
+#define OP_vkCmdSetPatchControlPointsEXT 208680354
+#define OP_vkCmdSetRasterizerDiscardEnableEXT 245221405
+#define OP_vkCmdSetDepthBiasEnableEXT 259472348
+#define OP_vkCmdSetLogicOpEXT 267481927
+#define OP_vkCmdSetPrimitiveRestartEnableEXT 299567883
+#endif
+#ifdef VK_QNX_screen_surface
+void marshal_VkScreenSurfaceCreateInfoQNX(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkScreenSurfaceCreateInfoQNX* forMarshaling);
+
+void unmarshal_VkScreenSurfaceCreateInfoQNX(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkScreenSurfaceCreateInfoQNX* forUnmarshaling);
+
+#define OP_vkCreateScreenSurfaceQNX 224377168
+#define OP_vkGetPhysicalDeviceScreenPresentationSupportQNX 258528902
+#endif
+#ifdef VK_EXT_color_write_enable
+void marshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineColorWriteCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCmdSetColorWriteEnableEXT 202223297
+#endif
+#ifdef VK_EXT_primitives_generated_query
+void marshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* forUnmarshaling);
 
 #endif
 #ifdef VK_GOOGLE_gfxstream
@@ -3013,7 +7671,1125 @@ void unmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureType rootTy
 #define OP_vkQueueFlushCommandsFromAuxMemoryGOOGLE 290633483
 #define OP_vkGetBlobGOOGLE 20341
 #endif
+#ifdef VK_EXT_global_priority_query
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR,
+                      marshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR,
+                      unmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkQueueFamilyGlobalPriorityPropertiesKHR,
+                      marshal_VkQueueFamilyGlobalPriorityPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR,
+                      unmarshal_VkQueueFamilyGlobalPriorityPropertiesEXT)
+
+#endif
+#ifdef VK_EXT_image_view_min_lod
+void marshal_VkPhysicalDeviceImageViewMinLodFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageViewMinLodFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImageViewMinLodFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageViewMinLodFeaturesEXT* forUnmarshaling);
+
+void marshal_VkImageViewMinLodCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkImageViewMinLodCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkImageViewMinLodCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkImageViewMinLodCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_multi_draw
+void marshal_VkPhysicalDeviceMultiDrawFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiDrawFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMultiDrawFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMultiDrawFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceMultiDrawPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiDrawPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMultiDrawPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMultiDrawPropertiesEXT* forUnmarshaling);
+
+void marshal_VkMultiDrawInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                const VkMultiDrawInfoEXT* forMarshaling);
+
+void unmarshal_VkMultiDrawInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                  VkMultiDrawInfoEXT* forUnmarshaling);
+
+void marshal_VkMultiDrawIndexedInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkMultiDrawIndexedInfoEXT* forMarshaling);
+
+void unmarshal_VkMultiDrawIndexedInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkMultiDrawIndexedInfoEXT* forUnmarshaling);
+
+#define OP_vkCmdDrawMultiEXT 263629455
+#define OP_vkCmdDrawMultiIndexedEXT 284764463
+#endif
+#ifdef VK_EXT_image_2d_view_of_3d
+void marshal_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImage2DViewOf3DFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImage2DViewOf3DFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_shader_tile_image
+void marshal_VkPhysicalDeviceShaderTileImageFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderTileImageFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderTileImageFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderTileImageFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceShaderTileImagePropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderTileImagePropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderTileImagePropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderTileImagePropertiesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_opacity_micromap
+void marshal_VkMicromapUsageEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                const VkMicromapUsageEXT* forMarshaling);
+
+void unmarshal_VkMicromapUsageEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                  VkMicromapUsageEXT* forUnmarshaling);
+
+void marshal_VkDeviceOrHostAddressKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                      const VkDeviceOrHostAddressKHR* forMarshaling);
+
+void unmarshal_VkDeviceOrHostAddressKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkDeviceOrHostAddressKHR* forUnmarshaling);
+
+void marshal_VkMicromapBuildInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    const VkMicromapBuildInfoEXT* forMarshaling);
+
+void unmarshal_VkMicromapBuildInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                      VkMicromapBuildInfoEXT* forUnmarshaling);
+
+void marshal_VkMicromapCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkMicromapCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkMicromapCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkMicromapCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceOpacityMicromapFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceOpacityMicromapFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceOpacityMicromapFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceOpacityMicromapFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceOpacityMicromapPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceOpacityMicromapPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceOpacityMicromapPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceOpacityMicromapPropertiesEXT* forUnmarshaling);
+
+void marshal_VkMicromapVersionInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                      const VkMicromapVersionInfoEXT* forMarshaling);
+
+void unmarshal_VkMicromapVersionInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkMicromapVersionInfoEXT* forUnmarshaling);
+
+void marshal_VkCopyMicromapToMemoryInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkCopyMicromapToMemoryInfoEXT* forMarshaling);
+
+void unmarshal_VkCopyMicromapToMemoryInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkCopyMicromapToMemoryInfoEXT* forUnmarshaling);
+
+void marshal_VkCopyMemoryToMicromapInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkCopyMemoryToMicromapInfoEXT* forMarshaling);
+
+void unmarshal_VkCopyMemoryToMicromapInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkCopyMemoryToMicromapInfoEXT* forUnmarshaling);
+
+void marshal_VkCopyMicromapInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                   const VkCopyMicromapInfoEXT* forMarshaling);
+
+void unmarshal_VkCopyMicromapInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     VkCopyMicromapInfoEXT* forUnmarshaling);
+
+void marshal_VkMicromapBuildSizesInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkMicromapBuildSizesInfoEXT* forMarshaling);
+
+void unmarshal_VkMicromapBuildSizesInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkMicromapBuildSizesInfoEXT* forUnmarshaling);
+
+void marshal_VkAccelerationStructureTrianglesOpacityMicromapEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureTrianglesOpacityMicromapEXT* forMarshaling);
+
+void unmarshal_VkAccelerationStructureTrianglesOpacityMicromapEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureTrianglesOpacityMicromapEXT* forUnmarshaling);
+
+void marshal_VkMicromapTriangleEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                   const VkMicromapTriangleEXT* forMarshaling);
+
+void unmarshal_VkMicromapTriangleEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     VkMicromapTriangleEXT* forUnmarshaling);
+
+#define OP_vkCreateMicromapEXT 259761575
+#define OP_vkDestroyMicromapEXT 242737967
+#define OP_vkCmdBuildMicromapsEXT 208359339
+#define OP_vkBuildMicromapsEXT 241546750
+#define OP_vkCopyMicromapEXT 270454822
+#define OP_vkCopyMicromapToMemoryEXT 267213862
+#define OP_vkCopyMemoryToMicromapEXT 292237056
+#define OP_vkWriteMicromapsPropertiesEXT 208543737
+#define OP_vkCmdCopyMicromapEXT 288267635
+#define OP_vkCmdCopyMicromapToMemoryEXT 234439088
+#define OP_vkCmdCopyMemoryToMicromapEXT 281369443
+#define OP_vkCmdWriteMicromapsPropertiesEXT 210288632
+#define OP_vkGetDeviceMicromapCompatibilityEXT 282914497
+#define OP_vkGetMicromapBuildSizesEXT 290917918
+#endif
+#ifdef VK_NV_displacement_micromap
+void marshal_VkPhysicalDeviceDisplacementMicromapFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDisplacementMicromapFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDisplacementMicromapFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDisplacementMicromapFeaturesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceDisplacementMicromapPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDisplacementMicromapPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDisplacementMicromapPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDisplacementMicromapPropertiesNV* forUnmarshaling);
+
+void marshal_VkAccelerationStructureTrianglesDisplacementMicromapNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureTrianglesDisplacementMicromapNV* forMarshaling);
+
+void unmarshal_VkAccelerationStructureTrianglesDisplacementMicromapNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureTrianglesDisplacementMicromapNV* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_load_store_op_none
+#endif
+#ifdef VK_HUAWEI_cluster_culling_shader
+void marshal_VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI* forUnmarshaling);
+
+#define OP_vkCmdDrawClusterHUAWEI 253709648
+#define OP_vkCmdDrawClusterIndirectHUAWEI 210642983
+#endif
+#ifdef VK_EXT_border_color_swizzle
+void marshal_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* forUnmarshaling);
+
+void marshal_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSamplerBorderColorComponentMappingCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSamplerBorderColorComponentMappingCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+void marshal_VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT* forUnmarshaling);
+
+#define OP_vkSetDeviceMemoryPriorityEXT 223991870
+#endif
+#ifdef VK_ARM_shader_core_properties
+void marshal_VkPhysicalDeviceShaderCorePropertiesARM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCorePropertiesARM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderCorePropertiesARM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderCorePropertiesARM* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_image_sliced_view_of_3d
+void marshal_VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT* forUnmarshaling);
+
+void marshal_VkImageViewSlicedCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkImageViewSlicedCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkImageViewSlicedCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkImageViewSlicedCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_VALVE_descriptor_set_host_mapping
+void marshal_VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE* forUnmarshaling);
+
+void marshal_VkDescriptorSetBindingReferenceVALVE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDescriptorSetBindingReferenceVALVE* forMarshaling);
+
+void unmarshal_VkDescriptorSetBindingReferenceVALVE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDescriptorSetBindingReferenceVALVE* forUnmarshaling);
+
+void marshal_VkDescriptorSetLayoutHostMappingInfoVALVE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDescriptorSetLayoutHostMappingInfoVALVE* forMarshaling);
+
+void unmarshal_VkDescriptorSetLayoutHostMappingInfoVALVE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDescriptorSetLayoutHostMappingInfoVALVE* forUnmarshaling);
+
+#define OP_vkGetDescriptorSetLayoutHostMappingInfoVALVE 296524818
+#define OP_vkGetDescriptorSetHostMappingVALVE 280470843
+#endif
+#ifdef VK_EXT_depth_clamp_zero_one
+void marshal_VkPhysicalDeviceDepthClampZeroOneFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClampZeroOneFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDepthClampZeroOneFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDepthClampZeroOneFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_non_seamless_cube_map
+void marshal_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_QCOM_fragment_density_map_offset
+void marshal_VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM* forUnmarshaling);
+
+void marshal_VkSubpassFragmentDensityMapOffsetEndInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSubpassFragmentDensityMapOffsetEndInfoQCOM* forMarshaling);
+
+void unmarshal_VkSubpassFragmentDensityMapOffsetEndInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSubpassFragmentDensityMapOffsetEndInfoQCOM* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_copy_memory_indirect
+void marshal_VkCopyMemoryIndirectCommandNV(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkCopyMemoryIndirectCommandNV* forMarshaling);
+
+void unmarshal_VkCopyMemoryIndirectCommandNV(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkCopyMemoryIndirectCommandNV* forUnmarshaling);
+
+void marshal_VkCopyMemoryToImageIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkCopyMemoryToImageIndirectCommandNV* forMarshaling);
+
+void unmarshal_VkCopyMemoryToImageIndirectCommandNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkCopyMemoryToImageIndirectCommandNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceCopyMemoryIndirectFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCopyMemoryIndirectFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceCopyMemoryIndirectFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceCopyMemoryIndirectFeaturesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceCopyMemoryIndirectPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceCopyMemoryIndirectPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceCopyMemoryIndirectPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceCopyMemoryIndirectPropertiesNV* forUnmarshaling);
+
+#define OP_vkCmdCopyMemoryIndirectNV 244937609
+#define OP_vkCmdCopyMemoryToImageIndirectNV 277100806
+#endif
+#ifdef VK_NV_memory_decompression
+void marshal_VkDecompressMemoryRegionNV(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkDecompressMemoryRegionNV* forMarshaling);
+
+void unmarshal_VkDecompressMemoryRegionNV(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkDecompressMemoryRegionNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceMemoryDecompressionFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMemoryDecompressionFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMemoryDecompressionFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMemoryDecompressionFeaturesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceMemoryDecompressionPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMemoryDecompressionPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMemoryDecompressionPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMemoryDecompressionPropertiesNV* forUnmarshaling);
+
+#define OP_vkCmdDecompressMemoryNV 220223048
+#define OP_vkCmdDecompressMemoryIndirectCountNV 284140092
+#endif
+#ifdef VK_NV_linear_color_attachment
+void marshal_VkPhysicalDeviceLinearColorAttachmentFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLinearColorAttachmentFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceLinearColorAttachmentFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLinearColorAttachmentFeaturesNV* forUnmarshaling);
+
+#endif
+#ifdef VK_GOOGLE_surfaceless_query
+#endif
+#ifdef VK_EXT_image_compression_control_swapchain
+void marshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_QCOM_image_processing
+void marshal_VkImageViewSampleWeightCreateInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkImageViewSampleWeightCreateInfoQCOM* forMarshaling);
+
+void unmarshal_VkImageViewSampleWeightCreateInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageViewSampleWeightCreateInfoQCOM* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceImageProcessingFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageProcessingFeaturesQCOM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImageProcessingFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageProcessingFeaturesQCOM* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceImageProcessingPropertiesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageProcessingPropertiesQCOM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImageProcessingPropertiesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageProcessingPropertiesQCOM* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state3
+void marshal_VkPhysicalDeviceExtendedDynamicState3FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExtendedDynamicState3FeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceExtendedDynamicState3FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceExtendedDynamicState3FeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceExtendedDynamicState3PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceExtendedDynamicState3PropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceExtendedDynamicState3PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceExtendedDynamicState3PropertiesEXT* forUnmarshaling);
+
+void marshal_VkColorBlendEquationEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkColorBlendEquationEXT* forMarshaling);
+
+void unmarshal_VkColorBlendEquationEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkColorBlendEquationEXT* forUnmarshaling);
+
+void marshal_VkColorBlendAdvancedEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkColorBlendAdvancedEXT* forMarshaling);
+
+void unmarshal_VkColorBlendAdvancedEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkColorBlendAdvancedEXT* forUnmarshaling);
+
+#define OP_vkCmdSetTessellationDomainOriginEXT 264837311
+#define OP_vkCmdSetDepthClampEnableEXT 251152142
+#define OP_vkCmdSetPolygonModeEXT 244360005
+#define OP_vkCmdSetRasterizationSamplesEXT 200185328
+#define OP_vkCmdSetSampleMaskEXT 205683579
+#define OP_vkCmdSetAlphaToCoverageEnableEXT 250119881
+#define OP_vkCmdSetAlphaToOneEnableEXT 290007127
+#define OP_vkCmdSetLogicOpEnableEXT 282779034
+#define OP_vkCmdSetColorBlendEnableEXT 295219919
+#define OP_vkCmdSetColorBlendEquationEXT 223529166
+#define OP_vkCmdSetColorWriteMaskEXT 228446899
+#define OP_vkCmdSetRasterizationStreamEXT 204993319
+#define OP_vkCmdSetConservativeRasterizationModeEXT 293408379
+#define OP_vkCmdSetExtraPrimitiveOverestimationSizeEXT 291579247
+#define OP_vkCmdSetDepthClipEnableEXT 283535332
+#define OP_vkCmdSetSampleLocationsEnableEXT 268974525
+#define OP_vkCmdSetColorBlendAdvancedEXT 202772488
+#define OP_vkCmdSetProvokingVertexModeEXT 251550033
+#define OP_vkCmdSetLineRasterizationModeEXT 294038690
+#define OP_vkCmdSetLineStippleEnableEXT 225451186
+#define OP_vkCmdSetDepthClipNegativeOneToOneEXT 278908707
+#define OP_vkCmdSetViewportWScalingEnableNV 204717634
+#define OP_vkCmdSetViewportSwizzleNV 262192878
+#define OP_vkCmdSetCoverageToColorEnableNV 274778288
+#define OP_vkCmdSetCoverageToColorLocationNV 244968701
+#define OP_vkCmdSetCoverageModulationModeNV 225061936
+#define OP_vkCmdSetCoverageModulationTableEnableNV 285825505
+#define OP_vkCmdSetCoverageModulationTableNV 259749057
+#define OP_vkCmdSetShadingRateImageEnableNV 299919487
+#define OP_vkCmdSetRepresentativeFragmentTestEnableNV 244853060
+#define OP_vkCmdSetCoverageReductionModeNV 259685321
+#endif
+#ifdef VK_EXT_subpass_merge_feedback
+void marshal_VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT* forUnmarshaling);
+
+void marshal_VkRenderPassCreationControlEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkRenderPassCreationControlEXT* forMarshaling);
+
+void unmarshal_VkRenderPassCreationControlEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkRenderPassCreationControlEXT* forUnmarshaling);
+
+void marshal_VkRenderPassCreationFeedbackInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRenderPassCreationFeedbackInfoEXT* forMarshaling);
+
+void unmarshal_VkRenderPassCreationFeedbackInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderPassCreationFeedbackInfoEXT* forUnmarshaling);
+
+void marshal_VkRenderPassCreationFeedbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRenderPassCreationFeedbackCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkRenderPassCreationFeedbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderPassCreationFeedbackCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkRenderPassSubpassFeedbackInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRenderPassSubpassFeedbackInfoEXT* forMarshaling);
+
+void unmarshal_VkRenderPassSubpassFeedbackInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderPassSubpassFeedbackInfoEXT* forUnmarshaling);
+
+void marshal_VkRenderPassSubpassFeedbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRenderPassSubpassFeedbackCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkRenderPassSubpassFeedbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderPassSubpassFeedbackCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_LUNARG_direct_driver_loading
+void marshal_VkDirectDriverLoadingInfoLUNARG(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkDirectDriverLoadingInfoLUNARG* forMarshaling);
+
+void unmarshal_VkDirectDriverLoadingInfoLUNARG(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkDirectDriverLoadingInfoLUNARG* forUnmarshaling);
+
+void marshal_VkDirectDriverLoadingListLUNARG(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkDirectDriverLoadingListLUNARG* forMarshaling);
+
+void unmarshal_VkDirectDriverLoadingListLUNARG(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkDirectDriverLoadingListLUNARG* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_shader_module_identifier
+void marshal_VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT* forUnmarshaling);
+
+void marshal_VkPipelineShaderStageModuleIdentifierCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineShaderStageModuleIdentifierCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineShaderStageModuleIdentifierCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineShaderStageModuleIdentifierCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkShaderModuleIdentifierEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                         const VkShaderModuleIdentifierEXT* forMarshaling);
+
+void unmarshal_VkShaderModuleIdentifierEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkShaderModuleIdentifierEXT* forUnmarshaling);
+
+#define OP_vkGetShaderModuleIdentifierEXT 288535751
+#define OP_vkGetShaderModuleCreateInfoIdentifierEXT 214340596
+#endif
+#ifdef VK_EXT_rasterization_order_attachment_access
+#endif
+#ifdef VK_NV_optical_flow
+void marshal_VkPhysicalDeviceOpticalFlowFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceOpticalFlowFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceOpticalFlowFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceOpticalFlowFeaturesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceOpticalFlowPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceOpticalFlowPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceOpticalFlowPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceOpticalFlowPropertiesNV* forUnmarshaling);
+
+void marshal_VkOpticalFlowImageFormatInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkOpticalFlowImageFormatInfoNV* forMarshaling);
+
+void unmarshal_VkOpticalFlowImageFormatInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkOpticalFlowImageFormatInfoNV* forUnmarshaling);
+
+void marshal_VkOpticalFlowImageFormatPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkOpticalFlowImageFormatPropertiesNV* forMarshaling);
+
+void unmarshal_VkOpticalFlowImageFormatPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkOpticalFlowImageFormatPropertiesNV* forUnmarshaling);
+
+void marshal_VkOpticalFlowSessionCreateInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkOpticalFlowSessionCreateInfoNV* forMarshaling);
+
+void unmarshal_VkOpticalFlowSessionCreateInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkOpticalFlowSessionCreateInfoNV* forUnmarshaling);
+
+void marshal_VkOpticalFlowSessionCreatePrivateDataInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkOpticalFlowSessionCreatePrivateDataInfoNV* forMarshaling);
+
+void unmarshal_VkOpticalFlowSessionCreatePrivateDataInfoNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkOpticalFlowSessionCreatePrivateDataInfoNV* forUnmarshaling);
+
+void marshal_VkOpticalFlowExecuteInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkOpticalFlowExecuteInfoNV* forMarshaling);
+
+void unmarshal_VkOpticalFlowExecuteInfoNV(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkOpticalFlowExecuteInfoNV* forUnmarshaling);
+
+#define OP_vkGetPhysicalDeviceOpticalFlowImageFormatsNV 291249090
+#define OP_vkCreateOpticalFlowSessionNV 203493394
+#define OP_vkDestroyOpticalFlowSessionNV 255326418
+#define OP_vkBindOpticalFlowSessionImageNV 216400621
+#define OP_vkCmdOpticalFlowExecuteNV 218031512
+#endif
+#ifdef VK_EXT_legacy_dithering
+void marshal_VkPhysicalDeviceLegacyDitheringFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLegacyDitheringFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceLegacyDitheringFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLegacyDitheringFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_pipeline_protected_access
+void marshal_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelineProtectedAccessFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineProtectedAccessFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_shader_object
+void marshal_VkPhysicalDeviceShaderObjectFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderObjectFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderObjectFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderObjectFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceShaderObjectPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderObjectPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderObjectPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderObjectPropertiesEXT* forUnmarshaling);
+
+void marshal_VkShaderCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                   const VkShaderCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkShaderCreateInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     VkShaderCreateInfoEXT* forUnmarshaling);
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPipelineShaderStageRequiredSubgroupSizeCreateInfo,
+                      marshal_VkShaderRequiredSubgroupSizeCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineShaderStageRequiredSubgroupSizeCreateInfo,
+                      unmarshal_VkShaderRequiredSubgroupSizeCreateInfoEXT)
+
+#define OP_vkCreateShadersEXT 280894162
+#define OP_vkDestroyShaderEXT 242383899
+#define OP_vkGetShaderBinaryDataEXT 271272626
+#define OP_vkCmdBindShadersEXT 269580563
+#endif
+#ifdef VK_QCOM_tile_properties
+void marshal_VkPhysicalDeviceTilePropertiesFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceTilePropertiesFeaturesQCOM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceTilePropertiesFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceTilePropertiesFeaturesQCOM* forUnmarshaling);
+
+void marshal_VkTilePropertiesQCOM(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkTilePropertiesQCOM* forMarshaling);
+
+void unmarshal_VkTilePropertiesQCOM(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkTilePropertiesQCOM* forUnmarshaling);
+
+#define OP_vkGetFramebufferTilePropertiesQCOM 248471090
+#define OP_vkGetDynamicRenderingTilePropertiesQCOM 240209057
+#endif
+#ifdef VK_SEC_amigo_profiling
+void marshal_VkPhysicalDeviceAmigoProfilingFeaturesSEC(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAmigoProfilingFeaturesSEC* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceAmigoProfilingFeaturesSEC(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceAmigoProfilingFeaturesSEC* forUnmarshaling);
+
+void marshal_VkAmigoProfilingSubmitInfoSEC(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkAmigoProfilingSubmitInfoSEC* forMarshaling);
+
+void unmarshal_VkAmigoProfilingSubmitInfoSEC(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkAmigoProfilingSubmitInfoSEC* forUnmarshaling);
+
+#endif
+#ifdef VK_QCOM_multiview_per_view_viewports
+void marshal_VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM* forUnmarshaling);
+
+#endif
+#ifdef VK_NV_ray_tracing_invocation_reorder
+void marshal_VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingInvocationReorderPropertiesNV* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingInvocationReorderFeaturesNV* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_mutable_descriptor_type
+#endif
+#ifdef VK_ARM_shader_core_builtins
+void marshal_VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_pipeline_library_group_handles
+void marshal_VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_QCOM_multiview_per_view_render_areas
+void marshal_VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM* forUnmarshaling);
+
+void marshal_VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM* forMarshaling);
+
+void unmarshal_VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_attachment_feedback_loop_dynamic_state
+void marshal_VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT* forUnmarshaling);
+
+#define OP_vkCmdSetAttachmentFeedbackLoopEnableEXT 286531212
+#endif
+#ifdef VK_KHR_acceleration_structure
+void marshal_VkAccelerationStructureBuildRangeInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureBuildRangeInfoKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureBuildRangeInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureBuildRangeInfoKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureGeometryTrianglesDataKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryTrianglesDataKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureGeometryTrianglesDataKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureGeometryTrianglesDataKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureGeometryAabbsDataKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryAabbsDataKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureGeometryAabbsDataKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureGeometryAabbsDataKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureGeometryInstancesDataKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryInstancesDataKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureGeometryInstancesDataKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureGeometryInstancesDataKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureGeometryDataKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryDataKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureGeometryDataKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureGeometryDataKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureGeometryKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureGeometryKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureGeometryKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureGeometryKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureBuildGeometryInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureBuildGeometryInfoKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureBuildGeometryInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureBuildGeometryInfoKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkWriteDescriptorSetAccelerationStructureKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkWriteDescriptorSetAccelerationStructureKHR* forMarshaling);
+
+void unmarshal_VkWriteDescriptorSetAccelerationStructureKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkWriteDescriptorSetAccelerationStructureKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceAccelerationStructureFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAccelerationStructureFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceAccelerationStructureFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceAccelerationStructurePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceAccelerationStructurePropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceAccelerationStructurePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceAccelerationStructurePropertiesKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureDeviceAddressInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureDeviceAddressInfoKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureDeviceAddressInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureDeviceAddressInfoKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureVersionInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureVersionInfoKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureVersionInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureVersionInfoKHR* forUnmarshaling);
+
+void marshal_VkCopyAccelerationStructureToMemoryInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkCopyAccelerationStructureToMemoryInfoKHR* forMarshaling);
+
+void unmarshal_VkCopyAccelerationStructureToMemoryInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkCopyAccelerationStructureToMemoryInfoKHR* forUnmarshaling);
+
+void marshal_VkCopyMemoryToAccelerationStructureInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkCopyMemoryToAccelerationStructureInfoKHR* forMarshaling);
+
+void unmarshal_VkCopyMemoryToAccelerationStructureInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkCopyMemoryToAccelerationStructureInfoKHR* forUnmarshaling);
+
+void marshal_VkCopyAccelerationStructureInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkCopyAccelerationStructureInfoKHR* forMarshaling);
+
+void unmarshal_VkCopyAccelerationStructureInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkCopyAccelerationStructureInfoKHR* forUnmarshaling);
+
+void marshal_VkAccelerationStructureBuildSizesInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkAccelerationStructureBuildSizesInfoKHR* forMarshaling);
+
+void unmarshal_VkAccelerationStructureBuildSizesInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkAccelerationStructureBuildSizesInfoKHR* forUnmarshaling);
+
+#define OP_vkCreateAccelerationStructureKHR 259403971
+#define OP_vkDestroyAccelerationStructureKHR 223971120
+#define OP_vkCmdBuildAccelerationStructuresKHR 272943905
+#define OP_vkCmdBuildAccelerationStructuresIndirectKHR 258066143
+#define OP_vkBuildAccelerationStructuresKHR 241919567
+#define OP_vkCopyAccelerationStructureKHR 241495016
+#define OP_vkCopyAccelerationStructureToMemoryKHR 256139578
+#define OP_vkCopyMemoryToAccelerationStructureKHR 261558680
+#define OP_vkWriteAccelerationStructuresPropertiesKHR 289745796
+#define OP_vkCmdCopyAccelerationStructureKHR 279460332
+#define OP_vkCmdCopyAccelerationStructureToMemoryKHR 223539733
+#define OP_vkCmdCopyMemoryToAccelerationStructureKHR 203733963
+#define OP_vkGetAccelerationStructureDeviceAddressKHR 223466148
+#define OP_vkCmdWriteAccelerationStructuresPropertiesKHR 271696183
+#define OP_vkGetDeviceAccelerationStructureCompatibilityKHR 266386590
+#define OP_vkGetAccelerationStructureBuildSizesKHR 219720024
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void marshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingShaderGroupCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingShaderGroupCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineInterfaceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forUnmarshaling);
+
+void marshal_VkStridedDeviceAddressRegionKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkStridedDeviceAddressRegionKHR* forMarshaling);
+
+void unmarshal_VkStridedDeviceAddressRegionKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkStridedDeviceAddressRegionKHR* forUnmarshaling);
+
+void marshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkTraceRaysIndirectCommandKHR* forMarshaling);
+
+void unmarshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkTraceRaysIndirectCommandKHR* forUnmarshaling);
+
+#define OP_vkCmdTraceRaysKHR 213680716
+#define OP_vkCreateRayTracingPipelinesKHR 247628685
+#define OP_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR 221334934
+#define OP_vkCmdTraceRaysIndirectKHR 211788517
+#define OP_vkGetRayTracingShaderGroupStackSizeKHR 205271933
+#define OP_vkCmdSetRayTracingPipelineStackSizeKHR 260219604
+#endif
+#ifdef VK_KHR_ray_query
+void marshal_VkPhysicalDeviceRayQueryFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayQueryFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayQueryFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayQueryFeaturesKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_mesh_shader
+void marshal_VkPhysicalDeviceMeshShaderFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMeshShaderFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMeshShaderFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMeshShaderFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceMeshShaderPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMeshShaderPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMeshShaderPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMeshShaderPropertiesEXT* forUnmarshaling);
+
+void marshal_VkDrawMeshTasksIndirectCommandEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDrawMeshTasksIndirectCommandEXT* forMarshaling);
+
+void unmarshal_VkDrawMeshTasksIndirectCommandEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrawMeshTasksIndirectCommandEXT* forUnmarshaling);
+
+#define OP_vkCmdDrawMeshTasksEXT 285389206
+#define OP_vkCmdDrawMeshTasksIndirectEXT 223766634
+#define OP_vkCmdDrawMeshTasksIndirectCountEXT 251700466
 #endif
 const char* api_opcode_to_string(const uint32_t opcode);
 
