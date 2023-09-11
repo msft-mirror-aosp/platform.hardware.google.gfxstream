@@ -29,7 +29,6 @@ default_cpp_args = [
 #===============#
 # Dependencies  #
 #===============#
-drm_dep = dependency('libdrm')
 aemu_base_dep = dependency('aemu_base')
 aemu_common_dep = dependency('aemu_host_common')
 logging_base_dep = dependency('logging_base')
@@ -67,6 +66,13 @@ if use_auto
   use_vulkan = true
   use_composer = true
   use_magma = host_machine.system() == 'linux'
+endif
+
+if use_magma
+  default_cpp_args += '-DUSE_MAGMA=1'
+  drm_dep = dependency('libdrm')
+else
+  default_cpp_args += '-DUSE_MAGMA=0'
 endif
 
 #===============#
