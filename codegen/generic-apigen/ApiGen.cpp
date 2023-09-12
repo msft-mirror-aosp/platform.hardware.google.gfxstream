@@ -365,10 +365,10 @@ int ApiGen::genEncoderHeader(const std::string &filename)
 
     fprintf(fp, "struct %s : public %s_%s_context_t {\n\n",
             classname.c_str(), m_basename.c_str(), sideString(CLIENT_SIDE));
-    fprintf(fp, "\tgfxstream::IOStream *m_stream;\n");
+    fprintf(fp, "\tgfxstream::guest::IOStream *m_stream;\n");
     fprintf(fp, "\tChecksumCalculator *m_checksumCalculator;\n\n");
 
-    fprintf(fp, "\t%s(gfxstream::IOStream *stream, ChecksumCalculator *checksumCalculator);\n", classname.c_str());
+    fprintf(fp, "\t%s(gfxstream::guest::IOStream *stream, ChecksumCalculator *checksumCalculator);\n", classname.c_str());
     fprintf(fp, "\tvirtual uint64_t lockAndWriteDma(void*, uint32_t) { return 0; }\n");
     fprintf(fp, "};\n\n");
 
@@ -580,7 +580,7 @@ int ApiGen::genEncoderImpl(const std::string &filename)
     fprintf(fp, "#include \"EncoderDebug.h\"\n\n");
 
     // fprintf(fp, "namespace gfxstream {\n\n");
-    fprintf(fp, "using gfxstream::IOStream;\n\n");
+    fprintf(fp, "using gfxstream::guest::IOStream;\n\n");
     fprintf(fp, "namespace {\n\n");
 
     // unsupport printout

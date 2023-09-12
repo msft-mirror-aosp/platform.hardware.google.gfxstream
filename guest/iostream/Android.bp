@@ -35,6 +35,6 @@ cc_library_headers {
         "liblog",
     ],
     export_include_dirs: [
-        "include/libOpenglRender",
+        "include",
     ],
 }

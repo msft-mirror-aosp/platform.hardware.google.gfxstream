@@ -35,6 +35,7 @@ from .marshalingdefs import CUSTOM_MARSHAL_TYPES
 class VulkanReservedMarshalingCodegen(VulkanTypeIterator):
     def __init__(self,
                  cgen,
+                 variant,
                  streamVarName,
                  rootTypeVarName,
                  inputVarName,
@@ -50,6 +51,7 @@ class VulkanReservedMarshalingCodegen(VulkanTypeIterator):
                  stackVar=None,
                  stackArrSize=None):
         self.cgen = cgen
+        self.variant = variant
         self.direction = direction
         self.processSimple = "write" if self.direction == "write" else "read"
         self.forApiOutput = forApiOutput
@@ -124,10 +126,11 @@ class VulkanReservedMarshalingCodegen(VulkanTypeIterator):
             else:
                 pass
 
+            streamNamespace = "gfxstream::guest" if self.variant == "guest" else "android::base"
             if self.direction == "write":
-                self.cgen.stmt("android::base::Stream::%s((uint8_t*)*%s)" % (streamMethod, varname))
+                self.cgen.stmt("%s::Stream::%s((uint8_t*)*%s)" % (streamNamespace, streamMethod, varname))
             else:
-                self.cgen.stmt("android::base::Stream::%s((uint8_t*)%s)" % (streamMethod, toStreamExpr))
+                self.cgen.stmt("%s::Stream::%s((uint8_t*)%s)" % (streamNamespace, streamMethod, toStreamExpr))
 
         self.genPtrIncr(sizeExpr)
 
@@ -135,7 +138,7 @@ class VulkanReservedMarshalingCodegen(VulkanTypeIterator):
         varname = self.ptrVar
         cast = self.makeCastExpr(self.getTypeForStreaming(vulkanType))
         self.genMemcpyAndIncr(varname, cast, toStreamExpr, sizeExpr)
-    
+
     def genPrimitiveStreamCall(self, vulkanType, access):
         varname = self.ptrVar
         self.cgen.memcpyPrimitive(
@@ -143,6 +146,7 @@ class VulkanReservedMarshalingCodegen(VulkanTypeIterator):
             "(*" + varname + ")",
             access,
             vulkanType,
+            self.variant,
             direction=self.direction)
         self.genPtrIncr(str(self.cgen.countPrimitive(
             self.typeInfo,
@@ -735,6 +739,7 @@ class VulkanReservedMarshaling(VulkanWrapperGenerator):
         self.writeCodegen = \
             VulkanReservedMarshalingCodegen(
                 None,
+                self.variant,
                 VULKAN_STREAM_VAR_NAME,
                 ROOT_TYPE_VAR_NAME,
                 MARSHAL_INPUT_VAR_NAME,
@@ -746,6 +751,7 @@ class VulkanReservedMarshaling(VulkanWrapperGenerator):
         self.readCodegen = \
             VulkanReservedMarshalingCodegen(
                 None,
+                self.variant,
                 VULKAN_STREAM_VAR_NAME,
                 ROOT_TYPE_VAR_NAME,
                 UNMARSHAL_INPUT_VAR_NAME,
@@ -830,7 +836,7 @@ class VulkanReservedMarshaling(VulkanWrapperGenerator):
                 marshalingCode = \
                     CUSTOM_MARSHAL_TYPES[name]["common"] + \
                     CUSTOM_MARSHAL_TYPES[name]["reservedmarshaling"].format(
-                        streamVarName=self.writeCodegen.streamVarName, 
+                        streamVarName=self.writeCodegen.streamVarName,
                         rootTypeVarName=self.writeCodegen.rootTypeVarName,
                         inputVarName=self.writeCodegen.inputVarName,
                         newInputVarName=self.writeCodegen.inputVarName + "_new")
@@ -907,7 +913,7 @@ class VulkanReservedMarshaling(VulkanWrapperGenerator):
                 unmarshalingCode = \
                     CUSTOM_MARSHAL_TYPES[name]["common"] + \
                     CUSTOM_MARSHAL_TYPES[name]["reservedunmarshaling"].format(
-                        streamVarName=self.readCodegen.streamVarName, 
+                        streamVarName=self.readCodegen.streamVarName,
                         rootTypeVarName=self.readCodegen.rootTypeVarName,
                         inputVarName=self.readCodegen.inputVarName,
                         newInputVarName=self.readCodegen.inputVarName + "_new")
@@ -981,12 +987,14 @@ class VulkanReservedMarshaling(VulkanWrapperGenerator):
 
         cgen.line("// known or null extension struct")
 
+        streamNamespace = "gfxstream::guest" if self.variant == "guest" else "android::base"
+
         if direction == "write":
             cgen.stmt("memcpy(*%s, &%s, sizeof(uint32_t));" % (self.ptrVarName, sizeVar))
-            cgen.stmt("android::base::Stream::toBe32((uint8_t*)*%s); *%s += sizeof(uint32_t)" % (self.ptrVarName, self.ptrVarName))
+            cgen.stmt("%s::Stream::toBe32((uint8_t*)*%s); *%s += sizeof(uint32_t)" % (streamNamespace, self.ptrVarName, self.ptrVarName))
         elif not self.dynAlloc:
             cgen.stmt("memcpy(&%s, *%s, sizeof(uint32_t));" % (sizeVar, self.ptrVarName))
-            cgen.stmt("android::base::Stream::fromBe32((uint8_t*)&%s); *%s += sizeof(uint32_t)" % (sizeVar, self.ptrVarName))
+            cgen.stmt("%s::Stream::fromBe32((uint8_t*)&%s); *%s += sizeof(uint32_t)" % (streamNamespace, sizeVar, self.ptrVarName))
 
         cgen.beginIf("!%s" % (sizeVar))
         cgen.line("// exit if this was a null extension struct (size == 0 in this branch)")

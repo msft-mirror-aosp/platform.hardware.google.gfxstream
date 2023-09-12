@@ -14,7 +14,7 @@ lib_stream = static_library(
    'stream',
    files_lib_stream,
    cpp_args: cpp_args,
-   include_directories: [inc_vulkan_headers, inc_host, inc_opengl_codec,
+   include_directories: [inc_vulkan_headers, inc_guest_iostream, inc_opengl_codec,
                          inc_android_emu, inc_render_enc, inc_android_compat,
                          inc_qemu_pipe, inc_qemu_pipe_types, inc_gralloc,
                          inc_vulkan_enc, inc_goldfish_address_space,
