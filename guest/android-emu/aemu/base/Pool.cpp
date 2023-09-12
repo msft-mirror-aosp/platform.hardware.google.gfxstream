@@ -29,8 +29,8 @@
 
 #endif
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 // A Pool consists of:
 // - Heaps one for each allocation size

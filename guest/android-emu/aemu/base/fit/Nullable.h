@@ -24,7 +24,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace android::base {
+namespace gfxstream::guest {
 namespace fit {
 
 // Determines whether a type can be compared with nullptr.
@@ -262,4 +262,4 @@ constexpr bool operator!=(const T& lhs, const Nullable<U>& rhs) {
 }
 
 }  // namespace fit
-}  // namespace android::base
+}  // namespace gfxstream::guest

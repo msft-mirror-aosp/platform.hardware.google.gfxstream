@@ -63,7 +63,7 @@
 #include <cutils/trace.h>
 
 
-using android::base::guest::getCurrentThreadId;
+using gfxstream::guest::getCurrentThreadId;
 
 #define DEBUG_EGL 0
 
@@ -741,17 +741,17 @@ struct FrameTracingState {
     void onSwapBuffersSuccesful(ExtendedRCEncoderContext* rcEnc) {
 #ifdef GFXSTREAM
         // edge trigger
-        if (android::base::isTracingEnabled() && !tracingEnabled) {
+        if (gfxstream::guest::isTracingEnabled() && !tracingEnabled) {
             if (rcEnc->hasHostSideTracing()) {
                 rcEnc->rcSetTracingForPuid(rcEnc, getPuid(), 1, currGuestTimeNs());
             }
         }
-        if (!android::base::isTracingEnabled() && tracingEnabled) {
+        if (!gfxstream::guest::isTracingEnabled() && tracingEnabled) {
             if (rcEnc->hasHostSideTracing()) {
                 rcEnc->rcSetTracingForPuid(rcEnc, getPuid(), 0, currGuestTimeNs());
             }
         }
-        tracingEnabled = android::base::isTracingEnabled();
+        tracingEnabled = gfxstream::guest::isTracingEnabled();
 #endif
         ++frameNumber;
     }

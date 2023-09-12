@@ -17,8 +17,8 @@
 // Library to perform tracing. Talks to platform-specific
 // tracing libraries.
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 #ifdef HOST_BUILD
 void initializeTracing();
@@ -68,7 +68,7 @@ private:
 #define AEMU_GENSYM(x) __AEMU_GENSYM1(x,__COUNTER__)
 
 #ifdef HOST_BUILD
-#define AEMU_SCOPED_TRACE(tag) __attribute__ ((unused)) android::base::ScopedTrace AEMU_GENSYM(aemuScopedTrace_)(tag)
+#define AEMU_SCOPED_TRACE(tag) __attribute__ ((unused)) gfxstream::guest::ScopedTrace AEMU_GENSYM(aemuScopedTrace_)(tag)
 #else
-#define AEMU_SCOPED_TRACE(tag) __attribute__ ((unused)) android::base::ScopedTraceGuest AEMU_GENSYM(aemuScopedTrace_)(tag)
+#define AEMU_SCOPED_TRACE(tag) __attribute__ ((unused)) gfxstream::guest::ScopedTraceGuest AEMU_GENSYM(aemuScopedTrace_)(tag)
 #endif
