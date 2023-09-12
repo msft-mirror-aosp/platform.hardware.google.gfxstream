@@ -20,6 +20,12 @@ cc_library_static {
         "common/goldfish_vk_dispatch.cpp",
         "common/goldfish_vk_transform.cpp",
     ],
+    header_libs: [
+        "gfxstream_vulkan_headers",
+    ],
+    export_header_lib_headers: [
+        "gfxstream_vulkan_headers",
+    ],
     cflags: [
         "-DVK_ANDROID_native_buffer",
         "-DVK_GOOGLE_address_space",

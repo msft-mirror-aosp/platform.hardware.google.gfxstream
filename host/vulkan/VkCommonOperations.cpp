@@ -25,6 +25,7 @@
 #include <sstream>
 #include <unordered_set>
 
+#include "VkDecoderGlobalState.h"
 #include "VkFormatUtils.h"
 #include "VulkanDispatch.h"
 #include "aemu/base/Optional.h"
@@ -1297,6 +1298,8 @@ void teardownGlobalVkEmulation() {
 
     sVkEmulation->ivk->vkDestroyDevice(sVkEmulation->device, nullptr);
     sVkEmulation->gvk->vkDestroyInstance(sVkEmulation->instance, nullptr);
+
+    VkDecoderGlobalState::reset();
 
     sVkEmulation->live = false;
     delete sVkEmulation;
