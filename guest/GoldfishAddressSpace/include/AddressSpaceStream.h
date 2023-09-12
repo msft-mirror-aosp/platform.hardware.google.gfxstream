@@ -18,17 +18,12 @@
 
 #include "IOStream.h"
 #include "VirtGpu.h"
+#include "address_space.h"
 #include "address_space_graphics_types.h"
 #include "aemu/base/AndroidHealthMonitor.h"
-#include "goldfish_address_space.h"
 
 using gfxstream::guest::HealthMonitor;
 using gfxstream::guest::IOStream;
-
-class AddressSpaceStream;
-
-AddressSpaceStream* createAddressSpaceStream(size_t bufSize, HealthMonitor<>* healthMonitor);
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMonitor);
 
 class AddressSpaceStream : public IOStream {
 public:

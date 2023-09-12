@@ -21,23 +21,23 @@ package {
 
 cc_library_shared {
     name: "libEGL_emulation",
+    host_supported: true,
     vendor: true,
-    relative_install_path: "egl",
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "libgfxstream_guest_graphics_headers",
         "libnativebase_headers",
-        "libui_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_guest_graphics_headers",
     ],
     shared_libs: [
         "libandroidemu",
         "libcutils",
-        "libdl",
         "libdrm",
         "liblog",
-        "libnativewindow",
         "libGoldfishProfiler",
         "libOpenglCodecCommon",
         "libOpenglSystemCommon",
@@ -59,4 +59,15 @@ cc_library_shared {
         "egl.cpp",
         "ClientAPIExts.cpp",
     ],
+    target: {
+        android: {
+            relative_install_path: "egl",
+            header_libs: [
+                "libui_headers",
+            ],
+            shared_libs: [
+                "libdl",
+            ],
+        },
+    },
 }

@@ -21,29 +21,30 @@ package {
 
 cc_library_shared {
     name: "libvulkan_enc",
+    host_supported: true,
     vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "gfxstream_vulkan_headers",
-        "hwvulkan_headers",
+        "libgfxstream_guest_graphics_headers",
         "libgfxstream_guest_iostream",
+        "libnativewindow_headers",
     ],
     shared_libs: [
         "libandroidemu",
         "libcutils",
         "liblog",
-        "libnativewindow",
-        "libsync",
         "libOpenglCodecCommon",
         "lib_renderControl_enc",
     ],
     static_libs: [
         "libarect",
         "libdrm",
-        "libGoldfishAddressSpace",
         "libplatform",
+        "libGoldfishAddressSpace",
+        "libgfxstream_guest_gralloc",
     ],
     cflags: [
         "-DLOG_TAG=\"goldfish_vulkan\"",
@@ -79,4 +80,14 @@ cc_library_shared {
     export_include_dirs: [
         ".",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libnativewindow",
+            ],
+            header_libs: [
+                "hwvulkan_headers",
+            ],
+        }
+    }
 }
