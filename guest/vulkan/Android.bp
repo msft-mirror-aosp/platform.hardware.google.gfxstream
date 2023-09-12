@@ -46,6 +46,7 @@ cc_library_shared {
         "-Wno-missing-field-initializers",
         "-Wno-unused-function",
         "-Wno-unused-parameter",
+        "-Wno-cast-calling-convention",
     ],
     srcs: [
         "goldfish_vulkan.cpp",
