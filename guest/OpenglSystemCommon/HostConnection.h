@@ -16,6 +16,7 @@
 #ifndef __COMMON_HOST_CONNECTION_H
 #define __COMMON_HOST_CONNECTION_H
 
+#include "ANativeWindow.h"
 #include "ChecksumCalculator.h"
 #include "EmulatorFeatureInfo.h"
 #include "Gralloc.h"
@@ -28,8 +29,6 @@ struct goldfish_dma_context;
 #else
 #include "goldfish_dma.h"
 #endif
-
-#include <cutils/native_handle.h>
 
 #ifdef GFXSTREAM
 #include <mutex>
@@ -180,6 +179,9 @@ public:
     gfxstream::SyncHelper* syncHelper() { return m_syncHelper; }
     void setSyncHelperForTesting(gfxstream::SyncHelper* sync) { m_syncHelper = sync;}
 
+    gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper; }
+    void setANativeWindowHelperForTesting(gfxstream::ANativeWindowHelper* anw) { m_anwHelper = anw; }
+
     void flush() {
         if (m_stream) {
             m_stream->flush();
@@ -256,6 +258,7 @@ private:
     std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
     ChecksumCalculator m_checksumHelper;
+    gfxstream::ANativeWindowHelper* m_anwHelper = nullptr;
     gfxstream::Gralloc* m_grallocHelper = nullptr;
     gfxstream::SyncHelper* m_syncHelper = nullptr;
     ProcessPipe* m_processPipe = nullptr;
