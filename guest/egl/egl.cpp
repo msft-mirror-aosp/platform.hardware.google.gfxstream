@@ -209,11 +209,6 @@ const char *  eglStrError(EGLint err)
 // The one and only supported display object.
 static eglDisplay s_display;
 
-// Extra defines not in the official EGL spec yet,
-// but required in Android CTS.
-
-#define EGL_TIMESTAMPS_ANDROID 0x314D
-
 EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* shareCtx, int maj, int min) :
     dpy(dpy),
     config(config),
