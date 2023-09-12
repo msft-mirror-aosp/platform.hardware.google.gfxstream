@@ -70,7 +70,7 @@ enum virgl_formats {
 
    VIRGL_FORMAT_R8_UNORM                = 64,
    VIRGL_FORMAT_R8G8_UNORM              = 65,
-
+   VIRGL_FORMAT_R8G8B8_UNORM            = 66,
    VIRGL_FORMAT_R8G8B8A8_UNORM          = 67,
 
    VIRGL_FORMAT_R8_SNORM                = 74,
@@ -139,6 +139,12 @@ enum virgl_formats {
    VIRGL_FORMAT_L32_FLOAT               = 160,
    VIRGL_FORMAT_L32A32_FLOAT            = 161,
 
+   VIRGL_FORMAT_YV12                    = 163,
+   VIRGL_FORMAT_YV16                    = 164,
+   VIRGL_FORMAT_IYUV                    = 165,  /**< aka I420 */
+   VIRGL_FORMAT_NV12                    = 166,
+   VIRGL_FORMAT_NV21                    = 167,
+
    VIRGL_FORMAT_R8_UINT                 = 177,
    VIRGL_FORMAT_R8G8_UINT               = 178,
    VIRGL_FORMAT_R8G8B8_UINT             = 179,
@@ -197,9 +203,16 @@ enum virgl_formats {
 
    VIRGL_FORMAT_R8G8B8X8_SRGB           = 230,
 
+   VIRGL_FORMAT_R8G8B8X8_UINT           = 231,
+   VIRGL_FORMAT_R8G8B8X8_SINT           = 232,
    VIRGL_FORMAT_B10G10R10X2_UNORM       = 233,
    VIRGL_FORMAT_R16G16B16X16_UNORM      = 234,
    VIRGL_FORMAT_R16G16B16X16_SNORM      = 235,
+   VIRGL_FORMAT_R16G16B16X16_FLOAT      = 236,
+   VIRGL_FORMAT_R16G16B16X16_UINT       = 237,
+   VIRGL_FORMAT_R16G16B16X16_SINT       = 238,
+
+   VIRGL_FORMAT_R10G10B10A2_UINT        = 253,
 
    VIRGL_FORMAT_BPTC_RGBA_UNORM         = 255,
    VIRGL_FORMAT_BPTC_SRGBA              = 256,
@@ -207,8 +220,16 @@ enum virgl_formats {
    VIRGL_FORMAT_BPTC_RGB_UFLOAT         = 258,
 
    VIRGL_FORMAT_R10G10B10X2_UNORM       = 308,
+   VIRGL_FORMAT_A4B4G4R4_UNORM          = 311,
 
-   VIRGL_FORMAT_MAX,
+   VIRGL_FORMAT_R8_SRGB                 = 312,
+   VIRGL_FORMAT_R8G8_SRGB               = 313,
+
+   VIRGL_FORMAT_P010                    = 314,
+   VIRGL_FORMAT_P012                    = 315,
+   VIRGL_FORMAT_P016                    = 316,
+
+   VIRGL_FORMAT_MAX /* = PIPE_FORMAT_COUNT */,
 };
 
 struct virgl_caps_bool_set1 {
