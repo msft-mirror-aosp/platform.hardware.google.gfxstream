@@ -21,6 +21,7 @@ package {
 
 cc_library_shared {
     name: "libGoldfishProfiler",
+    host_supported: true,
     vendor: true,
     shared_libs: [
         "libbase",

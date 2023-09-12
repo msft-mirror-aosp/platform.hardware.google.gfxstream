@@ -22,6 +22,8 @@
 #include "aemu/base/threads/AndroidThread.h"
 #include "cutils/properties.h"
 #include "renderControl_types.h"
+#include "GoldfishAddressSpaceStream.h"
+#include "VirtioGpuAddressSpaceStream.h"
 
 #if defined(__ANDROID__)
 #include "ANativeWindowAndroid.h"
@@ -266,7 +268,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
 
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
-            auto stream = createAddressSpaceStream(STREAM_BUFFER_SIZE, getGlobalHealthMonitor());
+            auto stream = createGoldfishAddressSpaceStream(STREAM_BUFFER_SIZE, getGlobalHealthMonitor());
             if (!stream) {
                 ALOGE("Failed to create AddressSpaceStream for host connection\n");
                 return nullptr;

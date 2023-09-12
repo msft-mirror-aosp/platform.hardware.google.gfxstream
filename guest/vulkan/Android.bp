@@ -21,14 +21,13 @@ package {
 
 cc_library_shared {
     name: "vulkan.ranchu",
+    host_supported: true,
     vendor: true,
-    relative_install_path: "hw",
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "gfxstream_vulkan_headers",
-        "hwvulkan_headers",
     ],
     shared_libs: [
         "libandroidemu",
@@ -51,4 +50,12 @@ cc_library_shared {
     srcs: [
         "goldfish_vulkan.cpp",
     ],
+    target: {
+        android: {
+            relative_install_path: "hw",
+            header_libs: [
+                "hwvulkan_headers",
+            ],
+        },
+    },
 }
