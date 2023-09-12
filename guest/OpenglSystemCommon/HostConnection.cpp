@@ -44,8 +44,8 @@
 using gfxstream::guest::CreateHealthMonitor;
 using gfxstream::guest::HealthMonitor;
 using gfxstream::guest::HealthMonitorConsumerBasic;
+using gfxstream::guest::IOStream;
 using gfxstream::GoldfishGralloc;
-using gfxstream::IOStream;
 using gfxstream::MinigbmGralloc;
 
 #ifdef GOLDFISH_NO_GL

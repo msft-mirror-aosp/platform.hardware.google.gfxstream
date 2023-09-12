@@ -141,6 +141,7 @@ def emit_unmarshal(typeInfo, param, cgen, output = False, destroy = False, noUnb
     if destroy:
         iterateVulkanType(typeInfo, param, VulkanReservedMarshalingCodegen(
             cgen,
+            "host",
             READ_STREAM,
             ROOT_TYPE_DEFAULT_VALUE,
             param.paramName,
@@ -168,6 +169,7 @@ def emit_unmarshal(typeInfo, param, cgen, output = False, destroy = False, noUnb
             cgen.line("// No unbox for %s" % (param.paramName))
         iterateVulkanType(typeInfo, param, VulkanReservedMarshalingCodegen(
             cgen,
+            "host",
             READ_STREAM,
             ROOT_TYPE_DEFAULT_VALUE,
             param.paramName,
@@ -185,6 +187,7 @@ def emit_dispatch_unmarshal(typeInfo: VulkanTypeInfo, param: VulkanType, cgen, g
 
     iterateVulkanType(typeInfo, param, VulkanReservedMarshalingCodegen(
         cgen,
+        "host",
         READ_STREAM,
         ROOT_TYPE_DEFAULT_VALUE,
         param.paramName,
