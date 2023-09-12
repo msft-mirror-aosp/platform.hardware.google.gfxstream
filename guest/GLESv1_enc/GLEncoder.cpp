@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <vector>
 
-using gfxstream::IOStream;
+using gfxstream::guest::IOStream;
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))

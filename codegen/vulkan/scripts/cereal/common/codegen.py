@@ -749,7 +749,7 @@ class CodeGen(object):
             self.stmt("%s->%s(%s)" %
                       (streamVar, streamMethod, streamStorageVar))
 
-    def memcpyPrimitive(self, typeInfo, streamVar, accessExpr, accessType, direction="write"):
+    def memcpyPrimitive(self, typeInfo, streamVar, accessExpr, accessType, variant, direction="write"):
         accessTypeName = accessType.typeName
 
         if accessType.pointerIndirectionLevels == 0 and not self.validPrimitive(typeInfo, accessTypeName):
@@ -788,13 +788,16 @@ class CodeGen(object):
 
         ptrCast = "(uintptr_t)" if needPtrCast else ""
 
+        streamNamespace = "gfxstream::guest" if variant == "guest" else "android::base"
+
         if direction == "read":
             self.stmt("memcpy((%s*)&%s, %s, %s)" %
                       (accessCast,
                        accessExpr,
                        streamVar,
                        str(streamSize)))
-            self.stmt("android::base::Stream::%s((uint8_t*)&%s)" % (
+            self.stmt("%s::Stream::%s((uint8_t*)&%s)" % (
+                streamNamespace,
                 streamMethod,
                 accessExpr))
         else:
@@ -803,7 +806,8 @@ class CodeGen(object):
                        streamStorageVarType, ptrCast, accessExpr))
             self.stmt("memcpy(%s, &%s, %s)" %
                       (streamVar, streamStorageVar, str(streamSize)))
-            self.stmt("android::base::Stream::%s((uint8_t*)%s)" % (
+            self.stmt("%s::Stream::%s((uint8_t*)%s)" % (
+                streamNamespace,
                 streamMethod,
                 streamVar))
 
