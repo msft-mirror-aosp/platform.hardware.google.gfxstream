@@ -52,7 +52,7 @@
 #ifdef VIRTIO_GPU
 #include <xf86drm.h>
 #include <poll.h>
-
+#include "VirtGpu.h"
 #include "virtgpu_drm.h"
 
 #endif // VIRTIO_GPU
@@ -660,8 +660,8 @@ static uint64_t createNativeSync_virtioGpu(
                            &sync_handle,
                            &thread_handle);
 
-    // Import fence fd; dup and close
     if (type == EGL_SYNC_NATIVE_FENCE_ANDROID && fd_in >= 0) {
+        // Import fence fd; dup and close
         int importedFd = dup(fd_in);
 
         if (importedFd < 0) {
@@ -675,44 +675,26 @@ static uint64_t createNativeSync_virtioGpu(
             ALOGE("%s: error: failed to close imported fd. original: %d errno %d\n",
                   __func__, fd_in, errno);
         }
-
     } else if (type == EGL_SYNC_NATIVE_FENCE_ANDROID && fd_in < 0) {
         // Export fence fd
+        struct VirtGpuExecBuffer exec = { };
+        struct gfxstreamCreateExportSync exportSync = { };
+        exportSync.hdr.opCode = GFXSTREAM_CREATE_EXPORT_SYNC;
+        exportSync.syncHandleLo = (uint32_t)sync_handle;
+        exportSync.syncHandleHi = (uint32_t)(sync_handle >> 32);
 
-        uint32_t sync_handle_lo = (uint32_t)sync_handle;
-        uint32_t sync_handle_hi = (uint32_t)(sync_handle >> 32);
-
-        uint32_t cmdDwords[3] = {
-            VIRTIO_GPU_NATIVE_SYNC_CREATE_EXPORT_FD,
-            sync_handle_lo,
-            sync_handle_hi,
-        };
-
-        drm_virtgpu_execbuffer createSyncExport = {
-            .flags = VIRTGPU_EXECBUF_FENCE_FD_OUT,
-            .size = 3 * sizeof(uint32_t),
-            .command = (uint64_t)(cmdDwords),
-            .bo_handles = 0,
-            .num_bo_handles = 0,
-            .fence_fd = -1,
-        };
-
-        int queue_work_err =
-            drmIoctl(
-                hostCon->getRendernodeFd(),
-                DRM_IOCTL_VIRTGPU_EXECBUFFER, &createSyncExport);
-
-        if (queue_work_err) {
-            ERR("%s: failed with %d executing command buffer (%s)",  __func__,
-                queue_work_err, strerror(errno));
+        VirtGpuDevice* instance = VirtGpuDevice::getInstance();
+        exec.command = static_cast<void*>(&exportSync);
+        exec.command_size = sizeof(exportSync);
+        exec.flags = kFenceOut;
+        if (instance->execBuffer(exec, /*blob=*/nullptr)) {
+            ERR("Failed to execbuffer to create sync.");
             return 0;
         }
-
-        *fd_out = createSyncExport.fence_fd;
+        *fd_out = exec.handle.osHandle
 
         DPRINT("virtio-gpu: got native fence fd=%d queue_work_err=%d",
                *fd_out, queue_work_err);
-
     }
 
     return sync_handle;
