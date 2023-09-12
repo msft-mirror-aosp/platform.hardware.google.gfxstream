@@ -72,6 +72,8 @@ cc_library_shared {
     srcs: [
         "AddressSpaceStream.cpp",
         "FormatConversions.cpp",
+        "GrallocGoldfish.cpp",
+        "GrallocMinigbm.cpp",
         "HostConnection.cpp",
         "ProcessPipe.cpp",
         "QemuPipeStream.cpp",

@@ -35,21 +35,21 @@
 static EGLClient_eglInterface * s_egl = NULL;
 static EGLClient_glesInterface * s_gl = NULL;
 
-#define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret) \
-    HostConnection *hostCon = HostConnection::get(); \
-    if (!hostCon) { \
-        ALOGE("egl: Failed to get host connection\n"); \
-        return ret; \
-    } \
-    renderControl_encoder_context_t *rcEnc = hostCon->rcEncoder(); \
-    if (!rcEnc) { \
+#define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret)                     \
+    HostConnection* hostCon = HostConnection::get();                 \
+    if (!hostCon) {                                                  \
+        ALOGE("egl: Failed to get host connection\n");               \
+        return ret;                                                  \
+    }                                                                \
+    renderControl_encoder_context_t* rcEnc = hostCon->rcEncoder();   \
+    if (!rcEnc) {                                                    \
         ALOGE("egl: Failed to get renderControl encoder context\n"); \
-        return ret; \
-    } \
-    Gralloc *grallocHelper = hostCon->grallocHelper(); \
-    if (!grallocHelper) { \
-        ALOGE("egl: Failed to get grallocHelper\n"); \
-        return ret; \
+        return ret;                                                  \
+    }                                                                \
+    auto* grallocHelper = hostCon->grallocHelper();                  \
+    if (!grallocHelper) {                                            \
+        ALOGE("egl: Failed to get grallocHelper\n");                 \
+        return ret;                                                  \
     }
 
 //GL extensions
@@ -58,7 +58,7 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
     (void)self;
 
     DBG("glEGLImageTargetTexture2DOES v1 target=%#x img=%p", target, img);
-    
+
     EGLImage_t *image = (EGLImage_t*)img;
 
     if (image->target == EGL_NATIVE_BUFFER_ANDROID) {
