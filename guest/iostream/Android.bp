@@ -19,33 +19,22 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_library_static {
-    name: "libplatform",
-    vendor: true,
-    srcs: [
-        "linux/VirtGpuBlob.cpp",
-        "linux/VirtGpuBlobMapping.cpp",
-        "linux/VirtGpuDevice.cpp"
+cc_library_headers {
+    name: "libgfxstream_guest_iostream",
+    vendor_available: true,
+    header_libs: [
+        "libgfxstream_guest_errorlog_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_guest_errorlog_headers",
     ],
     shared_libs: [
-        "libcutils",
-        "libdrm",
         "liblog",
-        "libutils",
     ],
     export_shared_lib_headers: [
-        "libdrm",
+        "liblog",
     ],
     export_include_dirs: [
-        "include"
-    ],
-    cflags: [
-        "-DLOG_TAG=\"platform\"",
-        "-Wno-missing-field-initializers",
-        "-fvisibility=default",
-        "-fstrict-aliasing",
-    ],
-    local_include_dirs: [
-        "include",
+        "include/libOpenglRender",
     ],
 }

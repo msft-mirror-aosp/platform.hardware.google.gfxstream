@@ -19,33 +19,40 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_library_static {
-    name: "libplatform",
+cc_library_shared {
+    name: "libGLESv2_enc",
     vendor: true,
-    srcs: [
-        "linux/VirtGpuBlob.cpp",
-        "linux/VirtGpuBlobMapping.cpp",
-        "linux/VirtGpuDevice.cpp"
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    header_libs: [
+        "libgfxstream_guest_graphics_headers",
+        "libgfxstream_guest_iostream",
     ],
     shared_libs: [
-        "libcutils",
-        "libdrm",
+        "libandroidemu",
         "liblog",
-        "libutils",
+        "libOpenglCodecCommon",
     ],
     export_shared_lib_headers: [
-        "libdrm",
-    ],
-    export_include_dirs: [
-        "include"
+        "libOpenglCodecCommon",
     ],
     cflags: [
-        "-DLOG_TAG=\"platform\"",
-        "-Wno-missing-field-initializers",
-        "-fvisibility=default",
-        "-fstrict-aliasing",
+        "-DGL_GLEXT_PROTOTYPES",
+        "-DLOG_TAG=\"emuglGLESv2_enc\"",
+        "-DVIRTIO_GPU",
+        "-Wno-unused-private-field",
     ],
-    local_include_dirs: [
-        "include",
+    srcs: [
+        "GL2EncoderUtils.cpp",
+        "GL2Encoder.cpp",
+        "GLESv2Validation.cpp",
+        "gl2_client_context.cpp",
+        "gl2_enc.cpp",
+        "gl2_entry.cpp",
+        "IOStream2.cpp",
+    ],
+    export_include_dirs: [
+        ".",
     ],
 }
