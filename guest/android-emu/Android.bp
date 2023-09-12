@@ -15,6 +15,7 @@ cc_library_shared {
         "aemu/base/files/MemStream.cpp",
         "aemu/base/files/Stream.cpp",
         "aemu/base/files/StreamSerializing.cpp",
+        "aemu/base/Path.cpp",
         "aemu/base/Pool.cpp",
         "aemu/base/StringFormat.cpp",
         "aemu/base/Process.cpp",
