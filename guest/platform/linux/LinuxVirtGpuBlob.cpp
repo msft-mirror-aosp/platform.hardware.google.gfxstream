@@ -23,17 +23,17 @@
 
 #include <cutils/log.h>
 
-#include "VirtGpu.h"
+#include "LinuxVirtGpu.h"
 #include "virtgpu_drm.h"
 
-VirtGpuBlob::VirtGpuBlob(int64_t deviceHandle, uint32_t blobHandle, uint32_t resourceHandle,
+LinuxVirtGpuBlob::LinuxVirtGpuBlob(int64_t deviceHandle, uint32_t blobHandle, uint32_t resourceHandle,
                          uint64_t size)
     : mDeviceHandle(deviceHandle),
       mBlobHandle(blobHandle),
       mResourceHandle(resourceHandle),
       mSize(size) {}
 
-VirtGpuBlob::~VirtGpuBlob(void) {
+LinuxVirtGpuBlob::~LinuxVirtGpuBlob(void) {
     struct drm_gem_close gem_close {
         .handle = mBlobHandle, .pad = 0,
     };
@@ -45,15 +45,15 @@ VirtGpuBlob::~VirtGpuBlob(void) {
     }
 }
 
-uint32_t VirtGpuBlob::getBlobHandle(void) {
+uint32_t LinuxVirtGpuBlob::getBlobHandle(void) {
     return mBlobHandle;
 }
 
-uint32_t VirtGpuBlob::getResourceHandle(void) {
+uint32_t LinuxVirtGpuBlob::getResourceHandle(void) {
     return mResourceHandle;
 }
 
-VirtGpuBlobMappingPtr VirtGpuBlob::createMapping(void) {
+VirtGpuBlobMappingPtr LinuxVirtGpuBlob::createMapping(void) {
     int ret;
     struct drm_virtgpu_map map {
         .handle = mBlobHandle, .pad = 0,
@@ -73,10 +73,10 @@ VirtGpuBlobMappingPtr VirtGpuBlob::createMapping(void) {
         return nullptr;
     }
 
-    return std::make_shared<VirtGpuBlobMapping>(shared_from_this(), ptr, mSize);
+    return std::make_shared<LinuxVirtGpuBlobMapping>(shared_from_this(), ptr, mSize);
 }
 
-int VirtGpuBlob::exportBlob(struct VirtGpuExternalHandle& handle) {
+int LinuxVirtGpuBlob::exportBlob(struct VirtGpuExternalHandle& handle) {
     int ret, fd;
 
     ret = drmPrimeHandleToFD(mDeviceHandle, mBlobHandle, DRM_CLOEXEC | DRM_RDWR, &fd);
@@ -90,7 +90,7 @@ int VirtGpuBlob::exportBlob(struct VirtGpuExternalHandle& handle) {
     return 0;
 }
 
-int VirtGpuBlob::wait() {
+int LinuxVirtGpuBlob::wait() {
     int ret;
     struct drm_virtgpu_3d_wait wait_3d = {0};
 
