@@ -149,38 +149,38 @@ const char *  eglStrError(EGLint err)
     HostConnection *hostCon = HostConnection::get(); \
     ExtendedRCEncoderContext *rcEnc = (hostCon ? hostCon->rcEncoder() : NULL)
 
-#define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret) \
-    HostConnection *hostCon = HostConnection::get(); \
-    if (!hostCon) { \
-        ALOGE("egl: Failed to get host connection\n"); \
-        return ret; \
-    } \
-    ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
-    if (!rcEnc) { \
+#define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret)                     \
+    HostConnection* hostCon = HostConnection::get();                 \
+    if (!hostCon) {                                                  \
+        ALOGE("egl: Failed to get host connection\n");               \
+        return ret;                                                  \
+    }                                                                \
+    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();          \
+    if (!rcEnc) {                                                    \
         ALOGE("egl: Failed to get renderControl encoder context\n"); \
-        return ret; \
-    } \
-    Gralloc *grallocHelper = hostCon->grallocHelper(); \
-    if (!grallocHelper) { \
-        ALOGE("egl: Failed to get grallocHelper\n"); \
-        return ret; \
+        return ret;                                                  \
+    }                                                                \
+    auto* grallocHelper = hostCon->grallocHelper();                  \
+    if (!grallocHelper) {                                            \
+        ALOGE("egl: Failed to get grallocHelper\n");                 \
+        return ret;                                                  \
     }
 
-#define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls) \
-    HostConnection *hostCon = HostConnection::getWithThreadInfo(tls); \
-    if (!hostCon) { \
-        ALOGE("egl: Failed to get host connection\n"); \
-        return ret; \
-    } \
-    ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
-    if (!rcEnc) { \
-        ALOGE("egl: Failed to get renderControl encoder context\n"); \
-        return ret; \
-    } \
-    Gralloc const* grallocHelper = hostCon->grallocHelper(); \
-    if (!grallocHelper) { \
-        ALOGE("egl: Failed to get grallocHelper\n"); \
-        return ret; \
+#define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls)         \
+    HostConnection* hostCon = HostConnection::getWithThreadInfo(tls); \
+    if (!hostCon) {                                                   \
+        ALOGE("egl: Failed to get host connection\n");                \
+        return ret;                                                   \
+    }                                                                 \
+    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();           \
+    if (!rcEnc) {                                                     \
+        ALOGE("egl: Failed to get renderControl encoder context\n");  \
+        return ret;                                                   \
+    }                                                                 \
+    auto const* grallocHelper = hostCon->grallocHelper();             \
+    if (!grallocHelper) {                                             \
+        ALOGE("egl: Failed to get grallocHelper\n");                  \
+        return ret;                                                   \
     }
 
 #define VALIDATE_CONTEXT_RETURN(context,ret)  \
