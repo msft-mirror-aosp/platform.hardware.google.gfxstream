@@ -160,7 +160,7 @@ void virtgpu_address_space_close(address_space_handle_t fd) {
 bool virtgpu_address_space_ping(address_space_handle_t fd, struct address_space_ping* info) {
     int ret;
     struct VirtGpuExecBuffer exec = {};
-    VirtGpuDevice& instance = VirtGpuDevice::getInstance();
+    VirtGpuDevice* instance = VirtGpuDevice::getInstance();
     struct gfxstreamContextPing ping = {};
 
     ping.hdr.opCode = GFXSTREAM_CONTEXT_PING;
@@ -169,7 +169,7 @@ bool virtgpu_address_space_ping(address_space_handle_t fd, struct address_space_
     exec.command = static_cast<void*>(&ping);
     exec.command_size = sizeof(ping);
 
-    ret = instance.execBuffer(exec, nullptr);
+    ret = instance->execBuffer(exec, nullptr);
     if (ret)
         return false;
 
@@ -186,15 +186,15 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMon
     char* blobAddr, *bufferPtr;
     int ret;
 
-    VirtGpuDevice& instance = VirtGpuDevice::getInstance();
-    VirtGpuCaps caps = instance.getCaps();
+    VirtGpuDevice* instance = VirtGpuDevice::getInstance();
+    VirtGpuCaps caps = instance->getCaps();
 
     blobCreate.blobId = 0;
     blobCreate.blobMem = kBlobMemHost3d;
     blobCreate.flags = kBlobFlagMappable;
     blobCreate.size = ALIGN(caps.gfxstreamCapset.ringSize + caps.gfxstreamCapset.bufferSize,
                             caps.gfxstreamCapset.blobAlignment);
-    blob = instance.createBlob(blobCreate);
+    blob = instance->createBlob(blobCreate);
     if (!blob)
         return nullptr;
 
@@ -205,7 +205,7 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMon
     exec.command = static_cast<void*>(&contextCreate);
     exec.command_size = sizeof(contextCreate);
 
-    ret = instance.execBuffer(exec, blob);
+    ret = instance->execBuffer(exec, blob);
     if (ret)
         return nullptr;
 

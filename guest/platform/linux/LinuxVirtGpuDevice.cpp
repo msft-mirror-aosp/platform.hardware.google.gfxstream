@@ -23,7 +23,7 @@
 
 #include <cutils/log.h>
 
-#include "VirtGpu.h"
+#include "LinuxVirtGpu.h"
 #include "virtgpu_drm.h"
 #include "virtgpu_gfxstream_protocol.h"
 
@@ -35,12 +35,7 @@
 #define VIRGL_BIND_CUSTOM (1 << 17)
 #define PIPE_BUFFER 0
 
-VirtGpuDevice& VirtGpuDevice::getInstance(enum VirtGpuCapset capset) {
-    static VirtGpuDevice mInstance(capset);
-    return mInstance;
-}
-
-VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
+LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset) {
     struct VirtGpuParam params[] = {
         PARAM(VIRTGPU_PARAM_3D_FEATURES),          PARAM(VIRTGPU_PARAM_CAPSET_QUERY_FIX),
         PARAM(VIRTGPU_PARAM_RESOURCE_BLOB),        PARAM(VIRTGPU_PARAM_HOST_VISIBLE),
@@ -111,13 +106,17 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
     }
 }
 
-struct VirtGpuCaps VirtGpuDevice::getCaps(void) { return mCaps; }
+LinuxVirtGpuDevice::~LinuxVirtGpuDevice() {
+    close(mDeviceHandle);
+}
 
-int64_t VirtGpuDevice::getDeviceHandle(void) {
+struct VirtGpuCaps LinuxVirtGpuDevice::getCaps(void) { return mCaps; }
+
+int64_t LinuxVirtGpuDevice::getDeviceHandle(void) {
     return mDeviceHandle;
 }
 
-VirtGpuBlobPtr VirtGpuDevice::createPipeBlob(uint32_t size) {
+VirtGpuBlobPtr LinuxVirtGpuDevice::createPipeBlob(uint32_t size) {
     drm_virtgpu_resource_create create = {
             .target = PIPE_BUFFER,
             .format = VIRGL_FORMAT_R8_UNORM,
@@ -136,11 +135,11 @@ VirtGpuBlobPtr VirtGpuDevice::createPipeBlob(uint32_t size) {
         return nullptr;
     }
 
-    return std::make_shared<VirtGpuBlob>(mDeviceHandle, create.bo_handle, create.res_handle,
+    return std::make_shared<LinuxVirtGpuBlob>(mDeviceHandle, create.bo_handle, create.res_handle,
                                          static_cast<uint64_t>(size));
 }
 
-VirtGpuBlobPtr VirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
+VirtGpuBlobPtr LinuxVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
     int ret;
     struct drm_virtgpu_resource_create_blob create = {0};
 
@@ -155,11 +154,11 @@ VirtGpuBlobPtr VirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCre
         return nullptr;
     }
 
-    return std::make_shared<VirtGpuBlob>(mDeviceHandle, create.bo_handle, create.res_handle,
+    return std::make_shared<LinuxVirtGpuBlob>(mDeviceHandle, create.bo_handle, create.res_handle,
                                          blobCreate.size);
 }
 
-VirtGpuBlobPtr VirtGpuDevice::importBlob(const struct VirtGpuExternalHandle& handle) {
+VirtGpuBlobPtr LinuxVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle& handle) {
     struct drm_virtgpu_resource_info info = {0};
     uint32_t blobHandle;
     int ret;
@@ -178,11 +177,11 @@ VirtGpuBlobPtr VirtGpuDevice::importBlob(const struct VirtGpuExternalHandle& han
         return nullptr;
     }
 
-    return std::make_shared<VirtGpuBlob>(mDeviceHandle, blobHandle, info.res_handle,
+    return std::make_shared<LinuxVirtGpuBlob>(mDeviceHandle, blobHandle, info.res_handle,
                                          static_cast<uint64_t>(info.size));
 }
 
-int VirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob) {
+int LinuxVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob) {
     int ret;
     struct drm_virtgpu_execbuffer exec = {0};
     uint32_t blobHandle;
@@ -213,6 +212,11 @@ int VirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobP
     return 0;
 }
 
-VirtGpuDevice::~VirtGpuDevice() {
-    close(mDeviceHandle);
+namespace platform_internal {
+
+VirtGpuDevice* getPlatformVirtGpuDeviceInstance(enum VirtGpuCapset capset) {
+    static LinuxVirtGpuDevice sInstance(capset);
+    return &sInstance;
 }
+
+}  // namespace platform_internal
