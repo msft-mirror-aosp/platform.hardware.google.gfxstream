@@ -182,12 +182,6 @@ public:
         }
     }
 
-    void setGrallocOnly(bool gralloc_only) {
-        m_grallocOnly = gralloc_only;
-    }
-
-    bool isGrallocOnly() const { return m_grallocOnly; }
-
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wthread-safety-analysis"
@@ -261,7 +255,6 @@ private:
     gfxstream::Gralloc* m_grallocHelper = nullptr;
     ProcessPipe* m_processPipe = nullptr;
     std::string m_hostExtensions;
-    bool m_grallocOnly;
     bool m_noHostError;
 #ifdef GFXSTREAM
     mutable std::mutex m_lock;
