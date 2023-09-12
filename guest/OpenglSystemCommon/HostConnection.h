@@ -18,10 +18,10 @@
 
 #include "ChecksumCalculator.h"
 #include "EmulatorFeatureInfo.h"
+#include "Gralloc.h"
 #include "IOStream.h"
 #include "VirtGpu.h"
 #include "renderControl_enc.h"
-
 #ifdef __Fuchsia__
 struct goldfish_dma_context;
 #else
@@ -141,21 +141,6 @@ private:
     uint64_t m_dmaPhysAddr;
 };
 
-// Abstraction for gralloc handle conversion
-class Gralloc {
-public:
-    virtual uint32_t createColorBuffer(
-        ExtendedRCEncoderContext* rcEnc, int width, int height, uint32_t glformat) = 0;
-    virtual uint32_t getHostHandle(native_handle_t const* handle) = 0;
-    virtual int getFormat(native_handle_t const* handle) = 0;
-    virtual uint32_t getFormatDrmFourcc(native_handle_t const* /*handle*/) {
-        // Equal to DRM_FORMAT_INVALID -- see <drm_fourcc.h>
-        return 0;
-    }
-    virtual size_t getAllocatedSize(native_handle_t const* handle) = 0;
-    virtual ~Gralloc() {}
-};
-
 // Abstraction for process pipe helper
 class ProcessPipe {
 public:
@@ -189,7 +174,7 @@ public:
     int getRendernodeFd() { return m_rendernodeFd; }
 
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
-    Gralloc *grallocHelper() { return m_grallocHelper; }
+    gfxstream::Gralloc* grallocHelper() { return m_grallocHelper; }
 
     void flush() {
         if (m_stream) {
@@ -273,7 +258,7 @@ private:
     std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
     ChecksumCalculator m_checksumHelper;
-    Gralloc* m_grallocHelper = nullptr;
+    gfxstream::Gralloc* m_grallocHelper = nullptr;
     ProcessPipe* m_processPipe = nullptr;
     std::string m_hostExtensions;
     bool m_grallocOnly;
