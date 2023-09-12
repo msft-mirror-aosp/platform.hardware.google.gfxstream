@@ -72,7 +72,8 @@ VK_CEREAL_OUTPUT_DIR=$VK_CEREAL_HOST_DECODER_DIR/cereal
 python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml  -registryGfxstream $VULKAN_REGISTRY_XML_DIR/vk_gfxstream.xml cereal -o $VK_CEREAL_OUTPUT_DIR
 
 
-# Generate VK_ANDROID_native_buffer specific Vulkan definitions.
+# Generate VK_ANDROID_native_buffer specific Vulkan definitions
+# (see note in generated header for why this is separate).
 if [ -d $VK_CEREAL_HOST_DECODER_DIR ]; then
     OUT_DIR=$VK_CEREAL_HOST_DECODER_DIR
     OUT_FILE_BASENAME="vk_android_native_buffer.h"
