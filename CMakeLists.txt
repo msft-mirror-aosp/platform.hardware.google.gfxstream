@@ -152,12 +152,6 @@ add_subdirectory(host)
 
 add_subdirectory(codegen)
 
-# Fake Android guest#########################3##################################
-
-if (NOT WIN32 AND NOT APPLE AND NOT QNX)
-    add_subdirectory(fake-android-guest)
-endif()
-
 if (ENABLE_VKCEREAL_TESTS)
     list(APPEND EXTRA_SUBDIR_TEST_INCLUDE_FILES ${CMAKE_SOURCE_DIR}/cmake/test_properties.cmake)
 endif()
