@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-#include <sys/mman.h>
+#include "StubVirtGpu.h"
 
-#include "VirtGpu.h"
-
-VirtGpuBlobMapping::VirtGpuBlobMapping(VirtGpuBlobPtr blob, uint8_t* ptr, uint64_t size)
+StubVirtGpuBlobMapping::StubVirtGpuBlobMapping(VirtGpuBlobPtr blob, uint8_t* ptr, uint64_t size)
     : mBlob(blob), mPtr(ptr), mSize(size) {}
 
-VirtGpuBlobMapping::~VirtGpuBlobMapping(void) {
-    munmap(mPtr, mSize);
+StubVirtGpuBlobMapping::~StubVirtGpuBlobMapping(void) {
+    // Unimplemented for now
+   (void) mPtr;
+   (void) mSize;
+   (void) mBlob;
 }
 
-uint8_t* VirtGpuBlobMapping::asRawPtr(void) {
-    return mPtr;
+uint8_t* StubVirtGpuBlobMapping::asRawPtr(void) {
+    return nullptr;
 }
-
