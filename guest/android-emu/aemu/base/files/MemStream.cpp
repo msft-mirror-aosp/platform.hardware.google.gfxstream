@@ -20,8 +20,8 @@
 #include <utility>
 #include <cstring>
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 MemStream::MemStream(int reserveSize) {
     mData.reserve(reserveSize);

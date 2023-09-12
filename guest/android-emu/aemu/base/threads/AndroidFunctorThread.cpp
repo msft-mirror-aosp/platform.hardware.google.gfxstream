@@ -16,8 +16,7 @@
 
 #include <assert.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
 FunctorThread::FunctorThread(Functor&& func, ThreadFlags flags)
@@ -30,6 +29,5 @@ intptr_t FunctorThread::main() {
     return mThreadFunc();
 }
 
-}  // namespace guest
-}  // namespace base
-}  // namespace android
+} // namespace guest
+} // namespace gfxstream

@@ -26,8 +26,7 @@
 #include <stdint.h>
 #include <assert.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
 // A class that implements a condition variable, which can be used in
@@ -229,6 +228,5 @@ inline void ConditionVariable::broadcastAndUnlock(AutoLock<Lockable>* lock) {
 }
 #endif  // !_WIN32
 
-}  // namespace guest
-}  // namespace base
-}  // namespace android
+} // namespace guest
+} // namespace gfxstream

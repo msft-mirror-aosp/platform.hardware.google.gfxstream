@@ -32,8 +32,7 @@
 #  define D(...)   ((void)0)
 #endif
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
 #ifdef _WIN32
@@ -243,6 +242,5 @@ ThreadStoreBase::~ThreadStoreBase() {
 
 #endif  // !_WIN32
 
-}  // namespace guest
-}  // namespace base
-}  // namespace android
+} // namespace guest
+} // namespace gfxstream
