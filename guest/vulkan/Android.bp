@@ -19,33 +19,36 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_library_static {
-    name: "libplatform",
+cc_library_shared {
+    name: "vulkan.ranchu",
     vendor: true,
-    srcs: [
-        "linux/VirtGpuBlob.cpp",
-        "linux/VirtGpuBlobMapping.cpp",
-        "linux/VirtGpuDevice.cpp"
+    relative_install_path: "hw",
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    header_libs: [
+        "gfxstream_vulkan_headers",
+        "hwvulkan_headers",
     ],
     shared_libs: [
-        "libcutils",
-        "libdrm",
+        "libandroidemu",
         "liblog",
-        "libutils",
-    ],
-    export_shared_lib_headers: [
-        "libdrm",
-    ],
-    export_include_dirs: [
-        "include"
+        "lib_renderControl_enc",
+        "libvulkan_enc",
+        "libOpenglCodecCommon",
+        "libOpenglSystemCommon",
     ],
     cflags: [
-        "-DLOG_TAG=\"platform\"",
-        "-Wno-missing-field-initializers",
-        "-fvisibility=default",
+        "-DLOG_TAG=\"goldfish_vulkan\"",
+        "-DVK_NO_PROTOTYPES",
+        "-DVK_USE_PLATFORM_ANDROID_KHR",
         "-fstrict-aliasing",
+        "-fvisibility=hidden",
+        "-Wno-missing-field-initializers",
+        "-Wno-unused-function",
+        "-Wno-unused-parameter",
     ],
-    local_include_dirs: [
-        "include",
+    srcs: [
+        "goldfish_vulkan.cpp",
     ],
 }

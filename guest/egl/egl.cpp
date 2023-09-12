@@ -730,7 +730,7 @@ struct FrameTracingState {
 static FrameTracingState sFrameTracingState;
 
 static void sFlushBufferAndCreateFence(
-    HostConnection* hostCon, ExtendedRCEncoderContext* rcEnc, uint32_t rcSurface, uint32_t frameNumber, int* presentFenceFd) {
+    HostConnection*, ExtendedRCEncoderContext* rcEnc, uint32_t rcSurface, uint32_t frameNumber, int* presentFenceFd) {
     atrace_int(ATRACE_TAG_GRAPHICS, "gfxstreamFrameNumber", (int32_t)frameNumber);
 
     if (rcEnc->hasHostSideTracing()) {

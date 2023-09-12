@@ -106,7 +106,7 @@ using android::base::guest::getCurrentThreadId;
 #include "VirtioGpuPipeStream.h"
 #include "virtgpu_drm.h"
 
-#include <cros_gralloc_handle.h>
+#include <cros_gralloc/cros_gralloc_handle.h>
 #include <xf86drm.h>
 
 #endif
