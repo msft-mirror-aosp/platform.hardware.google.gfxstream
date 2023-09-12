@@ -99,8 +99,8 @@
 //  - Comparison operators are provided. Beware: an empty Optional<Foo>
 //    is always smaller than any Foo value.
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 namespace details {
 

@@ -27,8 +27,8 @@
 #else
 #endif
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 bool isTracingEnabled() {
 #if defined(__ANDROID__) || defined(HOST_BUILD)

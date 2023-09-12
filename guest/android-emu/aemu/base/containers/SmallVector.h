@@ -48,8 +48,8 @@
 // but fill free to add the ones you need.
 //
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 //
 // Forward-declare the 'real' small vector class.

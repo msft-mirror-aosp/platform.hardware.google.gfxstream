@@ -33,8 +33,7 @@
 #include <zircon/process.h>
 #endif
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
 Thread::Thread(ThreadFlags flags, int stackSize)
@@ -158,7 +157,7 @@ void* Thread::thread_main(void* arg) {
         // |self| is not valid beyond this point
     }
 
-    ::android::base::guest::ThreadStoreBase::OnThreadExit();
+    gfxstream::guest::ThreadStoreBase::OnThreadExit();
 
     // This return value is ignored.
     return NULL;
@@ -211,6 +210,5 @@ unsigned long getCurrentThreadId() {
     return static_cast<unsigned long>(tid);
 }
 
-}  // namespace guest
-}  // namespace base
-}  // namespace android
+} // namespace guest
+} // namespace gfxstream

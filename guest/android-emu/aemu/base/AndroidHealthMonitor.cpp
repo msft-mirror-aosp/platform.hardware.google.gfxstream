@@ -18,11 +18,10 @@
 #include <map>
 #include <sys/time.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
-using android::base::guest::AutoLock;
+using gfxstream::guest::AutoLock;
 using std::chrono::duration_cast;
 
 template <class... Ts>
@@ -279,6 +278,5 @@ std::unique_ptr<HealthMonitor<>> CreateHealthMonitor(HealthMonitorConsumer& cons
 
 template class HealthMonitor<steady_clock>;
 
-}  // namespace guest
-}  // namespace base
-}  // namespace android
+} // namespace guest
+} // namespace gfxstream

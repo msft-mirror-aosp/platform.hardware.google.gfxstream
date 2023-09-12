@@ -29,7 +29,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace android::base {
+namespace gfxstream::guest {
 namespace fit {
 namespace internal {
 
@@ -189,7 +189,7 @@ struct target<SharedFunction,
     }
     static const void* target_type_id(void* bits, const void* impl_ops) {
         auto& function_or_callback = **static_cast<std::shared_ptr<SharedFunction>*>(bits);
-        return ::android::base::fit::internal::get_target_type_id(function_or_callback);
+        return gfxstream::guest::fit::internal::get_target_type_id(function_or_callback);
     }
     static void* get(void* bits) {
         auto& function_or_callback = **static_cast<std::shared_ptr<SharedFunction>*>(bits);
@@ -453,4 +453,4 @@ private:
 }  // namespace internal
 
 }  // namespace fit
-}  // namespace android::base
+}  // namespace gfxstream::guest

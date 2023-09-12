@@ -65,8 +65,8 @@
 // so that the host side (which is usually a separate thread that we don't want
 // to spin too much) wakes up and processes data.
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 class Stream;
 
@@ -305,9 +305,9 @@ using ConsumerCreateCallback =
 using ConsumerDestroyCallback =
     std::function<void(void*)>;
 using ConsumerSaveCallback =
-    std::function<void(void*, base::Stream*)>;
+    std::function<void(void*, gfxstream::guest::Stream*)>;
 using ConsumerLoadCallback =
-    std::function<void(void*, base::Stream*)>;
+    std::function<void(void*, gfxstream::guest::Stream*)>;
 
 struct ConsumerInterface {
     ConsumerCreateCallback create;
