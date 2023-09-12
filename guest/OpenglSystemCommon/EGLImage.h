@@ -35,7 +35,7 @@ struct EGLImage_t
 
     union
     {
-        android_native_buffer_t *native_buffer;
+        EGLClientBuffer buffer;
         uint32_t host_egl_image;
     };
 };
