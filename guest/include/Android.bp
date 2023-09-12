@@ -21,6 +21,7 @@ package {
 
 cc_library_headers {
     name: "libgfxstream_guest_graphics_headers",
+    host_supported: true,
     vendor_available: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",

@@ -19,14 +19,63 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+cc_library_static {
+    name: "libgfxstream_guest_gralloc",
+    vendor: true,
+    host_supported: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    header_libs: [
+        "libdrm_headers",
+        "libgfxstream_guest_graphics_headers",
+        "libgfxstream_guest_iostream",
+        "libgralloc_cb.ranchu",
+        "minigbm_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_guest_graphics_headers",
+        "libgfxstream_guest_iostream",
+        "libgralloc_cb.ranchu",
+    ],
+    shared_libs: [
+        "lib_renderControl_enc",
+    ],
+    export_shared_lib_headers: [
+        "lib_renderControl_enc",
+    ],
+    cflags: [
+        "-DVIRTIO_GPU",
+    ],
+    export_include_dirs: [
+        "."
+    ],
+    target: {
+        android: {
+            shared_libs: [
+                "libnativewindow",
+            ],
+            export_shared_lib_headers: [
+                "libnativewindow",
+            ],
+            srcs: [
+                "GrallocGoldfish.cpp",
+                "GrallocMinigbm.cpp",
+            ],
+        }
+    }
+}
+
 cc_library_shared {
     name: "libOpenglSystemCommon",
+    host_supported: true,
     vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "gfxstream_vulkan_headers",
+        "libgfxstream_guest_graphics_headers",
         "libgfxstream_guest_iostream",
         "libgralloc_cb.ranchu",
         "libhardware_headers",
@@ -34,6 +83,7 @@ cc_library_shared {
         "minigbm_headers",
     ],
     export_header_lib_headers: [
+        "libgfxstream_guest_graphics_headers",
         "libgfxstream_guest_iostream",
         "libgralloc_cb.ranchu",
         "libhardware_headers",
@@ -56,11 +106,13 @@ cc_library_shared {
     ],
     static_libs: [
         "libplatform",
-        "libringbuffer",
         "libGoldfishAddressSpace",
+        "libringbuffer",
         "libqemupipe.ranchu",
+        "libgfxstream_guest_gralloc",
     ],
     export_static_lib_headers: [
+        "libgfxstream_guest_gralloc",
         "libplatform",
     ],
     cflags: [
@@ -70,10 +122,7 @@ cc_library_shared {
         "-Wno-unused-parameter",
     ],
     srcs: [
-        "AddressSpaceStream.cpp",
         "FormatConversions.cpp",
-        "GrallocGoldfish.cpp",
-        "GrallocMinigbm.cpp",
         "HostConnection.cpp",
         "ProcessPipe.cpp",
         "QemuPipeStream.cpp",

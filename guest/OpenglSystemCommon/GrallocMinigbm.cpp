@@ -29,6 +29,10 @@ static const size_t kPageSize = getpagesize();
 constexpr size_t kPageSize = PAGE_SIZE;
 #endif
 
+#ifndef PAGE_SIZE
+#define PAGE_SIZE 4096
+#endif
+
 namespace gfxstream {
 
 #if defined(VIRTIO_GPU)
