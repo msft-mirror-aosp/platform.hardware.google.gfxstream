@@ -35,8 +35,8 @@
 #include "goldfish_vk_private_defs.h"
 #include "vk_platform_compat.h"
 #include "vulkan_gfxstream.h"
-using android::base::Allocator;
-using android::base::BumpPool;
+using gfxstream::guest::Allocator;
+using gfxstream::guest::BumpPool;
 // Stuff we are not going to use but if included,
 // will cause compile errors. These are Android Vulkan
 // required extensions, but the approach will be to

@@ -172,7 +172,7 @@ VkResult VkEncoder::vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo,
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -297,7 +297,7 @@ void VkEncoder::vkDestroyInstance(VkInstance instance, const VkAllocationCallbac
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -405,7 +405,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(VkInstance instance, uint32_t* pP
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPhysicalDeviceCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPhysicalDeviceCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPhysicalDeviceCount, sizeof(uint32_t));
@@ -415,7 +415,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(VkInstance instance, uint32_t* pP
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPhysicalDevices;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPhysicalDevices) {
         if ((*(pPhysicalDeviceCount))) {
@@ -983,7 +983,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pQueueFamilyPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pQueueFamilyPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
@@ -992,7 +992,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pQueueFamilyProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pQueueFamilyProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
@@ -1221,7 +1221,7 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(VkInstance instance, const c
     {
         uint32_t l = local_pName ? strlen(local_pName) : 0;
         memcpy(*streamPtrPtr, (uint32_t*)&l, sizeof(uint32_t));
-        android::base::Stream::toBe32((uint8_t*)*streamPtrPtr);
+        gfxstream::guest::Stream::toBe32((uint8_t*)*streamPtrPtr);
         *streamPtrPtr += sizeof(uint32_t);
         memcpy(*streamPtrPtr, (char*)local_pName, l);
         *streamPtrPtr += l;
@@ -1317,7 +1317,7 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(VkDevice device, const char* p
     {
         uint32_t l = local_pName ? strlen(local_pName) : 0;
         memcpy(*streamPtrPtr, (uint32_t*)&l, sizeof(uint32_t));
-        android::base::Stream::toBe32((uint8_t*)*streamPtrPtr);
+        gfxstream::guest::Stream::toBe32((uint8_t*)*streamPtrPtr);
         *streamPtrPtr += sizeof(uint32_t);
         memcpy(*streamPtrPtr, (char*)local_pName, l);
         *streamPtrPtr += l;
@@ -1447,7 +1447,7 @@ VkResult VkEncoder::vkCreateDevice(VkPhysicalDevice physicalDevice,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -1572,7 +1572,7 @@ void VkEncoder::vkDestroyDevice(VkDevice device, const VkAllocationCallbacks* pA
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -1692,13 +1692,13 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(const char* pLayerNam
         // WARNING PTR CHECK
         uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pLayerName;
         memcpy((*streamPtrPtr), &cgen_var_0, 8);
-        android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+        gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
         *streamPtrPtr += 8;
         if (local_pLayerName) {
             {
                 uint32_t l = local_pLayerName ? strlen(local_pLayerName) : 0;
                 memcpy(*streamPtrPtr, (uint32_t*)&l, sizeof(uint32_t));
-                android::base::Stream::toBe32((uint8_t*)*streamPtrPtr);
+                gfxstream::guest::Stream::toBe32((uint8_t*)*streamPtrPtr);
                 *streamPtrPtr += sizeof(uint32_t);
                 memcpy(*streamPtrPtr, (char*)local_pLayerName, l);
                 *streamPtrPtr += l;
@@ -1708,7 +1708,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(const char* pLayerNam
         {
             uint32_t l = local_pLayerName ? strlen(local_pLayerName) : 0;
             memcpy(*streamPtrPtr, (uint32_t*)&l, sizeof(uint32_t));
-            android::base::Stream::toBe32((uint8_t*)*streamPtrPtr);
+            gfxstream::guest::Stream::toBe32((uint8_t*)*streamPtrPtr);
             *streamPtrPtr += sizeof(uint32_t);
             memcpy(*streamPtrPtr, (char*)local_pLayerName, l);
             *streamPtrPtr += l;
@@ -1717,7 +1717,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(const char* pLayerNam
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -1726,7 +1726,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(const char* pLayerNam
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -1890,13 +1890,13 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physic
         // WARNING PTR CHECK
         uint64_t cgen_var_0_0 = (uint64_t)(uintptr_t)local_pLayerName;
         memcpy((*streamPtrPtr), &cgen_var_0_0, 8);
-        android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+        gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
         *streamPtrPtr += 8;
         if (local_pLayerName) {
             {
                 uint32_t l = local_pLayerName ? strlen(local_pLayerName) : 0;
                 memcpy(*streamPtrPtr, (uint32_t*)&l, sizeof(uint32_t));
-                android::base::Stream::toBe32((uint8_t*)*streamPtrPtr);
+                gfxstream::guest::Stream::toBe32((uint8_t*)*streamPtrPtr);
                 *streamPtrPtr += sizeof(uint32_t);
                 memcpy(*streamPtrPtr, (char*)local_pLayerName, l);
                 *streamPtrPtr += l;
@@ -1906,7 +1906,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physic
         {
             uint32_t l = local_pLayerName ? strlen(local_pLayerName) : 0;
             memcpy(*streamPtrPtr, (uint32_t*)&l, sizeof(uint32_t));
-            android::base::Stream::toBe32((uint8_t*)*streamPtrPtr);
+            gfxstream::guest::Stream::toBe32((uint8_t*)*streamPtrPtr);
             *streamPtrPtr += sizeof(uint32_t);
             memcpy(*streamPtrPtr, (char*)local_pLayerName, l);
             *streamPtrPtr += l;
@@ -1915,7 +1915,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physic
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -1924,7 +1924,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physic
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -2062,7 +2062,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(uint32_t* pPropertyCount,
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -2071,7 +2071,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(uint32_t* pPropertyCount,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -2217,7 +2217,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(VkPhysicalDevice physicalDe
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -2226,7 +2226,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(VkPhysicalDevice physicalDe
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -2778,7 +2778,7 @@ VkResult VkEncoder::vkAllocateMemory(VkDevice device, const VkMemoryAllocateInfo
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -2909,7 +2909,7 @@ void VkEncoder::vkFreeMemory(VkDevice device, VkDeviceMemory memory,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -3907,7 +3907,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirementCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -3916,7 +3916,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirements) {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
@@ -4094,7 +4094,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -4103,7 +4103,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -4388,7 +4388,7 @@ VkResult VkEncoder::vkCreateFence(VkDevice device, const VkFenceCreateInfo* pCre
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -4519,7 +4519,7 @@ void VkEncoder::vkDestroyFence(VkDevice device, VkFence fence,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -4958,7 +4958,7 @@ VkResult VkEncoder::vkCreateSemaphore(VkDevice device, const VkSemaphoreCreateIn
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -5090,7 +5090,7 @@ void VkEncoder::vkDestroySemaphore(VkDevice device, VkSemaphore semaphore,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -5219,7 +5219,7 @@ VkResult VkEncoder::vkCreateEvent(VkDevice device, const VkEventCreateInfo* pCre
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -5350,7 +5350,7 @@ void VkEncoder::vkDestroyEvent(VkDevice device, VkEvent event,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -5752,7 +5752,7 @@ VkResult VkEncoder::vkCreateQueryPool(VkDevice device, const VkQueryPoolCreateIn
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -5884,7 +5884,7 @@ void VkEncoder::vkDestroyQueryPool(VkDevice device, VkQueryPool queryPool,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -6009,7 +6009,7 @@ VkResult VkEncoder::vkGetQueryPoolResults(VkDevice device, VkQueryPool queryPool
     *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_2 = (uint64_t)local_dataSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (void*)pData, ((dataSize)) * sizeof(uint8_t));
     *streamPtrPtr += ((dataSize)) * sizeof(uint8_t);
@@ -6141,7 +6141,7 @@ VkResult VkEncoder::vkCreateBuffer(VkDevice device, const VkBufferCreateInfo* pC
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -6272,7 +6272,7 @@ void VkEncoder::vkDestroyBuffer(VkDevice device, VkBuffer buffer,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -6404,7 +6404,7 @@ VkResult VkEncoder::vkCreateBufferView(VkDevice device, const VkBufferViewCreate
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -6536,7 +6536,7 @@ void VkEncoder::vkDestroyBufferView(VkDevice device, VkBufferView bufferView,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -6665,7 +6665,7 @@ VkResult VkEncoder::vkCreateImage(VkDevice device, const VkImageCreateInfo* pCre
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -6796,7 +6796,7 @@ void VkEncoder::vkDestroyImage(VkDevice device, VkImage image,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -7044,7 +7044,7 @@ VkResult VkEncoder::vkCreateImageView(VkDevice device, const VkImageViewCreateIn
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -7176,7 +7176,7 @@ void VkEncoder::vkDestroyImageView(VkDevice device, VkImageView imageView,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -7310,7 +7310,7 @@ VkResult VkEncoder::vkCreateShaderModule(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -7443,7 +7443,7 @@ void VkEncoder::vkDestroyShaderModule(VkDevice device, VkShaderModule shaderModu
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -7577,7 +7577,7 @@ VkResult VkEncoder::vkCreatePipelineCache(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -7710,7 +7710,7 @@ void VkEncoder::vkDestroyPipelineCache(VkDevice device, VkPipelineCache pipeline
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -7825,18 +7825,18 @@ VkResult VkEncoder::vkGetPipelineCacheData(VkDevice device, VkPipelineCache pipe
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pDataSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pDataSize) {
         uint64_t cgen_var_2_0 = (uint64_t)(*pDataSize);
         memcpy((*streamPtrPtr), &cgen_var_2_0, 8);
-        android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+        gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
         *streamPtrPtr += 8;
     }
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pData;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pData) {
         memcpy(*streamPtrPtr, (void*)pData, (*(pDataSize)) * sizeof(uint8_t));
@@ -8128,7 +8128,7 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache p
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -8308,7 +8308,7 @@ VkResult VkEncoder::vkCreateComputePipelines(VkDevice device, VkPipelineCache pi
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -8448,7 +8448,7 @@ void VkEncoder::vkDestroyPipeline(VkDevice device, VkPipeline pipeline,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -8583,7 +8583,7 @@ VkResult VkEncoder::vkCreatePipelineLayout(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -8716,7 +8716,7 @@ void VkEncoder::vkDestroyPipelineLayout(VkDevice device, VkPipelineLayout pipeli
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -8846,7 +8846,7 @@ VkResult VkEncoder::vkCreateSampler(VkDevice device, const VkSamplerCreateInfo* 
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -8977,7 +8977,7 @@ void VkEncoder::vkDestroySampler(VkDevice device, VkSampler sampler,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -9114,7 +9114,7 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -9251,7 +9251,7 @@ void VkEncoder::vkDestroyDescriptorSetLayout(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -9387,7 +9387,7 @@ VkResult VkEncoder::vkCreateDescriptorPool(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -9520,7 +9520,7 @@ void VkEncoder::vkDestroyDescriptorPool(VkDevice device, VkDescriptorPool descri
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -9866,7 +9866,7 @@ VkResult VkEncoder::vkFreeDescriptorSets(VkDevice device, VkDescriptorPool descr
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pDescriptorSets;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pDescriptorSets) {
         if (((descriptorSetCount))) {
@@ -10159,7 +10159,7 @@ VkResult VkEncoder::vkCreateFramebuffer(VkDevice device, const VkFramebufferCrea
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -10292,7 +10292,7 @@ void VkEncoder::vkDestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -10425,7 +10425,7 @@ VkResult VkEncoder::vkCreateRenderPass(VkDevice device, const VkRenderPassCreate
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -10558,7 +10558,7 @@ void VkEncoder::vkDestroyRenderPass(VkDevice device, VkRenderPass renderPass,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -10789,7 +10789,7 @@ VkResult VkEncoder::vkCreateCommandPool(VkDevice device, const VkCommandPoolCrea
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -10922,7 +10922,7 @@ void VkEncoder::vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -11266,7 +11266,7 @@ void VkEncoder::vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pCommandBuffers;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pCommandBuffers) {
         if (((commandBufferCount))) {
@@ -17076,7 +17076,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPhysicalDeviceGroupCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPhysicalDeviceGroupCount, sizeof(uint32_t));
@@ -17085,7 +17085,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPhysicalDeviceGroupProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i) {
@@ -17488,7 +17488,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirementCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -17497,7 +17497,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirements) {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
@@ -18064,7 +18064,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pQueueFamilyPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pQueueFamilyPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
@@ -18073,7 +18073,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pQueueFamilyProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pQueueFamilyProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
@@ -18343,7 +18343,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -18352,7 +18352,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -18730,7 +18730,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -18867,7 +18867,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -19006,7 +19006,7 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -19145,7 +19145,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -19268,7 +19268,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)local_pData;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pData) {
         memcpy(*streamPtrPtr, (void*)local_pData, sizeof(uint8_t));
@@ -20118,7 +20118,7 @@ VkResult VkEncoder::vkCreateRenderPass2(VkDevice device, const VkRenderPassCreat
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -21276,7 +21276,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolProperties(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pToolCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pToolCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pToolCount, sizeof(uint32_t));
@@ -21285,7 +21285,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolProperties(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pToolProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pToolProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
@@ -21454,7 +21454,7 @@ VkResult VkEncoder::vkCreatePrivateDataSlot(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -21463,7 +21463,7 @@ VkResult VkEncoder::vkCreatePrivateDataSlot(VkDevice device,
     }
     uint64_t cgen_var_2 = (uint64_t)(*pPrivateDataSlot);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -21573,12 +21573,12 @@ void VkEncoder::vkDestroyPrivateDataSlot(VkDevice device, VkPrivateDataSlot priv
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_privateDataSlot;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -21686,7 +21686,7 @@ VkResult VkEncoder::vkSetPrivateData(VkDevice device, VkObjectType objectType,
     *streamPtrPtr += sizeof(uint64_t);
     uint64_t cgen_var_1 = (uint64_t)local_privateDataSlot;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (uint64_t*)&local_data, sizeof(uint64_t));
     *streamPtrPtr += sizeof(uint64_t);
@@ -21791,7 +21791,7 @@ void VkEncoder::vkGetPrivateData(VkDevice device, VkObjectType objectType, uint6
     *streamPtrPtr += sizeof(uint64_t);
     uint64_t cgen_var_1 = (uint64_t)local_privateDataSlot;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (uint64_t*)pData, sizeof(uint64_t));
     *streamPtrPtr += sizeof(uint64_t);
@@ -23722,7 +23722,7 @@ void VkEncoder::vkCmdBindVertexBuffers2(VkCommandBuffer commandBuffer, uint32_t 
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pBuffers;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBuffers) {
         if (((bindingCount))) {
@@ -23739,7 +23739,7 @@ void VkEncoder::vkCmdBindVertexBuffers2(VkCommandBuffer commandBuffer, uint32_t 
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pSizes;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pSizes) {
         memcpy(*streamPtrPtr, (VkDeviceSize*)local_pSizes, ((bindingCount)) * sizeof(VkDeviceSize));
@@ -23748,7 +23748,7 @@ void VkEncoder::vkCmdBindVertexBuffers2(VkCommandBuffer commandBuffer, uint32_t 
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pStrides;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pStrides) {
         memcpy(*streamPtrPtr, (VkDeviceSize*)local_pStrides,
@@ -24873,7 +24873,7 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirements(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirementCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -24882,7 +24882,7 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirements(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirements) {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
@@ -25041,7 +25041,7 @@ void VkEncoder::vkDestroySurfaceKHR(VkInstance instance, VkSurfaceKHR surface,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -25382,7 +25382,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDevice physic
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pSurfaceFormatCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSurfaceFormatCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pSurfaceFormatCount, sizeof(uint32_t));
@@ -25391,7 +25391,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDevice physic
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pSurfaceFormats;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSurfaceFormats) {
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i) {
@@ -25547,7 +25547,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice p
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPresentModeCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPresentModeCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPresentModeCount, sizeof(uint32_t));
@@ -25556,7 +25556,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice p
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pPresentModes;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPresentModes) {
         memcpy(*streamPtrPtr, (VkPresentModeKHR*)pPresentModes,
@@ -25713,7 +25713,7 @@ VkResult VkEncoder::vkCreateSwapchainKHR(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -25846,7 +25846,7 @@ void VkEncoder::vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapchain,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -25963,7 +25963,7 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swap
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pSwapchainImageCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSwapchainImageCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pSwapchainImageCount, sizeof(uint32_t));
@@ -25973,7 +25973,7 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swap
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pSwapchainImages;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSwapchainImages) {
         if ((*(pSwapchainImageCount))) {
@@ -26440,7 +26440,7 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(VkDevice device, VkSu
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pModes;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pModes) {
         memcpy(*streamPtrPtr, (VkDeviceGroupPresentModeFlagsKHR*)pModes,
@@ -26575,7 +26575,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice phy
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pRectCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pRectCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pRectCount, sizeof(uint32_t));
@@ -26584,7 +26584,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice phy
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pRects;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pRects) {
         for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i) {
@@ -26841,7 +26841,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(VkPhysicalDevice phy
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -26850,7 +26850,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(VkPhysicalDevice phy
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -27001,7 +27001,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -27010,7 +27010,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -27164,7 +27164,7 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(VkPhysicalDevice physi
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pDisplayCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pDisplayCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pDisplayCount, sizeof(uint32_t));
@@ -27174,7 +27174,7 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(VkPhysicalDevice physi
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pDisplays;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pDisplays) {
         if ((*(pDisplayCount))) {
@@ -27331,7 +27331,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(VkPhysicalDevice physicalDevic
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -27340,7 +27340,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(VkPhysicalDevice physicalDevic
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -27519,7 +27519,7 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(VkPhysicalDevice physicalDevice, VkDi
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -27783,7 +27783,7 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -27945,7 +27945,7 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(VkDevice device, uint32_t swapch
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -28100,7 +28100,7 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -28353,7 +28353,7 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -28608,7 +28608,7 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -28859,7 +28859,7 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -29006,7 +29006,7 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -29369,7 +29369,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceVideoFormatPropertiesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pVideoFormatPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pVideoFormatPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pVideoFormatPropertyCount, sizeof(uint32_t));
@@ -29378,7 +29378,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceVideoFormatPropertiesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pVideoFormatProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pVideoFormatProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pVideoFormatPropertyCount)); ++i) {
@@ -29549,7 +29549,7 @@ VkResult VkEncoder::vkCreateVideoSessionKHR(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -29558,7 +29558,7 @@ VkResult VkEncoder::vkCreateVideoSessionKHR(VkDevice device,
     }
     uint64_t cgen_var_2 = (uint64_t)(*pVideoSession);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -29668,12 +29668,12 @@ void VkEncoder::vkDestroyVideoSessionKHR(VkDevice device, VkVideoSessionKHR vide
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_videoSession;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -29789,12 +29789,12 @@ VkResult VkEncoder::vkGetVideoSessionMemoryRequirementsKHR(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_videoSession;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pMemoryRequirementsCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pMemoryRequirementsCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pMemoryRequirementsCount, sizeof(uint32_t));
@@ -29803,7 +29803,7 @@ VkResult VkEncoder::vkGetVideoSessionMemoryRequirementsKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pMemoryRequirements;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pMemoryRequirements) {
         for (uint32_t i = 0; i < (uint32_t)(*(pMemoryRequirementsCount)); ++i) {
@@ -29966,7 +29966,7 @@ VkResult VkEncoder::vkBindVideoSessionMemoryKHR(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_videoSession;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_bindSessionMemoryInfoCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
@@ -30106,7 +30106,7 @@ VkResult VkEncoder::vkCreateVideoSessionParametersKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -30115,7 +30115,7 @@ VkResult VkEncoder::vkCreateVideoSessionParametersKHR(
     }
     uint64_t cgen_var_2 = (uint64_t)(*pVideoSessionParameters);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -30226,7 +30226,7 @@ VkResult VkEncoder::vkUpdateVideoSessionParametersKHR(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_videoSessionParameters;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkVideoSessionParametersUpdateInfoKHR(
         stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -30341,12 +30341,12 @@ void VkEncoder::vkDestroyVideoSessionParametersKHR(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_videoSessionParameters;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -31435,7 +31435,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pQueueFamilyPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pQueueFamilyPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
@@ -31444,7 +31444,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pQueueFamilyProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pQueueFamilyProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
@@ -31715,7 +31715,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -31724,7 +31724,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -32278,7 +32278,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPhysicalDeviceGroupCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPhysicalDeviceGroupCount, sizeof(uint32_t));
@@ -32287,7 +32287,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPhysicalDeviceGroupProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i) {
@@ -33719,7 +33719,7 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pData;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pData) {
         memcpy(*streamPtrPtr, (void*)local_pData, sizeof(uint8_t));
@@ -33863,7 +33863,7 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -34004,7 +34004,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -34128,7 +34128,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)local_pData;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pData) {
         memcpy(*streamPtrPtr, (void*)local_pData, sizeof(uint8_t));
@@ -34265,7 +34265,7 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -35376,7 +35376,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pCounterCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pCounterCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pCounterCount, sizeof(uint32_t));
@@ -35385,7 +35385,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pCounters;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pCounters) {
         for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i) {
@@ -35397,7 +35397,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pCounterDescriptions;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pCounterDescriptions) {
         for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i) {
@@ -36020,7 +36020,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pSurfaceFormatCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSurfaceFormatCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pSurfaceFormatCount, sizeof(uint32_t));
@@ -36029,7 +36029,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pSurfaceFormats;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSurfaceFormats) {
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i) {
@@ -36184,7 +36184,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(VkPhysicalDevice ph
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -36193,7 +36193,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(VkPhysicalDevice ph
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -36344,7 +36344,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -36353,7 +36353,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -36512,7 +36512,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(VkPhysicalDevice physicalDevi
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -36521,7 +36521,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(VkPhysicalDevice physicalDevi
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -37048,7 +37048,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirementCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -37057,7 +37057,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirements) {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
@@ -37236,7 +37236,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -37373,7 +37373,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -38412,7 +38412,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pFragmentShadingRateCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pFragmentShadingRateCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pFragmentShadingRateCount, sizeof(uint32_t));
@@ -38421,7 +38421,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pFragmentShadingRates;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pFragmentShadingRates) {
         for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i) {
@@ -39105,7 +39105,7 @@ VkResult VkEncoder::vkCreateDeferredOperationKHR(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -39114,7 +39114,7 @@ VkResult VkEncoder::vkCreateDeferredOperationKHR(VkDevice device,
     }
     uint64_t cgen_var_2 = (uint64_t)(*pDeferredOperation);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -39227,12 +39227,12 @@ void VkEncoder::vkDestroyDeferredOperationKHR(VkDevice device, VkDeferredOperati
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_operation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -39329,7 +39329,7 @@ uint32_t VkEncoder::vkGetDeferredOperationMaxConcurrencyKHR(VkDevice device,
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_operation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -39423,7 +39423,7 @@ VkResult VkEncoder::vkGetDeferredOperationResultKHR(VkDevice device,
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_operation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -39514,7 +39514,7 @@ VkResult VkEncoder::vkDeferredOperationJoinKHR(VkDevice device, VkDeferredOperat
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_operation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -39641,7 +39641,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pExecutableCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pExecutableCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pExecutableCount, sizeof(uint32_t));
@@ -39650,7 +39650,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i) {
@@ -39818,7 +39818,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pStatisticCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pStatisticCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pStatisticCount, sizeof(uint32_t));
@@ -39827,7 +39827,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pStatistics;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pStatistics) {
         for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i) {
@@ -40002,7 +40002,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pInternalRepresentationCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pInternalRepresentationCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pInternalRepresentationCount, sizeof(uint32_t));
@@ -40011,7 +40011,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pInternalRepresentations;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pInternalRepresentations) {
         for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i) {
@@ -40168,7 +40168,7 @@ VkResult VkEncoder::vkMapMemory2KHR(VkDevice device, const VkMemoryMapInfoKHR* p
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)ppData;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (ppData) {
         memcpy(*streamPtrPtr, (void**)ppData, sizeof(void*));
@@ -41217,7 +41217,7 @@ void VkEncoder::vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpoint
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pCheckpointDataCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pCheckpointDataCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pCheckpointDataCount, sizeof(uint32_t));
@@ -41226,7 +41226,7 @@ void VkEncoder::vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpoint
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pCheckpointData;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pCheckpointData) {
         for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i) {
@@ -42289,7 +42289,7 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirementsKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirementCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -42298,7 +42298,7 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirementsKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSparseMemoryRequirements) {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
@@ -42929,7 +42929,7 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -43065,7 +43065,7 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -43194,14 +43194,14 @@ void VkEncoder::vkDebugReportMessageEXT(VkInstance instance, VkDebugReportFlagsE
     *streamPtrPtr += sizeof(uint64_t);
     uint64_t cgen_var_1 = (uint64_t)local_location;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (int32_t*)&local_messageCode, sizeof(int32_t));
     *streamPtrPtr += sizeof(int32_t);
     {
         uint32_t l = local_pLayerPrefix ? strlen(local_pLayerPrefix) : 0;
         memcpy(*streamPtrPtr, (uint32_t*)&l, sizeof(uint32_t));
-        android::base::Stream::toBe32((uint8_t*)*streamPtrPtr);
+        gfxstream::guest::Stream::toBe32((uint8_t*)*streamPtrPtr);
         *streamPtrPtr += sizeof(uint32_t);
         memcpy(*streamPtrPtr, (char*)local_pLayerPrefix, l);
         *streamPtrPtr += l;
@@ -43209,7 +43209,7 @@ void VkEncoder::vkDebugReportMessageEXT(VkInstance instance, VkDebugReportFlagsE
     {
         uint32_t l = local_pMessage ? strlen(local_pMessage) : 0;
         memcpy(*streamPtrPtr, (uint32_t*)&l, sizeof(uint32_t));
-        android::base::Stream::toBe32((uint8_t*)*streamPtrPtr);
+        gfxstream::guest::Stream::toBe32((uint8_t*)*streamPtrPtr);
         *streamPtrPtr += sizeof(uint32_t);
         memcpy(*streamPtrPtr, (char*)local_pMessage, l);
         *streamPtrPtr += l;
@@ -43834,7 +43834,7 @@ void VkEncoder::vkCmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuff
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pSizes;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pSizes) {
         memcpy(*streamPtrPtr, (VkDeviceSize*)local_pSizes, ((bindingCount)) * sizeof(VkDeviceSize));
@@ -43954,7 +43954,7 @@ void VkEncoder::vkCmdBeginTransformFeedbackEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pCounterBuffers;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pCounterBuffers) {
         if (((counterBufferCount))) {
@@ -43969,7 +43969,7 @@ void VkEncoder::vkCmdBeginTransformFeedbackEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pCounterBufferOffsets;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pCounterBufferOffsets) {
         memcpy(*streamPtrPtr, (VkDeviceSize*)local_pCounterBufferOffsets,
@@ -44089,7 +44089,7 @@ void VkEncoder::vkCmdEndTransformFeedbackEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pCounterBuffers;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pCounterBuffers) {
         if (((counterBufferCount))) {
@@ -44104,7 +44104,7 @@ void VkEncoder::vkCmdEndTransformFeedbackEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pCounterBufferOffsets;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pCounterBufferOffsets) {
         memcpy(*streamPtrPtr, (VkDeviceSize*)local_pCounterBufferOffsets,
@@ -44549,7 +44549,7 @@ VkResult VkEncoder::vkCreateCuModuleNVX(VkDevice device, const VkCuModuleCreateI
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -44558,7 +44558,7 @@ VkResult VkEncoder::vkCreateCuModuleNVX(VkDevice device, const VkCuModuleCreateI
     }
     uint64_t cgen_var_2 = (uint64_t)(*pModule);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -44688,7 +44688,7 @@ VkResult VkEncoder::vkCreateCuFunctionNVX(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -44697,7 +44697,7 @@ VkResult VkEncoder::vkCreateCuFunctionNVX(VkDevice device,
     }
     uint64_t cgen_var_2 = (uint64_t)(*pFunction);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -44807,12 +44807,12 @@ void VkEncoder::vkDestroyCuModuleNVX(VkDevice device, VkCuModuleNVX module,
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_module;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -44924,12 +44924,12 @@ void VkEncoder::vkDestroyCuFunctionNVX(VkDevice device, VkCuFunctionNVX function
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_function;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -45607,18 +45607,18 @@ VkResult VkEncoder::vkGetShaderInfoAMD(VkDevice device, VkPipeline pipeline,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pInfoSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pInfoSize) {
         uint64_t cgen_var_2_0 = (uint64_t)(*pInfoSize);
         memcpy((*streamPtrPtr), &cgen_var_2_0, 8);
-        android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+        gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
         *streamPtrPtr += 8;
     }
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pInfo;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pInfo) {
         memcpy(*streamPtrPtr, (void*)pInfo, (*(pInfoSize)) * sizeof(uint8_t));
@@ -45777,7 +45777,7 @@ VkResult VkEncoder::vkCreateStreamDescriptorSurfaceGGP(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -46185,7 +46185,7 @@ VkResult VkEncoder::vkCreateViSurfaceNN(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -47162,7 +47162,7 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -47315,7 +47315,7 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(VkDevice device, VkDisplayKHR disp
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -47662,7 +47662,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPresentationTimingCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPresentationTimingCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPresentationTimingCount, sizeof(uint32_t));
@@ -47671,7 +47671,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pPresentationTimings;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPresentationTimings) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i) {
@@ -48274,7 +48274,7 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -48421,7 +48421,7 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -49325,7 +49325,7 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -49461,7 +49461,7 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -50279,7 +50279,7 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -50413,7 +50413,7 @@ void VkEncoder::vkDestroyValidationCacheEXT(VkDevice device, VkValidationCacheEX
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -50645,18 +50645,18 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pDataSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pDataSize) {
         uint64_t cgen_var_2_0 = (uint64_t)(*pDataSize);
         memcpy((*streamPtrPtr), &cgen_var_2_0, 8);
-        android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+        gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
         *streamPtrPtr += 8;
     }
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pData;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pData) {
         memcpy(*streamPtrPtr, (void*)pData, (*(pDataSize)) * sizeof(uint8_t));
@@ -51149,7 +51149,7 @@ VkResult VkEncoder::vkCreateAccelerationStructureNV(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -51286,7 +51286,7 @@ void VkEncoder::vkDestroyAccelerationStructureNV(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -52116,7 +52116,7 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesNV(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -52254,7 +52254,7 @@ VkResult VkEncoder::vkGetRayTracingShaderGroupHandlesKHR(VkDevice device, VkPipe
     *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_2 = (uint64_t)local_dataSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (void*)pData, ((dataSize)) * sizeof(uint8_t));
     *streamPtrPtr += ((dataSize)) * sizeof(uint8_t);
@@ -52374,7 +52374,7 @@ VkResult VkEncoder::vkGetRayTracingShaderGroupHandlesNV(VkDevice device, VkPipel
     *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_2 = (uint64_t)local_dataSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (void*)pData, ((dataSize)) * sizeof(uint8_t));
     *streamPtrPtr += ((dataSize)) * sizeof(uint8_t);
@@ -52483,7 +52483,7 @@ VkResult VkEncoder::vkGetAccelerationStructureHandleNV(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_2 = (uint64_t)local_dataSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (void*)pData, ((dataSize)) * sizeof(uint8_t));
     *streamPtrPtr += ((dataSize)) * sizeof(uint8_t);
@@ -52829,7 +52829,7 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pHostPointer;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pHostPointer) {
         memcpy(*streamPtrPtr, (void*)local_pHostPointer, sizeof(uint8_t));
@@ -53063,7 +53063,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCalibrateableTimeDomainsEXT(VkPhysicalDev
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pTimeDomainCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pTimeDomainCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pTimeDomainCount, sizeof(uint32_t));
@@ -53072,7 +53072,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCalibrateableTimeDomainsEXT(VkPhysicalDev
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pTimeDomains;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pTimeDomains) {
         memcpy(*streamPtrPtr, (VkTimeDomainEXT*)pTimeDomains,
@@ -53867,7 +53867,7 @@ void VkEncoder::vkCmdSetCheckpointNV(VkCommandBuffer commandBuffer, const void* 
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pCheckpointMarker;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pCheckpointMarker) {
         memcpy(*streamPtrPtr, (void*)local_pCheckpointMarker, sizeof(uint8_t));
@@ -53974,7 +53974,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(VkQueue queue, uint32_t* pCheckpointD
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pCheckpointDataCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pCheckpointDataCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pCheckpointDataCount, sizeof(uint32_t));
@@ -53983,7 +53983,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(VkQueue queue, uint32_t* pCheckpointD
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pCheckpointData;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pCheckpointData) {
         for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i) {
@@ -54625,7 +54625,7 @@ VkResult VkEncoder::vkAcquirePerformanceConfigurationINTEL(
         (VkPerformanceConfigurationAcquireInfoINTEL*)(local_pAcquireInfo), streamPtrPtr);
     uint64_t cgen_var_1 = (uint64_t)(*pConfiguration);
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize =
@@ -54720,7 +54720,7 @@ VkResult VkEncoder::vkReleasePerformanceConfigurationINTEL(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_configuration;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize =
@@ -54814,7 +54814,7 @@ VkResult VkEncoder::vkQueueSetPerformanceConfigurationINTEL(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_configuration;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -55152,7 +55152,7 @@ VkResult VkEncoder::vkCreateImagePipeSurfaceFUCHSIA(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -55299,7 +55299,7 @@ VkResult VkEncoder::vkCreateMetalSurfaceEXT(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -55551,7 +55551,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pToolCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pToolCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pToolCount, sizeof(uint32_t));
@@ -55560,7 +55560,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pToolProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pToolProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
@@ -55720,7 +55720,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertyCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertyCount, sizeof(uint32_t));
@@ -55729,7 +55729,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
@@ -55888,7 +55888,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pCombinationCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pCombinationCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pCombinationCount, sizeof(uint32_t));
@@ -55897,7 +55897,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pCombinations;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pCombinations) {
         for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i) {
@@ -56074,7 +56074,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModes2EXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPresentModeCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPresentModeCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPresentModeCount, sizeof(uint32_t));
@@ -56083,7 +56083,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModes2EXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPresentModes;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPresentModes) {
         memcpy(*streamPtrPtr, (VkPresentModeKHR*)pPresentModes,
@@ -56416,7 +56416,7 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModes2EXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pModes;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pModes) {
         memcpy(*streamPtrPtr, (VkDeviceGroupPresentModeFlagsKHR*)pModes,
@@ -56566,7 +56566,7 @@ VkResult VkEncoder::vkCreateHeadlessSurfaceEXT(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -57366,7 +57366,7 @@ void VkEncoder::vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pBuffers;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBuffers) {
         if (((bindingCount))) {
@@ -57383,7 +57383,7 @@ void VkEncoder::vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pSizes;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pSizes) {
         memcpy(*streamPtrPtr, (VkDeviceSize*)local_pSizes, ((bindingCount)) * sizeof(VkDeviceSize));
@@ -57392,7 +57392,7 @@ void VkEncoder::vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pStrides;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pStrides) {
         memcpy(*streamPtrPtr, (VkDeviceSize*)local_pStrides,
@@ -58580,7 +58580,7 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNV(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -58717,7 +58717,7 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNV(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -59078,7 +59078,7 @@ VkResult VkEncoder::vkCreatePrivateDataSlotEXT(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -59087,7 +59087,7 @@ VkResult VkEncoder::vkCreatePrivateDataSlotEXT(VkDevice device,
     }
     uint64_t cgen_var_2 = (uint64_t)(*pPrivateDataSlot);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -59198,12 +59198,12 @@ void VkEncoder::vkDestroyPrivateDataSlotEXT(VkDevice device, VkPrivateDataSlot p
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_privateDataSlot;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -59312,7 +59312,7 @@ VkResult VkEncoder::vkSetPrivateDataEXT(VkDevice device, VkObjectType objectType
     *streamPtrPtr += sizeof(uint64_t);
     uint64_t cgen_var_1 = (uint64_t)local_privateDataSlot;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (uint64_t*)&local_data, sizeof(uint64_t));
     *streamPtrPtr += sizeof(uint64_t);
@@ -59418,7 +59418,7 @@ void VkEncoder::vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType, ui
     *streamPtrPtr += sizeof(uint64_t);
     uint64_t cgen_var_1 = (uint64_t)local_privateDataSlot;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (uint64_t*)pData, sizeof(uint64_t));
     *streamPtrPtr += sizeof(uint64_t);
@@ -59837,7 +59837,7 @@ void VkEncoder::vkGetDescriptorEXT(VkDevice device, const VkDescriptorGetInfoEXT
                                            streamPtrPtr);
     uint64_t cgen_var_1 = (uint64_t)local_dataSize;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (void*)pDescriptor, ((dataSize)) * sizeof(uint8_t));
     *streamPtrPtr += ((dataSize)) * sizeof(uint8_t);
@@ -61075,7 +61075,7 @@ VkResult VkEncoder::vkGetDeviceFaultInfoEXT(VkDevice device, VkDeviceFaultCounts
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pFaultInfo;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pFaultInfo) {
         reservedmarshal_VkDeviceFaultInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -61433,7 +61433,7 @@ VkResult VkEncoder::vkCreateDirectFBSurfaceEXT(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -62305,7 +62305,7 @@ VkResult VkEncoder::vkCreateBufferCollectionFUCHSIA(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -62314,7 +62314,7 @@ VkResult VkEncoder::vkCreateBufferCollectionFUCHSIA(
     }
     uint64_t cgen_var_2 = (uint64_t)(*pCollection);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -62428,7 +62428,7 @@ VkResult VkEncoder::vkSetBufferCollectionImageConstraintsFUCHSIA(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_collection;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkImageConstraintsInfoFUCHSIA(
         stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -62545,7 +62545,7 @@ VkResult VkEncoder::vkSetBufferCollectionBufferConstraintsFUCHSIA(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_collection;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkBufferConstraintsInfoFUCHSIA(
         stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -62662,12 +62662,12 @@ void VkEncoder::vkDestroyBufferCollectionFUCHSIA(VkDevice device,
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_collection;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -62768,7 +62768,7 @@ VkResult VkEncoder::vkGetBufferCollectionPropertiesFUCHSIA(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_collection;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkBufferCollectionPropertiesFUCHSIA(
         stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferCollectionPropertiesFUCHSIA*)(pProperties),
@@ -63289,7 +63289,7 @@ VkResult VkEncoder::vkGetPipelinePropertiesEXT(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPipelineProperties;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPipelineProperties) {
         reservedmarshal_VkBaseOutStructure(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -63861,7 +63861,7 @@ VkResult VkEncoder::vkCreateScreenSurfaceQNX(VkInstance instance,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -64185,7 +64185,7 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceM
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pAddress;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pAddress) {
         memcpy(*streamPtrPtr, (uint64_t*)pAddress, sizeof(uint64_t));
@@ -64419,7 +64419,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)local_pImageInfoEntryIndices;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pImageInfoEntryIndices) {
         memcpy(*streamPtrPtr, (uint32_t*)local_pImageInfoEntryIndices,
@@ -64429,7 +64429,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_4 = (uint64_t)(uintptr_t)local_pBufferInfoEntryIndices;
     memcpy((*streamPtrPtr), &cgen_var_4, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBufferInfoEntryIndices) {
         memcpy(*streamPtrPtr, (uint32_t*)local_pBufferInfoEntryIndices,
@@ -64439,7 +64439,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_5 = (uint64_t)(uintptr_t)local_pBufferViewEntryIndices;
     memcpy((*streamPtrPtr), &cgen_var_5, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBufferViewEntryIndices) {
         memcpy(*streamPtrPtr, (uint32_t*)local_pBufferViewEntryIndices,
@@ -64449,7 +64449,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_6 = (uint64_t)(uintptr_t)local_pImageInfos;
     memcpy((*streamPtrPtr), &cgen_var_6, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pImageInfos) {
         for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
@@ -64461,7 +64461,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_7 = (uint64_t)(uintptr_t)local_pBufferInfos;
     memcpy((*streamPtrPtr), &cgen_var_7, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBufferInfos) {
         for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
@@ -64473,7 +64473,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_8 = (uint64_t)(uintptr_t)local_pBufferViews;
     memcpy((*streamPtrPtr), &cgen_var_8, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBufferViews) {
         if (((bufferViewCount))) {
@@ -64957,7 +64957,7 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -65114,7 +65114,7 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -65260,7 +65260,7 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(VkDevice device, VkDeviceMe
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pAddress;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pAddress) {
         memcpy(*streamPtrPtr, (uint64_t*)pAddress, sizeof(uint64_t));
@@ -65269,7 +65269,7 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(VkDevice device, VkDeviceMe
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pSize;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pSize) {
         memcpy(*streamPtrPtr, (uint64_t*)pSize, sizeof(uint64_t));
@@ -65278,7 +65278,7 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(VkDevice device, VkDeviceMe
     // WARNING PTR CHECK
     uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pHostmemId;
     memcpy((*streamPtrPtr), &cgen_var_4, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pHostmemId) {
         memcpy(*streamPtrPtr, (uint64_t*)pHostmemId, sizeof(uint64_t));
@@ -65425,7 +65425,7 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(VkDevice device, VkDeviceMemory memor
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -66396,7 +66396,7 @@ void VkEncoder::vkCollectDescriptorPoolIdsGOOGLE(VkDevice device, VkDescriptorPo
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPoolIds;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPoolIds) {
         memcpy(*streamPtrPtr, (uint64_t*)pPoolIds, (*(pPoolIdCount)) * sizeof(uint64_t));
@@ -66522,7 +66522,7 @@ void VkEncoder::vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(VkQueue queue,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pWaitSemaphores;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pWaitSemaphores) {
         if (((waitSemaphoreCount))) {
@@ -66979,7 +66979,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)local_pImageInfoEntryIndices;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pImageInfoEntryIndices) {
         memcpy(*streamPtrPtr, (uint32_t*)local_pImageInfoEntryIndices,
@@ -66989,7 +66989,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_4 = (uint64_t)(uintptr_t)local_pBufferInfoEntryIndices;
     memcpy((*streamPtrPtr), &cgen_var_4, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBufferInfoEntryIndices) {
         memcpy(*streamPtrPtr, (uint32_t*)local_pBufferInfoEntryIndices,
@@ -66999,7 +66999,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_5 = (uint64_t)(uintptr_t)local_pBufferViewEntryIndices;
     memcpy((*streamPtrPtr), &cgen_var_5, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBufferViewEntryIndices) {
         memcpy(*streamPtrPtr, (uint32_t*)local_pBufferViewEntryIndices,
@@ -67009,7 +67009,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_6 = (uint64_t)(uintptr_t)local_pImageInfos;
     memcpy((*streamPtrPtr), &cgen_var_6, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pImageInfos) {
         for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
@@ -67021,7 +67021,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_7 = (uint64_t)(uintptr_t)local_pBufferInfos;
     memcpy((*streamPtrPtr), &cgen_var_7, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBufferInfos) {
         for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
@@ -67033,7 +67033,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_8 = (uint64_t)(uintptr_t)local_pBufferViews;
     memcpy((*streamPtrPtr), &cgen_var_8, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pBufferViews) {
         if (((bufferViewCount))) {
@@ -67048,7 +67048,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     // WARNING PTR CHECK
     uint64_t cgen_var_9 = (uint64_t)(uintptr_t)local_pInlineUniformBlockData;
     memcpy((*streamPtrPtr), &cgen_var_9, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pInlineUniformBlockData) {
         memcpy(*streamPtrPtr, (uint8_t*)local_pInlineUniformBlockData,
@@ -67184,7 +67184,7 @@ void VkEncoder::vkCmdDrawMultiEXT(VkCommandBuffer commandBuffer, uint32_t drawCo
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pVertexInfo;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pVertexInfo) {
         for (uint32_t i = 0; i < (uint32_t)((drawCount)); ++i) {
@@ -67331,7 +67331,7 @@ void VkEncoder::vkCmdDrawMultiIndexedEXT(VkCommandBuffer commandBuffer, uint32_t
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pIndexInfo;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pIndexInfo) {
         for (uint32_t i = 0; i < (uint32_t)((drawCount)); ++i) {
@@ -67349,7 +67349,7 @@ void VkEncoder::vkCmdDrawMultiIndexedEXT(VkCommandBuffer commandBuffer, uint32_t
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pVertexOffset;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pVertexOffset) {
         memcpy(*streamPtrPtr, (int32_t*)local_pVertexOffset, sizeof(int32_t));
@@ -67483,7 +67483,7 @@ VkResult VkEncoder::vkCreateMicromapEXT(VkDevice device, const VkMicromapCreateI
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -67492,7 +67492,7 @@ VkResult VkEncoder::vkCreateMicromapEXT(VkDevice device, const VkMicromapCreateI
     }
     uint64_t cgen_var_2 = (uint64_t)(*pMicromap);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -67602,12 +67602,12 @@ void VkEncoder::vkDestroyMicromapEXT(VkDevice device, VkMicromapEXT micromap,
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_micromap;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -67833,7 +67833,7 @@ VkResult VkEncoder::vkBuildMicromapsEXT(VkDevice device, VkDeferredOperationKHR 
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_deferredOperation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_infoCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
@@ -67944,7 +67944,7 @@ VkResult VkEncoder::vkCopyMicromapEXT(VkDevice device, VkDeferredOperationKHR de
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_deferredOperation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkCopyMicromapInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                           (VkCopyMicromapInfoEXT*)(local_pInfo), streamPtrPtr);
@@ -68054,7 +68054,7 @@ VkResult VkEncoder::vkCopyMicromapToMemoryEXT(VkDevice device,
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_deferredOperation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkCopyMicromapToMemoryInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkCopyMicromapToMemoryInfoEXT*)(local_pInfo),
@@ -68165,7 +68165,7 @@ VkResult VkEncoder::vkCopyMemoryToMicromapEXT(VkDevice device,
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_deferredOperation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkCopyMemoryToMicromapInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkCopyMemoryToMicromapInfoEXT*)(local_pInfo),
@@ -68284,20 +68284,20 @@ VkResult VkEncoder::vkWriteMicromapsPropertiesEXT(VkDevice device, uint32_t micr
     for (uint32_t i = 0; i < (uint32_t)((micromapCount)); ++i) {
         uint64_t cgen_var_0_0 = (uint64_t)local_pMicromaps[i];
         memcpy((*streamPtrPtr), &cgen_var_0_0, 8);
-        android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+        gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
         *streamPtrPtr += 8;
     }
     memcpy(*streamPtrPtr, (VkQueryType*)&local_queryType, sizeof(VkQueryType));
     *streamPtrPtr += sizeof(VkQueryType);
     uint64_t cgen_var_1 = (uint64_t)local_dataSize;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (void*)pData, ((dataSize)) * sizeof(uint8_t));
     *streamPtrPtr += ((dataSize)) * sizeof(uint8_t);
     uint64_t cgen_var_2 = (uint64_t)local_stride;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -68695,7 +68695,7 @@ void VkEncoder::vkCmdWriteMicromapsPropertiesEXT(VkCommandBuffer commandBuffer,
     for (uint32_t i = 0; i < (uint32_t)((micromapCount)); ++i) {
         uint64_t cgen_var_0 = (uint64_t)local_pMicromaps[i];
         memcpy((*streamPtrPtr), &cgen_var_0, 8);
-        android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+        gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
         *streamPtrPtr += 8;
     }
     memcpy(*streamPtrPtr, (VkQueryType*)&local_queryType, sizeof(VkQueryType));
@@ -70899,7 +70899,7 @@ void VkEncoder::vkCmdSetColorWriteMaskEXT(VkCommandBuffer commandBuffer, uint32_
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pColorWriteMasks;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pColorWriteMasks) {
         memcpy(*streamPtrPtr, (VkColorComponentFlags*)local_pColorWriteMasks,
@@ -73029,7 +73029,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceOpticalFlowImageFormatsNV(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pFormatCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pFormatCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pFormatCount, sizeof(uint32_t));
@@ -73038,7 +73038,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceOpticalFlowImageFormatsNV(
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pImageFormatProperties;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pImageFormatProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pFormatCount)); ++i) {
@@ -73211,7 +73211,7 @@ VkResult VkEncoder::vkCreateOpticalFlowSessionNV(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -73220,7 +73220,7 @@ VkResult VkEncoder::vkCreateOpticalFlowSessionNV(
     }
     uint64_t cgen_var_2 = (uint64_t)(*pSession);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -73333,12 +73333,12 @@ void VkEncoder::vkDestroyOpticalFlowSessionNV(VkDevice device, VkOpticalFlowSess
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_session;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -73446,7 +73446,7 @@ VkResult VkEncoder::vkBindOpticalFlowSessionImageNV(VkDevice device, VkOpticalFl
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_session;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (VkOpticalFlowSessionBindingPointNV*)&local_bindingPoint,
            sizeof(VkOpticalFlowSessionBindingPointNV));
@@ -73559,7 +73559,7 @@ void VkEncoder::vkCmdOpticalFlowExecuteNV(VkCommandBuffer commandBuffer,
     }
     uint64_t cgen_var_0 = (uint64_t)local_session;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkOpticalFlowExecuteInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                (VkOpticalFlowExecuteInfoNV*)(local_pExecuteInfo),
@@ -73710,7 +73710,7 @@ VkResult VkEncoder::vkCreateShadersEXT(VkDevice device, uint32_t createInfoCount
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -73720,7 +73720,7 @@ VkResult VkEncoder::vkCreateShadersEXT(VkDevice device, uint32_t createInfoCount
     for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
         uint64_t cgen_var_1_0 = (uint64_t)pShaders[i];
         memcpy((*streamPtrPtr), &cgen_var_1_0, 8);
-        android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+        gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
         *streamPtrPtr += 8;
     }
     if (watchdog) {
@@ -73833,12 +73833,12 @@ void VkEncoder::vkDestroyShaderEXT(VkDevice device, VkShaderEXT shader,
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_shader;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -73945,23 +73945,23 @@ VkResult VkEncoder::vkGetShaderBinaryDataEXT(VkDevice device, VkShaderEXT shader
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_shader;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pDataSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pDataSize) {
         uint64_t cgen_var_2_0 = (uint64_t)(*pDataSize);
         memcpy((*streamPtrPtr), &cgen_var_2_0, 8);
-        android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+        gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
         *streamPtrPtr += 8;
     }
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pData;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pData) {
         memcpy(*streamPtrPtr, (void*)pData, (*(pDataSize)) * sizeof(uint8_t));
@@ -74092,13 +74092,13 @@ void VkEncoder::vkCmdBindShadersEXT(VkCommandBuffer commandBuffer, uint32_t stag
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pShaders;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pShaders) {
         for (uint32_t i = 0; i < (uint32_t)((stageCount)); ++i) {
             uint64_t cgen_var_0_0 = (uint64_t)local_pShaders[i];
             memcpy((*streamPtrPtr), &cgen_var_0_0, 8);
-            android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+            gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
             *streamPtrPtr += 8;
         }
     }
@@ -74217,7 +74217,7 @@ VkResult VkEncoder::vkGetFramebufferTilePropertiesQCOM(VkDevice device, VkFrameb
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPropertiesCount;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pPropertiesCount) {
         memcpy(*streamPtrPtr, (uint32_t*)pPropertiesCount, sizeof(uint32_t));
@@ -74226,7 +74226,7 @@ VkResult VkEncoder::vkGetFramebufferTilePropertiesQCOM(VkDevice device, VkFrameb
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pProperties;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (pProperties) {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertiesCount)); ++i) {
@@ -74618,7 +74618,7 @@ VkResult VkEncoder::vkCreateAccelerationStructureKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -74755,7 +74755,7 @@ void VkEncoder::vkDestroyAccelerationStructureKHR(VkDevice device,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -75142,7 +75142,7 @@ VkResult VkEncoder::vkBuildAccelerationStructuresKHR(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_deferredOperation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_infoCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
@@ -75260,7 +75260,7 @@ VkResult VkEncoder::vkCopyAccelerationStructureKHR(VkDevice device,
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_deferredOperation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkCopyAccelerationStructureInfoKHR(
         stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo),
@@ -75373,7 +75373,7 @@ VkResult VkEncoder::vkCopyAccelerationStructureToMemoryKHR(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_deferredOperation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkCopyAccelerationStructureToMemoryInfoKHR(
         stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -75487,7 +75487,7 @@ VkResult VkEncoder::vkCopyMemoryToAccelerationStructureKHR(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_deferredOperation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     reservedmarshal_VkCopyMemoryToAccelerationStructureInfoKHR(
         stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -75618,13 +75618,13 @@ VkResult VkEncoder::vkWriteAccelerationStructuresPropertiesKHR(
     *streamPtrPtr += sizeof(VkQueryType);
     uint64_t cgen_var_2 = (uint64_t)local_dataSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (void*)pData, ((dataSize)) * sizeof(uint8_t));
     *streamPtrPtr += ((dataSize)) * sizeof(uint8_t);
     uint64_t cgen_var_3 = (uint64_t)local_stride;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
@@ -76406,7 +76406,7 @@ void VkEncoder::vkGetAccelerationStructureBuildSizesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pMaxPrimitiveCounts;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pMaxPrimitiveCounts) {
         memcpy(*streamPtrPtr, (uint32_t*)local_pMaxPrimitiveCounts,
@@ -76744,7 +76744,7 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesKHR(
     *streamPtrPtr += 1 * 8;
     uint64_t cgen_var_1 = (uint64_t)local_deferredOperation;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     uint64_t cgen_var_2;
     *&cgen_var_2 = get_host_u64_VkPipelineCache((*&local_pipelineCache));
@@ -76760,7 +76760,7 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesKHR(
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_3, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     if (local_pAllocator) {
         reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -76901,7 +76901,7 @@ VkResult VkEncoder::vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
     *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_2 = (uint64_t)local_dataSize;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
-    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
     memcpy(*streamPtrPtr, (void*)pData, ((dataSize)) * sizeof(uint8_t));
     *streamPtrPtr += ((dataSize)) * sizeof(uint8_t);
