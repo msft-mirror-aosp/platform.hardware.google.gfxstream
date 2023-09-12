@@ -22,9 +22,25 @@ class GoldfishGralloc : public Gralloc {
    public:
     uint32_t createColorBuffer(renderControl_client_context_t* rcEnc, int width, int height,
                                uint32_t glformat) override;
+
+    int allocate(uint32_t width,
+                 uint32_t height,
+                 uint32_t format,
+                 uint64_t usage,
+                 AHardwareBuffer** outputAhb) override;
+
+    void acquire(AHardwareBuffer* ahb) override;
+    void release(AHardwareBuffer* ahb) override;
+
     uint32_t getHostHandle(native_handle_t const* handle) override;
-    int getFormat(native_handle_t const* handle) override;
-    size_t getAllocatedSize(native_handle_t const* handle) override;
+    uint32_t getHostHandle(const AHardwareBuffer* handle) override;
+
+    int getFormat(const native_handle_t* handle) override;
+    int getFormat(const AHardwareBuffer* handle) override;
+
+    size_t getAllocatedSize(const native_handle_t* handle) override;
+    size_t getAllocatedSize(const AHardwareBuffer* handle) override;
 };
+
 
 }  // namespace gfxstream
