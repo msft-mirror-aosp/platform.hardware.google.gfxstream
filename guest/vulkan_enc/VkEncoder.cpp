@@ -60,9 +60,9 @@ namespace vk {
 
 using namespace gfxstream::vk;
 
-using android::base::BumpPool;
-using android::base::guest::AutoLock;
-using android::base::guest::Lock;
+using gfxstream::guest::AutoLock;
+using gfxstream::guest::BumpPool;
+using gfxstream::guest::Lock;
 
 #include "VkEncoder.cpp.inl"
 

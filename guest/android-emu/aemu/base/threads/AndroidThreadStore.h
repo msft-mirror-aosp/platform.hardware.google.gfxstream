@@ -23,8 +23,7 @@
 #  include <pthread.h>
 #endif
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
 // A class to model storage of thread-specific values, that can be
@@ -117,7 +116,7 @@ private:
 
 // ThreadStore is a template class used to implement a thread-local store
 // of objects of type |T|. Note that the store owns the objects, and these
-// are destroyed when an android::base::Thread exits.
+// are destroyed when a gfxstream::guest::Thread exits.
 template <typename T>
 class ThreadStore : public ThreadStoreBase {
 public:
@@ -151,6 +150,5 @@ private:
     }
 };
 
-}  // namespace guest
-}  // namespace base
-}  // namespace android
+} // namespace guest
+} // namespace gfxstream

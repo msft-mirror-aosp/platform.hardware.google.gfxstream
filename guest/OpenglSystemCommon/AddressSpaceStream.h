@@ -22,7 +22,7 @@
 #include "aemu/base/AndroidHealthMonitor.h"
 #include "goldfish_address_space.h"
 
-using android::base::guest::HealthMonitor;
+using gfxstream::guest::HealthMonitor;
 using gfxstream::IOStream;
 
 class AddressSpaceStream;
