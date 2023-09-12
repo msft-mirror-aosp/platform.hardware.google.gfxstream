@@ -108,3 +108,5 @@ for OUT_DIR in $VK_CEREAL_HOST_DECODER_DIR $VK_CEREAL_GUEST_ENCODER_DIR; do
         fi
     fi
 done
+
+cp $VULKAN_CEREAL_DIR/codegen/vulkan/vulkan-hpp/generated/* $VULKAN_CEREAL_DIR/common/vulkan/include/vulkan/
