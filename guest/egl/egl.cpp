@@ -62,7 +62,6 @@
 #endif
 #include <cutils/trace.h>
 
-#include <system/window.h>
 
 using android::base::guest::getCurrentThreadId;
 
@@ -164,6 +163,11 @@ const char *  eglStrError(EGLint err)
     if (!grallocHelper) {                                            \
         ALOGE("egl: Failed to get grallocHelper\n");                 \
         return ret;                                                  \
+    }                                                                \
+    auto* anwHelper = hostCon->anwHelper();                          \
+    if (!anwHelper) {                                                \
+        ALOGE("egl: Failed to get anwHelper\n");                     \
+        return ret;                                                  \
     }
 
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls)         \
@@ -180,6 +184,11 @@ const char *  eglStrError(EGLint err)
     auto const* grallocHelper = hostCon->grallocHelper();             \
     if (!grallocHelper) {                                             \
         ALOGE("egl: Failed to get grallocHelper\n");                  \
+        return ret;                                                   \
+    }                                                                 \
+    auto* anwHelper = hostCon->anwHelper();                           \
+    if (!anwHelper) {                                                 \
+        ALOGE("egl: Failed to get anwHelper\n");                      \
         return ret;                                                   \
     }
 
@@ -447,7 +456,7 @@ egl_surface_t::~egl_surface_t()
 struct egl_window_surface_t : public egl_surface_t {
     static egl_window_surface_t* create(
             EGLDisplay dpy, EGLConfig config, EGLint surfType,
-            ANativeWindow* window);
+            EGLNativeWindowType window);
 
     virtual ~egl_window_surface_t();
 
@@ -462,53 +471,71 @@ struct egl_window_surface_t : public egl_surface_t {
 private:
     egl_window_surface_t(
             EGLDisplay dpy, EGLConfig config, EGLint surfType,
-            ANativeWindow* window);
+            EGLNativeWindowType window);
     EGLBoolean init();
 
-    ANativeWindow*              nativeWindow;
-    android_native_buffer_t*    buffer;
+    EGLNativeWindowType nativeWindow;
+    EGLClientBuffer     buffer;
     bool collectingTimestamps;
 };
 
 egl_window_surface_t::egl_window_surface_t (
         EGLDisplay dpy, EGLConfig config, EGLint surfType,
-        ANativeWindow* window)
+        EGLNativeWindowType window)
 :   egl_surface_t(dpy, config, surfType),
     nativeWindow(window),
     buffer(NULL),
     collectingTimestamps(false)
 {
-    // keep a reference on the window
-    nativeWindow->common.incRef(&nativeWindow->common);
 }
-
 
 EGLBoolean egl_window_surface_t::init()
 {
-#ifndef HOST_BUILD
+    DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+
+    // keep a reference on the window
+    anwHelper->acquire(nativeWindow);
+
     int consumerUsage = 0;
-    if (nativeWindow->query(nativeWindow, NATIVE_WINDOW_CONSUMER_USAGE_BITS, &consumerUsage) != 0) {
+    if (anwHelper->getConsumerUsage(nativeWindow, &consumerUsage) != 0) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
     } else {
         int producerUsage = GRALLOC_USAGE_HW_RENDER;
-        native_window_set_usage(nativeWindow, consumerUsage | producerUsage);
+        anwHelper->setUsage(nativeWindow, consumerUsage | producerUsage);
     }
-#endif
 
-    if (nativeWindow->dequeueBuffer_DEPRECATED(nativeWindow, &buffer) != 0) {
+    int acquireFenceFd = -1;
+    if (anwHelper->dequeueBuffer(nativeWindow, &buffer, &acquireFenceFd) != 0) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
     }
-    setWidth(buffer->width);
-    setHeight(buffer->height);
+    if (acquireFenceFd >= 0) {
+        auto* syncHelper = hostCon->syncHelper();
 
-    int nativeWidth, nativeHeight;
-          nativeWindow->query(nativeWindow, NATIVE_WINDOW_WIDTH, &nativeWidth);
-          nativeWindow->query(nativeWindow, NATIVE_WINDOW_HEIGHT, &nativeHeight);
+        int waitRet = syncHelper->wait(acquireFenceFd, /* wait forever */-1);
+        if (waitRet < 0) {
+            ALOGE("Failed to wait for window surface's dequeued buffer.");
+            anwHelper->cancelBuffer(nativeWindow, buffer);
+        }
+
+        syncHelper->close(acquireFenceFd);
+
+        if (waitRet < 0) {
+            setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
+        }
+    }
+
+    int bufferWidth = anwHelper->getWidth(buffer);
+    int bufferHeight = anwHelper->getHeight(buffer);
+
+    setWidth(bufferWidth);
+    setHeight(bufferHeight);
+
+    int nativeWidth = anwHelper->getWidth(nativeWindow);
+    int nativeHeight = anwHelper->getHeight(nativeWindow);
 
     setNativeWidth(nativeWidth);
     setNativeHeight(nativeHeight);
 
-    DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
     rcSurface = rcEnc->rcCreateWindowSurface(rcEnc, (uintptr_t)s_display.getIndexOfConfig(config),
             getWidth(), getHeight());
 
@@ -516,15 +543,16 @@ EGLBoolean egl_window_surface_t::init()
         ALOGE("rcCreateWindowSurface returned 0");
         return EGL_FALSE;
     }
-    rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
-            grallocHelper->getHostHandle(buffer->handle));
+
+    const int hostHandle = anwHelper->getHostHandle(buffer, grallocHelper);
+    rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface, hostHandle);
 
     return EGL_TRUE;
 }
 
 egl_window_surface_t* egl_window_surface_t::create(
         EGLDisplay dpy, EGLConfig config, EGLint surfType,
-        ANativeWindow* window)
+        EGLNativeWindowType window)
 {
     egl_window_surface_t* wnd = new egl_window_surface_t(
             dpy, config, surfType, window);
@@ -541,15 +569,17 @@ egl_window_surface_t::~egl_window_surface_t() {
         rcEnc->rcDestroyWindowSurface(rcEnc, rcSurface);
     }
 
+    auto* anwHelper = hostCon->anwHelper();
     if (buffer) {
-        nativeWindow->cancelBuffer_DEPRECATED(nativeWindow, buffer);
+        anwHelper->cancelBuffer(nativeWindow, buffer);
     }
-    nativeWindow->common.decRef(&nativeWindow->common);
+    anwHelper->release(nativeWindow);
 }
 
 void egl_window_surface_t::setSwapInterval(int interval)
 {
-    nativeWindow->setSwapInterval(nativeWindow, interval);
+    DEFINE_HOST_CONNECTION;
+    hostCon->anwHelper()->setSwapInterval(nativeWindow, interval);
 }
 
 // createNativeSync() creates an OpenGL sync object on the host
@@ -788,14 +818,14 @@ EGLBoolean egl_window_surface_t::swapBuffers()
         sFrameTracingState.frameNumber, &presentFenceFd);
 
     DPRINT("queueBuffer with fence %d", presentFenceFd);
-    nativeWindow->queueBuffer(nativeWindow, buffer, presentFenceFd);
+    anwHelper->queueBuffer(nativeWindow, buffer, presentFenceFd);
 
     appTimeMetric.onQueueBufferReturn();
 
     DPRINT("calling dequeueBuffer...");
 
     int acquireFenceFd = -1;
-    if (nativeWindow->dequeueBuffer(nativeWindow, &buffer, &acquireFenceFd)) {
+    if (anwHelper->dequeueBuffer(nativeWindow, &buffer, &acquireFenceFd)) {
         buffer = NULL;
         setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
     }
@@ -807,11 +837,11 @@ EGLBoolean egl_window_surface_t::swapBuffers()
         syncHelper->close(acquireFenceFd);
     }
 
-    rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
-            grallocHelper->getHostHandle(buffer->handle));
+    const int hostHandle = anwHelper->getHostHandle(buffer, grallocHelper);
+    rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface, hostHandle);
 
-    setWidth(buffer->width);
-    setHeight(buffer->height);
+    setWidth(anwHelper->getWidth(buffer));
+    setHeight(anwHelper->getHeight(buffer));
 
     sFrameTracingState.onSwapBuffersSuccesful(rcEnc);
     appTimeMetric.onSwapBuffersReturn();
@@ -1279,12 +1309,12 @@ EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWin
         setErrorReturn(EGL_BAD_MATCH, EGL_NO_SURFACE);
     }
 
-    if (reinterpret_cast<ANativeWindow*>(win)->common.magic != ANDROID_NATIVE_WINDOW_MAGIC) {
+    DEFINE_HOST_CONNECTION;
+    if (!hostCon->anwHelper()->isValid(win)) {
         setErrorReturn(EGL_BAD_NATIVE_WINDOW, EGL_NO_SURFACE);
     }
 
-    egl_surface_t* surface = egl_window_surface_t::create(
-            &s_display, config, EGL_WINDOW_BIT, reinterpret_cast<ANativeWindow*>(win));
+    egl_surface_t* surface = egl_window_surface_t::create(&s_display, config, EGL_WINDOW_BIT, win);
     if (!surface) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_SURFACE);
     }
@@ -2205,19 +2235,12 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
             setErrorReturn(EGL_BAD_CONTEXT, EGL_NO_IMAGE_KHR);
         }
 
-        android_native_buffer_t* native_buffer = (android_native_buffer_t*)buffer;
-
-        if (native_buffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
-            setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-
-        if (native_buffer->common.version != sizeof(android_native_buffer_t))
-            setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-
-        if (native_buffer->handle == NULL)
-            setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-
         DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
-        int format = grallocHelper->getFormat(native_buffer->handle);
+        if (!anwHelper->isValid(buffer)) {
+            setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+        }
+
+        int format = anwHelper->getFormat(buffer, grallocHelper);
         switch (format) {
             case HAL_PIXEL_FORMAT_R8:
             case HAL_PIXEL_FORMAT_RGBA_8888:
@@ -2245,14 +2268,14 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
                 setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
 
-        native_buffer->common.incRef(&native_buffer->common);
+        anwHelper->acquire(buffer);
 
         EGLImage_t *image = new EGLImage_t();
         image->dpy = dpy;
         image->target = target;
-        image->native_buffer = native_buffer;
-        image->width = native_buffer->width;
-        image->height = native_buffer->width;
+        image->buffer = buffer;
+        image->width = anwHelper->getWidth(buffer);
+        image->height = anwHelper->getHeight(buffer);
 
         return (EGLImageKHR)image;
     }
@@ -2287,24 +2310,22 @@ EGLBoolean eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR img)
         RETURN_ERROR(EGL_FALSE, EGL_BAD_PARAMETER);
     }
 
+    DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+
     if (image->target == EGL_NATIVE_BUFFER_ANDROID) {
-        android_native_buffer_t* native_buffer = image->native_buffer;
-
-        if (native_buffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
+        EGLClientBuffer buffer = image->buffer;
+        if (!anwHelper->isValid(buffer)) {
             setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
+        }
 
-        if (native_buffer->common.version != sizeof(android_native_buffer_t))
-            setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
-
-        native_buffer->common.decRef(&native_buffer->common);
+        anwHelper->release(buffer);
         delete image;
 
         return EGL_TRUE;
-    }
-    else if (image->target == EGL_GL_TEXTURE_2D_KHR) {
+    } else if (image->target == EGL_GL_TEXTURE_2D_KHR) {
         uint32_t host_egl_image = image->host_egl_image;
         delete image;
-        DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+
         return rcEnc->rcDestroyClientImage(rcEnc, host_egl_image);
     }
 

@@ -17,12 +17,16 @@
 
 #include "GrallocGoldfish.h"
 #include "GrallocMinigbm.h"
-#include "SyncAndroid.h"
 #include "aemu/base/AndroidHealthMonitor.h"
 #include "aemu/base/AndroidHealthMonitorConsumerBasic.h"
 #include "aemu/base/threads/AndroidThread.h"
 #include "cutils/properties.h"
 #include "renderControl_types.h"
+
+#if defined(__ANDROID__)
+#include "ANativeWindowAndroid.h"
+#include "SyncAndroid.h"
+#endif
 
 #ifdef HOST_BUILD
 #include "aemu/base/Tracing.h"
@@ -367,6 +371,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     }
 
 #if defined(__ANDROID__)
+    con->m_anwHelper = new gfxstream::ANativeWindowHelperAndroid();
     con->m_syncHelper = new gfxstream::SyncHelperAndroid();
 #else
     // Host builds are expected to set a sync helper for testing.
