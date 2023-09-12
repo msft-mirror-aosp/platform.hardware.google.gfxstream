@@ -174,7 +174,9 @@ public:
     int getRendernodeFd() { return m_rendernodeFd; }
 
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
+
     gfxstream::Gralloc* grallocHelper() { return m_grallocHelper; }
+    void setGrallocHelperForTesting(gfxstream::Gralloc* gralloc) { m_grallocHelper = gralloc; }
 
     gfxstream::SyncHelper* syncHelper() { return m_syncHelper; }
     void setSyncHelperForTesting(gfxstream::SyncHelper* sync) { m_syncHelper = sync;}
