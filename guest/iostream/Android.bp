@@ -21,6 +21,10 @@ package {
 
 cc_library_headers {
     name: "libgfxstream_guest_iostream",
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    host_supported: true,
     vendor_available: true,
     header_libs: [
         "libgfxstream_guest_errorlog_headers",

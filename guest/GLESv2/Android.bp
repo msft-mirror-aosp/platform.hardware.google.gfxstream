@@ -21,8 +21,8 @@ package {
 
 cc_library_shared {
     name: "libGLESv2_emulation",
+    host_supported: true,
     vendor: true,
-    relative_install_path: "egl",
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
@@ -40,4 +40,9 @@ cc_library_shared {
     srcs: [
         "gl2.cpp",
     ],
+    target: {
+        android: {
+            relative_install_path: "egl",
+        },
+    },
 }
