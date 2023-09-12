@@ -19,33 +19,25 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_library_static {
-    name: "libplatform",
+cc_library_shared {
+    name: "libGLESv2_emulation",
     vendor: true,
-    srcs: [
-        "linux/VirtGpuBlob.cpp",
-        "linux/VirtGpuBlobMapping.cpp",
-        "linux/VirtGpuDevice.cpp"
+    relative_install_path: "egl",
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
     ],
     shared_libs: [
-        "libcutils",
-        "libdrm",
         "liblog",
-        "libutils",
-    ],
-    export_shared_lib_headers: [
-        "libdrm",
-    ],
-    export_include_dirs: [
-        "include"
+        "lib_renderControl_enc",
+        "libGLESv2_enc",
+        "libOpenglSystemCommon",
     ],
     cflags: [
-        "-DLOG_TAG=\"platform\"",
-        "-Wno-missing-field-initializers",
-        "-fvisibility=default",
-        "-fstrict-aliasing",
+        "-DGL_GLEXT_PROTOTYPES",
+        "-DLOG_TAG=\"GLESv2_emulation\"",
+        "-DVIRTIO_GPU",
     ],
-    local_include_dirs: [
-        "include",
+    srcs: [
+        "gl2.cpp",
     ],
 }

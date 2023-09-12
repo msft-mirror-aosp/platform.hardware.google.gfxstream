@@ -19,33 +19,23 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_library_static {
-    name: "libplatform",
+cc_test {
+    name: "CommandBufferStagingStreamTests",
     vendor: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
     srcs: [
-        "linux/VirtGpuBlob.cpp",
-        "linux/VirtGpuBlobMapping.cpp",
-        "linux/VirtGpuDevice.cpp"
+        "CommandBufferStagingStream_test.cpp",
+    ],
+    header_libs: [
+        "gfxstream_vulkan_headers",
+        "libgfxstream_guest_iostream",
+    ],
+    static_libs: [
+        "libgmock",
     ],
     shared_libs: [
-        "libcutils",
-        "libdrm",
-        "liblog",
-        "libutils",
-    ],
-    export_shared_lib_headers: [
-        "libdrm",
-    ],
-    export_include_dirs: [
-        "include"
-    ],
-    cflags: [
-        "-DLOG_TAG=\"platform\"",
-        "-Wno-missing-field-initializers",
-        "-fvisibility=default",
-        "-fstrict-aliasing",
-    ],
-    local_include_dirs: [
-        "include",
+        "libvulkan_enc",
     ],
 }
