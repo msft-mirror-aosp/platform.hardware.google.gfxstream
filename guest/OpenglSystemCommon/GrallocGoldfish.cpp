@@ -15,6 +15,7 @@
 #include "GrallocGoldfish.h"
 
 #include <gralloc_cb_bp.h>
+#include <vndk/hardware_buffer.h>
 
 namespace gfxstream {
 
@@ -23,16 +24,56 @@ uint32_t GoldfishGralloc::createColorBuffer(renderControl_client_context_t* rcEn
     return rcEnc->rcCreateColorBuffer(rcEnc, width, height, glformat);
 }
 
+int GoldfishGralloc::allocate(uint32_t width,
+                              uint32_t height,
+                              uint32_t format,
+                              uint64_t usage,
+                              AHardwareBuffer** outputAhb)  {
+
+    struct AHardwareBuffer_Desc desc = {
+        .width = width,
+        .height = height,
+        .layers = 1,
+        .format = format,
+        .usage = usage,
+    };
+
+    return AHardwareBuffer_allocate(&desc, outputAhb);
+}
+
+void GoldfishGralloc::acquire(AHardwareBuffer* ahb) {
+    AHardwareBuffer_acquire(ahb);
+}
+
+void GoldfishGralloc::release(AHardwareBuffer* ahb) {
+    AHardwareBuffer_release(ahb);
+}
+
 uint32_t GoldfishGralloc::getHostHandle(native_handle_t const* handle) {
     return cb_handle_t::from(handle)->hostHandle;
 }
 
-int GoldfishGralloc::getFormat(native_handle_t const* handle) {
+uint32_t GoldfishGralloc::getHostHandle(const AHardwareBuffer* ahb) {
+    const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
+    return getHostHandle(handle);
+}
+
+int GoldfishGralloc::getFormat(const native_handle_t* handle) {
     return cb_handle_t::from(handle)->format;
 }
 
-size_t GoldfishGralloc::getAllocatedSize(native_handle_t const* handle) {
+int GoldfishGralloc::getFormat(const AHardwareBuffer* ahb) {
+    const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
+    return getFormat(handle);
+}
+
+size_t GoldfishGralloc::getAllocatedSize(const native_handle_t* handle) {
     return static_cast<size_t>(cb_handle_t::from(handle)->allocatedSize());
+}
+
+size_t GoldfishGralloc::getAllocatedSize(const AHardwareBuffer* ahb) {
+    const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
+    return getAllocatedSize(handle);
 }
 
 }  // namespace gfxstream
