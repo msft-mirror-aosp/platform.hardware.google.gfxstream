@@ -124,7 +124,6 @@ bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
             ALOGE("Failed to establish connection with the host\n");
             return false;
         }
-        hcon->setGrallocOnly(false);
 
         //
         // get renderControl encoder instance

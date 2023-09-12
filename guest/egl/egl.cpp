@@ -1838,10 +1838,6 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             setErrorReturn(EGL_BAD_MATCH, EGL_NO_CONTEXT);
     }
 
-    // We've created EGL context. Disconnecting
-    // would be dangerous at this point.
-    hostCon->setGrallocOnly(false);
-
     int rcMajorVersion = majorVersion;
     if (majorVersion == 3 && minorVersion == 1) {
         rcMajorVersion = 4;
@@ -1948,10 +1944,6 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     //Now make the local bind
     if (context) {
-
-        // This is a nontrivial context.
-        // The thread cannot be gralloc-only anymore.
-        hostCon->setGrallocOnly(false);
         context->draw = draw;
         context->read = read;
         if (drawSurf) {
@@ -2015,8 +2007,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
             hostCon->glEncoder()->setClientState(context->getClientState());
             hostCon->glEncoder()->setSharedGroup(context->getSharedGroup());
         }
-    }
-    else if (tInfo->currentContext) {
+    } else if (tInfo->currentContext) {
         //release ClientState & SharedGroup
         if (tInfo->currentContext->majorVersion > 1) {
             hostCon->gl2Encoder()->setClientState(NULL);
@@ -2026,7 +2017,6 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
             hostCon->glEncoder()->setClientState(NULL);
             hostCon->glEncoder()->setSharedGroup(GLSharedGroupPtr(NULL));
         }
-
     }
 
     // Delete the previous context here
