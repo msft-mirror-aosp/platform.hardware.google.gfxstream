@@ -190,8 +190,10 @@ target_include_directories(OpenglRender_vulkan_cereal
 #include <memory>
 
 namespace gfxstream {{
+namespace guest {{
 class IOStream;
-}}
+}}  // namespace guest
+}}  // namespace gfxstream
 """
         encoderImplInclude = f"""
 #include "EncoderDebug.h"
@@ -311,8 +313,8 @@ using android::base::BumpPool;
         poolIncludeGuest = f"""
 #include "goldfish_vk_private_defs.h"
 #include "{self.guestBaseLibDirPrefix}/BumpPool.h"
-using android::base::Allocator;
-using android::base::BumpPool;
+using gfxstream::guest::Allocator;
+using gfxstream::guest::BumpPool;
 // Stuff we are not going to use but if included,
 // will cause compile errors. These are Android Vulkan
 // required extensions, but the approach will be to

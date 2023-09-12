@@ -18,11 +18,10 @@ from .wrapperdefs import ROOT_TYPE_DEFAULT_VALUE
 from .wrapperdefs import VULKAN_STREAM_TYPE_GUEST
 
 encoder_decl_preamble = """
-using gfxstream::guest::HealthMonitor;
 
 class VkEncoder {
 public:
-    VkEncoder(IOStream* stream, HealthMonitor<>* healthMonitor = nullptr);
+    VkEncoder(gfxstream::guest::IOStream* stream, gfxstream::guest::HealthMonitor<>* healthMonitor = nullptr);
     ~VkEncoder();
 
 #include "VkEncoder.h.inl"
@@ -32,7 +31,7 @@ encoder_decl_postamble = """
 private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
-    HealthMonitor<>* mHealthMonitor;
+    gfxstream::guest::HealthMonitor<>* mHealthMonitor;
 };
 """
 
@@ -174,7 +173,7 @@ def emit_marshal(typeInfo, param, cgen):
         iterateVulkanType(
             typeInfo, param,
             VulkanReservedMarshalingCodegen( \
-                cgen, STREAM, ROOT_TYPE_DEFAULT_VALUE, param.paramName, "streamPtrPtr",
+                cgen, "guest", STREAM, ROOT_TYPE_DEFAULT_VALUE, param.paramName, "streamPtrPtr",
                API_PREFIX_RESERVEDMARSHAL,
                "" if forOutput else "get_host_u64_",
                direction="write"))

@@ -16,7 +16,7 @@
 
 #include "EncoderDebug.h"
 
-using gfxstream::IOStream;
+using gfxstream::guest::IOStream;
 
 namespace {
 
