@@ -22,8 +22,7 @@
 
 #include <log/log.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
 class SubAllocator::Impl {
@@ -236,5 +235,4 @@ bool SubAllocator::empty() const {
 }
 
 } // namespace guest
-} // namespace base
-} // namespace android
+} // namespace gfxstream

@@ -280,9 +280,9 @@ EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
 {
 #ifdef HOST_BUILD
     std::string baseDir =
-        android::base::System::get()->getProgramDirectory();
+        gfxstream::guest::System::get()->getProgramDirectory();
     std::string path =
-        android::base::pj({
+        gfxstream::guest::pj({
             baseDir, "lib64", std::string(basename) + LIBSUFFIX});
     void *lib = dlopen(path.c_str(), RTLD_NOW);
 #else

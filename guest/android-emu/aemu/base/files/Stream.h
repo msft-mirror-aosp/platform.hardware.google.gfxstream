@@ -19,8 +19,8 @@
 #include <inttypes.h>
 #include <sys/types.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 // Abstract interface to byte streams of all kind.
 // This is mainly used to implement disk serialization.

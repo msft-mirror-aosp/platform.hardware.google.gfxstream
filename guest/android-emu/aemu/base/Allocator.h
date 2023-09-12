@@ -17,8 +17,8 @@
 #include <stddef.h>
 #include <string.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 // A generic memory allocator interface which could be used to allocate
 // a certain size of memory region, or memory region for arrays / strings.

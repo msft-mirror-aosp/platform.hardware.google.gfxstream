@@ -41,8 +41,8 @@
 #include "IndexRangeCache.h"
 #include "StateTrackingSupport.h"
 
-using android::base::guest::AutoLock;
-using android::base::guest::Lock;
+using gfxstream::guest::AutoLock;
+using gfxstream::guest::Lock;
 
 struct BufferData {
     BufferData();
