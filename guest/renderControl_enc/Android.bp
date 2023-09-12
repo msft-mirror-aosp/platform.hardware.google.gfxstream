@@ -19,33 +19,37 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_library_static {
-    name: "libplatform",
+cc_library_shared {
+    name: "lib_renderControl_enc",
     vendor: true,
-    srcs: [
-        "linux/VirtGpuBlob.cpp",
-        "linux/VirtGpuBlobMapping.cpp",
-        "linux/VirtGpuDevice.cpp"
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    header_libs: [
+        "libgfxstream_guest_graphics_headers",
+        "libgfxstream_guest_iostream",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_guest_graphics_headers",
     ],
     shared_libs: [
-        "libcutils",
-        "libdrm",
+        "libandroidemu",
         "liblog",
-        "libutils",
+        "libOpenglCodecCommon",
     ],
     export_shared_lib_headers: [
-        "libdrm",
-    ],
-    export_include_dirs: [
-        "include"
+        "libOpenglCodecCommon",
     ],
     cflags: [
-        "-DLOG_TAG=\"platform\"",
-        "-Wno-missing-field-initializers",
-        "-fvisibility=default",
-        "-fstrict-aliasing",
+        "-DVIRTIO_GPU",
+        "-Wno-unused-function",
     ],
-    local_include_dirs: [
-        "include",
+    srcs: [
+        "renderControl_client_context.cpp",
+        "renderControl_enc.cpp",
+        "renderControl_entry.cpp",
+    ],
+    export_include_dirs: [
+        ".",
     ],
 }
