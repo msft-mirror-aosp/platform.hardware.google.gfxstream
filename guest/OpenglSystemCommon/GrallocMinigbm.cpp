@@ -19,17 +19,19 @@
 
 #include <cros_gralloc/cros_gralloc_handle.h>
 #include <errno.h>
+#include <sys/user.h>
 #include <xf86drm.h>
 #include <vndk/hardware_buffer.h>
 
 #include "virtgpu_drm.h"
 
-#if defined(VIRTIO_GPU)
+#if defined(PAGE_SIZE) && defined(VIRTIO_GPU)
+constexpr size_t kPageSize = PAGE_SIZE;
+#else
 #include <unistd.h>
 static const size_t kPageSize = getpagesize();
-#else
-constexpr size_t kPageSize = PAGE_SIZE;
 #endif
+
 
 namespace gfxstream {
 namespace {
@@ -141,7 +143,7 @@ uint32_t MinigbmGralloc::createColorBuffer(renderControl_client_context_t*, int 
     res_create.last_level = 0;
     res_create.nr_samples = 0;
     res_create.stride = bpp * width;
-    res_create.size = align_up(bpp * width * height, PAGE_SIZE);
+    res_create.size = align_up(bpp * width * height, kPageSize);
 
     int ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE, &res_create);
     if (ret) {
