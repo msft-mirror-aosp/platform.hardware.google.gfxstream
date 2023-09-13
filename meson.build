@@ -109,7 +109,7 @@ summary({'prefix': get_option('prefix'),
         }, section: 'Directories')
 summary({'c_args': (' ').join(get_option('c_args')),
          'cpp_args': (' ').join(get_option('cpp_args')),
-         'buildtype': (' ').join(get_option('buildtype')),
+         'buildtype': get_option('buildtype'),
          'log-level': log_level,
          'gles': use_gles,
          'vulkan': use_vulkan,
