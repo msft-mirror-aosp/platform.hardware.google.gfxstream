@@ -19,6 +19,7 @@ package {
 cc_library_shared {
     name: "libgfxstream_backend",
     defaults: [ "gfxstream_defaults" ],
+    vendor_available: true,
     cflags: [
         "-Wno-unused-parameter",
         "-Wno-unused-variable",
@@ -104,7 +105,7 @@ cc_library_shared {
         android: {
             srcs: ["NativeSubWindow_android.cpp",],
         }
-    }
+    },
 }
 
 cc_test_library {

@@ -7,4 +7,14 @@ cc_library_headers {
         "//apex_available:platform",
         "com.android.virt",
     ],
+    target: {
+        android: {
+            header_libs: [
+                "libcutils_headers",
+            ],
+            export_header_lib_headers: [
+                "libcutils_headers",
+            ],
+        },
+    },
 }
