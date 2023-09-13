@@ -3937,8 +3937,20 @@ class VkDecoderGlobalState::Impl {
                                  pCommandBuffers + commandBufferCount);
     }
 
+    VkResult dispatchVkQueueSubmit(VulkanDispatch* vk, VkQueue unboxed_queue, uint32_t submitCount,
+                                   const VkSubmitInfo* pSubmits, VkFence fence) {
+        return vk->vkQueueSubmit(unboxed_queue, submitCount, pSubmits, fence);
+    }
+
+    VkResult dispatchVkQueueSubmit(VulkanDispatch* vk, VkQueue unboxed_queue, uint32_t submitCount,
+                                   const VkSubmitInfo2* pSubmits, VkFence fence) {
+        return vk->vkQueueSubmit2(unboxed_queue, submitCount, pSubmits, fence);
+    }
+
+    template <typename VkSubmitInfoType>
     VkResult on_vkQueueSubmit(android::base::BumpPool* pool, VkQueue boxed_queue,
-                              uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
+                              uint32_t submitCount, const VkSubmitInfoType* pSubmits,
+                              VkFence fence) {
         auto queue = unbox_VkQueue(boxed_queue);
         auto vk = dispatch_VkQueue(boxed_queue);
 
@@ -3954,10 +3966,7 @@ class VkDecoderGlobalState::Impl {
             }
 
             for (uint32_t i = 0; i < submitCount; i++) {
-                const VkSubmitInfo& submit = pSubmits[i];
-                for (uint32_t c = 0; c < submit.commandBufferCount; c++) {
-                    executePreprocessRecursive(0, submit.pCommandBuffers[c]);
-                }
+                executePreprocessRecursive(pSubmits[i]);
             }
 
             auto* queueInfo = android::base::find(mQueueInfo, queue);
@@ -3966,7 +3975,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         AutoLock qlock(*ql);
-        auto result = vk->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, fence);
 
         // After vkQueueSubmit is called, we can signal the conditional variable
         // in FenceInfo, so that other threads (e.g. SyncThread) can call
@@ -5696,6 +5705,18 @@ class VkDecoderGlobalState::Impl {
         // }
     }
 
+    void executePreprocessRecursive(const VkSubmitInfo& submit) {
+        for (uint32_t c = 0; c < submit.commandBufferCount; c++) {
+            executePreprocessRecursive(0, submit.pCommandBuffers[c]);
+        }
+    }
+
+    void executePreprocessRecursive(const VkSubmitInfo2& submit) {
+        for (uint32_t c = 0; c < submit.commandBufferInfoCount; c++) {
+            executePreprocessRecursive(0, submit.pCommandBufferInfos[c].commandBuffer);
+        }
+    }
+
     template <typename VkHandleToInfoMap,
               typename HandleType = typename std::decay_t<VkHandleToInfoMap>::key_type>
     std::vector<HandleType> findDeviceObjects(VkDevice device, const VkHandleToInfoMap& map) {
@@ -7076,6 +7097,12 @@ VkResult VkDecoderGlobalState::on_vkQueueSubmit(android::base::BumpPool* pool, V
     return mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
 }
 
+VkResult VkDecoderGlobalState::on_vkQueueSubmit2(android::base::BumpPool* pool, VkQueue queue,
+                                                 uint32_t submitCount,
+                                                 const VkSubmitInfo2* pSubmits, VkFence fence) {
+    return mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
+}
+
 VkResult VkDecoderGlobalState::on_vkQueueWaitIdle(android::base::BumpPool* pool, VkQueue queue) {
     return mImpl->on_vkQueueWaitIdle(pool, queue);
 }
@@ -7305,6 +7332,13 @@ void VkDecoderGlobalState::on_vkQueueSubmitAsyncGOOGLE(android::base::BumpPool* 
                                                        uint32_t submitCount,
                                                        const VkSubmitInfo* pSubmits,
                                                        VkFence fence) {
+    mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
+}
+
+void VkDecoderGlobalState::on_vkQueueSubmitAsync2GOOGLE(android::base::BumpPool* pool,
+                                                        VkQueue queue, uint32_t submitCount,
+                                                        const VkSubmitInfo2* pSubmits,
+                                                        VkFence fence) {
     mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
 }
 
