@@ -432,6 +432,9 @@ class VkDecoderGlobalState {
     VkResult on_vkQueueSubmit(android::base::BumpPool* pool, VkQueue queue, uint32_t submitCount,
                               const VkSubmitInfo* pSubmits, VkFence fence);
 
+    VkResult on_vkQueueSubmit2(android::base::BumpPool* pool, VkQueue queue, uint32_t submitCount,
+                               const VkSubmitInfo2* pSubmits, VkFence fence);
+
     VkResult on_vkQueueWaitIdle(android::base::BumpPool* pool, VkQueue queue);
 
     VkResult on_vkResetCommandBuffer(android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
@@ -593,6 +596,9 @@ class VkDecoderGlobalState {
     void on_vkQueueSubmitAsyncGOOGLE(android::base::BumpPool* pool, VkQueue queue,
                                      uint32_t submitCount, const VkSubmitInfo* pSubmits,
                                      VkFence fence);
+    void on_vkQueueSubmitAsync2GOOGLE(android::base::BumpPool* pool, VkQueue queue,
+                                      uint32_t submitCount, const VkSubmitInfo2* pSubmits,
+                                      VkFence fence);
     void on_vkQueueWaitIdleAsyncGOOGLE(android::base::BumpPool* pool, VkQueue queue);
     void on_vkQueueBindSparseAsyncGOOGLE(android::base::BumpPool* pool, VkQueue queue,
                                          uint32_t bindInfoCount, const VkBindSparseInfo* pBindInfo,

@@ -41769,6 +41769,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkGetQueueCheckpointData2NV";
         }
 #endif
+#ifdef VK_GOOGLE_gfxstream
+        case OP_vkQueueSubmitAsync2GOOGLE: {
+            return "OP_vkQueueSubmitAsync2GOOGLE";
+        }
+#endif
 #ifdef VK_EXT_opacity_micromap
         case OP_vkCopyMemoryToMicromapEXT: {
             return "OP_vkCopyMemoryToMicromapEXT";

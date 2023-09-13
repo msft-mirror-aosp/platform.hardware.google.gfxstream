@@ -127,6 +127,9 @@ typedef void(VKAPI_PTR* PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE)(
     const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
     const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
     const uint8_t* pInlineUniformBlockData);
+typedef void(VKAPI_PTR* PFN_vkQueueSubmitAsync2GOOGLE)(VkQueue queue, uint32_t submitCount,
+                                                       const VkSubmitInfo2* pSubmits,
+                                                       VkFence fence);
 
 #ifndef VK_NO_PROTOTYPES
 VKAPI_ATTR VkResult VKAPI_CALL vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device,
@@ -225,6 +228,9 @@ VKAPI_ATTR void VKAPI_CALL vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
     const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
     const uint8_t* pInlineUniformBlockData);
+
+VKAPI_ATTR void VKAPI_CALL vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
+                                                     const VkSubmitInfo2* pSubmits, VkFence fence);
 #endif
 
 #ifdef __cplusplus
