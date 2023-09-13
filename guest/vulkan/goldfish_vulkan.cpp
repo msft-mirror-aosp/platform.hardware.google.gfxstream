@@ -38,308 +38,6 @@
 #include "VkEncoder.h"
 #include "func_table.h"
 
-// Used when there is no Vulkan support on the host.
-// Copied from frameworks/native/vulkan/libvulkan/stubhal.cpp
-namespace vkstubhal {
-
-[[noreturn]] VKAPI_ATTR void NoOp() {
-    LOG_ALWAYS_FATAL("invalid stub function called");
-}
-
-VkResult
-EnumerateInstanceExtensionProperties(const char* /*layer_name*/,
-                                     uint32_t* count,
-                                     VkExtensionProperties* /*properties*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::EnumerateInstanceExtensionProperties");
-    *count = 0;
-    return VK_SUCCESS;
-}
-
-VkResult
-EnumerateInstanceLayerProperties(uint32_t* count,
-                                 VkLayerProperties* /*properties*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::EnumerateInstanceLayerProperties");
-    *count = 0;
-    return VK_SUCCESS;
-}
-
-VkResult CreateInstance(const VkInstanceCreateInfo* /*create_info*/,
-                        const VkAllocationCallbacks* /*allocator*/,
-                        VkInstance* instance) {
-    AEMU_SCOPED_TRACE("vkstubhal::CreateInstance");
-#if defined(__ANDROID__)
-    auto dispatch = new hwvulkan_dispatch_t;
-    dispatch->magic = HWVULKAN_DISPATCH_MAGIC;
-    *instance = reinterpret_cast<VkInstance>(dispatch);
-#else
-    auto* placeholder = new int();
-    *placeholder = 0x01CDC0DE;
-    *instance = reinterpret_cast<VkInstance>(placeholder);
-#endif  // defined(__ANDROID__)
-    return VK_SUCCESS;
-}
-
-void DestroyInstance(VkInstance instance,
-                     const VkAllocationCallbacks* /*allocator*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::DestroyInstance");
-#if defined(__ANDROID__)
-    auto dispatch = reinterpret_cast<hwvulkan_dispatch_t*>(instance);
-    ALOG_ASSERT(dispatch->magic == HWVULKAN_DISPATCH_MAGIC,
-                "DestroyInstance: invalid instance handle");
-    delete dispatch;
-#else
-    auto placeholder = reinterpret_cast<int*>(instance);
-    delete placeholder;
-#endif  // defined(__ANDROID__)
-}
-
-VkResult EnumeratePhysicalDevices(VkInstance /*instance*/,
-                                  uint32_t* count,
-                                  VkPhysicalDevice* /*gpus*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::EnumeratePhysicalDevices");
-    *count = 0;
-    return VK_SUCCESS;
-}
-
-VkResult EnumerateInstanceVersion(uint32_t* pApiVersion) {
-    AEMU_SCOPED_TRACE("vkstubhal::EnumerateInstanceVersion");
-    *pApiVersion = VK_API_VERSION_1_0;
-    return VK_SUCCESS;
-}
-
-VkResult
-EnumeratePhysicalDeviceGroups(VkInstance /*instance*/,
-                              uint32_t* count,
-                              VkPhysicalDeviceGroupProperties* /*properties*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::EnumeratePhysicalDeviceGroups");
-    *count = 0;
-    return VK_SUCCESS;
-}
-
-VkResult
-CreateDebugReportCallbackEXT(VkInstance /*instance*/,
-                             const VkDebugReportCallbackCreateInfoEXT* /*pCreateInfo*/,
-                             const VkAllocationCallbacks* /*pAllocator*/,
-                             VkDebugReportCallbackEXT* pCallback)
-{
-    AEMU_SCOPED_TRACE("vkstubhal::CreateDebugReportCallbackEXT");
-    *pCallback = VK_NULL_HANDLE;
-    return VK_SUCCESS;
-}
-
-void
-DestroyDebugReportCallbackEXT(VkInstance /*instance*/,
-                              VkDebugReportCallbackEXT /*callback*/,
-                              const VkAllocationCallbacks* /*pAllocator*/)
-{
-    AEMU_SCOPED_TRACE("vkstubhal::DestroyDebugReportCallbackEXT");
-}
-
-void
-DebugReportMessageEXT(VkInstance /*instance*/,
-                      VkDebugReportFlagsEXT /*flags*/,
-                      VkDebugReportObjectTypeEXT /*objectType*/,
-                      uint64_t /*object*/,
-                      size_t /*location*/,
-                      int32_t /*messageCode*/,
-                      const char* /*pLayerPrefix*/,
-                      const char* /*pMessage*/)
-{
-    AEMU_SCOPED_TRACE("vkstubhal::DebugReportMessageEXT");
-}
-
-VkResult
-CreateDebugUtilsMessengerEXT(VkInstance /*instance*/,
-                             const VkDebugUtilsMessengerCreateInfoEXT* /*pCreateInfo*/,
-                             const VkAllocationCallbacks* /*pAllocator*/,
-                             VkDebugUtilsMessengerEXT* pMessenger)
-{
-    AEMU_SCOPED_TRACE("vkstubhal::CreateDebugUtilsMessengerEXT");
-    *pMessenger = VK_NULL_HANDLE;
-    return VK_SUCCESS;
-}
-
-void
-DestroyDebugUtilsMessengerEXT(VkInstance /*instance*/,
-                              VkDebugUtilsMessengerEXT /*messenger*/,
-                              const VkAllocationCallbacks* /*pAllocator*/)
-{
-    AEMU_SCOPED_TRACE("vkstubhal::DestroyDebugUtilsMessengerkEXT");
-}
-
-void
-SubmitDebugUtilsMessageEXT(VkInstance /*instance*/,
-                           VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
-                           VkDebugUtilsMessageTypeFlagsEXT /*messageTypes*/,
-                           const VkDebugUtilsMessengerCallbackDataEXT* /*pCallbackData*/)
-{
-    AEMU_SCOPED_TRACE("vkstubhal::SubmitDebugUtilsMessageEXT");
-}
-
-#ifdef VK_USE_PLATFORM_FUCHSIA
-VkResult
-GetMemoryZirconHandleFUCHSIA(VkDevice /*device*/,
-                             const VkMemoryGetZirconHandleInfoFUCHSIA* /*pInfo*/,
-                             uint32_t* pHandle) {
-    AEMU_SCOPED_TRACE("vkstubhal::GetMemoryZirconHandleFUCHSIA");
-    *pHandle = 0;
-    return VK_SUCCESS;
-}
-
-VkResult
-GetMemoryZirconHandlePropertiesFUCHSIA(VkDevice /*device*/,
-                                       VkExternalMemoryHandleTypeFlagBits /*handleType*/,
-                                       uint32_t /*handle*/,
-                                       VkMemoryZirconHandlePropertiesFUCHSIA* /*pProperties*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::GetMemoryZirconHandlePropertiesFUCHSIA");
-    return VK_SUCCESS;
-}
-
-VkResult
-GetSemaphoreZirconHandleFUCHSIA(VkDevice /*device*/,
-                                const VkSemaphoreGetZirconHandleInfoFUCHSIA* /*pInfo*/,
-                                uint32_t* pHandle) {
-    AEMU_SCOPED_TRACE("vkstubhal::GetSemaphoreZirconHandleFUCHSIA");
-    *pHandle = 0;
-    return VK_SUCCESS;
-}
-
-VkResult
-ImportSemaphoreZirconHandleFUCHSIA(VkDevice /*device*/,
-                                   const VkImportSemaphoreZirconHandleInfoFUCHSIA* /*pInfo*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::ImportSemaphoreZirconHandleFUCHSIA");
-    return VK_SUCCESS;
-}
-
-VkResult CreateBufferCollectionFUCHSIA(
-    VkDevice /*device*/,
-    const VkBufferCollectionCreateInfoFUCHSIA* /*pInfo*/,
-    const VkAllocationCallbacks* /*pAllocator*/,
-    VkBufferCollectionFUCHSIA* /*pCollection*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::CreateBufferCollectionFUCHSIA");
-    return VK_SUCCESS;
-}
-
-void DestroyBufferCollectionFUCHSIA(
-    VkDevice /*device*/,
-    VkBufferCollectionFUCHSIA /*collection*/,
-    const VkAllocationCallbacks* /*pAllocator*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::DestroyBufferCollectionFUCHSIA");
-}
-
-VkResult SetBufferCollectionImageConstraintsFUCHSIA(
-    VkDevice /*device*/,
-    VkBufferCollectionFUCHSIA /*collection*/,
-    const VkImageConstraintsInfoFUCHSIA* /*pImageConstraintsInfo*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::SetBufferCollectionImageConstraintsFUCHSIA");
-    return VK_SUCCESS;
-}
-
-VkResult SetBufferCollectionBufferConstraintsFUCHSIA(
-    VkDevice /*device*/,
-    VkBufferCollectionFUCHSIA /*collection*/,
-    const VkBufferConstraintsInfoFUCHSIA* /*pBufferConstraintsInfo*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::SetBufferCollectionBufferConstraintsFUCHSIA");
-    return VK_SUCCESS;
-}
-
-VkResult GetBufferCollectionPropertiesFUCHSIA(
-    VkDevice /*device*/,
-    VkBufferCollectionFUCHSIA /*collection*/,
-    VkBufferCollectionPropertiesFUCHSIA* /*pProperties*/) {
-    AEMU_SCOPED_TRACE("vkstubhal::GetBufferCollectionPropertiesFUCHSIA");
-    return VK_SUCCESS;
-}
-#endif
-
-PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
-                                       const char* name) {
-    AEMU_SCOPED_TRACE("vkstubhal::GetInstanceProcAddr");
-    if (strcmp(name, "vkCreateInstance") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(CreateInstance);
-    if (strcmp(name, "vkDestroyInstance") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(DestroyInstance);
-    if (strcmp(name, "vkEnumerateInstanceExtensionProperties") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(
-            EnumerateInstanceExtensionProperties);
-    if (strcmp(name, "vkEnumeratePhysicalDevices") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(EnumeratePhysicalDevices);
-    if (strcmp(name, "vkEnumerateInstanceVersion") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(EnumerateInstanceVersion);
-    if (strcmp(name, "vkEnumeratePhysicalDeviceGroups") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(
-            EnumeratePhysicalDeviceGroups);
-    if (strcmp(name, "vkEnumeratePhysicalDeviceGroupsKHR") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(
-            EnumeratePhysicalDeviceGroups);
-    if (strcmp(name, "vkGetInstanceProcAddr") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(GetInstanceProcAddr);
-    if (strcmp(name, "vkCreateDebugReportCallbackEXT") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(CreateDebugReportCallbackEXT);
-    if (strcmp(name, "vkDestroyDebugReportCallbackEXT") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(DestroyDebugReportCallbackEXT);
-    if (strcmp(name, "vkDebugReportMessageEXT") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(DebugReportMessageEXT);
-    if (strcmp(name, "vkCreateDebugUtilsMessengerEXT") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(CreateDebugUtilsMessengerEXT);
-    if (strcmp(name, "vkDestroyDebugUtilsMessengerEXT") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(DestroyDebugUtilsMessengerEXT);
-    if (strcmp(name, "vkSubmitDebugUtilsMessageEXT") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(SubmitDebugUtilsMessageEXT);
-#ifdef VK_USE_PLATFORM_FUCHSIA
-    if (strcmp(name, "vkGetMemoryZirconHandleFUCHSIA") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(GetMemoryZirconHandleFUCHSIA);
-    if (strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(GetMemoryZirconHandlePropertiesFUCHSIA);
-    if (strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(GetSemaphoreZirconHandleFUCHSIA);
-    if (strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(ImportSemaphoreZirconHandleFUCHSIA);
-    if (strcmp(name, "vkCreateBufferCollectionFUCHSIA") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(
-            CreateBufferCollectionFUCHSIA);
-    if (strcmp(name, "vkDestroyBufferCollectionFUCHSIA") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(
-            DestroyBufferCollectionFUCHSIA);
-    if (strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(
-            SetBufferCollectionImageConstraintsFUCHSIA);
-    if (strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(
-            SetBufferCollectionBufferConstraintsFUCHSIA);
-    if (strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(
-            GetBufferCollectionPropertiesFUCHSIA);
-#endif
-    // Return NoOp for entrypoints that should never be called.
-    if (strcmp(name, "vkGetPhysicalDeviceFeatures") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceProperties") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceFormatProperties") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceImageFormatProperties") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceMemoryProperties") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties") == 0 ||
-        strcmp(name, "vkGetDeviceProcAddr") == 0 ||
-        strcmp(name, "vkCreateDevice") == 0 ||
-        strcmp(name, "vkEnumerateDeviceExtensionProperties") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceFeatures2") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceProperties2") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceFormatProperties2") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceImageFormatProperties2") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties2") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceMemoryProperties2") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties2") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceExternalBufferProperties") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceExternalFenceProperties") == 0 ||
-        strcmp(name, "vkGetPhysicalDeviceExternalSemaphoreProperties") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(NoOp);
-
-    // Per the spec, return NULL for nonexistent entrypoints.
-    return nullptr;
-}
-
-} // namespace vkstubhal
-
 namespace {
 
 #if defined(__ANDROID__)
@@ -370,34 +68,33 @@ int CloseDevice(struct hw_device_t* /*device*/) {
 
 #endif // defined(__ANDROID__)
 
-#define VK_HOST_CONNECTION(ret)                                                              \
-    HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan);           \
-    if (!hostCon) {                                                                          \
-        ALOGE("vulkan: Failed to get host connection\n");                                    \
-        return ret;                                                                          \
-    }                                                                                        \
-    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();                                  \
-    if (!rcEnc) {                                                                            \
-        ALOGE("vulkan: Failed to get renderControl encoder context\n");                      \
-        return ret;                                                                          \
-    }                                                                                        \
-    gfxstream::vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = {                \
-        [] {                                                                                 \
-            auto hostCon = HostConnection::get();                                            \
-            hostCon->rcEncoder();                                                            \
-            return hostCon;                                                                  \
-        },                                                                                   \
-        [](HostConnection* hostCon) { return hostCon->vkEncoder(); },                        \
-    };                                                                                       \
-    gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks);        \
-    gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const());        \
-    gfxstream::vk::ResourceTracker::get()->setupCaps();                                      \
-    gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess());             \
-    auto hostSupportsVulkan = gfxstream::vk::ResourceTracker::get() -> hostSupportsVulkan(); \
-    gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();                                  \
-    if (!vkEnc) {                                                                            \
-        ALOGE("vulkan: Failed to get Vulkan encoder\n");                                     \
-        return ret;                                                                          \
+#define VK_HOST_CONNECTION(ret)                                                       \
+    HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan);    \
+    if (!hostCon) {                                                                   \
+        ALOGE("vulkan: Failed to get host connection\n");                             \
+        return ret;                                                                   \
+    }                                                                                 \
+    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();                           \
+    if (!rcEnc) {                                                                     \
+        ALOGE("vulkan: Failed to get renderControl encoder context\n");               \
+        return ret;                                                                   \
+    }                                                                                 \
+    gfxstream::vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = {         \
+        [] {                                                                          \
+            auto hostCon = HostConnection::get();                                     \
+            hostCon->rcEncoder();                                                     \
+            return hostCon;                                                           \
+        },                                                                            \
+        [](HostConnection* hostCon) { return hostCon->vkEncoder(); },                 \
+    };                                                                                \
+    gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks); \
+    gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
+    gfxstream::vk::ResourceTracker::get()->setupCaps();                               \
+    gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess());      \
+    gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();                           \
+    if (!vkEnc) {                                                                     \
+        ALOGE("vulkan: Failed to get Vulkan encoder\n");                              \
+        return ret;                                                                   \
     }
 
 VKAPI_ATTR
@@ -408,10 +105,6 @@ VkResult EnumerateInstanceExtensionProperties(
     AEMU_SCOPED_TRACE("goldfish_vulkan::EnumerateInstanceExtensionProperties");
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
-
-    if (!hostSupportsVulkan) {
-        return vkstubhal::EnumerateInstanceExtensionProperties(layer_name, count, properties);
-    }
 
     if (layer_name) {
         ALOGW(
@@ -434,10 +127,6 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
-    if (!hostSupportsVulkan) {
-        return vkstubhal::CreateInstance(create_info, allocator, out_instance);
-    }
-
     VkResult res = vkEnc->vkCreateInstance(create_info, nullptr, out_instance, true /* do lock */);
 
     return res;
@@ -452,10 +141,6 @@ VkResult GetMemoryZirconHandleFUCHSIA(
     AEMU_SCOPED_TRACE("goldfish_vulkan::GetMemoryZirconHandleFUCHSIA");
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
-
-    if (!hostSupportsVulkan) {
-        return vkstubhal::GetMemoryZirconHandleFUCHSIA(device, pInfo, pHandle);
-    }
 
     VkResult res = gfxstream::vk::ResourceTracker::get()->
         on_vkGetMemoryZirconHandleFUCHSIA(
@@ -475,11 +160,6 @@ VkResult GetMemoryZirconHandlePropertiesFUCHSIA(
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
-    if (!hostSupportsVulkan) {
-        return vkstubhal::GetMemoryZirconHandlePropertiesFUCHSIA(
-            device, handleType, handle, pProperties);
-    }
-
     VkResult res = gfxstream::vk::ResourceTracker::get()->
         on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
             vkEnc, VK_SUCCESS, device, handleType, handle, pProperties);
@@ -496,10 +176,6 @@ VkResult GetSemaphoreZirconHandleFUCHSIA(
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
-    if (!hostSupportsVulkan) {
-        return vkstubhal::GetSemaphoreZirconHandleFUCHSIA(device, pInfo, pHandle);
-    }
-
     VkResult res = gfxstream::vk::ResourceTracker::get()->
         on_vkGetSemaphoreZirconHandleFUCHSIA(
             vkEnc, VK_SUCCESS, device, pInfo, pHandle);
@@ -514,10 +190,6 @@ VkResult ImportSemaphoreZirconHandleFUCHSIA(
     AEMU_SCOPED_TRACE("goldfish_vulkan::ImportSemaphoreZirconHandleFUCHSIA");
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
-
-    if (!hostSupportsVulkan) {
-        return vkstubhal::ImportSemaphoreZirconHandleFUCHSIA(device, pInfo);
-    }
 
     VkResult res = gfxstream::vk::ResourceTracker::get()->
         on_vkImportSemaphoreZirconHandleFUCHSIA(
@@ -536,11 +208,6 @@ VkResult CreateBufferCollectionFUCHSIA(
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
-    if (!hostSupportsVulkan) {
-        return vkstubhal::CreateBufferCollectionFUCHSIA(
-            device, pInfo, pAllocator, pCollection);
-    }
-
     VkResult res =
         gfxstream::vk::ResourceTracker::get()->on_vkCreateBufferCollectionFUCHSIA(
             vkEnc, VK_SUCCESS, device, pInfo, pAllocator, pCollection);
@@ -556,12 +223,6 @@ void DestroyBufferCollectionFUCHSIA(VkDevice device,
 
     VK_HOST_CONNECTION()
 
-    if (!hostSupportsVulkan) {
-        vkstubhal::DestroyBufferCollectionFUCHSIA(device, collection,
-                                                  pAllocator);
-        return;
-    }
-
     gfxstream::vk::ResourceTracker::get()->on_vkDestroyBufferCollectionFUCHSIA(
         vkEnc, VK_SUCCESS, device, collection, pAllocator);
 }
@@ -575,11 +236,6 @@ VkResult SetBufferCollectionBufferConstraintsFUCHSIA(
         "goldfish_vulkan::SetBufferCollectionBufferConstraintsFUCHSIA");
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
-
-    if (!hostSupportsVulkan) {
-        return vkstubhal::SetBufferCollectionBufferConstraintsFUCHSIA(
-            device, collection, pBufferConstraintsInfo);
-    }
 
     VkResult res =
         gfxstream::vk::ResourceTracker::get()
@@ -599,11 +255,6 @@ VkResult SetBufferCollectionImageConstraintsFUCHSIA(
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
-    if (!hostSupportsVulkan) {
-        return vkstubhal::SetBufferCollectionImageConstraintsFUCHSIA(
-            device, collection, pImageConstraintsInfo);
-    }
-
     VkResult res =
         gfxstream::vk::ResourceTracker::get()
             ->on_vkSetBufferCollectionImageConstraintsFUCHSIA(
@@ -621,11 +272,6 @@ VkResult GetBufferCollectionPropertiesFUCHSIA(
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
-    if (!hostSupportsVulkan) {
-        return vkstubhal::GetBufferCollectionPropertiesFUCHSIA(
-            device, collection, pProperties);
-    }
-
     VkResult res = gfxstream::vk::ResourceTracker::get()
                        ->on_vkGetBufferCollectionPropertiesFUCHSIA(
                            vkEnc, VK_SUCCESS, device, collection, pProperties);
@@ -638,10 +284,6 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     AEMU_SCOPED_TRACE("goldfish_vulkan::GetDeviceProcAddr");
 
     VK_HOST_CONNECTION(nullptr)
-
-    if (!hostSupportsVulkan) {
-        return nullptr;
-    }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     if (!strcmp(name, "vkGetMemoryZirconHandleFUCHSIA")) {
@@ -683,10 +325,6 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
     AEMU_SCOPED_TRACE("goldfish_vulkan::GetInstanceProcAddr");
 
     VK_HOST_CONNECTION(nullptr)
-
-    if (!hostSupportsVulkan) {
-        return vkstubhal::GetInstanceProcAddr(instance, name);
-    }
 
     if (!strcmp(name, "vkEnumerateInstanceExtensionProperties")) {
         return (PFN_vkVoidFunction)EnumerateInstanceExtensionProperties;
@@ -762,9 +400,6 @@ public:
     }
 
     PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
-        if (!mHostSupportsGoldfish) {
-            return vkstubhal::GetInstanceProcAddr(instance, name);
-        }
         return ::GetInstanceProcAddr(instance, name);
     }
 
