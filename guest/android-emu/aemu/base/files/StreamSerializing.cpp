@@ -14,8 +14,8 @@
 
 #include "aemu/base/files/StreamSerializing.h"
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 void saveStream(Stream* stream, const MemStream& memStream) {
     memStream.save(stream);

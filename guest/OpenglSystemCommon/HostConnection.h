@@ -16,19 +16,19 @@
 #ifndef __COMMON_HOST_CONNECTION_H
 #define __COMMON_HOST_CONNECTION_H
 
+#include "ANativeWindow.h"
 #include "ChecksumCalculator.h"
 #include "EmulatorFeatureInfo.h"
+#include "Gralloc.h"
 #include "IOStream.h"
 #include "VirtGpu.h"
 #include "renderControl_enc.h"
-
+#include "Sync.h"
 #ifdef __Fuchsia__
 struct goldfish_dma_context;
 #else
 #include "goldfish_dma.h"
 #endif
-
-#include <cutils/native_handle.h>
 
 #ifdef GFXSTREAM
 #include <mutex>
@@ -56,7 +56,7 @@ class VkEncoder;
 // that will be used to track available emulator features.
 class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
-    ExtendedRCEncoderContext(gfxstream::IOStream *stream, ChecksumCalculator *checksumCalculator)
+    ExtendedRCEncoderContext(gfxstream::guest::IOStream *stream, ChecksumCalculator *checksumCalculator)
         : renderControl_encoder_context_t(stream, checksumCalculator),
           m_dmaCxt(NULL), m_dmaPtr(NULL), m_dmaPhysAddr(0) { }
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
@@ -141,21 +141,6 @@ private:
     uint64_t m_dmaPhysAddr;
 };
 
-// Abstraction for gralloc handle conversion
-class Gralloc {
-public:
-    virtual uint32_t createColorBuffer(
-        ExtendedRCEncoderContext* rcEnc, int width, int height, uint32_t glformat) = 0;
-    virtual uint32_t getHostHandle(native_handle_t const* handle) = 0;
-    virtual int getFormat(native_handle_t const* handle) = 0;
-    virtual uint32_t getFormatDrmFourcc(native_handle_t const* /*handle*/) {
-        // Equal to DRM_FORMAT_INVALID -- see <drm_fourcc.h>
-        return 0;
-    }
-    virtual size_t getAllocatedSize(native_handle_t const* handle) = 0;
-    virtual ~Gralloc() {}
-};
-
 // Abstraction for process pipe helper
 class ProcessPipe {
 public:
@@ -189,19 +174,21 @@ public:
     int getRendernodeFd() { return m_rendernodeFd; }
 
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
-    Gralloc *grallocHelper() { return m_grallocHelper; }
+
+    gfxstream::Gralloc* grallocHelper() { return m_grallocHelper; }
+    void setGrallocHelperForTesting(gfxstream::Gralloc* gralloc) { m_grallocHelper = gralloc; }
+
+    gfxstream::SyncHelper* syncHelper() { return m_syncHelper; }
+    void setSyncHelperForTesting(gfxstream::SyncHelper* sync) { m_syncHelper = sync;}
+
+    gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper; }
+    void setANativeWindowHelperForTesting(gfxstream::ANativeWindowHelper* anw) { m_anwHelper = anw; }
 
     void flush() {
         if (m_stream) {
             m_stream->flush();
         }
     }
-
-    void setGrallocOnly(bool gralloc_only) {
-        m_grallocOnly = gralloc_only;
-    }
-
-    bool isGrallocOnly() const { return m_grallocOnly; }
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -263,7 +250,7 @@ private:
     GrallocType m_grallocType;
 
     // intrusively refcounted
-    gfxstream::IOStream* m_stream = nullptr;
+    gfxstream::guest::IOStream* m_stream = nullptr;
 
     std::unique_ptr<GLEncoder> m_glEnc;
     std::unique_ptr<GL2Encoder> m_gl2Enc;
@@ -273,10 +260,11 @@ private:
     std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
     ChecksumCalculator m_checksumHelper;
-    Gralloc* m_grallocHelper = nullptr;
+    gfxstream::ANativeWindowHelper* m_anwHelper = nullptr;
+    gfxstream::Gralloc* m_grallocHelper = nullptr;
+    gfxstream::SyncHelper* m_syncHelper = nullptr;
     ProcessPipe* m_processPipe = nullptr;
     std::string m_hostExtensions;
-    bool m_grallocOnly;
     bool m_noHostError;
 #ifdef GFXSTREAM
     mutable std::mutex m_lock;

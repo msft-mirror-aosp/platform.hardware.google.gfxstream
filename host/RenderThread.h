@@ -100,8 +100,8 @@ private:
     android::base::Optional<android::base::MemStream> mStream;
 
     bool mRunInLimitedMode = false;
-    uint32_t mCapsetId = 0;
     uint32_t mContextId = 0;
+    uint32_t mCapsetId = 0;
 };
 
 }  // namespace gfxstream

@@ -21,19 +21,32 @@ package {
 
 cc_library_headers {
     name: "libqemupipe-types.ranchu",
+    host_supported: true,
     vendor_available: true,
     export_include_dirs: ["include-types"],
 }
 
 cc_library {
     name: "libqemupipe.ranchu",
+    host_supported: true,
     vendor_available: true,
     srcs: [
         "qemu_pipe_common.cpp",
-        "qemu_pipe_guest.cpp",
     ],
     header_libs: ["libqemupipe-types.ranchu"],
     export_header_lib_headers: ["libqemupipe-types.ranchu"],
     shared_libs: ["liblog"],
     export_include_dirs: ["include"],
+    target: {
+        android: {
+            srcs: [
+                "qemu_pipe_guest.cpp",
+            ],
+        },
+        host: {
+            srcs: [
+                "qemu_pipe_stub.cpp",
+            ],
+        },
+    },
 }

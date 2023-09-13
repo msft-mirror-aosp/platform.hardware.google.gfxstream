@@ -52,7 +52,7 @@
 #ifdef VIRTIO_GPU
 #include <xf86drm.h>
 #include <poll.h>
-
+#include "VirtGpu.h"
 #include "virtgpu_drm.h"
 
 #endif // VIRTIO_GPU
@@ -62,9 +62,8 @@
 #endif
 #include <cutils/trace.h>
 
-#include <system/window.h>
 
-using android::base::guest::getCurrentThreadId;
+using gfxstream::guest::getCurrentThreadId;
 
 #define DEBUG_EGL 0
 
@@ -149,38 +148,48 @@ const char *  eglStrError(EGLint err)
     HostConnection *hostCon = HostConnection::get(); \
     ExtendedRCEncoderContext *rcEnc = (hostCon ? hostCon->rcEncoder() : NULL)
 
-#define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret) \
-    HostConnection *hostCon = HostConnection::get(); \
-    if (!hostCon) { \
-        ALOGE("egl: Failed to get host connection\n"); \
-        return ret; \
-    } \
-    ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
-    if (!rcEnc) { \
+#define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret)                     \
+    HostConnection* hostCon = HostConnection::get();                 \
+    if (!hostCon) {                                                  \
+        ALOGE("egl: Failed to get host connection\n");               \
+        return ret;                                                  \
+    }                                                                \
+    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();          \
+    if (!rcEnc) {                                                    \
         ALOGE("egl: Failed to get renderControl encoder context\n"); \
-        return ret; \
-    } \
-    Gralloc *grallocHelper = hostCon->grallocHelper(); \
-    if (!grallocHelper) { \
-        ALOGE("egl: Failed to get grallocHelper\n"); \
-        return ret; \
+        return ret;                                                  \
+    }                                                                \
+    auto* grallocHelper = hostCon->grallocHelper();                  \
+    if (!grallocHelper) {                                            \
+        ALOGE("egl: Failed to get grallocHelper\n");                 \
+        return ret;                                                  \
+    }                                                                \
+    auto* anwHelper = hostCon->anwHelper();                          \
+    if (!anwHelper) {                                                \
+        ALOGE("egl: Failed to get anwHelper\n");                     \
+        return ret;                                                  \
     }
 
-#define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls) \
-    HostConnection *hostCon = HostConnection::getWithThreadInfo(tls); \
-    if (!hostCon) { \
-        ALOGE("egl: Failed to get host connection\n"); \
-        return ret; \
-    } \
-    ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
-    if (!rcEnc) { \
-        ALOGE("egl: Failed to get renderControl encoder context\n"); \
-        return ret; \
-    } \
-    Gralloc const* grallocHelper = hostCon->grallocHelper(); \
-    if (!grallocHelper) { \
-        ALOGE("egl: Failed to get grallocHelper\n"); \
-        return ret; \
+#define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls)         \
+    HostConnection* hostCon = HostConnection::getWithThreadInfo(tls); \
+    if (!hostCon) {                                                   \
+        ALOGE("egl: Failed to get host connection\n");                \
+        return ret;                                                   \
+    }                                                                 \
+    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();           \
+    if (!rcEnc) {                                                     \
+        ALOGE("egl: Failed to get renderControl encoder context\n");  \
+        return ret;                                                   \
+    }                                                                 \
+    auto const* grallocHelper = hostCon->grallocHelper();             \
+    if (!grallocHelper) {                                             \
+        ALOGE("egl: Failed to get grallocHelper\n");                  \
+        return ret;                                                   \
+    }                                                                 \
+    auto* anwHelper = hostCon->anwHelper();                           \
+    if (!anwHelper) {                                                 \
+        ALOGE("egl: Failed to get anwHelper\n");                      \
+        return ret;                                                   \
     }
 
 #define VALIDATE_CONTEXT_RETURN(context,ret)  \
@@ -199,11 +208,6 @@ const char *  eglStrError(EGLint err)
 
 // The one and only supported display object.
 static eglDisplay s_display;
-
-// Extra defines not in the official EGL spec yet,
-// but required in Android CTS.
-
-#define EGL_TIMESTAMPS_ANDROID 0x314D
 
 EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* shareCtx, int maj, int min) :
     dpy(dpy),
@@ -447,7 +451,7 @@ egl_surface_t::~egl_surface_t()
 struct egl_window_surface_t : public egl_surface_t {
     static egl_window_surface_t* create(
             EGLDisplay dpy, EGLConfig config, EGLint surfType,
-            ANativeWindow* window);
+            EGLNativeWindowType window);
 
     virtual ~egl_window_surface_t();
 
@@ -462,53 +466,71 @@ struct egl_window_surface_t : public egl_surface_t {
 private:
     egl_window_surface_t(
             EGLDisplay dpy, EGLConfig config, EGLint surfType,
-            ANativeWindow* window);
+            EGLNativeWindowType window);
     EGLBoolean init();
 
-    ANativeWindow*              nativeWindow;
-    android_native_buffer_t*    buffer;
+    EGLNativeWindowType nativeWindow;
+    EGLClientBuffer     buffer;
     bool collectingTimestamps;
 };
 
 egl_window_surface_t::egl_window_surface_t (
         EGLDisplay dpy, EGLConfig config, EGLint surfType,
-        ANativeWindow* window)
+        EGLNativeWindowType window)
 :   egl_surface_t(dpy, config, surfType),
     nativeWindow(window),
     buffer(NULL),
     collectingTimestamps(false)
 {
-    // keep a reference on the window
-    nativeWindow->common.incRef(&nativeWindow->common);
 }
-
 
 EGLBoolean egl_window_surface_t::init()
 {
-#ifndef HOST_BUILD
+    DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+
+    // keep a reference on the window
+    anwHelper->acquire(nativeWindow);
+
     int consumerUsage = 0;
-    if (nativeWindow->query(nativeWindow, NATIVE_WINDOW_CONSUMER_USAGE_BITS, &consumerUsage) != 0) {
+    if (anwHelper->getConsumerUsage(nativeWindow, &consumerUsage) != 0) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
     } else {
         int producerUsage = GRALLOC_USAGE_HW_RENDER;
-        native_window_set_usage(nativeWindow, consumerUsage | producerUsage);
+        anwHelper->setUsage(nativeWindow, consumerUsage | producerUsage);
     }
-#endif
 
-    if (nativeWindow->dequeueBuffer_DEPRECATED(nativeWindow, &buffer) != 0) {
+    int acquireFenceFd = -1;
+    if (anwHelper->dequeueBuffer(nativeWindow, &buffer, &acquireFenceFd) != 0) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
     }
-    setWidth(buffer->width);
-    setHeight(buffer->height);
+    if (acquireFenceFd >= 0) {
+        auto* syncHelper = hostCon->syncHelper();
 
-    int nativeWidth, nativeHeight;
-          nativeWindow->query(nativeWindow, NATIVE_WINDOW_WIDTH, &nativeWidth);
-          nativeWindow->query(nativeWindow, NATIVE_WINDOW_HEIGHT, &nativeHeight);
+        int waitRet = syncHelper->wait(acquireFenceFd, /* wait forever */-1);
+        if (waitRet < 0) {
+            ALOGE("Failed to wait for window surface's dequeued buffer.");
+            anwHelper->cancelBuffer(nativeWindow, buffer);
+        }
+
+        syncHelper->close(acquireFenceFd);
+
+        if (waitRet < 0) {
+            setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
+        }
+    }
+
+    int bufferWidth = anwHelper->getWidth(buffer);
+    int bufferHeight = anwHelper->getHeight(buffer);
+
+    setWidth(bufferWidth);
+    setHeight(bufferHeight);
+
+    int nativeWidth = anwHelper->getWidth(nativeWindow);
+    int nativeHeight = anwHelper->getHeight(nativeWindow);
 
     setNativeWidth(nativeWidth);
     setNativeHeight(nativeHeight);
 
-    DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
     rcSurface = rcEnc->rcCreateWindowSurface(rcEnc, (uintptr_t)s_display.getIndexOfConfig(config),
             getWidth(), getHeight());
 
@@ -516,15 +538,16 @@ EGLBoolean egl_window_surface_t::init()
         ALOGE("rcCreateWindowSurface returned 0");
         return EGL_FALSE;
     }
-    rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
-            grallocHelper->getHostHandle(buffer->handle));
+
+    const int hostHandle = anwHelper->getHostHandle(buffer, grallocHelper);
+    rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface, hostHandle);
 
     return EGL_TRUE;
 }
 
 egl_window_surface_t* egl_window_surface_t::create(
         EGLDisplay dpy, EGLConfig config, EGLint surfType,
-        ANativeWindow* window)
+        EGLNativeWindowType window)
 {
     egl_window_surface_t* wnd = new egl_window_surface_t(
             dpy, config, surfType, window);
@@ -541,15 +564,17 @@ egl_window_surface_t::~egl_window_surface_t() {
         rcEnc->rcDestroyWindowSurface(rcEnc, rcSurface);
     }
 
+    auto* anwHelper = hostCon->anwHelper();
     if (buffer) {
-        nativeWindow->cancelBuffer_DEPRECATED(nativeWindow, buffer);
+        anwHelper->cancelBuffer(nativeWindow, buffer);
     }
-    nativeWindow->common.decRef(&nativeWindow->common);
+    anwHelper->release(nativeWindow);
 }
 
 void egl_window_surface_t::setSwapInterval(int interval)
 {
-    nativeWindow->setSwapInterval(nativeWindow, interval);
+    DEFINE_HOST_CONNECTION;
+    hostCon->anwHelper()->setSwapInterval(nativeWindow, interval);
 }
 
 // createNativeSync() creates an OpenGL sync object on the host
@@ -630,8 +655,8 @@ static uint64_t createNativeSync_virtioGpu(
                            &sync_handle,
                            &thread_handle);
 
-    // Import fence fd; dup and close
     if (type == EGL_SYNC_NATIVE_FENCE_ANDROID && fd_in >= 0) {
+        // Import fence fd; dup and close
         int importedFd = dup(fd_in);
 
         if (importedFd < 0) {
@@ -645,44 +670,26 @@ static uint64_t createNativeSync_virtioGpu(
             ALOGE("%s: error: failed to close imported fd. original: %d errno %d\n",
                   __func__, fd_in, errno);
         }
-
     } else if (type == EGL_SYNC_NATIVE_FENCE_ANDROID && fd_in < 0) {
         // Export fence fd
+        struct VirtGpuExecBuffer exec = { };
+        struct gfxstreamCreateExportSync exportSync = { };
+        exportSync.hdr.opCode = GFXSTREAM_CREATE_EXPORT_SYNC;
+        exportSync.syncHandleLo = (uint32_t)sync_handle;
+        exportSync.syncHandleHi = (uint32_t)(sync_handle >> 32);
 
-        uint32_t sync_handle_lo = (uint32_t)sync_handle;
-        uint32_t sync_handle_hi = (uint32_t)(sync_handle >> 32);
-
-        uint32_t cmdDwords[3] = {
-            VIRTIO_GPU_NATIVE_SYNC_CREATE_EXPORT_FD,
-            sync_handle_lo,
-            sync_handle_hi,
-        };
-
-        drm_virtgpu_execbuffer createSyncExport = {
-            .flags = VIRTGPU_EXECBUF_FENCE_FD_OUT,
-            .size = 3 * sizeof(uint32_t),
-            .command = (uint64_t)(cmdDwords),
-            .bo_handles = 0,
-            .num_bo_handles = 0,
-            .fence_fd = -1,
-        };
-
-        int queue_work_err =
-            drmIoctl(
-                hostCon->getRendernodeFd(),
-                DRM_IOCTL_VIRTGPU_EXECBUFFER, &createSyncExport);
-
-        if (queue_work_err) {
-            ERR("%s: failed with %d executing command buffer (%s)",  __func__,
-                queue_work_err, strerror(errno));
+        VirtGpuDevice* instance = VirtGpuDevice::getInstance();
+        exec.command = static_cast<void*>(&exportSync);
+        exec.command_size = sizeof(exportSync);
+        exec.flags = kFenceOut;
+        if (instance->execBuffer(exec, /*blob=*/nullptr)) {
+            ERR("Failed to execbuffer to create sync.");
             return 0;
         }
-
-        *fd_out = createSyncExport.fence_fd;
+        *fd_out = exec.handle.osHandle
 
         DPRINT("virtio-gpu: got native fence fd=%d queue_work_err=%d",
                *fd_out, queue_work_err);
-
     }
 
     return sync_handle;
@@ -711,17 +718,17 @@ struct FrameTracingState {
     void onSwapBuffersSuccesful(ExtendedRCEncoderContext* rcEnc) {
 #ifdef GFXSTREAM
         // edge trigger
-        if (android::base::isTracingEnabled() && !tracingEnabled) {
+        if (gfxstream::guest::isTracingEnabled() && !tracingEnabled) {
             if (rcEnc->hasHostSideTracing()) {
                 rcEnc->rcSetTracingForPuid(rcEnc, getPuid(), 1, currGuestTimeNs());
             }
         }
-        if (!android::base::isTracingEnabled() && tracingEnabled) {
+        if (!gfxstream::guest::isTracingEnabled() && tracingEnabled) {
             if (rcEnc->hasHostSideTracing()) {
                 rcEnc->rcSetTracingForPuid(rcEnc, getPuid(), 0, currGuestTimeNs());
             }
         }
-        tracingEnabled = android::base::isTracingEnabled();
+        tracingEnabled = gfxstream::guest::isTracingEnabled();
 #endif
         ++frameNumber;
     }
@@ -730,7 +737,7 @@ struct FrameTracingState {
 static FrameTracingState sFrameTracingState;
 
 static void sFlushBufferAndCreateFence(
-    HostConnection* hostCon, ExtendedRCEncoderContext* rcEnc, uint32_t rcSurface, uint32_t frameNumber, int* presentFenceFd) {
+    HostConnection*, ExtendedRCEncoderContext* rcEnc, uint32_t rcSurface, uint32_t frameNumber, int* presentFenceFd) {
     atrace_int(ATRACE_TAG_GRAPHICS, "gfxstreamFrameNumber", (int32_t)frameNumber);
 
     if (rcEnc->hasHostSideTracing()) {
@@ -788,14 +795,14 @@ EGLBoolean egl_window_surface_t::swapBuffers()
         sFrameTracingState.frameNumber, &presentFenceFd);
 
     DPRINT("queueBuffer with fence %d", presentFenceFd);
-    nativeWindow->queueBuffer(nativeWindow, buffer, presentFenceFd);
+    anwHelper->queueBuffer(nativeWindow, buffer, presentFenceFd);
 
     appTimeMetric.onQueueBufferReturn();
 
     DPRINT("calling dequeueBuffer...");
 
     int acquireFenceFd = -1;
-    if (nativeWindow->dequeueBuffer(nativeWindow, &buffer, &acquireFenceFd)) {
+    if (anwHelper->dequeueBuffer(nativeWindow, &buffer, &acquireFenceFd)) {
         buffer = NULL;
         setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
     }
@@ -803,14 +810,15 @@ EGLBoolean egl_window_surface_t::swapBuffers()
     DPRINT("dequeueBuffer with fence %d", acquireFenceFd);
 
     if (acquireFenceFd > 0) {
-        close(acquireFenceFd);
+        auto* syncHelper = hostCon->syncHelper();
+        syncHelper->close(acquireFenceFd);
     }
 
-    rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
-            grallocHelper->getHostHandle(buffer->handle));
+    const int hostHandle = anwHelper->getHostHandle(buffer, grallocHelper);
+    rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface, hostHandle);
 
-    setWidth(buffer->width);
-    setHeight(buffer->height);
+    setWidth(anwHelper->getWidth(buffer));
+    setHeight(anwHelper->getHeight(buffer));
 
     sFrameTracingState.onSwapBuffersSuccesful(rcEnc);
     appTimeMetric.onSwapBuffersReturn();
@@ -1278,12 +1286,12 @@ EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWin
         setErrorReturn(EGL_BAD_MATCH, EGL_NO_SURFACE);
     }
 
-    if (reinterpret_cast<ANativeWindow*>(win)->common.magic != ANDROID_NATIVE_WINDOW_MAGIC) {
+    DEFINE_HOST_CONNECTION;
+    if (!hostCon->anwHelper()->isValid(win)) {
         setErrorReturn(EGL_BAD_NATIVE_WINDOW, EGL_NO_SURFACE);
     }
 
-    egl_surface_t* surface = egl_window_surface_t::create(
-            &s_display, config, EGL_WINDOW_BIT, reinterpret_cast<ANativeWindow*>(win));
+    egl_surface_t* surface = egl_window_surface_t::create(&s_display, config, EGL_WINDOW_BIT, win);
     if (!surface) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_SURFACE);
     }
@@ -1838,10 +1846,6 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             setErrorReturn(EGL_BAD_MATCH, EGL_NO_CONTEXT);
     }
 
-    // We've created EGL context. Disconnecting
-    // would be dangerous at this point.
-    hostCon->setGrallocOnly(false);
-
     int rcMajorVersion = majorVersion;
     if (majorVersion == 3 && minorVersion == 1) {
         rcMajorVersion = 4;
@@ -1948,10 +1952,6 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     //Now make the local bind
     if (context) {
-
-        // This is a nontrivial context.
-        // The thread cannot be gralloc-only anymore.
-        hostCon->setGrallocOnly(false);
         context->draw = draw;
         context->read = read;
         if (drawSurf) {
@@ -2015,8 +2015,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
             hostCon->glEncoder()->setClientState(context->getClientState());
             hostCon->glEncoder()->setSharedGroup(context->getSharedGroup());
         }
-    }
-    else if (tInfo->currentContext) {
+    } else if (tInfo->currentContext) {
         //release ClientState & SharedGroup
         if (tInfo->currentContext->majorVersion > 1) {
             hostCon->gl2Encoder()->setClientState(NULL);
@@ -2026,7 +2025,6 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
             hostCon->glEncoder()->setClientState(NULL);
             hostCon->glEncoder()->setSharedGroup(GLSharedGroupPtr(NULL));
         }
-
     }
 
     // Delete the previous context here
@@ -2214,19 +2212,12 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
             setErrorReturn(EGL_BAD_CONTEXT, EGL_NO_IMAGE_KHR);
         }
 
-        android_native_buffer_t* native_buffer = (android_native_buffer_t*)buffer;
-
-        if (native_buffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
-            setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-
-        if (native_buffer->common.version != sizeof(android_native_buffer_t))
-            setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-
-        if (native_buffer->handle == NULL)
-            setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-
         DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
-        int format = grallocHelper->getFormat(native_buffer->handle);
+        if (!anwHelper->isValid(buffer)) {
+            setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+        }
+
+        int format = anwHelper->getFormat(buffer, grallocHelper);
         switch (format) {
             case HAL_PIXEL_FORMAT_R8:
             case HAL_PIXEL_FORMAT_RGBA_8888:
@@ -2254,14 +2245,14 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
                 setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
 
-        native_buffer->common.incRef(&native_buffer->common);
+        anwHelper->acquire(buffer);
 
         EGLImage_t *image = new EGLImage_t();
         image->dpy = dpy;
         image->target = target;
-        image->native_buffer = native_buffer;
-        image->width = native_buffer->width;
-        image->height = native_buffer->width;
+        image->buffer = buffer;
+        image->width = anwHelper->getWidth(buffer);
+        image->height = anwHelper->getHeight(buffer);
 
         return (EGLImageKHR)image;
     }
@@ -2296,24 +2287,22 @@ EGLBoolean eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR img)
         RETURN_ERROR(EGL_FALSE, EGL_BAD_PARAMETER);
     }
 
+    DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+
     if (image->target == EGL_NATIVE_BUFFER_ANDROID) {
-        android_native_buffer_t* native_buffer = image->native_buffer;
-
-        if (native_buffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
+        EGLClientBuffer buffer = image->buffer;
+        if (!anwHelper->isValid(buffer)) {
             setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
+        }
 
-        if (native_buffer->common.version != sizeof(android_native_buffer_t))
-            setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
-
-        native_buffer->common.decRef(&native_buffer->common);
+        anwHelper->release(buffer);
         delete image;
 
         return EGL_TRUE;
-    }
-    else if (image->target == EGL_GL_TEXTURE_2D_KHR) {
+    } else if (image->target == EGL_GL_TEXTURE_2D_KHR) {
         uint32_t host_egl_image = image->host_egl_image;
         delete image;
-        DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+
         return rcEnc->rcDestroyClientImage(rcEnc, host_egl_image);
     }
 

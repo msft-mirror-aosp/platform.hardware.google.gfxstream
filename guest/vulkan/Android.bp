@@ -1,0 +1,61 @@
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package {
+    // See: http://go/android-license-faq
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_shared {
+    name: "vulkan.ranchu",
+    host_supported: true,
+    vendor: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    header_libs: [
+        "gfxstream_vulkan_headers",
+    ],
+    shared_libs: [
+        "libandroidemu",
+        "liblog",
+        "lib_renderControl_enc",
+        "libvulkan_enc",
+        "libOpenglCodecCommon",
+        "libOpenglSystemCommon",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"goldfish_vulkan\"",
+        "-DVK_NO_PROTOTYPES",
+        "-DVK_USE_PLATFORM_ANDROID_KHR",
+        "-fstrict-aliasing",
+        "-fvisibility=hidden",
+        "-Wno-missing-field-initializers",
+        "-Wno-unused-function",
+        "-Wno-unused-parameter",
+    ],
+    srcs: [
+        "goldfish_vulkan.cpp",
+    ],
+    target: {
+        android: {
+            relative_install_path: "hw",
+            header_libs: [
+                "hwvulkan_headers",
+            ],
+        },
+    },
+}

@@ -23,7 +23,7 @@
 #include "Function.h"
 #include "Nullable.h"
 
-namespace android::base {
+namespace gfxstream::guest {
 namespace fit {
 
 // A move-only deferred action wrapper with RAII semantics.
@@ -154,4 +154,4 @@ inline DeferredCallback deferCallback(fit::Callback<void()> target) {
 }
 
 }  // namespace fit
-}  // namespace android::base
+}  // namespace gfxstream::guest

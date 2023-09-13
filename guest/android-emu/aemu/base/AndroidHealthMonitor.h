@@ -35,18 +35,17 @@
 
 #include <log/log.h>
 
-using android::base::guest::EventHangMetadata;
+using gfxstream::guest::EventHangMetadata;
 
 #define WATCHDOG_BUILDER(healthMonitorPtr, msg)                                              \
-    ::android::base::guest::HealthWatchdogBuilder<std::decay_t<decltype(*(healthMonitorPtr))>>( \
+    gfxstream::guest::HealthWatchdogBuilder<std::decay_t<decltype(*(healthMonitorPtr))>>( \
         (healthMonitorPtr), __FILE__, __func__, msg, __LINE__)
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
-using android::base::guest::ConditionVariable;
-using android::base::guest::Lock;
+using gfxstream::guest::ConditionVariable;
+using gfxstream::guest::Lock;
 using std::chrono::duration;
 using std::chrono::steady_clock;
 using std::chrono::time_point;
@@ -62,7 +61,7 @@ static std::chrono::nanoseconds kTimeEpsilon(1);
 // HealthMonitorConsumer, it will log hang and unhang events when it detects tasks hanging/resuming.
 // Design doc: http://go/gfxstream-health-monitor
 template <class Clock = steady_clock>
-class HealthMonitor : public android::base::guest::Thread {
+class HealthMonitor : public gfxstream::guest::Thread {
    public:
     // Alias for task id.
     using Id = uint64_t;
@@ -278,6 +277,5 @@ class HealthWatchdogBuilder {
 std::unique_ptr<HealthMonitor<>> CreateHealthMonitor(
     HealthMonitorConsumer& consumer, uint64_t heartbeatInterval = kDefaultIntervalMs);
 
-}  // namespace guest
-}  // namespace base
-}  // namespace android
+} // namespace guest
+} // namespace gfxstream
