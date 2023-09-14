@@ -376,7 +376,7 @@ MagmaClientContext* GetMagmaContext() {
     static std::once_flag once_flag;
 
     std::call_once(once_flag, []() {
-        auto stream = createVirtioGpuAddressSpaceStream(nullptr);
+        auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamMagma, nullptr);
         assert(stream);
 
         // RenderThread expects flags: send zero 'clientFlags' to the host.
