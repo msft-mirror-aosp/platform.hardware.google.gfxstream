@@ -55,5 +55,6 @@ lib_egl_translator = static_library(
   include_directories: [inc_include, inc_gles_translator, inc_apigen_codec,
                         inc_gl_host_common, inc_stream_servers],
   link_with: [lib_gl_common, lib_apigen_codec, lib_gl_host_common],
-  dependencies: [aemu_base_dep, aemu_common_dep, logging_base_dep]
+  dependencies: [aemu_base_dep, aemu_common_dep, aemu_snapshot_dep,
+                 aemu_logging_dep]
 )
