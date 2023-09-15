@@ -71,7 +71,7 @@ public:
     }
 
 private:
-    using Storage = android::base::HybridComponentManager<10000, IndexType, uint64_t>;
+    using Storage = gfxstream::guest::HybridComponentManager<10000, IndexType, uint64_t>;
     Storage mStorage;
 };
 
@@ -92,10 +92,10 @@ struct AttribIndexInfo {
     bool validInProgram = false;
 };
 
-using UniformValidationInfo = android::base::HybridComponentManager<1000, uint32_t, UniformLocationInfo>;
-using AttribValidationInfo = android::base::HybridComponentManager<16, uint32_t, AttribIndexInfo>;
+using UniformValidationInfo = gfxstream::guest::HybridComponentManager<1000, uint32_t, UniformLocationInfo>;
+using AttribValidationInfo = gfxstream::guest::HybridComponentManager<16, uint32_t, AttribIndexInfo>;
 
-using LastQueryTargetInfo = android::base::HybridComponentManager<1000, uint32_t, uint32_t>;
+using LastQueryTargetInfo = gfxstream::guest::HybridComponentManager<1000, uint32_t, uint32_t>;
 
 using ExistenceMap = PredicateMap<uint32_t, false>;
 
@@ -130,8 +130,8 @@ protected:
 };
 
 struct RenderbufferInfo {
-    android::base::guest::Lock infoLock;
-    android::base::HybridComponentManager<1000, uint32_t, std::shared_ptr<RboProps>> component;
+    gfxstream::guest::Lock infoLock;
+    gfxstream::guest::HybridComponentManager<1000, uint32_t, std::shared_ptr<RboProps>> component;
 
     void lock() { infoLock.lock(); }
     void unlock() { infoLock.unlock(); }
@@ -202,8 +202,8 @@ struct RenderbufferInfo {
 };
 
 struct SamplerInfo {
-    android::base::guest::Lock infoLock;
-    android::base::HybridComponentManager<1000, uint32_t, SamplerProps> component;
+    gfxstream::guest::Lock infoLock;
+    gfxstream::guest::HybridComponentManager<1000, uint32_t, SamplerProps> component;
 
     void lock() { infoLock.lock(); }
     void unlock() { infoLock.unlock(); }

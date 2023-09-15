@@ -298,7 +298,9 @@ intptr_t RenderThread::main() {
         tInfo.m_vkInfo.emplace();
     }
 
+#if USE_MAGMA
     tInfo.m_magmaInfo.emplace(mContextId);
+#endif
 
     // This is the only place where we try loading from snapshot.
     // But the context bind / restoration will be delayed after receiving
@@ -429,16 +431,16 @@ intptr_t RenderThread::main() {
             std::unique_ptr<EventHangMetadata::HangAnnotations> renderThreadData =
                 std::make_unique<EventHangMetadata::HangAnnotations>();
 
-            const char* processName = nullptr;
-            if (tInfo.m_processName) {
-                processName = tInfo.m_processName.value().c_str();
+            const char* contextName = nullptr;
+            if (mNameOpt) {
+                contextName = (*mNameOpt).c_str();
             }
 
             auto* healthMonitor = FrameBuffer::getFB()->getHealthMonitor();
             if (healthMonitor) {
-                if (processName) {
+                if (contextName) {
                     renderThreadData->insert(
-                        {{"renderthread_guest_process", processName}});
+                        {{"renderthread_guest_process", contextName}});
                 }
                 if (readBuf.validData() >= 4) {
                     renderThreadData->insert(
@@ -472,7 +474,7 @@ intptr_t RenderThread::main() {
             if (tInfo.m_vkInfo) {
                 tInfo.m_vkInfo->ctx_id = mContextId;
                 VkDecoderContext context = {
-                    .processName = processName,
+                    .processName = contextName,
                     .gfxApiLogger = &gfxLogger,
                     .healthMonitor = FrameBuffer::getFB()->getHealthMonitor(),
                     .metricsLogger = &metricsLogger,
@@ -554,6 +556,7 @@ intptr_t RenderThread::main() {
             // try to process some of the command buffer using the Magma
             // decoder
             //
+#if USE_MAGMA
             if (tInfo.m_magmaInfo && tInfo.m_magmaInfo->mMagmaDec)
             {
                 last = tInfo.m_magmaInfo->mMagmaDec->decode(readBuf.buf(), readBuf.validData(),
@@ -563,6 +566,7 @@ intptr_t RenderThread::main() {
                     progress = true;
                 }
             }
+#endif
 
             if (mRunInLimitedMode) {
                 sThreadRunLimiter.unlock();

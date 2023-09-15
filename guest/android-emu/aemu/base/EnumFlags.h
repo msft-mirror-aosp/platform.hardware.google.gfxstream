@@ -23,13 +23,13 @@
 //
 // To enable the flag operators for your enum, most probably you just need to
 // include this file. The only exception is if your enum is located in some
-// namespace other than android, android::base or global. In that case you also
+// namespace other than android, gfxstream::guest or global. In that case you also
 // need to add the following using to bring in the operators:
 //
-// using namespace ::android::base::EnumFlags;
+// using namespace gfxstream::guest::EnumFlags;
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 namespace EnumFlags {
 
 // A predicate which checks if template agument is a scoped enum
@@ -108,13 +108,13 @@ enable_if_scoped_enum<E, bool> nonzero(E e) {
 
 // For the ADL to kick in let's make sure we bring all the operators into our
 // main AndroidEmu namespaces...
-using namespace ::android::base::EnumFlags;
+using namespace gfxstream::guest::EnumFlags;
 
 }  // namespace base
 
-using namespace ::android::base::EnumFlags;
+using namespace gfxstream::guest::EnumFlags;
 
 }  // namespace android
 
 // ... and into the global one, where most of the client functions are
-using namespace ::android::base::EnumFlags;
+using namespace gfxstream::guest::EnumFlags;

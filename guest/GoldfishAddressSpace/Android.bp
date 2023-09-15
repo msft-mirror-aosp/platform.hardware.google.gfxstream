@@ -5,13 +5,20 @@ package {
 
 cc_library_static {
     name: "libGoldfishAddressSpace",
+    host_supported: true,
     vendor: true,
     srcs: [
-        "goldfish_address_space.cpp",
+        "AddressSpaceStream.cpp",
+        "VirtioGpuAddressSpaceStream.cpp",
+    ],
+    header_libs: [
+        "libgfxstream_guest_iostream",
     ],
     shared_libs: [
-        "liblog",
+        "libandroidemu",
+        "libcutils",
         "libdrm",
+        "liblog",
     ],
     static_libs: [
         "libplatform",
@@ -23,5 +30,15 @@ cc_library_static {
         "-DLOG_TAG=\"goldfish-address-space\"",
         "-DVIRTIO_GPU",
     ],
-    include_dirs: ["hardware/google/gfxstream/guest/include"],
+    include_dirs: [
+        "hardware/google/gfxstream/guest/include",
+    ],
+    target: {
+        android: {
+            srcs: [
+                "goldfish_address_space.cpp",
+                "GoldfishAddressSpaceStream.cpp",
+            ],
+        },
+    },
 }

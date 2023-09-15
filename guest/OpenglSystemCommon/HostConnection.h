@@ -16,17 +16,19 @@
 #ifndef __COMMON_HOST_CONNECTION_H
 #define __COMMON_HOST_CONNECTION_H
 
-#include "EmulatorFeatureInfo.h"
-#include "IOStream.h"
-#include "renderControl_enc.h"
+#include "ANativeWindow.h"
 #include "ChecksumCalculator.h"
+#include "EmulatorFeatureInfo.h"
+#include "Gralloc.h"
+#include "IOStream.h"
+#include "VirtGpu.h"
+#include "renderControl_enc.h"
+#include "Sync.h"
 #ifdef __Fuchsia__
 struct goldfish_dma_context;
 #else
 #include "goldfish_dma.h"
 #endif
-
-#include <cutils/native_handle.h>
 
 #ifdef GFXSTREAM
 #include <mutex>
@@ -54,7 +56,7 @@ class VkEncoder;
 // that will be used to track available emulator features.
 class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
-    ExtendedRCEncoderContext(gfxstream::IOStream *stream, ChecksumCalculator *checksumCalculator)
+    ExtendedRCEncoderContext(gfxstream::guest::IOStream *stream, ChecksumCalculator *checksumCalculator)
         : renderControl_encoder_context_t(stream, checksumCalculator),
           m_dmaCxt(NULL), m_dmaPtr(NULL), m_dmaPhysAddr(0) { }
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
@@ -139,21 +141,6 @@ private:
     uint64_t m_dmaPhysAddr;
 };
 
-// Abstraction for gralloc handle conversion
-class Gralloc {
-public:
-    virtual uint32_t createColorBuffer(
-        ExtendedRCEncoderContext* rcEnc, int width, int height, uint32_t glformat) = 0;
-    virtual uint32_t getHostHandle(native_handle_t const* handle) = 0;
-    virtual int getFormat(native_handle_t const* handle) = 0;
-    virtual uint32_t getFormatDrmFourcc(native_handle_t const* /*handle*/) {
-        // Equal to DRM_FORMAT_INVALID -- see <drm_fourcc.h>
-        return 0;
-    }
-    virtual size_t getAllocatedSize(native_handle_t const* handle) = 0;
-    virtual ~Gralloc() {}
-};
-
 // Abstraction for process pipe helper
 class ProcessPipe {
 public:
@@ -163,26 +150,18 @@ public:
 
 struct EGLThreadInfo;
 
-// Rutabaga capsets.
-#define VIRTIO_GPU_CAPSET_NONE 0
-#define VIRTIO_GPU_CAPSET_VIRGL 1
-#define VIRTIO_GPU_CAPSET_VIRGL2 2
-#define VIRTIO_GPU_CAPSET_GFXSTREAM 3
-#define VIRTIO_GPU_CAPSET_VENUS 4
-#define VIRTIO_GPU_CAPSET_CROSS_DOMAIN 5
-
 class HostConnection
 {
 public:
     static HostConnection *get();
-    static HostConnection *getOrCreate(uint32_t capset_id);
+    static HostConnection* getOrCreate(enum VirtGpuCapset capset = kCapsetNone);
 
-    static HostConnection *getWithThreadInfo(EGLThreadInfo* tInfo,
-                                             uint32_t capset_id = VIRTIO_GPU_CAPSET_NONE);
+    static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo,
+                                             enum VirtGpuCapset capset = kCapsetNone);
     static void exit();
     static void exitUnclean(); // for testing purposes
 
-    static std::unique_ptr<HostConnection> createUnique(uint32_t capset_id = VIRTIO_GPU_CAPSET_NONE);
+    static std::unique_ptr<HostConnection> createUnique(enum VirtGpuCapset capset = kCapsetNone);
     HostConnection(const HostConnection&) = delete;
 
     ~HostConnection();
@@ -195,19 +174,21 @@ public:
     int getRendernodeFd() { return m_rendernodeFd; }
 
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
-    Gralloc *grallocHelper() { return m_grallocHelper; }
+
+    gfxstream::Gralloc* grallocHelper() { return m_grallocHelper; }
+    void setGrallocHelperForTesting(gfxstream::Gralloc* gralloc) { m_grallocHelper = gralloc; }
+
+    gfxstream::SyncHelper* syncHelper() { return m_syncHelper; }
+    void setSyncHelperForTesting(gfxstream::SyncHelper* sync) { m_syncHelper = sync;}
+
+    gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper; }
+    void setANativeWindowHelperForTesting(gfxstream::ANativeWindowHelper* anw) { m_anwHelper = anw; }
 
     void flush() {
         if (m_stream) {
             m_stream->flush();
         }
     }
-
-    void setGrallocOnly(bool gralloc_only) {
-        m_grallocOnly = gralloc_only;
-    }
-
-    bool isGrallocOnly() const { return m_grallocOnly; }
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -224,52 +205,52 @@ public:
 private:
     // If the connection failed, |conn| is deleted.
     // Returns NULL if connection failed.
-    static std::unique_ptr<HostConnection> connect(uint32_t capset_id);
+ static std::unique_ptr<HostConnection> connect(enum VirtGpuCapset capset);
 
-    HostConnection();
-    static gl_client_context_t  *s_getGLContext();
-    static gl2_client_context_t *s_getGL2Context();
+ HostConnection();
+ static gl_client_context_t* s_getGLContext();
+ static gl2_client_context_t* s_getGL2Context();
 
-    const std::string& queryHostExtensions(ExtendedRCEncoderContext *rcEnc);
-    // setProtocol initilizes GL communication protocol for checksums
-    // should be called when m_rcEnc is created
-    void setChecksumHelper(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetGLESMaxVersion(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetNoErrorState(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetDirectMemSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanIgnoredHandles(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetYUVCache(ExtendedRCEncoderContext *mrcEnc);
-    void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVirtioGpuNext(ExtendedRCEncoderContext *rcEnc);
-    void queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetSyncBufferData(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetReadColorBufferDma(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc);
-    void queryAndSetVulkanAuxCommandBufferMemory(ExtendedRCEncoderContext* rcEnc);
-    GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
+ const std::string& queryHostExtensions(ExtendedRCEncoderContext* rcEnc);
+ // setProtocol initializes GL communication protocol for checksums
+ // should be called when m_rcEnc is created
+ void setChecksumHelper(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetSyncImpl(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetDmaImpl(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetGLESMaxVersion(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetNoErrorState(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetHostCompositionImpl(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetDirectMemSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanIgnoredHandles(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetYUVCache(ExtendedRCEncoderContext* mrcEnc);
+ void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVirtioGpuNext(ExtendedRCEncoderContext* rcEnc);
+ void queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetSyncBufferData(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetReadColorBufferDma(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc);
+ void queryAndSetVulkanAuxCommandBufferMemory(ExtendedRCEncoderContext* rcEnc);
+ GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
 
 private:
     HostConnectionType m_connectionType;
     GrallocType m_grallocType;
 
     // intrusively refcounted
-    gfxstream::IOStream* m_stream = nullptr;
+    gfxstream::guest::IOStream* m_stream = nullptr;
 
     std::unique_ptr<GLEncoder> m_glEnc;
     std::unique_ptr<GL2Encoder> m_gl2Enc;
@@ -279,10 +260,11 @@ private:
     std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
     ChecksumCalculator m_checksumHelper;
-    Gralloc* m_grallocHelper = nullptr;
+    gfxstream::ANativeWindowHelper* m_anwHelper = nullptr;
+    gfxstream::Gralloc* m_grallocHelper = nullptr;
+    gfxstream::SyncHelper* m_syncHelper = nullptr;
     ProcessPipe* m_processPipe = nullptr;
     std::string m_hostExtensions;
-    bool m_grallocOnly;
     bool m_noHostError;
 #ifdef GFXSTREAM
     mutable std::mutex m_lock;

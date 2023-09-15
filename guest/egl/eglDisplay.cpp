@@ -23,9 +23,12 @@
 #endif
 
 #include <string>
+#include <vector>
+
 #include <dlfcn.h>
 #include <GLES3/gl31.h>
 
+#include <aemu/base/Path.h>
 #include <system/graphics.h>
 
 static const int systemEGLVersionMajor = 1;
@@ -124,7 +127,6 @@ bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
             ALOGE("Failed to establish connection with the host\n");
             return false;
         }
-        hcon->setGrallocOnly(false);
 
         //
         // get renderControl encoder instance
@@ -279,21 +281,26 @@ EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
                                                        EGLClient_eglInterface *eglIface,
                                                        void **libHandle)
 {
-#ifdef HOST_BUILD
-    std::string baseDir =
-        android::base::System::get()->getProgramDirectory();
-    std::string path =
-        android::base::pj({
-            baseDir, "lib64", std::string(basename) + LIBSUFFIX});
-    void *lib = dlopen(path.c_str(), RTLD_NOW);
+    std::vector<std::string> paths;
+#if defined(__ANDROID__)
+    paths.push_back(std::string(PARTITION) +
+                    std::string(LIBDIR) +
+                    basename +
+                    std::string(LIBSUFFIX));
 #else
-    std::string path(PARTITION);
-    path += LIBDIR;
-    path += basename;
-    path += LIBSUFFIX;
-    void *lib = dlopen(path.c_str(), RTLD_NOW);
+    const std::string directory = gfxstream::guest::getProgramDirectory();
+    paths.push_back(directory + "/" + basename + LIBSUFFIX);
+    paths.push_back(directory + "/lib64/" + basename + LIBSUFFIX);
 #endif
 
+    void* lib = nullptr;
+    for (const std::string& path : paths) {
+        ALOGI("Opening %s", path.c_str());
+        lib = dlopen(path.c_str(), RTLD_NOW);
+        if (lib) {
+            break;
+        }
+    }
     if (!lib) {
         ALOGE("Failed to dlopen %s", basename);
         return NULL;

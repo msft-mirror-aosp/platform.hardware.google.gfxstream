@@ -189,8 +189,20 @@ static void sQemuPipeInit() {
     }
 }
 
-static void processPipeInitOnce() {
+namespace {
+
+static std::mutex sNeedInitMutex;
+static bool sNeedInit = true;
+static bool sProcessPipeEnabled = true;
+
+}  // namespace
+
+static void processPipeDoInit() {
     initSeqno();
+
+    if (!sProcessPipeEnabled) {
+        return;
+    }
 
 #if defined(HOST_BUILD) || !defined(GFXSTREAM)
     sQemuPipeInit();
@@ -199,7 +211,6 @@ static void processPipeInitOnce() {
         // TODO: Move those over too
         case HOST_CONNECTION_QEMU_PIPE:
         case HOST_CONNECTION_ADDRESS_SPACE:
-        case HOST_CONNECTION_TCP:
             sQemuPipeInit();
             break;
         case HOST_CONNECTION_VIRTIO_GPU_PIPE:
@@ -218,12 +229,26 @@ bool processPipeInit(int streamHandle, HostConnectionType connType, renderContro
 #ifndef __Fuchsia__
     sStreamHandle = streamHandle;
 #endif // !__Fuchsia
-    pthread_once(&sProcPipeOnce, processPipeInitOnce);
-    bool pipeHandleInvalid = !sProcPipe;
-#ifndef __Fuchsia__
-    pipeHandleInvalid = pipeHandleInvalid && !sVirtioGpuPipeStream;
-#endif // !__Fuchsia__
-    if (pipeHandleInvalid) return false;
+
+    {
+        std::lock_guard<std::mutex> lock(sNeedInitMutex);
+
+        if (sNeedInit) {
+            sNeedInit = false;
+            processPipeDoInit();
+
+#ifdef __Fuchsia__
+            if (!sProcPipe) {
+                return false;
+            }
+#else
+            if (!sProcPipe && !sVirtioGpuPipeStream) {
+                return false;
+            }
+#endif
+        }
+    }
+
     rcEnc->rcSetPuid(rcEnc, sProcUID);
     return true;
 }
@@ -233,6 +258,8 @@ uint64_t getPuid() {
 }
 
 void processPipeRestart() {
+    std::lock_guard<std::mutex> lock(sNeedInitMutex);
+
     ALOGW("%s: restarting process pipe\n", __func__);
     bool isPipe = false;
 
@@ -240,7 +267,6 @@ void processPipeRestart() {
         // TODO: Move those over too
         case HOST_CONNECTION_QEMU_PIPE:
         case HOST_CONNECTION_ADDRESS_SPACE:
-        case HOST_CONNECTION_TCP:
             isPipe = true;
             break;
         case HOST_CONNECTION_VIRTIO_GPU_PIPE:
@@ -262,12 +288,18 @@ void processPipeRestart() {
             sProcPipe = 0;
         }
     } else {
-        delete sVirtioGpuPipeStream;
-        sVirtioGpuPipeStream = nullptr;
+        if (sVirtioGpuPipeStream) {
+            delete sVirtioGpuPipeStream;
+            sVirtioGpuPipeStream = nullptr;
+        }
     }
 #endif // __Fuchsia__
 
-    processPipeInitOnce();
+    sNeedInit = true;
+}
+
+void disableProcessPipeForTesting() {
+    sProcessPipeEnabled = false;
 }
 
 void refreshHostConnection() {

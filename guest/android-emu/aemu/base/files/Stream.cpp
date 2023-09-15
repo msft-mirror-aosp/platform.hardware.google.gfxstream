@@ -17,8 +17,8 @@
 #include <assert.h>
 #include <string.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 void Stream::putByte(uint8_t value) {
     write(&value, 1U);

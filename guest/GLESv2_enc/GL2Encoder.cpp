@@ -31,7 +31,7 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
 
-using gfxstream::IOStream;
+using gfxstream::guest::IOStream;
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -3281,7 +3281,7 @@ void GL2Encoder::s_glGetFramebufferAttachmentParameteriv(void* self,
     SET_ERROR_IF(state->boundFramebuffer(target) &&
                  (attachment == GL_BACK ||
                   attachment == GL_FRONT ||
-                  attachment == GL_DEPTH || 
+                  attachment == GL_DEPTH ||
                   attachment == GL_STENCIL),
                  GL_INVALID_OPERATION);
     ctx->m_glGetFramebufferAttachmentParameteriv_enc(self, target, attachment, pname, params);
@@ -5536,7 +5536,7 @@ void GL2Encoder::s_glGetShaderiv(void* self, GLuint shader, GLenum pname, GLint*
 
     SET_ERROR_IF(!GLESv2Validation::allowedGetShader(pname), GL_INVALID_ENUM);
     VALIDATE_SHADER_NAME(shader);
-	
+
     if (pname == GL_SHADER_SOURCE_LENGTH) {
         ShaderData* shaderData = ctx->m_shared->getShaderData(shader);
         if (shaderData) {

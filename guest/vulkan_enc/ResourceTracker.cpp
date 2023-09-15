@@ -100,12 +100,10 @@ void zx_event_create(int, zx_handle_t*) { }
 #include <vndk/hardware_buffer.h>
 #include <log/log.h>
 #include <stdlib.h>
-#include <sync/sync.h>
 
 #if defined(__ANDROID__) || defined(__linux__) || defined(__APPLE__)
 
 #include <sys/mman.h>
-#include <unistd.h>
 #include <sys/syscall.h>
 
 #ifdef HOST_BUILD
@@ -118,6 +116,11 @@ inline_memfd_create(const char *name, unsigned int flags) {
     TempFile* tmpFile = tempfile_create();
     return open(tempfile_path(tmpFile), O_RDWR);
     // TODO: Windows is not suppose to support VkSemaphoreGetFdInfoKHR
+#elif !defined(__ANDROID__)
+    (void)name;
+    (void)flags;
+    ALOGE("Not yet supported.");
+    abort();
 #else
     return syscall(SYS_memfd_create, name, flags);
 #endif
@@ -137,11 +140,11 @@ inline_memfd_create(const char *name, unsigned int flags) {
 #endif
 #endif
 
-using android::base::Optional;
-using android::base::guest::AutoLock;
-using android::base::guest::RecursiveLock;
-using android::base::guest::Lock;
-using android::base::guest::WorkPool;
+using gfxstream::guest::Optional;
+using gfxstream::guest::AutoLock;
+using gfxstream::guest::RecursiveLock;
+using gfxstream::guest::Lock;
+using gfxstream::guest::WorkPool;
 
 namespace gfxstream {
 namespace vk {
@@ -306,7 +309,9 @@ public:
         uint64_t coherentMemorySize = 0;
         uint64_t coherentMemoryOffset = 0;
 
+#if defined(__ANDROID__)
         GoldfishAddressSpaceBlockPtr goldfishBlock = nullptr;
+#endif  // defined(__ANDROID__)
         CoherentMemoryPtr coherentMemory = nullptr;
     };
 
@@ -368,12 +373,15 @@ public:
         uint32_t imageInfoCount = 0;
         uint32_t bufferInfoCount = 0;
         uint32_t bufferViewCount = 0;
+        uint32_t inlineUniformBlockCount = 0;
         uint32_t* imageInfoIndices;
         uint32_t* bufferInfoIndices;
         uint32_t* bufferViewIndices;
         VkDescriptorImageInfo* imageInfos;
         VkDescriptorBufferInfo* bufferInfos;
         VkBufferView* bufferViews;
+        std::vector<uint8_t> inlineUniformBlockBuffer;
+        std::vector<uint32_t> inlineUniformBlockBytesPerBlocks;  // bytes per uniform block
     };
 
     struct VkFence_Info {
@@ -407,10 +415,10 @@ public:
 
     struct VkBufferCollectionFUCHSIA_Info {
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        android::base::Optional<
+        gfxstream::guest::Optional<
             fuchsia_sysmem::wire::BufferCollectionConstraints>
             constraints;
-        android::base::Optional<VkBufferCollectionPropertiesFUCHSIA> properties;
+        gfxstream::guest::Optional<VkBufferCollectionPropertiesFUCHSIA> properties;
 
         // the index of corresponding createInfo for each image format
         // constraints in |constraints|.
@@ -511,7 +519,8 @@ public:
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (memInfo.ahw) {
-            AHardwareBuffer_release(memInfo.ahw);
+            auto* gralloc = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
+            gralloc->release(memInfo.ahw);
         }
 #endif
 
@@ -556,7 +565,8 @@ public:
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (semInfo.syncFd.value_or(-1) >= 0) {
-            close(semInfo.syncFd.value());
+            auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+            syncHelper->close(semInfo.syncFd.value());
         }
 #endif
 
@@ -597,7 +607,8 @@ public:
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (fenceInfo.syncFd >= 0) {
-            close(fenceInfo.syncFd);
+            auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+            syncHelper->close(fenceInfo.syncFd);
         }
 #endif
 
@@ -909,8 +920,8 @@ public:
     }
 
     void setupCaps(void) {
-        VirtGpuDevice& instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
-        mCaps = instance.getCaps();
+        VirtGpuDevice* instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
+        mCaps = instance->getCaps();
 
         // Delete once goldfish Linux drivers are gone
         if (mCaps.gfxstreamCapset.protocolVersion == 0) {
@@ -923,11 +934,13 @@ public:
         mFeatureInfo.reset(new EmulatorFeatureInfo);
         *mFeatureInfo = *features;
 
+#if defined(__ANDROID__)
         if (mFeatureInfo->hasDirectMem) {
             mGoldfishAddressSpaceBlockProvider.reset(
                 new GoldfishAddressSpaceBlockProvider(
                     GoldfishAddressSpaceSubdeviceType::NoSubdevice));
         }
+#endif  // defined(__ANDROID__)
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (mFeatureInfo->hasVulkan) {
@@ -1215,7 +1228,6 @@ public:
         const char*,
         uint32_t* pPropertyCount,
         VkExtensionProperties* pProperties) {
-
         std::vector<const char*> allowedExtensionNames = {
             "VK_KHR_vulkan_memory_model",
             "VK_KHR_buffer_device_address",
@@ -1227,8 +1239,8 @@ public:
             "VK_KHR_get_memory_requirements2",
             "VK_KHR_sampler_ycbcr_conversion",
             "VK_KHR_shader_float16_int8",
-            // Timeline semaphores buggy in newer NVIDIA drivers
-            // (vkWaitSemaphoresKHR causes further vkCommandBuffer dispatches to deadlock)
+        // Timeline semaphores buggy in newer NVIDIA drivers
+        // (vkWaitSemaphoresKHR causes further vkCommandBuffer dispatches to deadlock)
 #ifndef VK_USE_PLATFORM_ANDROID_KHR
             "VK_KHR_timeline_semaphore",
 #endif
@@ -1263,8 +1275,8 @@ public:
             "VK_EXT_device_memory_report",
 #endif
 #if !defined(VK_USE_PLATFORM_ANDROID_KHR) && defined(__linux__)
-           "VK_KHR_create_renderpass2",
-           "VK_KHR_imageless_framebuffer",
+            "VK_KHR_create_renderpass2",
+            "VK_KHR_imageless_framebuffer",
 #endif
         };
 
@@ -1705,8 +1717,8 @@ public:
 
         auto& info = memoryIt->second;
 
-        VkResult queryRes =
-            getMemoryAndroidHardwareBufferANDROID(&info.ahw);
+        auto* gralloc = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
+        VkResult queryRes = getMemoryAndroidHardwareBufferANDROID(gralloc, &info.ahw);
 
         if (queryRes != VK_SUCCESS) return queryRes;
 
@@ -2563,7 +2575,7 @@ public:
         if (info_VkBufferCollectionFUCHSIA.find(buffer_collection) !=
             info_VkBufferCollectionFUCHSIA.end()) {
             info_VkBufferCollectionFUCHSIA[buffer_collection].constraints =
-                android::base::makeOptional(
+                gfxstream::guest::makeOptional(
                     std::move(setConstraintsResult.constraints));
             info_VkBufferCollectionFUCHSIA[buffer_collection].createInfoIndex =
                 std::move(setConstraintsResult.createInfoIndex);
@@ -2629,7 +2641,7 @@ public:
         if (info_VkBufferCollectionFUCHSIA.find(buffer_collection) !=
             info_VkBufferCollectionFUCHSIA.end()) {
             info_VkBufferCollectionFUCHSIA[buffer_collection].constraints =
-                android::base::makeOptional(setConstraintsResult.constraints);
+                gfxstream::guest::makeOptional(setConstraintsResult.constraints);
         }
 
         return VK_SUCCESS;
@@ -2803,7 +2815,7 @@ public:
             }
 
             info_VkBufferCollectionFUCHSIA[collection].properties =
-                android::base::makeOptional(*pProperties);
+                gfxstream::guest::makeOptional(*pProperties);
 
             // We only do a shallow copy so we should remove all pNext pointers.
             info_VkBufferCollectionFUCHSIA[collection].properties->pNext =
@@ -2904,6 +2916,8 @@ public:
                                            VkResult& res)
     {
         CoherentMemoryPtr coherentMemory = nullptr;
+
+#if defined(__ANDROID__)
         if (mFeatureInfo->hasDirectMem) {
             uint64_t gpuAddr = 0;
             GoldfishAddressSpaceBlockPtr block = nullptr;
@@ -2930,7 +2944,9 @@ public:
                 coherentMemory =
                     std::make_shared<CoherentMemory>(block, gpuAddr, hostAllocationInfo.allocationSize, device, mem);
             }
-        } else if (mFeatureInfo->hasVirtioGpuNext) {
+        } else
+#endif // defined(__ANDROID__)
+        if (mFeatureInfo->hasVirtioGpuNext) {
             struct VirtGpuCreateBlob createBlob = { 0 };
             uint64_t hvaSizeId[3];
             res = enc->vkGetMemoryHostAddressInfoGOOGLE(device, mem,
@@ -2944,13 +2960,13 @@ public:
             }
             {
                 AutoLock<RecursiveLock> lock(mLock);
-                VirtGpuDevice& instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
+                VirtGpuDevice* instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
                 createBlob.blobMem = kBlobMemHost3d;
                 createBlob.flags = kBlobFlagMappable;
                 createBlob.blobId = hvaSizeId[2];
                 createBlob.size = hostAllocationInfo.allocationSize;
 
-                auto blob = instance.createBlob(createBlob);
+                auto blob = instance->createBlob(createBlob);
                 if (!blob) {
                     ALOGE("Failed to create coherent memory: failed to create blob.");
                     res = VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -3037,7 +3053,7 @@ public:
         if (mCaps.params[kParamCreateGuestHandle]) {
             struct VirtGpuCreateBlob createBlob = {0};
             struct VirtGpuExecBuffer exec = {};
-            VirtGpuDevice& instance = VirtGpuDevice::getInstance();
+            VirtGpuDevice* instance = VirtGpuDevice::getInstance();
             struct gfxstreamPlaceholderCommandVk placeholderCmd = {};
 
             createBlobInfo.blobId = ++mBlobId;
@@ -3050,7 +3066,7 @@ public:
             createBlob.blobId = createBlobInfo.blobId;
             createBlob.size = hostAllocationInfo.allocationSize;
 
-            guestBlob = instance.createBlob(createBlob);
+            guestBlob = instance->createBlob(createBlob);
             if (!guestBlob) {
                 ALOGE("Failed to allocate coherent memory: failed to create blob.");
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -3061,7 +3077,7 @@ public:
             exec.command_size = sizeof(placeholderCmd);
             exec.flags = kRingIdx;
             exec.ring_idx = 1;
-            if (instance.execBuffer(exec, guestBlob)) {
+            if (instance->execBuffer(exec, guestBlob)) {
                 ALOGE("Failed to allocate coherent memory: failed to execbuffer for wait.");
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
@@ -3430,6 +3446,7 @@ public:
 
             VkResult ahbCreateRes =
                 createAndroidHardwareBuffer(
+                    ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper(),
                     hasDedicatedImage,
                     hasDedicatedBuffer,
                     imageExtent,
@@ -3456,13 +3473,11 @@ public:
 
         if (ahw) {
             D("%s: Import AHardwareBuffer", __func__);
-            const uint32_t hostHandle =
-                ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper()
-                    ->getHostHandle(AHardwareBuffer_getNativeHandle(ahw));
 
-            AHardwareBuffer_Desc ahbDesc = {};
-            AHardwareBuffer_describe(ahw, &ahbDesc);
-            if (ahbDesc.format == AHARDWAREBUFFER_FORMAT_BLOB) {
+            auto* gralloc = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
+
+            const uint32_t hostHandle = gralloc->getHostHandle(ahw);
+            if (gralloc->getFormat(ahw) == AHARDWAREBUFFER_FORMAT_BLOB) {
                 importBufferInfo.buffer = hostHandle;
                 vk_append_struct(&structChainIter, &importBufferInfo);
             } else {
@@ -3944,7 +3959,7 @@ public:
         if (info.blobId && !info.coherentMemory && !mCaps.params[kParamCreateGuestHandle]) {
             VkEncoder* enc = (VkEncoder*)context;
             VirtGpuBlobMappingPtr mapping;
-            VirtGpuDevice& instance = VirtGpuDevice::getInstance();
+            VirtGpuDevice* instance = VirtGpuDevice::getInstance();
 
             uint64_t offset;
             uint8_t* ptr;
@@ -3958,7 +3973,7 @@ public:
             createBlob.blobId = info.blobId;
             createBlob.size = info.coherentMemorySize;
 
-            auto blob = instance.createBlob(createBlob);
+            auto blob = instance->createBlob(createBlob);
             if (!blob) return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 
             mapping = blob->createMapping();
@@ -4540,7 +4555,8 @@ public:
             if (info.syncFd >= 0) {
                 ALOGV("%s: resetting fence. make fd -1\n", __func__);
                 goldfish_sync_signal(info.syncFd);
-                close(info.syncFd);
+                auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+                syncHelper->close(info.syncFd);
                 info.syncFd = -1;
             }
 #endif
@@ -4587,10 +4603,11 @@ public:
 
         auto& info = it->second;
 
+        auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
         if (info.syncFd >= 0) {
             ALOGV("%s: previous sync fd exists, close it\n", __func__);
             goldfish_sync_signal(info.syncFd);
-            close(info.syncFd);
+            syncHelper->close(info.syncFd);
         }
 
         if (pImportFenceFdInfo->fd < 0) {
@@ -4598,8 +4615,8 @@ public:
             info.syncFd = -1;
         } else {
             ALOGV("%s: import actual fd, dup and close()\n", __func__);
-            info.syncFd = dup(pImportFenceFdInfo->fd);
-            close(pImportFenceFdInfo->fd);
+            info.syncFd = syncHelper->dup(pImportFenceFdInfo->fd);
+            syncHelper->close(pImportFenceFdInfo->fd);
         }
         return VK_SUCCESS;
 #else
@@ -4610,7 +4627,7 @@ public:
     VkResult createFence(VkDevice device, uint64_t hostFenceHandle, int64_t& osHandle) {
         struct VirtGpuExecBuffer exec = { };
         struct gfxstreamCreateExportSyncVK exportSync = { };
-        VirtGpuDevice& instance = VirtGpuDevice::getInstance();
+        VirtGpuDevice* instance = VirtGpuDevice::getInstance();
 
         uint64_t hostDeviceHandle = get_host_u64_VkDevice(device);
 
@@ -4623,7 +4640,7 @@ public:
         exec.command = static_cast<void*>(&exportSync);
         exec.command_size = sizeof(exportSync);
         exec.flags = kFenceOut | kRingIdx;
-        if (instance.execBuffer(exec, nullptr))
+        if (instance->execBuffer(exec, nullptr))
             return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         osHandle = exec.handle.osHandle;
@@ -4768,7 +4785,8 @@ public:
             for (auto fd : fencesExternalWaitFds) {
                 ALOGV("%s: wait on %d\n", __func__, fd);
                 tasks.push_back([fd] {
-                    sync_wait(fd, 3000);
+                    auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+                    syncHelper->wait(fd, 3000);
                     ALOGV("done waiting on fd %d\n", fd);
                 });
             }
@@ -5086,6 +5104,7 @@ public:
         VkDevice device, VkImage image, const VkAllocationCallbacks *pAllocator) {
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
+        auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
         {
           AutoLock<RecursiveLock> lock(mLock); // do not guard encoder may cause
                                                // deadlock b/243339973
@@ -5099,12 +5118,12 @@ public:
           if (imageInfoIt != info_VkImage.end()) {
             auto& imageInfo = imageInfoIt->second;
             for (int syncFd : imageInfo.pendingQsriSyncFds) {
-                int syncWaitRet = sync_wait(syncFd, 3000);
+                int syncWaitRet = syncHelper->wait(syncFd, 3000);
                 if (syncWaitRet < 0) {
                     ALOGE("%s: Failed to wait for pending QSRI sync: sterror: %s errno: %d",
                           __func__, strerror(errno), errno);
                 }
-                close(syncFd);
+                syncHelper->close(syncFd);
             }
             imageInfo.pendingQsriSyncFds.clear();
           }
@@ -5274,7 +5293,7 @@ public:
             if (result.ok() && result->status == ZX_OK) {
                 auto& info = result->buffer_collection_info;
                 if (index < info.buffer_count) {
-                    vmo = android::base::makeOptional(
+                    vmo = gfxstream::guest::makeOptional(
                             std::move(info.buffers[index].vmo));
                 }
             } else {
@@ -5567,7 +5586,8 @@ public:
             if (it == info_VkSemaphore.end()) return VK_ERROR_OUT_OF_HOST_MEMORY;
             auto& semInfo = it->second;
             // syncFd is supposed to have value.
-            *pFd = dup(semInfo.syncFd.value_or(-1));
+            auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+            *pFd = syncHelper->dup(semInfo.syncFd.value_or(-1));
             return VK_SUCCESS;
         } else {
             // opaque fd
@@ -5599,6 +5619,8 @@ public:
             return input_result;
         }
 
+        auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+
         if (pImportSemaphoreFdInfo->handleType &
             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
             VkImportSemaphoreFdInfoKHR tmpInfo = *pImportSemaphoreFdInfo;
@@ -5609,7 +5631,7 @@ public:
             auto& info = semaphoreIt->second;
 
             if (info.syncFd.value_or(-1) >= 0) {
-                close(info.syncFd.value());
+                syncHelper->close(info.syncFd.value());
             }
 
             info.syncFd.emplace(pImportSemaphoreFdInfo->fd);
@@ -5626,7 +5648,7 @@ public:
             VkImportSemaphoreFdInfoKHR tmpInfo = *pImportSemaphoreFdInfo;
             tmpInfo.fd = hostFd;
             VkResult result = enc->vkImportSemaphoreFdKHR(device, &tmpInfo, true /* do lock */);
-            close(fd);
+            syncHelper->close(fd);
             return result;
         }
 #else
@@ -5879,11 +5901,61 @@ public:
         }
     }
 
-    void flushStagingStreams(void* context, VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits) {
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.waitSemaphoreCount;
+    }
+
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.waitSemaphoreInfoCount;
+    }
+
+    uint32_t getCommandBufferCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.commandBufferCount;
+    }
+
+    uint32_t getCommandBufferCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.commandBufferInfoCount;
+    }
+
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.signalSemaphoreCount;
+    }
+
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.signalSemaphoreInfoCount;
+    }
+
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pWaitSemaphores[i];
+    }
+
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pWaitSemaphoreInfos[i].semaphore;
+    }
+
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pSignalSemaphores[i];
+    }
+
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pSignalSemaphoreInfos[i].semaphore;
+    }
+
+    VkCommandBuffer getCommandBuffer(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pCommandBuffers[i];
+    }
+
+    VkCommandBuffer getCommandBuffer(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pCommandBufferInfos[i].commandBuffer;
+    }
+
+    template <class VkSubmitInfoType>
+    void flushStagingStreams(void* context, VkQueue queue, uint32_t submitCount,
+                             const VkSubmitInfoType* pSubmits) {
         std::vector<VkCommandBuffer> toFlush;
         for (uint32_t i = 0; i < submitCount; ++i) {
-            for (uint32_t j = 0; j < pSubmits[i].commandBufferCount; ++j) {
-                toFlush.push_back(pSubmits[i].pCommandBuffers[j]);
+            for (uint32_t j = 0; j < getCommandBufferCount(pSubmits[i]); ++j) {
+                toFlush.push_back(getCommandBuffer(pSubmits[i], j));
             }
         }
 
@@ -5902,7 +5974,41 @@ public:
         void* context, VkResult input_result,
         VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
         AEMU_SCOPED_TRACE("on_vkQueueSubmit");
+        return on_vkQueueSubmitTemplate<VkSubmitInfo>(context, input_result, queue, submitCount,
+                                                      pSubmits, fence);
+    }
 
+    VkResult on_vkQueueSubmit2(void* context, VkResult input_result, VkQueue queue,
+                               uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence) {
+        AEMU_SCOPED_TRACE("on_vkQueueSubmit2");
+        return on_vkQueueSubmitTemplate<VkSubmitInfo2>(context, input_result, queue, submitCount,
+                                                       pSubmits, fence);
+    }
+
+    VkResult vkQueueSubmitEnc(VkEncoder* enc, VkQueue queue, uint32_t submitCount,
+                              const VkSubmitInfo* pSubmits, VkFence fence) {
+        if (supportsAsyncQueueSubmit()) {
+            enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
+            return VK_SUCCESS;
+        } else {
+            return enc->vkQueueSubmit(queue, submitCount, pSubmits, fence, true /* do lock */);
+        }
+    }
+
+    VkResult vkQueueSubmitEnc(VkEncoder* enc, VkQueue queue, uint32_t submitCount,
+                              const VkSubmitInfo2* pSubmits, VkFence fence) {
+        if (supportsAsyncQueueSubmit()) {
+            enc->vkQueueSubmitAsync2GOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
+            return VK_SUCCESS;
+        } else {
+            return enc->vkQueueSubmit2(queue, submitCount, pSubmits, fence, true /* do lock */);
+        }
+    }
+
+    template <typename VkSubmitInfoType>
+    VkResult on_vkQueueSubmitTemplate(void* context, VkResult input_result, VkQueue queue,
+                                      uint32_t submitCount, const VkSubmitInfoType* pSubmits,
+                                      VkFence fence) {
         flushStagingStreams(context, queue, submitCount, pSubmits);
 
         std::vector<VkSemaphore> pre_signal_semaphores;
@@ -5916,26 +6022,27 @@ public:
         AutoLock<RecursiveLock> lock(mLock);
 
         for (uint32_t i = 0; i < submitCount; ++i) {
-            for (uint32_t j = 0; j < pSubmits[i].waitSemaphoreCount; ++j) {
-                auto it = info_VkSemaphore.find(pSubmits[i].pWaitSemaphores[j]);
+            for (uint32_t j = 0; j < getWaitSemaphoreCount(pSubmits[i]); ++j) {
+                VkSemaphore semaphore = getWaitSemaphore(pSubmits[i], j);
+                auto it = info_VkSemaphore.find(semaphore);
                 if (it != info_VkSemaphore.end()) {
                     auto& semInfo = it->second;
 #ifdef VK_USE_PLATFORM_FUCHSIA
                     if (semInfo.eventHandle) {
                         pre_signal_events.push_back(semInfo.eventHandle);
-                        pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
+                        pre_signal_semaphores.push_back(semaphore);
                     }
 #endif
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
                     if (semInfo.syncFd.has_value()) {
                         pre_signal_sync_fds.push_back(semInfo.syncFd.value());
-                        pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
+                        pre_signal_semaphores.push_back(semaphore);
                     }
 #endif
                 }
             }
-            for (uint32_t j = 0; j < pSubmits[i].signalSemaphoreCount; ++j) {
-                auto it = info_VkSemaphore.find(pSubmits[i].pSignalSemaphores[j]);
+            for (uint32_t j = 0; j < getSignalSemaphoreCount(pSubmits[i]); ++j) {
+                auto it = info_VkSemaphore.find(getSignalSemaphore(pSubmits[i], j));
                 if (it != info_VkSemaphore.end()) {
                     auto& semInfo = it->second;
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -5966,13 +6073,8 @@ public:
         lock.unlock();
 
         if (pre_signal_semaphores.empty()) {
-            if (supportsAsyncQueueSubmit()) {
-                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
-                input_result = VK_SUCCESS;
-            } else {
-                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence, true /* do lock */);
-                if (input_result != VK_SUCCESS) return input_result;
-            }
+            input_result = vkQueueSubmitEnc(enc, queue, submitCount, pSubmits, fence);
+            if (input_result != VK_SUCCESS) return input_result;
         } else {
             // Schedule waits on the OS external objects and
             // signal the wait semaphores
@@ -5996,7 +6098,8 @@ public:
                 // fd == -1 is treated as already signaled
                 if (fd != -1) {
                     preSignalTasks.push_back([fd] {
-                        sync_wait(fd, 3000);
+                        auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+                        syncHelper->wait(fd, 3000);
                     });
                 }
             }
@@ -6006,6 +6109,7 @@ public:
                 mWorkPool.waitAll(waitGroupHandle);
             }
 
+            // Use the old version of VkSubmitInfo
             VkSubmitInfo submit_info = {
                 .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                 .waitSemaphoreCount = 0,
@@ -6014,22 +6118,10 @@ public:
                 .signalSemaphoreCount =
                     static_cast<uint32_t>(pre_signal_semaphores.size()),
                 .pSignalSemaphores = pre_signal_semaphores.data()};
-
-            if (supportsAsyncQueueSubmit()) {
-                enc->vkQueueSubmitAsyncGOOGLE(queue, 1, &submit_info, VK_NULL_HANDLE, true /* do lock */);
-            } else {
-                enc->vkQueueSubmit(queue, 1, &submit_info, VK_NULL_HANDLE, true /* do lock */);
-            }
-
-            if (supportsAsyncQueueSubmit()) {
-                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
-                input_result = VK_SUCCESS;
-            } else {
-                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence, true /* do lock */);
-                if (input_result != VK_SUCCESS) return input_result;
-            }
+            vkQueueSubmitEnc(enc, queue, 1, &submit_info, VK_NULL_HANDLE);
+            input_result = vkQueueSubmitEnc(enc, queue, submitCount, pSubmits, fence);
+            if (input_result != VK_SUCCESS) return input_result;
         }
-
         lock.lock();
         int externalFenceFdToSignal = -1;
 
@@ -6084,7 +6176,6 @@ public:
             auto& queueWorkItems = mQueueSensitiveWorkPoolItems[queue];
             queueWorkItems.push_back(queueAsyncWaitHandle);
         }
-
         return VK_SUCCESS;
     }
 
@@ -6153,7 +6244,8 @@ public:
         if (fd != -1) {
             AEMU_SCOPED_TRACE("waitNativeFenceInAcquire");
             // Implicit Synchronization
-            sync_wait(fd, 3000);
+            auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+            syncHelper->wait(fd, 3000);
             // From libvulkan's swapchain.cpp:
             // """
             // NOTE: we're relying on AcquireImageANDROID to close fence_clone,
@@ -6165,7 +6257,7 @@ public:
             // failure, or *never* closes it on failure.
             // """
             // Therefore, assume contract where we need to close fd in this driver
-            close(fd);
+            syncHelper->close(fd);
         }
     }
 
@@ -6243,6 +6335,7 @@ public:
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
+#if defined(__ANDROID__)
         auto& memInfo = it->second;
 
         GoldfishAddressSpaceBlockPtr block = std::make_shared<GoldfishAddressSpaceBlock>();
@@ -6252,6 +6345,10 @@ public:
         *pAddress = block->physAddr();
 
         return VK_SUCCESS;
+#else
+        (void)pAddress;
+        return VK_ERROR_MEMORY_MAP_FAILED;
+#endif
     }
 
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(
@@ -6282,22 +6379,28 @@ public:
         }
 
         auto& info = it->second;
+        uint32_t inlineUniformBlockBufferSize = 0;
 
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
             uint32_t descCount = entry.descriptorCount;
             VkDescriptorType descType = entry.descriptorType;
             ++info.templateEntryCount;
-            for (uint32_t j = 0; j < descCount; ++j) {
-                if (isDescriptorTypeImageInfo(descType)) {
-                    ++info.imageInfoCount;
-                } else if (isDescriptorTypeBufferInfo(descType)) {
-                    ++info.bufferInfoCount;
-                } else if (isDescriptorTypeBufferView(descType)) {
-                    ++info.bufferViewCount;
-                } else {
-                    ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
-                    abort();
+            if (isDescriptorTypeInlineUniformBlock(descType)) {
+                inlineUniformBlockBufferSize += descCount;
+                ++info.inlineUniformBlockCount;
+            } else {
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    if (isDescriptorTypeImageInfo(descType)) {
+                        ++info.imageInfoCount;
+                    } else if (isDescriptorTypeBufferInfo(descType)) {
+                        ++info.bufferInfoCount;
+                    } else if (isDescriptorTypeBufferView(descType)) {
+                        ++info.bufferViewCount;
+                    } else {
+                        ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                        // abort();
+                    }
                 }
             }
         }
@@ -6320,9 +6423,15 @@ public:
             info.bufferViews = new VkBufferView[info.bufferViewCount];
         }
 
+        if (info.inlineUniformBlockCount) {
+            info.inlineUniformBlockBuffer.resize(inlineUniformBlockBufferSize);
+            info.inlineUniformBlockBytesPerBlocks.resize(info.inlineUniformBlockCount);
+        }
+
         uint32_t imageInfoIndex = 0;
         uint32_t bufferInfoIndex = 0;
         uint32_t bufferViewIndex = 0;
+        uint32_t inlineUniformBlockIndex = 0;
 
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
@@ -6331,19 +6440,24 @@ public:
 
             info.templateEntries[i] = entry;
 
-            for (uint32_t j = 0; j < descCount; ++j) {
-                if (isDescriptorTypeImageInfo(descType)) {
-                    info.imageInfoIndices[imageInfoIndex] = i;
-                    ++imageInfoIndex;
-                } else if (isDescriptorTypeBufferInfo(descType)) {
-                    info.bufferInfoIndices[bufferInfoIndex] = i;
-                    ++bufferInfoIndex;
-                } else if (isDescriptorTypeBufferView(descType)) {
-                    info.bufferViewIndices[bufferViewIndex] = i;
-                    ++bufferViewIndex;
-                } else {
-                    ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
-                    abort();
+            if (isDescriptorTypeInlineUniformBlock(descType)) {
+                info.inlineUniformBlockBytesPerBlocks[inlineUniformBlockIndex] = descCount;
+                ++inlineUniformBlockIndex;
+            } else {
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    if (isDescriptorTypeImageInfo(descType)) {
+                        info.imageInfoIndices[imageInfoIndex] = i;
+                        ++imageInfoIndex;
+                    } else if (isDescriptorTypeBufferInfo(descType)) {
+                        info.bufferInfoIndices[bufferInfoIndex] = i;
+                        ++bufferInfoIndex;
+                    } else if (isDescriptorTypeBufferView(descType)) {
+                        info.bufferViewIndices[bufferViewIndex] = i;
+                        ++bufferViewIndex;
+                    } else {
+                        ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                        // abort();
+                    }
                 }
             }
         }
@@ -6411,18 +6525,23 @@ public:
         uint32_t imageInfoCount = info.imageInfoCount;
         uint32_t bufferInfoCount = info.bufferInfoCount;
         uint32_t bufferViewCount = info.bufferViewCount;
+        uint32_t inlineUniformBlockCount = info.inlineUniformBlockCount;
         uint32_t* imageInfoIndices = info.imageInfoIndices;
         uint32_t* bufferInfoIndices = info.bufferInfoIndices;
         uint32_t* bufferViewIndices = info.bufferViewIndices;
         VkDescriptorImageInfo* imageInfos = info.imageInfos;
         VkDescriptorBufferInfo* bufferInfos = info.bufferInfos;
         VkBufferView* bufferViews = info.bufferViews;
+        uint8_t* inlineUniformBlockBuffer = info.inlineUniformBlockBuffer.data();
+        uint32_t* inlineUniformBlockBytesPerBlocks = info.inlineUniformBlockBytesPerBlocks.data();
 
         lock.unlock();
 
         size_t currImageInfoOffset = 0;
         size_t currBufferInfoOffset = 0;
         size_t currBufferViewOffset = 0;
+        size_t inlineUniformBlockOffset = 0;
+        size_t inlineUniformBlockIdx = 0;
 
         struct goldfish_VkDescriptorSet* ds = as_goldfish_VkDescriptorSet(descriptorSet);
         ReifiedDescriptorSet* reified = ds->reified;
@@ -6500,21 +6619,32 @@ public:
 
                 for (uint32_t j = 0; j < descCount; ++j) {
                   const VkBufferView* user =
-                        (const VkBufferView*)(userBuffer + offset + j * stride);
+                      (const VkBufferView*)(userBuffer + offset + j * stride);
 
-                    memcpy(((uint8_t*)bufferViews) + currBufferViewOffset,
-                           user, sizeof(VkBufferView));
-                    currBufferViewOffset += sizeof(VkBufferView);
+                  memcpy(((uint8_t*)bufferViews) + currBufferViewOffset, user,
+                         sizeof(VkBufferView));
+                  currBufferViewOffset += sizeof(VkBufferView);
                 }
 
                 if (batched) {
-                  doEmulatedDescriptorBufferViewWriteFromTemplate(
-                        descType,
-                        dstBinding,
-                        dstArrayElement,
-                        descCount,
-                        currBufferViewBegin,
-                        reified);
+                  doEmulatedDescriptorBufferViewWriteFromTemplate(descType, dstBinding,
+                                                                  dstArrayElement, descCount,
+                                                                  currBufferViewBegin, reified);
+                }
+            } else if (isDescriptorTypeInlineUniformBlock(descType)) {
+                uint32_t inlineUniformBlockBytesPerBlock =
+                    inlineUniformBlockBytesPerBlocks[inlineUniformBlockIdx];
+                uint8_t* currInlineUniformBlockBufferBegin =
+                    inlineUniformBlockBuffer + inlineUniformBlockOffset;
+                memcpy(currInlineUniformBlockBufferBegin, userBuffer + offset,
+                       inlineUniformBlockBytesPerBlock);
+                inlineUniformBlockIdx++;
+                inlineUniformBlockOffset += inlineUniformBlockBytesPerBlock;
+
+                if (batched) {
+                  doEmulatedDescriptorInlineUniformBlockFromTemplate(
+                      descType, dstBinding, dstArrayElement, descCount,
+                      currInlineUniformBlockBufferBegin, reified);
                 }
             } else {
                 ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
@@ -6524,20 +6654,11 @@ public:
 
         if (batched) return;
 
-        enc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-            device,
-            descriptorSet,
-            descriptorUpdateTemplate,
-            imageInfoCount,
-            bufferInfoCount,
-            bufferViewCount,
-            imageInfoIndices,
-            bufferInfoIndices,
-            bufferViewIndices,
-            imageInfos,
-            bufferInfos,
-            bufferViews,
-            true /* do lock */);
+        enc->vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+            device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount,
+            bufferViewCount, static_cast<uint32_t>(info.inlineUniformBlockBuffer.size()),
+            imageInfoIndices, bufferInfoIndices, bufferViewIndices, imageInfos, bufferInfos,
+            bufferViews, inlineUniformBlockBuffer, true /* do lock */);
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties2_common(
@@ -7126,7 +7247,7 @@ public:
         if (mFeatureInfo->hasVirtioGpuNativeSync) {
             struct VirtGpuExecBuffer exec = { };
             struct gfxstreamCreateQSRIExportVK exportQSRI = { };
-            VirtGpuDevice& instance = VirtGpuDevice::getInstance();
+            VirtGpuDevice* instance = VirtGpuDevice::getInstance();
 
             uint64_t hostImageHandle = get_host_u64_VkImage(image);
 
@@ -7137,7 +7258,7 @@ public:
             exec.command = static_cast<void*>(&exportQSRI);
             exec.command_size = sizeof(exportQSRI);
             exec.flags = kFenceOut | kRingIdx;
-            if (instance.execBuffer(exec, nullptr))
+            if (instance->execBuffer(exec, nullptr))
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
 
             *fd = exec.handle.osHandle;
@@ -7154,15 +7275,17 @@ public:
         if (imageInfoIt != info_VkImage.end()) {
             auto& imageInfo = imageInfoIt->second;
 
+            auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+
             // Remove any pending QSRI sync fds that are already signaled.
             auto syncFdIt = imageInfo.pendingQsriSyncFds.begin();
             while (syncFdIt != imageInfo.pendingQsriSyncFds.end()) {
                 int syncFd = *syncFdIt;
-                int syncWaitRet = sync_wait(syncFd, /*timeout msecs*/0);
+                int syncWaitRet = syncHelper->wait(syncFd, /*timeout msecs*/0);
                 if (syncWaitRet == 0) {
                     // Sync fd is signaled.
                     syncFdIt = imageInfo.pendingQsriSyncFds.erase(syncFdIt);
-                    close(syncFd);
+                    syncHelper->close(syncFd);
                 } else {
                     if (errno != ETIME) {
                         ALOGE("%s: Failed to wait for pending QSRI sync: sterror: %s errno: %d",
@@ -7172,7 +7295,7 @@ public:
                 }
             }
 
-            int syncFdDup = dup(*fd);
+            int syncFdDup = syncHelper->dup(*fd);
             if (syncFdDup < 0) {
                 ALOGE("%s: Failed to dup() QSRI sync fd : sterror: %s errno: %d",
                       __func__, strerror(errno), errno);
@@ -7221,8 +7344,10 @@ public:
             int syncFd;
             result = exportSyncFdForQSRILocked(image, &syncFd);
 
-            if (syncFd >= 0)
-                close(syncFd);
+            if (syncFd >= 0) {
+                auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+                syncHelper->close(syncFd);
+            }
         }
 
         return result;
@@ -7441,7 +7566,9 @@ private:
 
     std::optional<const VkPhysicalDeviceMemoryProperties> mCachedPhysicalDeviceMemoryProps;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
+#if defined(__ANDROID__)
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
+#endif  // defined(__ANDROID__)
 
     struct VirtGpuCaps mCaps;
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
@@ -7932,6 +8059,12 @@ VkResult ResourceTracker::on_vkQueueSubmit(
     VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
     return mImpl->on_vkQueueSubmit(
         context, input_result, queue, submitCount, pSubmits, fence);
+}
+
+VkResult ResourceTracker::on_vkQueueSubmit2(void* context, VkResult input_result, VkQueue queue,
+                                            uint32_t submitCount, const VkSubmitInfo2* pSubmits,
+                                            VkFence fence) {
+    return mImpl->on_vkQueueSubmit2(context, input_result, queue, submitCount, pSubmits, fence);
 }
 
 VkResult ResourceTracker::on_vkQueueWaitIdle(

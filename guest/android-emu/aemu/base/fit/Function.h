@@ -21,7 +21,7 @@
 #include "FunctionInternal.h"
 #include "UtilityInternal.h"
 
-namespace android::base {
+namespace gfxstream::guest {
 namespace fit {
 
 template <size_t inlineTargetSize, bool requireInline, typename Result, typename... Args>
@@ -174,28 +174,28 @@ using InlineCallback = CallbackImpl<inlineTargetSize,
 
 template <size_t inlineTargetSize, bool requireInline, typename Result, typename... Args>
 class FunctionImpl<inlineTargetSize, requireInline, Result(Args...)> final
-    : private ::android::base::fit::internal::
+    : private gfxstream::guest::fit::internal::
           function_base<inlineTargetSize, requireInline, Result(Args...)> {
-    using Base = ::android::base::fit::internal::
+    using Base = gfxstream::guest::fit::internal::
         function_base<inlineTargetSize, requireInline, Result(Args...)>;
 
     // function_base requires private access during share()
-    friend class ::android::base::fit::internal::
+    friend class gfxstream::guest::fit::internal::
         function_base<inlineTargetSize, requireInline, Result(Args...)>;
 
     // supports target() for shared functions
-    friend const void* ::android::base::fit::internal::get_target_type_id<>(
+    friend const void* gfxstream::guest::fit::internal::get_target_type_id<>(
         const FunctionImpl<inlineTargetSize, requireInline, Result(Args...)>&);
 
     template <typename U>
-    using NotSelfType = ::android::base::fit::internal::NotSameType<FunctionImpl, U>;
+    using NotSelfType = gfxstream::guest::fit::internal::NotSameType<FunctionImpl, U>;
 
     template <typename... Conditions>
-    using RequiresConditions = ::android::base::fit::internal::RequiresConditions<Conditions...>;
+    using RequiresConditions = gfxstream::guest::fit::internal::RequiresConditions<Conditions...>;
 
     template <typename... Conditions>
     using AssignmentRequiresConditions =
-        ::android::base::fit::internal::AssignmentRequiresConditions<FunctionImpl&, Conditions...>;
+        gfxstream::guest::fit::internal::AssignmentRequiresConditions<FunctionImpl&, Conditions...>;
 
 public:
     // The function's result type.
@@ -235,7 +235,7 @@ public:
     // one call. To explicitly allow this, simply wrap the |fit::Callback| in a
     // pass-through lambda before passing it to the |fit::Function|.
     template <size_t otherInlineTargetSize, bool otherRequireInline>
-    FunctionImpl(::android::base::fit::CallbackImpl<otherInlineTargetSize,
+    FunctionImpl(gfxstream::guest::fit::CallbackImpl<otherInlineTargetSize,
                                                     otherRequireInline,
                                                     Result(Args...)>) = delete;
 
@@ -279,7 +279,7 @@ public:
     // |fit::Callback| in a pass-through lambda before assigning it to the
     // |fit::Function|.
     template <size_t otherInlineTargetSize, bool otherRequireInline>
-    FunctionImpl& operator=(::android::base::fit::CallbackImpl<otherInlineTargetSize,
+    FunctionImpl& operator=(gfxstream::guest::fit::CallbackImpl<otherInlineTargetSize,
                                                                otherRequireInline,
                                                                Result(Args...)>) = delete;
 
@@ -347,28 +347,28 @@ bool operator!=(decltype(nullptr),
 
 template <size_t inlineTargetSize, bool requireInline, typename Result, typename... Args>
 class CallbackImpl<inlineTargetSize, requireInline, Result(Args...)> final
-    : private ::android::base::fit::internal::
+    : private gfxstream::guest::fit::internal::
           function_base<inlineTargetSize, requireInline, Result(Args...)> {
-    using Base = ::android::base::fit::internal::
+    using Base = gfxstream::guest::fit::internal::
         function_base<inlineTargetSize, requireInline, Result(Args...)>;
 
     // function_base requires private access during share()
-    friend class ::android::base::fit::internal::
+    friend class gfxstream::guest::fit::internal::
         function_base<inlineTargetSize, requireInline, Result(Args...)>;
 
     // supports target() for shared functions
-    friend const void* ::android::base::fit::internal::get_target_type_id<>(
+    friend const void* gfxstream::guest::fit::internal::get_target_type_id<>(
         const CallbackImpl<inlineTargetSize, requireInline, Result(Args...)>&);
 
     template <typename U>
-    using NotSelfType = ::android::base::fit::internal::NotSameType<CallbackImpl, U>;
+    using NotSelfType = gfxstream::guest::fit::internal::NotSameType<CallbackImpl, U>;
 
     template <typename... Conditions>
-    using RequiresConditions = ::android::base::fit::internal::RequiresConditions<Conditions...>;
+    using RequiresConditions = gfxstream::guest::fit::internal::RequiresConditions<Conditions...>;
 
     template <typename... Conditions>
     using AssignmentRequiresConditions =
-        ::android::base::fit::internal::AssignmentRequiresConditions<CallbackImpl&, Conditions...>;
+        gfxstream::guest::fit::internal::AssignmentRequiresConditions<CallbackImpl&, Conditions...>;
 
 public:
     // The callback function's result type.
@@ -510,4 +510,4 @@ auto bindMember(T* instance, R (T::*fn)(Args...)) {
 }
 
 }  // namespace fit
-}  // namespace android::base
+}  // namespace gfxstream::guest
