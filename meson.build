@@ -31,7 +31,8 @@ default_cpp_args = [
 #===============#
 aemu_base_dep = dependency('aemu_base')
 aemu_common_dep = dependency('aemu_host_common')
-logging_base_dep = dependency('logging_base')
+aemu_logging_dep = dependency('aemu_logging')
+aemu_snapshot_dep = dependency('aemu_snapshot')
 
 #========================#
 # Logging + error report #
