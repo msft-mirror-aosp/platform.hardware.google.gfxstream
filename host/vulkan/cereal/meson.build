@@ -22,5 +22,5 @@ lib_vulkan_cereal = static_library(
   cpp_args: cereal_cpp_args + default_cpp_args,
   include_directories: [inc_stream_servers, inc_vulkan_server, inc_utils,
                         inc_include, inc_vulkan_headers],
-  dependencies: aemu_base_dep,
+  dependencies: [aemu_base_dep, aemu_common_dep]
 )
