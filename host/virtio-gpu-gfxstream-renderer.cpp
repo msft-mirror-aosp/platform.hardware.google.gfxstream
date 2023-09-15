@@ -659,6 +659,7 @@ class PipeVirglRenderer {
 
         stream_renderer_info("initial host pipe for ctxid %u: %p", ctx_id, hostPipe);
         mContexts[ctx_id] = res;
+        android_onGuestGraphicsProcessCreate(ctx_id);
         return 0;
     }
 
@@ -686,7 +687,7 @@ class PipeVirglRenderer {
         }
 
         ops->guest_close(hostPipe, GOLDFISH_PIPE_CLOSE_GRACEFUL);
-
+        android_cleanupProcGLObjects(handle);
         mContexts.erase(it);
         return 0;
     }

@@ -455,7 +455,6 @@ intptr_t RenderThread::main() {
 
             if (!tInfo.m_puid) {
                 tInfo.m_puid = mContextId;
-                FrameBuffer::getFB()->createGraphicsProcessResources(tInfo.m_puid);
             }
 
             if (!processResources && tInfo.m_puid) {
