@@ -1954,8 +1954,9 @@ static VkResult entry_vkQueueSubmit2(VkQueue queue, uint32_t submitCount,
     AEMU_SCOPED_TRACE("vkQueueSubmit2");
     auto vkEnc = ResourceTracker::getQueueEncoder(queue);
     VkResult vkQueueSubmit2_VkResult_return = (VkResult)0;
+    auto resources = ResourceTracker::get();
     vkQueueSubmit2_VkResult_return =
-        vkEnc->vkQueueSubmit2(queue, submitCount, pSubmits, fence, true /* do lock */);
+        resources->on_vkQueueSubmit2(vkEnc, VK_SUCCESS, queue, submitCount, pSubmits, fence);
     return vkQueueSubmit2_VkResult_return;
 }
 static void entry_vkCmdCopyBuffer2(VkCommandBuffer commandBuffer,
@@ -9368,6 +9369,12 @@ static void dynCheck_entry_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
         pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData,
         true /* do lock */);
 }
+static void entry_vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
+                                            const VkSubmitInfo2* pSubmits, VkFence fence) {
+    AEMU_SCOPED_TRACE("vkQueueSubmitAsync2GOOGLE");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkQueueSubmitAsync2GOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
+}
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
@@ -13511,6 +13518,9 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE")) {
         return nullptr;
     }
+    if (!strcmp(name, "vkQueueSubmitAsync2GOOGLE")) {
+        return nullptr;
+    }
 #endif
 #ifdef VK_EXT_multi_draw
     if (!strcmp(name, "vkCmdDrawMultiEXT")) {
@@ -16152,6 +16162,10 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)dynCheck_entry_vkUpdateDescriptorSetWithTemplateSized2GOOGLE
                       : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmitAsync2GOOGLE")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkQueueSubmitAsync2GOOGLE : nullptr;
     }
 #endif
 #ifdef VK_EXT_multi_draw
@@ -18894,6 +18908,10 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateSized2GOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmitAsync2GOOGLE")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkQueueSubmitAsync2GOOGLE : nullptr;
     }
 #endif
 #ifdef VK_EXT_multi_draw

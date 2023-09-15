@@ -159,6 +159,13 @@ specific entries.
             <param optional="true" externsync="true"><type>VkFence</type> <name>fence</name></param>
         </command>
         <command>
+            <proto><type>void</type> <name>vkQueueSubmitAsync2GOOGLE</name></proto>
+            <param externsync="true"><type>VkQueue</type> <name>queue</name></param>
+            <param optional="true"><type>uint32_t</type> <name>submitCount</name></param>
+            <param len="submitCount" externsync="pSubmits[].pWaitSemaphores[],pSubmits[].pSignalSemaphores[]">const <type>VkSubmitInfo2</type>* <name>pSubmits</name></param>
+            <param optional="true" externsync="true"><type>VkFence</type> <name>fence</name></param>
+        </command>
+        <command>
             <proto><type>void</type> <name>vkQueueWaitIdleAsyncGOOGLE</name></proto>
             <param><type>VkQueue</type> <name>queue</name></param>
         </command>
@@ -298,6 +305,7 @@ specific entries.
                 <command name="vkQueueFlushCommandsFromAuxMemoryGOOGLE"/>
                 <command name="vkGetBlobGOOGLE"/>
                 <command name="vkUpdateDescriptorSetWithTemplateSized2GOOGLE"/>
+                <command name="vkQueueSubmitAsync2GOOGLE"/>
             </require>
         </extension>
         <extension name="VK_MVK_moltenvk">
