@@ -1226,6 +1226,7 @@ struct VulkanDispatch {
     PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE vkQueueFlushCommandsFromAuxMemoryGOOGLE;
     PFN_vkGetBlobGOOGLE vkGetBlobGOOGLE;
     PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE vkUpdateDescriptorSetWithTemplateSized2GOOGLE;
+    PFN_vkQueueSubmitAsync2GOOGLE vkQueueSubmitAsync2GOOGLE;
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
