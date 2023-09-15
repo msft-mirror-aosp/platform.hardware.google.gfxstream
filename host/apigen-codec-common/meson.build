@@ -17,5 +17,5 @@ lib_apigen_codec = static_library(
   'apigen_codec',
   files_lib_apigen_codec,
   cpp_args: default_cpp_args,
-  dependencies: aemu_base_dep,
+  dependencies: [aemu_base_dep, aemu_common_dep]
 )
