@@ -1352,12 +1352,12 @@ class PipeVirglRenderer {
 
     void getCapset(uint32_t set, uint32_t* max_size) {
         // Only one capset right not
-        *max_size = sizeof(struct gfxstream::gfxstreamCapset);
+        *max_size = sizeof(struct gfxstream::vulkanCapset);
     }
 
     void fillCaps(uint32_t set, void* caps) {
-        struct gfxstream::gfxstreamCapset* capset =
-            reinterpret_cast<struct gfxstream::gfxstreamCapset*>(caps);
+        struct gfxstream::vulkanCapset* capset =
+            reinterpret_cast<struct gfxstream::vulkanCapset*>(caps);
         if (capset) {
             memset(capset, 0, sizeof(*capset));
 
