@@ -42,5 +42,5 @@ lib_gl_host_common = static_library(
   files_lib_gl_host_common,
   cpp_args: default_cpp_args,
   include_directories: [inc_include, inc_gl_host_common],
-  dependencies: [aemu_base_dep, aemu_common_dep]
+  dependencies: [aemu_base_dep, aemu_common_dep, aemu_snapshot_dep]
 )

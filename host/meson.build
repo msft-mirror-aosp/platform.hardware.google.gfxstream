@@ -90,8 +90,9 @@ gfxstream_backend = library(
   cpp_args: default_cpp_args + gfxstream_backend_cpp_args,
   include_directories: [inc_gfxstream_backend, inc_glm],
   gnu_symbol_visibility: 'default',
-  dependencies: [aemu_common_dep, aemu_base_dep, logging_base_dep],
+  dependencies: [aemu_common_dep, aemu_base_dep, aemu_logging_dep, aemu_snapshot_dep],
   link_with: link_gfxstream_backend,
+  version: '0.1.2',
   install: true,
 )
 
