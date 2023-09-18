@@ -46,6 +46,9 @@ if host_machine.system() == 'darwin'
   vulkan_server_cpp_args += '-DVK_USE_PLATFORM_METAL_EXT'
 elif host_machine.system() == 'windows'
   vulkan_server_cpp_args += '-DVK_USE_PLATFORM_WIN32_KHR'
+elif host_machine.system() == 'qnx'
+## TODO: jsimonot: resolve vk header issue
+#  vulkan_server_cpp_args += '-DVK_USE_PLATFORM_SCREEN_QNX'
 endif
 
 lib_vulkan_server = static_library(
