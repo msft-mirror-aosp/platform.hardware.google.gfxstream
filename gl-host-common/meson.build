@@ -26,6 +26,10 @@ files_gl_host_common_linux = files(
   'opengl/NativeGpuInfo_linux.cpp',
 )
 
+files_gl_host_common_qnx = files(
+  'opengl/NativeGpuInfo_qnx.cpp',
+)
+
 # HACK: For the misc.h file already in AEMU host common
 inc_gl_host_common = include_directories('include')
 
@@ -35,6 +39,8 @@ elif host_machine.system() == 'windows'
   files_lib_gl_host_common += files_gl_host_common_win32
 elif host_machine.system() == 'linux'
   files_lib_gl_host_common += files_gl_host_common_linux
+elif host_machine.system() == 'qnx'
+  files_lib_gl_host_common += files_gl_host_common_qnx
 endif
 
 lib_gl_host_common = static_library(
