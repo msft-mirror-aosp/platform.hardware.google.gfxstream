@@ -25,3 +25,5 @@ option(
   ],
   description : 'The logging level of gfxstream'
 )
+
+option('qnx_target', type : 'string', value : '', description : 'QNX SDP target path')
