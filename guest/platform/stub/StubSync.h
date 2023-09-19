@@ -16,32 +16,17 @@
 
 #include "Sync.h"
 
-#if defined(__ANDROID__)
-#include <sync/sync.h>
-#endif
-#include <unistd.h>
-
 namespace gfxstream {
 
-class SyncHelperAndroid : public SyncHelper {
+class StubSyncHelper : public SyncHelper {
    public:
-    SyncHelperAndroid() = default;
+    StubSyncHelper();
 
-    int wait(int syncFd, int timeoutMilliseconds) override {
-#if defined(__ANDROID__)
-        return sync_wait(syncFd, timeoutMilliseconds);
-#else
-        return -1;
-#endif
-    }
+    int wait(int syncFd, int timeoutMilliseconds) override;
 
-    int dup(int syncFd) override {
-        return ::dup(syncFd);
-    }
+    int dup(int syncFd) override;
 
-    int close(int syncFd) override {
-        return ::close(syncFd);
-    }
+    int close(int syncFd) override;
 };
 
 }  // namespace gfxstream
