@@ -38,14 +38,12 @@ class EmulatedVirtioGpu {
     std::optional<uint32_t> CreateContext();
     void DestroyContext(uint32_t contextId);
 
-    std::optional<uint32_t> CreatePipeBlob(uint32_t contextId,
-                                           uint32_t size);
     std::optional<uint32_t> CreateBlob(uint32_t contextId,
                                        const struct VirtGpuCreateBlob& params);
-    std::optional<uint32_t> CreatePipeTexture2D(uint32_t contextId,
-                                                uint32_t width,
-                                                uint32_t height,
-                                                uint32_t format);
+    std::optional<uint32_t> CreateVirglBlob(uint32_t contextId,
+                                            uint32_t width,
+                                            uint32_t height,
+                                            uint32_t virglFormat);
 
     void DestroyResource(uint32_t contextId,
                          uint32_t resourceId);

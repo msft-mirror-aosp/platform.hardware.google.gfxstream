@@ -44,18 +44,20 @@ cc_library_shared {
         "gfxstream_opengl_headers",
     ],
     shared_libs: [
-        "libandroidemu",
         "libcutils",
         "liblog",
         "libutils",
     ],
     export_shared_lib_headers: [
-        "libandroidemu",
         "libcutils",
         "liblog",
     ],
+    export_static_lib_headers: [
+        "libandroidemu_static",
+    ],
     static_libs: [
         "libgfxstream_etc",
+        "libandroidemu_static",
         "libqemupipe.ranchu",
     ],
     cflags: [
