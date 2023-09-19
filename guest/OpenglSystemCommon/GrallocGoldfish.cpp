@@ -17,11 +17,14 @@
 #include <gralloc_cb_bp.h>
 #include <vndk/hardware_buffer.h>
 
+#include "renderControl_enc.h"
+
 namespace gfxstream {
 
-uint32_t GoldfishGralloc::createColorBuffer(renderControl_client_context_t* rcEnc, int width,
+uint32_t GoldfishGralloc::createColorBuffer(void* rcEnc, int width,
                                             int height, uint32_t glformat) {
-    return rcEnc->rcCreateColorBuffer(rcEnc, width, height, glformat);
+    auto* rc = reinterpret_cast<renderControl_client_context_t*>(rcEnc);
+    return rc->rcCreateColorBuffer(rc, width, height, glformat);
 }
 
 int GoldfishGralloc::allocate(uint32_t width,

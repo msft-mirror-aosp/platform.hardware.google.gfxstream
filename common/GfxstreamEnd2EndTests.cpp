@@ -735,7 +735,7 @@ TestingVirtGpuGralloc::TestingVirtGpuGralloc(std::shared_ptr<TestingVirtGpuDevic
     : mDevice(device) {}
 
 uint32_t TestingVirtGpuGralloc::createColorBuffer(
-        renderControl_client_context_t*,
+        void*,
         int width,
         int height,
         uint32_t glFormat) {
