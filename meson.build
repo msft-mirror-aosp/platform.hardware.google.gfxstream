@@ -47,10 +47,13 @@ if host_machine.system() == 'qnx'
   rel_path_prefix = meson.get_external_property('qnx_path_prefix')
   abs_path_prefix = meson.current_source_dir() + '/' + rel_path_prefix
 
-  aemu_incl_path = rel_path_prefix + '/aemu/install/include'
   aemu_libs_path = abs_path_prefix + '/aemu/install/lib'
 
-  incl_aemu_headers = include_directories(aemu_incl_path)
+  incl_aemu_headers = include_directories([
+    rel_path_prefix + '/aemu/install/include',
+    rel_path_prefix + '/aemu/install/include/aemu/host-common',
+    rel_path_prefix + '/aemu/install/include/aemu/snapshot',
+  ])
 
   aemu_base_lib = cc.find_library('aemu-base', dirs: aemu_libs_path)
   aemu_base_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_base_lib])
@@ -58,10 +61,10 @@ if host_machine.system() == 'qnx'
   aemu_common_lib = cc.find_library('aemu-host-common', dirs: aemu_libs_path)
   aemu_common_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_common_lib])
 
-  aemu_logging_lib = cc.find_library('logging-base', dirs: aemu_libs_path)
+  aemu_logging_lib = cc.find_library('aemu-logging', dirs: aemu_libs_path)
   aemu_logging_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_logging_lib])
 
-  aemu_snapshot_lib = cc.find_library('gfxstream-snapshot', dirs: aemu_libs_path)
+  aemu_snapshot_lib = cc.find_library('aemu-snapshot', dirs: aemu_libs_path)
   aemu_snapshot_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_snapshot_lib])
 
   inc_qnx_headers = include_directories(join_paths(qnx_target, 'usr/include'))
