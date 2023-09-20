@@ -337,9 +337,12 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
             break;
         }
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
-            auto device = VirtGpuDevice::getInstance((enum VirtGpuCapset)kCapsetGfxStreamVulkan);
+            // Use kCapsetGfxStreamVulkan for now, Ranchu HWC needs to be modified to pass in
+            // right capset.
+            auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
             auto deviceHandle = device->getDeviceHandle();
-            auto stream = createVirtioGpuAddressSpaceStream(getGlobalHealthMonitor());
+            auto stream =
+                createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan, getGlobalHealthMonitor());
             if (!stream) {
                 ALOGE("Failed to create virtgpu AddressSpaceStream\n");
                 return nullptr;
