@@ -25,6 +25,9 @@ cc_library_shared {
         "-Wno-unused-function",
         "-Wno-unreachable-code-loop-increment",
     ],
+    header_libs: [
+        "gfxstream_opengl_headers",
+    ],
     static_libs: [
         "gfxstream_base",
         "gfxstream_host_common",
@@ -114,6 +117,9 @@ cc_test_library {
         "tests/OpenGLTestContext.cpp",
         "tests/SampleApplication.cpp",
         "tests/ShaderUtils.cpp",
+    ],
+    header_libs: [
+        "gfxstream_opengl_headers",
     ],
     shared_libs: [
         "libbase",
