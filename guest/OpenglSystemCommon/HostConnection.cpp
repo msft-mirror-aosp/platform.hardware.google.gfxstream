@@ -460,9 +460,7 @@ GL2Encoder *HostConnection::gl2Encoder()
     return m_gl2Enc.get();
 }
 
-VkEncoder *HostConnection::vkEncoder()
-{
-    rcEncoder();
+VkEncoder* HostConnection::vkEncoder() {
     if (!m_vkEnc) {
         m_vkEnc = new VkEncoder(m_stream, getGlobalHealthMonitor());
     }
