@@ -141,13 +141,6 @@ private:
     uint64_t m_dmaPhysAddr;
 };
 
-// Abstraction for process pipe helper
-class ProcessPipe {
-public:
-    virtual bool processPipeInit(int stream_handle, HostConnectionType connType, renderControl_encoder_context_t *rcEnc) = 0;
-    virtual ~ProcessPipe() {}
-};
-
 struct EGLThreadInfo;
 
 class HostConnection
@@ -263,7 +256,6 @@ private:
     gfxstream::ANativeWindowHelper* m_anwHelper = nullptr;
     gfxstream::Gralloc* m_grallocHelper = nullptr;
     gfxstream::SyncHelper* m_syncHelper = nullptr;
-    ProcessPipe* m_processPipe = nullptr;
     std::string m_hostExtensions;
     bool m_noHostError;
 #ifdef GFXSTREAM
