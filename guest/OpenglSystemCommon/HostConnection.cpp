@@ -211,20 +211,9 @@ static GrallocType getGrallocTypeFromProperty() {
     return GRALLOC_TYPE_RANCHU;
 }
 
-class GoldfishProcessPipe : public ProcessPipe
-{
-public:
-    bool processPipeInit(int stream_handle, HostConnectionType connType, renderControl_encoder_context_t *rcEnc)
-    {
-        return ::processPipeInit(stream_handle, connType, rcEnc);
-    }
-
-};
-
 #if defined(__ANDROID__)
 static GoldfishGralloc m_goldfishGralloc;
 #endif
-static GoldfishProcessPipe m_goldfishProcessPipe;
 
 HostConnection::HostConnection()
     : exitUncleanly(false),
@@ -262,9 +251,11 @@ HostConnection::~HostConnection()
 // static
 std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset) {
     const enum HostConnectionType connType = getConnectionTypeFromProperty(capset);
+    uint32_t noRenderControlEnc = 0;
 
     // Use "new" to access a non-public constructor.
     auto con = std::unique_ptr<HostConnection>(new HostConnection);
+    con->m_connectionType = connType;
 
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
@@ -273,13 +264,11 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to create AddressSpaceStream for host connection\n");
                 return nullptr;
             }
-            con->m_connectionType = HOST_CONNECTION_ADDRESS_SPACE;
             con->m_grallocType = GRALLOC_TYPE_RANCHU;
             con->m_stream = stream;
 #if defined(__ANDROID__)
             con->m_grallocHelper = &m_goldfishGralloc;
 #endif
-            con->m_processPipe = &m_goldfishProcessPipe;
             break;
         }
         case HOST_CONNECTION_QEMU_PIPE: {
@@ -292,13 +281,11 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to connect to host (QemuPipeStream)\n");
                 return nullptr;
             }
-            con->m_connectionType = HOST_CONNECTION_QEMU_PIPE;
             con->m_grallocType = GRALLOC_TYPE_RANCHU;
             con->m_stream = stream;
 #if defined(__ANDROID__)
             con->m_grallocHelper = &m_goldfishGralloc;
 #endif
-            con->m_processPipe = &m_goldfishProcessPipe;
             break;
         }
 #if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
@@ -312,7 +299,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to connect to host (VirtioGpu)\n");
                 return nullptr;
             }
-            con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
             con->m_grallocType = getGrallocTypeFromProperty();
             auto rendernodeFd = stream->getRendernodeFd();
             con->m_stream = stream;
@@ -333,7 +319,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                     abort();
             }
 #endif
-            con->m_processPipe = &m_goldfishProcessPipe;
             break;
         }
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
@@ -347,7 +332,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to create virtgpu AddressSpaceStream\n");
                 return nullptr;
             }
-            con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
             con->m_grallocType = getGrallocTypeFromProperty();
             con->m_stream = stream;
             con->m_rendernodeFd = deviceHandle;
@@ -367,7 +351,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                     abort();
             }
 #endif
-            con->m_processPipe = &m_goldfishProcessPipe;
             break;
         }
 #endif // !VIRTIO_GPU && !HOST_BUILD_
@@ -388,6 +371,16 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     *pClientFlags = 0;
     con->m_stream->commitBuffer(sizeof(unsigned int));
 
+    if (capset == kCapsetGfxStreamMagma) {
+        noRenderControlEnc = 1;
+    } else if (capset == kCapsetGfxStreamVulkan) {
+        VirtGpuDevice* instance = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
+        auto caps = instance->getCaps();
+        noRenderControlEnc = caps.vulkanCapset.noRenderControlEnc;
+    }
+
+    auto fd = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
+    processPipeInit(fd, connType, noRenderControlEnc);
     return con;
 }
 
@@ -504,10 +497,8 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetHWCMultiConfigs(rcEnc);
         queryAndSetVulkanAuxCommandBufferMemory(rcEnc);
         queryVersion(rcEnc);
-        if (m_processPipe) {
-            auto fd = (m_connectionType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? m_rendernodeFd : -1;
-            m_processPipe->processPipeInit(fd, m_connectionType, rcEnc);
-        }
+
+        rcEnc->rcSetPuid(rcEnc, getPuid());
     }
     return m_rcEnc.get();
 }

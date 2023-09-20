@@ -68,33 +68,56 @@ int CloseDevice(struct hw_device_t* /*device*/) {
 
 #endif // defined(__ANDROID__)
 
-#define VK_HOST_CONNECTION(ret)                                                       \
-    HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan);    \
-    if (!hostCon) {                                                                   \
-        ALOGE("vulkan: Failed to get host connection\n");                             \
-        return ret;                                                                   \
-    }                                                                                 \
-    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();                           \
-    if (!rcEnc) {                                                                     \
-        ALOGE("vulkan: Failed to get renderControl encoder context\n");               \
-        return ret;                                                                   \
-    }                                                                                 \
-    gfxstream::vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = {         \
-        [] {                                                                          \
-            auto hostCon = HostConnection::get();                                     \
-            hostCon->rcEncoder();                                                     \
-            return hostCon;                                                           \
-        },                                                                            \
-        [](HostConnection* hostCon) { return hostCon->vkEncoder(); },                 \
-    };                                                                                \
-    gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks); \
-    gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
-    gfxstream::vk::ResourceTracker::get()->setupCaps();                               \
-    gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess());      \
-    gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();                           \
-    if (!vkEnc) {                                                                     \
-        ALOGE("vulkan: Failed to get Vulkan encoder\n");                              \
-        return ret;                                                                   \
+static HostConnection* getConnection(void) {
+    auto hostCon = HostConnection::get();
+    return hostCon;
+}
+
+static gfxstream::vk::VkEncoder* getVkEncoder(HostConnection* con) { return con->vkEncoder(); }
+
+gfxstream::vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = {
+    .hostConnectionGetFunc = getConnection,
+    .vkEncoderGetFunc = getVkEncoder,
+};
+
+VkResult SetupInstance(void) {
+    uint32_t noRenderControlEnc = 0;
+    HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan);
+    if (!hostCon) {
+        ALOGE("vulkan: Failed to get host connection\n");
+        return VK_ERROR_DEVICE_LOST;
+    }
+
+    gfxstream::vk::ResourceTracker::get()->setupCaps(noRenderControlEnc);
+    // Legacy goldfish path: could be deleted once goldfish not used guest-side.
+    if (!noRenderControlEnc) {
+        // Implicitly sets up sequence number
+        ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();
+        if (!rcEnc) {
+            ALOGE("vulkan: Failed to get renderControl encoder context\n");
+            return VK_ERROR_DEVICE_LOST;
+        }
+
+        gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const());
+    }
+
+    gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks);
+    gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess());
+    gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();
+    if (!vkEnc) {
+        ALOGE("vulkan: Failed to get Vulkan encoder\n");
+        return VK_ERROR_DEVICE_LOST;
+    }
+
+    return VK_SUCCESS;
+}
+
+#define VK_HOST_CONNECTION(ret)                                                    \
+    HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan); \
+    gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();                        \
+    if (!vkEnc) {                                                                  \
+        ALOGE("vulkan: Failed to get Vulkan encoder\n");                           \
+        return ret;                                                                \
     }
 
 VKAPI_ATTR
@@ -103,6 +126,11 @@ VkResult EnumerateInstanceExtensionProperties(
     uint32_t* count,
     VkExtensionProperties* properties) {
     AEMU_SCOPED_TRACE("goldfish_vulkan::EnumerateInstanceExtensionProperties");
+
+    VkResult res = SetupInstance();
+    if (res != VK_SUCCESS) {
+        return res;
+    }
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
@@ -113,7 +141,7 @@ VkResult EnumerateInstanceExtensionProperties(
             layer_name);
     }
 
-    VkResult res = gfxstream::vk::ResourceTracker::get()->on_vkEnumerateInstanceExtensionProperties(
+    res = gfxstream::vk::ResourceTracker::get()->on_vkEnumerateInstanceExtensionProperties(
         vkEnc, VK_SUCCESS, layer_name, count, properties);
 
     return res;
@@ -125,9 +153,13 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
                         VkInstance* out_instance) {
     AEMU_SCOPED_TRACE("goldfish_vulkan::CreateInstance");
 
-    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+    VkResult res = SetupInstance();
+    if (res != VK_SUCCESS) {
+        return res;
+    }
 
-    VkResult res = vkEnc->vkCreateInstance(create_info, nullptr, out_instance, true /* do lock */);
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+    res = vkEnc->vkCreateInstance(create_info, nullptr, out_instance, true /* do lock */);
 
     return res;
 }
@@ -323,6 +355,11 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
 VKAPI_ATTR
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
     AEMU_SCOPED_TRACE("goldfish_vulkan::GetInstanceProcAddr");
+
+    VkResult res = SetupInstance();
+    if (res != VK_SUCCESS) {
+        return nullptr;
+    }
 
     VK_HOST_CONNECTION(nullptr)
 
