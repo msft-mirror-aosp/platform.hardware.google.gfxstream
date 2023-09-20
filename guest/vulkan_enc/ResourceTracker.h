@@ -48,8 +48,8 @@ public:
     using CleanupCallback = std::function<void()>;
 
     struct ThreadingCallbacks {
-        HostConnectionGetFunc hostConnectionGetFunc = 0;
-        VkEncoderGetFunc vkEncoderGetFunc = 0;
+        HostConnectionGetFunc hostConnectionGetFunc = nullptr;
+        VkEncoderGetFunc vkEncoderGetFunc = nullptr;
     };
 
     static uint32_t streamFeatureBits;
@@ -626,7 +626,7 @@ public:
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
 
     void setupFeatures(const EmulatorFeatureInfo* features);
-    void setupCaps(void);
+    void setupCaps(uint32_t& noRenderControlEnc);
 
     void setThreadingCallbacks(const ThreadingCallbacks& callbacks);
     bool hostSupportsVulkan() const;

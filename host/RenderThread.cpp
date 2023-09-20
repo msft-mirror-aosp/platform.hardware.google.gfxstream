@@ -456,7 +456,6 @@ intptr_t RenderThread::main() {
 #ifndef AEMU_BUILD
             if (!tInfo.m_puid) {
                 tInfo.m_puid = mContextId;
-                FrameBuffer::getFB()->createGraphicsProcessResources(tInfo.m_puid);
             }
 #endif
 
