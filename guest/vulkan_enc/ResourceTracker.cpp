@@ -192,7 +192,6 @@ public: \
         (void)handles[i]; delete_goldfish_##type_name((type_name)handle_u64s[i]))
 
 DEFINE_RESOURCE_TRACKING_CLASS(CreateMapping, CREATE_MAPPING_IMPL_FOR_TYPE)
-DEFINE_RESOURCE_TRACKING_CLASS(UnwrapMapping, UNWRAP_MAPPING_IMPL_FOR_TYPE)
 DEFINE_RESOURCE_TRACKING_CLASS(DestroyMapping, DESTROY_MAPPING_IMPL_FOR_TYPE)
 
 static uint32_t* sSeqnoPtr = nullptr;
@@ -264,9 +263,7 @@ class ResourceTracker::Impl {
 public:
     Impl() = default;
     CreateMapping createMapping;
-    UnwrapMapping unwrapMapping;
     DestroyMapping destroyMapping;
-    DefaultHandleMapping defaultMapping;
 
 #define HANDLE_DEFINE_TRIVIAL_INFO_STRUCT(type) \
     struct type##_Info { \
@@ -919,14 +916,41 @@ public:
         return offset + size <= info.allocationSize;
     }
 
-    void setupCaps(void) {
-        VirtGpuDevice* instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
+    void setupCaps(uint32_t& noRenderControlEnc) {
+        VirtGpuDevice* instance = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
         mCaps = instance->getCaps();
 
         // Delete once goldfish Linux drivers are gone
         if (mCaps.vulkanCapset.protocolVersion == 0) {
             mCaps.vulkanCapset.colorBufferMemoryIndex = 0xFFFFFFFF;
+        } else {
+            // Don't query the render control encoder for features, since for virtio-gpu the
+            // capabilities provide versioning. Set features to be unconditionally true, since
+            // using virtio-gpu encompasses all prior goldfish features.  mFeatureInfo should be
+            // deprecated in favor of caps.
+
+            mFeatureInfo.reset(new EmulatorFeatureInfo);
+
+            mFeatureInfo->hasVulkanNullOptionalStrings = true;
+            mFeatureInfo->hasVulkanIgnoredHandles = true;
+            mFeatureInfo->hasVulkanShaderFloat16Int8 = true;
+            mFeatureInfo->hasVulkanQueueSubmitWithCommands = true;
+            mFeatureInfo->hasDeferredVulkanCommands = true;
+            mFeatureInfo->hasVulkanAsyncQueueSubmit = true;
+            mFeatureInfo->hasVulkanCreateResourcesWithRequirements = true;
+            mFeatureInfo->hasVirtioGpuNext = true;
+            mFeatureInfo->hasVirtioGpuNativeSync = true;
+            mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate = true;
+            mFeatureInfo->hasVulkanAsyncQsri = true;
+
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT;
+            ResourceTracker::streamFeatureBits |=
+                VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
         }
+
+        noRenderControlEnc = mCaps.vulkanCapset.noRenderControlEnc;
     }
 
     void setupFeatures(const EmulatorFeatureInfo* features) {
@@ -7641,18 +7665,8 @@ private:
 
 ResourceTracker::ResourceTracker() : mImpl(new ResourceTracker::Impl()) { }
 ResourceTracker::~ResourceTracker() { }
-VulkanHandleMapping* ResourceTracker::createMapping() {
-    return &mImpl->createMapping;
-}
-VulkanHandleMapping* ResourceTracker::unwrapMapping() {
-    return &mImpl->unwrapMapping;
-}
-VulkanHandleMapping* ResourceTracker::destroyMapping() {
-    return &mImpl->destroyMapping;
-}
-VulkanHandleMapping* ResourceTracker::defaultMapping() {
-    return &mImpl->defaultMapping;
-}
+VulkanHandleMapping* ResourceTracker::createMapping() { return &mImpl->createMapping; }
+VulkanHandleMapping* ResourceTracker::destroyMapping() { return &mImpl->destroyMapping; }
 static ResourceTracker* sTracker = nullptr;
 // static
 ResourceTracker* ResourceTracker::get() {
@@ -7689,7 +7703,9 @@ void ResourceTracker::setupFeatures(const EmulatorFeatureInfo* features) {
     mImpl->setupFeatures(features);
 }
 
-void ResourceTracker::setupCaps(void) { mImpl->setupCaps(); }
+void ResourceTracker::setupCaps(uint32_t& noRenderControlEnc) {
+    mImpl->setupCaps(noRenderControlEnc);
+}
 
 void ResourceTracker::setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {
     mImpl->setThreadingCallbacks(callbacks);

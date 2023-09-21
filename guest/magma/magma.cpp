@@ -155,7 +155,7 @@ magma_status_t MagmaClientContext::get_fd_for_buffer(magma_buffer_t buffer, int*
     auto& info = it->second;
 
     // TODO(fxbug.dev/122604): Evaluate deferred guest resource creation.
-    auto blob = VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamVulkan)
+    auto blob = VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamMagma)
                     ->createBlob({.size = info.size,
                                   .flags = kBlobFlagMappable | kBlobFlagShareable,
                                   .blobMem = kBlobMemHost3d,
@@ -211,7 +211,7 @@ magma_status_t MagmaClientContext::magma_device_query(void* self, magma_device_t
     }
 
     ALOGI("opening blob id %lu size %lu\n", result_buffer_mapping_id, result_buffer_size);
-    auto blob = VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamVulkan)
+    auto blob = VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamMagma)
                     ->createBlob({.size = result_buffer_size,
                                   .flags = kBlobFlagMappable | kBlobFlagShareable,
                                   .blobMem = kBlobMemHost3d,
@@ -241,7 +241,7 @@ magma_status_t MagmaClientContext::magma_buffer_get_handle(void* self, magma_buf
     magma_handle_t mapping_id = 0;
     status = context->magma_buffer_get_handle_enc_(self, buffer, &mapping_id);
     if (status != MAGMA_STATUS_OK) return status;
-    auto blob = VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamVulkan)
+    auto blob = VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamMagma)
                     ->createBlob({.size = info.size,
                                   .flags = kBlobFlagMappable | kBlobFlagShareable,
                                   .blobMem = kBlobMemHost3d,
@@ -376,7 +376,7 @@ MagmaClientContext* GetMagmaContext() {
     static std::once_flag once_flag;
 
     std::call_once(once_flag, []() {
-        auto stream = createVirtioGpuAddressSpaceStream(nullptr);
+        auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamMagma, nullptr);
         assert(stream);
 
         // RenderThread expects flags: send zero 'clientFlags' to the host.
@@ -389,7 +389,7 @@ MagmaClientContext* GetMagmaContext() {
 
         s_context = new MagmaClientContext(stream);
         auto render_node_fd =
-            VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamVulkan)->getDeviceHandle();
+            VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamMagma)->getDeviceHandle();
         s_context->render_node_fd_ = SafeCast<int>(render_node_fd);
 
         ALOGE("Created new context\n");
