@@ -43,7 +43,7 @@ struct Extensions
 
 class GL2Encoder : public gl2_encoder_context_t {
 public:
-    GL2Encoder(gfxstream::IOStream *stream, ChecksumCalculator* protocol);
+    GL2Encoder(gfxstream::guest::IOStream *stream, ChecksumCalculator* protocol);
     virtual ~GL2Encoder();
     const Extensions& getExtensions() const { return m_extensions; }
     void setDrawCallFlushInterval(uint32_t interval) {
@@ -205,7 +205,7 @@ private:
     // need access to private class members
     class ErrorUpdater;
     template<class T> class ScopedQueryUpdate;
-    
+
     // General queries
     void safe_glGetBooleanv(GLenum param, GLboolean *val);
     void safe_glGetFloatv(GLenum param, GLfloat *val);
@@ -805,7 +805,7 @@ private:
     // TODO: Compute shaders:
     // make sure it's OK to put memory barriers and compute dispatch
     // on the default encoding path
-   
+
     glVertexAttribFormat_client_proc_t m_glVertexAttribFormat_enc;
     glVertexAttribIFormat_client_proc_t m_glVertexAttribIFormat_enc;
     glVertexBindingDivisor_client_proc_t m_glVertexBindingDivisor_enc;

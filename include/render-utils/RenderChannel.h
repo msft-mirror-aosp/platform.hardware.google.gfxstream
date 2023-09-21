@@ -91,6 +91,9 @@ public:
     // if it is stopped.
     virtual IoResult tryWrite(Buffer&& buffer) = 0;
 
+    // Blocking call that waits until able to write into the channel.
+    virtual void waitUntilWritable() = 0;
+
     // Try to read data from the channel. On success, return IoResult::Ok and
     // sets |*buffer| to contain the data. On failure, return
     // IoResult::TryAgain if the channel was empty, or IoResult::Error if
@@ -102,6 +105,9 @@ public:
     // if it was stopped. Returns IoResult::Timeout if we waited passed
     // waitUntilUs.
     virtual IoResult readBefore(Buffer* buffer, Duration waitUntilUs) = 0;
+
+    // Blocking call that waits until data is available to read from the channel.
+    virtual void waitUntilReadable() = 0;
 
     // Abort all pending operations. Any following operation is a noop.
     // Once a channel is stopped, it cannot be re-started.

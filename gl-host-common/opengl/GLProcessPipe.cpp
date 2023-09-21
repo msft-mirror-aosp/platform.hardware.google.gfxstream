@@ -90,8 +90,8 @@ public:
             m_hasData = (loadStream->getByte() != 0);
         } else {
             if (flags & ANDROID_PIPE_VIRTIO_GPU_BIT) {
-                m_uniqueId = (uint64_t)(uintptr_t)hwPipe;
-                s_headId = m_uniqueId;
+                // virtio-gpu uses context creation to manage process resources
+                return;
             } else {
                 m_uniqueId = ++s_headId;
             }

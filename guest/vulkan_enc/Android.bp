@@ -1,0 +1,93 @@
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package {
+    // See: http://go/android-license-faq
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_shared {
+    name: "libvulkan_enc",
+    host_supported: true,
+    vendor: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    header_libs: [
+        "gfxstream_vulkan_headers",
+        "libgfxstream_guest_graphics_headers",
+        "libgfxstream_guest_iostream",
+        "libnativewindow_headers",
+    ],
+    shared_libs: [
+        "libandroidemu",
+        "libcutils",
+        "liblog",
+        "libOpenglCodecCommon",
+        "lib_renderControl_enc",
+    ],
+    static_libs: [
+        "libarect",
+        "libdrm",
+        "libplatform",
+        "libGoldfishAddressSpace",
+        "libgfxstream_guest_gralloc",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"goldfish_vulkan\"",
+        "-DVIRTIO_GPU",
+        "-DVK_ANDROID_native_buffer",
+        "-DVK_EXT_device_memory_report",
+        "-DVK_GOOGLE_gfxstream",
+        "-DVK_NO_PROTOTYPES",
+        "-DVK_USE_PLATFORM_ANDROID_KHR",
+        "-fstrict-aliasing",
+        "-Werror",
+        "-Wno-missing-field-initializers",
+    ],
+    srcs: [
+        "AndroidHardwareBuffer.cpp",
+        "CommandBufferStagingStream.cpp",
+        "DescriptorSetVirtualization.cpp",
+        "func_table.cpp",
+        "goldfish_vk_counting_guest.cpp",
+        "goldfish_vk_deepcopy_guest.cpp",
+        "goldfish_vk_extension_structs_guest.cpp",
+        "goldfish_vk_marshaling_guest.cpp",
+        "goldfish_vk_reserved_marshaling_guest.cpp",
+        "goldfish_vk_transform_guest.cpp",
+        "HostVisibleMemoryVirtualization.cpp",
+        "Resources.cpp",
+        "ResourceTracker.cpp",
+        "Validation.cpp",
+        "VkEncoder.cpp",
+        "VulkanHandleMapping.cpp",
+        "VulkanStreamGuest.cpp",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+    target: {
+        android: {
+            shared_libs: [
+                "libnativewindow",
+            ],
+            header_libs: [
+                "hwvulkan_headers",
+            ],
+        }
+    }
+}

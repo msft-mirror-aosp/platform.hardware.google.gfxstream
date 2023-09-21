@@ -20,8 +20,8 @@
 
 #include <stdarg.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 // Create a new string instance that contains the printf-style formatted
 // output from |format| and potentially any following arguments.

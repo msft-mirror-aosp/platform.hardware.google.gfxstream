@@ -24,7 +24,7 @@ if [[ "$OSTYPE" == "msys" ]]; then
 fi
 
 export VULKAN_CEREAL_DIR=$PROJECT_ROOT
-export VULKAN_REGISTRY_DIR=codegen/vulkan
+export VULKAN_REGISTRY_DIR=codegen/vulkan/vulkan-docs
 if [ -z "$1" ];
 then
     export GUEST_VK_DIR=$PROJECT_ROOT/guest
@@ -40,13 +40,13 @@ fi
 
 # Generate Vulkan headers
 VULKAN_HEADERS_ROOT=$PROJECT_ROOT/common/vulkan
-rm -rf $VULKAN_HEADERS_ROOT && mkdir -p $VULKAN_HEADERS_ROOT
+rm -rf $VULKAN_HEADERS_ROOT/include && mkdir -p $VULKAN_HEADERS_ROOT/include
 if [ $? -ne 0 ]; then
     echo "Failed to clear the old Vulkan headers." 1>&2
     exit 1
 fi
 
-cd $VULKAN_REGISTRY_DIR/xml && make GENOPTS="-removeExtensions VK_GOOGLE_gfxstream" GENERATED=$VULKAN_HEADERS_ROOT
+cd $VULKAN_REGISTRY_DIR/xml && make GENOPTS="-removeExtensions VK_GOOGLE_gfxstream -registryGfxstream vk_gfxstream.xml" GENERATED=$VULKAN_HEADERS_ROOT
 if [ $? -ne 0 ]; then
     echo "Failed to generate Vulkan headers." 1>&2
     exit 1
@@ -69,15 +69,16 @@ VULKAN_REGISTRY_XML_DIR=$VULKAN_REGISTRY_DIR/xml
 VULKAN_REGISTRY_SCRIPTS_DIR=$VULKAN_REGISTRY_DIR/scripts
 VK_CEREAL_OUTPUT_DIR=$VK_CEREAL_HOST_DECODER_DIR/cereal
 
-python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml cereal -o $VK_CEREAL_OUTPUT_DIR
+python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml  -registryGfxstream $VULKAN_REGISTRY_XML_DIR/vk_gfxstream.xml cereal -o $VK_CEREAL_OUTPUT_DIR
 
 
-# Generate VK_ANDROID_native_buffer specific Vulkan definitions.
+# Generate VK_ANDROID_native_buffer specific Vulkan definitions
+# (see note in generated header for why this is separate).
 if [ -d $VK_CEREAL_HOST_DECODER_DIR ]; then
     OUT_DIR=$VK_CEREAL_HOST_DECODER_DIR
     OUT_FILE_BASENAME="vk_android_native_buffer.h"
 
-    python3 codegen/vulkan/scripts/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml -o $OUT_DIR \
+    python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml  -registryGfxstream $VULKAN_REGISTRY_XML_DIR/vk_gfxstream.xml -o $OUT_DIR \
         $OUT_FILE_BASENAME
 
     if [ $? -ne 0 ]; then
@@ -94,7 +95,7 @@ fi
 for OUT_DIR in $VK_CEREAL_HOST_DECODER_DIR $VK_CEREAL_GUEST_ENCODER_DIR; do
     if [ -d "$OUT_DIR" ]; then
         OUT_FILE_BASENAME=vulkan_gfxstream.h
-        python3 codegen/vulkan/scripts/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml -o $OUT_DIR \
+        python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml  -registryGfxstream $VULKAN_REGISTRY_XML_DIR/vk_gfxstream.xml -o $OUT_DIR \
             $OUT_FILE_BASENAME
 
         if [ $? -ne 0 ]; then
@@ -107,3 +108,5 @@ for OUT_DIR in $VK_CEREAL_HOST_DECODER_DIR $VK_CEREAL_GUEST_ENCODER_DIR; do
         fi
     fi
 done
+
+cp $VULKAN_CEREAL_DIR/codegen/vulkan/vulkan-hpp/generated/* $VULKAN_CEREAL_DIR/common/vulkan/include/vulkan/

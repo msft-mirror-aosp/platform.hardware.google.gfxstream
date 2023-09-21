@@ -20,7 +20,7 @@
 
 #include <GLES3/gl31.h>
 
-using gfxstream::IOStream;
+using gfxstream::guest::IOStream;
 
 bool isSamplerType(GLenum type) {
     switch (type) {

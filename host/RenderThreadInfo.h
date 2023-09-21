@@ -23,8 +23,11 @@
 #include "aemu/base/files/Stream.h"
 #include "renderControl_dec/renderControl_dec.h"
 #include "RenderThreadInfoGl.h"
-#include "RenderThreadInfoMagma.h"
 #include "RenderThreadInfoVk.h"
+
+#if USE_MAGMA
+#include "RenderThreadInfoMagma.h"
+#endif
 
 namespace gfxstream {
 
@@ -54,7 +57,10 @@ struct RenderThreadInfo {
 
     std::optional<gl::RenderThreadInfoGl> m_glInfo;
     std::optional<vk::RenderThreadInfoVk> m_vkInfo;
+
+#if USE_MAGMA
     std::optional<RenderThreadInfoMagma> m_magmaInfo;
+#endif
 
     // Whether this thread was used to perform composition.
     bool m_isCompositionThread = false;

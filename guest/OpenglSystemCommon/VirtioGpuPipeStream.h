@@ -18,6 +18,7 @@
 
 #include "HostConnection.h"
 #include "IOStream.h"
+#include "VirtGpu.h"
 
 #include <stdlib.h>
 
@@ -26,7 +27,7 @@
  * service on the host side.
  */
 
-class VirtioGpuPipeStream : public gfxstream::IOStream {
+class VirtioGpuPipeStream : public gfxstream::guest::IOStream {
 public:
     typedef enum { ERR_INVALID_SOCKET = -1000 } QemuPipeStreamError;
 
@@ -44,8 +45,8 @@ public:
         size_t size, void *buf, size_t len);
     virtual const unsigned char *read( void *buf, size_t *inout_len);
 
-    bool valid() { return m_fd >= 0; }
-    int getRendernodeFd() { return m_fd; }
+    bool valid();
+    int getRendernodeFd();
     int recv(void *buf, size_t len);
 
     virtual int writeFully(const void *buf, size_t len);
@@ -59,12 +60,10 @@ private:
     ssize_t transferToHost(const void* buffer, size_t len);
     ssize_t transferFromHost(void* buffer, size_t len);
 
-    int m_fd; // rendernode fd
-    int m_fd_owned; // Do we own the fd? We should consider using
-                    // modern C++ for this.
-
-    uint32_t m_virtio_rh; // transfer buffer res handle
-    uint32_t m_virtio_bo; // transfer bo handle
+    int m_fd = -1;
+    std::unique_ptr<VirtGpuDevice> m_device;
+    VirtGpuBlobPtr m_resource;
+    VirtGpuBlobMappingPtr m_resourceMapping;
     unsigned char* m_virtio_mapped; // user mapping of bo
 
     // intermediate buffer

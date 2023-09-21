@@ -36,8 +36,8 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
 
-using android::base::guest::AutoReadLock;
-using android::base::guest::AutoWriteLock;
+using gfxstream::guest::AutoReadLock;
+using gfxstream::guest::AutoWriteLock;
 
 void GLClientState::init() {
     m_initialized = false;
@@ -3045,8 +3045,8 @@ bool GLClientState::hasExtension(const char* ext) const {
     return m_extensions.find(ext) != std::string::npos;
 }
 
-using android::base::guest::AutoLock;
-using android::base::guest::Lock;
+using gfxstream::guest::AutoLock;
+using gfxstream::guest::Lock;
 
 // A process-wide fence registry (because we can use fence sync objects across multiple contexts)
 struct FenceRegistry {

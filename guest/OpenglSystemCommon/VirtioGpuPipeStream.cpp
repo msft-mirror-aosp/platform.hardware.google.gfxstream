@@ -15,15 +15,15 @@
  */
 
 #include "VirtioGpuPipeStream.h"
-#include "virtgpu_drm.h"
-
-#include <xf86drm.h>
-
-#include <sys/types.h>
-#include <sys/mman.h>
 
 #include <errno.h>
+#include <sys/mman.h>
+#include <sys/types.h>
 #include <unistd.h>
+#include <xf86drm.h>
+
+#include "virtgpu_drm.h"
+#include "VirtGpu.h"
 
 // In a virtual machine, there should only be one GPU
 #define RENDERNODE_MINOR 128
@@ -41,117 +41,63 @@ static const size_t kWriteOffset = kReadSize;
 
 VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize) :
     IOStream(bufSize),
-    m_fd(-1),
-    m_virtio_rh(~0U),
-    m_virtio_bo(0),
     m_virtio_mapped(nullptr),
     m_bufsize(bufSize),
     m_buf(nullptr),
     m_read(0),
     m_readLeft(0),
-    m_writtenPos(0),
-    m_fd_owned(true) { }
+    m_writtenPos(0) { }
 
-VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int stream_handle) :
+VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int fd) :
     IOStream(bufSize),
-    m_fd(stream_handle),
-    m_virtio_rh(~0U),
-    m_virtio_bo(0),
+    m_fd(fd),
     m_virtio_mapped(nullptr),
     m_bufsize(bufSize),
     m_buf(nullptr),
     m_read(0),
     m_readLeft(0),
-    m_writtenPos(0),
-    m_fd_owned(false) { }
+    m_writtenPos(0) { }
 
 VirtioGpuPipeStream::~VirtioGpuPipeStream()
 {
-    if (m_virtio_mapped) {
-        munmap(m_virtio_mapped, kTransferBufferSize);
-    }
-
-    if (m_virtio_bo > 0U) {
-        drm_gem_close gem_close = {
-            .handle = m_virtio_bo,
-        };
-        drmIoctl(m_fd, DRM_IOCTL_GEM_CLOSE, &gem_close);
-    }
-
-    if (m_fd >= 0 && m_fd_owned) {
-        close(m_fd);
-    }
-
     free(m_buf);
+}
+
+bool VirtioGpuPipeStream::valid() {
+    return m_device != nullptr;
+}
+
+int VirtioGpuPipeStream::getRendernodeFd() {
+    if (m_device == nullptr) {
+        return -1;
+    }
+    return m_device->getDeviceHandle();
 }
 
 int VirtioGpuPipeStream::connect(const char* serviceName)
 {
-    if (m_fd < 0) {
-        m_fd = VirtioGpuPipeStream::openRendernode();
-        if (m_fd < 0) {
-            ERR("%s: failed with fd %d (%s)", __func__, m_fd, strerror(errno));
-            return -1;
-        }
-    }
-
-    if (!m_virtio_bo) {
-        drm_virtgpu_resource_create create = {
-            .target     = PIPE_BUFFER,
-            .format     = VIRGL_FORMAT_R8_UNORM,
-            .bind       = VIRGL_BIND_CUSTOM,
-            .width      = kTransferBufferSize,
-            .height     = 1U,
-            .depth      = 1U,
-            .array_size = 0U,
-            .size       = kTransferBufferSize,
-            .stride     = kTransferBufferSize,
-        };
-
-        int ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE, &create);
-        if (ret) {
-            ERR("%s: failed with %d allocating command buffer (%s)",
-                __func__, ret, strerror(errno));
+    if (!m_device) {
+        m_device.reset(createPlatformVirtGpuDevice(kCapsetNone, m_fd));
+        if (!m_device) {
+            ALOGE("Failed to create VirtioGpuPipeStream VirtGpuDevice.");
             return -1;
         }
 
-        m_virtio_bo = create.bo_handle;
-        if (!m_virtio_bo) {
-            ERR("%s: no handle when allocating command buffer",
-                __func__);
+        m_resource = m_device->createPipeBlob(kTransferBufferSize);
+        if (!m_resource) {
+            ALOGE("Failed to create VirtioGpuPipeStream resource.");
             return -1;
         }
 
-        m_virtio_rh = create.res_handle;
-
-        if (create.size != kTransferBufferSize) {
-            ERR("%s: command buffer wrongly sized, create.size=%zu "
-                "!= %zu", __func__,
-                static_cast<size_t>(create.size),
-                static_cast<size_t>(kTransferBufferSize));
-            abort();
-        }
-    }
-
-    if (!m_virtio_mapped) {
-        drm_virtgpu_map map;
-        memset(&map, 0, sizeof(map));
-        map.handle = m_virtio_bo;
-
-        int ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_MAP, &map);
-        if (ret) {
-            ERR("%s: failed with %d mapping command response buffer (%s)",
-                __func__, ret, strerror(errno));
+        m_resourceMapping = m_resource->createMapping();
+        if (!m_resourceMapping) {
+            ALOGE("Failed to create VirtioGpuPipeStream resource mapping.");
             return -1;
         }
 
-        m_virtio_mapped = static_cast<unsigned char*>(
-            mmap64(nullptr, kTransferBufferSize, PROT_WRITE,
-                   MAP_SHARED, m_fd, map.offset));
-
-        if (m_virtio_mapped == MAP_FAILED) {
-            ERR("%s: failed with %d mmap'ing command response buffer (%s)",
-                __func__, ret, strerror(errno));
+        m_virtio_mapped = m_resourceMapping->asRawPtr();
+        if (!m_virtio_mapped) {
+            ALOGE("Failed to create VirtioGpuPipeStream resource mapping ptr.");
             return -1;
         }
     }
@@ -165,6 +111,7 @@ int VirtioGpuPipeStream::connect(const char* serviceName)
         std::string pipeStr(kPipeString);
         writeFully(kPipeString, sizeof(kPipeString));
     }
+
     return 0;
 }
 
@@ -346,13 +293,11 @@ int VirtioGpuPipeStream::recv(void *buf, size_t len)
 }
 
 void VirtioGpuPipeStream::wait() {
-    struct drm_virtgpu_3d_wait waitcmd;
-    memset(&waitcmd, 0, sizeof(waitcmd));
-    waitcmd.handle = m_virtio_bo;
-    int ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_WAIT, &waitcmd);
+    int ret = m_resource->wait();
     if (ret) {
         ERR("VirtioGpuPipeStream: DRM_IOCTL_VIRTGPU_WAIT failed with %d (%s)\n", errno, strerror(errno));
     }
+
     m_writtenPos = 0;
 }
 
@@ -360,7 +305,6 @@ ssize_t VirtioGpuPipeStream::transferToHost(const void* buffer, size_t len) {
     size_t todo = len;
     size_t done = 0;
     int ret = EAGAIN;
-    struct drm_virtgpu_3d_transfer_to_host xfer;
 
     unsigned char* virtioPtr = m_virtio_mapped;
 
@@ -375,18 +319,9 @@ ssize_t VirtioGpuPipeStream::transferToHost(const void* buffer, size_t len) {
 
         memcpy(virtioPtr + m_writtenPos, readPtr, toXfer);
 
-        memset(&xfer, 0, sizeof(xfer));
-        xfer.bo_handle = m_virtio_bo;
-        xfer.box.x = m_writtenPos;
-        xfer.box.y = 0;
-        xfer.box.w = toXfer;
-        xfer.box.h = 1;
-        xfer.box.d = 1;
-
-        ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST, &xfer);
-
+        ret = m_resource->transferToHost(m_writtenPos, toXfer);
         if (ret) {
-            ERR("VirtioGpuPipeStream: failed with errno %d (%s)\n", errno, strerror(errno));
+            ERR("VirtioGpuPipeStream: failed to transferToHost() with errno %d (%s)\n", errno, strerror(errno));
             return (ssize_t)ret;
         }
 
@@ -403,7 +338,6 @@ ssize_t VirtioGpuPipeStream::transferFromHost(void* buffer, size_t len) {
     size_t todo = len;
     size_t done = 0;
     int ret = EAGAIN;
-    struct drm_virtgpu_3d_transfer_from_host xfer;
 
     const unsigned char* virtioPtr = m_virtio_mapped;
     unsigned char* readPtr = reinterpret_cast<unsigned char*>(buffer);
@@ -415,18 +349,9 @@ ssize_t VirtioGpuPipeStream::transferFromHost(void* buffer, size_t len) {
     while (done < len) {
         size_t toXfer = todo > kTransferBufferSize ? kTransferBufferSize : todo;
 
-        memset(&xfer, 0, sizeof(xfer));
-        xfer.bo_handle = m_virtio_bo;
-        xfer.box.x = 0;
-        xfer.box.y = 0;
-        xfer.box.w = toXfer;
-        xfer.box.h = 1;
-        xfer.box.d = 1;
-
-        ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST, &xfer);
-
+        ret = m_resource->transferFromHost(0, toXfer);
         if (ret) {
-            ERR("VirtioGpuPipeStream: failed with errno %d (%s)\n", errno, strerror(errno));
+            ERR("VirtioGpuPipeStream: failed to transferFromHost() with errno %d (%s)\n", errno, strerror(errno));
             return (ssize_t)ret;
         }
 

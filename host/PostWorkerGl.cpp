@@ -86,7 +86,8 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
     };
 
     const auto& multiDisplay = emugl::get_emugl_multi_display_operations();
-    if (multiDisplay.isMultiDisplayEnabled()) {
+    const bool not_pixel_fold = !(multiDisplay.isPixelFold());
+    if (not_pixel_fold && multiDisplay.isMultiDisplayEnabled()) {
         if (multiDisplay.isMultiDisplayWindow()) {
             int32_t previousDisplayId = -1;
             uint32_t currentDisplayId;

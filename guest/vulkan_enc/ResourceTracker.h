@@ -41,17 +41,15 @@ public:
     static ResourceTracker* get();
 
     VulkanHandleMapping* createMapping();
-    VulkanHandleMapping* unwrapMapping();
     VulkanHandleMapping* destroyMapping();
-    VulkanHandleMapping* defaultMapping();
 
     using HostConnectionGetFunc = HostConnection* (*)();
     using VkEncoderGetFunc = VkEncoder* (*)(HostConnection*);
     using CleanupCallback = std::function<void()>;
 
     struct ThreadingCallbacks {
-        HostConnectionGetFunc hostConnectionGetFunc = 0;
-        VkEncoderGetFunc vkEncoderGetFunc = 0;
+        HostConnectionGetFunc hostConnectionGetFunc = nullptr;
+        VkEncoderGetFunc vkEncoderGetFunc = nullptr;
     };
 
     static uint32_t streamFeatureBits;
@@ -251,6 +249,9 @@ public:
     VkResult on_vkQueueSubmit(
         void* context, VkResult input_result,
         VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
+
+    VkResult on_vkQueueSubmit2(void* context, VkResult input_result, VkQueue queue,
+                               uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence);
 
     VkResult on_vkQueueWaitIdle(
         void* context, VkResult input_result,
@@ -625,7 +626,7 @@ public:
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
 
     void setupFeatures(const EmulatorFeatureInfo* features);
-    void setupCaps(void);
+    void setupCaps(uint32_t& noRenderControlEnc);
 
     void setThreadingCallbacks(const ThreadingCallbacks& callbacks);
     bool hostSupportsVulkan() const;

@@ -36,8 +36,8 @@
 #define INVALID_ENTITY_HANDLE 0
 #define INVALID_COMPONENT_HANDLE 0
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 // EntityManager: A way to represent an abstrat space of objects with handles.
 // Each handle is associated with data of type Item for quick access from handles to data.
@@ -448,7 +448,7 @@ public:
 
     // If we didn't explicitly track, just fail.
     ComponentHandle getComponentHandle(EntityHandle h) const {
-        auto componentHandlePtr = android::base::find(mEntityToComponentMap, h);
+        auto componentHandlePtr = gfxstream::guest::find(mEntityToComponentMap, h);
         if (!componentHandlePtr) return INVALID_COMPONENT_HANDLE;
         return *componentHandlePtr;
     }

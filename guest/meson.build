@@ -1,8 +1,8 @@
 # Copyright 2022 Android Open Source Project
 # SPDX-License-Identifier: MIT
 
-project('gfxstream', 'cpp', 'c',
-         version : '0.0.1',
+project('gfxstream_frontend', 'cpp', 'c',
+         version : '0.1.2',
          license : 'MIT OR Apache-2.0',
          default_options : ['cpp_std=gnu++17'])
 
@@ -32,9 +32,6 @@ cpp_args += '-DGFXSTREAM'
 cpp_args += '-DLINUX_GUEST_BUILD'
 # Don't want to goldfish OpenGL
 cpp_args += '-DGOLDFISH_NO_GL'
-# This is a good number for PAGE_SIZE
-# But we should really do getpagesize(..).
-cpp_args += '-DPAGE_SIZE=4096'
 # This should just be called NO_TRACE eventually
 cpp_args += '-DFUCHSIA_NO_TRACE'
 # Include the gfxstream private VkStructureType definitions
@@ -57,7 +54,6 @@ inc_fuchsia_magma = include_directories('../third-party/fuchsia/magma/include')
 inc_fuchsia_magma_nolib = include_directories('../third-party/fuchsia/magma/include/lib')
 inc_android_emu = include_directories('android-emu')
 inc_gralloc = include_directories('gralloc_cb/include')
-inc_host = include_directories('iostream/include/libOpenglRender')
 inc_magma = include_directories('magma')
 inc_opengl_codec = include_directories('OpenglCodecCommon')
 inc_opengl_system = include_directories('OpenglSystemCommon')
@@ -70,6 +66,7 @@ inc_vulkan_enc = include_directories('vulkan_enc')
 #================#
 
 subdir('fuchsia')
+subdir('iostream')
 subdir('platform')
 subdir('android-emu/aemu/base')
 subdir('GoldfishAddressSpace')

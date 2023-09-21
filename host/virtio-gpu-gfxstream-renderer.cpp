@@ -58,6 +58,8 @@ struct iovec {
     void* iov_base; /* Starting address */
     size_t iov_len; /* Length in bytes */
 };
+#else
+#include <unistd.h>
 #endif  // _WIN32
 
 #define MAX_DEBUG_BUFFER_SIZE 512
@@ -584,6 +586,11 @@ class PipeVirglRenderer {
         }
         mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
         mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
+
+#if !defined(_WIN32)
+        mPageSize = getpagesize();
+#endif
+
         return 0;
     }
 
@@ -652,6 +659,7 @@ class PipeVirglRenderer {
 
         stream_renderer_info("initial host pipe for ctxid %u: %p", ctx_id, hostPipe);
         mContexts[ctx_id] = res;
+        android_onGuestGraphicsProcessCreate(ctx_id);
         return 0;
     }
 
@@ -679,7 +687,7 @@ class PipeVirglRenderer {
         }
 
         ops->guest_close(hostPipe, GOLDFISH_PIPE_CLOSE_GRACEFUL);
-
+        android_cleanupProcGLObjects(handle);
         mContexts.erase(it);
         return 0;
     }
@@ -816,7 +824,7 @@ class PipeVirglRenderer {
                 uint64_t sync_handle =
                     convert32to64(exportSync.syncHandleLo, exportSync.syncHandleHi);
 
-                stream_renderer_info("wait for gpu ring %s", to_string(ring));
+                stream_renderer_info("wait for gpu ring %s", to_string(ring).c_str());
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
                 mVirtioGpuOps->async_wait_for_gpu_with_cb(sync_handle, [this, taskId] {
                     mVirtioGpuTimelines->notifyTaskCompletion(taskId);
@@ -842,7 +850,7 @@ class PipeVirglRenderer {
                 uint64_t fence_handle =
                     convert32to64(exportSyncVK.fenceHandleLo, exportSyncVK.fenceHandleHi);
 
-                stream_renderer_info("wait for gpu ring %s", to_string(ring));
+                stream_renderer_info("wait for gpu ring %s", to_string(ring).c_str());
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
                 mVirtioGpuOps->async_wait_for_gpu_vulkan_with_cb(
                     device_handle, fence_handle,
@@ -1148,7 +1156,9 @@ class PipeVirglRenderer {
 
             if (status > 0) {
                 readBytes += status;
-            } else if (status != kPipeTryAgain) {
+            } else if (status == kPipeTryAgain) {
+                ops->wait_guest_recv(hostPipe);
+            } else {
                 return EIO;
             }
         }
@@ -1197,7 +1207,9 @@ class PipeVirglRenderer {
 
             if (status > 0) {
                 writtenBytes += status;
-            } else if (status != kPipeTryAgain) {
+            } else if (status == kPipeTryAgain) {
+                ops->wait_guest_send(hostPipe);
+            } else {
                 return EIO;
             }
         }
@@ -1340,33 +1352,81 @@ class PipeVirglRenderer {
     }
 
     void getCapset(uint32_t set, uint32_t* max_size) {
-        // Only one capset right not
-        *max_size = sizeof(struct gfxstream::gfxstreamCapset);
+        switch (set) {
+            case VIRTGPU_CAPSET_GFXSTREAM_VULKAN:
+                *max_size = sizeof(struct gfxstream::vulkanCapset);
+                break;
+            case VIRTGPU_CAPSET_GFXSTREAM_MAGMA:
+                *max_size = sizeof(struct gfxstream::magmaCapset);
+                break;
+            case VIRTGPU_CAPSET_GFXSTREAM_GLES:
+                *max_size = sizeof(struct gfxstream::glesCapset);
+                break;
+            case VIRTGPU_CAPSET_GFXSTREAM_COMPOSER:
+                *max_size = sizeof(struct gfxstream::composerCapset);
+                break;
+            default:
+                stream_renderer_error("Incorrect capability set specified");
+        }
     }
 
     void fillCaps(uint32_t set, void* caps) {
-        struct gfxstream::gfxstreamCapset* capset =
-            reinterpret_cast<struct gfxstream::gfxstreamCapset*>(caps);
-        if (capset) {
-            memset(capset, 0, sizeof(*capset));
+        switch (set) {
+            case VIRTGPU_CAPSET_GFXSTREAM_VULKAN: {
+                struct gfxstream::vulkanCapset* capset =
+                    reinterpret_cast<struct gfxstream::vulkanCapset*>(caps);
 
-            capset->protocolVersion = 1;
-            capset->ringSize = 12288;
-            capset->bufferSize = 1048576;
+                memset(capset, 0, sizeof(*capset));
 
-            auto vk_emu = gfxstream::vk::getGlobalVkEmulation();
-            if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeIndex) {
-                capset->colorBufferMemoryIndex = *vk_emu->representativeColorBufferMemoryTypeIndex;
+                capset->protocolVersion = 1;
+                capset->ringSize = 12288;
+                capset->bufferSize = 1048576;
+
+                auto vk_emu = gfxstream::vk::getGlobalVkEmulation();
+                if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeIndex) {
+                    capset->colorBufferMemoryIndex =
+                        *vk_emu->representativeColorBufferMemoryTypeIndex;
+                }
+
+                capset->noRenderControlEnc = 1;
+                capset->blobAlignment = mPageSize;
+                if (vk_emu && vk_emu->live) {
+                    capset->deferredMapping = 1;
+                }
+                break;
             }
+            case VIRTGPU_CAPSET_GFXSTREAM_MAGMA: {
+                struct gfxstream::magmaCapset* capset =
+                    reinterpret_cast<struct gfxstream::magmaCapset*>(caps);
 
-            if (vk_emu && vk_emu->live) {
-                capset->deferredMapping = 1;
-#if defined(__APPLE__) && defined(__arm64__)
-                capset->blobAlignment = 16384;
-#else
-                capset->blobAlignment = 4096;
-#endif
+                capset->protocolVersion = 1;
+                capset->ringSize = 12288;
+                capset->bufferSize = 1048576;
+                capset->blobAlignment = mPageSize;
+                break;
             }
+            case VIRTGPU_CAPSET_GFXSTREAM_GLES: {
+                struct gfxstream::glesCapset* capset =
+                    reinterpret_cast<struct gfxstream::glesCapset*>(caps);
+
+                capset->protocolVersion = 1;
+                capset->ringSize = 12288;
+                capset->bufferSize = 1048576;
+                capset->blobAlignment = mPageSize;
+                break;
+            }
+            case VIRTGPU_CAPSET_GFXSTREAM_COMPOSER: {
+                struct gfxstream::composerCapset* capset =
+                    reinterpret_cast<struct gfxstream::composerCapset*>(caps);
+
+                capset->protocolVersion = 1;
+                capset->ringSize = 12288;
+                capset->bufferSize = 1048576;
+                capset->blobAlignment = mPageSize;
+                break;
+            }
+            default:
+                stream_renderer_error("Incorrect capability set specified");
         }
     }
 
@@ -1483,7 +1543,7 @@ class PipeVirglRenderer {
             entry.hva = ringBlob->get();
         } else {
             void* addr =
-                android::aligned_buf_alloc(ADDRESS_SPACE_GRAPHICS_PAGE_SIZE, create_blob->size);
+                android::aligned_buf_alloc(mPageSize, create_blob->size);
             if (addr == nullptr) {
                 stream_renderer_error("Failed to allocate ring blob");
                 return -ENOMEM;
@@ -1759,6 +1819,7 @@ class PipeVirglRenderer {
     void* mCookie = nullptr;
     stream_renderer_fence_callback mFenceCallback;
     AndroidVirtioGpuOps* mVirtioGpuOps = nullptr;
+    uint32_t mPageSize = 4096;
     struct address_space_device_control_ops* mAddressSpaceDeviceControlOps = nullptr;
 
     const GoldfishPipeServiceOps* mServiceOps = nullptr;
@@ -1983,11 +2044,19 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
         return android_pipe_guest_recv(hostPipe, reinterpret_cast<AndroidPipeBuffer*>(buffers),
                                        numBuffers);
     },
+    // wait_guest_recv()
+    [](GoldfishHostPipe* hostPipe) {
+        android_pipe_wait_guest_recv(hostPipe);
+    },
     // guest_send()
     [](GoldfishHostPipe** hostPipe, const GoldfishPipeBuffer* buffers, int numBuffers) -> int {
         return android_pipe_guest_send(reinterpret_cast<void**>(hostPipe),
                                        reinterpret_cast<const AndroidPipeBuffer*>(buffers),
                                        numBuffers);
+    },
+    // wait_guest_send()
+    [](GoldfishHostPipe* hostPipe) {
+        android_pipe_wait_guest_send(hostPipe);
     },
     // guest_wake_on()
     [](GoldfishHostPipe* hostPipe, GoldfishPipeWakeFlags wakeFlags) {

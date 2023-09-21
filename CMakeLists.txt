@@ -48,7 +48,7 @@ option(USE_ANGLE_SHADER_PARSER "Build with ANGLE shader parser." OFF)
 
 option(WITH_BENCHMARK "Builds benchmarking code" OFF)
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT QNX)
     set(LINUX TRUE)
 endif()
 
@@ -79,6 +79,9 @@ set(CMAKE_C_STANDARD 11)
 
 if (APPLE)
     add_compile_definitions(VK_USE_PLATFORM_MACOS_MVK)
+elseif(QNX)
+    # TODO(jsimonot): fix build error
+    # add_compile_definitions(VK_USE_PLATFORM_SCREEN_QNX)
 elseif(UNIX)
     # TODO(kaiyili, b/179477624): Add Linux specific Vulkan platform macro definitions
     # Use X11 version of EGL platform specific definitions.
@@ -148,12 +151,6 @@ add_subdirectory(host)
 # Protocols and associated code generators######################################
 
 add_subdirectory(codegen)
-
-# Fake Android guest#########################3##################################
-
-if (NOT WIN32 AND NOT APPLE)
-    add_subdirectory(fake-android-guest)
-endif()
 
 if (ENABLE_VKCEREAL_TESTS)
     list(APPEND EXTRA_SUBDIR_TEST_INCLUDE_FILES ${CMAKE_SOURCE_DIR}/cmake/test_properties.cmake)

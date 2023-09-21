@@ -27,8 +27,8 @@
 #else
 #endif
 
-namespace android {
-namespace base {
+namespace gfxstream {
+namespace guest {
 
 bool isTracingEnabled() {
 #if defined(__ANDROID__) || defined(HOST_BUILD)
@@ -46,6 +46,7 @@ void ScopedTraceGuest::beginTraceImpl(const char* name) {
     TRACE_DURATION_BEGIN(TRACE_TAG, name);
 #else
     // No-op
+    (void)name;
 #endif
 }
 
@@ -57,6 +58,7 @@ void ScopedTraceGuest::endTraceImpl(const char* name) {
     TRACE_DURATION_END(TRACE_TAG, name);
 #else
     // No-op
+    (void)name;
 #endif
 }
 

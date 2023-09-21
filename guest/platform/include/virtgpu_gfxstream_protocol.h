@@ -17,6 +17,17 @@
 
 #include <stdint.h>
 
+// See definitions in rutabaga_gfx_ffi.h
+#define VIRTGPU_CAPSET_VIRGL 1
+#define VIRTGPU_CAPSET_VIRGL2 2
+#define VIRTGPU_CAPSET_GFXSTREAM_VULKAN 3
+#define VIRTGPU_CAPSET_VENUS 4
+#define VIRTGPU_CAPSET_CROSS_DOMAIN 5
+#define VIRTGPU_CAPSET_DRM 6
+#define VIRTGPU_CAPSET_GFXSTREAM_MAGMA 7
+#define VIRTGPU_CAPSET_GFXSTREAM_GLES 8
+#define VIRTGPU_CAPSET_GFXSTREAM_COMPOSER 9
+
 // Address Space Graphics contexts
 #define GFXSTREAM_CONTEXT_CREATE                0x1001
 #define GFXSTREAM_CONTEXT_PING                  0x1002
@@ -76,7 +87,7 @@ struct gfxstreamPlaceholderCommandVk {
     uint32_t padding;
 };
 
-struct gfxstreamCapset {
+struct vulkanCapset {
     uint32_t protocolVersion;
 
     // ASG Ring Parameters
@@ -86,7 +97,32 @@ struct gfxstreamCapset {
     uint32_t colorBufferMemoryIndex;
     uint32_t deferredMapping;
     uint32_t blobAlignment;
-    uint32_t padding[15];
+    uint32_t noRenderControlEnc;
+    uint32_t padding[14];
+};
+
+struct magmaCapset {
+    uint32_t protocolVersion;
+    // ASG Ring Parameters
+    uint32_t ringSize;
+    uint32_t bufferSize;
+    uint32_t blobAlignment;
+};
+
+struct glesCapset {
+    uint32_t protocolVersion;
+    // ASG Ring Parameters
+    uint32_t ringSize;
+    uint32_t bufferSize;
+    uint32_t blobAlignment;
+};
+
+struct composerCapset {
+    uint32_t protocolVersion;
+    // ASG Ring Parameters
+    uint32_t ringSize;
+    uint32_t bufferSize;
+    uint32_t blobAlignment;
 };
 
 #endif
