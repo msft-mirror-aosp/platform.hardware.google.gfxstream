@@ -48,6 +48,9 @@ cc_library_shared {
         "-Wno-unused-parameter",
         "-Wno-cast-calling-convention",
     ],
+    include_dirs: [
+        "hardware/google/gfxstream/guest/GoldfishAddressSpace/include",
+    ],
     srcs: [
         "goldfish_vulkan.cpp",
     ],
