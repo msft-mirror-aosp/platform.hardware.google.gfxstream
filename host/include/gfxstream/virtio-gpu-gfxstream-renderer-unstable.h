@@ -1,8 +1,7 @@
 #ifndef VIRTGPU_GFXSTREAM_RENDERER_UNSTABLE_H
 #define VIRTGPU_GFXSTREAM_RENDERER_UNSTABLE_H
 
-#include "host-common/goldfish_pipe.h"
-#include "render-utils/virtio-gpu-gfxstream-renderer.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,8 +67,6 @@ VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_
                                               int32_t fb_height);
 
 VG_EXPORT void stream_renderer_flush(uint32_t res_handle);
-
-VG_EXPORT void stream_renderer_set_service_ops(const GoldfishPipeServiceOps* ops);
 
 // Platform resources and contexts support
 #define STREAM_RENDERER_PLATFORM_RESOURCE_USE_MASK 0xF0
