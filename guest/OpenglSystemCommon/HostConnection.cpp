@@ -27,7 +27,6 @@
 
 #if defined(__ANDROID__)
 #include "ANativeWindowAndroid.h"
-#include "SyncAndroid.h"
 #endif
 
 #ifdef HOST_BUILD
@@ -360,10 +359,10 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
 
 #if defined(__ANDROID__)
     con->m_anwHelper = new gfxstream::ANativeWindowHelperAndroid();
-    con->m_syncHelper = new gfxstream::SyncHelperAndroid();
 #else
-    // Host builds are expected to set a sync helper for testing.
+    // Host builds are expected to set an ANW helper for testing.
 #endif
+    con->m_syncHelper.reset(gfxstream::createPlatformSyncHelper());
 
     // send zero 'clientFlags' to the host.
     unsigned int *pClientFlags =
