@@ -1680,7 +1680,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageInfo2(globalstate,
                                                       (VkCopyImageInfo2*)(pCopyImageInfo));
                 }
-                vk->vkCmdCopyImage2((VkCommandBuffer)dispatchHandle, pCopyImageInfo);
+                this->on_vkCmdCopyImage2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                         pCopyImageInfo);
                 android::base::endTrace();
                 break;
             }
@@ -1696,8 +1697,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyBufferToImageInfo2(
                         globalstate, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
                 }
-                vk->vkCmdCopyBufferToImage2((VkCommandBuffer)dispatchHandle,
-                                            pCopyBufferToImageInfo);
+                this->on_vkCmdCopyBufferToImage2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                                 pCopyBufferToImageInfo, context);
                 android::base::endTrace();
                 break;
             }
@@ -1713,8 +1714,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageToBufferInfo2(
                         globalstate, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
                 }
-                vk->vkCmdCopyImageToBuffer2((VkCommandBuffer)dispatchHandle,
-                                            pCopyImageToBufferInfo);
+                this->on_vkCmdCopyImageToBuffer2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                                 pCopyImageToBufferInfo);
                 android::base::endTrace();
                 break;
             }
@@ -2742,7 +2743,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageInfo2(globalstate,
                                                       (VkCopyImageInfo2*)(pCopyImageInfo));
                 }
-                vk->vkCmdCopyImage2KHR((VkCommandBuffer)dispatchHandle, pCopyImageInfo);
+                this->on_vkCmdCopyImage2KHR(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                            pCopyImageInfo);
                 android::base::endTrace();
                 break;
             }
@@ -2758,8 +2760,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyBufferToImageInfo2(
                         globalstate, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
                 }
-                vk->vkCmdCopyBufferToImage2KHR((VkCommandBuffer)dispatchHandle,
-                                               pCopyBufferToImageInfo);
+                this->on_vkCmdCopyBufferToImage2KHR(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                                    pCopyBufferToImageInfo, context);
                 android::base::endTrace();
                 break;
             }
@@ -2775,8 +2777,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageToBufferInfo2(
                         globalstate, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
                 }
-                vk->vkCmdCopyImageToBuffer2KHR((VkCommandBuffer)dispatchHandle,
-                                               pCopyImageToBufferInfo);
+                this->on_vkCmdCopyImageToBuffer2KHR(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                                    pCopyImageToBufferInfo);
                 android::base::endTrace();
                 break;
             }
