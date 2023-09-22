@@ -58,6 +58,9 @@ cc_library_shared {
     shared_libs: [
         "liblog", // gfxstream_base uses this via perfetto-libperfettobase
     ],
+    export_include_dirs: [
+        "include",
+    ],
     srcs: [
         "Buffer.cpp",
         "BlobManager.cpp",
