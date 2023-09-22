@@ -46,7 +46,7 @@
 #include "HostConnection.h"
 #include "VirtGpu.h"
 #include "drm_fourcc.h"
-#include "render-utils/virtio-gpu-gfxstream-renderer.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 namespace gfxstream {
 namespace tests {
