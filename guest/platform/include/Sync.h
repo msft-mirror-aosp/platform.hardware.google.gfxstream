@@ -31,4 +31,6 @@ class SyncHelper {
     virtual int close(int syncFd) = 0;
 };
 
+SyncHelper* createPlatformSyncHelper();
+
 }  // namespace gfxstream
