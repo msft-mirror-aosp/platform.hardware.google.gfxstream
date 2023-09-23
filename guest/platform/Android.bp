@@ -27,7 +27,8 @@ cc_library_static {
         "VirtGpu.cpp",
         "linux/LinuxVirtGpuBlob.cpp",
         "linux/LinuxVirtGpuBlobMapping.cpp",
-        "linux/LinuxVirtGpuDevice.cpp"
+        "linux/LinuxVirtGpuDevice.cpp",
+        "linux/LinuxSync.cpp",
     ],
     shared_libs: [
         "libcutils",
@@ -50,6 +51,13 @@ cc_library_static {
     local_include_dirs: [
         "include",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libsync",
+            ],
+        }
+    },
 }
 
 cc_library_static {
@@ -61,6 +69,7 @@ cc_library_static {
         "stub/StubVirtGpuBlob.cpp",
         "stub/StubVirtGpuBlobMapping.cpp",
         "stub/StubVirtGpuDevice.cpp",
+        "stub/StubSync.cpp",
     ],
     shared_libs: [
         "libcutils",
