@@ -2717,6 +2717,152 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
+    void on_vkCmdCopyImage2(android::base::BumpPool* pool,
+                           VkCommandBuffer boxed_commandBuffer,
+                           const VkCopyImageInfo2* pCopyImageInfo) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        auto* srcImg = android::base::find(mImageInfo, pCopyImageInfo->srcImage);
+        auto* dstImg = android::base::find(mImageInfo, pCopyImageInfo->dstImage);
+        if (!srcImg || !dstImg) return;
+
+        VkDevice device = srcImg->cmpInfo.device();
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) return;
+
+        bool needEmulatedSrc = deviceInfo->needEmulatedDecompression(srcImg->cmpInfo);
+        bool needEmulatedDst = deviceInfo->needEmulatedDecompression(dstImg->cmpInfo);
+        if (!needEmulatedSrc && !needEmulatedDst) {
+            vk->vkCmdCopyImage2(commandBuffer, pCopyImageInfo);
+            return;
+        }
+        VkImage srcImageMip = pCopyImageInfo->srcImage;
+        VkImage dstImageMip = pCopyImageInfo->dstImage;
+        for (uint32_t r = 0; r < pCopyImageInfo->regionCount; r++) {
+            if (needEmulatedSrc) {
+                srcImageMip = srcImg->cmpInfo.compressedMipmap(pCopyImageInfo->pRegions[r].srcSubresource.mipLevel);
+            }
+            if (needEmulatedDst) {
+                dstImageMip = dstImg->cmpInfo.compressedMipmap(pCopyImageInfo->pRegions[r].dstSubresource.mipLevel);
+            }
+
+            VkCopyImageInfo2 inf2 = *pCopyImageInfo;
+            inf2.regionCount = 1;
+            inf2.srcImage = srcImageMip;
+            inf2.dstImage = dstImageMip;
+
+            VkImageCopy2 region = CompressedImageInfo::getCompressedMipmapsImageCopy(
+                pCopyImageInfo->pRegions[r], srcImg->cmpInfo, dstImg->cmpInfo, needEmulatedSrc, needEmulatedDst);
+            inf2.pRegions = &region;
+
+            vk->vkCmdCopyImage2(commandBuffer, &inf2);
+        }
+    }
+
+    void on_vkCmdCopyImageToBuffer2(android::base::BumpPool* pool,
+                                   VkCommandBuffer boxed_commandBuffer,
+                                   const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        auto* imageInfo = android::base::find(mImageInfo, pCopyImageToBufferInfo->srcImage);
+        auto* bufferInfo = android::base::find(mBufferInfo, pCopyImageToBufferInfo->dstBuffer);
+        if (!imageInfo || !bufferInfo) return;
+        auto* deviceInfo = android::base::find(mDeviceInfo, bufferInfo->device);
+        if (!deviceInfo) return;
+        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
+        if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
+            vk->vkCmdCopyImageToBuffer2(commandBuffer, pCopyImageToBufferInfo);
+            return;
+        }
+        for (uint32_t r = 0; r < pCopyImageToBufferInfo->regionCount; r++) {
+            uint32_t mipLevel = pCopyImageToBufferInfo->pRegions[r].imageSubresource.mipLevel;
+            VkBufferImageCopy2 region = cmpInfo.getBufferImageCopy(pCopyImageToBufferInfo->pRegions[r]);
+            VkCopyImageToBufferInfo2 inf = *pCopyImageToBufferInfo;
+            inf.regionCount = 1;
+            inf.pRegions = &region;
+            inf.srcImage = cmpInfo.compressedMipmap(mipLevel);
+
+            vk->vkCmdCopyImageToBuffer2(commandBuffer, &inf);
+        }
+    }
+
+    void on_vkCmdCopyImage2KHR(android::base::BumpPool* pool,
+                           VkCommandBuffer boxed_commandBuffer,
+                           const VkCopyImageInfo2KHR* pCopyImageInfo) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        auto* srcImg = android::base::find(mImageInfo, pCopyImageInfo->srcImage);
+        auto* dstImg = android::base::find(mImageInfo, pCopyImageInfo->dstImage);
+        if (!srcImg || !dstImg) return;
+
+        VkDevice device = srcImg->cmpInfo.device();
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) return;
+
+        bool needEmulatedSrc = deviceInfo->needEmulatedDecompression(srcImg->cmpInfo);
+        bool needEmulatedDst = deviceInfo->needEmulatedDecompression(dstImg->cmpInfo);
+        if (!needEmulatedSrc && !needEmulatedDst) {
+            vk->vkCmdCopyImage2KHR(commandBuffer, pCopyImageInfo);
+            return;
+        }
+        VkImage srcImageMip = pCopyImageInfo->srcImage;
+        VkImage dstImageMip = pCopyImageInfo->dstImage;
+        for (uint32_t r = 0; r < pCopyImageInfo->regionCount; r++) {
+            if (needEmulatedSrc) {
+                srcImageMip = srcImg->cmpInfo.compressedMipmap(pCopyImageInfo->pRegions[r].srcSubresource.mipLevel);
+            }
+            if (needEmulatedDst) {
+                dstImageMip = dstImg->cmpInfo.compressedMipmap(pCopyImageInfo->pRegions[r].dstSubresource.mipLevel);
+            }
+
+            VkCopyImageInfo2KHR inf2 = *pCopyImageInfo;
+            inf2.regionCount = 1;
+            inf2.srcImage = srcImageMip;
+            inf2.dstImage = dstImageMip;
+
+            VkImageCopy2KHR region = CompressedImageInfo::getCompressedMipmapsImageCopy(
+                pCopyImageInfo->pRegions[r], srcImg->cmpInfo, dstImg->cmpInfo, needEmulatedSrc, needEmulatedDst);
+            inf2.pRegions = &region;
+
+            vk->vkCmdCopyImage2KHR(commandBuffer, &inf2);
+        }
+    }
+
+    void on_vkCmdCopyImageToBuffer2KHR(android::base::BumpPool* pool,
+                                   VkCommandBuffer boxed_commandBuffer,
+                                   const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        auto* imageInfo = android::base::find(mImageInfo, pCopyImageToBufferInfo->srcImage);
+        auto* bufferInfo = android::base::find(mBufferInfo, pCopyImageToBufferInfo->dstBuffer);
+        if (!imageInfo || !bufferInfo) return;
+        auto* deviceInfo = android::base::find(mDeviceInfo, bufferInfo->device);
+        if (!deviceInfo) return;
+        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
+        if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
+            vk->vkCmdCopyImageToBuffer2KHR(commandBuffer, pCopyImageToBufferInfo);
+            return;
+        }
+        for (uint32_t r = 0; r < pCopyImageToBufferInfo->regionCount; r++) {
+            uint32_t mipLevel = pCopyImageToBufferInfo->pRegions[r].imageSubresource.mipLevel;
+            VkBufferImageCopy2KHR region = cmpInfo.getBufferImageCopy(pCopyImageToBufferInfo->pRegions[r]);
+            VkCopyImageToBufferInfo2KHR inf = *pCopyImageToBufferInfo;
+            inf.regionCount = 1;
+            inf.pRegions = &region;
+            inf.srcImage = cmpInfo.compressedMipmap(mipLevel);
+
+            vk->vkCmdCopyImageToBuffer2KHR(commandBuffer, &inf);
+        }
+    }
+
     void on_vkGetImageMemoryRequirements(android::base::BumpPool* pool, VkDevice boxed_device,
                                          VkImage image, VkMemoryRequirements* pMemoryRequirements) {
         auto device = unbox_VkDevice(boxed_device);
@@ -2854,6 +3000,120 @@ class VkDecoderGlobalState::Impl {
             uint8_t* astcData = (uint8_t*)(memoryInfo->ptr) + bufferInfo->memoryOffset;
             cmpInfo.decompressOnCpu(commandBuffer, astcData, bufferInfo->size, dstImage,
                                     dstImageLayout, regionCount, pRegions, context);
+        }
+    }
+
+    void on_vkCmdCopyBufferToImage2(android::base::BumpPool* pool,
+                                    VkCommandBuffer boxed_commandBuffer,
+                                    const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
+                                    const VkDecoderContext& context) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        auto* imageInfo = android::base::find(mImageInfo, pCopyBufferToImageInfo->dstImage);
+        if (!imageInfo) return;
+        auto* bufferInfo = android::base::find(mBufferInfo, pCopyBufferToImageInfo->srcBuffer);
+        if (!bufferInfo) {
+            return;
+        }
+        VkDevice device = bufferInfo->device;
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) {
+            return;
+        }
+        if (!deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
+            vk->vkCmdCopyBufferToImage2(commandBuffer, pCopyBufferToImageInfo);
+            return;
+        }
+        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) {
+            return;
+        }
+        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
+
+        for (uint32_t r = 0; r < pCopyBufferToImageInfo->regionCount; r++) {
+            VkCopyBufferToImageInfo2 inf;
+            uint32_t mipLevel = pCopyBufferToImageInfo->pRegions[r].imageSubresource.mipLevel;
+            inf.dstImage = cmpInfo.compressedMipmap(mipLevel);
+            VkBufferImageCopy2 region = cmpInfo.getBufferImageCopy(pCopyBufferToImageInfo->pRegions[r]);
+            inf.regionCount = 1;
+            inf.pRegions = &region;
+
+            vk->vkCmdCopyBufferToImage2(commandBuffer, &inf);
+        }
+
+        if (cmpInfo.canDecompressOnCpu()) {
+            // Get a pointer to the compressed image memory
+            const MemoryInfo* memoryInfo = android::base::find(mMemoryInfo, bufferInfo->memory);
+            if (!memoryInfo) {
+                WARN("ASTC CPU decompression: couldn't find mapped memory info");
+                return;
+            }
+            if (!memoryInfo->ptr) {
+                WARN("ASTC CPU decompression: VkBuffer memory isn't host-visible");
+                return;
+            }
+            uint8_t* astcData = (uint8_t*)(memoryInfo->ptr) + bufferInfo->memoryOffset;
+
+            cmpInfo.decompressOnCpu(commandBuffer, astcData, bufferInfo->size, pCopyBufferToImageInfo, context);
+        }
+    }
+
+    void on_vkCmdCopyBufferToImage2KHR(android::base::BumpPool* pool,
+                                    VkCommandBuffer boxed_commandBuffer,
+                                    const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo,
+                                    const VkDecoderContext& context) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        auto* imageInfo = android::base::find(mImageInfo, pCopyBufferToImageInfo->dstImage);
+        if (!imageInfo) return;
+        auto* bufferInfo = android::base::find(mBufferInfo, pCopyBufferToImageInfo->srcBuffer);
+        if (!bufferInfo) {
+            return;
+        }
+        VkDevice device = bufferInfo->device;
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) {
+            return;
+        }
+        if (!deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
+            vk->vkCmdCopyBufferToImage2KHR(commandBuffer, pCopyBufferToImageInfo);
+            return;
+        }
+        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) {
+            return;
+        }
+        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
+
+        for (uint32_t r = 0; r < pCopyBufferToImageInfo->regionCount; r++) {
+            VkCopyBufferToImageInfo2KHR inf;
+            uint32_t mipLevel = pCopyBufferToImageInfo->pRegions[r].imageSubresource.mipLevel;
+            inf.dstImage = cmpInfo.compressedMipmap(mipLevel);
+            VkBufferImageCopy2KHR region = cmpInfo.getBufferImageCopy(pCopyBufferToImageInfo->pRegions[r]);
+            inf.regionCount = 1;
+            inf.pRegions = &region;
+
+            vk->vkCmdCopyBufferToImage2KHR(commandBuffer, &inf);
+        }
+
+        if (cmpInfo.canDecompressOnCpu()) {
+            // Get a pointer to the compressed image memory
+            const MemoryInfo* memoryInfo = android::base::find(mMemoryInfo, bufferInfo->memory);
+            if (!memoryInfo) {
+                WARN("ASTC CPU decompression: couldn't find mapped memory info");
+                return;
+            }
+            if (!memoryInfo->ptr) {
+                WARN("ASTC CPU decompression: VkBuffer memory isn't host-visible");
+                return;
+            }
+            uint8_t* astcData = (uint8_t*)(memoryInfo->ptr) + bufferInfo->memoryOffset;
+
+            cmpInfo.decompressOnCpu(commandBuffer, astcData, bufferInfo->size, pCopyBufferToImageInfo, context);
         }
     }
 
@@ -6910,6 +7170,44 @@ void VkDecoderGlobalState::on_vkCmdCopyImageToBuffer(android::base::BumpPool* po
                                                      const VkBufferImageCopy* pRegions) {
     mImpl->on_vkCmdCopyImageToBuffer(pool, commandBuffer, srcImage, srcImageLayout, dstBuffer,
                                      regionCount, pRegions);
+}
+
+void VkDecoderGlobalState::on_vkCmdCopyBufferToImage2(android::base::BumpPool* pool,
+                                VkCommandBuffer commandBuffer,
+                                const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
+                                const VkDecoderContext& context) {
+    mImpl->on_vkCmdCopyBufferToImage2(pool, commandBuffer, pCopyBufferToImageInfo, context);
+}
+
+void VkDecoderGlobalState::on_vkCmdCopyImage2(android::base::BumpPool* pool,
+    VkCommandBuffer commandBuffer,
+    const VkCopyImageInfo2* pCopyImageInfo) {
+    mImpl->on_vkCmdCopyImage2(pool, commandBuffer, pCopyImageInfo);
+}
+
+void VkDecoderGlobalState::on_vkCmdCopyImageToBuffer2(android::base::BumpPool* pool,
+                                VkCommandBuffer commandBuffer,
+                                const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
+    mImpl->on_vkCmdCopyImageToBuffer2(pool, commandBuffer, pCopyImageToBufferInfo);
+}
+
+void VkDecoderGlobalState::on_vkCmdCopyBufferToImage2KHR(android::base::BumpPool* pool,
+                                VkCommandBuffer commandBuffer,
+                                const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo,
+                                const VkDecoderContext& context) {
+    mImpl->on_vkCmdCopyBufferToImage2KHR(pool, commandBuffer, pCopyBufferToImageInfo, context);
+}
+
+void VkDecoderGlobalState::on_vkCmdCopyImage2KHR(android::base::BumpPool* pool,
+    VkCommandBuffer commandBuffer,
+    const VkCopyImageInfo2KHR* pCopyImageInfo) {
+    mImpl->on_vkCmdCopyImage2KHR(pool, commandBuffer, pCopyImageInfo);
+}
+
+void VkDecoderGlobalState::on_vkCmdCopyImageToBuffer2KHR(android::base::BumpPool* pool,
+                                VkCommandBuffer commandBuffer,
+                                const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo) {
+    mImpl->on_vkCmdCopyImageToBuffer2KHR(pool, commandBuffer, pCopyImageToBufferInfo);
 }
 
 void VkDecoderGlobalState::on_vkGetImageMemoryRequirements(
