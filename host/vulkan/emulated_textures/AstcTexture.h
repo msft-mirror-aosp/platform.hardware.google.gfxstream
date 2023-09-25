@@ -41,8 +41,19 @@ class AstcTexture {
                                    VkImageLayout dstImageLayout, uint32_t regionCount,
                                    const VkBufferImageCopy* pRegions,
                                    const VkDecoderContext& context);
+    void on_vkCmdCopyBufferToImage2(VkCommandBuffer commandBuffer, uint8_t* srcAstcData,
+                                   size_t astcDataSize, const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
+                                   const VkDecoderContext& context);
 
    private:
+
+    template<typename T>
+    void on_vkCmdCopyBufferToImageImpl(VkCommandBuffer commandBuffer, uint8_t* srcAstcData,
+                                   size_t astcDataSize, VkImage dstImage,
+                                   VkImageLayout dstImageLayout, uint32_t regionCount,
+                                   const T* pRegions,
+                                   const VkDecoderContext& context);
+
     uint8_t* createVkBufferAndMapMemory(size_t bufferSize);
     void destroyVkBuffer();
 
