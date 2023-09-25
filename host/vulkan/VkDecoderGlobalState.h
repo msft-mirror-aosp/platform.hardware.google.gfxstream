@@ -319,6 +319,30 @@ class VkDecoderGlobalState {
                                    VkBuffer dstBuffer, uint32_t regionCount,
                                    const VkBufferImageCopy* pRegions);
 
+    void on_vkCmdCopyBufferToImage2(android::base::BumpPool* pool,
+                                    VkCommandBuffer commandBuffer,
+                                    const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
+                                    const VkDecoderContext& context);
+
+    void on_vkCmdCopyImage2(android::base::BumpPool* pool,
+                           VkCommandBuffer commandBuffer,
+                           const VkCopyImageInfo2* pCopyImageInfo);
+    void on_vkCmdCopyImageToBuffer2(android::base::BumpPool* pool,
+                                   VkCommandBuffer commandBuffer,
+                                   const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo);
+
+    void on_vkCmdCopyBufferToImage2KHR(android::base::BumpPool* pool,
+                                    VkCommandBuffer commandBuffer,
+                                    const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo,
+                                    const VkDecoderContext& context);
+
+    void on_vkCmdCopyImage2KHR(android::base::BumpPool* pool,
+                           VkCommandBuffer commandBuffer,
+                           const VkCopyImageInfo2KHR* pCopyImageInfo);
+    void on_vkCmdCopyImageToBuffer2KHR(android::base::BumpPool* pool,
+                                   VkCommandBuffer commandBuffer,
+                                   const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo);
+
     void on_vkGetImageMemoryRequirements(android::base::BumpPool* pool, VkDevice device,
                                          VkImage image, VkMemoryRequirements* pMemoryRequirements);
 

@@ -645,6 +645,9 @@ custom_decodes = {
     "vkCmdCopyBufferToImage" : emit_global_state_wrapped_decoding_with_context,
     "vkCmdCopyImage" : emit_global_state_wrapped_decoding,
     "vkCmdCopyImageToBuffer" : emit_global_state_wrapped_decoding,
+    "vkCmdCopyBufferToImage2" : emit_global_state_wrapped_decoding_with_context,
+    "vkCmdCopyImage2" : emit_global_state_wrapped_decoding,
+    "vkCmdCopyImageToBuffer2" : emit_global_state_wrapped_decoding,
     "vkGetImageMemoryRequirements" : emit_global_state_wrapped_decoding,
     "vkGetImageMemoryRequirements2" : emit_global_state_wrapped_decoding,
     "vkGetImageMemoryRequirements2KHR" : emit_global_state_wrapped_decoding,
@@ -763,6 +766,11 @@ custom_decodes = {
     # VK_KHR_sampler_ycbcr_conversion
     "vkCreateSamplerYcbcrConversionKHR": emit_global_state_wrapped_decoding,
     "vkDestroySamplerYcbcrConversionKHR": emit_global_state_wrapped_decoding,
+
+    #VK_KHR_copy_commands2
+    "vkCmdCopyBufferToImage2KHR" : emit_global_state_wrapped_decoding_with_context,
+    "vkCmdCopyImage2KHR" : emit_global_state_wrapped_decoding,
+    "vkCmdCopyImageToBuffer2KHR" : emit_global_state_wrapped_decoding,
 }
 
 class VulkanDecoder(VulkanWrapperGenerator):
