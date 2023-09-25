@@ -157,13 +157,14 @@ void AstcTexture::destroyVkBuffer() {
     }
 }
 
-void AstcTexture::on_vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, uint8_t* srcAstcData,
+template<typename T>
+void AstcTexture::on_vkCmdCopyBufferToImageImpl(VkCommandBuffer commandBuffer, uint8_t* srcAstcData,
                                             size_t astcDataSize, VkImage dstImage,
                                             VkImageLayout dstImageLayout, uint32_t regionCount,
-                                            const VkBufferImageCopy* pRegions,
+                                            const T* pRegions,
                                             const VkDecoderContext& context) {
     auto watchdog =
-        WATCHDOG_BUILDER(context.healthMonitor, "AstcTexture::on_vkCmdCopyBufferToImage").build();
+        WATCHDOG_BUILDER(context.healthMonitor, "AstcTexture::on_vkCmdCopyBufferToImageImpl").build();
     auto start_time = std::chrono::steady_clock::now();
     mSuccess = false;
     size_t decompSize = 0;  // How many bytes we need to hold the decompressed data
@@ -180,7 +181,17 @@ void AstcTexture::on_vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, uint8
 
     // Make a copy of the regions and update the buffer offset of each to reflect the
     // correct location of the decompressed data
-    std::vector<VkBufferImageCopy> decompRegions(pRegions, pRegions + regionCount);
+    std::vector<VkBufferImageCopy> decompRegions(regionCount);
+    for (size_t i = 0; i < regionCount; ++i) {
+        decompRegions[i] = VkBufferImageCopy {
+            pRegions[i].bufferOffset,
+            pRegions[i].bufferRowLength,
+            pRegions[i].bufferImageHeight,
+            pRegions[i].imageSubresource,
+            pRegions[i].imageOffset,
+            pRegions[i].imageExtent
+        };
+    }
     for (auto& decompRegion : decompRegions) {
         const uint32_t mipLevel = decompRegion.imageSubresource.mipLevel;
         const uint32_t width = mipmapSize(mImgSize.width, mipLevel);
@@ -253,6 +264,27 @@ void AstcTexture::on_vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, uint8
              total_pixels / 1'000'000.0, total_time / 1000.0,
              (float)total_pixels / total_time / 1000.0, bytes_used / 1000000.0);
     }
+}
+
+void AstcTexture::on_vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, uint8_t* srcAstcData,
+                                size_t astcDataSize, VkImage dstImage,
+                                VkImageLayout dstImageLayout, uint32_t regionCount,
+                                const VkBufferImageCopy* pRegions,
+                                const VkDecoderContext& context) {
+    on_vkCmdCopyBufferToImageImpl(commandBuffer, srcAstcData, astcDataSize, dstImage, dstImageLayout, regionCount, pRegions, context);
+}
+
+void AstcTexture::on_vkCmdCopyBufferToImage2(VkCommandBuffer commandBuffer, uint8_t* srcAstcData,
+                                size_t astcDataSize, const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
+                                const VkDecoderContext& context) {
+    on_vkCmdCopyBufferToImageImpl(commandBuffer,
+                                  srcAstcData,
+                                  astcDataSize,
+                                  pCopyBufferToImageInfo->dstImage,
+                                  pCopyBufferToImageInfo->dstImageLayout,
+                                  pCopyBufferToImageInfo->regionCount,
+                                  pCopyBufferToImageInfo->pRegions,
+                                  context);
 }
 
 }  // namespace vk

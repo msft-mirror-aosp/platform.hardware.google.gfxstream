@@ -12001,15 +12001,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkCmdCopyImage2 decode");
                 VkCommandBuffer commandBuffer;
                 const VkCopyImageInfo2* pCopyImageInfo;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
-                auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pCopyImageInfo, sizeof(const VkCopyImageInfo2));
                 reservedunmarshal_VkCopyImageInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                    (VkCopyImageInfo2*)(pCopyImageInfo),
@@ -12021,7 +12018,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     fprintf(stderr, "stream %p: call vkCmdCopyImage2 0x%llx 0x%llx \n", ioStream,
                             (unsigned long long)commandBuffer, (unsigned long long)pCopyImageInfo);
                 }
-                vk->vkCmdCopyImage2(unboxed_commandBuffer, pCopyImageInfo);
+                m_state->on_vkCmdCopyImage2(&m_pool, commandBuffer, pCopyImageInfo);
                 vkStream->unsetHandleMapping();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
                                          (uintptr_t)snapshotTraceBegin);
@@ -12040,15 +12037,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkCmdCopyBufferToImage2 decode");
                 VkCommandBuffer commandBuffer;
                 const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
-                auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pCopyBufferToImageInfo,
                                     sizeof(const VkCopyBufferToImageInfo2));
                 reservedunmarshal_VkCopyBufferToImageInfo2(
@@ -12063,7 +12057,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             ioStream, (unsigned long long)commandBuffer,
                             (unsigned long long)pCopyBufferToImageInfo);
                 }
-                vk->vkCmdCopyBufferToImage2(unboxed_commandBuffer, pCopyBufferToImageInfo);
+                m_state->on_vkCmdCopyBufferToImage2(&m_pool, commandBuffer, pCopyBufferToImageInfo,
+                                                    context);
                 vkStream->unsetHandleMapping();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
                                          (uintptr_t)snapshotTraceBegin);
@@ -12083,15 +12078,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkCmdCopyImageToBuffer2 decode");
                 VkCommandBuffer commandBuffer;
                 const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
-                auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pCopyImageToBufferInfo,
                                     sizeof(const VkCopyImageToBufferInfo2));
                 reservedunmarshal_VkCopyImageToBufferInfo2(
@@ -12106,7 +12098,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             ioStream, (unsigned long long)commandBuffer,
                             (unsigned long long)pCopyImageToBufferInfo);
                 }
-                vk->vkCmdCopyImageToBuffer2(unboxed_commandBuffer, pCopyImageToBufferInfo);
+                m_state->on_vkCmdCopyImageToBuffer2(&m_pool, commandBuffer, pCopyImageToBufferInfo);
                 vkStream->unsetHandleMapping();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
                                          (uintptr_t)snapshotTraceBegin);
@@ -22311,15 +22303,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkCmdCopyImage2KHR decode");
                 VkCommandBuffer commandBuffer;
                 const VkCopyImageInfo2* pCopyImageInfo;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
-                auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pCopyImageInfo, sizeof(const VkCopyImageInfo2));
                 reservedunmarshal_VkCopyImageInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                    (VkCopyImageInfo2*)(pCopyImageInfo),
@@ -22331,7 +22320,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     fprintf(stderr, "stream %p: call vkCmdCopyImage2KHR 0x%llx 0x%llx \n", ioStream,
                             (unsigned long long)commandBuffer, (unsigned long long)pCopyImageInfo);
                 }
-                vk->vkCmdCopyImage2KHR(unboxed_commandBuffer, pCopyImageInfo);
+                m_state->on_vkCmdCopyImage2KHR(&m_pool, commandBuffer, pCopyImageInfo);
                 vkStream->unsetHandleMapping();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
                                          (uintptr_t)snapshotTraceBegin);
@@ -22350,15 +22339,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkCmdCopyBufferToImage2KHR decode");
                 VkCommandBuffer commandBuffer;
                 const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
-                auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pCopyBufferToImageInfo,
                                     sizeof(const VkCopyBufferToImageInfo2));
                 reservedunmarshal_VkCopyBufferToImageInfo2(
@@ -22373,7 +22359,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             ioStream, (unsigned long long)commandBuffer,
                             (unsigned long long)pCopyBufferToImageInfo);
                 }
-                vk->vkCmdCopyBufferToImage2KHR(unboxed_commandBuffer, pCopyBufferToImageInfo);
+                m_state->on_vkCmdCopyBufferToImage2KHR(&m_pool, commandBuffer,
+                                                       pCopyBufferToImageInfo, context);
                 vkStream->unsetHandleMapping();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
                                          (uintptr_t)snapshotTraceBegin);
@@ -22393,15 +22380,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkCmdCopyImageToBuffer2KHR decode");
                 VkCommandBuffer commandBuffer;
                 const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
-                auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pCopyImageToBufferInfo,
                                     sizeof(const VkCopyImageToBufferInfo2));
                 reservedunmarshal_VkCopyImageToBufferInfo2(
@@ -22416,7 +22400,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             ioStream, (unsigned long long)commandBuffer,
                             (unsigned long long)pCopyImageToBufferInfo);
                 }
-                vk->vkCmdCopyImageToBuffer2KHR(unboxed_commandBuffer, pCopyImageToBufferInfo);
+                m_state->on_vkCmdCopyImageToBuffer2KHR(&m_pool, commandBuffer,
+                                                       pCopyImageToBufferInfo);
                 vkStream->unsetHandleMapping();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
                                          (uintptr_t)snapshotTraceBegin);
