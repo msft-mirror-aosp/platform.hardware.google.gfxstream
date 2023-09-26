@@ -6,6 +6,7 @@ files_lib_platform = files(
   'StubVirtGpuDevice.cpp',
   'StubVirtGpuBlobMapping.cpp',
   'StubVirtGpuBlob.cpp',
+  'StubSync.cpp',
 )
 
 lib_platform_stub = static_library(
