@@ -192,7 +192,6 @@ public: \
         (void)handles[i]; delete_goldfish_##type_name((type_name)handle_u64s[i]))
 
 DEFINE_RESOURCE_TRACKING_CLASS(CreateMapping, CREATE_MAPPING_IMPL_FOR_TYPE)
-DEFINE_RESOURCE_TRACKING_CLASS(UnwrapMapping, UNWRAP_MAPPING_IMPL_FOR_TYPE)
 DEFINE_RESOURCE_TRACKING_CLASS(DestroyMapping, DESTROY_MAPPING_IMPL_FOR_TYPE)
 
 static uint32_t* sSeqnoPtr = nullptr;
@@ -264,9 +263,7 @@ class ResourceTracker::Impl {
 public:
     Impl() = default;
     CreateMapping createMapping;
-    UnwrapMapping unwrapMapping;
     DestroyMapping destroyMapping;
-    DefaultHandleMapping defaultMapping;
 
 #define HANDLE_DEFINE_TRIVIAL_INFO_STRUCT(type) \
     struct type##_Info { \
@@ -919,14 +916,41 @@ public:
         return offset + size <= info.allocationSize;
     }
 
-    void setupCaps(void) {
-        VirtGpuDevice* instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
+    void setupCaps(uint32_t& noRenderControlEnc) {
+        VirtGpuDevice* instance = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
         mCaps = instance->getCaps();
 
         // Delete once goldfish Linux drivers are gone
-        if (mCaps.gfxstreamCapset.protocolVersion == 0) {
-            mCaps.gfxstreamCapset.colorBufferMemoryIndex = 0xFFFFFFFF;
+        if (mCaps.vulkanCapset.protocolVersion == 0) {
+            mCaps.vulkanCapset.colorBufferMemoryIndex = 0xFFFFFFFF;
+        } else {
+            // Don't query the render control encoder for features, since for virtio-gpu the
+            // capabilities provide versioning. Set features to be unconditionally true, since
+            // using virtio-gpu encompasses all prior goldfish features.  mFeatureInfo should be
+            // deprecated in favor of caps.
+
+            mFeatureInfo.reset(new EmulatorFeatureInfo);
+
+            mFeatureInfo->hasVulkanNullOptionalStrings = true;
+            mFeatureInfo->hasVulkanIgnoredHandles = true;
+            mFeatureInfo->hasVulkanShaderFloat16Int8 = true;
+            mFeatureInfo->hasVulkanQueueSubmitWithCommands = true;
+            mFeatureInfo->hasDeferredVulkanCommands = true;
+            mFeatureInfo->hasVulkanAsyncQueueSubmit = true;
+            mFeatureInfo->hasVulkanCreateResourcesWithRequirements = true;
+            mFeatureInfo->hasVirtioGpuNext = true;
+            mFeatureInfo->hasVirtioGpuNativeSync = true;
+            mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate = true;
+            mFeatureInfo->hasVulkanAsyncQsri = true;
+
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT;
+            ResourceTracker::streamFeatureBits |=
+                VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
         }
+
+        noRenderControlEnc = mCaps.vulkanCapset.noRenderControlEnc;
     }
 
     void setupFeatures(const EmulatorFeatureInfo* features) {
@@ -1668,6 +1692,51 @@ public:
     }
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
+    uint32_t getColorBufferMemoryIndex(void* context, VkDevice device) {
+        // Create test image to get the memory requirements
+        VkEncoder* enc = (VkEncoder*)context;
+        VkImageCreateInfo createInfo = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .imageType = VK_IMAGE_TYPE_2D,
+            .format = VK_FORMAT_R8G8B8A8_UNORM,
+            .extent = {64, 64, 1},
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT |  VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                        VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+            .initialLayout = VK_IMAGE_LAYOUT_MAX_ENUM,
+        };
+        VkImage image = VK_NULL_HANDLE;
+        VkResult res = enc->vkCreateImage(device, &createInfo, nullptr, &image, true /* do lock */);
+
+        if (res != VK_SUCCESS) {
+            return 0;
+        }
+
+        VkMemoryRequirements memReqs;
+        enc->vkGetImageMemoryRequirements(
+            device, image, &memReqs, true /* do lock */);
+        enc->vkDestroyImage(device, image, nullptr, true /* do lock */);
+
+        const VkPhysicalDeviceMemoryProperties& memProps =
+                getPhysicalDeviceMemoryProperties(context, device, VK_NULL_HANDLE);
+
+        // Currently, host looks for the last index that has with memory
+        // property type VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        for (int i = VK_MAX_MEMORY_TYPES - 1; i >= 0; --i) {
+            if ((memReqs.memoryTypeBits & (1u << i)) &&
+                (memProps.memoryTypes[i].propertyFlags & memoryProperty)) {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
             void* context, VkResult,
             VkDevice device,
@@ -1677,16 +1746,12 @@ public:
             ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
 
         // Delete once goldfish Linux drivers are gone
-	if (mCaps.gfxstreamCapset.colorBufferMemoryIndex == 0xFFFFFFFF) {
-            const VkPhysicalDeviceMemoryProperties& memProps =
-                getPhysicalDeviceMemoryProperties(context, device, VK_NULL_HANDLE);
-
-            mCaps.gfxstreamCapset.colorBufferMemoryIndex =
-                (1u << memProps.memoryTypeCount) - 1;
+        if (mCaps.vulkanCapset.colorBufferMemoryIndex == 0xFFFFFFFF) {
+            mCaps.vulkanCapset.colorBufferMemoryIndex = getColorBufferMemoryIndex(context, device);
         }
 
         updateMemoryTypeBits(&pProperties->memoryTypeBits,
-                             mCaps.gfxstreamCapset.colorBufferMemoryIndex);
+                             mCaps.vulkanCapset.colorBufferMemoryIndex);
 
         return getAndroidHardwareBufferPropertiesANDROID(
             grallocHelper, buffer, pProperties);
@@ -3015,15 +3080,15 @@ public:
 
         bool dedicated = deviceAddressMemoryAllocation;
 
-        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle])
+        if (mCaps.vulkanCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle])
             dedicated = true;
 
         VkMemoryAllocateInfo hostAllocationInfo = vk_make_orphan_copy(*pAllocateInfo);
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&hostAllocationInfo);
 
-        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
+        if (mCaps.vulkanCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
             hostAllocationInfo.allocationSize =
-                ALIGN(pAllocateInfo->allocationSize, mCaps.gfxstreamCapset.blobAlignment);
+                ALIGN(pAllocateInfo->allocationSize, mCaps.vulkanCapset.blobAlignment);
         } else if (dedicated) {
             // Over-aligning to kLargestSize to some Windows drivers (b:152769369).  Can likely
             // have host report the desired alignment.
@@ -3083,7 +3148,7 @@ public:
             }
 
             guestBlob->wait();
-        } else if (mCaps.gfxstreamCapset.deferredMapping) {
+        } else if (mCaps.vulkanCapset.deferredMapping) {
             createBlobInfo.blobId = ++mBlobId;
             createBlobInfo.blobMem = kBlobMemHost3d;
             vk_append_struct(&structChainIter, &createBlobInfo);
@@ -3099,7 +3164,7 @@ public:
         }
 
         struct VkDeviceMemory_Info info;
-        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
+        if (mCaps.vulkanCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
             info.allocationSize = pAllocateInfo->allocationSize;
             info.blobId = createBlobInfo.blobId;
         }
@@ -3131,7 +3196,7 @@ public:
             info_VkDeviceMemory[mem] = info;
         }
 
-        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
+        if (mCaps.vulkanCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle]) {
             *pMemory = mem;
             return host_res;
         }
@@ -3168,7 +3233,7 @@ public:
                          ((allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT) ||
                           (allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT));
 
-        if (mCaps.gfxstreamCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle])
+        if (mCaps.vulkanCapset.deferredMapping || mCaps.params[kParamCreateGuestHandle])
             dedicated = true;
 
         CoherentMemoryPtr coherentMemory = nullptr;
@@ -4281,12 +4346,14 @@ public:
 
 // Delete `protocolVersion` check goldfish drivers are gone.
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
+        if (mCaps.vulkanCapset.colorBufferMemoryIndex == 0xFFFFFFFF) {
+            mCaps.vulkanCapset.colorBufferMemoryIndex = getColorBufferMemoryIndex(context, device);
+        }
         if (extImgCiPtr &&
-            mCaps.gfxstreamCapset.protocolVersion &&
             (extImgCiPtr->handleTypes &
              VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
             updateMemoryTypeBits(&memReqs.memoryTypeBits,
-                                 mCaps.gfxstreamCapset.colorBufferMemoryIndex);
+                                 mCaps.vulkanCapset.colorBufferMemoryIndex);
         }
 #endif
 
@@ -5335,14 +5402,15 @@ public:
 
         if (res != VK_SUCCESS) return res;
 
-// Delete `protocolVersion` check goldfish drivers are gone.
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
+        if (mCaps.vulkanCapset.colorBufferMemoryIndex == 0xFFFFFFFF) {
+            mCaps.vulkanCapset.colorBufferMemoryIndex = getColorBufferMemoryIndex(context, device);
+        }
         if (extBufCiPtr &&
-            mCaps.gfxstreamCapset.protocolVersion &&
             (extBufCiPtr->handleTypes &
              VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
             updateMemoryTypeBits(&memReqs.memoryTypeBits,
-                                 mCaps.gfxstreamCapset.colorBufferMemoryIndex);
+                                 mCaps.vulkanCapset.colorBufferMemoryIndex);
         }
 #endif
 
@@ -7597,18 +7665,8 @@ private:
 
 ResourceTracker::ResourceTracker() : mImpl(new ResourceTracker::Impl()) { }
 ResourceTracker::~ResourceTracker() { }
-VulkanHandleMapping* ResourceTracker::createMapping() {
-    return &mImpl->createMapping;
-}
-VulkanHandleMapping* ResourceTracker::unwrapMapping() {
-    return &mImpl->unwrapMapping;
-}
-VulkanHandleMapping* ResourceTracker::destroyMapping() {
-    return &mImpl->destroyMapping;
-}
-VulkanHandleMapping* ResourceTracker::defaultMapping() {
-    return &mImpl->defaultMapping;
-}
+VulkanHandleMapping* ResourceTracker::createMapping() { return &mImpl->createMapping; }
+VulkanHandleMapping* ResourceTracker::destroyMapping() { return &mImpl->destroyMapping; }
 static ResourceTracker* sTracker = nullptr;
 // static
 ResourceTracker* ResourceTracker::get() {
@@ -7645,7 +7703,9 @@ void ResourceTracker::setupFeatures(const EmulatorFeatureInfo* features) {
     mImpl->setupFeatures(features);
 }
 
-void ResourceTracker::setupCaps(void) { mImpl->setupCaps(); }
+void ResourceTracker::setupCaps(uint32_t& noRenderControlEnc) {
+    mImpl->setupCaps(noRenderControlEnc);
+}
 
 void ResourceTracker::setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {
     mImpl->setThreadingCallbacks(callbacks);

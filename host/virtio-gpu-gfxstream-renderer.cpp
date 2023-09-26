@@ -659,6 +659,7 @@ class PipeVirglRenderer {
 
         stream_renderer_info("initial host pipe for ctxid %u: %p", ctx_id, hostPipe);
         mContexts[ctx_id] = res;
+        android_onGuestGraphicsProcessCreate(ctx_id);
         return 0;
     }
 
@@ -686,7 +687,7 @@ class PipeVirglRenderer {
         }
 
         ops->guest_close(hostPipe, GOLDFISH_PIPE_CLOSE_GRACEFUL);
-
+        android_cleanupProcGLObjects(handle);
         mContexts.erase(it);
         return 0;
     }
@@ -1351,30 +1352,81 @@ class PipeVirglRenderer {
     }
 
     void getCapset(uint32_t set, uint32_t* max_size) {
-        // Only one capset right not
-        *max_size = sizeof(struct gfxstream::gfxstreamCapset);
+        switch (set) {
+            case VIRTGPU_CAPSET_GFXSTREAM_VULKAN:
+                *max_size = sizeof(struct gfxstream::vulkanCapset);
+                break;
+            case VIRTGPU_CAPSET_GFXSTREAM_MAGMA:
+                *max_size = sizeof(struct gfxstream::magmaCapset);
+                break;
+            case VIRTGPU_CAPSET_GFXSTREAM_GLES:
+                *max_size = sizeof(struct gfxstream::glesCapset);
+                break;
+            case VIRTGPU_CAPSET_GFXSTREAM_COMPOSER:
+                *max_size = sizeof(struct gfxstream::composerCapset);
+                break;
+            default:
+                stream_renderer_error("Incorrect capability set specified");
+        }
     }
 
     void fillCaps(uint32_t set, void* caps) {
-        struct gfxstream::gfxstreamCapset* capset =
-            reinterpret_cast<struct gfxstream::gfxstreamCapset*>(caps);
-        if (capset) {
-            memset(capset, 0, sizeof(*capset));
+        switch (set) {
+            case VIRTGPU_CAPSET_GFXSTREAM_VULKAN: {
+                struct gfxstream::vulkanCapset* capset =
+                    reinterpret_cast<struct gfxstream::vulkanCapset*>(caps);
 
-            capset->protocolVersion = 1;
-            capset->ringSize = 12288;
-            capset->bufferSize = 1048576;
+                memset(capset, 0, sizeof(*capset));
 
-            auto vk_emu = gfxstream::vk::getGlobalVkEmulation();
-            if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeIndex) {
-                capset->colorBufferMemoryIndex = *vk_emu->representativeColorBufferMemoryTypeIndex;
+                capset->protocolVersion = 1;
+                capset->ringSize = 12288;
+                capset->bufferSize = 1048576;
+
+                auto vk_emu = gfxstream::vk::getGlobalVkEmulation();
+                if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeIndex) {
+                    capset->colorBufferMemoryIndex =
+                        *vk_emu->representativeColorBufferMemoryTypeIndex;
+                }
+
+                capset->noRenderControlEnc = 1;
+                capset->blobAlignment = mPageSize;
+                if (vk_emu && vk_emu->live) {
+                    capset->deferredMapping = 1;
+                }
+                break;
             }
+            case VIRTGPU_CAPSET_GFXSTREAM_MAGMA: {
+                struct gfxstream::magmaCapset* capset =
+                    reinterpret_cast<struct gfxstream::magmaCapset*>(caps);
 
-            if (vk_emu && vk_emu->live) {
-                capset->deferredMapping = 1;
+                capset->protocolVersion = 1;
+                capset->ringSize = 12288;
+                capset->bufferSize = 1048576;
+                capset->blobAlignment = mPageSize;
+                break;
             }
+            case VIRTGPU_CAPSET_GFXSTREAM_GLES: {
+                struct gfxstream::glesCapset* capset =
+                    reinterpret_cast<struct gfxstream::glesCapset*>(caps);
 
-            capset->blobAlignment = mPageSize;
+                capset->protocolVersion = 1;
+                capset->ringSize = 12288;
+                capset->bufferSize = 1048576;
+                capset->blobAlignment = mPageSize;
+                break;
+            }
+            case VIRTGPU_CAPSET_GFXSTREAM_COMPOSER: {
+                struct gfxstream::composerCapset* capset =
+                    reinterpret_cast<struct gfxstream::composerCapset*>(caps);
+
+                capset->protocolVersion = 1;
+                capset->ringSize = 12288;
+                capset->bufferSize = 1048576;
+                capset->blobAlignment = mPageSize;
+                break;
+            }
+            default:
+                stream_renderer_error("Incorrect capability set specified");
         }
     }
 

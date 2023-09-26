@@ -75,6 +75,8 @@ elif host_machine.system() == 'windows'
   files_lib_gfxstream_backend += files('NativeSubWindow_win32.cpp')
 elif host_machine.system() == 'linux'
   files_lib_gfxstream_backend += files('NativeSubWindow_x11.cpp')
+elif host_machine.system() == 'qnx'
+  files_lib_gfxstream_backend += files('NativeSubWindow_qnx.cpp')
 endif
 
 gfxstream_backend_cpp_args = [
@@ -84,14 +86,26 @@ gfxstream_backend_cpp_args = [
   '-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT',
 ]
 
+deps_gfxstream_backend = [
+  aemu_common_dep,
+  aemu_base_dep,
+  aemu_logging_dep,
+  aemu_snapshot_dep,
+]
+
+if host_machine.system() == 'qnx'
+  deps_gfxstream_backend += qnx_screen_dep
+endif
+
 gfxstream_backend = library(
   'gfxstream_backend',
   files_lib_gfxstream_backend,
   cpp_args: default_cpp_args + gfxstream_backend_cpp_args,
   include_directories: [inc_gfxstream_backend, inc_glm],
   gnu_symbol_visibility: 'default',
-  dependencies: [aemu_common_dep, aemu_base_dep, logging_base_dep],
+  dependencies: deps_gfxstream_backend,
   link_with: link_gfxstream_backend,
+  version: '0.1.2',
   install: true,
 )
 

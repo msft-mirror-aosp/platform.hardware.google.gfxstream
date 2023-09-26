@@ -1,4 +1,4 @@
-// Copyright 2023 The Android Open Source Project
+// Copyright 2017 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "host-common/opengl/NativeGpuInfo.h"
 
-#include "AddressSpaceStream.h"
+void getGpuInfoListNative(GpuInfoList* gpulist) {
+    (void)gpulist;
+    // Adding noop instead of messing with the meson build.
+    // The cmake build did not require adding this file.
+}
 
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(
-    enum VirtGpuCapset capset, gfxstream::guest::HealthMonitor<>* healthMonitor);
+bool isVulkanSafeToUseNative() {
+    return true;
+}

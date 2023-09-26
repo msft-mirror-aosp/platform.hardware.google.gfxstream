@@ -16,6 +16,37 @@
 
 #include "util.h"
 
+static bool GetRingParamsFromCapset(enum VirtGpuCapset capset, const VirtGpuCaps& caps,
+                                    uint32_t& ringSize, uint32_t& bufferSize,
+                                    uint32_t& blobAlignment) {
+    switch (capset) {
+        case kCapsetGfxStreamVulkan:
+            ringSize = caps.vulkanCapset.ringSize;
+            bufferSize = caps.vulkanCapset.bufferSize;
+            blobAlignment = caps.vulkanCapset.blobAlignment;
+            break;
+        case kCapsetGfxStreamMagma:
+            ringSize = caps.magmaCapset.ringSize;
+            bufferSize = caps.magmaCapset.bufferSize;
+            blobAlignment = caps.magmaCapset.blobAlignment;
+            break;
+        case kCapsetGfxStreamGles:
+            ringSize = caps.glesCapset.ringSize;
+            bufferSize = caps.glesCapset.bufferSize;
+            blobAlignment = caps.glesCapset.blobAlignment;
+            break;
+        case kCapsetGfxStreamComposer:
+            ringSize = caps.composerCapset.ringSize;
+            bufferSize = caps.composerCapset.bufferSize;
+            blobAlignment = caps.composerCapset.blobAlignment;
+            break;
+        default:
+            return false;
+    }
+
+    return true;
+}
+
 address_space_handle_t virtgpu_address_space_open() {
     return (address_space_handle_t)(-EINVAL);
 }
@@ -43,24 +74,33 @@ bool virtgpu_address_space_ping(address_space_handle_t, struct address_space_pin
     return true;
 }
 
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMonitor) {
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(enum VirtGpuCapset capset,
+                                                      HealthMonitor<>* healthMonitor) {
     VirtGpuBlobPtr pipe, blob;
     VirtGpuBlobMappingPtr pipeMapping, blobMapping;
     struct VirtGpuExecBuffer exec = {};
     struct VirtGpuCreateBlob blobCreate = {};
     struct gfxstreamContextCreate contextCreate = {};
 
+    uint32_t ringSize = 0;
+    uint32_t bufferSize = 0;
+    uint32_t blobAlignment = 0;
+
     char* blobAddr, *bufferPtr;
     int ret;
 
     VirtGpuDevice* instance = VirtGpuDevice::getInstance();
-    VirtGpuCaps caps = instance->getCaps();
+    auto caps = instance->getCaps();
+
+    if (!GetRingParamsFromCapset(capset, caps, ringSize, bufferSize, blobAlignment)) {
+        ALOGE("Failed to get ring parameters");
+        return nullptr;
+    }
 
     blobCreate.blobId = 0;
     blobCreate.blobMem = kBlobMemHost3d;
     blobCreate.flags = kBlobFlagMappable;
-    blobCreate.size = ALIGN(caps.gfxstreamCapset.ringSize + caps.gfxstreamCapset.bufferSize,
-                            caps.gfxstreamCapset.blobAlignment);
+    blobCreate.size = ALIGN(ringSize + bufferSize, blobAlignment);
     blob = instance->createBlob(blobCreate);
     if (!blob)
         return nullptr;
@@ -88,8 +128,7 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMon
     blobAddr = reinterpret_cast<char*>(blobMapping->asRawPtr());
 
     bufferPtr = blobAddr + sizeof(struct asg_ring_storage);
-    struct asg_context context =
-        asg_context_create(blobAddr, bufferPtr, caps.gfxstreamCapset.bufferSize);
+    struct asg_context context = asg_context_create(blobAddr, bufferPtr, bufferSize);
 
     context.ring_config->transfer_mode = 1;
     context.ring_config->host_consumed_pos = 0;

@@ -46,6 +46,9 @@ if host_machine.system() == 'darwin'
   vulkan_server_cpp_args += '-DVK_USE_PLATFORM_METAL_EXT'
 elif host_machine.system() == 'windows'
   vulkan_server_cpp_args += '-DVK_USE_PLATFORM_WIN32_KHR'
+elif host_machine.system() == 'qnx'
+## TODO: jsimonot: resolve vk header issue
+#  vulkan_server_cpp_args += '-DVK_USE_PLATFORM_SCREEN_QNX'
 endif
 
 lib_vulkan_server = static_library(
@@ -57,5 +60,5 @@ lib_vulkan_server = static_library(
                         inc_vulkan_server, inc_renderdoc_external,
                         inc_gl_host_common, inc_vulkan_headers, inc_glm],
   link_with: [lib_vulkan_cereal, lib_emulated_textures],
-  dependencies: aemu_base_dep,
+  dependencies: [aemu_base_dep, aemu_common_dep, aemu_snapshot_dep]
 )

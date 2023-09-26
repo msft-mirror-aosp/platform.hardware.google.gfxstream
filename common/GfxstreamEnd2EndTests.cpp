@@ -265,21 +265,21 @@ TestingVirtGpuDevice::~TestingVirtGpuDevice() {
 int64_t TestingVirtGpuDevice::getDeviceHandle() { return -1; }
 
 VirtGpuCaps TestingVirtGpuDevice::getCaps() {
-        VirtGpuCaps caps = {
-        .params = {
-            [kParam3D] = 1,
-            [kParamCapsetFix] = 1,
-            [kParamResourceBlob] = 1,
-            [kParamHostVisible] = 1,
-            [kParamCrossDevice] = 0,
-            [kParamContextInit] = 1,
-            [kParamSupportedCapsetIds] = 0,
-            [kParamCreateGuestHandle] = 0,
-        },
+    VirtGpuCaps caps = {
+        .params =
+            {
+                [kParam3D] = 1,
+                [kParamCapsetFix] = 1,
+                [kParamResourceBlob] = 1,
+                [kParamHostVisible] = 1,
+                [kParamCrossDevice] = 0,
+                [kParamContextInit] = 1,
+                [kParamSupportedCapsetIds] = 0,
+                [kParamCreateGuestHandle] = 0,
+            },
     };
 
-    stream_renderer_fill_caps(0, 0, &caps.gfxstreamCapset);
-
+    stream_renderer_fill_caps(0, 0, &caps.vulkanCapset);
     return caps;
 }
 
