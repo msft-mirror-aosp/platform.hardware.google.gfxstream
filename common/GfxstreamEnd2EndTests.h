@@ -46,7 +46,7 @@
 #include "HostConnection.h"
 #include "VirtGpu.h"
 #include "drm_fourcc.h"
-#include "render-utils/virtio-gpu-gfxstream-renderer.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 namespace gfxstream {
 namespace tests {
@@ -498,8 +498,6 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     };
 
     std::unique_ptr<GuestGlDispatchTable> SetupGuestGl();
-
-    //std::unique_ptr<vkhpp::raii::Context> SetupGuestVk();
     std::unique_ptr<vkhpp::DynamicLoader> SetupGuestVk();
 
     void SetUp() override;
@@ -539,7 +537,7 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     std::shared_ptr<TestingVirtGpuDevice> mDevice;
     std::unique_ptr<TestingVirtGpuANativeWindowHelper> mAnwHelper;
     std::unique_ptr<TestingVirtGpuGralloc> mGralloc;
-    std::unique_ptr<TestingVirtGpuSyncHelper> mSync;
+    TestingVirtGpuSyncHelper* mSync;
     std::unique_ptr<GuestGlDispatchTable> mGl;
     std::unique_ptr<vkhpp::DynamicLoader> mVk;
 };

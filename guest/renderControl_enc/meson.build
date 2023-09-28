@@ -10,5 +10,5 @@ lib_render_control_enc = static_library(
    files_lib_render_control_enc,
    cpp_args: cpp_args,
    include_directories: [inc_guest_iostream, inc_opengl_codec, inc_android_emu,
-                         inc_android_compat],
+                         inc_android_compat, inc_system],
 )
