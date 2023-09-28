@@ -74,7 +74,7 @@ if host_machine.system() == 'qnx'
 else
   aemu_base_dep = dependency('aemu_base')
   aemu_common_dep = dependency('aemu_host_common')
-  aemu_logging_dep = dependency('logging_base')
+  aemu_logging_dep = dependency('aemu_logging')
   aemu_snapshot_dep = dependency('aemu_snapshot')
 endif
 
@@ -125,8 +125,8 @@ endif
 #===============#
 
 gfxstream_headers = files(
-  'include/render-utils/virtio-gpu-gfxstream-renderer.h',
-  'include/render-utils/virtio-gpu-gfxstream-renderer-unstable.h')
+  'host/include/gfxstream/virtio-gpu-gfxstream-renderer.h',
+  'host/include/gfxstream/virtio-gpu-gfxstream-renderer-unstable.h')
 
 inc_root = include_directories('.')
 inc_include = include_directories('include')
