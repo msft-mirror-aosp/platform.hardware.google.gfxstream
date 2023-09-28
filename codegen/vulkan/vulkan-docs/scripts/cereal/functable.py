@@ -73,6 +73,16 @@ RESOURCE_TRACKER_ENTRIES = [
     "vkQueueSignalReleaseImageANDROID",
     "vkCmdPipelineBarrier",
     "vkCreateGraphicsPipelines",
+    # Fuchsia
+    "vkGetMemoryZirconHandleFUCHSIA",
+    "vkGetMemoryZirconHandlePropertiesFUCHSIA",
+    "vkGetSemaphoreZirconHandleFUCHSIA",
+    "vkImportSemaphoreZirconHandleFUCHSIA",
+    "vkCreateBufferCollectionFUCHSIA",
+    "vkDestroyBufferCollectionFUCHSIA",
+    "vkSetBufferCollectionImageConstraintsFUCHSIA",
+    "vkSetBufferCollectionBufferConstraintsFUCHSIA",
+    "vkGetBufferCollectionPropertiesFUCHSIA",
 ]
 
 SUCCESS_VAL = {
