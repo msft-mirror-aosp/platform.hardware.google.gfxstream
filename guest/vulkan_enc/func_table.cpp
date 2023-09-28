@@ -8509,8 +8509,9 @@ static VkResult entry_vkGetMemoryZirconHandleFUCHSIA(
     AEMU_SCOPED_TRACE("vkGetMemoryZirconHandleFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkGetMemoryZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
-    vkGetMemoryZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetMemoryZirconHandleFUCHSIA(
-        device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    vkGetMemoryZirconHandleFUCHSIA_VkResult_return = resources->on_vkGetMemoryZirconHandleFUCHSIA(
+        vkEnc, VK_SUCCESS, device, pGetZirconHandleInfo, pZirconHandle);
     return vkGetMemoryZirconHandleFUCHSIA_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetMemoryZirconHandleFUCHSIA(
@@ -8524,8 +8525,8 @@ static VkResult dynCheck_entry_vkGetMemoryZirconHandleFUCHSIA(
     AEMU_SCOPED_TRACE("vkGetMemoryZirconHandleFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkGetMemoryZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
-    vkGetMemoryZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetMemoryZirconHandleFUCHSIA(
-        device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    vkGetMemoryZirconHandleFUCHSIA_VkResult_return = resources->on_vkGetMemoryZirconHandleFUCHSIA(
+        vkEnc, VK_SUCCESS, device, pGetZirconHandleInfo, pZirconHandle);
     return vkGetMemoryZirconHandleFUCHSIA_VkResult_return;
 }
 static VkResult entry_vkGetMemoryZirconHandlePropertiesFUCHSIA(
@@ -8534,9 +8535,10 @@ static VkResult entry_vkGetMemoryZirconHandlePropertiesFUCHSIA(
     AEMU_SCOPED_TRACE("vkGetMemoryZirconHandlePropertiesFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    auto resources = ResourceTracker::get();
     vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return =
-        vkEnc->vkGetMemoryZirconHandlePropertiesFUCHSIA(
-            device, handleType, zirconHandle, pMemoryZirconHandleProperties, true /* do lock */);
+        resources->on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
+            vkEnc, VK_SUCCESS, device, handleType, zirconHandle, pMemoryZirconHandleProperties);
     return vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetMemoryZirconHandlePropertiesFUCHSIA(
@@ -8551,8 +8553,8 @@ static VkResult dynCheck_entry_vkGetMemoryZirconHandlePropertiesFUCHSIA(
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return = (VkResult)0;
     vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return =
-        vkEnc->vkGetMemoryZirconHandlePropertiesFUCHSIA(
-            device, handleType, zirconHandle, pMemoryZirconHandleProperties, true /* do lock */);
+        resources->on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
+            vkEnc, VK_SUCCESS, device, handleType, zirconHandle, pMemoryZirconHandleProperties);
     return vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return;
 }
 #endif
@@ -8563,9 +8565,10 @@ static VkResult entry_vkImportSemaphoreZirconHandleFUCHSIA(
     AEMU_SCOPED_TRACE("vkImportSemaphoreZirconHandleFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    auto resources = ResourceTracker::get();
     vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return =
-        vkEnc->vkImportSemaphoreZirconHandleFUCHSIA(device, pImportSemaphoreZirconHandleInfo,
-                                                    true /* do lock */);
+        resources->on_vkImportSemaphoreZirconHandleFUCHSIA(vkEnc, VK_SUCCESS, device,
+                                                           pImportSemaphoreZirconHandleInfo);
     return vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return;
 }
 static VkResult dynCheck_entry_vkImportSemaphoreZirconHandleFUCHSIA(
@@ -8580,8 +8583,8 @@ static VkResult dynCheck_entry_vkImportSemaphoreZirconHandleFUCHSIA(
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
     vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return =
-        vkEnc->vkImportSemaphoreZirconHandleFUCHSIA(device, pImportSemaphoreZirconHandleInfo,
-                                                    true /* do lock */);
+        resources->on_vkImportSemaphoreZirconHandleFUCHSIA(vkEnc, VK_SUCCESS, device,
+                                                           pImportSemaphoreZirconHandleInfo);
     return vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return;
 }
 static VkResult entry_vkGetSemaphoreZirconHandleFUCHSIA(
@@ -8590,8 +8593,10 @@ static VkResult entry_vkGetSemaphoreZirconHandleFUCHSIA(
     AEMU_SCOPED_TRACE("vkGetSemaphoreZirconHandleFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
-    vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetSemaphoreZirconHandleFUCHSIA(
-        device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return =
+        resources->on_vkGetSemaphoreZirconHandleFUCHSIA(vkEnc, VK_SUCCESS, device,
+                                                        pGetZirconHandleInfo, pZirconHandle);
     return vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetSemaphoreZirconHandleFUCHSIA(
@@ -8605,8 +8610,9 @@ static VkResult dynCheck_entry_vkGetSemaphoreZirconHandleFUCHSIA(
     AEMU_SCOPED_TRACE("vkGetSemaphoreZirconHandleFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
-    vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetSemaphoreZirconHandleFUCHSIA(
-        device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return =
+        resources->on_vkGetSemaphoreZirconHandleFUCHSIA(vkEnc, VK_SUCCESS, device,
+                                                        pGetZirconHandleInfo, pZirconHandle);
     return vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return;
 }
 #endif
@@ -8617,8 +8623,9 @@ static VkResult entry_vkCreateBufferCollectionFUCHSIA(
     AEMU_SCOPED_TRACE("vkCreateBufferCollectionFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkCreateBufferCollectionFUCHSIA_VkResult_return = (VkResult)0;
-    vkCreateBufferCollectionFUCHSIA_VkResult_return = vkEnc->vkCreateBufferCollectionFUCHSIA(
-        device, pCreateInfo, pAllocator, pCollection, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    vkCreateBufferCollectionFUCHSIA_VkResult_return = resources->on_vkCreateBufferCollectionFUCHSIA(
+        vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pCollection);
     return vkCreateBufferCollectionFUCHSIA_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateBufferCollectionFUCHSIA(
@@ -8632,8 +8639,8 @@ static VkResult dynCheck_entry_vkCreateBufferCollectionFUCHSIA(
     AEMU_SCOPED_TRACE("vkCreateBufferCollectionFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkCreateBufferCollectionFUCHSIA_VkResult_return = (VkResult)0;
-    vkCreateBufferCollectionFUCHSIA_VkResult_return = vkEnc->vkCreateBufferCollectionFUCHSIA(
-        device, pCreateInfo, pAllocator, pCollection, true /* do lock */);
+    vkCreateBufferCollectionFUCHSIA_VkResult_return = resources->on_vkCreateBufferCollectionFUCHSIA(
+        vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pCollection);
     return vkCreateBufferCollectionFUCHSIA_VkResult_return;
 }
 static VkResult entry_vkSetBufferCollectionImageConstraintsFUCHSIA(
@@ -8642,9 +8649,10 @@ static VkResult entry_vkSetBufferCollectionImageConstraintsFUCHSIA(
     AEMU_SCOPED_TRACE("vkSetBufferCollectionImageConstraintsFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    auto resources = ResourceTracker::get();
     vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return =
-        vkEnc->vkSetBufferCollectionImageConstraintsFUCHSIA(
-            device, collection, pImageConstraintsInfo, true /* do lock */);
+        resources->on_vkSetBufferCollectionImageConstraintsFUCHSIA(
+            vkEnc, VK_SUCCESS, device, collection, pImageConstraintsInfo);
     return vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return;
 }
 static VkResult dynCheck_entry_vkSetBufferCollectionImageConstraintsFUCHSIA(
@@ -8659,8 +8667,8 @@ static VkResult dynCheck_entry_vkSetBufferCollectionImageConstraintsFUCHSIA(
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return = (VkResult)0;
     vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return =
-        vkEnc->vkSetBufferCollectionImageConstraintsFUCHSIA(
-            device, collection, pImageConstraintsInfo, true /* do lock */);
+        resources->on_vkSetBufferCollectionImageConstraintsFUCHSIA(
+            vkEnc, VK_SUCCESS, device, collection, pImageConstraintsInfo);
     return vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return;
 }
 static VkResult entry_vkSetBufferCollectionBufferConstraintsFUCHSIA(
@@ -8669,9 +8677,10 @@ static VkResult entry_vkSetBufferCollectionBufferConstraintsFUCHSIA(
     AEMU_SCOPED_TRACE("vkSetBufferCollectionBufferConstraintsFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    auto resources = ResourceTracker::get();
     vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return =
-        vkEnc->vkSetBufferCollectionBufferConstraintsFUCHSIA(
-            device, collection, pBufferConstraintsInfo, true /* do lock */);
+        resources->on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+            vkEnc, VK_SUCCESS, device, collection, pBufferConstraintsInfo);
     return vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return;
 }
 static VkResult dynCheck_entry_vkSetBufferCollectionBufferConstraintsFUCHSIA(
@@ -8686,8 +8695,8 @@ static VkResult dynCheck_entry_vkSetBufferCollectionBufferConstraintsFUCHSIA(
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return = (VkResult)0;
     vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return =
-        vkEnc->vkSetBufferCollectionBufferConstraintsFUCHSIA(
-            device, collection, pBufferConstraintsInfo, true /* do lock */);
+        resources->on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+            vkEnc, VK_SUCCESS, device, collection, pBufferConstraintsInfo);
     return vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return;
 }
 static void entry_vkDestroyBufferCollectionFUCHSIA(VkDevice device,
@@ -8695,7 +8704,8 @@ static void entry_vkDestroyBufferCollectionFUCHSIA(VkDevice device,
                                                    const VkAllocationCallbacks* pAllocator) {
     AEMU_SCOPED_TRACE("vkDestroyBufferCollectionFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    vkEnc->vkDestroyBufferCollectionFUCHSIA(device, collection, pAllocator, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    resources->on_vkDestroyBufferCollectionFUCHSIA(vkEnc, device, collection, pAllocator);
 }
 static void dynCheck_entry_vkDestroyBufferCollectionFUCHSIA(
     VkDevice device, VkBufferCollectionFUCHSIA collection,
@@ -8707,7 +8717,7 @@ static void dynCheck_entry_vkDestroyBufferCollectionFUCHSIA(
     }
     AEMU_SCOPED_TRACE("vkDestroyBufferCollectionFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    vkEnc->vkDestroyBufferCollectionFUCHSIA(device, collection, pAllocator, true /* do lock */);
+    resources->on_vkDestroyBufferCollectionFUCHSIA(vkEnc, device, collection, pAllocator);
 }
 static VkResult entry_vkGetBufferCollectionPropertiesFUCHSIA(
     VkDevice device, VkBufferCollectionFUCHSIA collection,
@@ -8715,9 +8725,10 @@ static VkResult entry_vkGetBufferCollectionPropertiesFUCHSIA(
     AEMU_SCOPED_TRACE("vkGetBufferCollectionPropertiesFUCHSIA");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    auto resources = ResourceTracker::get();
     vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return =
-        vkEnc->vkGetBufferCollectionPropertiesFUCHSIA(device, collection, pProperties,
-                                                      true /* do lock */);
+        resources->on_vkGetBufferCollectionPropertiesFUCHSIA(vkEnc, VK_SUCCESS, device, collection,
+                                                             pProperties);
     return vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetBufferCollectionPropertiesFUCHSIA(
@@ -8732,8 +8743,8 @@ static VkResult dynCheck_entry_vkGetBufferCollectionPropertiesFUCHSIA(
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return = (VkResult)0;
     vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return =
-        vkEnc->vkGetBufferCollectionPropertiesFUCHSIA(device, collection, pProperties,
-                                                      true /* do lock */);
+        resources->on_vkGetBufferCollectionPropertiesFUCHSIA(vkEnc, VK_SUCCESS, device, collection,
+                                                             pProperties);
     return vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return;
 }
 #endif
