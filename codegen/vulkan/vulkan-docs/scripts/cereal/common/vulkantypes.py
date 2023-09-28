@@ -989,6 +989,7 @@ class VulkanTypeInfo(object):
             "size_t": 8,
             "ssize_t": 8,
             "VkBool32": 4,
+            "zx_handle_t": 4,
         }
 
         if name in baseEncodingSizes:
