@@ -7,6 +7,7 @@ target_link_libraries(
     INTERFACE
     aemu-host-common.headers
     aemu-base.headers
+    gfxstream-snapshot.headers
     gfxstream_egl_headers)
 
 if (APPLE)
