@@ -519,6 +519,16 @@ public:
         const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
         VkImageFormatProperties2* pImageFormatProperties);
 
+    void on_vkGetPhysicalDeviceExternalBufferProperties(
+        void* context, VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
+        VkExternalBufferProperties* pExternalBufferProperties);
+
+    void on_vkGetPhysicalDeviceExternalBufferPropertiesKHR(
+        void* context, VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceExternalBufferInfoKHR* pExternalBufferInfo,
+        VkExternalBufferPropertiesKHR* pExternalBufferProperties);
+
     void on_vkGetPhysicalDeviceExternalSemaphoreProperties(
         void* context,
         VkPhysicalDevice physicalDevice,
@@ -690,6 +700,10 @@ public:
 private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
+    void on_vkGetPhysicalDeviceExternalBufferProperties_common(
+        bool isKhr, void* context, VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
+        VkExternalBufferProperties* pExternalBufferProperties);
 };
 
 }  // namespace vk
