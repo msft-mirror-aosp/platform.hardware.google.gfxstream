@@ -17,5 +17,6 @@ lib_glesv2_translator = static_library(
   'glesv2_translator',
   files_lib_glesv2_translator,
   cpp_args: default_cpp_args,
-  include_directories: [inc_include, inc_gles_translator, inc_stream_servers]
+  include_directories: [inc_include, inc_gles_translator, inc_stream_servers],
+  dependencies: [aemu_base_dep, aemu_logging_dep, aemu_snapshot_dep]
 )

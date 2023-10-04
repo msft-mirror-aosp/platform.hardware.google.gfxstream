@@ -91,11 +91,11 @@ if(NOT TARGET aemu_common)
         find_package(PkgConfig REQUIRED)
         set(AEMU_PC_FILES
             aemu_base
-            logging_base
+            aemu_logging
             aemu_host_common
             aemu_base_testing_support
             aemu_host_common_testing_support
-            gfxstream_snapshot)
+            aemu_snapshot)
         foreach(PC_FILE IN LISTS AEMU_PC_FILES)
             pkg_search_module(${PC_FILE} REQUIRED IMPORTED_TARGET GLOBAL ${PC_FILE}>=0.0.0)
         endforeach()
@@ -108,11 +108,11 @@ if(NOT TARGET aemu_common)
         target_link_libraries(aemu-host-common.headers INTERFACE renderdoc gfxstream_vulkan_headers)
 
         add_library(gfxstream-snapshot.headers INTERFACE)
-        target_include_directories(gfxstream-snapshot.headers INTERFACE ${gfxstream_snapshot_INCLUDE_DIRS})
-        add_library(gfxstream-snapshot ALIAS PkgConfig::gfxstream_snapshot)
+        target_include_directories(gfxstream-snapshot.headers INTERFACE ${aemu_snapshot_INCLUDE_DIRS})
+        add_library(gfxstream-snapshot ALIAS PkgConfig::aemu_snapshot)
 
         add_library(logging-base INTERFACE)
-        target_link_libraries(logging-base INTERFACE PkgConfig::logging_base)
+        target_link_libraries(logging-base INTERFACE PkgConfig::aemu_logging)
 
         if (WIN32)
             set(aemu-base-platform-deps Shlwapi)
@@ -151,7 +151,7 @@ if(NOT TARGET aemu_common)
             PkgConfig::aemu_host_common_testing_support
             PkgConfig::aemu_host_common
             PkgConfig::aemu_base
-            PkgConfig::logging_base
+            PkgConfig::aemu_logging
             gmock
             gtest)
         if(TARGET lz4_static)
@@ -229,6 +229,11 @@ if(NOT TARGET flatbuffers)
         )
         FetchContent_MakeAvailable(flatbuffers)
     endif()
+endif()
+
+if (QNX) # QNX SDP provides EGL headers
+    add_library(gfxstream_egl_headers INTERFACE)
+    target_include_directories(gfxstream_egl_headers INTERFACE ${QNX_TARGET}/usr/include)
 endif()
 
 if(NOT TARGET gfxstream_egl_headers)

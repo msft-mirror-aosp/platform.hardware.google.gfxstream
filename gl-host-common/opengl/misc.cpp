@@ -48,6 +48,9 @@ SelectedRenderer emugl::getRenderer() {
 }
 
 bool emugl::hasExtension(const char* extensionsStr, const char* wantedExtension) {
+    if (!extensionsStr) {
+        return false;
+    }
     const char* match = strstr(extensionsStr, wantedExtension);
     size_t wantedTerminatorOffset = strlen(wantedExtension);
     if (match &&

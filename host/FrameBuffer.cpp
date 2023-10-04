@@ -833,7 +833,8 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
         );
 
     const bool redrawSubwindow =
-        shouldCreateSubWindow || shouldMoveSubWindow || m_zRot != zRot || m_dpr != dpr;
+        shouldCreateSubWindow || shouldMoveSubWindow || m_zRot != zRot || m_dpr != dpr ||
+        m_windowContentFullWidth != fbw || m_windowContentFullHeight != fbh;
     if (!shouldCreateSubWindow && !shouldMoveSubWindow && !redrawSubwindow) {
         assert(sInitialized.load(std::memory_order_relaxed));
         GL_LOG("Exit setupSubWindow (nothing to do)");
@@ -1021,6 +1022,8 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                     sendPostWorkerCmd(std::move(postCmd));
                 }
             }
+            m_windowContentFullWidth = fbw;
+            m_windowContentFullHeight = fbh;
         }
     }
 
@@ -2488,7 +2491,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
     // Send framebuffer (without FPS overlay) to callback
     //
     if (m_onPost.size() == 0) {
-        goto EXIT;
+        goto DEC_REFCOUNT_AND_EXIT;
     }
     for (auto& iter : m_onPost) {
         ColorBufferPtr cb;
@@ -2523,6 +2526,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
             doPostCallback(iter.second.img, iter.first);
         }
     }
+DEC_REFCOUNT_AND_EXIT:
     if (!m_subWin) { // m_subWin is supposed to be false
         decColorBufferRefCountLocked(p_colorbuffer);
     }
@@ -2771,6 +2775,8 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     scrCmd.screenshot.rect = rect;
 
     std::future<void> completeFuture = sendPostWorkerCmd(std::move(scrCmd));
+
+    mutex.unlock();
     completeFuture.wait();
     return 0;
 }
@@ -2812,6 +2818,8 @@ bool FrameBuffer::compose(uint32_t bufferSize, void* buffer, bool needPost) {
         completeFuture.wait();
     }
 
+    const auto& multiDisplay = emugl::get_emugl_multi_display_operations();
+    const bool is_pixel_fold = multiDisplay.isPixelFold();
     if (needPost) {
         // AEMU with -no-window mode uses this code path.
         ComposeDevice* composeDevice = (ComposeDevice*)buffer;
@@ -2823,7 +2831,7 @@ bool FrameBuffer::compose(uint32_t bufferSize, void* buffer, bool needPost) {
             }
             case 2: {
                 ComposeDevice_v2* composeDeviceV2 = (ComposeDevice_v2*)buffer;
-                if (composeDeviceV2->displayId == 0) {
+                if (is_pixel_fold || composeDeviceV2->displayId == 0) {
                     post(composeDeviceV2->targetHandle, true);
                 }
                 break;
@@ -3741,6 +3749,8 @@ bool FrameBuffer::flushColorBufferFromVk(HandleType colorBufferHandle) {
 }
 
 bool FrameBuffer::flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes, size_t bytesSize) {
+    AutoLock mutex(m_lock);
+
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);

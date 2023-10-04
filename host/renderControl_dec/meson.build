@@ -11,4 +11,5 @@ lib_composer = static_library(
   files_lib_composer,
   cpp_args: default_cpp_args,
   include_directories: [inc_include, inc_apigen_codec],
+  dependencies: [aemu_base_dep, aemu_common_dep]
 )

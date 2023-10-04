@@ -25,6 +25,7 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay display, EGLConfig con
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay display, EGLContext context);
 EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay display, EGLSurface draw, EGLSurface read, EGLContext context);
 EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext();
+EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay();
 EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw);
 EGLAPI EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay display, EGLSurface surface, EGLint attribute, EGLint * value);
 EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay display, EGLSurface surface);

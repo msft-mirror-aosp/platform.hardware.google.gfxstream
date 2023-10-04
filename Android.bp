@@ -37,6 +37,7 @@ license {
 
 cc_library_headers {
     name: "gfxstream_headers",
+    vendor_available: true,
     host_supported: true,
     export_include_dirs: [
         ".",
@@ -66,6 +67,7 @@ cc_library_headers {
 
 cc_library_headers {
     name: "gfxstream_x11_headers",
+    vendor_available: true,
     host_supported: true,
     export_include_dirs: [
         "host/apigen-codec-common",
@@ -78,6 +80,7 @@ cc_library_headers {
 
 cc_library_headers {
     name: "gfxstream_magma_headers",
+    vendor_available: true,
     host_supported: true,
     export_include_dirs: [
         "third-party/fuchsia/magma/include",
@@ -87,6 +90,27 @@ cc_library_headers {
     apex_available: [
         "//apex_available:platform",
         "com.android.virt",
+    ],
+}
+
+cc_defaults {
+    name: "gfxstream_cc_defaults",
+    cflags: [
+        "-DGFXSTREAM",
+    ],
+}
+
+cc_defaults {
+    name: "gfxstream_guest_cc_defaults",
+    defaults: [
+        "gfxstream_cc_defaults",
+    ],
+}
+
+cc_defaults {
+    name: "gfxstream_host_cc_defaults",
+    defaults: [
+        "gfxstream_cc_defaults",
     ],
 }
 

@@ -13,5 +13,6 @@ lib_glescm_translator = static_library(
   'glescm_translator',
   files_lib_glescm_translator,
   cpp_args: default_cpp_args,
-  include_directories: [inc_include, inc_gles_translator],
+  include_directories: [inc_include, inc_gles_translator, inc_glm],
+  dependencies: [aemu_base_dep, aemu_logging_dep, aemu_snapshot_dep]
 )
