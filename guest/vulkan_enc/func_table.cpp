@@ -1565,8 +1565,9 @@ static void entry_vkGetPhysicalDeviceExternalBufferProperties(
     VkExternalBufferProperties* pExternalBufferProperties) {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferProperties");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    vkEnc->vkGetPhysicalDeviceExternalBufferProperties(
-        physicalDevice, pExternalBufferInfo, pExternalBufferProperties, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    resources->on_vkGetPhysicalDeviceExternalBufferProperties(
+        vkEnc, physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
 }
 static void entry_vkGetPhysicalDeviceExternalFenceProperties(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
@@ -2301,8 +2302,9 @@ static void entry_vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     VkExternalBufferProperties* pExternalBufferProperties) {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferPropertiesKHR");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    vkEnc->vkGetPhysicalDeviceExternalBufferPropertiesKHR(
-        physicalDevice, pExternalBufferInfo, pExternalBufferProperties, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    resources->on_vkGetPhysicalDeviceExternalBufferPropertiesKHR(
+        vkEnc, physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
 }
 #endif
 #ifdef VK_KHR_external_memory
