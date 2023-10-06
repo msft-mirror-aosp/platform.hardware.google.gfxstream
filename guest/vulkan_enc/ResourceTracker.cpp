@@ -5304,6 +5304,22 @@ public:
             vk_append_struct(&structChainIter, &localExtBufCi);
         }
 
+        VkBufferOpaqueCaptureAddressCreateInfo localCapAddrCi;
+        const VkBufferOpaqueCaptureAddressCreateInfo* pCapAddrCi =
+            vk_find_struct<VkBufferOpaqueCaptureAddressCreateInfo>(pCreateInfo);
+        if (pCapAddrCi) {
+            localCapAddrCi = vk_make_orphan_copy(*pCapAddrCi);
+            vk_append_struct(&structChainIter, &localCapAddrCi);
+        }
+
+        VkBufferDeviceAddressCreateInfoEXT localDevAddrCi;
+        const VkBufferDeviceAddressCreateInfoEXT* pDevAddrCi =
+            vk_find_struct<VkBufferDeviceAddressCreateInfoEXT>(pCreateInfo);
+        if (pDevAddrCi) {
+            localDevAddrCi = vk_make_orphan_copy(*pDevAddrCi);
+            vk_append_struct(&structChainIter, &localDevAddrCi);
+        }
+
 #ifdef VK_USE_PLATFORM_FUCHSIA
         Optional<zx::vmo> vmo;
         bool isSysmemBackedMemory = false;
