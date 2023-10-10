@@ -95,6 +95,8 @@ deps_gfxstream_backend = [
   aemu_base_dep,
   aemu_logging_dep,
   aemu_snapshot_dep,
+  dl_dep,
+  thread_dep
 ]
 
 if host_machine.system() == 'qnx'
@@ -113,6 +115,7 @@ gfxstream_backend = library(
   gnu_symbol_visibility: 'default',
   dependencies: deps_gfxstream_backend,
   link_with: link_gfxstream_backend,
+  link_args : '-Wl,-lpthread,-lrt',
   version: '0.1.2',
   install: true,
 )
