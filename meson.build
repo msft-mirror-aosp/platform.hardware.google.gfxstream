@@ -82,6 +82,8 @@ else
   aemu_common_dep = dependency('aemu_host_common')
   aemu_logging_dep = dependency('aemu_logging')
   aemu_snapshot_dep = dependency('aemu_snapshot')
+  dl_dep = dependency('dl')
+  thread_dep = dependency('threads')
 endif
 
 #========================#
