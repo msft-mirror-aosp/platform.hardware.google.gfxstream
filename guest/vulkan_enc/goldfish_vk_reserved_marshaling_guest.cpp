@@ -2117,9 +2117,16 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     uint32_t hasRasterization = 1;
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         hasRasterization =
-            (((0 == forMarshaling->pRasterizationState))
-                 ? (0)
-                 : (!((*(forMarshaling->pRasterizationState)).rasterizerDiscardEnable)));
+            ((((0 == forMarshaling->pRasterizationState))
+                  ? (0)
+                  : (!((*(forMarshaling->pRasterizationState)).rasterizerDiscardEnable))) ||
+             (((0 == forMarshaling->pDynamicState))
+                  ? (0)
+                  : (arrayany((*(forMarshaling->pDynamicState)).pDynamicStates, 0,
+                              (*(forMarshaling->pDynamicState)).dynamicStateCount,
+                              [](VkDynamicState s) {
+                                  return (s == VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE);
+                              }))));
         uint32_t cgen_var_0 = (uint32_t)hasRasterization;
         memcpy((*ptr), &cgen_var_0, 4);
         android::base::Stream::toBe32((uint8_t*)(*ptr));
