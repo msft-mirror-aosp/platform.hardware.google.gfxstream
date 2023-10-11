@@ -1559,9 +1559,16 @@ void count_VkGraphicsPipelineCreateInfo(uint32_t featureBits, VkStructureType ro
     (void)count;
     uint32_t hasRasterization = 1;
     if (featureBits & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
-        hasRasterization = (((0 == toCount->pRasterizationState))
-                                ? (0)
-                                : (!((*(toCount->pRasterizationState)).rasterizerDiscardEnable)));
+        hasRasterization =
+            ((((0 == toCount->pRasterizationState))
+                  ? (0)
+                  : (!((*(toCount->pRasterizationState)).rasterizerDiscardEnable))) ||
+             (((0 == toCount->pDynamicState))
+                  ? (0)
+                  : (arrayany((*(toCount->pDynamicState)).pDynamicStates, 0,
+                              (*(toCount->pDynamicState)).dynamicStateCount, [](VkDynamicState s) {
+                                  return (s == VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE);
+                              }))));
         *count += 4;
     }
     uint32_t hasTessellation = 1;

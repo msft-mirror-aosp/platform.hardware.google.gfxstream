@@ -30,7 +30,6 @@
 // $CEREAL_OUTPUT_DIR
 //
 
-#include <stdio.h>
 #include "goldfish_vk_extension_structs.h"
 namespace gfxstream {
 namespace vk {
@@ -1219,7 +1218,6 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
 #endif
         default: {
-            fprintf(stderr, "unknown structType %d\n", structType);
             return (size_t)0;
         }
     }
