@@ -35876,6 +35876,186 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::endTrace();
                 break;
             }
+            case OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE: {
+                android::base::beginTrace("vkUpdateDescriptorSetWithTemplateSized2GOOGLE decode");
+                VkDevice device;
+                VkDescriptorSet descriptorSet;
+                VkDescriptorUpdateTemplate descriptorUpdateTemplate;
+                uint32_t imageInfoCount;
+                uint32_t bufferInfoCount;
+                uint32_t bufferViewCount;
+                uint32_t inlineUniformBlockCount;
+                const uint32_t* pImageInfoEntryIndices;
+                const uint32_t* pBufferInfoEntryIndices;
+                const uint32_t* pBufferViewEntryIndices;
+                const VkDescriptorImageInfo* pImageInfos;
+                const VkDescriptorBufferInfo* pBufferInfos;
+                const VkBufferView* pBufferViews;
+                const uint8_t* pInlineUniformBlockData;
+                // Begin global wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDescriptorSet*)&descriptorSet =
+                    (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)(*&cgen_var_1));
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate =
+                    (VkDescriptorUpdateTemplate)unbox_VkDescriptorUpdateTemplate(
+                        (VkDescriptorUpdateTemplate)(*&cgen_var_2));
+                memcpy((uint32_t*)&imageInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&bufferInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&bufferViewCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&inlineUniformBlockCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                // WARNING PTR CHECK
+                memcpy((uint32_t**)&pImageInfoEntryIndices, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pImageInfoEntryIndices);
+                *readStreamPtrPtr += 8;
+                if (pImageInfoEntryIndices) {
+                    vkReadStream->alloc((void**)&pImageInfoEntryIndices,
+                                        ((imageInfoCount)) * sizeof(const uint32_t));
+                    memcpy((uint32_t*)pImageInfoEntryIndices, *readStreamPtrPtr,
+                           ((imageInfoCount)) * sizeof(const uint32_t));
+                    *readStreamPtrPtr += ((imageInfoCount)) * sizeof(const uint32_t);
+                }
+                // WARNING PTR CHECK
+                memcpy((uint32_t**)&pBufferInfoEntryIndices, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pBufferInfoEntryIndices);
+                *readStreamPtrPtr += 8;
+                if (pBufferInfoEntryIndices) {
+                    vkReadStream->alloc((void**)&pBufferInfoEntryIndices,
+                                        ((bufferInfoCount)) * sizeof(const uint32_t));
+                    memcpy((uint32_t*)pBufferInfoEntryIndices, *readStreamPtrPtr,
+                           ((bufferInfoCount)) * sizeof(const uint32_t));
+                    *readStreamPtrPtr += ((bufferInfoCount)) * sizeof(const uint32_t);
+                }
+                // WARNING PTR CHECK
+                memcpy((uint32_t**)&pBufferViewEntryIndices, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pBufferViewEntryIndices);
+                *readStreamPtrPtr += 8;
+                if (pBufferViewEntryIndices) {
+                    vkReadStream->alloc((void**)&pBufferViewEntryIndices,
+                                        ((bufferViewCount)) * sizeof(const uint32_t));
+                    memcpy((uint32_t*)pBufferViewEntryIndices, *readStreamPtrPtr,
+                           ((bufferViewCount)) * sizeof(const uint32_t));
+                    *readStreamPtrPtr += ((bufferViewCount)) * sizeof(const uint32_t);
+                }
+                // WARNING PTR CHECK
+                memcpy((VkDescriptorImageInfo**)&pImageInfos, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pImageInfos);
+                *readStreamPtrPtr += 8;
+                if (pImageInfos) {
+                    vkReadStream->alloc((void**)&pImageInfos,
+                                        ((imageInfoCount)) * sizeof(const VkDescriptorImageInfo));
+                    for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+                        reservedunmarshal_VkDescriptorImageInfo(
+                            vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                            (VkDescriptorImageInfo*)(pImageInfos + i), readStreamPtrPtr);
+                    }
+                }
+                // WARNING PTR CHECK
+                memcpy((VkDescriptorBufferInfo**)&pBufferInfos, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pBufferInfos);
+                *readStreamPtrPtr += 8;
+                if (pBufferInfos) {
+                    vkReadStream->alloc((void**)&pBufferInfos,
+                                        ((bufferInfoCount)) * sizeof(const VkDescriptorBufferInfo));
+                    for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+                        reservedunmarshal_VkDescriptorBufferInfo(
+                            vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                            (VkDescriptorBufferInfo*)(pBufferInfos + i), readStreamPtrPtr);
+                    }
+                }
+                // WARNING PTR CHECK
+                memcpy((VkBufferView**)&pBufferViews, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pBufferViews);
+                *readStreamPtrPtr += 8;
+                if (pBufferViews) {
+                    vkReadStream->alloc((void**)&pBufferViews,
+                                        ((bufferViewCount)) * sizeof(const VkBufferView));
+                    if (((bufferViewCount))) {
+                        uint8_t* cgen_var_8_0_ptr = (uint8_t*)(*readStreamPtrPtr);
+                        *readStreamPtrPtr += 8 * ((bufferViewCount));
+                        for (uint32_t k = 0; k < ((bufferViewCount)); ++k) {
+                            uint64_t tmpval;
+                            memcpy(&tmpval, cgen_var_8_0_ptr + k * 8, sizeof(uint64_t));
+                            *(((VkBufferView*)pBufferViews) + k) =
+                                (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval);
+                        }
+                    }
+                }
+                // WARNING PTR CHECK
+                memcpy((uint8_t**)&pInlineUniformBlockData, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pInlineUniformBlockData);
+                *readStreamPtrPtr += 8;
+                if (pInlineUniformBlockData) {
+                    vkReadStream->alloc((void**)&pInlineUniformBlockData,
+                                        ((inlineUniformBlockCount)) * sizeof(const uint8_t));
+                    memcpy((uint8_t*)pInlineUniformBlockData, *readStreamPtrPtr,
+                           ((inlineUniformBlockCount)) * sizeof(const uint8_t));
+                    *readStreamPtrPtr += ((inlineUniformBlockCount)) * sizeof(const uint8_t);
+                }
+                if (pImageInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+                        transform_tohost_VkDescriptorImageInfo(
+                            m_state, (VkDescriptorImageInfo*)(pImageInfos + i));
+                    }
+                }
+                if (pBufferInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+                        transform_tohost_VkDescriptorBufferInfo(
+                            m_state, (VkDescriptorBufferInfo*)(pBufferInfos + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkUpdateDescriptorSetWithTemplateSized2GOOGLE 0x%llx "
+                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
+                            (unsigned long long)descriptorUpdateTemplate,
+                            (unsigned long long)imageInfoCount, (unsigned long long)bufferInfoCount,
+                            (unsigned long long)bufferViewCount,
+                            (unsigned long long)inlineUniformBlockCount,
+                            (unsigned long long)pImageInfoEntryIndices,
+                            (unsigned long long)pBufferInfoEntryIndices,
+                            (unsigned long long)pBufferViewEntryIndices,
+                            (unsigned long long)pImageInfos, (unsigned long long)pBufferInfos,
+                            (unsigned long long)pBufferViews,
+                            (unsigned long long)pInlineUniformBlockData);
+                }
+                m_state->on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+                    &m_pool, device, descriptorSet, descriptorUpdateTemplate, imageInfoCount,
+                    bufferInfoCount, bufferViewCount, inlineUniformBlockCount,
+                    pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices,
+                    pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, descriptorSet,
+                        descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
+                        inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
+                        pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews,
+                        pInlineUniformBlockData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif

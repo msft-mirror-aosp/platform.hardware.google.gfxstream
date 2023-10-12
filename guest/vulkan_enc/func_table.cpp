@@ -9327,6 +9327,43 @@ static VkResult dynCheck_entry_vkGetBlobGOOGLE(VkDevice device, VkDeviceMemory m
     vkGetBlobGOOGLE_VkResult_return = vkEnc->vkGetBlobGOOGLE(device, memory, true /* do lock */);
     return vkGetBlobGOOGLE_VkResult_return;
 }
+static void entry_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+    VkDevice device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+    uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+    const uint8_t* pInlineUniformBlockData) {
+    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount,
+        bufferViewCount, inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
+        pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData,
+        true /* do lock */);
+}
+static void dynCheck_entry_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+    VkDevice device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+    uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+    const uint8_t* pInlineUniformBlockData) {
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream")) {
+        sOnInvalidDynamicallyCheckedCall("vkUpdateDescriptorSetWithTemplateSized2GOOGLE",
+                                         "VK_GOOGLE_gfxstream");
+    }
+    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount,
+        bufferViewCount, inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
+        pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData,
+        true /* do lock */);
+}
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
@@ -13467,6 +13504,9 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
     if (!strcmp(name, "vkGetBlobGOOGLE")) {
         return nullptr;
     }
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE")) {
+        return nullptr;
+    }
 #endif
 #ifdef VK_EXT_multi_draw
     if (!strcmp(name, "vkCmdDrawMultiEXT")) {
@@ -16139,6 +16179,11 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkGetBlobGOOGLE")) {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)dynCheck_entry_vkGetBlobGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkUpdateDescriptorSetWithTemplateSized2GOOGLE
+                      : nullptr;
     }
 #endif
 #ifdef VK_EXT_multi_draw
@@ -18925,6 +18970,10 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     if (!strcmp(name, "vkGetBlobGOOGLE")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkGetBlobGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateSized2GOOGLE : nullptr;
     }
 #endif
 #ifdef VK_EXT_multi_draw
