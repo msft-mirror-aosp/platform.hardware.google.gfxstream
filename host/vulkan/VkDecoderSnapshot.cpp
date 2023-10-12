@@ -4722,6 +4722,12 @@ class VkDecoderSnapshot::Impl {
         const uint8_t* pInlineUniformBlockData) {
         // TODO: Implement
     }
+    void vkQueueSubmitAsync2GOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                   android::base::BumpPool* pool, VkQueue queue,
+                                   uint32_t submitCount, const VkSubmitInfo2* pSubmits,
+                                   VkFence fence) {
+        // TODO: Implement
+    }
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
@@ -10945,6 +10951,16 @@ void VkDecoderSnapshot::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
         descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
         inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
         pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData);
+}
+#endif
+#ifdef VK_GOOGLE_gfxstream
+void VkDecoderSnapshot::vkQueueSubmitAsync2GOOGLE(const uint8_t* snapshotTraceBegin,
+                                                  size_t snapshotTraceBytes,
+                                                  android::base::BumpPool* pool, VkQueue queue,
+                                                  uint32_t submitCount,
+                                                  const VkSubmitInfo2* pSubmits, VkFence fence) {
+    mImpl->vkQueueSubmitAsync2GOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, queue,
+                                     submitCount, pSubmits, fence);
 }
 #endif
 #ifdef VK_EXT_multi_draw

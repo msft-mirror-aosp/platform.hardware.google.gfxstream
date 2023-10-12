@@ -2234,6 +2234,8 @@ class VkEncoder {
         const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
         const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
         const uint8_t* pInlineUniformBlockData, uint32_t doLock);
+    void vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
+                                   const VkSubmitInfo2* pSubmits, VkFence fence, uint32_t doLock);
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif

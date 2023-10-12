@@ -1896,21 +1896,18 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pMemoryRanges);
                 }
                 if (!m_state->usingDirectMapping()) {
-                    // This is to deal with a deficiency in the encoder,
-                    // where usingDirectMapping fails to set the proper packet size,
-                    // meaning we can read off the end of the packet.
-                    VkDeviceSize totalMemorySize = 8 * memoryRangeCount;
+                    // This is to deal with a deficiency in the encoder,;
+                    // where usingDirectMapping fails to set the proper packet size,;
+                    // meaning we can read off the end of the packet.;
+                    uint64_t sizeLeft = end - *readStreamPtrPtr;
                     for (uint32_t i = 0; i < memoryRangeCount; ++i) {
-                        totalMemorySize += pMemoryRanges[i].size;
-                    }
-                    if ((end - *readStreamPtrPtr) < totalMemorySize) {
-                        if (m_logCalls) {
-                            fprintf(stderr, "stream %p: Retrying vkFlushMappedMemoryRanges\n", ioStream);
+                        if (sizeLeft < sizeof(uint64_t)) {
+                            if (m_prevSeqno) {
+                                m_prevSeqno = m_prevSeqno.value() - 1;
+                            }
+                            return ptr - (unsigned char*)buf;
+                            ;
                         }
-                        return ptr - (unsigned char*)buf;
-                    }
-
-                    for (uint32_t i = 0; i < memoryRangeCount; ++i) {
                         auto range = pMemoryRanges[i];
                         auto memory = pMemoryRanges[i].memory;
                         auto size = pMemoryRanges[i].size;
@@ -1918,10 +1915,19 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t readStream = 0;
                         memcpy(&readStream, *readStreamPtrPtr, sizeof(uint64_t));
                         *readStreamPtrPtr += sizeof(uint64_t);
+                        sizeLeft -= sizeof(uint64_t);
                         auto hostPtr = m_state->getMappedHostPointer(memory);
                         if (!hostPtr && readStream > 0)
                             GFXSTREAM_ABORT(::emugl::FatalError(::emugl::ABORT_REASON_OTHER));
                         if (!hostPtr) continue;
+                        if (sizeLeft < readStream) {
+                            if (m_prevSeqno) {
+                                m_prevSeqno = m_prevSeqno.value() - 1;
+                            }
+                            return ptr - (unsigned char*)buf;
+                            ;
+                        }
+                        sizeLeft -= readStream;
                         uint8_t* targetRange = hostPtr + offset;
                         memcpy(targetRange, *readStreamPtrPtr, readStream);
                         *readStreamPtrPtr += readStream;
@@ -11899,14 +11905,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint32_t submitCount;
                 const VkSubmitInfo2* pSubmits;
                 VkFence fence;
-                // Begin non wrapped dispatchable handle unboxing for queue;
+                // Begin global wrapped dispatchable handle unboxing for queue;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
-                auto unboxed_queue = unbox_VkQueue(queue);
-                auto vk = dispatch_VkQueue(queue);
-                // End manual dispatchable handle unboxing for queue;
                 memcpy((uint32_t*)&submitCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pSubmits,
@@ -11932,7 +11935,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkQueueSubmit2_VkResult_return = (VkResult)0;
                 vkQueueSubmit2_VkResult_return =
-                    vk->vkQueueSubmit2(unboxed_queue, submitCount, pSubmits, fence);
+                    m_state->on_vkQueueSubmit2(&m_pool, queue, submitCount, pSubmits, fence);
                 if ((vkQueueSubmit2_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkQueueSubmit2_VkResult_return, opcode, context);
@@ -36049,6 +36052,58 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
                         pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews,
                         pInlineUniformBlockData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkQueueSubmitAsync2GOOGLE: {
+                android::base::beginTrace("vkQueueSubmitAsync2GOOGLE decode");
+                VkQueue queue;
+                uint32_t submitCount;
+                const VkSubmitInfo2* pSubmits;
+                VkFence fence;
+                // Begin global wrapped dispatchable handle unboxing for queue;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
+                memcpy((uint32_t*)&submitCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pSubmits,
+                                    ((submitCount)) * sizeof(const VkSubmitInfo2));
+                for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                    reservedunmarshal_VkSubmitInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkSubmitInfo2*)(pSubmits + i),
+                                                    readStreamPtrPtr);
+                }
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
+                if (pSubmits) {
+                    for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                        transform_tohost_VkSubmitInfo2(m_state, (VkSubmitInfo2*)(pSubmits + i));
+                    }
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkQueueSubmitAsync2GOOGLE 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)queue, (unsigned long long)submitCount,
+                        (unsigned long long)pSubmits, (unsigned long long)fence);
+                }
+                m_state->on_vkQueueSubmitAsync2GOOGLE(&m_pool, queue, submitCount, pSubmits, fence);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkQueueSubmitAsync2GOOGLE(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, submitCount,
+                        pSubmits, fence);
                 }
                 vkReadStream->clearPool();
                 if (queueSubmitWithCommandsEnabled)

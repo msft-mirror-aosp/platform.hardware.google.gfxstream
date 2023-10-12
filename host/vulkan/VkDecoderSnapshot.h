@@ -2953,6 +2953,10 @@ class VkDecoderSnapshot {
         const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
         const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
         const uint8_t* pInlineUniformBlockData);
+    void vkQueueSubmitAsync2GOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                   android::base::BumpPool* pool, VkQueue queue,
+                                   uint32_t submitCount, const VkSubmitInfo2* pSubmits,
+                                   VkFence fence);
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
