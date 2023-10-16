@@ -54,6 +54,8 @@ RESOURCE_TRACKER_ENTRIES = [
     "vkCreateSampler",
     "vkGetPhysicalDeviceExternalFenceProperties",
     "vkGetPhysicalDeviceExternalFencePropertiesKHR",
+    "vkGetPhysicalDeviceExternalBufferProperties",
+    "vkGetPhysicalDeviceExternalBufferPropertiesKHR",
     "vkCreateFence",
     "vkResetFences",
     "vkImportFenceFdKHR",
