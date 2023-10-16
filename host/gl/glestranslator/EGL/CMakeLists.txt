@@ -19,7 +19,8 @@ set(egl-translator-darwin-sources
     MacPixelFormatsAttribs.m)
 set(egl-translator-linux-sources
     CoreProfileConfigs_linux.cpp EglOsApi_egl.cpp EglOsApi_glx.cpp X11ErrorHandler.cpp)
-
+set(egl-translator-qnx-sources
+    EglOsApi_egl.cpp)
 if (WIN32)
     add_library(
         EGL_translator_static
@@ -30,6 +31,11 @@ elseif (APPLE)
         EGL_translator_static
         ${egl-translator-common-sources}
         ${egl-translator-darwin-sources})
+elseif (QNX)
+    add_library(
+        EGL_translator_static
+        ${egl-translator-common-sources}
+        ${egl-translator-qnx-sources})
 else()
     add_library(
         EGL_translator_static
@@ -57,6 +63,8 @@ endif()
 if (WIN32)
 elseif (APPLE)
     target_link_libraries(EGL_translator_static PUBLIC "-framework AppKit -framework IOSurface")
+elseif (QNX)
+    target_link_libraries(EGL_translator_static PUBLIC "-lscreen -lregex -lEGL -lGLESv2")
 else()
     target_link_libraries(EGL_translator_static PUBLIC "-lGL -lX11 -ldl -lpthread")
 endif()

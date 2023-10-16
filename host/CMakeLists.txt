@@ -49,9 +49,19 @@ if (APPLE)
     set(stream-server-core-platform-sources NativeSubWindow_cocoa.m)
 elseif (WIN32)
     set(stream-server-core-platform-sources NativeSubWindow_win32.cpp)
+elseif (QNX)
+    set(stream-server-core-platform-sources NativeSubWindow_qnx.cpp)
 else()
     set(stream-server-core-platform-sources NativeSubWindow_x11.cpp)
 endif()
+
+add_library(
+        gfxstream_backend_headers
+        INTERFACE)
+target_include_directories(
+        gfxstream_backend_headers
+        INTERFACE
+        include)
 
 # Compile everything as a static library first so that unit tests can call non-exported functions
 add_library(
@@ -81,6 +91,7 @@ target_include_directories(
         ${GFXSTREAM_REPO_ROOT}
         ${GFXSTREAM_REPO_ROOT}/include
         ${GFXSTREAM_REPO_ROOT}/host
+        ${GFXSTREAM_REPO_ROOT}/host/include
         ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common
         ${GFXSTREAM_REPO_ROOT}/host/gl
         ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
@@ -300,6 +311,9 @@ endfunction()
 
     if (APPLE)
         target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_METAL_EXT)
+    elseif (QNX)
+        # TODO(jsimonot): fix build error
+        # target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_SCREEN_QNX)
     elseif (UNIX)
         target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_XCB_KHR)
     endif()

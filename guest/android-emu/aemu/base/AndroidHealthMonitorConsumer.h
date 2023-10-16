@@ -26,8 +26,7 @@
 
 // Interface for consuming events from HealthMonitor
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
 // Struct for hanging events
@@ -78,6 +77,5 @@ public:
     virtual ~HealthMonitorConsumer() {}
 };
 
-}  // namespace guest
-}  // namespace base
-}  // namespace android
+} // namespace guest
+} // namespace gfxstream

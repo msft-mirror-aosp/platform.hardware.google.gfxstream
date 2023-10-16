@@ -32,7 +32,7 @@
 #include <lib/zx/vmo.h>
 #endif
 
-class QemuPipeStream : public gfxstream::IOStream {
+class QemuPipeStream : public gfxstream::guest::IOStream {
 public:
     typedef enum { ERR_INVALID_SOCKET = -1000 } QemuPipeStreamError;
 

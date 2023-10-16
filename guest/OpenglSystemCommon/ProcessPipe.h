@@ -33,13 +33,15 @@
 
 struct renderControl_encoder_context_t;
 
-extern bool processPipeInit(int stream_handle, HostConnectionType connType, renderControl_encoder_context_t *rcEnc);
+extern bool processPipeInit(int stream_handle, HostConnectionType connType,
+                            uint32_t noRenderControlEnc);
 extern uint64_t getPuid();
 
-// For testing purposes; this will close the current process pipe if opened, reset the state to initial,
-// and open it again with the same parameters.
+// For testing purposes; this will close the current process pipe if opened, reset the state to
+// initial, and open it again with the same parameters.
 extern void processPipeRestart();
 extern void refreshHostConnection();
+extern void disableProcessPipeForTesting();
 
 // Each process gets a sequence number field.
 uint32_t* getSeqnoPtrForProcess();

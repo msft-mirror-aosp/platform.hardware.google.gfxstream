@@ -14,15 +14,13 @@
 // limitations under the License.
 #pragma once
 
-#include "HostVisibleMemoryVirtualization.h"
-
 #include <vulkan/vulkan.h>
-#include <vndk/hardware_buffer.h>
+
+#include "../OpenglSystemCommon/Gralloc.h"
+#include "HostVisibleMemoryVirtualization.h"
 
 // Structure similar to
 // https://github.com/mesa3d/mesa/blob/master/src/intel/vulkan/anv_android.c
-
-class Gralloc;
 
 namespace gfxstream {
 namespace vk {
@@ -35,29 +33,23 @@ getAndroidHardwareBufferUsageFromVkUsage(
 void updateMemoryTypeBits(uint32_t* memoryTypeBits, uint32_t colorBufferMemoryIndex);
 
 VkResult getAndroidHardwareBufferPropertiesANDROID(
-    Gralloc* grallocHelper,
-    const AHardwareBuffer* buffer,
+    gfxstream::Gralloc* grallocHelper, const AHardwareBuffer* buffer,
     VkAndroidHardwareBufferPropertiesANDROID* pProperties);
 
-VkResult getMemoryAndroidHardwareBufferANDROID(
-    struct AHardwareBuffer **pBuffer);
+VkResult getMemoryAndroidHardwareBufferANDROID(gfxstream::Gralloc* grallocHelper,
+                                               struct AHardwareBuffer** pBuffer);
 
-VkResult importAndroidHardwareBuffer(
-    Gralloc* grallocHelper,
-    const VkImportAndroidHardwareBufferInfoANDROID* info,
-    struct AHardwareBuffer **importOut);
+VkResult importAndroidHardwareBuffer(gfxstream::Gralloc* grallocHelper,
+                                     const VkImportAndroidHardwareBufferInfoANDROID* info,
+                                     struct AHardwareBuffer** importOut);
 
-VkResult createAndroidHardwareBuffer(
-    bool hasDedicatedImage,
-    bool hasDedicatedBuffer,
-    const VkExtent3D& imageExtent,
-    uint32_t imageLayers,
-    VkFormat imageFormat,
-    VkImageUsageFlags imageUsage,
-    VkImageCreateFlags imageCreateFlags,
-    VkDeviceSize bufferSize,
-    VkDeviceSize allocationInfoAllocSize,
-    struct AHardwareBuffer **out);
+VkResult createAndroidHardwareBuffer(gfxstream::Gralloc* grallocHelper, bool hasDedicatedImage,
+                                     bool hasDedicatedBuffer, const VkExtent3D& imageExtent,
+                                     uint32_t imageLayers, VkFormat imageFormat,
+                                     VkImageUsageFlags imageUsage,
+                                     VkImageCreateFlags imageCreateFlags, VkDeviceSize bufferSize,
+                                     VkDeviceSize allocationInfoAllocSize,
+                                     struct AHardwareBuffer** out);
 
 }  // namespace vk
 }  // namespace gfxstream

@@ -32,14 +32,12 @@
 #include <log/log.h>
 #include <inttypes.h>
 
-class IOStream;
-
 namespace gfxstream {
 namespace vk {
 
-class VulkanStreamGuest : public android::base::Stream {
+class VulkanStreamGuest : public gfxstream::guest::Stream {
 public:
-    VulkanStreamGuest(IOStream* stream);
+    VulkanStreamGuest(gfxstream::guest::IOStream* stream);
     ~VulkanStreamGuest();
 
     // Returns whether the connection is valid.
@@ -78,9 +76,9 @@ public:
 
     uint8_t* reserve(size_t size);
 private:
-    android::base::BumpPool mPool;
+    gfxstream::guest::BumpPool mPool;
     std::vector<uint8_t> mWriteBuffer;
-    IOStream* mStream = nullptr;
+    gfxstream::guest::IOStream* mStream = nullptr;
     DefaultHandleMapping mDefaultHandleMapping;
     VulkanHandleMapping* mCurrentHandleMapping;
     uint32_t mFeatureBits = 0;

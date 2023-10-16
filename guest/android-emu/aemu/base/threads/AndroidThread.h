@@ -26,8 +26,7 @@
 
 #include <inttypes.h>
 
-namespace android {
-namespace base {
+namespace gfxstream {
 namespace guest {
 
 // Wrapper class for platform-specific threads.
@@ -145,6 +144,5 @@ public:
     virtual void interrupt() = 0;
 };
 
-}  // namespace guest
-}  // namespace base
-}  // namespace android
+} // namespace guest
+} // namespace gfxstream

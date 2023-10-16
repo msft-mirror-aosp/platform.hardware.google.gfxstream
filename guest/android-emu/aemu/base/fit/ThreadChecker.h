@@ -27,7 +27,7 @@
 
 #include "ThreadSafety.h"
 
-namespace android::base {
+namespace gfxstream::guest {
 namespace fit {
 
 // A simple class that records the identity of the thread that it was created
@@ -76,7 +76,7 @@ private:
 };
 
 #ifndef NDEBUG
-#define DECLARE_THREAD_CHECKER(c) android::base::fit::ThreadChecker c
+#define DECLARE_THREAD_CHECKER(c) gfxstream::guest::fit::ThreadChecker c
 #define DCHECK_IS_THREAD_VALID(c) assert((c).isThreadValid())
 #else
 #define DECLARE_THREAD_CHECKER(c)
@@ -84,4 +84,4 @@ private:
 #endif
 
 }  // namespace fit
-}  // namespace android::base
+}  // namespace gfxstream::guest

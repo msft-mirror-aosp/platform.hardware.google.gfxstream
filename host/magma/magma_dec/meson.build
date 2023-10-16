@@ -13,5 +13,5 @@ lib_magma_dec = static_library(
   files_lib_magma_dec,
   cpp_args: default_cpp_args,
   include_directories: [inc_include, inc_magma_external, inc_apigen_codec],
-  dependencies: aemu_base_dep,
+  dependencies: [aemu_base_dep, aemu_common_dep]
 )
