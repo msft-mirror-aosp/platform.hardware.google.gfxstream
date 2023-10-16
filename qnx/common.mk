@@ -33,11 +33,16 @@ gfxstream: check-sdp aemu
 	../build-gfxstream.sh
 
 install: check-sdp check-install-root gfxstream
-	$(MAKE) -f ../../pinfo.mk gfxstream/host/libgfxstream*.so
-	$(CP_HOST) -d gfxstream/host/libgfxstream*.so $(INSTALL_ROOT_nto)/$(VARIANT)/usr/lib/
+	$(MAKE) -f ../../pinfo.mk gfxstream/host/libgfxstream*
+	$(LN_HOST) -s libgfxstream_backend.so gfxstream/host/libgfxstream.so
+	find gfxstream/host/  -maxdepth 1 \( -type f -o -type l \) -name "libgfxstream*" \
+		-exec $(CP_HOST) -d {} $(INSTALL_ROOT_nto)/$(VARIANT)/usr/lib/ \;
 
-clean: check-install-root
+clean:
 	rm -rf aemu
 	rm -rf gfxstream
-	rm *.pinfo
-	rm $(INSTALL_ROOT_nto)/$(VARIANT)/usr/lib/libgfxstream*
+	rm -f *.pinfo
+	@if [ -n "$${INSTALL_ROOT_nto}" ]; then \
+		rm -f $(INSTALL_ROOT_nto)/$(VARIANT)/usr/lib/libgfxstream* ;\
+	fi
+	
