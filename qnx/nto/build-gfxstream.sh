@@ -19,4 +19,4 @@ meson setup ../../.. gfxstream/ \
       -Ddecoders=gles,vulkan,composer \
       -Dqnx_target=$QNX_TARGET
 
-ninja -C gfxstream
+ninja -v -C gfxstream
