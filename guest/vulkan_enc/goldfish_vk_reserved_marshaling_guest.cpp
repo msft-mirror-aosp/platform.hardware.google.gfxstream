@@ -7294,6 +7294,237 @@ void reservedmarshal_VkDeviceImageMemoryRequirements(
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void reservedmarshal_VkSwapchainCreateInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkSwapchainCreateInfoKHR* forMarshaling,
+                                              uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkSwapchainCreateFlagsKHR*)&forMarshaling->flags,
+           sizeof(VkSwapchainCreateFlagsKHR));
+    *ptr += sizeof(VkSwapchainCreateFlagsKHR);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSurfaceKHR((*&forMarshaling->surface));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->minImageCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkFormat*)&forMarshaling->imageFormat, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy(*ptr, (VkColorSpaceKHR*)&forMarshaling->imageColorSpace, sizeof(VkColorSpaceKHR));
+    *ptr += sizeof(VkColorSpaceKHR);
+    reservedmarshal_VkExtent2D(vkStream, rootType, (VkExtent2D*)(&forMarshaling->imageExtent), ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->imageArrayLayers, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkImageUsageFlags*)&forMarshaling->imageUsage, sizeof(VkImageUsageFlags));
+    *ptr += sizeof(VkImageUsageFlags);
+    memcpy(*ptr, (VkSharingMode*)&forMarshaling->imageSharingMode, sizeof(VkSharingMode));
+    *ptr += sizeof(VkSharingMode);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->queueFamilyIndexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pQueueFamilyIndices;
+    memcpy((*ptr), &cgen_var_1, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pQueueFamilyIndices) {
+        memcpy(*ptr, (const uint32_t*)forMarshaling->pQueueFamilyIndices,
+               forMarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
+        *ptr += forMarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+    }
+    memcpy(*ptr, (VkSurfaceTransformFlagBitsKHR*)&forMarshaling->preTransform,
+           sizeof(VkSurfaceTransformFlagBitsKHR));
+    *ptr += sizeof(VkSurfaceTransformFlagBitsKHR);
+    memcpy(*ptr, (VkCompositeAlphaFlagBitsKHR*)&forMarshaling->compositeAlpha,
+           sizeof(VkCompositeAlphaFlagBitsKHR));
+    *ptr += sizeof(VkCompositeAlphaFlagBitsKHR);
+    memcpy(*ptr, (VkPresentModeKHR*)&forMarshaling->presentMode, sizeof(VkPresentModeKHR));
+    *ptr += sizeof(VkPresentModeKHR);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->clipped, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkSwapchainKHR((*&forMarshaling->oldSwapchain));
+    memcpy(*ptr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkPresentInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                      const VkPresentInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->waitSemaphoreCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->waitSemaphoreCount) {
+        uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pWaitSemaphores[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->waitSemaphoreCount;
+    }
+    memcpy(*ptr, (uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    if (forMarshaling->swapchainCount) {
+        uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
+        if (forMarshaling) {
+            for (uint32_t k = 0; k < forMarshaling->swapchainCount; ++k) {
+                uint64_t tmpval = get_host_u64_VkSwapchainKHR(forMarshaling->pSwapchains[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+        }
+        *ptr += 8 * forMarshaling->swapchainCount;
+    }
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pImageIndices,
+           forMarshaling->swapchainCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->swapchainCount * sizeof(const uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pResults;
+    memcpy((*ptr), &cgen_var_2, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pResults) {
+        memcpy(*ptr, (VkResult*)forMarshaling->pResults,
+               forMarshaling->swapchainCount * sizeof(VkResult));
+        *ptr += forMarshaling->swapchainCount * sizeof(VkResult);
+    }
+}
+
+void reservedmarshal_VkImageSwapchainCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageSwapchainCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSwapchainKHR((*&forMarshaling->swapchain));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+}
+
+void reservedmarshal_VkBindImageMemorySwapchainInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBindImageMemorySwapchainInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSwapchainKHR((*&forMarshaling->swapchain));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->imageIndex, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkAcquireNextImageInfoKHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkAcquireNextImageInfoKHR* forMarshaling,
+                                               uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkSwapchainKHR((*&forMarshaling->swapchain));
+    memcpy(*ptr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint64_t*)&forMarshaling->timeout, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSemaphore((*&forMarshaling->semaphore));
+    memcpy(*ptr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *ptr += 1 * 8;
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkFence((*&forMarshaling->fence));
+    memcpy(*ptr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *ptr += 1 * 8;
+    memcpy(*ptr, (uint32_t*)&forMarshaling->deviceMask, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedmarshal_VkDeviceGroupPresentCapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceGroupPresentCapabilitiesKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)forMarshaling->presentMask,
+           VK_MAX_DEVICE_GROUP_SIZE * sizeof(uint32_t));
+    *ptr += VK_MAX_DEVICE_GROUP_SIZE * sizeof(uint32_t);
+    memcpy(*ptr, (VkDeviceGroupPresentModeFlagsKHR*)&forMarshaling->modes,
+           sizeof(VkDeviceGroupPresentModeFlagsKHR));
+    *ptr += sizeof(VkDeviceGroupPresentModeFlagsKHR);
+}
+
+void reservedmarshal_VkDeviceGroupPresentInfoKHR(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkDeviceGroupPresentInfoKHR* forMarshaling,
+                                                 uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint32_t*)forMarshaling->pDeviceMasks,
+           forMarshaling->swapchainCount * sizeof(const uint32_t));
+    *ptr += forMarshaling->swapchainCount * sizeof(const uint32_t);
+    memcpy(*ptr, (VkDeviceGroupPresentModeFlagBitsKHR*)&forMarshaling->mode,
+           sizeof(VkDeviceGroupPresentModeFlagBitsKHR));
+    *ptr += sizeof(VkDeviceGroupPresentModeFlagBitsKHR);
+}
+
+void reservedmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceGroupSwapchainCreateInfoKHR* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkDeviceGroupPresentModeFlagsKHR*)&forMarshaling->modes,
+           sizeof(VkDeviceGroupPresentModeFlagsKHR));
+    *ptr += sizeof(VkDeviceGroupPresentModeFlagsKHR);
+}
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -9382,6 +9613,32 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
                 vkStream, rootType,
                 reinterpret_cast<const VkPhysicalDeviceMaintenance4Properties*>(structExtension),
                 ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_swapchain
+        case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR: {
+            reservedmarshal_VkImageSwapchainCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageSwapchainCreateInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR: {
+            reservedmarshal_VkBindImageMemorySwapchainInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkBindImageMemorySwapchainInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR: {
+            reservedmarshal_VkDeviceGroupPresentInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkDeviceGroupPresentInfoKHR*>(structExtension), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR: {
+            reservedmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkDeviceGroupSwapchainCreateInfoKHR*>(structExtension), ptr);
             break;
         }
 #endif

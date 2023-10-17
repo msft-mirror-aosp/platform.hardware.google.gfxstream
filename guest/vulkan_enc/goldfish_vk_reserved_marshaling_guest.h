@@ -1158,6 +1158,39 @@ void reservedmarshal_VkDeviceImageMemoryRequirements(
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void reservedmarshal_VkSwapchainCreateInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                              const VkSwapchainCreateInfoKHR* forMarshaling,
+                                              uint8_t** ptr);
+
+void reservedmarshal_VkPresentInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                      const VkPresentInfoKHR* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkImageSwapchainCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageSwapchainCreateInfoKHR* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkBindImageMemorySwapchainInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBindImageMemorySwapchainInfoKHR* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkAcquireNextImageInfoKHR(VulkanStreamGuest* vkStream,
+                                               VkStructureType rootType,
+                                               const VkAcquireNextImageInfoKHR* forMarshaling,
+                                               uint8_t** ptr);
+
+void reservedmarshal_VkDeviceGroupPresentCapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceGroupPresentCapabilitiesKHR* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkDeviceGroupPresentInfoKHR(VulkanStreamGuest* vkStream,
+                                                 VkStructureType rootType,
+                                                 const VkDeviceGroupPresentInfoKHR* forMarshaling,
+                                                 uint8_t** ptr);
+
+void reservedmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceGroupSwapchainCreateInfoKHR* forMarshaling, uint8_t** ptr);
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
