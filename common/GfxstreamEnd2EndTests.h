@@ -362,7 +362,7 @@ class TestingVirtGpuGralloc : public Gralloc {
    public:
     TestingVirtGpuGralloc(std::shared_ptr<TestingVirtGpuDevice> device);
 
-    uint32_t createColorBuffer(renderControl_client_context_t*,
+    uint32_t createColorBuffer(void*,
                                int width,
                                int height,
                                uint32_t glFormat) override;
