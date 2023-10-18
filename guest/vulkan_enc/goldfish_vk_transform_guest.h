@@ -1761,6 +1761,54 @@ void transform_fromhost_VkDeviceImageMemoryRequirements(
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void transform_tohost_VkSwapchainCreateInfoKHR(ResourceTracker* resourceTracker,
+                                               VkSwapchainCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkSwapchainCreateInfoKHR(ResourceTracker* resourceTracker,
+                                                 VkSwapchainCreateInfoKHR* toTransform);
+
+void transform_tohost_VkPresentInfoKHR(ResourceTracker* resourceTracker,
+                                       VkPresentInfoKHR* toTransform);
+
+void transform_fromhost_VkPresentInfoKHR(ResourceTracker* resourceTracker,
+                                         VkPresentInfoKHR* toTransform);
+
+void transform_tohost_VkImageSwapchainCreateInfoKHR(ResourceTracker* resourceTracker,
+                                                    VkImageSwapchainCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkImageSwapchainCreateInfoKHR(ResourceTracker* resourceTracker,
+                                                      VkImageSwapchainCreateInfoKHR* toTransform);
+
+void transform_tohost_VkBindImageMemorySwapchainInfoKHR(
+    ResourceTracker* resourceTracker, VkBindImageMemorySwapchainInfoKHR* toTransform);
+
+void transform_fromhost_VkBindImageMemorySwapchainInfoKHR(
+    ResourceTracker* resourceTracker, VkBindImageMemorySwapchainInfoKHR* toTransform);
+
+void transform_tohost_VkAcquireNextImageInfoKHR(ResourceTracker* resourceTracker,
+                                                VkAcquireNextImageInfoKHR* toTransform);
+
+void transform_fromhost_VkAcquireNextImageInfoKHR(ResourceTracker* resourceTracker,
+                                                  VkAcquireNextImageInfoKHR* toTransform);
+
+void transform_tohost_VkDeviceGroupPresentCapabilitiesKHR(
+    ResourceTracker* resourceTracker, VkDeviceGroupPresentCapabilitiesKHR* toTransform);
+
+void transform_fromhost_VkDeviceGroupPresentCapabilitiesKHR(
+    ResourceTracker* resourceTracker, VkDeviceGroupPresentCapabilitiesKHR* toTransform);
+
+void transform_tohost_VkDeviceGroupPresentInfoKHR(ResourceTracker* resourceTracker,
+                                                  VkDeviceGroupPresentInfoKHR* toTransform);
+
+void transform_fromhost_VkDeviceGroupPresentInfoKHR(ResourceTracker* resourceTracker,
+                                                    VkDeviceGroupPresentInfoKHR* toTransform);
+
+void transform_tohost_VkDeviceGroupSwapchainCreateInfoKHR(
+    ResourceTracker* resourceTracker, VkDeviceGroupSwapchainCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkDeviceGroupSwapchainCreateInfoKHR(
+    ResourceTracker* resourceTracker, VkDeviceGroupSwapchainCreateInfoKHR* toTransform);
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
