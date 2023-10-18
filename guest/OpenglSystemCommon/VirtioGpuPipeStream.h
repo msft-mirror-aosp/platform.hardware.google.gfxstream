@@ -28,14 +28,11 @@
  */
 
 class VirtioGpuPipeStream : public gfxstream::guest::IOStream {
-public:
-    typedef enum { ERR_INVALID_SOCKET = -1000 } QemuPipeStreamError;
-
+   public:
     explicit VirtioGpuPipeStream(size_t bufsize = 10000);
     explicit VirtioGpuPipeStream(size_t bufsize, int stream_handle);
     ~VirtioGpuPipeStream();
     int connect(const char* serviceName = 0);
-    static int openRendernode();
     uint64_t initProcessPipe();
 
     virtual void *allocBuffer(size_t minSize);
@@ -51,7 +48,6 @@ public:
 
     virtual int writeFully(const void *buf, size_t len);
 
-    int getSocket() const;
 private:
     // sync. Also resets the write position.
     void wait();
