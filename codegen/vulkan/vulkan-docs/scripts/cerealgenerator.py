@@ -128,7 +128,6 @@ SUPPORTED_FEATURES = [
 SUPPORTED_WRAPPERS = {
     "VK_EXT_debug_utils": [cereal.VulkanDispatch],
     "VK_KHR_surface": [cereal.VulkanDispatch],
-    "VK_KHR_swapchain": [cereal.VulkanDispatch],
     "VK_KHR_xcb_surface": [cereal.VulkanDispatch],
     "VK_KHR_win32_surface": [cereal.VulkanDispatch],
     "VK_EXT_metal_surface": [cereal.VulkanDispatch],

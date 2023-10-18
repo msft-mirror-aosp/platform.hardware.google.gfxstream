@@ -2205,6 +2205,69 @@ void unmarshal_VkDeviceImageMemoryRequirements(VulkanStreamGuest* vkStream,
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void marshal_VkSwapchainCreateInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                      const VkSwapchainCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkSwapchainCreateInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                        VkSwapchainCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkPresentInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                              const VkPresentInfoKHR* forMarshaling);
+
+void unmarshal_VkPresentInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                VkPresentInfoKHR* forUnmarshaling);
+
+#define OP_vkCreateSwapchainKHR 20170
+#define OP_vkDestroySwapchainKHR 20171
+#define OP_vkGetSwapchainImagesKHR 20172
+#define OP_vkAcquireNextImageKHR 20173
+#define OP_vkQueuePresentKHR 20174
+void marshal_VkImageSwapchainCreateInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                           const VkImageSwapchainCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkImageSwapchainCreateInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                             VkImageSwapchainCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkBindImageMemorySwapchainInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkBindImageMemorySwapchainInfoKHR* forMarshaling);
+
+void unmarshal_VkBindImageMemorySwapchainInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkBindImageMemorySwapchainInfoKHR* forUnmarshaling);
+
+void marshal_VkAcquireNextImageInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                       const VkAcquireNextImageInfoKHR* forMarshaling);
+
+void unmarshal_VkAcquireNextImageInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                         VkAcquireNextImageInfoKHR* forUnmarshaling);
+
+void marshal_VkDeviceGroupPresentCapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceGroupPresentCapabilitiesKHR* forMarshaling);
+
+void unmarshal_VkDeviceGroupPresentCapabilitiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkDeviceGroupPresentCapabilitiesKHR* forUnmarshaling);
+
+void marshal_VkDeviceGroupPresentInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                         const VkDeviceGroupPresentInfoKHR* forMarshaling);
+
+void unmarshal_VkDeviceGroupPresentInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
+                                           VkDeviceGroupPresentInfoKHR* forUnmarshaling);
+
+void marshal_VkDeviceGroupSwapchainCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDeviceGroupSwapchainCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkDeviceGroupSwapchainCreateInfoKHR* forUnmarshaling);
+
+#define OP_vkGetDeviceGroupPresentCapabilitiesKHR 20175
+#define OP_vkGetDeviceGroupSurfacePresentModesKHR 20176
+#define OP_vkGetPhysicalDevicePresentRectanglesKHR 20177
+#define OP_vkAcquireNextImage2KHR 20178
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif

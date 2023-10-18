@@ -24948,6 +24948,1150 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirements(
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+VkResult VkEncoder::vkCreateSwapchainKHR(VkDevice device,
+                                         const VkSwapchainCreateInfoKHR* pCreateInfo,
+                                         const VkAllocationCallbacks* pAllocator,
+                                         VkSwapchainKHR* pSwapchain, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkCreateSwapchainKHR in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG(
+        "vkCreateSwapchainKHR(device:%p, pCreateInfo:%p, pAllocator:%p, pSwapchain:%p)", device,
+        pCreateInfo, pAllocator, pSwapchain);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkSwapchainCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_pCreateInfo = nullptr;
+    if (pCreateInfo) {
+        local_pCreateInfo =
+            (VkSwapchainCreateInfoKHR*)pool->alloc(sizeof(const VkSwapchainCreateInfoKHR));
+        deepcopy_VkSwapchainCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo,
+                                          (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
+    }
+    local_pAllocator = nullptr;
+    if (pAllocator) {
+        local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator,
+                                       (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    local_pAllocator = nullptr;
+    if (local_pCreateInfo) {
+        transform_tohost_VkSwapchainCreateInfoKHR(sResourceTracker,
+                                                  (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
+    }
+    if (local_pAllocator) {
+        transform_tohost_VkAllocationCallbacks(sResourceTracker,
+                                               (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        count_VkSwapchainCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                       (VkSwapchainCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pAllocator) {
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                        (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+        }
+        uint64_t cgen_var_1;
+        *countPtr += 8;
+    }
+    uint32_t packetSize_vkCreateSwapchainKHR =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkCreateSwapchainKHR);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkCreateSwapchainKHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkCreateSwapchainKHR = OP_vkCreateSwapchainKHR;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkCreateSwapchainKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkCreateSwapchainKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    reservedmarshal_VkSwapchainCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                             (VkSwapchainCreateInfoKHR*)(local_pCreateInfo),
+                                             streamPtrPtr);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
+    memcpy((*streamPtrPtr), &cgen_var_1, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pAllocator) {
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                              (VkAllocationCallbacks*)(local_pAllocator),
+                                              streamPtrPtr);
+    }
+    /* is handle, possibly out */;
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = (uint64_t)((*pSwapchain));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 8);
+    *streamPtrPtr += 8;
+    /* is handle, possibly out */;
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkCreateSwapchainKHR), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    stream->setHandleMapping(sResourceTracker->createMapping());
+    uint64_t cgen_var_3;
+    stream->read((uint64_t*)&cgen_var_3, 8);
+    stream->handleMapping()->mapHandles_u64_VkSwapchainKHR(&cgen_var_3, (VkSwapchainKHR*)pSwapchain,
+                                                           1);
+    stream->unsetHandleMapping();
+    VkResult vkCreateSwapchainKHR_VkResult_return = (VkResult)0;
+    stream->read(&vkCreateSwapchainKHR_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkCreateSwapchainKHR_VkResult_return;
+}
+
+void VkEncoder::vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                      const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkDestroySwapchainKHR in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG("vkDestroySwapchainKHR(device:%p, swapchain:%p, pAllocator:%p)", device,
+                      swapchain, pAllocator);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkSwapchainKHR local_swapchain;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_swapchain = swapchain;
+    local_pAllocator = nullptr;
+    if (pAllocator) {
+        local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator,
+                                       (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    local_pAllocator = nullptr;
+    if (local_pAllocator) {
+        transform_tohost_VkAllocationCallbacks(sResourceTracker,
+                                               (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pAllocator) {
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                        (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+        }
+    }
+    uint32_t packetSize_vkDestroySwapchainKHR =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkDestroySwapchainKHR);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkDestroySwapchainKHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkDestroySwapchainKHR = OP_vkDestroySwapchainKHR;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkDestroySwapchainKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkDestroySwapchainKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSwapchainKHR((*&local_swapchain));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
+    memcpy((*streamPtrPtr), &cgen_var_2, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pAllocator) {
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                              (VkAllocationCallbacks*)(local_pAllocator),
+                                              streamPtrPtr);
+    }
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkDestroySwapchainKHR), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    sResourceTracker->destroyMapping()->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&swapchain);
+    stream->flush();
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
+VkResult VkEncoder::vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                            uint32_t* pSwapchainImageCount,
+                                            VkImage* pSwapchainImages, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkGetSwapchainImagesKHR in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG(
+        "vkGetSwapchainImagesKHR(device:%p, swapchain:%p, pSwapchainImageCount:%p, "
+        "pSwapchainImages:%p)",
+        device, swapchain, pSwapchainImageCount, pSwapchainImages);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkSwapchainKHR local_swapchain;
+    local_device = device;
+    local_swapchain = swapchain;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (pSwapchainImageCount) {
+            *countPtr += sizeof(uint32_t);
+        }
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (pSwapchainImages) {
+            if ((*(pSwapchainImageCount))) {
+                *countPtr += (*(pSwapchainImageCount)) * 8;
+            }
+        }
+    }
+    uint32_t packetSize_vkGetSwapchainImagesKHR =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkGetSwapchainImagesKHR);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkGetSwapchainImagesKHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkGetSwapchainImagesKHR = OP_vkGetSwapchainImagesKHR;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkGetSwapchainImagesKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkGetSwapchainImagesKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSwapchainKHR((*&local_swapchain));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pSwapchainImageCount;
+    memcpy((*streamPtrPtr), &cgen_var_2, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (pSwapchainImageCount) {
+        memcpy(*streamPtrPtr, (uint32_t*)pSwapchainImageCount, sizeof(uint32_t));
+        *streamPtrPtr += sizeof(uint32_t);
+    }
+    /* is handle, possibly out */;
+    // WARNING PTR CHECK
+    uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pSwapchainImages;
+    memcpy((*streamPtrPtr), &cgen_var_3, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (pSwapchainImages) {
+        if ((*(pSwapchainImageCount))) {
+            uint8_t* cgen_var_3_0_ptr = (uint8_t*)(*streamPtrPtr);
+            if (pSwapchainImageCount) {
+                for (uint32_t k = 0; k < (*(pSwapchainImageCount)); ++k) {
+                    uint64_t tmpval = (uint64_t)(pSwapchainImages[k]);
+                    memcpy(cgen_var_3_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
+            }
+            *streamPtrPtr += 8 * (*(pSwapchainImageCount));
+        }
+    }
+    /* is handle, possibly out */;
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkGetSwapchainImagesKHR), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    // WARNING PTR CHECK
+    uint32_t* check_pSwapchainImageCount;
+    check_pSwapchainImageCount = (uint32_t*)(uintptr_t)stream->getBe64();
+    if (pSwapchainImageCount) {
+        if (!(check_pSwapchainImageCount)) {
+            fprintf(stderr, "fatal: pSwapchainImageCount inconsistent between guest and host\n");
+        }
+        stream->read((uint32_t*)pSwapchainImageCount, sizeof(uint32_t));
+    }
+    // WARNING PTR CHECK
+    VkImage* check_pSwapchainImages;
+    check_pSwapchainImages = (VkImage*)(uintptr_t)stream->getBe64();
+    if (pSwapchainImages) {
+        if (!(check_pSwapchainImages)) {
+            fprintf(stderr, "fatal: pSwapchainImages inconsistent between guest and host\n");
+        }
+        if ((*(pSwapchainImageCount))) {
+            uint64_t* cgen_var_5_0;
+            stream->alloc((void**)&cgen_var_5_0, (*(pSwapchainImageCount)) * 8);
+            stream->read((uint64_t*)cgen_var_5_0, (*(pSwapchainImageCount)) * 8);
+            stream->handleMapping()->mapHandles_u64_VkImage(
+                cgen_var_5_0, (VkImage*)pSwapchainImages, (*(pSwapchainImageCount)));
+        }
+    }
+    VkResult vkGetSwapchainImagesKHR_VkResult_return = (VkResult)0;
+    stream->read(&vkGetSwapchainImagesKHR_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkGetSwapchainImagesKHR_VkResult_return;
+}
+
+VkResult VkEncoder::vkAcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchain,
+                                          uint64_t timeout, VkSemaphore semaphore, VkFence fence,
+                                          uint32_t* pImageIndex, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkAcquireNextImageKHR in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG(
+        "vkAcquireNextImageKHR(device:%p, swapchain:%p, timeout:%ld, semaphore:%p, fence:%p, "
+        "pImageIndex:%p)",
+        device, swapchain, timeout, semaphore, fence, pImageIndex);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkSwapchainKHR local_swapchain;
+    uint64_t local_timeout;
+    VkSemaphore local_semaphore;
+    VkFence local_fence;
+    local_device = device;
+    local_swapchain = swapchain;
+    local_timeout = timeout;
+    local_semaphore = semaphore;
+    local_fence = fence;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint64_t);
+        uint64_t cgen_var_2;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_3;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+    }
+    uint32_t packetSize_vkAcquireNextImageKHR =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkAcquireNextImageKHR);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkAcquireNextImageKHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkAcquireNextImageKHR = OP_vkAcquireNextImageKHR;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkAcquireNextImageKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkAcquireNextImageKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSwapchainKHR((*&local_swapchain));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint64_t*)&local_timeout, sizeof(uint64_t));
+    *streamPtrPtr += sizeof(uint64_t);
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkSemaphore((*&local_semaphore));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_3;
+    *&cgen_var_3 = get_host_u64_VkFence((*&local_fence));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_3, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint32_t*)pImageIndex, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkAcquireNextImageKHR), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    stream->read((uint32_t*)pImageIndex, sizeof(uint32_t));
+    VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
+    stream->read(&vkAcquireNextImageKHR_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkAcquireNextImageKHR_VkResult_return;
+}
+
+VkResult VkEncoder::vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo,
+                                      uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkQueuePresentKHR in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG("vkQueuePresentKHR(queue:%p, pPresentInfo:%p)", queue, pPresentInfo);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkQueue local_queue;
+    VkPresentInfoKHR* local_pPresentInfo;
+    local_queue = queue;
+    local_pPresentInfo = nullptr;
+    if (pPresentInfo) {
+        local_pPresentInfo = (VkPresentInfoKHR*)pool->alloc(sizeof(const VkPresentInfoKHR));
+        deepcopy_VkPresentInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pPresentInfo,
+                                  (VkPresentInfoKHR*)(local_pPresentInfo));
+    }
+    if (local_pPresentInfo) {
+        transform_tohost_VkPresentInfoKHR(sResourceTracker,
+                                          (VkPresentInfoKHR*)(local_pPresentInfo));
+    }
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        count_VkPresentInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+                               (VkPresentInfoKHR*)(local_pPresentInfo), countPtr);
+    }
+    uint32_t packetSize_vkQueuePresentKHR =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkQueuePresentKHR);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkQueuePresentKHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkQueuePresentKHR = OP_vkQueuePresentKHR;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkQueuePresentKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkQueuePresentKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkQueue((*&local_queue));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    reservedmarshal_VkPresentInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                     (VkPresentInfoKHR*)(local_pPresentInfo), streamPtrPtr);
+    if (watchdog) {
+        size_t watchdogBufSize =
+            std::min<size_t>(static_cast<size_t>(packetSize_vkQueuePresentKHR), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    VkResult vkQueuePresentKHR_VkResult_return = (VkResult)0;
+    stream->read(&vkQueuePresentKHR_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkQueuePresentKHR_VkResult_return;
+}
+
+VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
+    VkDevice device, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities,
+    uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkGetDeviceGroupPresentCapabilitiesKHR in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG(
+        "vkGetDeviceGroupPresentCapabilitiesKHR(device:%p, pDeviceGroupPresentCapabilities:%p)",
+        device, pDeviceGroupPresentCapabilities);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    local_device = device;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        count_VkDeviceGroupPresentCapabilitiesKHR(
+            sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+            (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities), countPtr);
+    }
+    uint32_t packetSize_vkGetDeviceGroupPresentCapabilitiesKHR =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize =
+        std::make_optional(packetSize_vkGetDeviceGroupPresentCapabilitiesKHR);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceGroupPresentCapabilitiesKHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkGetDeviceGroupPresentCapabilitiesKHR =
+        OP_vkGetDeviceGroupPresentCapabilitiesKHR;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkGetDeviceGroupPresentCapabilitiesKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkGetDeviceGroupPresentCapabilitiesKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    reservedmarshal_VkDeviceGroupPresentCapabilitiesKHR(
+        stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+        (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities), streamPtrPtr);
+    if (watchdog) {
+        size_t watchdogBufSize =
+            std::min<size_t>(static_cast<size_t>(packetSize_vkGetDeviceGroupPresentCapabilitiesKHR),
+                             kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    unmarshal_VkDeviceGroupPresentCapabilitiesKHR(
+        stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+        (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
+    if (pDeviceGroupPresentCapabilities) {
+        transform_fromhost_VkDeviceGroupPresentCapabilitiesKHR(
+            sResourceTracker,
+            (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
+    }
+    VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
+    stream->read(&vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
+}
+
+VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(VkDevice device, VkSurfaceKHR surface,
+                                                           VkDeviceGroupPresentModeFlagsKHR* pModes,
+                                                           uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkGetDeviceGroupSurfacePresentModesKHR in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG("vkGetDeviceGroupSurfacePresentModesKHR(device:%p, surface:%p, pModes:%p)",
+                      device, surface, pModes);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkSurfaceKHR local_surface;
+    local_device = device;
+    local_surface = surface;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (pModes) {
+            *countPtr += sizeof(VkDeviceGroupPresentModeFlagsKHR);
+        }
+    }
+    uint32_t packetSize_vkGetDeviceGroupSurfacePresentModesKHR =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize =
+        std::make_optional(packetSize_vkGetDeviceGroupSurfacePresentModesKHR);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceGroupSurfacePresentModesKHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkGetDeviceGroupSurfacePresentModesKHR =
+        OP_vkGetDeviceGroupSurfacePresentModesKHR;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkGetDeviceGroupSurfacePresentModesKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkGetDeviceGroupSurfacePresentModesKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSurfaceKHR((*&local_surface));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pModes;
+    memcpy((*streamPtrPtr), &cgen_var_2, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (pModes) {
+        memcpy(*streamPtrPtr, (VkDeviceGroupPresentModeFlagsKHR*)pModes,
+               sizeof(VkDeviceGroupPresentModeFlagsKHR));
+        *streamPtrPtr += sizeof(VkDeviceGroupPresentModeFlagsKHR);
+    }
+    if (watchdog) {
+        size_t watchdogBufSize =
+            std::min<size_t>(static_cast<size_t>(packetSize_vkGetDeviceGroupSurfacePresentModesKHR),
+                             kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    // WARNING PTR CHECK
+    VkDeviceGroupPresentModeFlagsKHR* check_pModes;
+    check_pModes = (VkDeviceGroupPresentModeFlagsKHR*)(uintptr_t)stream->getBe64();
+    if (pModes) {
+        if (!(check_pModes)) {
+            fprintf(stderr, "fatal: pModes inconsistent between guest and host\n");
+        }
+        stream->read((VkDeviceGroupPresentModeFlagsKHR*)pModes,
+                     sizeof(VkDeviceGroupPresentModeFlagsKHR));
+    }
+    VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
+    stream->read(&vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
+}
+
+VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice physicalDevice,
+                                                            VkSurfaceKHR surface,
+                                                            uint32_t* pRectCount, VkRect2D* pRects,
+                                                            uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkGetPhysicalDevicePresentRectanglesKHR in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG(
+        "vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice:%p, surface:%p, pRectCount:%p, "
+        "pRects:%p)",
+        physicalDevice, surface, pRectCount, pRects);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkPhysicalDevice local_physicalDevice;
+    VkSurfaceKHR local_surface;
+    local_physicalDevice = physicalDevice;
+    local_surface = surface;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (pRectCount) {
+            *countPtr += sizeof(uint32_t);
+        }
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (pRects) {
+            if (pRectCount) {
+                for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i) {
+                    count_VkRect2D(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                   (VkRect2D*)(pRects + i), countPtr);
+                }
+            }
+        }
+    }
+    uint32_t packetSize_vkGetPhysicalDevicePresentRectanglesKHR =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize =
+        std::make_optional(packetSize_vkGetPhysicalDevicePresentRectanglesKHR);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDevicePresentRectanglesKHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkGetPhysicalDevicePresentRectanglesKHR =
+        OP_vkGetPhysicalDevicePresentRectanglesKHR;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkGetPhysicalDevicePresentRectanglesKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkGetPhysicalDevicePresentRectanglesKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSurfaceKHR((*&local_surface));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pRectCount;
+    memcpy((*streamPtrPtr), &cgen_var_2, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (pRectCount) {
+        memcpy(*streamPtrPtr, (uint32_t*)pRectCount, sizeof(uint32_t));
+        *streamPtrPtr += sizeof(uint32_t);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pRects;
+    memcpy((*streamPtrPtr), &cgen_var_3, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (pRects) {
+        for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i) {
+            reservedmarshal_VkRect2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(pRects + i),
+                                     streamPtrPtr);
+        }
+    }
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkGetPhysicalDevicePresentRectanglesKHR),
+            kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    // WARNING PTR CHECK
+    uint32_t* check_pRectCount;
+    check_pRectCount = (uint32_t*)(uintptr_t)stream->getBe64();
+    if (pRectCount) {
+        if (!(check_pRectCount)) {
+            fprintf(stderr, "fatal: pRectCount inconsistent between guest and host\n");
+        }
+        stream->read((uint32_t*)pRectCount, sizeof(uint32_t));
+    }
+    // WARNING PTR CHECK
+    VkRect2D* check_pRects;
+    check_pRects = (VkRect2D*)(uintptr_t)stream->getBe64();
+    if (pRects) {
+        if (!(check_pRects)) {
+            fprintf(stderr, "fatal: pRects inconsistent between guest and host\n");
+        }
+        if (pRectCount) {
+            for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i) {
+                unmarshal_VkRect2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(pRects + i));
+            }
+        }
+    }
+    if (pRectCount) {
+        if (pRects) {
+            for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i) {
+                transform_fromhost_VkRect2D(sResourceTracker, (VkRect2D*)(pRects + i));
+            }
+        }
+    }
+    VkResult vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = (VkResult)0;
+    stream->read(&vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return;
+}
+
+VkResult VkEncoder::vkAcquireNextImage2KHR(VkDevice device,
+                                           const VkAcquireNextImageInfoKHR* pAcquireInfo,
+                                           uint32_t* pImageIndex, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkAcquireNextImage2KHR in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG("vkAcquireNextImage2KHR(device:%p, pAcquireInfo:%p, pImageIndex:%p)", device,
+                      pAcquireInfo, pImageIndex);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkAcquireNextImageInfoKHR* local_pAcquireInfo;
+    local_device = device;
+    local_pAcquireInfo = nullptr;
+    if (pAcquireInfo) {
+        local_pAcquireInfo =
+            (VkAcquireNextImageInfoKHR*)pool->alloc(sizeof(const VkAcquireNextImageInfoKHR));
+        deepcopy_VkAcquireNextImageInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAcquireInfo,
+                                           (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
+    }
+    if (local_pAcquireInfo) {
+        transform_tohost_VkAcquireNextImageInfoKHR(
+            sResourceTracker, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
+    }
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        count_VkAcquireNextImageInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                        (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo), countPtr);
+        *countPtr += sizeof(uint32_t);
+    }
+    uint32_t packetSize_vkAcquireNextImage2KHR =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkAcquireNextImage2KHR);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkAcquireNextImage2KHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkAcquireNextImage2KHR = OP_vkAcquireNextImage2KHR;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkAcquireNextImage2KHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkAcquireNextImage2KHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    reservedmarshal_VkAcquireNextImageInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                              (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo),
+                                              streamPtrPtr);
+    memcpy(*streamPtrPtr, (uint32_t*)pImageIndex, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkAcquireNextImage2KHR), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    stream->read((uint32_t*)pImageIndex, sizeof(uint32_t));
+    VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
+    stream->read(&vkAcquireNextImage2KHR_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkAcquireNextImage2KHR_VkResult_return;
+}
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
