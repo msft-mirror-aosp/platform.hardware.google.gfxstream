@@ -5510,6 +5510,10 @@ class VkDecoderGlobalState::Impl {
             res.push_back(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
         }
 
+        if (hasDeviceExtension(properties, VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
+            res.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        }
+
 #ifdef _WIN32
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME)) {
             res.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -5558,6 +5562,10 @@ class VkDecoderGlobalState::Impl {
 
         if (m_emu->debugUtilsAvailableAndRequested) {
             res.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        }
+
+        if (m_emu->instanceSupportsSurface) {
+            res.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
         }
 
         return res;

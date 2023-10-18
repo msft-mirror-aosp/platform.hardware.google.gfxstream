@@ -553,6 +553,10 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
         VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
     };
 
+    std::vector<const char*> surfaceInstanceExtNames = {
+        VK_KHR_SURFACE_EXTENSION_NAME,
+    };
+
     uint32_t extCount = 0;
     gvk->vkEnumerateInstanceExtensionProperties(nullptr, &extCount, nullptr);
     std::vector<VkExtensionProperties>& exts = sVkEmulation->instanceExtensions;
@@ -563,6 +567,8 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
         extensionsSupported(exts, externalMemoryInstanceExtNames);
     bool externalSemaphoreCapabilitiesSupported =
         extensionsSupported(exts, externalSemaphoreInstanceExtNames);
+    bool surfaceSupported =
+        extensionsSupported(exts, surfaceInstanceExtNames);
 #ifdef VK_MVK_moltenvk
     bool moltenVKSupported =
         (vk->vkGetMTLTextureMVK != nullptr) && (vk->vkSetMTLTextureMVK != nullptr);
@@ -691,6 +697,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
     sVkEmulation->instanceSupportsExternalMemoryCapabilities = externalMemoryCapabilitiesSupported;
     sVkEmulation->instanceSupportsExternalSemaphoreCapabilities =
         externalSemaphoreCapabilitiesSupported;
+    sVkEmulation->instanceSupportsSurface = surfaceSupported;
 #ifdef VK_MVK_moltenvk
     sVkEmulation->instanceSupportsMoltenVK = moltenVKSupported;
 #endif
