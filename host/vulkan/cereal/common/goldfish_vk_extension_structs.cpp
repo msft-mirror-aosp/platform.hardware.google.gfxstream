@@ -540,6 +540,20 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
             return sizeof(VkPhysicalDeviceMaintenance4Properties);
         }
 #endif
+#ifdef VK_KHR_swapchain
+        case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR: {
+            return sizeof(VkImageSwapchainCreateInfoKHR);
+        }
+        case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR: {
+            return sizeof(VkBindImageMemorySwapchainInfoKHR);
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR: {
+            return sizeof(VkDeviceGroupPresentInfoKHR);
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR: {
+            return sizeof(VkDeviceGroupSwapchainCreateInfoKHR);
+        }
+#endif
 #ifdef VK_KHR_dynamic_rendering
         case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR: {
             return sizeof(VkRenderingFragmentShadingRateAttachmentInfoKHR);
@@ -1050,6 +1064,20 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES: {
             return sizeof(VkPhysicalDeviceMaintenance4Properties);
+        }
+#endif
+#ifdef VK_KHR_swapchain
+        case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR: {
+            return sizeof(VkImageSwapchainCreateInfoKHR);
+        }
+        case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR: {
+            return sizeof(VkBindImageMemorySwapchainInfoKHR);
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR: {
+            return sizeof(VkDeviceGroupPresentInfoKHR);
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR: {
+            return sizeof(VkDeviceGroupSwapchainCreateInfoKHR);
         }
 #endif
 #ifdef VK_KHR_dynamic_rendering
