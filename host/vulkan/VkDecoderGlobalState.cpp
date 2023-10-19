@@ -3065,12 +3065,47 @@ class VkDecoderGlobalState::Impl {
         VkMemoryAllocateInfo localAllocInfo = vk_make_orphan_copy(*pAllocateInfo);
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localAllocInfo);
 
+        VkMemoryAllocateFlagsInfo allocFlagsInfo;
+        VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
+
+        const VkMemoryAllocateFlagsInfo* allocFlagsInfoPtr =
+            vk_find_struct<VkMemoryAllocateFlagsInfo>(pAllocateInfo);
+        const VkMemoryOpaqueCaptureAddressAllocateInfo* opaqueCaptureAddressAllocInfoPtr =
+            vk_find_struct<VkMemoryOpaqueCaptureAddressAllocateInfo>(pAllocateInfo);
+
+        if (allocFlagsInfoPtr) {
+            allocFlagsInfo = *allocFlagsInfoPtr;
+            vk_append_struct(&structChainIter, &allocFlagsInfo);
+        }
+
+        if (opaqueCaptureAddressAllocInfoPtr) {
+            opaqueCaptureAddressAllocInfo = *opaqueCaptureAddressAllocInfoPtr;
+            vk_append_struct(&structChainIter, &opaqueCaptureAddressAllocInfo);
+        }
+
         const VkMemoryDedicatedAllocateInfo* dedicatedAllocInfoPtr =
             vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo);
         VkMemoryDedicatedAllocateInfo localDedicatedAllocInfo;
 
         if (dedicatedAllocInfoPtr) {
             localDedicatedAllocInfo = vk_make_orphan_copy(*dedicatedAllocInfoPtr);
+        }
+        if (!usingDirectMapping()) {
+            // We copy bytes 1 page at a time from the guest to the host
+            // if we are not using direct mapping. This means we can end up
+            // writing over memory we did not intend.
+            // E.g. swiftshader just allocated with malloc, which can have
+            // data stored between allocations.
+        #ifdef PAGE_SIZE
+            localAllocInfo.allocationSize += static_cast<VkDeviceSize>(PAGE_SIZE);
+            localAllocInfo.allocationSize &= ~static_cast<VkDeviceSize>(PAGE_SIZE - 1);
+        #elif defined(_WIN32)
+            localAllocInfo.allocationSize += static_cast<VkDeviceSize>(4096);
+            localAllocInfo.allocationSize &= ~static_cast<VkDeviceSize>(4095);
+        #else
+            localAllocInfo.allocationSize += static_cast<VkDeviceSize>(getpagesize());
+            localAllocInfo.allocationSize &= ~static_cast<VkDeviceSize>(getpagesize() - 1);
+        #endif
         }
         // Note for AHardwareBuffers, the Vulkan spec states:
         //
@@ -3920,8 +3955,20 @@ class VkDecoderGlobalState::Impl {
                                  pCommandBuffers + commandBufferCount);
     }
 
+    VkResult dispatchVkQueueSubmit(VulkanDispatch* vk, VkQueue unboxed_queue, uint32_t submitCount,
+                                   const VkSubmitInfo* pSubmits, VkFence fence) {
+        return vk->vkQueueSubmit(unboxed_queue, submitCount, pSubmits, fence);
+    }
+
+    VkResult dispatchVkQueueSubmit(VulkanDispatch* vk, VkQueue unboxed_queue, uint32_t submitCount,
+                                   const VkSubmitInfo2* pSubmits, VkFence fence) {
+        return vk->vkQueueSubmit2(unboxed_queue, submitCount, pSubmits, fence);
+    }
+
+    template <typename VkSubmitInfoType>
     VkResult on_vkQueueSubmit(android::base::BumpPool* pool, VkQueue boxed_queue,
-                              uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
+                              uint32_t submitCount, const VkSubmitInfoType* pSubmits,
+                              VkFence fence) {
         auto queue = unbox_VkQueue(boxed_queue);
         auto vk = dispatch_VkQueue(boxed_queue);
 
@@ -3937,10 +3984,7 @@ class VkDecoderGlobalState::Impl {
             }
 
             for (uint32_t i = 0; i < submitCount; i++) {
-                const VkSubmitInfo& submit = pSubmits[i];
-                for (uint32_t c = 0; c < submit.commandBufferCount; c++) {
-                    executePreprocessRecursive(0, submit.pCommandBuffers[c]);
-                }
+                executePreprocessRecursive(pSubmits[i]);
             }
 
             auto* queueInfo = android::base::find(mQueueInfo, queue);
@@ -3949,7 +3993,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         AutoLock qlock(*ql);
-        auto result = vk->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, fence);
 
         // After vkQueueSubmit is called, we can signal the conditional variable
         // in FenceInfo, so that other threads (e.g. SyncThread) can call
@@ -4152,6 +4196,34 @@ class VkDecoderGlobalState::Impl {
                bufferInfoCount * sizeof(VkDescriptorBufferInfo));
         memcpy(info->data.data() + info->bufferViewStart, pBufferViews,
                bufferViewCount * sizeof(VkBufferView));
+
+        vk->vkUpdateDescriptorSetWithTemplate(device, descriptorSet, descriptorUpdateTemplate,
+                                              info->data.data());
+    }
+
+    void on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        android::base::BumpPool* pool, VkDevice boxed_device, VkDescriptorSet descriptorSet,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+        uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+        const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+        const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+        const uint8_t* pInlineUniformBlockData) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        auto* info = android::base::find(mDescriptorUpdateTemplateInfo, descriptorUpdateTemplate);
+        if (!info) return;
+
+        memcpy(info->data.data() + info->imageInfoStart, pImageInfos,
+               imageInfoCount * sizeof(VkDescriptorImageInfo));
+        memcpy(info->data.data() + info->bufferInfoStart, pBufferInfos,
+               bufferInfoCount * sizeof(VkDescriptorBufferInfo));
+        memcpy(info->data.data() + info->bufferViewStart, pBufferViews,
+               bufferViewCount * sizeof(VkBufferView));
+        memcpy(info->data.data() + info->inlineUniformBlockStart, pInlineUniformBlockData,
+               inlineUniformBlockCount);
 
         vk->vkUpdateDescriptorSetWithTemplate(device, descriptorSet, descriptorUpdateTemplate,
                                               info->data.data());
@@ -5438,6 +5510,10 @@ class VkDecoderGlobalState::Impl {
             res.push_back(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
         }
 
+        if (hasDeviceExtension(properties, VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
+            res.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        }
+
 #ifdef _WIN32
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME)) {
             res.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -5486,6 +5562,10 @@ class VkDecoderGlobalState::Impl {
 
         if (m_emu->debugUtilsAvailableAndRequested) {
             res.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        }
+
+        if (m_emu->instanceSupportsSurface) {
+            res.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
         }
 
         return res;
@@ -5649,6 +5729,18 @@ class VkDecoderGlobalState::Impl {
         // for (const auto& subCmd : cmdBufferInfo->subCmds) {
         // executePreprocessRecursive(level + 1, subCmd);
         // }
+    }
+
+    void executePreprocessRecursive(const VkSubmitInfo& submit) {
+        for (uint32_t c = 0; c < submit.commandBufferCount; c++) {
+            executePreprocessRecursive(0, submit.pCommandBuffers[c]);
+        }
+    }
+
+    void executePreprocessRecursive(const VkSubmitInfo2& submit) {
+        for (uint32_t c = 0; c < submit.commandBufferInfoCount; c++) {
+            executePreprocessRecursive(0, submit.pCommandBufferInfos[c].commandBuffer);
+        }
     }
 
     template <typename VkHandleToInfoMap,
@@ -5863,6 +5955,7 @@ class VkDecoderGlobalState::Impl {
         size_t imageInfoStart;
         size_t bufferInfoStart;
         size_t bufferViewStart;
+        size_t inlineUniformBlockStart;
     };
 
     DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
@@ -5873,6 +5966,7 @@ class VkDecoderGlobalState::Impl {
         size_t numImageInfos = 0;
         size_t numBufferInfos = 0;
         size_t numBufferViews = 0;
+        size_t numInlineUniformBlocks = 0;
 
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
@@ -5884,6 +5978,8 @@ class VkDecoderGlobalState::Impl {
                 numBufferInfos += count;
             } else if (isDescriptorTypeBufferView(type)) {
                 numBufferViews += count;
+            } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
+                numInlineUniformBlocks += count;
             } else {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "unknown descriptor type 0x" << std::hex << type;
@@ -5893,15 +5989,19 @@ class VkDecoderGlobalState::Impl {
         size_t imageInfoBytes = numImageInfos * sizeof(VkDescriptorImageInfo);
         size_t bufferInfoBytes = numBufferInfos * sizeof(VkDescriptorBufferInfo);
         size_t bufferViewBytes = numBufferViews * sizeof(VkBufferView);
+        size_t inlineUniformBlockBytes = numInlineUniformBlocks;
 
-        res.data.resize(imageInfoBytes + bufferInfoBytes + bufferViewBytes);
+        res.data.resize(imageInfoBytes + bufferInfoBytes + bufferViewBytes +
+                        inlineUniformBlockBytes);
         res.imageInfoStart = 0;
         res.bufferInfoStart = imageInfoBytes;
         res.bufferViewStart = imageInfoBytes + bufferInfoBytes;
+        res.inlineUniformBlockStart = imageInfoBytes + bufferInfoBytes + bufferViewBytes;
 
         size_t imageInfoCount = 0;
         size_t bufferInfoCount = 0;
         size_t bufferViewCount = 0;
+        size_t inlineUniformBlockCount = 0;
 
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
@@ -5923,6 +6023,10 @@ class VkDecoderGlobalState::Impl {
                 entryForHost.offset = res.bufferViewStart + bufferViewCount * sizeof(VkBufferView);
                 entryForHost.stride = sizeof(VkBufferView);
                 ++bufferViewCount;
+            } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
+                entryForHost.offset = res.inlineUniformBlockStart + inlineUniformBlockCount;
+                entryForHost.stride = 0;
+                inlineUniformBlockCount += entryForHost.descriptorCount;
             } else {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "unknown descriptor type 0x" << std::hex << type;
@@ -7019,6 +7123,12 @@ VkResult VkDecoderGlobalState::on_vkQueueSubmit(android::base::BumpPool* pool, V
     return mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
 }
 
+VkResult VkDecoderGlobalState::on_vkQueueSubmit2(android::base::BumpPool* pool, VkQueue queue,
+                                                 uint32_t submitCount,
+                                                 const VkSubmitInfo2* pSubmits, VkFence fence) {
+    return mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
+}
+
 VkResult VkDecoderGlobalState::on_vkQueueWaitIdle(android::base::BumpPool* pool, VkQueue queue) {
     return mImpl->on_vkQueueWaitIdle(pool, queue);
 }
@@ -7097,6 +7207,21 @@ void VkDecoderGlobalState::on_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
         pool, boxed_device, descriptorSet, descriptorUpdateTemplate, imageInfoCount,
         bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
         pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews);
+}
+
+void VkDecoderGlobalState::on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+    android::base::BumpPool* pool, VkDevice boxed_device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+    uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+    const uint8_t* pInlineUniformBlockData) {
+    mImpl->on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+        pool, boxed_device, descriptorSet, descriptorUpdateTemplate, imageInfoCount,
+        bufferInfoCount, bufferViewCount, inlineUniformBlockCount, pImageInfoEntryIndices,
+        pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews,
+        pInlineUniformBlockData);
 }
 
 VkResult VkDecoderGlobalState::on_vkBeginCommandBuffer(android::base::BumpPool* pool,
@@ -7233,6 +7358,13 @@ void VkDecoderGlobalState::on_vkQueueSubmitAsyncGOOGLE(android::base::BumpPool* 
                                                        uint32_t submitCount,
                                                        const VkSubmitInfo* pSubmits,
                                                        VkFence fence) {
+    mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
+}
+
+void VkDecoderGlobalState::on_vkQueueSubmitAsync2GOOGLE(android::base::BumpPool* pool,
+                                                        VkQueue queue, uint32_t submitCount,
+                                                        const VkSubmitInfo2* pSubmits,
+                                                        VkFence fence) {
     mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
 }
 

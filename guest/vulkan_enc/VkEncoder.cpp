@@ -66765,6 +66765,432 @@ VkResult VkEncoder::vkGetBlobGOOGLE(VkDevice device, VkDeviceMemory memory, uint
     return vkGetBlobGOOGLE_VkResult_return;
 }
 
+void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+    VkDevice device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
+    uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
+    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
+    const uint8_t* pInlineUniformBlockData, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor,
+                         "vkUpdateDescriptorSetWithTemplateSized2GOOGLE in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG(
+        "vkUpdateDescriptorSetWithTemplateSized2GOOGLE(device:%p, descriptorSet:%p, "
+        "descriptorUpdateTemplate:%p, imageInfoCount:%d, bufferInfoCount:%d, bufferViewCount:%d, "
+        "inlineUniformBlockCount:%d, pImageInfoEntryIndices:%p, pBufferInfoEntryIndices:%p, "
+        "pBufferViewEntryIndices:%p, pImageInfos:%p, pBufferInfos:%p, pBufferViews:%p, "
+        "pInlineUniformBlockData:%p)",
+        device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount,
+        bufferViewCount, inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
+        pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkDescriptorSet local_descriptorSet;
+    VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
+    uint32_t local_imageInfoCount;
+    uint32_t local_bufferInfoCount;
+    uint32_t local_bufferViewCount;
+    uint32_t local_inlineUniformBlockCount;
+    uint32_t* local_pImageInfoEntryIndices;
+    uint32_t* local_pBufferInfoEntryIndices;
+    uint32_t* local_pBufferViewEntryIndices;
+    VkDescriptorImageInfo* local_pImageInfos;
+    VkDescriptorBufferInfo* local_pBufferInfos;
+    VkBufferView* local_pBufferViews;
+    uint8_t* local_pInlineUniformBlockData;
+    local_device = device;
+    local_descriptorSet = descriptorSet;
+    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
+    local_imageInfoCount = imageInfoCount;
+    local_bufferInfoCount = bufferInfoCount;
+    local_bufferViewCount = bufferViewCount;
+    local_inlineUniformBlockCount = inlineUniformBlockCount;
+    // Avoiding deepcopy for pImageInfoEntryIndices
+    local_pImageInfoEntryIndices = (uint32_t*)pImageInfoEntryIndices;
+    // Avoiding deepcopy for pBufferInfoEntryIndices
+    local_pBufferInfoEntryIndices = (uint32_t*)pBufferInfoEntryIndices;
+    // Avoiding deepcopy for pBufferViewEntryIndices
+    local_pBufferViewEntryIndices = (uint32_t*)pBufferViewEntryIndices;
+    local_pImageInfos = nullptr;
+    if (pImageInfos) {
+        local_pImageInfos = (VkDescriptorImageInfo*)pool->alloc(
+            ((imageInfoCount)) * sizeof(const VkDescriptorImageInfo));
+        for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+            deepcopy_VkDescriptorImageInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImageInfos + i,
+                                           (VkDescriptorImageInfo*)(local_pImageInfos + i));
+        }
+    }
+    local_pBufferInfos = nullptr;
+    if (pBufferInfos) {
+        local_pBufferInfos = (VkDescriptorBufferInfo*)pool->alloc(
+            ((bufferInfoCount)) * sizeof(const VkDescriptorBufferInfo));
+        for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+            deepcopy_VkDescriptorBufferInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBufferInfos + i,
+                                            (VkDescriptorBufferInfo*)(local_pBufferInfos + i));
+        }
+    }
+    // Avoiding deepcopy for pBufferViews
+    local_pBufferViews = (VkBufferView*)pBufferViews;
+    // Avoiding deepcopy for pInlineUniformBlockData
+    local_pInlineUniformBlockData = (uint8_t*)pInlineUniformBlockData;
+    if (local_pImageInfos) {
+        for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+            transform_tohost_VkDescriptorImageInfo(sResourceTracker,
+                                                   (VkDescriptorImageInfo*)(local_pImageInfos + i));
+        }
+    }
+    if (local_pBufferInfos) {
+        for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+            transform_tohost_VkDescriptorBufferInfo(
+                sResourceTracker, (VkDescriptorBufferInfo*)(local_pBufferInfos + i));
+        }
+    }
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_2;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+        *countPtr += sizeof(uint32_t);
+        *countPtr += sizeof(uint32_t);
+        *countPtr += sizeof(uint32_t);
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pImageInfoEntryIndices) {
+            *countPtr += ((imageInfoCount)) * sizeof(uint32_t);
+        }
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pBufferInfoEntryIndices) {
+            *countPtr += ((bufferInfoCount)) * sizeof(uint32_t);
+        }
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pBufferViewEntryIndices) {
+            *countPtr += ((bufferViewCount)) * sizeof(uint32_t);
+        }
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pImageInfos) {
+            for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+                count_VkDescriptorImageInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                            (VkDescriptorImageInfo*)(local_pImageInfos + i),
+                                            countPtr);
+            }
+        }
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pBufferInfos) {
+            for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+                count_VkDescriptorBufferInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                             (VkDescriptorBufferInfo*)(local_pBufferInfos + i),
+                                             countPtr);
+            }
+        }
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pBufferViews) {
+            if (((bufferViewCount))) {
+                *countPtr += ((bufferViewCount)) * 8;
+            }
+        }
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pInlineUniformBlockData) {
+            *countPtr += ((inlineUniformBlockCount)) * sizeof(uint8_t);
+        }
+    }
+    uint32_t packetSize_vkUpdateDescriptorSetWithTemplateSized2GOOGLE =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize =
+        std::make_optional(packetSize_vkUpdateDescriptorSetWithTemplateSized2GOOGLE);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkUpdateDescriptorSetWithTemplateSized2GOOGLE);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkUpdateDescriptorSetWithTemplateSized2GOOGLE =
+        OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkUpdateDescriptorSetWithTemplateSized2GOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkUpdateDescriptorSetWithTemplateSized2GOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkDescriptorSet((*&local_descriptorSet));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkDescriptorUpdateTemplate((*&local_descriptorUpdateTemplate));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint32_t*)&local_imageInfoCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (uint32_t*)&local_bufferInfoCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (uint32_t*)&local_bufferViewCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (uint32_t*)&local_inlineUniformBlockCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_3 = (uint64_t)(uintptr_t)local_pImageInfoEntryIndices;
+    memcpy((*streamPtrPtr), &cgen_var_3, 8);
+    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pImageInfoEntryIndices) {
+        memcpy(*streamPtrPtr, (uint32_t*)local_pImageInfoEntryIndices,
+               ((imageInfoCount)) * sizeof(uint32_t));
+        *streamPtrPtr += ((imageInfoCount)) * sizeof(uint32_t);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_4 = (uint64_t)(uintptr_t)local_pBufferInfoEntryIndices;
+    memcpy((*streamPtrPtr), &cgen_var_4, 8);
+    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pBufferInfoEntryIndices) {
+        memcpy(*streamPtrPtr, (uint32_t*)local_pBufferInfoEntryIndices,
+               ((bufferInfoCount)) * sizeof(uint32_t));
+        *streamPtrPtr += ((bufferInfoCount)) * sizeof(uint32_t);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_5 = (uint64_t)(uintptr_t)local_pBufferViewEntryIndices;
+    memcpy((*streamPtrPtr), &cgen_var_5, 8);
+    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pBufferViewEntryIndices) {
+        memcpy(*streamPtrPtr, (uint32_t*)local_pBufferViewEntryIndices,
+               ((bufferViewCount)) * sizeof(uint32_t));
+        *streamPtrPtr += ((bufferViewCount)) * sizeof(uint32_t);
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_6 = (uint64_t)(uintptr_t)local_pImageInfos;
+    memcpy((*streamPtrPtr), &cgen_var_6, 8);
+    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pImageInfos) {
+        for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+            reservedmarshal_VkDescriptorImageInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                  (VkDescriptorImageInfo*)(local_pImageInfos + i),
+                                                  streamPtrPtr);
+        }
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_7 = (uint64_t)(uintptr_t)local_pBufferInfos;
+    memcpy((*streamPtrPtr), &cgen_var_7, 8);
+    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pBufferInfos) {
+        for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+            reservedmarshal_VkDescriptorBufferInfo(
+                stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                (VkDescriptorBufferInfo*)(local_pBufferInfos + i), streamPtrPtr);
+        }
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_8 = (uint64_t)(uintptr_t)local_pBufferViews;
+    memcpy((*streamPtrPtr), &cgen_var_8, 8);
+    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pBufferViews) {
+        if (((bufferViewCount))) {
+            uint8_t* cgen_var_8_0_ptr = (uint8_t*)(*streamPtrPtr);
+            for (uint32_t k = 0; k < ((bufferViewCount)); ++k) {
+                uint64_t tmpval = get_host_u64_VkBufferView(local_pBufferViews[k]);
+                memcpy(cgen_var_8_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+            *streamPtrPtr += 8 * ((bufferViewCount));
+        }
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_9 = (uint64_t)(uintptr_t)local_pInlineUniformBlockData;
+    memcpy((*streamPtrPtr), &cgen_var_9, 8);
+    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pInlineUniformBlockData) {
+        memcpy(*streamPtrPtr, (uint8_t*)local_pInlineUniformBlockData,
+               ((inlineUniformBlockCount)) * sizeof(uint8_t));
+        *streamPtrPtr += ((inlineUniformBlockCount)) * sizeof(uint8_t);
+    }
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkUpdateDescriptorSetWithTemplateSized2GOOGLE),
+            kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    stream->flush();
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
+void VkEncoder::vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
+                                          const VkSubmitInfo2* pSubmits, VkFence fence,
+                                          uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkQueueSubmitAsync2GOOGLE in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG("vkQueueSubmitAsync2GOOGLE(queue:%p, submitCount:%d, pSubmits:%p, fence:%p)",
+                      queue, submitCount, pSubmits, fence);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkQueue local_queue;
+    uint32_t local_submitCount;
+    VkSubmitInfo2* local_pSubmits;
+    VkFence local_fence;
+    local_queue = queue;
+    local_submitCount = submitCount;
+    local_pSubmits = nullptr;
+    if (pSubmits) {
+        local_pSubmits = (VkSubmitInfo2*)pool->alloc(((submitCount)) * sizeof(const VkSubmitInfo2));
+        for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+            deepcopy_VkSubmitInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubmits + i,
+                                   (VkSubmitInfo2*)(local_pSubmits + i));
+        }
+    }
+    local_fence = fence;
+    if (local_pSubmits) {
+        for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+            transform_tohost_VkSubmitInfo2(sResourceTracker, (VkSubmitInfo2*)(local_pSubmits + i));
+        }
+    }
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+        for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+            count_VkSubmitInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                (VkSubmitInfo2*)(local_pSubmits + i), countPtr);
+        }
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+    }
+    uint32_t packetSize_vkQueueSubmitAsync2GOOGLE =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkQueueSubmitAsync2GOOGLE);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkQueueSubmitAsync2GOOGLE);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkQueueSubmitAsync2GOOGLE = OP_vkQueueSubmitAsync2GOOGLE;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkQueueSubmitAsync2GOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkQueueSubmitAsync2GOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkQueue((*&local_queue));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint32_t*)&local_submitCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+        reservedmarshal_VkSubmitInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                      (VkSubmitInfo2*)(local_pSubmits + i), streamPtrPtr);
+    }
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkFence((*&local_fence));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkQueueSubmitAsync2GOOGLE), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    stream->flush();
+    ++encodeCount;
+    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif

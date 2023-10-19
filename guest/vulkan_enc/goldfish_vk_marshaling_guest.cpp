@@ -2808,9 +2808,16 @@ void marshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream, VkStructu
     uint32_t hasRasterization = 1;
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         hasRasterization =
-            (((0 == forMarshaling->pRasterizationState))
-                 ? (0)
-                 : (!((*(forMarshaling->pRasterizationState)).rasterizerDiscardEnable)));
+            ((((0 == forMarshaling->pRasterizationState))
+                  ? (0)
+                  : (!((*(forMarshaling->pRasterizationState)).rasterizerDiscardEnable))) ||
+             (((0 == forMarshaling->pDynamicState))
+                  ? (0)
+                  : (arrayany((*(forMarshaling->pDynamicState)).pDynamicStates, 0,
+                              (*(forMarshaling->pDynamicState)).dynamicStateCount,
+                              [](VkDynamicState s) {
+                                  return (s == VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE);
+                              }))));
         uint32_t cgen_var_0 = (uint32_t)hasRasterization;
         vkStream->putBe32(cgen_var_0);
     }
@@ -40911,6 +40918,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCmdWaitEvents2";
         }
 #endif
+#ifdef VK_GOOGLE_gfxstream
+        case OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE: {
+            return "OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE";
+        }
+#endif
 #ifdef VK_EXT_extended_dynamic_state3
         case OP_vkCmdSetRepresentativeFragmentTestEnableNV: {
             return "OP_vkCmdSetRepresentativeFragmentTestEnableNV";
@@ -41762,6 +41774,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_KHR_synchronization2
         case OP_vkGetQueueCheckpointData2NV: {
             return "OP_vkGetQueueCheckpointData2NV";
+        }
+#endif
+#ifdef VK_GOOGLE_gfxstream
+        case OP_vkQueueSubmitAsync2GOOGLE: {
+            return "OP_vkQueueSubmitAsync2GOOGLE";
         }
 #endif
 #ifdef VK_EXT_opacity_micromap

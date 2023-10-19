@@ -368,12 +368,15 @@ public:
         uint32_t imageInfoCount = 0;
         uint32_t bufferInfoCount = 0;
         uint32_t bufferViewCount = 0;
+        uint32_t inlineUniformBlockCount = 0;
         uint32_t* imageInfoIndices;
         uint32_t* bufferInfoIndices;
         uint32_t* bufferViewIndices;
         VkDescriptorImageInfo* imageInfos;
         VkDescriptorBufferInfo* bufferInfos;
         VkBufferView* bufferViews;
+        std::vector<uint8_t> inlineUniformBlockBuffer;
+        std::vector<uint32_t> inlineUniformBlockBytesPerBlocks;  // bytes per uniform block
     };
 
     struct VkFence_Info {
@@ -1215,7 +1218,6 @@ public:
         const char*,
         uint32_t* pPropertyCount,
         VkExtensionProperties* pProperties) {
-
         std::vector<const char*> allowedExtensionNames = {
             "VK_KHR_vulkan_memory_model",
             "VK_KHR_buffer_device_address",
@@ -1227,8 +1229,8 @@ public:
             "VK_KHR_get_memory_requirements2",
             "VK_KHR_sampler_ycbcr_conversion",
             "VK_KHR_shader_float16_int8",
-            // Timeline semaphores buggy in newer NVIDIA drivers
-            // (vkWaitSemaphoresKHR causes further vkCommandBuffer dispatches to deadlock)
+        // Timeline semaphores buggy in newer NVIDIA drivers
+        // (vkWaitSemaphoresKHR causes further vkCommandBuffer dispatches to deadlock)
 #ifndef VK_USE_PLATFORM_ANDROID_KHR
             "VK_KHR_timeline_semaphore",
 #endif
@@ -1261,9 +1263,12 @@ public:
             "VK_EXT_device_memory_report",
 #endif
 #if !defined(VK_USE_PLATFORM_ANDROID_KHR) && defined(__linux__)
-           "VK_KHR_create_renderpass2",
-           "VK_KHR_imageless_framebuffer",
+            "VK_KHR_create_renderpass2",
+            "VK_KHR_imageless_framebuffer",
 #endif
+            // Vulkan 1.3
+            "VK_KHR_synchronization2",
+            "VK_EXT_private_data",
         };
 
         VkEncoder* enc = (VkEncoder*)context;
@@ -5254,6 +5259,22 @@ public:
             vk_append_struct(&structChainIter, &localExtBufCi);
         }
 
+        VkBufferOpaqueCaptureAddressCreateInfo localCapAddrCi;
+        const VkBufferOpaqueCaptureAddressCreateInfo* pCapAddrCi =
+            vk_find_struct<VkBufferOpaqueCaptureAddressCreateInfo>(pCreateInfo);
+        if (pCapAddrCi) {
+            localCapAddrCi = vk_make_orphan_copy(*pCapAddrCi);
+            vk_append_struct(&structChainIter, &localCapAddrCi);
+        }
+
+        VkBufferDeviceAddressCreateInfoEXT localDevAddrCi;
+        const VkBufferDeviceAddressCreateInfoEXT* pDevAddrCi =
+            vk_find_struct<VkBufferDeviceAddressCreateInfoEXT>(pCreateInfo);
+        if (pDevAddrCi) {
+            localDevAddrCi = vk_make_orphan_copy(*pDevAddrCi);
+            vk_append_struct(&structChainIter, &localDevAddrCi);
+        }
+
 #ifdef VK_USE_PLATFORM_FUCHSIA
         Optional<zx::vmo> vmo;
         bool isSysmemBackedMemory = false;
@@ -5883,11 +5904,61 @@ public:
         }
     }
 
-    void flushStagingStreams(void* context, VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits) {
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.waitSemaphoreCount;
+    }
+
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.waitSemaphoreInfoCount;
+    }
+
+    uint32_t getCommandBufferCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.commandBufferCount;
+    }
+
+    uint32_t getCommandBufferCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.commandBufferInfoCount;
+    }
+
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.signalSemaphoreCount;
+    }
+
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.signalSemaphoreInfoCount;
+    }
+
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pWaitSemaphores[i];
+    }
+
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pWaitSemaphoreInfos[i].semaphore;
+    }
+
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pSignalSemaphores[i];
+    }
+
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pSignalSemaphoreInfos[i].semaphore;
+    }
+
+    VkCommandBuffer getCommandBuffer(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pCommandBuffers[i];
+    }
+
+    VkCommandBuffer getCommandBuffer(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pCommandBufferInfos[i].commandBuffer;
+    }
+
+    template <class VkSubmitInfoType>
+    void flushStagingStreams(void* context, VkQueue queue, uint32_t submitCount,
+                             const VkSubmitInfoType* pSubmits) {
         std::vector<VkCommandBuffer> toFlush;
         for (uint32_t i = 0; i < submitCount; ++i) {
-            for (uint32_t j = 0; j < pSubmits[i].commandBufferCount; ++j) {
-                toFlush.push_back(pSubmits[i].pCommandBuffers[j]);
+            for (uint32_t j = 0; j < getCommandBufferCount(pSubmits[i]); ++j) {
+                toFlush.push_back(getCommandBuffer(pSubmits[i], j));
             }
         }
 
@@ -5906,7 +5977,41 @@ public:
         void* context, VkResult input_result,
         VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
         AEMU_SCOPED_TRACE("on_vkQueueSubmit");
+        return on_vkQueueSubmitTemplate<VkSubmitInfo>(context, input_result, queue, submitCount,
+                                                      pSubmits, fence);
+    }
 
+    VkResult on_vkQueueSubmit2(void* context, VkResult input_result, VkQueue queue,
+                               uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence) {
+        AEMU_SCOPED_TRACE("on_vkQueueSubmit2");
+        return on_vkQueueSubmitTemplate<VkSubmitInfo2>(context, input_result, queue, submitCount,
+                                                       pSubmits, fence);
+    }
+
+    VkResult vkQueueSubmitEnc(VkEncoder* enc, VkQueue queue, uint32_t submitCount,
+                              const VkSubmitInfo* pSubmits, VkFence fence) {
+        if (supportsAsyncQueueSubmit()) {
+            enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
+            return VK_SUCCESS;
+        } else {
+            return enc->vkQueueSubmit(queue, submitCount, pSubmits, fence, true /* do lock */);
+        }
+    }
+
+    VkResult vkQueueSubmitEnc(VkEncoder* enc, VkQueue queue, uint32_t submitCount,
+                              const VkSubmitInfo2* pSubmits, VkFence fence) {
+        if (supportsAsyncQueueSubmit()) {
+            enc->vkQueueSubmitAsync2GOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
+            return VK_SUCCESS;
+        } else {
+            return enc->vkQueueSubmit2(queue, submitCount, pSubmits, fence, true /* do lock */);
+        }
+    }
+
+    template <typename VkSubmitInfoType>
+    VkResult on_vkQueueSubmitTemplate(void* context, VkResult input_result, VkQueue queue,
+                                      uint32_t submitCount, const VkSubmitInfoType* pSubmits,
+                                      VkFence fence) {
         flushStagingStreams(context, queue, submitCount, pSubmits);
 
         std::vector<VkSemaphore> pre_signal_semaphores;
@@ -5920,26 +6025,27 @@ public:
         AutoLock<RecursiveLock> lock(mLock);
 
         for (uint32_t i = 0; i < submitCount; ++i) {
-            for (uint32_t j = 0; j < pSubmits[i].waitSemaphoreCount; ++j) {
-                auto it = info_VkSemaphore.find(pSubmits[i].pWaitSemaphores[j]);
+            for (uint32_t j = 0; j < getWaitSemaphoreCount(pSubmits[i]); ++j) {
+                VkSemaphore semaphore = getWaitSemaphore(pSubmits[i], j);
+                auto it = info_VkSemaphore.find(semaphore);
                 if (it != info_VkSemaphore.end()) {
                     auto& semInfo = it->second;
 #ifdef VK_USE_PLATFORM_FUCHSIA
                     if (semInfo.eventHandle) {
                         pre_signal_events.push_back(semInfo.eventHandle);
-                        pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
+                        pre_signal_semaphores.push_back(semaphore);
                     }
 #endif
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
                     if (semInfo.syncFd.has_value()) {
                         pre_signal_sync_fds.push_back(semInfo.syncFd.value());
-                        pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
+                        pre_signal_semaphores.push_back(semaphore);
                     }
 #endif
                 }
             }
-            for (uint32_t j = 0; j < pSubmits[i].signalSemaphoreCount; ++j) {
-                auto it = info_VkSemaphore.find(pSubmits[i].pSignalSemaphores[j]);
+            for (uint32_t j = 0; j < getSignalSemaphoreCount(pSubmits[i]); ++j) {
+                auto it = info_VkSemaphore.find(getSignalSemaphore(pSubmits[i], j));
                 if (it != info_VkSemaphore.end()) {
                     auto& semInfo = it->second;
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -5970,13 +6076,8 @@ public:
         lock.unlock();
 
         if (pre_signal_semaphores.empty()) {
-            if (supportsAsyncQueueSubmit()) {
-                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
-                input_result = VK_SUCCESS;
-            } else {
-                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence, true /* do lock */);
-                if (input_result != VK_SUCCESS) return input_result;
-            }
+            input_result = vkQueueSubmitEnc(enc, queue, submitCount, pSubmits, fence);
+            if (input_result != VK_SUCCESS) return input_result;
         } else {
             // Schedule waits on the OS external objects and
             // signal the wait semaphores
@@ -6010,6 +6111,7 @@ public:
                 mWorkPool.waitAll(waitGroupHandle);
             }
 
+            // Use the old version of VkSubmitInfo
             VkSubmitInfo submit_info = {
                 .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                 .waitSemaphoreCount = 0,
@@ -6018,22 +6120,10 @@ public:
                 .signalSemaphoreCount =
                     static_cast<uint32_t>(pre_signal_semaphores.size()),
                 .pSignalSemaphores = pre_signal_semaphores.data()};
-
-            if (supportsAsyncQueueSubmit()) {
-                enc->vkQueueSubmitAsyncGOOGLE(queue, 1, &submit_info, VK_NULL_HANDLE, true /* do lock */);
-            } else {
-                enc->vkQueueSubmit(queue, 1, &submit_info, VK_NULL_HANDLE, true /* do lock */);
-            }
-
-            if (supportsAsyncQueueSubmit()) {
-                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
-                input_result = VK_SUCCESS;
-            } else {
-                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence, true /* do lock */);
-                if (input_result != VK_SUCCESS) return input_result;
-            }
+            vkQueueSubmitEnc(enc, queue, 1, &submit_info, VK_NULL_HANDLE);
+            input_result = vkQueueSubmitEnc(enc, queue, submitCount, pSubmits, fence);
+            if (input_result != VK_SUCCESS) return input_result;
         }
-
         lock.lock();
         int externalFenceFdToSignal = -1;
 
@@ -6088,7 +6178,6 @@ public:
             auto& queueWorkItems = mQueueSensitiveWorkPoolItems[queue];
             queueWorkItems.push_back(queueAsyncWaitHandle);
         }
-
         return VK_SUCCESS;
     }
 
@@ -6286,22 +6375,28 @@ public:
         }
 
         auto& info = it->second;
+        uint32_t inlineUniformBlockBufferSize = 0;
 
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
             uint32_t descCount = entry.descriptorCount;
             VkDescriptorType descType = entry.descriptorType;
             ++info.templateEntryCount;
-            for (uint32_t j = 0; j < descCount; ++j) {
-                if (isDescriptorTypeImageInfo(descType)) {
-                    ++info.imageInfoCount;
-                } else if (isDescriptorTypeBufferInfo(descType)) {
-                    ++info.bufferInfoCount;
-                } else if (isDescriptorTypeBufferView(descType)) {
-                    ++info.bufferViewCount;
-                } else {
-                    ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
-                    abort();
+            if (isDescriptorTypeInlineUniformBlock(descType)) {
+                inlineUniformBlockBufferSize += descCount;
+                ++info.inlineUniformBlockCount;
+            } else {
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    if (isDescriptorTypeImageInfo(descType)) {
+                        ++info.imageInfoCount;
+                    } else if (isDescriptorTypeBufferInfo(descType)) {
+                        ++info.bufferInfoCount;
+                    } else if (isDescriptorTypeBufferView(descType)) {
+                        ++info.bufferViewCount;
+                    } else {
+                        ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                        // abort();
+                    }
                 }
             }
         }
@@ -6324,9 +6419,15 @@ public:
             info.bufferViews = new VkBufferView[info.bufferViewCount];
         }
 
+        if (info.inlineUniformBlockCount) {
+            info.inlineUniformBlockBuffer.resize(inlineUniformBlockBufferSize);
+            info.inlineUniformBlockBytesPerBlocks.resize(info.inlineUniformBlockCount);
+        }
+
         uint32_t imageInfoIndex = 0;
         uint32_t bufferInfoIndex = 0;
         uint32_t bufferViewIndex = 0;
+        uint32_t inlineUniformBlockIndex = 0;
 
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
@@ -6335,19 +6436,24 @@ public:
 
             info.templateEntries[i] = entry;
 
-            for (uint32_t j = 0; j < descCount; ++j) {
-                if (isDescriptorTypeImageInfo(descType)) {
-                    info.imageInfoIndices[imageInfoIndex] = i;
-                    ++imageInfoIndex;
-                } else if (isDescriptorTypeBufferInfo(descType)) {
-                    info.bufferInfoIndices[bufferInfoIndex] = i;
-                    ++bufferInfoIndex;
-                } else if (isDescriptorTypeBufferView(descType)) {
-                    info.bufferViewIndices[bufferViewIndex] = i;
-                    ++bufferViewIndex;
-                } else {
-                    ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
-                    abort();
+            if (isDescriptorTypeInlineUniformBlock(descType)) {
+                info.inlineUniformBlockBytesPerBlocks[inlineUniformBlockIndex] = descCount;
+                ++inlineUniformBlockIndex;
+            } else {
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    if (isDescriptorTypeImageInfo(descType)) {
+                        info.imageInfoIndices[imageInfoIndex] = i;
+                        ++imageInfoIndex;
+                    } else if (isDescriptorTypeBufferInfo(descType)) {
+                        info.bufferInfoIndices[bufferInfoIndex] = i;
+                        ++bufferInfoIndex;
+                    } else if (isDescriptorTypeBufferView(descType)) {
+                        info.bufferViewIndices[bufferViewIndex] = i;
+                        ++bufferViewIndex;
+                    } else {
+                        ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                        // abort();
+                    }
                 }
             }
         }
@@ -6415,18 +6521,23 @@ public:
         uint32_t imageInfoCount = info.imageInfoCount;
         uint32_t bufferInfoCount = info.bufferInfoCount;
         uint32_t bufferViewCount = info.bufferViewCount;
+        uint32_t inlineUniformBlockCount = info.inlineUniformBlockCount;
         uint32_t* imageInfoIndices = info.imageInfoIndices;
         uint32_t* bufferInfoIndices = info.bufferInfoIndices;
         uint32_t* bufferViewIndices = info.bufferViewIndices;
         VkDescriptorImageInfo* imageInfos = info.imageInfos;
         VkDescriptorBufferInfo* bufferInfos = info.bufferInfos;
         VkBufferView* bufferViews = info.bufferViews;
+        uint8_t* inlineUniformBlockBuffer = info.inlineUniformBlockBuffer.data();
+        uint32_t* inlineUniformBlockBytesPerBlocks = info.inlineUniformBlockBytesPerBlocks.data();
 
         lock.unlock();
 
         size_t currImageInfoOffset = 0;
         size_t currBufferInfoOffset = 0;
         size_t currBufferViewOffset = 0;
+        size_t inlineUniformBlockOffset = 0;
+        size_t inlineUniformBlockIdx = 0;
 
         struct goldfish_VkDescriptorSet* ds = as_goldfish_VkDescriptorSet(descriptorSet);
         ReifiedDescriptorSet* reified = ds->reified;
@@ -6504,21 +6615,32 @@ public:
 
                 for (uint32_t j = 0; j < descCount; ++j) {
                   const VkBufferView* user =
-                        (const VkBufferView*)(userBuffer + offset + j * stride);
+                      (const VkBufferView*)(userBuffer + offset + j * stride);
 
-                    memcpy(((uint8_t*)bufferViews) + currBufferViewOffset,
-                           user, sizeof(VkBufferView));
-                    currBufferViewOffset += sizeof(VkBufferView);
+                  memcpy(((uint8_t*)bufferViews) + currBufferViewOffset, user,
+                         sizeof(VkBufferView));
+                  currBufferViewOffset += sizeof(VkBufferView);
                 }
 
                 if (batched) {
-                  doEmulatedDescriptorBufferViewWriteFromTemplate(
-                        descType,
-                        dstBinding,
-                        dstArrayElement,
-                        descCount,
-                        currBufferViewBegin,
-                        reified);
+                  doEmulatedDescriptorBufferViewWriteFromTemplate(descType, dstBinding,
+                                                                  dstArrayElement, descCount,
+                                                                  currBufferViewBegin, reified);
+                }
+            } else if (isDescriptorTypeInlineUniformBlock(descType)) {
+                uint32_t inlineUniformBlockBytesPerBlock =
+                    inlineUniformBlockBytesPerBlocks[inlineUniformBlockIdx];
+                uint8_t* currInlineUniformBlockBufferBegin =
+                    inlineUniformBlockBuffer + inlineUniformBlockOffset;
+                memcpy(currInlineUniformBlockBufferBegin, userBuffer + offset,
+                       inlineUniformBlockBytesPerBlock);
+                inlineUniformBlockIdx++;
+                inlineUniformBlockOffset += inlineUniformBlockBytesPerBlock;
+
+                if (batched) {
+                  doEmulatedDescriptorInlineUniformBlockFromTemplate(
+                      descType, dstBinding, dstArrayElement, descCount,
+                      currInlineUniformBlockBufferBegin, reified);
                 }
             } else {
                 ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
@@ -6528,20 +6650,11 @@ public:
 
         if (batched) return;
 
-        enc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-            device,
-            descriptorSet,
-            descriptorUpdateTemplate,
-            imageInfoCount,
-            bufferInfoCount,
-            bufferViewCount,
-            imageInfoIndices,
-            bufferInfoIndices,
-            bufferViewIndices,
-            imageInfos,
-            bufferInfos,
-            bufferViews,
-            true /* do lock */);
+        enc->vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
+            device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount,
+            bufferViewCount, static_cast<uint32_t>(info.inlineUniformBlockBuffer.size()),
+            imageInfoIndices, bufferInfoIndices, bufferViewIndices, imageInfos, bufferInfos,
+            bufferViews, inlineUniformBlockBuffer, true /* do lock */);
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties2_common(
@@ -6553,6 +6666,10 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
         (void)input_result;
+
+        uint32_t supportedHandleType = 0;
+        VkExternalImageFormatProperties* ext_img_properties =
+            vk_find_struct<VkExternalImageFormatProperties>(pImageFormatProperties);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
 
@@ -6595,12 +6712,23 @@ public:
             return VK_ERROR_FORMAT_NOT_SUPPORTED;
           }
         }
+        supportedHandleType |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VM_BIT_FUCHSIA;
 #endif
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         VkAndroidHardwareBufferUsageANDROID* output_ahw_usage =
             vk_find_struct<VkAndroidHardwareBufferUsageANDROID>(pImageFormatProperties);
+        supportedHandleType |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT |
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
 #endif
+        const VkPhysicalDeviceExternalImageFormatInfo* ext_img_info =
+                vk_find_struct<VkPhysicalDeviceExternalImageFormatInfo>(pImageFormatInfo);
+        if (supportedHandleType && ext_img_info) {
+            // 0 is a valid handleType so we don't check against 0
+            if (ext_img_info->handleType != (ext_img_info->handleType & supportedHandleType)) {
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+            }
+        }
 
         VkResult hostRes;
 
@@ -6618,8 +6746,6 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (ext_img_properties) {
-            const VkPhysicalDeviceExternalImageFormatInfo* ext_img_info =
-                vk_find_struct<VkPhysicalDeviceExternalImageFormatInfo>(pImageFormatInfo);
             if (ext_img_info) {
                 if (static_cast<uint32_t>(ext_img_info->handleType) ==
                     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
@@ -6645,7 +6771,9 @@ public:
                     pImageFormatInfo->usage);
         }
 #endif
-
+        if (ext_img_properties) {
+            transformImpl_VkExternalMemoryProperties_fromhost(&ext_img_properties->externalMemoryProperties, 0);
+        }
         return hostRes;
     }
 
@@ -7938,6 +8066,12 @@ VkResult ResourceTracker::on_vkQueueSubmit(
         context, input_result, queue, submitCount, pSubmits, fence);
 }
 
+VkResult ResourceTracker::on_vkQueueSubmit2(void* context, VkResult input_result, VkQueue queue,
+                                            uint32_t submitCount, const VkSubmitInfo2* pSubmits,
+                                            VkFence fence) {
+    return mImpl->on_vkQueueSubmit2(context, input_result, queue, submitCount, pSubmits, fence);
+}
+
 VkResult ResourceTracker::on_vkQueueWaitIdle(
     void* context, VkResult input_result,
     VkQueue queue) {
@@ -8360,6 +8494,57 @@ VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2KHR(
     return mImpl->on_vkGetPhysicalDeviceImageFormatProperties2KHR(
         context, input_result, physicalDevice, pImageFormatInfo,
         pImageFormatProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferProperties_common(
+    bool isKhr, void* context, VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
+    VkExternalBufferProperties* pExternalBufferProperties) {
+    VkEncoder* enc = (VkEncoder*)context;
+
+    uint32_t supportedHandleType = 0;
+#ifdef VK_USE_PLATFORM_FUCHSIA
+    supportedHandleType |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VM_BIT_FUCHSIA;
+#endif
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+    supportedHandleType |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT |
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
+#endif
+    if (supportedHandleType) {
+        // 0 is a valid handleType so we can't check against 0
+        if (pExternalBufferInfo->handleType != (pExternalBufferInfo->handleType & supportedHandleType)) {
+            return;
+        }
+    }
+
+    if (isKhr) {
+        enc->vkGetPhysicalDeviceExternalBufferPropertiesKHR(
+            physicalDevice, pExternalBufferInfo, pExternalBufferProperties, true /* do lock */);
+    } else {
+        enc->vkGetPhysicalDeviceExternalBufferProperties(
+            physicalDevice, pExternalBufferInfo, pExternalBufferProperties, true /* do lock */);
+    }
+    transformImpl_VkExternalMemoryProperties_fromhost(&pExternalBufferProperties->externalMemoryProperties, 0);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferProperties(
+    void* context, VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
+    VkExternalBufferProperties* pExternalBufferProperties) {
+    return on_vkGetPhysicalDeviceExternalBufferProperties_common(
+        false /* not KHR */, context, physicalDevice, pExternalBufferInfo,
+        pExternalBufferProperties
+    );
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferPropertiesKHR(
+    void* context, VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalBufferInfoKHR* pExternalBufferInfo,
+    VkExternalBufferPropertiesKHR* pExternalBufferProperties) {
+    return on_vkGetPhysicalDeviceExternalBufferProperties_common(
+        true /* is KHR */, context, physicalDevice, pExternalBufferInfo,
+        pExternalBufferProperties
+    );
 }
 
 void ResourceTracker::on_vkGetPhysicalDeviceExternalSemaphoreProperties(

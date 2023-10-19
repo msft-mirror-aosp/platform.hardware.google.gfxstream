@@ -28,6 +28,7 @@ RESOURCE_TRACKER_ENTRIES = [
     "vkCreateSemaphore",
     "vkDestroySemaphore",
     "vkQueueSubmit",
+    "vkQueueSubmit2",
     "vkQueueWaitIdle",
     "vkImportSemaphoreFdKHR",
     "vkGetSemaphoreFdKHR",
@@ -53,6 +54,8 @@ RESOURCE_TRACKER_ENTRIES = [
     "vkCreateSampler",
     "vkGetPhysicalDeviceExternalFenceProperties",
     "vkGetPhysicalDeviceExternalFencePropertiesKHR",
+    "vkGetPhysicalDeviceExternalBufferProperties",
+    "vkGetPhysicalDeviceExternalBufferPropertiesKHR",
     "vkCreateFence",
     "vkResetFences",
     "vkImportFenceFdKHR",
@@ -177,7 +180,21 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             api_entry_dyn_check = api.withModifiedName("dynCheck_entry_" + api.name)
             cgen.line("static " + self.cgen.makeFuncProto(api_entry_dyn_check))
             cgen.beginBlock()
-            if self.feature == "VK_VERSION_1_1":
+            if self.feature == "VK_VERSION_1_3":
+                cgen.stmt("auto resources = ResourceTracker::get()")
+                if "VkCommandBuffer" == api.parameters[0].typeName:
+                    cgen.stmt("VkDevice device = resources->getDevice(commandBuffer)")
+                cgen.beginIf("resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_3")
+                cgen.stmt("sOnInvalidDynamicallyCheckedCall(\"%s\", \"%s\")" % (api.name, self.feature))
+                cgen.endIf()
+            elif self.feature == "VK_VERSION_1_2":
+                cgen.stmt("auto resources = ResourceTracker::get()")
+                if "VkCommandBuffer" == api.parameters[0].typeName:
+                    cgen.stmt("VkDevice device = resources->getDevice(commandBuffer)")
+                cgen.beginIf("resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_2")
+                cgen.stmt("sOnInvalidDynamicallyCheckedCall(\"%s\", \"%s\")" % (api.name, self.feature))
+                cgen.endIf()
+            elif self.feature == "VK_VERSION_1_1":
                 cgen.stmt("auto resources = ResourceTracker::get()")
                 if "VkCommandBuffer" == api.parameters[0].typeName:
                     cgen.stmt("VkDevice device = resources->getDevice(commandBuffer)")
@@ -220,6 +237,10 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             self.cgen.beginIf("!strcmp(name, \"%s\")" % e.name)
             if e.name in EXCLUDED_APIS:
                 self.cgen.stmt("return nullptr")
+            elif f == "VK_VERSION_1_3":
+                self.cgen.stmt("return nullptr")
+            elif f == "VK_VERSION_1_2":
+                self.cgen.stmt("return nullptr")
             elif f == "VK_VERSION_1_1":
                 self.cgen.stmt("return nullptr")
             elif f != "VK_VERSION_1_0":
@@ -246,6 +267,8 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             "bool has1_1OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_1")
         self.cgen.stmt(
             "bool has1_2OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_2")
+        self.cgen.stmt(
+            "bool has1_3OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_3")
 
         prevFeature = None
         for e, f in zip(self.entries, self.entryFeatures):
@@ -265,6 +288,13 @@ class VulkanFuncTable(VulkanWrapperGenerator):
 
             if e.name in EXCLUDED_APIS:
                 self.cgen.stmt("return nullptr")
+            elif f == "VK_VERSION_1_3":
+                if self.isDeviceDispatch(e):
+                    self.cgen.stmt("return (void*)dynCheck_entry_%s" % e.name)
+                else:
+                    self.cgen.stmt( \
+                        "return has1_3OrHigher ? %s : nullptr" % \
+                        entryPointExpr)
             elif f == "VK_VERSION_1_2":
                 if self.isDeviceDispatch(e):
                     self.cgen.stmt("return (void*)dynCheck_entry_%s" % e.name)
@@ -313,7 +343,10 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             "auto resources = ResourceTracker::get()")
         self.cgen.stmt(
             "bool has1_1OrHigher = resources->getApiVersionFromDevice(device) >= VK_API_VERSION_1_1")
-
+        self.cgen.stmt(
+            "bool has1_2OrHigher = resources->getApiVersionFromDevice(device) >= VK_API_VERSION_1_2")
+        self.cgen.stmt(
+            "bool has1_3OrHigher = resources->getApiVersionFromDevice(device) >= VK_API_VERSION_1_3")
         prevFeature = None
         for e, f in zip(self.entries, self.entryFeatures):
             featureEndif = prevFeature is not None and (f != prevFeature)
@@ -332,6 +365,14 @@ class VulkanFuncTable(VulkanWrapperGenerator):
 
             if e.name in EXCLUDED_APIS:
                 self.cgen.stmt("return nullptr")
+            elif f == "VK_VERSION_1_3":
+                self.cgen.stmt( \
+                    "return has1_3OrHigher ? %s : nullptr" % \
+                    entryPointExpr)
+            elif f == "VK_VERSION_1_2":
+                self.cgen.stmt( \
+                    "return has1_2OrHigher ? %s : nullptr" % \
+                    entryPointExpr)
             elif f == "VK_VERSION_1_1":
                 self.cgen.stmt( \
                     "return has1_1OrHigher ? %s : nullptr" % \
