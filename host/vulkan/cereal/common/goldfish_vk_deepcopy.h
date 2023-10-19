@@ -1143,6 +1143,37 @@ void deepcopy_VkDeviceImageMemoryRequirements(Allocator* alloc, VkStructureType 
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void deepcopy_VkSwapchainCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                       const VkSwapchainCreateInfoKHR* from,
+                                       VkSwapchainCreateInfoKHR* to);
+
+void deepcopy_VkPresentInfoKHR(Allocator* alloc, VkStructureType rootType,
+                               const VkPresentInfoKHR* from, VkPresentInfoKHR* to);
+
+void deepcopy_VkImageSwapchainCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                            const VkImageSwapchainCreateInfoKHR* from,
+                                            VkImageSwapchainCreateInfoKHR* to);
+
+void deepcopy_VkBindImageMemorySwapchainInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                                const VkBindImageMemorySwapchainInfoKHR* from,
+                                                VkBindImageMemorySwapchainInfoKHR* to);
+
+void deepcopy_VkAcquireNextImageInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                        const VkAcquireNextImageInfoKHR* from,
+                                        VkAcquireNextImageInfoKHR* to);
+
+void deepcopy_VkDeviceGroupPresentCapabilitiesKHR(Allocator* alloc, VkStructureType rootType,
+                                                  const VkDeviceGroupPresentCapabilitiesKHR* from,
+                                                  VkDeviceGroupPresentCapabilitiesKHR* to);
+
+void deepcopy_VkDeviceGroupPresentInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                          const VkDeviceGroupPresentInfoKHR* from,
+                                          VkDeviceGroupPresentInfoKHR* to);
+
+void deepcopy_VkDeviceGroupSwapchainCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                                  const VkDeviceGroupSwapchainCreateInfoKHR* from,
+                                                  VkDeviceGroupSwapchainCreateInfoKHR* to);
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif

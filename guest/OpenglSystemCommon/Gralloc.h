@@ -14,9 +14,10 @@
 
 #pragma once
 
-#include <cutils/native_handle.h>
+#include <stddef.h>
+#include <stdint.h>
 
-#include "renderControl_enc.h"
+#include <cutils/native_handle.h>
 
 typedef struct AHardwareBuffer AHardwareBuffer;
 
@@ -27,7 +28,7 @@ class Gralloc {
    public:
     virtual ~Gralloc() {}
 
-    virtual uint32_t createColorBuffer(renderControl_client_context_t* rcEnc, int width, int height,
+    virtual uint32_t createColorBuffer(void* rcEnc, int width, int height,
                                        uint32_t glformat) = 0;
 
     virtual void acquire(AHardwareBuffer* ahb) = 0;
