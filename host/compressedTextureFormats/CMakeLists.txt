@@ -10,7 +10,11 @@ add_library(
     etc.cpp)
 
 if(ASTC_CPU_DECODING)
-    target_link_libraries(gfxstream-compressedTextures PRIVATE astcdec-avx2-static)
+    if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+        target_link_libraries(gfxstream-compressedTextures PRIVATE astcdec-native-static)
+    else()
+        target_link_libraries(gfxstream-compressedTextures PRIVATE astcdec-avx2-static)
+    endif()
 endif()
 
 
