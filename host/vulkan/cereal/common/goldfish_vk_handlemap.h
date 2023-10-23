@@ -817,6 +817,29 @@ void handlemap_VkDeviceImageMemoryRequirements(VulkanHandleMapping* handlemap,
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void handlemap_VkSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                        VkSwapchainCreateInfoKHR* toMap);
+
+void handlemap_VkPresentInfoKHR(VulkanHandleMapping* handlemap, VkPresentInfoKHR* toMap);
+
+void handlemap_VkImageSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkImageSwapchainCreateInfoKHR* toMap);
+
+void handlemap_VkBindImageMemorySwapchainInfoKHR(VulkanHandleMapping* handlemap,
+                                                 VkBindImageMemorySwapchainInfoKHR* toMap);
+
+void handlemap_VkAcquireNextImageInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkAcquireNextImageInfoKHR* toMap);
+
+void handlemap_VkDeviceGroupPresentCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                                   VkDeviceGroupPresentCapabilitiesKHR* toMap);
+
+void handlemap_VkDeviceGroupPresentInfoKHR(VulkanHandleMapping* handlemap,
+                                           VkDeviceGroupPresentInfoKHR* toMap);
+
+void handlemap_VkDeviceGroupSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                                   VkDeviceGroupSwapchainCreateInfoKHR* toMap);
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif

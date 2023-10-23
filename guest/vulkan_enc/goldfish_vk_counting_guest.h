@@ -1035,6 +1035,34 @@ void count_VkDeviceImageMemoryRequirements(uint32_t featureBits, VkStructureType
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void count_VkSwapchainCreateInfoKHR(uint32_t featureBits, VkStructureType rootType,
+                                    const VkSwapchainCreateInfoKHR* toCount, size_t* count);
+
+void count_VkPresentInfoKHR(uint32_t featureBits, VkStructureType rootType,
+                            const VkPresentInfoKHR* toCount, size_t* count);
+
+void count_VkImageSwapchainCreateInfoKHR(uint32_t featureBits, VkStructureType rootType,
+                                         const VkImageSwapchainCreateInfoKHR* toCount,
+                                         size_t* count);
+
+void count_VkBindImageMemorySwapchainInfoKHR(uint32_t featureBits, VkStructureType rootType,
+                                             const VkBindImageMemorySwapchainInfoKHR* toCount,
+                                             size_t* count);
+
+void count_VkAcquireNextImageInfoKHR(uint32_t featureBits, VkStructureType rootType,
+                                     const VkAcquireNextImageInfoKHR* toCount, size_t* count);
+
+void count_VkDeviceGroupPresentCapabilitiesKHR(uint32_t featureBits, VkStructureType rootType,
+                                               const VkDeviceGroupPresentCapabilitiesKHR* toCount,
+                                               size_t* count);
+
+void count_VkDeviceGroupPresentInfoKHR(uint32_t featureBits, VkStructureType rootType,
+                                       const VkDeviceGroupPresentInfoKHR* toCount, size_t* count);
+
+void count_VkDeviceGroupSwapchainCreateInfoKHR(uint32_t featureBits, VkStructureType rootType,
+                                               const VkDeviceGroupSwapchainCreateInfoKHR* toCount,
+                                               size_t* count);
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif

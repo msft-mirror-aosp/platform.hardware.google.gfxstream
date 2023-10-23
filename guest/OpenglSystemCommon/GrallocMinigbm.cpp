@@ -16,9 +16,11 @@
 
 #include <cinttypes>
 #include <cstring>
+#include <stdlib.h>
 
 #include <cros_gralloc/cros_gralloc_handle.h>
 #include <errno.h>
+#include <log/log.h>
 #include <sys/user.h>
 #include <xf86drm.h>
 #include <vndk/hardware_buffer.h>
@@ -105,7 +107,7 @@ bool getVirtioGpuResourceInfo(int fd, native_handle_t const* handle,
 
 }  // namespace
 
-uint32_t MinigbmGralloc::createColorBuffer(renderControl_client_context_t*, int width, int height,
+uint32_t MinigbmGralloc::createColorBuffer(void*, int width, int height,
                                            uint32_t glformat) {
     // Only supported format for pbuffers in gfxstream should be RGBA8
     const uint32_t kGlRGB = 0x1907;
