@@ -7946,6 +7946,76 @@ void deepcopy_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void deepcopy_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* from,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* from,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkGraphicsPipelineLibraryCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType, const VkGraphicsPipelineLibraryCreateInfoEXT* from,
+    VkGraphicsPipelineLibraryCreateInfoEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void deepcopy_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -9381,6 +9451,33 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                     structExtension),
                 reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT*>(
                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: {
+            deepcopy_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: {
+            deepcopy_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: {
+            deepcopy_VkGraphicsPipelineLibraryCreateInfoEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkGraphicsPipelineLibraryCreateInfoEXT*>(structExtension),
+                reinterpret_cast<VkGraphicsPipelineLibraryCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif

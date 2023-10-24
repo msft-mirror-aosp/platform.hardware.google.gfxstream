@@ -8601,6 +8601,58 @@ void reservedmarshal_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->graphicsPipelineLibrary, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->graphicsPipelineLibraryFastLinking, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy(*ptr,
+           (VkBool32*)&forMarshaling->graphicsPipelineLibraryIndependentInterpolationDecoration,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkGraphicsPipelineLibraryCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkGraphicsPipelineLibraryFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkGraphicsPipelineLibraryFlagsEXT));
+    *ptr += sizeof(VkGraphicsPipelineLibraryFlagsEXT);
+}
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void reservedmarshal_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -9888,6 +9940,31 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
                 vkStream, rootType,
                 reinterpret_cast<const VkPhysicalDeviceCustomBorderColorFeaturesEXT*>(
                     structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: {
+            reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: {
+            reservedmarshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkGraphicsPipelineLibraryCreateInfoEXT*>(structExtension),
                 ptr);
             break;
         }
