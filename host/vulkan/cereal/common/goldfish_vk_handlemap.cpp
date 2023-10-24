@@ -3694,6 +3694,35 @@ void handlemap_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
+void handlemap_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkGraphicsPipelineLibraryCreateInfoEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void handlemap_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     VulkanHandleMapping* handlemap, VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT* toMap) {
@@ -4686,6 +4715,26 @@ void handlemap_extension_struct(VulkanHandleMapping* handlemap, void* structExte
             handlemap_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
                 handlemap, reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT*>(
                                structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: {
+            handlemap_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+                handlemap, reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT*>(
+                               structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: {
+            handlemap_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+                handlemap, reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT*>(
+                               structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: {
+            handlemap_VkGraphicsPipelineLibraryCreateInfoEXT(
+                handlemap,
+                reinterpret_cast<VkGraphicsPipelineLibraryCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif

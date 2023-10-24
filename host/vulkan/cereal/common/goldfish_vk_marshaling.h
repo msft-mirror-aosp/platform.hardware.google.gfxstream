@@ -3428,6 +3428,32 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevicePipelineCreationCacheControlFeat
                       unmarshal_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void marshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* forUnmarshaling);
+
+void marshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkGraphicsPipelineLibraryCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkGraphicsPipelineLibraryCreateInfoEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void marshal_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
