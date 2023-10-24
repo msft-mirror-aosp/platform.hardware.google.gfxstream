@@ -1859,6 +1859,20 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDevicePipelineCreationCacheContr
                       reservedmarshal_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkGraphicsPipelineLibraryCreateInfoEXT* forMarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void reservedmarshal_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,

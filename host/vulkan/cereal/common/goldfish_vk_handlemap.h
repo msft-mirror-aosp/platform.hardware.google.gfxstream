@@ -1431,6 +1431,17 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDevicePipelineCreationCacheControlFeat
                       handlemap_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toMap);
+
+void handlemap_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkGraphicsPipelineLibraryCreateInfoEXT* toMap);
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void handlemap_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     VulkanHandleMapping* handlemap, VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT* toMap);
