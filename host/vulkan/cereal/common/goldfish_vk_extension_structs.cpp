@@ -182,6 +182,8 @@ namespace vk {
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 #endif
 #ifdef VK_EXT_image_robustness
@@ -670,6 +672,17 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT: {
             return sizeof(VkPhysicalDeviceCustomBorderColorFeaturesEXT);
+        }
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: {
+            return sizeof(VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT);
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: {
+            return sizeof(VkGraphicsPipelineLibraryCreateInfoEXT);
         }
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
@@ -1196,6 +1209,17 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT: {
             return sizeof(VkPhysicalDeviceCustomBorderColorFeaturesEXT);
+        }
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: {
+            return sizeof(VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT);
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: {
+            return sizeof(VkGraphicsPipelineLibraryCreateInfoEXT);
         }
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
