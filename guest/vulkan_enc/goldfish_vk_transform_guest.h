@@ -2930,6 +2930,30 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDevicePipelineCreationCacheCo
                       transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toTransform);
+
+void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toTransform);
+
+void transform_tohost_VkGraphicsPipelineLibraryCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkGraphicsPipelineLibraryCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkGraphicsPipelineLibraryCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkGraphicsPipelineLibraryCreateInfoEXT* toTransform);
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void transform_tohost_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     ResourceTracker* resourceTracker,

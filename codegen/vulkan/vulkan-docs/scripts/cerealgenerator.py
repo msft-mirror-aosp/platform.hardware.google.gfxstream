@@ -120,6 +120,8 @@ SUPPORTED_FEATURES = [
     "VK_KHR_android_surface",
     # Custom
     "VK_GOOGLE_gfxstream",
+    # Used in tests without proper support checks
+    "VK_EXT_graphics_pipeline_library",
 ]
 
 # By default, the all wrappers are run all on all features.  In certain cases,
