@@ -1835,6 +1835,22 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDevicePipelineCreationCacheControlFeatu
                       deepcopy_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void deepcopy_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* from,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* to);
+
+void deepcopy_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* from,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* to);
+
+void deepcopy_VkGraphicsPipelineLibraryCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType, const VkGraphicsPipelineLibraryCreateInfoEXT* from,
+    VkGraphicsPipelineLibraryCreateInfoEXT* to);
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void deepcopy_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
