@@ -1680,6 +1680,20 @@ DEFINE_ALIAS_FUNCTION(count_VkPhysicalDevicePipelineCreationCacheControlFeatures
                       count_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void count_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toCount, size_t* count);
+
+void count_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toCount, size_t* count);
+
+void count_VkGraphicsPipelineLibraryCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkGraphicsPipelineLibraryCreateInfoEXT* toCount, size_t* count);
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void count_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     uint32_t featureBits, VkStructureType rootType,

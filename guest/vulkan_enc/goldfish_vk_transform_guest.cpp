@@ -7278,6 +7278,66 @@ void transform_fromhost_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkGraphicsPipelineLibraryCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkGraphicsPipelineLibraryCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkGraphicsPipelineLibraryCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkGraphicsPipelineLibraryCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void transform_tohost_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     ResourceTracker* resourceTracker,
@@ -8454,6 +8514,28 @@ void transform_tohost_extension_struct(ResourceTracker* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_graphics_pipeline_library
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: {
+            transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: {
+            transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: {
+            transform_tohost_VkGraphicsPipelineLibraryCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkGraphicsPipelineLibraryCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_2_PLANE_444_FORMATS_FEATURES_EXT: {
             transform_tohost_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
@@ -9445,6 +9527,28 @@ void transform_fromhost_extension_struct(ResourceTracker* resourceTracker,
             transform_fromhost_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
                 resourceTracker, reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT*>(
                                      structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: {
+            transform_fromhost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: {
+            transform_fromhost_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: {
+            transform_fromhost_VkGraphicsPipelineLibraryCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkGraphicsPipelineLibraryCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif
