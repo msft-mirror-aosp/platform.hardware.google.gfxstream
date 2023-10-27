@@ -402,8 +402,8 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
             s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             if (mShouldReallocateTexture) {
-                mMaskTextureWidth = std::max(mMaskTextureWidth, mMaskWidth);
-                mMaskTextureHeight = std::max(mMaskTextureHeight, mMaskHeight);
+                mMaskTextureWidth = mMaskWidth;
+                mMaskTextureHeight = mMaskHeight;
                 // mMaskPixels is actually not used here, we only use
                 // glTexImage2D here to resize the texture
                 s_gles2.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
