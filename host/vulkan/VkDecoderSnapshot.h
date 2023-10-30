@@ -897,6 +897,42 @@ class VkDecoderSnapshot {
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+    void vkCreateSwapchainKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+                              const VkSwapchainCreateInfoKHR* pCreateInfo,
+                              const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain);
+    void vkDestroySwapchainKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                               android::base::BumpPool* pool, VkDevice device,
+                               VkSwapchainKHR swapchain, const VkAllocationCallbacks* pAllocator);
+    void vkGetSwapchainImagesKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                 android::base::BumpPool* pool, VkResult input_result,
+                                 VkDevice device, VkSwapchainKHR swapchain,
+                                 uint32_t* pSwapchainImageCount, VkImage* pSwapchainImages);
+    void vkAcquireNextImageKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                               android::base::BumpPool* pool, VkResult input_result,
+                               VkDevice device, VkSwapchainKHR swapchain, uint64_t timeout,
+                               VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex);
+    void vkQueuePresentKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                           android::base::BumpPool* pool, VkResult input_result, VkQueue queue,
+                           const VkPresentInfoKHR* pPresentInfo);
+    void vkGetDeviceGroupPresentCapabilitiesKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkDevice device,
+        VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities);
+    void vkGetDeviceGroupSurfacePresentModesKHR(const uint8_t* snapshotTraceBegin,
+                                                size_t snapshotTraceBytes,
+                                                android::base::BumpPool* pool,
+                                                VkResult input_result, VkDevice device,
+                                                VkSurfaceKHR surface,
+                                                VkDeviceGroupPresentModeFlagsKHR* pModes);
+    void vkGetPhysicalDevicePresentRectanglesKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+        uint32_t* pRectCount, VkRect2D* pRects);
+    void vkAcquireNextImage2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                android::base::BumpPool* pool, VkResult input_result,
+                                VkDevice device, const VkAcquireNextImageInfoKHR* pAcquireInfo,
+                                uint32_t* pImageIndex);
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -1370,6 +1406,8 @@ class VkDecoderSnapshot {
                              VkPrivateDataSlot privateDataSlot, uint64_t* pData);
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 #endif

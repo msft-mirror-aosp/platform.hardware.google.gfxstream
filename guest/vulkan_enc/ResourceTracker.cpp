@@ -1769,7 +1769,7 @@ uint32_t ResourceTracker::getColorBufferMemoryIndex(void* context, VkDevice devi
         .usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                  VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                  VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-        .initialLayout = VK_IMAGE_LAYOUT_MAX_ENUM,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
     VkImage image = VK_NULL_HANDLE;
     VkResult res = enc->vkCreateImage(device, &createInfo, nullptr, &image, true /* do lock */);
@@ -4045,6 +4045,11 @@ VkResult ResourceTracker::on_vkCreateImage(void* context, VkResult, VkDevice dev
     VkEncoder* enc = (VkEncoder*)context;
 
     VkImageCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
+    if (localCreateInfo.sharingMode != VK_SHARING_MODE_CONCURRENT) {
+        localCreateInfo.queueFamilyIndexCount = 0;
+        localCreateInfo.pQueueFamilyIndices = nullptr;
+    }
+
     vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localCreateInfo);
     VkExternalMemoryImageCreateInfo localExtImgCi;
 

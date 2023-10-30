@@ -817,6 +817,29 @@ void handlemap_VkDeviceImageMemoryRequirements(VulkanHandleMapping* handlemap,
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void handlemap_VkSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                        VkSwapchainCreateInfoKHR* toMap);
+
+void handlemap_VkPresentInfoKHR(VulkanHandleMapping* handlemap, VkPresentInfoKHR* toMap);
+
+void handlemap_VkImageSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkImageSwapchainCreateInfoKHR* toMap);
+
+void handlemap_VkBindImageMemorySwapchainInfoKHR(VulkanHandleMapping* handlemap,
+                                                 VkBindImageMemorySwapchainInfoKHR* toMap);
+
+void handlemap_VkAcquireNextImageInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkAcquireNextImageInfoKHR* toMap);
+
+void handlemap_VkDeviceGroupPresentCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                                   VkDeviceGroupPresentCapabilitiesKHR* toMap);
+
+void handlemap_VkDeviceGroupPresentInfoKHR(VulkanHandleMapping* handlemap,
+                                           VkDeviceGroupPresentInfoKHR* toMap);
+
+void handlemap_VkDeviceGroupSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                                   VkDeviceGroupSwapchainCreateInfoKHR* toMap);
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -1406,6 +1429,17 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkPrivateDataSlotCreateInfo,
 #ifdef VK_EXT_pipeline_creation_cache_control
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDevicePipelineCreationCacheControlFeatures,
                       handlemap_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
+
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toMap);
+
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toMap);
+
+void handlemap_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkGraphicsPipelineLibraryCreateInfoEXT* toMap);
 
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats

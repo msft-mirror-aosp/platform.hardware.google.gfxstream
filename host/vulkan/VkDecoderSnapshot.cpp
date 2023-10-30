@@ -1774,6 +1774,75 @@ class VkDecoderSnapshot::Impl {
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+    void vkCreateSwapchainKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+                              const VkSwapchainCreateInfoKHR* pCreateInfo,
+                              const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain) {
+        // TODO: Implement
+        android::base::AutoLock lock(mLock);
+        // pSwapchain create
+        mReconstruction.addHandles((const uint64_t*)pSwapchain, 1);
+        mReconstruction.addHandleDependency((const uint64_t*)pSwapchain, 1,
+                                            (uint64_t)(uintptr_t)device);
+        if (!pSwapchain) return;
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCreateSwapchainKHR, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pSwapchain, 1, apiHandle);
+        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSwapchain, 1);
+    }
+    void vkDestroySwapchainKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                               android::base::BumpPool* pool, VkDevice device,
+                               VkSwapchainKHR swapchain, const VkAllocationCallbacks* pAllocator) {
+        // TODO: Implement
+        android::base::AutoLock lock(mLock);
+        // swapchain destroy
+        mReconstruction.removeHandles((const uint64_t*)(&swapchain), 1);
+    }
+    void vkGetSwapchainImagesKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                 android::base::BumpPool* pool, VkResult input_result,
+                                 VkDevice device, VkSwapchainKHR swapchain,
+                                 uint32_t* pSwapchainImageCount, VkImage* pSwapchainImages) {
+        // TODO: Implement
+    }
+    void vkAcquireNextImageKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                               android::base::BumpPool* pool, VkResult input_result,
+                               VkDevice device, VkSwapchainKHR swapchain, uint64_t timeout,
+                               VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex) {
+        // TODO: Implement
+    }
+    void vkQueuePresentKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                           android::base::BumpPool* pool, VkResult input_result, VkQueue queue,
+                           const VkPresentInfoKHR* pPresentInfo) {
+        // TODO: Implement
+    }
+    void vkGetDeviceGroupPresentCapabilitiesKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkDevice device,
+        VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {
+        // TODO: Implement
+    }
+    void vkGetDeviceGroupSurfacePresentModesKHR(const uint8_t* snapshotTraceBegin,
+                                                size_t snapshotTraceBytes,
+                                                android::base::BumpPool* pool,
+                                                VkResult input_result, VkDevice device,
+                                                VkSurfaceKHR surface,
+                                                VkDeviceGroupPresentModeFlagsKHR* pModes) {
+        // TODO: Implement
+    }
+    void vkGetPhysicalDevicePresentRectanglesKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+        uint32_t* pRectCount, VkRect2D* pRects) {
+        // TODO: Implement
+    }
+    void vkAcquireNextImage2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                android::base::BumpPool* pool, VkResult input_result,
+                                VkDevice device, const VkAcquireNextImageInfoKHR* pAcquireInfo,
+                                uint32_t* pImageIndex) {
+        // TODO: Implement
+    }
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -2460,6 +2529,8 @@ class VkDecoderSnapshot::Impl {
     }
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 #endif
@@ -4794,6 +4865,94 @@ void VkDecoderSnapshot::vkGetDeviceImageSparseMemoryRequirements(
     mImpl->vkGetDeviceImageSparseMemoryRequirements(snapshotTraceBegin, snapshotTraceBytes, pool,
                                                     device, pInfo, pSparseMemoryRequirementCount,
                                                     pSparseMemoryRequirements);
+}
+#endif
+#ifdef VK_KHR_swapchain
+void VkDecoderSnapshot::vkCreateSwapchainKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkResult input_result, VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain) {
+    mImpl->vkCreateSwapchainKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
+                                pCreateInfo, pAllocator, pSwapchain);
+}
+#endif
+#ifdef VK_KHR_swapchain
+void VkDecoderSnapshot::vkDestroySwapchainKHR(const uint8_t* snapshotTraceBegin,
+                                              size_t snapshotTraceBytes,
+                                              android::base::BumpPool* pool, VkDevice device,
+                                              VkSwapchainKHR swapchain,
+                                              const VkAllocationCallbacks* pAllocator) {
+    mImpl->vkDestroySwapchainKHR(snapshotTraceBegin, snapshotTraceBytes, pool, device, swapchain,
+                                 pAllocator);
+}
+#endif
+#ifdef VK_KHR_swapchain
+void VkDecoderSnapshot::vkGetSwapchainImagesKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkResult input_result, VkDevice device, VkSwapchainKHR swapchain,
+    uint32_t* pSwapchainImageCount, VkImage* pSwapchainImages) {
+    mImpl->vkGetSwapchainImagesKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+                                   device, swapchain, pSwapchainImageCount, pSwapchainImages);
+}
+#endif
+#ifdef VK_KHR_swapchain
+void VkDecoderSnapshot::vkAcquireNextImageKHR(const uint8_t* snapshotTraceBegin,
+                                              size_t snapshotTraceBytes,
+                                              android::base::BumpPool* pool, VkResult input_result,
+                                              VkDevice device, VkSwapchainKHR swapchain,
+                                              uint64_t timeout, VkSemaphore semaphore,
+                                              VkFence fence, uint32_t* pImageIndex) {
+    mImpl->vkAcquireNextImageKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
+                                 swapchain, timeout, semaphore, fence, pImageIndex);
+}
+#endif
+#ifdef VK_KHR_swapchain
+void VkDecoderSnapshot::vkQueuePresentKHR(const uint8_t* snapshotTraceBegin,
+                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                          VkResult input_result, VkQueue queue,
+                                          const VkPresentInfoKHR* pPresentInfo) {
+    mImpl->vkQueuePresentKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, queue,
+                             pPresentInfo);
+}
+#endif
+#ifdef VK_KHR_swapchain
+void VkDecoderSnapshot::vkGetDeviceGroupPresentCapabilitiesKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkResult input_result, VkDevice device,
+    VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {
+    mImpl->vkGetDeviceGroupPresentCapabilitiesKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+                                                  input_result, device,
+                                                  pDeviceGroupPresentCapabilities);
+}
+#endif
+#ifdef VK_KHR_swapchain
+void VkDecoderSnapshot::vkGetDeviceGroupSurfacePresentModesKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkResult input_result, VkDevice device, VkSurfaceKHR surface,
+    VkDeviceGroupPresentModeFlagsKHR* pModes) {
+    mImpl->vkGetDeviceGroupSurfacePresentModesKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+                                                  input_result, device, surface, pModes);
+}
+#endif
+#ifdef VK_KHR_swapchain
+void VkDecoderSnapshot::vkGetPhysicalDevicePresentRectanglesKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkResult input_result, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+    uint32_t* pRectCount, VkRect2D* pRects) {
+    mImpl->vkGetPhysicalDevicePresentRectanglesKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+                                                   input_result, physicalDevice, surface,
+                                                   pRectCount, pRects);
+}
+#endif
+#ifdef VK_KHR_swapchain
+void VkDecoderSnapshot::vkAcquireNextImage2KHR(const uint8_t* snapshotTraceBegin,
+                                               size_t snapshotTraceBytes,
+                                               android::base::BumpPool* pool, VkResult input_result,
+                                               VkDevice device,
+                                               const VkAcquireNextImageInfoKHR* pAcquireInfo,
+                                               uint32_t* pImageIndex) {
+    mImpl->vkAcquireNextImage2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+                                  device, pAcquireInfo, pImageIndex);
 }
 #endif
 #ifdef VK_KHR_dynamic_rendering

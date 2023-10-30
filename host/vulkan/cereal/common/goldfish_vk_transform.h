@@ -1818,6 +1818,54 @@ void transform_fromhost_VkDeviceImageMemoryRequirements(
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void transform_tohost_VkSwapchainCreateInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                               VkSwapchainCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkSwapchainCreateInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                 VkSwapchainCreateInfoKHR* toTransform);
+
+void transform_tohost_VkPresentInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                       VkPresentInfoKHR* toTransform);
+
+void transform_fromhost_VkPresentInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                         VkPresentInfoKHR* toTransform);
+
+void transform_tohost_VkImageSwapchainCreateInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                    VkImageSwapchainCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkImageSwapchainCreateInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                      VkImageSwapchainCreateInfoKHR* toTransform);
+
+void transform_tohost_VkBindImageMemorySwapchainInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkBindImageMemorySwapchainInfoKHR* toTransform);
+
+void transform_fromhost_VkBindImageMemorySwapchainInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkBindImageMemorySwapchainInfoKHR* toTransform);
+
+void transform_tohost_VkAcquireNextImageInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                VkAcquireNextImageInfoKHR* toTransform);
+
+void transform_fromhost_VkAcquireNextImageInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                  VkAcquireNextImageInfoKHR* toTransform);
+
+void transform_tohost_VkDeviceGroupPresentCapabilitiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkDeviceGroupPresentCapabilitiesKHR* toTransform);
+
+void transform_fromhost_VkDeviceGroupPresentCapabilitiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkDeviceGroupPresentCapabilitiesKHR* toTransform);
+
+void transform_tohost_VkDeviceGroupPresentInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                  VkDeviceGroupPresentInfoKHR* toTransform);
+
+void transform_fromhost_VkDeviceGroupPresentInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                    VkDeviceGroupPresentInfoKHR* toTransform);
+
+void transform_tohost_VkDeviceGroupSwapchainCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkDeviceGroupSwapchainCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkDeviceGroupSwapchainCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkDeviceGroupSwapchainCreateInfoKHR* toTransform);
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -2970,6 +3018,30 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDevicePipelineCreationCacheCont
 
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeatures,
                       transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
+
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toTransform);
+
+void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toTransform);
+
+void transform_tohost_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkGraphicsPipelineLibraryCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkGraphicsPipelineLibraryCreateInfoEXT* toTransform);
 
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats

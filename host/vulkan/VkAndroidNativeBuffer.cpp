@@ -516,8 +516,16 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
         AutoLock qlock(*defaultQueueLock);
         VK_CHECK(vk->vkQueueSubmit(defaultQueue, 1, &submitInfo, fence));
     } else {
-        const AndroidNativeBufferInfo::QueueState& queueState =
-            anbInfo->queueStates[anbInfo->lastUsedQueueFamilyIndex];
+        // Setup queue state for this queue family index.
+        auto queueFamilyIndex = anbInfo->lastUsedQueueFamilyIndex;
+        if (queueFamilyIndex >= anbInfo->queueStates.size()) {
+            anbInfo->queueStates.resize(queueFamilyIndex + 1);
+        }
+        AndroidNativeBufferInfo::QueueState& queueState =
+            anbInfo->queueStates[queueFamilyIndex];
+        if (!queueState.queue) {
+            queueState.setup(vk, anbInfo->device, defaultQueue, queueFamilyIndex, defaultQueueLock);
+        }
 
         // If we used the Vulkan image without copying it back
         // to the CPU, reset the layout to PRESENT.

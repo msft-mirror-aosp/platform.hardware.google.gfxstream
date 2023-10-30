@@ -120,6 +120,8 @@ SUPPORTED_FEATURES = [
     "VK_KHR_android_surface",
     # Custom
     "VK_GOOGLE_gfxstream",
+    # Used in tests without proper support checks
+    "VK_EXT_graphics_pipeline_library",
 ]
 
 # By default, the all wrappers are run all on all features.  In certain cases,
@@ -128,7 +130,6 @@ SUPPORTED_FEATURES = [
 SUPPORTED_WRAPPERS = {
     "VK_EXT_debug_utils": [cereal.VulkanDispatch],
     "VK_KHR_surface": [cereal.VulkanDispatch],
-    "VK_KHR_swapchain": [cereal.VulkanDispatch],
     "VK_KHR_xcb_surface": [cereal.VulkanDispatch],
     "VK_KHR_win32_surface": [cereal.VulkanDispatch],
     "VK_EXT_metal_surface": [cereal.VulkanDispatch],

@@ -115,15 +115,6 @@ int VirtioGpuPipeStream::connect(const char* serviceName)
     return 0;
 }
 
-int VirtioGpuPipeStream::openRendernode() {
-    int fd = drmOpenRender(RENDERNODE_MINOR);
-    if (fd < 0) {
-            ERR("%s: failed with fd %d (%s)", __func__, fd, strerror(errno));
-        return -1;
-    }
-    return fd;
-}
-
 uint64_t VirtioGpuPipeStream::initProcessPipe() {
     connect("pipe:GLProcessPipe");
     int32_t confirmInt = 100;
@@ -266,7 +257,7 @@ const unsigned char *VirtioGpuPipeStream::read( void *buf, size_t *inout_len)
 
 int VirtioGpuPipeStream::recv(void *buf, size_t len)
 {
-    if (!valid()) return int(ERR_INVALID_SOCKET);
+    if (!valid()) return -EINVAL;
     char* p = (char *)buf;
     int ret = 0;
     while(len > 0) {

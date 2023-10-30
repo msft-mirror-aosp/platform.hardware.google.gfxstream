@@ -3021,6 +3021,93 @@ void handlemap_VkDeviceImageMemoryRequirements(VulkanHandleMapping* handlemap,
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void handlemap_VkSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                        VkSwapchainCreateInfoKHR* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+    handlemap->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&toMap->surface);
+    handlemap_VkExtent2D(handlemap, (VkExtent2D*)(&toMap->imageExtent));
+    handlemap->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&toMap->oldSwapchain);
+}
+
+void handlemap_VkPresentInfoKHR(VulkanHandleMapping* handlemap, VkPresentInfoKHR* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+    if (toMap->pWaitSemaphores) {
+        handlemap->mapHandles_VkSemaphore((VkSemaphore*)toMap->pWaitSemaphores,
+                                          toMap->waitSemaphoreCount);
+    }
+    if (toMap->pSwapchains) {
+        handlemap->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)toMap->pSwapchains,
+                                             toMap->swapchainCount);
+    }
+}
+
+void handlemap_VkImageSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                             VkImageSwapchainCreateInfoKHR* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+    handlemap->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&toMap->swapchain);
+}
+
+void handlemap_VkBindImageMemorySwapchainInfoKHR(VulkanHandleMapping* handlemap,
+                                                 VkBindImageMemorySwapchainInfoKHR* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+    handlemap->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&toMap->swapchain);
+}
+
+void handlemap_VkAcquireNextImageInfoKHR(VulkanHandleMapping* handlemap,
+                                         VkAcquireNextImageInfoKHR* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+    handlemap->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&toMap->swapchain);
+    handlemap->mapHandles_VkSemaphore((VkSemaphore*)&toMap->semaphore);
+    handlemap->mapHandles_VkFence((VkFence*)&toMap->fence);
+}
+
+void handlemap_VkDeviceGroupPresentCapabilitiesKHR(VulkanHandleMapping* handlemap,
+                                                   VkDeviceGroupPresentCapabilitiesKHR* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
+void handlemap_VkDeviceGroupPresentInfoKHR(VulkanHandleMapping* handlemap,
+                                           VkDeviceGroupPresentInfoKHR* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
+void handlemap_VkDeviceGroupSwapchainCreateInfoKHR(VulkanHandleMapping* handlemap,
+                                                   VkDeviceGroupSwapchainCreateInfoKHR* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -3606,6 +3693,35 @@ void handlemap_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 #ifdef VK_EXT_private_data
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
+void handlemap_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
+void handlemap_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkGraphicsPipelineLibraryCreateInfoEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
 void handlemap_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
@@ -4373,6 +4489,30 @@ void handlemap_extension_struct(VulkanHandleMapping* handlemap, void* structExte
             break;
         }
 #endif
+#ifdef VK_KHR_swapchain
+        case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR: {
+            handlemap_VkImageSwapchainCreateInfoKHR(
+                handlemap, reinterpret_cast<VkImageSwapchainCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR: {
+            handlemap_VkBindImageMemorySwapchainInfoKHR(
+                handlemap,
+                reinterpret_cast<VkBindImageMemorySwapchainInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR: {
+            handlemap_VkDeviceGroupPresentInfoKHR(
+                handlemap, reinterpret_cast<VkDeviceGroupPresentInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR: {
+            handlemap_VkDeviceGroupSwapchainCreateInfoKHR(
+                handlemap,
+                reinterpret_cast<VkDeviceGroupSwapchainCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_KHR_dynamic_rendering
         case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR: {
             handlemap_VkRenderingFragmentShadingRateAttachmentInfoKHR(
@@ -4575,6 +4715,26 @@ void handlemap_extension_struct(VulkanHandleMapping* handlemap, void* structExte
             handlemap_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
                 handlemap, reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT*>(
                                structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: {
+            handlemap_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+                handlemap, reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT*>(
+                               structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: {
+            handlemap_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+                handlemap, reinterpret_cast<VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT*>(
+                               structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: {
+            handlemap_VkGraphicsPipelineLibraryCreateInfoEXT(
+                handlemap,
+                reinterpret_cast<VkGraphicsPipelineLibraryCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif

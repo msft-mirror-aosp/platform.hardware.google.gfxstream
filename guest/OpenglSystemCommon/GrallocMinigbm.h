@@ -20,7 +20,7 @@ namespace gfxstream {
 
 class MinigbmGralloc : public Gralloc {
    public:
-    uint32_t createColorBuffer(renderControl_client_context_t* rcEnc, int width, int height,
+    uint32_t createColorBuffer(void* rcEnc, int width, int height,
                                uint32_t glformat) override;
 
     int allocate(uint32_t width,

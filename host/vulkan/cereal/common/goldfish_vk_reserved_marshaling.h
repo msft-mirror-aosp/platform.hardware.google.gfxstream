@@ -1116,6 +1116,38 @@ void reservedunmarshal_VkDeviceImageMemoryRequirements(
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
+void reservedunmarshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkSwapchainCreateInfoKHR* forUnmarshaling,
+                                                uint8_t** ptr);
+
+void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                        VkPresentInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkImageSwapchainCreateInfoKHR(VulkanStream* vkStream,
+                                                     VkStructureType rootType,
+                                                     VkImageSwapchainCreateInfoKHR* forUnmarshaling,
+                                                     uint8_t** ptr);
+
+void reservedunmarshal_VkBindImageMemorySwapchainInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBindImageMemorySwapchainInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkAcquireNextImageInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                                 VkAcquireNextImageInfoKHR* forUnmarshaling,
+                                                 uint8_t** ptr);
+
+void reservedunmarshal_VkDeviceGroupPresentCapabilitiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceGroupPresentCapabilitiesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDeviceGroupPresentInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                                   VkDeviceGroupPresentInfoKHR* forUnmarshaling,
+                                                   uint8_t** ptr);
+
+void reservedunmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceGroupSwapchainCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -1783,6 +1815,20 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPrivateDataSlotCreateInfo,
 #ifdef VK_EXT_pipeline_creation_cache_control
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDevicePipelineCreationCacheControlFeatures,
                       reservedunmarshal_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
+
+#endif
+#ifdef VK_EXT_graphics_pipeline_library
+void reservedunmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkGraphicsPipelineLibraryCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkGraphicsPipelineLibraryCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
