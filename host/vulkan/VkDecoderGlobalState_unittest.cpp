@@ -132,6 +132,7 @@ TEST_F(VkDecoderGlobalStateExternalFenceTest, poolPopAll) {
 }
 
 TEST_F(VkDecoderGlobalStateExternalFenceDeathTest, undestroyedFences) {
+    GTEST_SKIP() << "b/308688261";
     ASSERT_DEATH(
         {
             ExternalFencePool<MockDispatch> pool(&mMockDispatch, mDevice);

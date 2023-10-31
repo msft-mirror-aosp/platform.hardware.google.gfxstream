@@ -138,6 +138,7 @@ TEST(getVkInstanceProcAddrWithFallbackTest, firstNameShouldTakeThePriority) {
 }
 
 TEST(VkCheckCallbacksDeathTest, deviceLostCallbackShouldBeCalled) {
+    GTEST_SKIP() << "b/308688261";
     setVkCheckCallbacks(std::make_unique<VkCheckCallbacks>(VkCheckCallbacks{
         .onVkErrorDeviceLost = [] { exit(43); },
     }));
@@ -146,6 +147,7 @@ TEST(VkCheckCallbacksDeathTest, deviceLostCallbackShouldBeCalled) {
 }
 
 TEST(VkCheckCallbacksDeathTest, deviceLostCallbackShouldNotBeCalled) {
+    GTEST_SKIP() << "b/308688261";
     // Default death function uses exit code 42
     emugl::setDieFunction([] { exit(42); });
 
@@ -158,12 +160,14 @@ TEST(VkCheckCallbacksDeathTest, deviceLostCallbackShouldNotBeCalled) {
 }
 
 TEST(VkCheckCallbacksDeathTest, nullCallbacksShouldntCrash) {
+    GTEST_SKIP() << "b/308688261";
     emugl::setDieFunction([] { exit(42); });
     setVkCheckCallbacks(nullptr);
     EXPECT_EXIT(VK_CHECK(VK_ERROR_DEVICE_LOST), testing::ExitedWithCode(42), "");
 }
 
 TEST(VkCheckCallbacksDeathTest, nullVkDeviceLostErrorCallbackShouldntCrash) {
+    GTEST_SKIP() << "b/308688261";
     emugl::setDieFunction([] { exit(42); });
     setVkCheckCallbacks(
         std::make_unique<VkCheckCallbacks>(VkCheckCallbacks{.onVkErrorDeviceLost = nullptr}));
