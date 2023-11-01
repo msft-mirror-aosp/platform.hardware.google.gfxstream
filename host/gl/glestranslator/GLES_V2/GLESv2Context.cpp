@@ -775,6 +775,8 @@ void InitExtensionString(GLSupport& glSupport, std::string& ext) {
     if (glSupport.GL_OES_STANDARD_DERIVATIVES) ext += "GL_OES_standard_derivatives ";
     if (glSupport.GL_OES_TEXTURE_NPOT) ext += "GL_OES_texture_npot ";
     if (glSupport.GL_OES_RGB8_RGBA8) ext += "GL_OES_rgb8_rgba8 ";
+    if (glSupport.ext_GL_OVR_multiview2) ext += "GL_OVR_multiview2 ";
+    if (glSupport.ext_GL_EXT_multiview_texture_multisample) ext += "GL_EXT_multiview_texture_multisample ";
     if (glSupport.ext_GL_EXT_color_buffer_float) ext += "GL_EXT_color_buffer_float ";
     if (glSupport.ext_GL_EXT_color_buffer_half_float) ext += "GL_EXT_color_buffer_half_float ";
     if (glSupport.ext_GL_EXT_shader_framebuffer_fetch) ext += "GL_EXT_shader_framebuffer_fetch ";
