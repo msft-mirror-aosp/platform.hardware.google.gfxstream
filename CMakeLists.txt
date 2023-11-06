@@ -31,6 +31,8 @@ if (BUILD_STANDALONE)
     set(GFXSTREAM_HOST_COMMON_LIB aemu-host-common)
 endif()
 
+option(BUILD_GRAPHICS_DETECTOR "Build the graphics detector utility" OFF)
+
 if (WIN32)
     add_definitions("-DUNICODE -D_UNICODE -DNOMINMAX -DEMUGL_BUILD -DVK_USE_PLATFORM_WIN32_KHR -DBUILDING_EMUGL_COMMON_SHARED")
 endif()
