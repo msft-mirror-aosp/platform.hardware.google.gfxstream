@@ -48,6 +48,8 @@ constexpr const uint32_t kVirtioGpuContextId = 1;
 
 std::optional<uint32_t> GlFormatToDrmFormat(uint32_t glFormat) {
     switch (glFormat) {
+        case GL_RGB:
+            return DRM_FORMAT_BGR888;
         case GL_RGB565:
             return DRM_FORMAT_BGR565;
         case GL_RGBA:
