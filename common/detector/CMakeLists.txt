@@ -1,6 +1,7 @@
 
 if(BUILD_GRAPHICS_DETECTOR)
     find_package(Protobuf REQUIRED)
+    find_package(Threads REQUIRED)
 
     protobuf_generate_cpp(
         LIBGFXSTREAM_GRAPHICS_DETECTOR_SRCS
@@ -59,6 +60,8 @@ if(BUILD_GRAPHICS_DETECTOR)
         libgfxstream_graphics_detector_proto
         gfxstream-gl-host-common.headers
         gfxstream_vulkan_headers
+        Threads::Threads
+        ${CMAKE_DL_LIBS}
         )
 
     set_property(
