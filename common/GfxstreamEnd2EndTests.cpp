@@ -257,8 +257,7 @@ int TestingVirtGpuResource::transferToHost(uint32_t offset, uint32_t size) {
 }
 
 TestingVirtGpuDevice::TestingVirtGpuDevice()
-    : VirtGpuDevice(kCapsetGfxStreamVulkan),
-      mVirtioGpuTaskProcessingThread([this]() { RunVirtioGpuTaskProcessingLoop(); }) {}
+    : mVirtioGpuTaskProcessingThread([this]() { RunVirtioGpuTaskProcessingLoop(); }) {}
 
 TestingVirtGpuDevice::~TestingVirtGpuDevice() {
     mShuttingDown = true;
