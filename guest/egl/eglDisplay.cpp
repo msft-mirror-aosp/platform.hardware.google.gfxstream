@@ -283,6 +283,9 @@ EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
 {
     std::vector<std::string> paths;
 #if defined(__ANDROID__)
+    // Try to load from the current linker namespace first.
+    paths.push_back(basename + std::string(LIBSUFFIX));
+    // And then look into the known location.
     paths.push_back(std::string(PARTITION) +
                     std::string(LIBDIR) +
                     basename +
