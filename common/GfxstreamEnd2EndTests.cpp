@@ -729,6 +729,10 @@ AHardwareBuffer* TestingAHardwareBuffer::asAHardwareBuffer() {
     return reinterpret_cast<AHardwareBuffer*>(this);
 }
 
+buffer_handle_t TestingAHardwareBuffer::asBufferHandle() {
+    return reinterpret_cast<buffer_handle_t>(this);
+}
+
 EGLClientBuffer TestingAHardwareBuffer::asEglClientBuffer() {
     return reinterpret_cast<EGLClientBuffer>(this);
 }
@@ -1430,7 +1434,7 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(uint32_t apiVersion) {
         .pQueuePriorities = &queuePriority,
     };
     const std::vector<const char*> deviceExtensions = {
-        VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME,
+        VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
     };
     const vkhpp::DeviceCreateInfo deviceCreateInfo = {
         .pQueueCreateInfos = &deviceQueueCreateInfo,
