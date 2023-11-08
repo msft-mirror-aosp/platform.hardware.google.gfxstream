@@ -11,13 +11,14 @@ if(BUILD_GRAPHICS_DETECTOR)
 
     add_library(
         libgfxstream_graphics_detector_proto
+        STATIC
         ${LIBGFXSTREAM_GRAPHICS_DETECTOR_SRCS}
         )
 
     target_link_libraries(
         libgfxstream_graphics_detector_proto
         PUBLIC
-        protobuf
+        libprotobuf.a
         )
 
     target_include_directories(
