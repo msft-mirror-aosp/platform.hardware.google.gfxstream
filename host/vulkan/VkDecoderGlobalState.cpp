@@ -2619,13 +2619,16 @@ class VkDecoderGlobalState::Impl {
 
         VkResult result = deviceDispatch->vkCreateGraphicsPipelines(
             device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
-        if (result != VK_SUCCESS) {
+        if (result != VK_SUCCESS && result != VK_PIPELINE_COMPILE_REQUIRED) {
             return result;
         }
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
         for (uint32_t i = 0; i < createInfoCount; i++) {
+            if (!pPipelines[i]) {
+                continue;
+            }
             auto& pipelineInfo = mPipelineInfo[pPipelines[i]];
             pipelineInfo.device = device;
 
