@@ -2106,6 +2106,7 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     android::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
     bool enableVk = (renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT);
     bool enableGles = (renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT);
+    bool enableVkSnapshot = (renderer_flags & STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS);
 
     bool egl2eglByEnv = android::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
     bool egl2eglByFlag = renderer_flags & STREAM_RENDERER_FLAGS_USE_EGL_BIT;
@@ -2154,7 +2155,7 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     feature_set_enabled_override(kFeature_NativeTextureDecompression, false);
     feature_set_enabled_override(kFeature_GLDirectMem, false);
     feature_set_enabled_override(kFeature_Vulkan, enableVk);
-    feature_set_enabled_override(kFeature_VulkanSnapshots, false);
+    feature_set_enabled_override(kFeature_VulkanSnapshots, enableVkSnapshot);
     feature_set_enabled_override(kFeature_VulkanNullOptionalStrings, true);
     feature_set_enabled_override(kFeature_VulkanShaderFloat16Int8, true);
     feature_set_enabled_override(kFeature_HostComposition, true);

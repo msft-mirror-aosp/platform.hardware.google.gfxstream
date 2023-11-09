@@ -2977,6 +2977,14 @@ void FrameBuffer::onSave(Stream* stream,
     saveProcOwnedCollection(stream, m_procOwnedColorBuffers);
     saveProcOwnedCollection(stream, m_procOwnedEmulatedEglImages);
     saveProcOwnedCollection(stream, m_procOwnedEmulatedEglContexts);
+    // TODO(b/309858017): remove if when ready to bump snapshot version
+    if (feature_is_enabled(kFeature_VulkanSnapshots)) {
+        stream->putBe64(m_procOwnedResources.size());
+        for (const auto& element : m_procOwnedResources) {
+            stream->putBe64(element.first);
+            stream->putBe32(element.second->getSequenceNumberPtr()->load());
+        }
+    }
 
     // Save Vulkan state
     if (feature_is_enabled(kFeature_VulkanSnapshots) && vk::VkDecoderGlobalState::get()) {
@@ -3192,6 +3200,17 @@ bool FrameBuffer::onLoad(Stream* stream,
     loadProcOwnedCollection(stream, &m_procOwnedColorBuffers);
     loadProcOwnedCollection(stream, &m_procOwnedEmulatedEglImages);
     loadProcOwnedCollection(stream, &m_procOwnedEmulatedEglContexts);
+    // TODO(b/309858017): remove if when ready to bump snapshot version
+    if (feature_is_enabled(kFeature_VulkanSnapshots)) {
+        size_t resourceCount = stream->getBe64();
+        for (size_t i = 0; i < resourceCount; i++) {
+            uint64_t puid = stream->getBe64();
+            uint32_t sequenceNumber = stream->getBe32();
+            std::unique_ptr<ProcessResources> processResources = ProcessResources::create();
+            processResources->getSequenceNumberPtr()->store(sequenceNumber);
+            m_procOwnedResources.emplace(puid, std::move(processResources));
+        }
+    }
 
     if (m_emulationGl) {
         if (s_egl.eglPostLoadAllImages) {
