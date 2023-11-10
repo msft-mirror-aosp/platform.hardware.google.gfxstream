@@ -16,7 +16,7 @@
 
 #include "StubVirtGpu.h"
 
-StubVirtGpuDevice::StubVirtGpuDevice(enum VirtGpuCapset capset) : VirtGpuDevice(capset) {
+StubVirtGpuDevice::StubVirtGpuDevice(enum VirtGpuCapset) {
     // Unimplemented stub
 }
 
