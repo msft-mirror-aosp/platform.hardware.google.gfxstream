@@ -24,6 +24,7 @@ cc_library_host_static {
         "GraphicsDetector.cpp",
         "GraphicsDetectorGl.cpp",
         "GraphicsDetectorVk.cpp",
+        "GraphicsDetectorVkExternalMemoryHost.cpp",
         "GraphicsDetectorVkPrecisionQualifiersOnYuvSamplers.cpp",
         "Subprocess.cpp",
         "Vulkan.cpp",
