@@ -30,6 +30,9 @@ cc_library_static {
         "TextureResize.cpp",
         "YUVConverter.cpp",
     ],
+    header_libs: [
+        "gfxstream_opengl_headers",
+    ],
     static_libs: [
         "gfxstream_gles1_dec",
         "gfxstream_gles2_dec",
