@@ -18,6 +18,7 @@
 /* An implementation of virtio-gpu-3d that streams rendering commands. */
 
 #include <stddef.h>
+#include <stdint.h>
 
 #if defined(_WIN32)
 struct iovec;
@@ -251,6 +252,7 @@ enum RendererFlags {
     STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB = 1 << 6,
     STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB = 1 << 7,
     STREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT = 1 << 8,
+    STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS = 1 << 9,
 };
 
 #endif
