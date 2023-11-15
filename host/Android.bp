@@ -87,6 +87,7 @@ cc_library_shared {
         "FrameBuffer.cpp",
         "GfxStreamAgents.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
+        "virtio-gpu-gfxstream-renderer-goldfish.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
     ],
