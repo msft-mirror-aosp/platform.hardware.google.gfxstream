@@ -138,7 +138,7 @@ void RenderThread::pausePreSnapshot() {
     }
 }
 
-void RenderThread::resume() {
+void RenderThread::resume(bool waitForSave) {
     AutoLock lock(mLock);
     // This function can be called for a thread from pre-snapshot loading
     // state; it doesn't need to do anything.
@@ -146,7 +146,10 @@ void RenderThread::resume() {
         return;
     }
     if (mRingStream) mRingStream->resume();
-    waitForSnapshotCompletion(&lock);
+    if (waitForSave) {
+        waitForSnapshotCompletion(&lock);
+    }
+    mNeedReloadProcessResources = true;
     mStream.clear();
     mState = SnapshotState::Empty;
     if (mChannel) mChannel->resume();
@@ -390,6 +393,10 @@ intptr_t RenderThread::main() {
 
                 tInfo.postLoadRefreshCurrentContextSurfacePtrs();
                 needRestoreFromSnapshot = false;
+            }
+            if (mNeedReloadProcessResources) {
+                processResources = nullptr;
+                mNeedReloadProcessResources = false;
             }
         }
 
