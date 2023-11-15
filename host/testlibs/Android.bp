@@ -15,6 +15,9 @@ package {
 cc_test_library {
     name: "gfxstream_oswindow_test_support",
     defaults: [ "gfxstream_defaults" ],
+    header_libs: [
+        "gfxstream_opengl_headers",
+    ],
     shared_libs: [
         "libbase",
     ],
