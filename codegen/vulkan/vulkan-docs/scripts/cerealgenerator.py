@@ -212,26 +212,11 @@ def banner_command(argv):
 
     return ' '.join(map(makePosixRelative, argv))
 
-suppressEnabled = False
-suppressExceptModule = None
-
 def envGetOrDefault(key, default=None):
     if key in os.environ:
         return os.environ[key]
     print("envGetOrDefault: notfound: %s" % key)
     return default
-
-def init_suppress_option():
-    global suppressEnabled
-    global suppressExceptModule
-
-    if "ANDROID_EMU_VK_CEREAL_SUPPRESS" in os.environ:
-        option = os.environ["ANDROID_EMU_VK_CEREAL_SUPPRESS"]
-
-        if option != "":
-            suppressExceptModule = option
-            suppressEnabled = True
-            print("suppressEnabled: %s" % suppressExceptModule)
 
 # ---- methods overriding base class ----
 # beginFile(genOpts)
@@ -250,8 +235,6 @@ class CerealGenerator(OutputGenerator):
                        warnFile = sys.stderr,
                        diagFile = sys.stdout):
         OutputGenerator.__init__(self, errFile, warnFile, diagFile)
-
-        init_suppress_option()
 
         self.typeInfo = cereal.VulkanTypeInfo(self)
 
@@ -789,22 +772,10 @@ class BumpPool;
 ## Overrides####################################################################
 
     def beginFile(self, genOpts):
-        OutputGenerator.beginFile(self, genOpts, suppressEnabled)
+        OutputGenerator.beginFile(self, genOpts)
 
-        if suppressEnabled:
-            def enableSuppression(m):
-                m.suppress = True
-            self.forEachModule(enableSuppression)
-            self.modules[suppressExceptModule].suppress = False
-
-        if not suppressEnabled:
-            write(self.host_cmake_generator(self.hostCMakeCppFiles),
-                  file = self.outFile)
-
-            guestEncoderAndroidMkPath = \
-                os.path.join( \
-                    self.guest_abs_encoder_destination,
-                    "Android.mk")
+        write(self.host_cmake_generator(self.hostCMakeCppFiles),
+              file = self.outFile)
 
         self.forEachModule(lambda m: m.begin(self.genOpts.directory))
         self.forEachWrapper(lambda w: w.onBegin(), None)

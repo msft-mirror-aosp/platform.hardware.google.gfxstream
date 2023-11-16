@@ -10,7 +10,7 @@
 
 #include <memory>
 #include <utility>  // std::exchange, std::forward
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkansc.hpp>
 
 #if !defined( VULKAN_HPP_RAII_NAMESPACE )
 #  define VULKAN_HPP_RAII_NAMESPACE raii
@@ -633,6 +633,11 @@ namespace VULKAN_HPP_NAMESPACE
         vkCreateSemaphoreSciSyncPoolNV = PFN_vkCreateSemaphoreSciSyncPoolNV( vkGetDeviceProcAddr( device, "vkCreateSemaphoreSciSyncPoolNV" ) );
 #endif /*VK_USE_PLATFORM_SCI*/
 
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+        vkGetScreenBufferPropertiesQNX = PFN_vkGetScreenBufferPropertiesQNX( vkGetDeviceProcAddr( device, "vkGetScreenBufferPropertiesQNX" ) );
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
+
       }
 
     public:
@@ -972,6 +977,13 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_dummy vkCreateSemaphoreSciSyncPoolNV_placeholder = 0;
 #endif /*VK_USE_PLATFORM_SCI*/
 
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+      PFN_vkGetScreenBufferPropertiesQNX vkGetScreenBufferPropertiesQNX = 0;
+#else 
+      PFN_dummy vkGetScreenBufferPropertiesQNX_placeholder = 0;
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
+
     };
 
 
@@ -1117,6 +1129,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkInstance;
+    using CppType = vk::Instance;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eInstance;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eInstance;
@@ -1129,7 +1142,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( context.getDispatcher()->vkCreateInstance( reinterpret_cast<const VkInstanceCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkInstance*>( &m_instance ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateInstance" );
+        detail::throwResultException( result, "vkCreateInstance" );
       }
         m_dispatcher.reset( new VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::InstanceDispatcher( context.getDispatcher()->vkGetInstanceProcAddr, static_cast<VkInstance>( m_instance ) ) );
     }
@@ -1156,10 +1169,10 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_instance = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_instance, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher.reset( rhs.m_dispatcher.release() );
+
+          std::swap( m_instance, rhs.m_instance );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -1244,6 +1257,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkPhysicalDevice;
+    using CppType = vk::PhysicalDevice;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::ePhysicalDevice;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePhysicalDevice;
@@ -1277,8 +1291,8 @@ namespace VULKAN_HPP_NAMESPACE
       if ( this != &rhs )
       {
 
-          m_physicalDevice = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_physicalDevice, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+          std::swap( m_physicalDevice, rhs.m_physicalDevice );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -1539,7 +1553,7 @@ namespace VULKAN_HPP_NAMESPACE
       }
       else
       {
-        throwResultException( result, "vkEnumeratePhysicalDevices" );
+        detail::throwResultException( result, "vkEnumeratePhysicalDevices" );
       }
     }
 
@@ -1557,6 +1571,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkDevice;
+    using CppType = vk::Device;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eDevice;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDevice;
@@ -1569,7 +1584,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( physicalDevice.getDispatcher()->vkCreateDevice( static_cast<VkPhysicalDevice>( *physicalDevice ), reinterpret_cast<const VkDeviceCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkDevice*>( &m_device ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateDevice" );
+        detail::throwResultException( result, "vkCreateDevice" );
       }
         m_dispatcher.reset( new VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::DeviceDispatcher( physicalDevice.getDispatcher()->vkGetDeviceProcAddr, static_cast<VkDevice>( m_device ) ) );
     }
@@ -1596,10 +1611,10 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher.reset( rhs.m_dispatcher.release() );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -1911,6 +1926,16 @@ namespace VULKAN_HPP_NAMESPACE
   VULKAN_HPP_NODISCARD VULKAN_HPP_RAII_NAMESPACE::SemaphoreSciSyncPoolNV createSemaphoreSciSyncPoolNV( VULKAN_HPP_NAMESPACE::SemaphoreSciSyncPoolCreateInfoNV const & createInfo, VULKAN_HPP_NAMESPACE::Optional<const VULKAN_HPP_NAMESPACE::AllocationCallbacks> allocator = nullptr ) const;
 #endif /*VK_USE_PLATFORM_SCI*/
 
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+
+    
+    VULKAN_HPP_NODISCARD  VULKAN_HPP_NAMESPACE::ScreenBufferPropertiesQNX getScreenBufferPropertiesQNX( const struct _screen_buffer & buffer ) const ;
+
+    template <typename X, typename Y, typename... Z>
+    VULKAN_HPP_NODISCARD  VULKAN_HPP_NAMESPACE::StructureChain<X, Y, Z...> getScreenBufferPropertiesQNX( const struct _screen_buffer & buffer ) const ;
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
+
 
   private:
     
@@ -1923,6 +1948,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkBuffer;
+    using CppType = vk::Buffer;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eBuffer;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eBuffer;
@@ -1935,7 +1961,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateBuffer( static_cast<VkDevice>( *device ), reinterpret_cast<const VkBufferCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkBuffer*>( &m_buffer ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateBuffer" );
+        detail::throwResultException( result, "vkCreateBuffer" );
       }
     }
 
@@ -1960,11 +1986,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_buffer = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_buffer, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_buffer, rhs.m_buffer );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -2038,6 +2064,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkBufferView;
+    using CppType = vk::BufferView;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eBufferView;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eBufferView;
@@ -2050,7 +2077,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateBufferView( static_cast<VkDevice>( *device ), reinterpret_cast<const VkBufferViewCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkBufferView*>( &m_bufferView ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateBufferView" );
+        detail::throwResultException( result, "vkCreateBufferView" );
       }
     }
 
@@ -2075,11 +2102,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_bufferView = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_bufferView, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_bufferView, rhs.m_bufferView );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -2145,6 +2172,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkCommandPool;
+    using CppType = vk::CommandPool;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eCommandPool;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCommandPool;
@@ -2157,7 +2185,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateCommandPool( static_cast<VkDevice>( *device ), reinterpret_cast<const VkCommandPoolCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkCommandPool*>( &m_commandPool ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateCommandPool" );
+        detail::throwResultException( result, "vkCreateCommandPool" );
       }
     }
 
@@ -2182,11 +2210,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_commandPool = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_commandPool, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_commandPool, rhs.m_commandPool );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -2262,6 +2290,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkCommandBuffer;
+    using CppType = vk::CommandBuffer;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eCommandBuffer;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCommandBuffer;
@@ -2289,11 +2318,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_commandPool = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_commandPool, {} );
-          m_commandBuffer = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_commandBuffer, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_commandPool, rhs.m_commandPool );
+          std::swap( m_commandBuffer, rhs.m_commandBuffer );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -2775,7 +2804,7 @@ namespace VULKAN_HPP_NAMESPACE
       }
       else
       {
-        throwResultException( result, "vkAllocateCommandBuffers" );
+        detail::throwResultException( result, "vkAllocateCommandBuffers" );
       }
     }
 
@@ -2793,6 +2822,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkDebugUtilsMessengerEXT;
+    using CppType = vk::DebugUtilsMessengerEXT;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eDebugUtilsMessengerEXT;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
@@ -2805,7 +2835,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( instance.getDispatcher()->vkCreateDebugUtilsMessengerEXT( static_cast<VkInstance>( *instance ), reinterpret_cast<const VkDebugUtilsMessengerCreateInfoEXT *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkDebugUtilsMessengerEXT*>( &m_messenger ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateDebugUtilsMessengerEXT" );
+        detail::throwResultException( result, "vkCreateDebugUtilsMessengerEXT" );
       }
     }
 
@@ -2830,11 +2860,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_instance = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_instance, {} );
-          m_messenger = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_messenger, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_instance, rhs.m_instance );
+          std::swap( m_messenger, rhs.m_messenger );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -2900,6 +2930,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkDescriptorPool;
+    using CppType = vk::DescriptorPool;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eDescriptorPool;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorPool;
@@ -2912,7 +2943,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateDescriptorPool( static_cast<VkDevice>( *device ), reinterpret_cast<const VkDescriptorPoolCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkDescriptorPool*>( &m_descriptorPool ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateDescriptorPool" );
+        detail::throwResultException( result, "vkCreateDescriptorPool" );
       }
     }
 
@@ -2937,11 +2968,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_descriptorPool = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_descriptorPool, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_descriptorPool, rhs.m_descriptorPool );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -3012,6 +3043,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkDescriptorSet;
+    using CppType = vk::DescriptorSet;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eDescriptorSet;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorSet;
@@ -3039,11 +3071,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_descriptorPool = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_descriptorPool, {} );
-          m_descriptorSet = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_descriptorSet, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_descriptorPool, rhs.m_descriptorPool );
+          std::swap( m_descriptorSet, rhs.m_descriptorSet );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -3124,7 +3156,7 @@ namespace VULKAN_HPP_NAMESPACE
       }
       else
       {
-        throwResultException( result, "vkAllocateDescriptorSets" );
+        detail::throwResultException( result, "vkAllocateDescriptorSets" );
       }
     }
 
@@ -3142,6 +3174,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkDescriptorSetLayout;
+    using CppType = vk::DescriptorSetLayout;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eDescriptorSetLayout;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorSetLayout;
@@ -3154,7 +3187,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateDescriptorSetLayout( static_cast<VkDevice>( *device ), reinterpret_cast<const VkDescriptorSetLayoutCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkDescriptorSetLayout*>( &m_descriptorSetLayout ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateDescriptorSetLayout" );
+        detail::throwResultException( result, "vkCreateDescriptorSetLayout" );
       }
     }
 
@@ -3179,11 +3212,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_descriptorSetLayout = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_descriptorSetLayout, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_descriptorSetLayout, rhs.m_descriptorSetLayout );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -3249,6 +3282,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkDeviceMemory;
+    using CppType = vk::DeviceMemory;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eDeviceMemory;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDeviceMemory;
@@ -3261,7 +3295,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkAllocateMemory( static_cast<VkDevice>( *device ), reinterpret_cast<const VkMemoryAllocateInfo *>( &allocateInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkDeviceMemory*>( &m_memory ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkAllocateMemory" );
+        detail::throwResultException( result, "vkAllocateMemory" );
       }
     }
 
@@ -3286,11 +3320,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_memory = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_memory, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_memory, rhs.m_memory );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -3367,6 +3401,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkDisplayKHR;
+    using CppType = vk::DisplayKHR;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eDisplayKHR;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDisplayKHR;
@@ -3394,10 +3429,10 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_physicalDevice = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_physicalDevice, {} );
-          m_display = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_display, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_physicalDevice, rhs.m_physicalDevice );
+          std::swap( m_display, rhs.m_display );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -3497,7 +3532,7 @@ namespace VULKAN_HPP_NAMESPACE
       }
       else
       {
-        throwResultException( result, "vkGetDisplayPlaneSupportedDisplaysKHR" );
+        detail::throwResultException( result, "vkGetDisplayPlaneSupportedDisplaysKHR" );
       }
     }
 
@@ -3515,6 +3550,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkDisplayModeKHR;
+    using CppType = vk::DisplayModeKHR;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eDisplayModeKHR;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDisplayModeKHR;
@@ -3527,7 +3563,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( display.getDispatcher()->vkCreateDisplayModeKHR( static_cast<VkPhysicalDevice>( display.getPhysicalDevice() ), static_cast<VkDisplayKHR>( *display ), reinterpret_cast<const VkDisplayModeCreateInfoKHR *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>(static_cast<const VULKAN_HPP_NAMESPACE::AllocationCallbacks *>( allocator ) ), reinterpret_cast<VkDisplayModeKHR*>( &m_displayModeKHR ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateDisplayModeKHR" );
+        detail::throwResultException( result, "vkCreateDisplayModeKHR" );
       }
     }
 
@@ -3558,9 +3594,9 @@ namespace VULKAN_HPP_NAMESPACE
       if ( this != &rhs )
       {
 
-          m_physicalDevice = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_physicalDevice, {} );
-          m_displayModeKHR = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_displayModeKHR, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+          std::swap( m_physicalDevice, rhs.m_physicalDevice );
+          std::swap( m_displayModeKHR, rhs.m_displayModeKHR );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -3620,6 +3656,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkEvent;
+    using CppType = vk::Event;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eEvent;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eEvent;
@@ -3632,7 +3669,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateEvent( static_cast<VkDevice>( *device ), reinterpret_cast<const VkEventCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkEvent*>( &m_event ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateEvent" );
+        detail::throwResultException( result, "vkCreateEvent" );
       }
     }
 
@@ -3657,11 +3694,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_event = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_event, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_event, rhs.m_event );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -3738,6 +3775,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkFence;
+    using CppType = vk::Fence;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eFence;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eFence;
@@ -3750,7 +3788,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateFence( static_cast<VkDevice>( *device ), reinterpret_cast<const VkFenceCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkFence*>( &m_fence ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateFence" );
+        detail::throwResultException( result, "vkCreateFence" );
       }
     }
 
@@ -3760,7 +3798,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkRegisterDeviceEventEXT( static_cast<VkDevice>( *device ), reinterpret_cast<const VkDeviceEventInfoEXT *>( &deviceEventInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkFence*>( &m_fence ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkRegisterDeviceEventEXT" );
+        detail::throwResultException( result, "vkRegisterDeviceEventEXT" );
       }
     }
 
@@ -3770,7 +3808,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkRegisterDisplayEventEXT( static_cast<VkDevice>( *device ), static_cast<VkDisplayKHR>( *display ), reinterpret_cast<const VkDisplayEventInfoEXT *>( &displayEventInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkFence*>( &m_fence ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkRegisterDisplayEventEXT" );
+        detail::throwResultException( result, "vkRegisterDisplayEventEXT" );
       }
     }
 
@@ -3795,11 +3833,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_fence = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_fence, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_fence, rhs.m_fence );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -3870,6 +3908,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkFramebuffer;
+    using CppType = vk::Framebuffer;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eFramebuffer;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eFramebuffer;
@@ -3882,7 +3921,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateFramebuffer( static_cast<VkDevice>( *device ), reinterpret_cast<const VkFramebufferCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkFramebuffer*>( &m_framebuffer ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateFramebuffer" );
+        detail::throwResultException( result, "vkCreateFramebuffer" );
       }
     }
 
@@ -3907,11 +3946,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_framebuffer = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_framebuffer, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_framebuffer, rhs.m_framebuffer );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -3977,6 +4016,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkImage;
+    using CppType = vk::Image;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eImage;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eImage;
@@ -3989,7 +4029,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateImage( static_cast<VkDevice>( *device ), reinterpret_cast<const VkImageCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkImage*>( &m_image ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateImage" );
+        detail::throwResultException( result, "vkCreateImage" );
       }
     }
 
@@ -4014,11 +4054,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_image = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_image, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_image, rhs.m_image );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -4100,6 +4140,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkImageView;
+    using CppType = vk::ImageView;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eImageView;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eImageView;
@@ -4112,7 +4153,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateImageView( static_cast<VkDevice>( *device ), reinterpret_cast<const VkImageViewCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkImageView*>( &m_imageView ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateImageView" );
+        detail::throwResultException( result, "vkCreateImageView" );
       }
     }
 
@@ -4137,11 +4178,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_imageView = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_imageView, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_imageView, rhs.m_imageView );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -4207,6 +4248,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkPipelineCache;
+    using CppType = vk::PipelineCache;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::ePipelineCache;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePipelineCache;
@@ -4219,7 +4261,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreatePipelineCache( static_cast<VkDevice>( *device ), reinterpret_cast<const VkPipelineCacheCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkPipelineCache*>( &m_pipelineCache ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreatePipelineCache" );
+        detail::throwResultException( result, "vkCreatePipelineCache" );
       }
     }
 
@@ -4244,11 +4286,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_pipelineCache = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_pipelineCache, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_pipelineCache, rhs.m_pipelineCache );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -4324,6 +4366,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkPipeline;
+    using CppType = vk::Pipeline;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::ePipeline;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePipeline;
@@ -4336,7 +4379,7 @@ namespace VULKAN_HPP_NAMESPACE
       m_constructorSuccessCode = static_cast<VULKAN_HPP_NAMESPACE::Result>( getDispatcher()->vkCreateComputePipelines( static_cast<VkDevice>( *device ), static_cast<VkPipelineCache>( *pipelineCache ), 1, reinterpret_cast<const VkComputePipelineCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkPipeline*>( &m_pipeline ) ) );
       if ( ( m_constructorSuccessCode != VULKAN_HPP_NAMESPACE::Result::eSuccess )&& ( m_constructorSuccessCode != VULKAN_HPP_NAMESPACE::Result::ePipelineCompileRequiredEXT ) )
       {
-        throwResultException( m_constructorSuccessCode, "vkCreateComputePipelines" );
+        detail::throwResultException( m_constructorSuccessCode, "vkCreateComputePipelines" );
       }
     }
 
@@ -4346,7 +4389,7 @@ namespace VULKAN_HPP_NAMESPACE
       m_constructorSuccessCode = static_cast<VULKAN_HPP_NAMESPACE::Result>( getDispatcher()->vkCreateGraphicsPipelines( static_cast<VkDevice>( *device ), static_cast<VkPipelineCache>( *pipelineCache ), 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkPipeline*>( &m_pipeline ) ) );
       if ( ( m_constructorSuccessCode != VULKAN_HPP_NAMESPACE::Result::eSuccess )&& ( m_constructorSuccessCode != VULKAN_HPP_NAMESPACE::Result::ePipelineCompileRequiredEXT ) )
       {
-        throwResultException( m_constructorSuccessCode, "vkCreateGraphicsPipelines" );
+        detail::throwResultException( m_constructorSuccessCode, "vkCreateGraphicsPipelines" );
       }
     }
 
@@ -4371,12 +4414,12 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_pipeline = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_pipeline, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-          m_constructorSuccessCode = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_constructorSuccessCode, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_pipeline, rhs.m_pipeline );
+          std::swap( m_allocator, rhs.m_allocator );
+          std::swap( m_constructorSuccessCode, rhs.m_constructorSuccessCode );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -4466,7 +4509,7 @@ namespace VULKAN_HPP_NAMESPACE
       }
       else
       {
-        throwResultException( result, "vkCreateComputePipelines" );
+        detail::throwResultException( result, "vkCreateComputePipelines" );
       }
     }
 
@@ -4485,7 +4528,7 @@ namespace VULKAN_HPP_NAMESPACE
       }
       else
       {
-        throwResultException( result, "vkCreateGraphicsPipelines" );
+        detail::throwResultException( result, "vkCreateGraphicsPipelines" );
       }
     }
 
@@ -4503,6 +4546,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkPipelineLayout;
+    using CppType = vk::PipelineLayout;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::ePipelineLayout;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePipelineLayout;
@@ -4515,7 +4559,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreatePipelineLayout( static_cast<VkDevice>( *device ), reinterpret_cast<const VkPipelineLayoutCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkPipelineLayout*>( &m_pipelineLayout ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreatePipelineLayout" );
+        detail::throwResultException( result, "vkCreatePipelineLayout" );
       }
     }
 
@@ -4540,11 +4584,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_pipelineLayout = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_pipelineLayout, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_pipelineLayout, rhs.m_pipelineLayout );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -4610,6 +4654,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkPrivateDataSlot;
+    using CppType = vk::PrivateDataSlot;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::ePrivateDataSlot;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
@@ -4622,7 +4667,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreatePrivateDataSlot( static_cast<VkDevice>( *device ), reinterpret_cast<const VkPrivateDataSlotCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkPrivateDataSlot*>( &m_privateDataSlot ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreatePrivateDataSlot" );
+        detail::throwResultException( result, "vkCreatePrivateDataSlot" );
       }
     }
 
@@ -4647,11 +4692,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_privateDataSlot = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_privateDataSlot, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_privateDataSlot, rhs.m_privateDataSlot );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -4717,6 +4762,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkQueryPool;
+    using CppType = vk::QueryPool;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eQueryPool;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eQueryPool;
@@ -4729,7 +4775,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateQueryPool( static_cast<VkDevice>( *device ), reinterpret_cast<const VkQueryPoolCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkQueryPool*>( &m_queryPool ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateQueryPool" );
+        detail::throwResultException( result, "vkCreateQueryPool" );
       }
     }
 
@@ -4754,11 +4800,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_queryPool = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_queryPool, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_queryPool, rhs.m_queryPool );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -4837,6 +4883,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkQueue;
+    using CppType = vk::Queue;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eQueue;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eQueue;
@@ -4882,8 +4929,8 @@ namespace VULKAN_HPP_NAMESPACE
       if ( this != &rhs )
       {
 
-          m_queue = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_queue, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+          std::swap( m_queue, rhs.m_queue );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -4971,6 +5018,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkRenderPass;
+    using CppType = vk::RenderPass;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eRenderPass;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eRenderPass;
@@ -4983,7 +5031,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateRenderPass( static_cast<VkDevice>( *device ), reinterpret_cast<const VkRenderPassCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkRenderPass*>( &m_renderPass ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateRenderPass" );
+        detail::throwResultException( result, "vkCreateRenderPass" );
       }
     }
 
@@ -4993,7 +5041,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateRenderPass2( static_cast<VkDevice>( *device ), reinterpret_cast<const VkRenderPassCreateInfo2 *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkRenderPass*>( &m_renderPass ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateRenderPass2" );
+        detail::throwResultException( result, "vkCreateRenderPass2" );
       }
     }
 
@@ -5018,11 +5066,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_renderPass = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_renderPass, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_renderPass, rhs.m_renderPass );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -5093,6 +5141,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkSampler;
+    using CppType = vk::Sampler;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eSampler;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSampler;
@@ -5105,7 +5154,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateSampler( static_cast<VkDevice>( *device ), reinterpret_cast<const VkSamplerCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkSampler*>( &m_sampler ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateSampler" );
+        detail::throwResultException( result, "vkCreateSampler" );
       }
     }
 
@@ -5130,11 +5179,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_sampler = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_sampler, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_sampler, rhs.m_sampler );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -5200,6 +5249,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkSamplerYcbcrConversion;
+    using CppType = vk::SamplerYcbcrConversion;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eSamplerYcbcrConversion;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
@@ -5212,7 +5262,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateSamplerYcbcrConversion( static_cast<VkDevice>( *device ), reinterpret_cast<const VkSamplerYcbcrConversionCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkSamplerYcbcrConversion*>( &m_ycbcrConversion ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateSamplerYcbcrConversion" );
+        detail::throwResultException( result, "vkCreateSamplerYcbcrConversion" );
       }
     }
 
@@ -5237,11 +5287,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_ycbcrConversion = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_ycbcrConversion, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_ycbcrConversion, rhs.m_ycbcrConversion );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -5307,6 +5357,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkSemaphore;
+    using CppType = vk::Semaphore;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eSemaphore;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSemaphore;
@@ -5319,7 +5370,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateSemaphore( static_cast<VkDevice>( *device ), reinterpret_cast<const VkSemaphoreCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkSemaphore*>( &m_semaphore ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateSemaphore" );
+        detail::throwResultException( result, "vkCreateSemaphore" );
       }
     }
 
@@ -5344,11 +5395,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_semaphore = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_semaphore, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_semaphore, rhs.m_semaphore );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -5420,6 +5471,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkSemaphoreSciSyncPoolNV;
+    using CppType = vk::SemaphoreSciSyncPoolNV;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eSemaphoreSciSyncPoolNV;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
@@ -5432,7 +5484,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateSemaphoreSciSyncPoolNV( static_cast<VkDevice>( *device ), reinterpret_cast<const VkSemaphoreSciSyncPoolCreateInfoNV *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkSemaphoreSciSyncPoolNV*>( &m_semaphorePool ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateSemaphoreSciSyncPoolNV" );
+        detail::throwResultException( result, "vkCreateSemaphoreSciSyncPoolNV" );
       }
     }
 
@@ -5457,11 +5509,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_semaphorePool = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_semaphorePool, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_semaphorePool, rhs.m_semaphorePool );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -5528,6 +5580,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkShaderModule;
+    using CppType = vk::ShaderModule;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eShaderModule;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eShaderModule;
@@ -5540,7 +5593,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateShaderModule( static_cast<VkDevice>( *device ), reinterpret_cast<const VkShaderModuleCreateInfo *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkShaderModule*>( &m_shaderModule ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateShaderModule" );
+        detail::throwResultException( result, "vkCreateShaderModule" );
       }
     }
 
@@ -5565,11 +5618,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_shaderModule = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_shaderModule, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_shaderModule, rhs.m_shaderModule );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -5635,6 +5688,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkSurfaceKHR;
+    using CppType = vk::SurfaceKHR;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eSurfaceKHR;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSurfaceKHR;
@@ -5647,7 +5701,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( instance.getDispatcher()->vkCreateDisplayPlaneSurfaceKHR( static_cast<VkInstance>( *instance ), reinterpret_cast<const VkDisplaySurfaceCreateInfoKHR *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkSurfaceKHR*>( &m_surface ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateDisplayPlaneSurfaceKHR" );
+        detail::throwResultException( result, "vkCreateDisplayPlaneSurfaceKHR" );
       }
     }
 
@@ -5657,7 +5711,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( instance.getDispatcher()->vkCreateHeadlessSurfaceEXT( static_cast<VkInstance>( *instance ), reinterpret_cast<const VkHeadlessSurfaceCreateInfoEXT *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkSurfaceKHR*>( &m_surface ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateHeadlessSurfaceEXT" );
+        detail::throwResultException( result, "vkCreateHeadlessSurfaceEXT" );
       }
     }
 
@@ -5682,11 +5736,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_instance = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_instance, {} );
-          m_surface = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_surface, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_instance, rhs.m_instance );
+          std::swap( m_surface, rhs.m_surface );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -5752,6 +5806,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
   public:
     using CType = VkSwapchainKHR;
+    using CppType = vk::SwapchainKHR;
 
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::ObjectType objectType = VULKAN_HPP_NAMESPACE::ObjectType::eSwapchainKHR;
     static VULKAN_HPP_CONST_OR_CONSTEXPR VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType = VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSwapchainKHR;
@@ -5764,7 +5819,7 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::Result result = static_cast<VULKAN_HPP_NAMESPACE::Result>( device.getDispatcher()->vkCreateSwapchainKHR( static_cast<VkDevice>( *device ), reinterpret_cast<const VkSwapchainCreateInfoKHR *>( &createInfo ), reinterpret_cast<const VkAllocationCallbacks *>( m_allocator ), reinterpret_cast<VkSwapchainKHR*>( &m_swapchain ) ) );
       if ( result != VULKAN_HPP_NAMESPACE::Result::eSuccess )
       {
-        throwResultException( result, "vkCreateSwapchainKHR" );
+        detail::throwResultException( result, "vkCreateSwapchainKHR" );
       }
     }
 
@@ -5789,11 +5844,11 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( this != &rhs )
       {
-          clear();
-          m_device = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_device, {} );
-          m_swapchain = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_swapchain, {} );
-          m_allocator = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_allocator, {} );
-        m_dispatcher = VULKAN_HPP_NAMESPACE::VULKAN_HPP_RAII_NAMESPACE::exchange( rhs.m_dispatcher, nullptr );
+
+          std::swap( m_device, rhs.m_device );
+          std::swap( m_swapchain, rhs.m_swapchain );
+          std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_dispatcher, rhs.m_dispatcher );
       }
       return *this;
     }
@@ -5892,7 +5947,7 @@ namespace VULKAN_HPP_NAMESPACE
       }
       else
       {
-        throwResultException( result, "vkCreateSharedSwapchainsKHR" );
+        detail::throwResultException( result, "vkCreateSharedSwapchainsKHR" );
       }
     }
 
@@ -10117,6 +10172,64 @@ VULKAN_HPP_ASSERT( getDispatcher()->vkCmdSetColorWriteEnableEXT && "Function <vk
   }
 #endif /*VK_USE_PLATFORM_SCI*/
 
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+
+  
+  VULKAN_HPP_NODISCARD  VULKAN_HPP_INLINE VULKAN_HPP_NAMESPACE::ScreenBufferPropertiesQNX Device::getScreenBufferPropertiesQNX( const struct _screen_buffer & buffer ) const 
+  {
+VULKAN_HPP_ASSERT( getDispatcher()->vkGetScreenBufferPropertiesQNX && "Function <vkGetScreenBufferPropertiesQNX> requires <VK_QNX_external_memory_screen_buffer>" );
+
+    
+    VULKAN_HPP_NAMESPACE::ScreenBufferPropertiesQNX properties;
+    VkResult result = getDispatcher()->vkGetScreenBufferPropertiesQNX( static_cast<VkDevice>( m_device ), &buffer, reinterpret_cast<VkScreenBufferPropertiesQNX *>( &properties ) );
+    resultCheck( static_cast<VULKAN_HPP_NAMESPACE::Result>( result ), VULKAN_HPP_NAMESPACE_STRING "::Device::getScreenBufferPropertiesQNX" );
+    
+    return properties;
+  }
+
+  template <typename X, typename Y, typename... Z>
+  VULKAN_HPP_NODISCARD  VULKAN_HPP_INLINE VULKAN_HPP_NAMESPACE::StructureChain<X, Y, Z...> Device::getScreenBufferPropertiesQNX( const struct _screen_buffer & buffer ) const 
+  {
+VULKAN_HPP_ASSERT( getDispatcher()->vkGetScreenBufferPropertiesQNX && "Function <vkGetScreenBufferPropertiesQNX> requires <VK_QNX_external_memory_screen_buffer>" );
+
+    
+    StructureChain<X, Y, Z...> structureChain;
+    VULKAN_HPP_NAMESPACE::ScreenBufferPropertiesQNX & properties = structureChain.template get<VULKAN_HPP_NAMESPACE::ScreenBufferPropertiesQNX>();
+    VkResult result = getDispatcher()->vkGetScreenBufferPropertiesQNX( static_cast<VkDevice>( m_device ), &buffer, reinterpret_cast<VkScreenBufferPropertiesQNX *>( &properties ) );
+    resultCheck( static_cast<VULKAN_HPP_NAMESPACE::Result>( result ), VULKAN_HPP_NAMESPACE_STRING "::Device::getScreenBufferPropertiesQNX" );
+    
+    return structureChain;
+  }
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
+
+
+
+    //====================
+    //=== RAII Helpers ===
+    //====================
+
+    template <typename RAIIType>
+    std::vector<typename RAIIType::CppType> filterCppTypes( std::vector<RAIIType> const & raiiTypes )
+    {
+      std::vector<typename RAIIType::CppType> cppTypes( raiiTypes.size() );
+      std::transform( raiiTypes.begin(), raiiTypes.end(), cppTypes.begin(), []( RAIIType const & d ) { return *d; } );
+      return cppTypes;
+    }
+
+    template <typename RAIIType, class UnaryPredicate>
+    std::vector<typename RAIIType::CppType> filterCppTypes( std::vector<RAIIType> const & raiiTypes, UnaryPredicate p)
+    {
+      std::vector<typename RAIIType::CppType> cppTypes;
+      for (auto const& t : raiiTypes)
+      {
+        if (p(t))
+        {
+          cppTypes.push_back( *t );
+        }
+      }
+      return cppTypes;
+    }
 
   } // namespace VULKAN_HPP_RAII_NAMESPACE
 }   // namespace VULKAN_HPP_NAMESPACE
