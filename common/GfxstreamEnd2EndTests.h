@@ -476,6 +476,7 @@ class TestingVirtGpuSyncHelper : public SyncHelper {
 struct TestParams {
     bool with_gl;
     bool with_vk;
+    bool with_vk_snapshot = false;
 
     std::string ToString() const;
     friend std::ostream& operator<<(std::ostream& os, const TestParams& params);

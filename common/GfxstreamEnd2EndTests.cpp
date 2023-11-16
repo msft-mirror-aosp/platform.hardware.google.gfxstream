@@ -257,7 +257,8 @@ int TestingVirtGpuResource::transferToHost(uint32_t offset, uint32_t size) {
 }
 
 TestingVirtGpuDevice::TestingVirtGpuDevice()
-    : mVirtioGpuTaskProcessingThread([this]() { RunVirtioGpuTaskProcessingLoop(); }) {}
+    : VirtGpuDevice(kCapsetGfxStreamVulkan),
+      mVirtioGpuTaskProcessingThread([this]() { RunVirtioGpuTaskProcessingLoop(); }) {}
 
 TestingVirtGpuDevice::~TestingVirtGpuDevice() {
     mShuttingDown = true;
@@ -1005,6 +1006,8 @@ std::string TestParams::ToString() const {
     ret += "Gl";
     ret += (with_vk ? "With" : "Without");
     ret += "Vk";
+    ret += (with_vk_snapshot ? "With" : "Without");
+    ret += "Snapshot";
     return ret;
 }
 
@@ -1102,9 +1105,13 @@ void GfxstreamEnd2EndTest::SetUp() {
             .key = STREAM_RENDERER_PARAM_RENDERER_FLAGS,
             .value =
                 static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT) |
-                (params.with_gl ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_EGL_BIT  |
-                                                        STREAM_RENDERER_FLAGS_USE_GLES_BIT) : 0 ) |
-                (params.with_vk ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_VK_BIT) : 0 ),
+                (params.with_gl ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_EGL_BIT |
+                                                        STREAM_RENDERER_FLAGS_USE_GLES_BIT)
+                                : 0) |
+                (params.with_vk ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_VK_BIT) : 0) |
+                (params.with_vk_snapshot
+                     ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS)
+                     : 0),
         },
         stream_renderer_param{
             .key = STREAM_RENDERER_PARAM_WIN0_WIDTH,
