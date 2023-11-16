@@ -25,6 +25,9 @@ cc_library_shared {
         "-Wno-unused-function",
         "-Wno-unreachable-code-loop-increment",
     ],
+    header_libs: [
+        "gfxstream_opengl_headers",
+    ],
     static_libs: [
         "gfxstream_base",
         "gfxstream_host_common",
@@ -87,6 +90,7 @@ cc_library_shared {
         "FrameBuffer.cpp",
         "GfxStreamAgents.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
+        "virtio-gpu-gfxstream-renderer-goldfish.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
     ],
@@ -114,6 +118,9 @@ cc_test_library {
         "tests/OpenGLTestContext.cpp",
         "tests/SampleApplication.cpp",
         "tests/ShaderUtils.cpp",
+    ],
+    header_libs: [
+        "gfxstream_opengl_headers",
     ],
     shared_libs: [
         "libbase",

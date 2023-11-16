@@ -62,9 +62,12 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     const uint32_t height = 32;
     auto ahb = mGralloc->allocate(width, height, DRM_FORMAT_ABGR8888);
 
-    const vkhpp::NativeBufferANDROID imageNativeBufferInfo = {
-        .handle = (const uint32_t*)ahb->asAHardwareBuffer(),
+    VkNativeBufferANDROID imageNativeBufferInfo = {
+        .handle = ahb->asBufferHandle(),
     };
+
+    auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
+        device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
 
     const vkhpp::ImageCreateInfo imageCreateInfo = {
         .pNext = &imageNativeBufferInfo,
@@ -165,8 +168,10 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     auto waitResult = device->waitForFences(*transferFence, VK_TRUE, AsVkTimeout(3s));
     ASSERT_THAT(waitResult, IsVkSuccess());
 
-    std::vector<vkhpp::Semaphore> semaphores;
-    int fence = queue.signalReleaseImageANDROID(semaphores, *image);
+    int fence;
+
+    auto result = vkQueueSignalReleaseImageANDROID(queue, 0, nullptr, *image, &fence);
+    ASSERT_THAT(result, Eq(VK_SUCCESS));
     ASSERT_THAT(fence, Not(Eq(-1)));
 
     ASSERT_THAT(mSync->wait(fence, 3000), Eq(0));
@@ -179,6 +184,9 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     const uint32_t width = 32;
     const uint32_t height = 32;
     auto ahb = mGralloc->allocate(width, height, DRM_FORMAT_ABGR8888);
+
+    auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
+        device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
 
     const vkhpp::ImageCreateInfo imageCreateInfo = {
         .pNext = nullptr,
@@ -200,9 +208,10 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     auto image = device->createImageUnique(imageCreateInfo).value;
 
     // NOTE: Binding the VkImage to the AHB happens after the VkImage is created.
-    const vkhpp::NativeBufferANDROID imageNativeBufferInfo = {
-        .handle = (const uint32_t*)ahb->asAHardwareBuffer(),
+    VkNativeBufferANDROID imageNativeBufferInfo = {
+        .handle = ahb->asBufferHandle(),
     };
+
     const vkhpp::BindImageMemoryInfo imageBindMemoryInfo = {
         .pNext = &imageNativeBufferInfo,
         .image = *image,
@@ -212,7 +221,10 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     ASSERT_THAT(device->bindImageMemory2({imageBindMemoryInfo}), IsVkSuccess());
 
     std::vector<vkhpp::Semaphore> semaphores;
-    int fence = queue.signalReleaseImageANDROID(semaphores, *image);
+    int fence;
+
+    auto result = vkQueueSignalReleaseImageANDROID(queue, 0, nullptr, *image, &fence);
+    ASSERT_THAT(result, Eq(VK_SUCCESS));
     ASSERT_THAT(fence, Not(Eq(-1)));
 
     ASSERT_THAT(mSync->wait(fence, 3000), Eq(0));

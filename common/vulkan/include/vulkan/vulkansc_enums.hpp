@@ -10,6 +10,220 @@
 
 namespace VULKAN_HPP_NAMESPACE
 {
+  template <typename FlagBitsType>
+  struct FlagTraits
+  {
+    static VULKAN_HPP_CONST_OR_CONSTEXPR bool isBitmask = false;
+  };
+
+  template <typename BitType>
+  class Flags
+  {
+  public:
+    using MaskType = typename std::underlying_type<BitType>::type;
+
+    // constructors
+    VULKAN_HPP_CONSTEXPR Flags() VULKAN_HPP_NOEXCEPT
+      : m_mask( 0 )
+    {}
+
+    VULKAN_HPP_CONSTEXPR Flags( BitType bit ) VULKAN_HPP_NOEXCEPT
+      : m_mask( static_cast<MaskType>( bit ) )
+    {}
+
+    VULKAN_HPP_CONSTEXPR Flags( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT = default;
+
+    VULKAN_HPP_CONSTEXPR explicit Flags( MaskType flags ) VULKAN_HPP_NOEXCEPT
+      : m_mask( flags )
+    {}
+
+    // relational operators
+#if defined( VULKAN_HPP_HAS_SPACESHIP_OPERATOR )
+    auto operator<=>( Flags<BitType> const & ) const = default;
+#else
+    VULKAN_HPP_CONSTEXPR bool operator<( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    {
+      return m_mask < rhs.m_mask;
+    }
+
+    VULKAN_HPP_CONSTEXPR bool operator<=( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    {
+      return m_mask <= rhs.m_mask;
+    }
+
+    VULKAN_HPP_CONSTEXPR bool operator>( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    {
+      return m_mask > rhs.m_mask;
+    }
+
+    VULKAN_HPP_CONSTEXPR bool operator>=( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    {
+      return m_mask >= rhs.m_mask;
+    }
+
+    VULKAN_HPP_CONSTEXPR bool operator==( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    {
+      return m_mask == rhs.m_mask;
+    }
+
+    VULKAN_HPP_CONSTEXPR bool operator!=( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    {
+      return m_mask != rhs.m_mask;
+    }
+#endif
+
+    // logical operator
+    VULKAN_HPP_CONSTEXPR bool operator!() const VULKAN_HPP_NOEXCEPT
+    {
+      return !m_mask;
+    }
+
+    // bitwise operators
+    VULKAN_HPP_CONSTEXPR Flags<BitType> operator&( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    {
+      return Flags<BitType>( m_mask & rhs.m_mask );
+    }
+
+    VULKAN_HPP_CONSTEXPR Flags<BitType> operator|( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    {
+      return Flags<BitType>( m_mask | rhs.m_mask );
+    }
+
+    VULKAN_HPP_CONSTEXPR Flags<BitType> operator^( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    {
+      return Flags<BitType>( m_mask ^ rhs.m_mask );
+    }
+
+    VULKAN_HPP_CONSTEXPR Flags<BitType> operator~() const VULKAN_HPP_NOEXCEPT
+    {
+      return Flags<BitType>( m_mask ^ FlagTraits<BitType>::allFlags.m_mask );
+    }
+
+    // assignment operators
+    VULKAN_HPP_CONSTEXPR_14 Flags<BitType> & operator=( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT = default;
+
+    VULKAN_HPP_CONSTEXPR_14 Flags<BitType> & operator|=( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT
+    {
+      m_mask |= rhs.m_mask;
+      return *this;
+    }
+
+    VULKAN_HPP_CONSTEXPR_14 Flags<BitType> & operator&=( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT
+    {
+      m_mask &= rhs.m_mask;
+      return *this;
+    }
+
+    VULKAN_HPP_CONSTEXPR_14 Flags<BitType> & operator^=( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT
+    {
+      m_mask ^= rhs.m_mask;
+      return *this;
+    }
+
+    // cast operators
+    explicit VULKAN_HPP_CONSTEXPR operator bool() const VULKAN_HPP_NOEXCEPT
+    {
+      return !!m_mask;
+    }
+
+    explicit VULKAN_HPP_CONSTEXPR operator MaskType() const VULKAN_HPP_NOEXCEPT
+    {
+      return m_mask;
+    }
+
+#if defined( VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC )
+  public:
+#else
+  private:
+#endif
+    MaskType m_mask;
+  };
+
+#if !defined( VULKAN_HPP_HAS_SPACESHIP_OPERATOR )
+  // relational operators only needed for pre C++20
+  template <typename BitType>
+  VULKAN_HPP_CONSTEXPR bool operator<( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
+  {
+    return flags.operator>( bit );
+  }
+
+  template <typename BitType>
+  VULKAN_HPP_CONSTEXPR bool operator<=( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
+  {
+    return flags.operator>=( bit );
+  }
+
+  template <typename BitType>
+  VULKAN_HPP_CONSTEXPR bool operator>( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
+  {
+    return flags.operator<( bit );
+  }
+
+  template <typename BitType>
+  VULKAN_HPP_CONSTEXPR bool operator>=( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
+  {
+    return flags.operator<=( bit );
+  }
+
+  template <typename BitType>
+  VULKAN_HPP_CONSTEXPR bool operator==( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
+  {
+    return flags.operator==( bit );
+  }
+
+  template <typename BitType>
+  VULKAN_HPP_CONSTEXPR bool operator!=( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
+  {
+    return flags.operator!=( bit );
+  }
+#endif
+
+  // bitwise operators
+  template <typename BitType>
+  VULKAN_HPP_CONSTEXPR Flags<BitType> operator&( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
+  {
+    return flags.operator&( bit );
+  }
+
+  template <typename BitType>
+  VULKAN_HPP_CONSTEXPR Flags<BitType> operator|( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
+  {
+    return flags.operator|( bit );
+  }
+
+  template <typename BitType>
+  VULKAN_HPP_CONSTEXPR Flags<BitType> operator^( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
+  {
+    return flags.operator^( bit );
+  }
+
+  // bitwise operators on BitType
+  template <typename BitType, typename std::enable_if<FlagTraits<BitType>::isBitmask, bool>::type = true>
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR Flags<BitType> operator&(BitType lhs, BitType rhs) VULKAN_HPP_NOEXCEPT
+  {
+    return Flags<BitType>( lhs ) & rhs;
+  }
+
+  template <typename BitType, typename std::enable_if<FlagTraits<BitType>::isBitmask, bool>::type = true>
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR Flags<BitType> operator|(BitType lhs, BitType rhs) VULKAN_HPP_NOEXCEPT
+  {
+    return Flags<BitType>( lhs ) | rhs;
+  }
+
+  template <typename BitType, typename std::enable_if<FlagTraits<BitType>::isBitmask, bool>::type = true>
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR Flags<BitType> operator^(BitType lhs, BitType rhs) VULKAN_HPP_NOEXCEPT
+  {
+    return Flags<BitType>( lhs ) ^ rhs;
+  }
+
+  template <typename BitType, typename std::enable_if<FlagTraits<BitType>::isBitmask, bool>::type = true>
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR Flags<BitType> operator~( BitType bit ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( Flags<BitType>( bit ) );
+  }
+
+
+
   template <typename EnumType, EnumType value>
   struct CppType
   {};
@@ -289,7 +503,7 @@ namespace VULKAN_HPP_NAMESPACE
     eDisplayModeCreateInfoKHR = VK_STRUCTURE_TYPE_DISPLAY_MODE_CREATE_INFO_KHR,
     eDisplaySurfaceCreateInfoKHR = VK_STRUCTURE_TYPE_DISPLAY_SURFACE_CREATE_INFO_KHR,
     eDisplayPresentInfoKHR = VK_STRUCTURE_TYPE_DISPLAY_PRESENT_INFO_KHR,
-    ePrivateVendorInfoReservedOffset0NV = VK_STRUCTURE_TYPE_PRIVATE_VENDOR_INFO_RESERVED_OFFSET_0_NV,
+    ePrivateVendorInfoPlaceholderOffset0NV = VK_STRUCTURE_TYPE_PRIVATE_VENDOR_INFO_PLACEHOLDER_OFFSET_0_NV,
     ePhysicalDeviceTextureCompressionAstcHdrFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT,
     eImageViewAstcDecodeModeEXT = VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT,
     ePhysicalDeviceAstcDecodeFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ASTC_DECODE_FEATURES_EXT,
@@ -442,8 +656,15 @@ namespace VULKAN_HPP_NAMESPACE
     eSemaphoreSciSyncPoolCreateInfoNV = VK_STRUCTURE_TYPE_SEMAPHORE_SCI_SYNC_POOL_CREATE_INFO_NV,
     eSemaphoreSciSyncCreateInfoNV = VK_STRUCTURE_TYPE_SEMAPHORE_SCI_SYNC_CREATE_INFO_NV,
     ePhysicalDeviceExternalSciSync2FeaturesNV = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SCI_SYNC_2_FEATURES_NV,
-    eDeviceSemaphoreSciSyncPoolReservationCreateInfoNV = VK_STRUCTURE_TYPE_DEVICE_SEMAPHORE_SCI_SYNC_POOL_RESERVATION_CREATE_INFO_NV
+    eDeviceSemaphoreSciSyncPoolReservationCreateInfoNV = VK_STRUCTURE_TYPE_DEVICE_SEMAPHORE_SCI_SYNC_POOL_RESERVATION_CREATE_INFO_NV,
 #endif /*VK_USE_PLATFORM_SCI*/
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+    eScreenBufferPropertiesQNX = VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX,
+    eScreenBufferFormatPropertiesQNX = VK_STRUCTURE_TYPE_SCREEN_BUFFER_FORMAT_PROPERTIES_QNX,
+    eImportScreenBufferInfoQNX = VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX,
+    eExternalFormatQNX = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX,
+    ePhysicalDeviceExternalMemoryScreenBufferFeaturesQNX = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
   };
 
   enum class PipelineCacheHeaderVersion
@@ -1052,6 +1273,21 @@ namespace VULKAN_HPP_NAMESPACE
     static VULKAN_HPP_CONST_OR_CONSTEXPR DeviceCreateFlags allFlags =  {};
   };
 
+  enum class DeviceQueueCreateFlagBits : VkDeviceQueueCreateFlags
+  {
+    eProtected = VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT
+  };
+
+  using DeviceQueueCreateFlags = Flags<DeviceQueueCreateFlagBits>;
+
+
+  template <> struct FlagTraits<DeviceQueueCreateFlagBits>
+  {
+    static VULKAN_HPP_CONST_OR_CONSTEXPR bool isBitmask = true;
+    static VULKAN_HPP_CONST_OR_CONSTEXPR DeviceQueueCreateFlags allFlags = 
+          DeviceQueueCreateFlagBits::eProtected;
+  };
+
   enum class PipelineStageFlagBits : VkPipelineStageFlags
   {
     eTopOfPipe = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
@@ -1404,6 +1640,25 @@ namespace VULKAN_HPP_NAMESPACE
     e1DArray = VK_IMAGE_VIEW_TYPE_1D_ARRAY,
     e2DArray = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
     eCubeArray = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY
+  };
+
+  enum class PipelineCacheCreateFlagBits : VkPipelineCacheCreateFlags
+  {
+    eExternallySynchronized = VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT,
+    eReadOnly = VK_PIPELINE_CACHE_CREATE_READ_ONLY_BIT,
+    eUseApplicationStorage = VK_PIPELINE_CACHE_CREATE_USE_APPLICATION_STORAGE_BIT
+  };
+
+  using PipelineCacheCreateFlags = Flags<PipelineCacheCreateFlagBits>;
+
+
+  template <> struct FlagTraits<PipelineCacheCreateFlagBits>
+  {
+    static VULKAN_HPP_CONST_OR_CONSTEXPR bool isBitmask = true;
+    static VULKAN_HPP_CONST_OR_CONSTEXPR PipelineCacheCreateFlags allFlags = 
+          PipelineCacheCreateFlagBits::eExternallySynchronized
+        | PipelineCacheCreateFlagBits::eReadOnly
+        | PipelineCacheCreateFlagBits::eUseApplicationStorage;
   };
 
   enum class BlendFactor
@@ -1774,6 +2029,18 @@ namespace VULKAN_HPP_NAMESPACE
   {
     static VULKAN_HPP_CONST_OR_CONSTEXPR bool isBitmask = true;
     static VULKAN_HPP_CONST_OR_CONSTEXPR PipelineInputAssemblyStateCreateFlags allFlags =  {};
+  };
+
+  enum class PipelineLayoutCreateFlagBits : VkPipelineLayoutCreateFlags
+  {};
+
+  using PipelineLayoutCreateFlags = Flags<PipelineLayoutCreateFlagBits>;
+
+
+  template <> struct FlagTraits<PipelineLayoutCreateFlagBits>
+  {
+    static VULKAN_HPP_CONST_OR_CONSTEXPR bool isBitmask = true;
+    static VULKAN_HPP_CONST_OR_CONSTEXPR PipelineLayoutCreateFlags allFlags =  {};
   };
 
   enum class PipelineMultisampleStateCreateFlagBits : VkPipelineMultisampleStateCreateFlags
@@ -2296,21 +2563,6 @@ namespace VULKAN_HPP_NAMESPACE
   };
   using TessellationDomainOriginKHR = TessellationDomainOrigin;
 
-  enum class DeviceQueueCreateFlagBits : VkDeviceQueueCreateFlags
-  {
-    eProtected = VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT
-  };
-
-  using DeviceQueueCreateFlags = Flags<DeviceQueueCreateFlagBits>;
-
-
-  template <> struct FlagTraits<DeviceQueueCreateFlagBits>
-  {
-    static VULKAN_HPP_CONST_OR_CONSTEXPR bool isBitmask = true;
-    static VULKAN_HPP_CONST_OR_CONSTEXPR DeviceQueueCreateFlags allFlags = 
-          DeviceQueueCreateFlagBits::eProtected;
-  };
-
   enum class SamplerYcbcrModelConversion
   {
     eRgbIdentity = VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY,
@@ -2348,8 +2600,11 @@ namespace VULKAN_HPP_NAMESPACE
     eHostAllocationEXT = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
     eHostMappedForeignMemoryEXT = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT,
 #if defined( VK_USE_PLATFORM_SCI )
-    eSciBufNV = VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCI_BUF_BIT_NV
+    eSciBufNV = VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCI_BUF_BIT_NV,
 #endif /*VK_USE_PLATFORM_SCI*/
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+    eScreenBufferQNX = VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
   };
   using ExternalMemoryHandleTypeFlagBitsKHR = ExternalMemoryHandleTypeFlagBits;
 
@@ -2374,6 +2629,9 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_SCI )
         | ExternalMemoryHandleTypeFlagBits::eSciBufNV
 #endif /*VK_USE_PLATFORM_SCI*/
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+        | ExternalMemoryHandleTypeFlagBits::eScreenBufferQNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 ;
   };
 
@@ -2563,7 +2821,8 @@ namespace VULKAN_HPP_NAMESPACE
     eMesaVenus = VK_DRIVER_ID_MESA_VENUS,
     eMesaDozen = VK_DRIVER_ID_MESA_DOZEN,
     eMesaNvk = VK_DRIVER_ID_MESA_NVK,
-    eImaginationOpenSourceMESA = VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA
+    eImaginationOpenSourceMESA = VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA,
+    eMesaAgxv = VK_DRIVER_ID_MESA_AGXV
   };
   using DriverIdKHR = DriverId;
 
@@ -3027,25 +3286,6 @@ namespace VULKAN_HPP_NAMESPACE
   enum class PipelineMatchControl
   {
     eApplicationUuidExactMatch = VK_PIPELINE_MATCH_CONTROL_APPLICATION_UUID_EXACT_MATCH
-  };
-
-  enum class PipelineCacheCreateFlagBits : VkPipelineCacheCreateFlags
-  {
-    eExternallySynchronized = VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT,
-    eReadOnly = VK_PIPELINE_CACHE_CREATE_READ_ONLY_BIT,
-    eUseApplicationStorage = VK_PIPELINE_CACHE_CREATE_USE_APPLICATION_STORAGE_BIT
-  };
-
-  using PipelineCacheCreateFlags = Flags<PipelineCacheCreateFlagBits>;
-
-
-  template <> struct FlagTraits<PipelineCacheCreateFlagBits>
-  {
-    static VULKAN_HPP_CONST_OR_CONSTEXPR bool isBitmask = true;
-    static VULKAN_HPP_CONST_OR_CONSTEXPR PipelineCacheCreateFlags allFlags = 
-          PipelineCacheCreateFlagBits::eExternallySynchronized
-        | PipelineCacheCreateFlagBits::eReadOnly
-        | PipelineCacheCreateFlagBits::eUseApplicationStorage;
   };
 
   enum class PipelineCacheValidationVersion
@@ -3603,6 +3843,73 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = uint8_t;
   };
 
+
+
+  //===========================================================
+  //=== Mapping from ObjectType to DebugReportObjectTypeEXT ===
+  //===========================================================
+
+  VULKAN_HPP_INLINE VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT debugReportObjectType( VULKAN_HPP_NAMESPACE::ObjectType objectType )
+  {
+    switch( objectType )
+    {
+
+  //=== VK_VERSION_1_0 ===
+      case VULKAN_HPP_NAMESPACE::ObjectType::eInstance : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eInstance;
+      case VULKAN_HPP_NAMESPACE::ObjectType::ePhysicalDevice : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePhysicalDevice;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eDevice : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDevice;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eQueue : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eQueue;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eDeviceMemory : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDeviceMemory;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eFence : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eFence;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eSemaphore : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSemaphore;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eEvent : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eEvent;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eQueryPool : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eQueryPool;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eBuffer : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eBuffer;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eBufferView : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eBufferView;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eImage : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eImage;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eImageView : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eImageView;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eShaderModule : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eShaderModule;
+      case VULKAN_HPP_NAMESPACE::ObjectType::ePipelineCache : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePipelineCache;
+      case VULKAN_HPP_NAMESPACE::ObjectType::ePipeline : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePipeline;
+      case VULKAN_HPP_NAMESPACE::ObjectType::ePipelineLayout : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePipelineLayout;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eSampler : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSampler;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eDescriptorPool : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorPool;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eDescriptorSet : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorSet;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eDescriptorSetLayout : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorSetLayout;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eFramebuffer : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eFramebuffer;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eRenderPass : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eRenderPass;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eCommandPool : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCommandPool;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eCommandBuffer : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCommandBuffer;
+
+  //=== VK_VERSION_1_1 ===
+      case VULKAN_HPP_NAMESPACE::ObjectType::eSamplerYcbcrConversion : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
+
+  //=== VK_VERSION_1_3 ===
+      case VULKAN_HPP_NAMESPACE::ObjectType::ePrivateDataSlot : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
+
+  //=== VK_KHR_surface ===
+      case VULKAN_HPP_NAMESPACE::ObjectType::eSurfaceKHR : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSurfaceKHR;
+
+  //=== VK_KHR_swapchain ===
+      case VULKAN_HPP_NAMESPACE::ObjectType::eSwapchainKHR : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSwapchainKHR;
+
+  //=== VK_KHR_display ===
+      case VULKAN_HPP_NAMESPACE::ObjectType::eDisplayKHR : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDisplayKHR;
+      case VULKAN_HPP_NAMESPACE::ObjectType::eDisplayModeKHR : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDisplayModeKHR;
+
+  //=== VK_EXT_debug_utils ===
+      case VULKAN_HPP_NAMESPACE::ObjectType::eDebugUtilsMessengerEXT : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
+
+#if defined( VK_USE_PLATFORM_SCI )
+  //=== VK_NV_external_sci_sync2 ===
+      case VULKAN_HPP_NAMESPACE::ObjectType::eSemaphoreSciSyncPoolNV : return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
+#endif /*VK_USE_PLATFORM_SCI*/
+
+      default:
+        VULKAN_HPP_ASSERT( false && "unknown ObjectType" );
+        return VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
+    }
+  }
 
 }   // namespace VULKAN_HPP_NAMESPACE
 #endif
