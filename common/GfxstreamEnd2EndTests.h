@@ -39,6 +39,8 @@
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #define VULKAN_HPP_NO_EXCEPTIONS
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vk_android_native_buffer.h>
+
 // clang-format on
 
 #include <android-base/expected.h>
@@ -349,6 +351,8 @@ class TestingAHardwareBuffer {
     uint32_t getDrmFormat() const;
 
     AHardwareBuffer* asAHardwareBuffer();
+
+    buffer_handle_t asBufferHandle();
 
     EGLClientBuffer asEglClientBuffer();
 
