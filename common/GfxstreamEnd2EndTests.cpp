@@ -257,7 +257,8 @@ int TestingVirtGpuResource::transferToHost(uint32_t offset, uint32_t size) {
 }
 
 TestingVirtGpuDevice::TestingVirtGpuDevice()
-    : mVirtioGpuTaskProcessingThread([this]() { RunVirtioGpuTaskProcessingLoop(); }) {}
+    : VirtGpuDevice(kCapsetGfxStreamVulkan),
+      mVirtioGpuTaskProcessingThread([this]() { RunVirtioGpuTaskProcessingLoop(); }) {}
 
 TestingVirtGpuDevice::~TestingVirtGpuDevice() {
     mShuttingDown = true;
@@ -729,6 +730,10 @@ AHardwareBuffer* TestingAHardwareBuffer::asAHardwareBuffer() {
     return reinterpret_cast<AHardwareBuffer*>(this);
 }
 
+buffer_handle_t TestingAHardwareBuffer::asBufferHandle() {
+    return reinterpret_cast<buffer_handle_t>(this);
+}
+
 EGLClientBuffer TestingAHardwareBuffer::asEglClientBuffer() {
     return reinterpret_cast<EGLClientBuffer>(this);
 }
@@ -1005,6 +1010,8 @@ std::string TestParams::ToString() const {
     ret += "Gl";
     ret += (with_vk ? "With" : "Without");
     ret += "Vk";
+    ret += (with_vk_snapshot ? "With" : "Without");
+    ret += "Snapshot";
     return ret;
 }
 
@@ -1102,9 +1109,13 @@ void GfxstreamEnd2EndTest::SetUp() {
             .key = STREAM_RENDERER_PARAM_RENDERER_FLAGS,
             .value =
                 static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT) |
-                (params.with_gl ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_EGL_BIT  |
-                                                        STREAM_RENDERER_FLAGS_USE_GLES_BIT) : 0 ) |
-                (params.with_vk ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_VK_BIT) : 0 ),
+                (params.with_gl ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_EGL_BIT |
+                                                        STREAM_RENDERER_FLAGS_USE_GLES_BIT)
+                                : 0) |
+                (params.with_vk ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_VK_BIT) : 0) |
+                (params.with_vk_snapshot
+                     ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS)
+                     : 0),
         },
         stream_renderer_param{
             .key = STREAM_RENDERER_PARAM_WIN0_WIDTH,
@@ -1430,7 +1441,7 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(uint32_t apiVersion) {
         .pQueuePriorities = &queuePriority,
     };
     const std::vector<const char*> deviceExtensions = {
-        VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME,
+        VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
     };
     const vkhpp::DeviceCreateInfo deviceCreateInfo = {
         .pQueueCreateInfos = &deviceQueueCreateInfo,

@@ -55,7 +55,7 @@ public:
     bool isFinished() const { return mFinished.load(std::memory_order_relaxed); }
 
     void pausePreSnapshot();
-    void resume();
+    void resume(bool waitForSave);
     void save(android::base::Stream* stream);
 
 private:
@@ -102,6 +102,9 @@ private:
     bool mRunInLimitedMode = false;
     uint32_t mContextId = 0;
     uint32_t mCapsetId = 0;
+    // If we need to reload process resources.
+    // This happens in snapshot testing where we don't snapshot render threads.
+    bool mNeedReloadProcessResources = false;
 };
 
 }  // namespace gfxstream
