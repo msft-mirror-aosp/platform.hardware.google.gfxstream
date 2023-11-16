@@ -62,12 +62,14 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     const uint32_t height = 32;
     auto ahb = mGralloc->allocate(width, height, DRM_FORMAT_ABGR8888);
 
-    VkNativeBufferANDROID imageNativeBufferInfo = {
+    const VkNativeBufferANDROID imageNativeBufferInfo = {
+        .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
         .handle = ahb->asBufferHandle(),
     };
 
     auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
         device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
+    ASSERT_THAT(vkQueueSignalReleaseImageANDROID, NotNull());
 
     const vkhpp::ImageCreateInfo imageCreateInfo = {
         .pNext = &imageNativeBufferInfo,
@@ -187,6 +189,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
 
     auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
         device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
+    ASSERT_THAT(vkQueueSignalReleaseImageANDROID, NotNull());
 
     const vkhpp::ImageCreateInfo imageCreateInfo = {
         .pNext = nullptr,
@@ -208,7 +211,8 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     auto image = device->createImageUnique(imageCreateInfo).value;
 
     // NOTE: Binding the VkImage to the AHB happens after the VkImage is created.
-    VkNativeBufferANDROID imageNativeBufferInfo = {
+    const VkNativeBufferANDROID imageNativeBufferInfo = {
+        .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
         .handle = ahb->asBufferHandle(),
     };
 
