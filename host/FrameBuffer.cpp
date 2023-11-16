@@ -1629,13 +1629,13 @@ void FrameBuffer::performDelayedColorBufferCloseLocked(bool forced) {
     // timestamp change (end of previous second -> beginning of a next one),
     // but not for long - this is a workaround for race conditions, and they
     // are quick.
-    static constexpr int kColorBufferClosingDelaySec = 1;
+    static constexpr uint64_t kColorBufferClosingDelayUs = 1000000LL;
 
     const auto now = android::base::getUnixTimeUs();
     auto it = m_colorBufferDelayedCloseList.begin();
     while (it != m_colorBufferDelayedCloseList.end() &&
            (forced ||
-           it->ts + kColorBufferClosingDelaySec <= now)) {
+           it->ts + kColorBufferClosingDelayUs <= now)) {
         if (it->cbHandle != 0) {
             AutoLock colorBufferMapLock(m_colorBufferMapLock);
             const auto& cb = m_colorbuffers.find(it->cbHandle);
