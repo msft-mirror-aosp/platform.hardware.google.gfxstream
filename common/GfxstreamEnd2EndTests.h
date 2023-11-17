@@ -46,9 +46,6 @@
 #include <android-base/expected.h>
 
 #include "HostConnection.h"
-#include "VirtGpu.h"
-#include "drm_fourcc.h"
-#include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 namespace gfxstream {
 namespace tests {
@@ -147,198 +144,11 @@ using VkExpected = android::base::expected<VkType, vkhpp::Result>;
     std::move(vkhpp_result_value.value);                                      \
   })
 
-std::optional<uint32_t> DrmFormatToVirglFormat(uint32_t drmFormat);
-std::optional<uint32_t> GlFormatToDrmFormat(uint32_t glFormat);
-
-class TestingVirtGpuDevice;
-
-class TestingVirtGpuBlobMapping : public VirtGpuBlobMapping {
-  public:
-    TestingVirtGpuBlobMapping(VirtGpuBlobPtr blob, uint8_t* mapped);
-    ~TestingVirtGpuBlobMapping();
-
-    uint8_t* asRawPtr(void) override;
-
-  private:
-    VirtGpuBlobPtr mBlob;
-    uint8_t* mMapped = nullptr;
-};
-
-class TestingVirtGpuResource : public std::enable_shared_from_this<TestingVirtGpuResource>, public VirtGpuBlob {
-  public:
-    static std::shared_ptr<TestingVirtGpuResource> createBlob(
-        uint32_t resourceId,
-        std::shared_ptr<TestingVirtGpuDevice> device,
-        std::shared_future<void> createCompleted,
-        std::shared_future<uint8_t*> resourceMappedCompleted);
-
-    static std::shared_ptr<TestingVirtGpuResource> createPipe(
-        uint32_t resourceId,
-        std::shared_ptr<TestingVirtGpuDevice> device,
-        std::shared_future<void> createCompleted,
-        std::unique_ptr<uint8_t[]> resourceBytes);
-
-    ~TestingVirtGpuResource();
-
-    VirtGpuBlobMappingPtr createMapping(void) override;
-
-    uint32_t getResourceHandle() override;
-    uint32_t getBlobHandle() override;
-
-    int exportBlob(VirtGpuExternalHandle& handle) override;
-    int wait() override;
-
-    int transferFromHost(uint32_t offset, uint32_t size) override;
-    int transferToHost(uint32_t offset, uint32_t size) override;
-
-  private:
-    enum class ResourceType {
-        kBlob,
-        kPipe,
-    };
-
-    TestingVirtGpuResource(
-        uint32_t resourceId,
-        ResourceType resourceType,
-        std::shared_ptr<TestingVirtGpuDevice> device,
-        std::shared_future<void> createCompletedWaitable,
-        std::unique_ptr<uint8_t[]> resourceGuestBytes = nullptr,
-        std::shared_future<uint8_t*> resourceMappedWaitable = {});
-
-    friend class TestingVirtGpuDevice;
-    void addPendingCommandWaitable(std::shared_future<void> waitable);
-
-    const uint32_t mResourceId;
-    const ResourceType mResourceType;
-    const std::shared_ptr<TestingVirtGpuDevice> mDevice;
-
-    std::mutex mPendingCommandWaitablesMutex;
-    std::vector<std::shared_future<void>> mPendingCommandWaitables;
-
-    // For non-blob resources, the guest shadow memory.
-    std::unique_ptr<uint8_t[]> mResourceGuestBytes;
-
-    // For mappable blob resources, the host memory once it is mapped.
-    std::shared_future<uint8_t*> mResourceMappedHostBytes;
-};
-
-class TestingVirtGpuDevice : public std::enable_shared_from_this<TestingVirtGpuDevice>, public VirtGpuDevice {
-  public:
-    TestingVirtGpuDevice();
-    ~TestingVirtGpuDevice();
-
-    int64_t getDeviceHandle() override;
-
-    VirtGpuCaps getCaps() override;
-
-    VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate) override;
-
-    VirtGpuBlobPtr createPipeBlob(uint32_t size) override;
-
-    VirtGpuBlobPtr createTexture(uint32_t width,
-                                 uint32_t height,
-                                 uint32_t drmFormat);
-
-    int execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob);
-
-    VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle);
-
-  private:
-    friend class TestingVirtGpuResource;
-
-    std::shared_future<void> transferFromHost(uint32_t resourceId,
-                                              uint32_t transferOffset,
-                                              uint32_t transferSize);
-
-    std::shared_future<void> transferToHost(uint32_t resourceId,
-                                            uint32_t transferOffset,
-                                            uint32_t transferSize);
-
-  private:
-    friend class TestingVirtGpuSyncHelper;
-
-    int WaitOnEmulatedFence(int fenceAsFileDescriptor, int timeoutMilliseconds);
-
-  public:
-    // Public for callback from Gfxstream.
-    void SignalEmulatedFence(uint32_t fenceId);
-
-  private:
-    uint32_t CreateEmulatedFence();
-
-  private:
-    struct VirtioGpuTaskCreateBlob {
-        uint32_t resourceId;
-        struct stream_renderer_create_blob params;
-    };
-    struct VirtioGpuTaskCreateResource {
-        uint32_t resourceId;
-        uint8_t* resourceBytes;
-        struct stream_renderer_resource_create_args params;
-    };
-    struct VirtioGpuTaskMap {
-        uint32_t resourceId;
-        std::promise<uint8_t*> resourceMappedPromise;
-    };
-    struct VirtioGpuTaskExecBuffer {
-        std::vector<std::byte> commandBuffer;
-    };
-    struct VirtioGpuTaskTransferToHost {
-        uint32_t resourceId;
-        uint32_t transferOffset;
-        uint32_t transferSize;
-    };
-    struct VirtioGpuTaskTransferFromHost {
-        uint32_t resourceId;
-        uint32_t transferOffset;
-        uint32_t transferSize;
-    };
-    using VirtioGpuTask = std::variant<VirtioGpuTaskCreateBlob,
-                                       VirtioGpuTaskCreateResource,
-                                       VirtioGpuTaskMap,
-                                       VirtioGpuTaskExecBuffer,
-                                       VirtioGpuTaskTransferFromHost,
-                                       VirtioGpuTaskTransferToHost>;
-    struct VirtioGpuTaskWithWaitable {
-        VirtioGpuTask task;
-        std::promise<void> taskCompletedSignaler;
-        std::optional<uint32_t> fence;
-    };
-
-    std::shared_future<void> EnqueueVirtioGpuTask(VirtioGpuTask task, std::optional<uint32_t> fence = std::nullopt);
-
-    void DoTask(VirtioGpuTaskCreateBlob task);
-    void DoTask(VirtioGpuTaskCreateResource task);
-    void DoTask(VirtioGpuTaskMap task);
-    void DoTask(VirtioGpuTaskExecBuffer task);
-    void DoTask(VirtioGpuTaskTransferFromHost task);
-    void DoTask(VirtioGpuTaskTransferToHost task);
-    void DoTask(VirtioGpuTaskWithWaitable task);
-
-    void RunVirtioGpuTaskProcessingLoop();
-
-    std::atomic<uint32_t> mNextVirtioGpuResourceId{1};
-    std::atomic<uint32_t> mNextVirtioGpuFenceId{1};
-
-    std::atomic_bool mShuttingDown{false};
-
-    std::mutex mVirtioGpuTaskMutex;
-    std::queue<VirtioGpuTaskWithWaitable> mVirtioGpuTasks;
-    std::thread mVirtioGpuTaskProcessingThread;
-
-    struct EmulatedFence {
-        std::promise<void> signaler;
-        std::shared_future<void> waitable;
-    };
-    std::mutex mVirtioGpuFencesMutex;
-    std::unordered_map<uint32_t, EmulatedFence> mVirtioGpuFences;
-};
-
 class TestingAHardwareBuffer {
   public:
     TestingAHardwareBuffer(uint32_t width,
                            uint32_t height,
-                           std::shared_ptr<TestingVirtGpuResource> resource);
+                           VirtGpuBlobPtr resource);
 
     uint32_t getResourceId() const;
 
@@ -359,12 +169,12 @@ class TestingAHardwareBuffer {
   private:
     uint32_t mWidth;
     uint32_t mHeight;
-    std::shared_ptr<TestingVirtGpuResource> mResource;
+    VirtGpuBlobPtr mResource;
 };
 
 class TestingVirtGpuGralloc : public Gralloc {
    public:
-    TestingVirtGpuGralloc(std::shared_ptr<TestingVirtGpuDevice> device);
+    TestingVirtGpuGralloc();
 
     uint32_t createColorBuffer(void*,
                                int width,
@@ -397,7 +207,6 @@ class TestingVirtGpuGralloc : public Gralloc {
 
   private:
     std::unordered_map<uint32_t, std::unique_ptr<TestingAHardwareBuffer>> mAllocatedColorBuffers;
-    std::shared_ptr<TestingVirtGpuDevice> mDevice;
 };
 
 class TestingANativeWindow {
@@ -463,20 +272,6 @@ class TestingVirtGpuANativeWindowHelper : public ANativeWindowHelper {
     int getHostHandle(EGLClientBuffer buffer, Gralloc*) override;
 };
 
-class TestingVirtGpuSyncHelper : public SyncHelper {
-  public:
-    TestingVirtGpuSyncHelper(std::shared_ptr<TestingVirtGpuDevice> device);
-
-    int wait(int syncFd, int timeoutMilliseconds) override;
-
-    int dup(int syncFd) override;
-
-    int close(int) override;
-
-  private:
-    std::shared_ptr<TestingVirtGpuDevice> mDevice;
-};
-
 struct TestParams {
     bool with_gl;
     bool with_vk;
@@ -509,7 +304,7 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
 
     void TearDownGuest();
     void TearDownHost();
-    void TearDown();
+    void TearDown() override;
 
     std::unique_ptr<TestingANativeWindow> CreateEmulatedANW(uint32_t width, uint32_t height);
 
@@ -539,10 +334,9 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     VkExpected<TypicalVkTestEnvironment> SetUpTypicalVkTestEnvironment(
         uint32_t apiVersion = VK_API_VERSION_1_2);
 
-    std::shared_ptr<TestingVirtGpuDevice> mDevice;
     std::unique_ptr<TestingVirtGpuANativeWindowHelper> mAnwHelper;
     std::unique_ptr<TestingVirtGpuGralloc> mGralloc;
-    TestingVirtGpuSyncHelper* mSync;
+    SyncHelper* mSync;
     std::unique_ptr<GuestGlDispatchTable> mGl;
     std::unique_ptr<vkhpp::DynamicLoader> mVk;
 };

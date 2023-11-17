@@ -61,15 +61,16 @@ class StubVirtGpuDevice : public VirtGpuDevice {
     StubVirtGpuDevice(enum VirtGpuCapset capset);
     virtual ~StubVirtGpuDevice();
 
-    virtual int64_t getDeviceHandle(void);
+    int64_t getDeviceHandle(void) override;
 
-    virtual struct VirtGpuCaps getCaps(void);
+    struct VirtGpuCaps getCaps(void) override;
 
-    virtual VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate);
-    virtual VirtGpuBlobPtr createPipeBlob(uint32_t size);
-    virtual VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle);
+    VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate) override;
+    VirtGpuBlobPtr createPipeBlob(uint32_t size) override;
+    VirtGpuBlobPtr createPipeTexture2D(uint32_t width, uint32_t height, uint32_t format) override;
+    VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle) override;
 
-    virtual int execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob);
+    int execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob) override;
 
   private:
     int64_t mDeviceHandle;

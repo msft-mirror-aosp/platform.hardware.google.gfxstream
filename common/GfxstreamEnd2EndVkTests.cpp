@@ -14,6 +14,8 @@
 
 #include "GfxstreamEnd2EndTests.h"
 
+#include "drm_fourcc.h"
+
 namespace gfxstream {
 namespace tests {
 namespace {
