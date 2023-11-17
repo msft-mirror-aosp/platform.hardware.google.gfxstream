@@ -157,6 +157,7 @@ cc_defaults {
         }
     },
     host_supported: true,
+    vendor_available: true,
 
     apex_available: [
         "//apex_available:platform",
