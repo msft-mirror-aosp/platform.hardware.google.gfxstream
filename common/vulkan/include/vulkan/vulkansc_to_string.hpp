@@ -8,7 +8,7 @@
 #ifndef VULKAN_TO_STRING_HPP
 #  define VULKAN_TO_STRING_HPP
 
-#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkansc_enums.hpp>
 
 #if __cpp_lib_format
 #  include <format>   // std::format
@@ -720,6 +720,9 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_SCI )
     if ( value & ExternalMemoryHandleTypeFlagBits::eSciBufNV ) result += "SciBufNV | ";
 #endif /*VK_USE_PLATFORM_SCI*/
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+    if ( value & ExternalMemoryHandleTypeFlagBits::eScreenBufferQNX ) result += "ScreenBufferQNX | ";
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
@@ -1533,7 +1536,7 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::eDisplayModeCreateInfoKHR : return "DisplayModeCreateInfoKHR";
       case StructureType::eDisplaySurfaceCreateInfoKHR : return "DisplaySurfaceCreateInfoKHR";
       case StructureType::eDisplayPresentInfoKHR : return "DisplayPresentInfoKHR";
-      case StructureType::ePrivateVendorInfoReservedOffset0NV : return "PrivateVendorInfoReservedOffset0NV";
+      case StructureType::ePrivateVendorInfoPlaceholderOffset0NV : return "PrivateVendorInfoPlaceholderOffset0NV";
       case StructureType::eImageViewAstcDecodeModeEXT : return "ImageViewAstcDecodeModeEXT";
       case StructureType::ePhysicalDeviceAstcDecodeFeaturesEXT : return "PhysicalDeviceAstcDecodeFeaturesEXT";
       case StructureType::eImportMemoryFdInfoKHR : return "ImportMemoryFdInfoKHR";
@@ -1659,6 +1662,13 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::ePhysicalDeviceExternalSciSync2FeaturesNV : return "PhysicalDeviceExternalSciSync2FeaturesNV";
       case StructureType::eDeviceSemaphoreSciSyncPoolReservationCreateInfoNV : return "DeviceSemaphoreSciSyncPoolReservationCreateInfoNV";
 #endif /*VK_USE_PLATFORM_SCI*/
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+      case StructureType::eScreenBufferPropertiesQNX : return "ScreenBufferPropertiesQNX";
+      case StructureType::eScreenBufferFormatPropertiesQNX : return "ScreenBufferFormatPropertiesQNX";
+      case StructureType::eImportScreenBufferInfoQNX : return "ImportScreenBufferInfoQNX";
+      case StructureType::eExternalFormatQNX : return "ExternalFormatQNX";
+      case StructureType::ePhysicalDeviceExternalMemoryScreenBufferFeaturesQNX : return "PhysicalDeviceExternalMemoryScreenBufferFeaturesQNX";
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
 
@@ -2205,6 +2215,17 @@ namespace VULKAN_HPP_NAMESPACE
   }
 
 
+  VULKAN_HPP_INLINE std::string to_string( DeviceQueueCreateFlagBits value )
+  {
+    switch ( value )
+    {
+      case DeviceQueueCreateFlagBits::eProtected : return "Protected";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+
+  }
+
+
   VULKAN_HPP_INLINE std::string to_string( PipelineStageFlagBits value )
   {
     switch ( value )
@@ -2462,6 +2483,19 @@ namespace VULKAN_HPP_NAMESPACE
       case ImageViewType::e1DArray : return "1DArray";
       case ImageViewType::e2DArray : return "2DArray";
       case ImageViewType::eCubeArray : return "CubeArray";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+
+  }
+
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineCacheCreateFlagBits value )
+  {
+    switch ( value )
+    {
+      case PipelineCacheCreateFlagBits::eExternallySynchronized : return "ExternallySynchronized";
+      case PipelineCacheCreateFlagBits::eReadOnly : return "ReadOnly";
+      case PipelineCacheCreateFlagBits::eUseApplicationStorage : return "UseApplicationStorage";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
 
@@ -2814,6 +2848,12 @@ namespace VULKAN_HPP_NAMESPACE
 
 
   VULKAN_HPP_INLINE std::string to_string( PipelineInputAssemblyStateCreateFlagBits )
+  {
+    return "(void)";
+  }
+
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineLayoutCreateFlagBits )
   {
     return "(void)";
   }
@@ -3254,17 +3294,6 @@ namespace VULKAN_HPP_NAMESPACE
   }
 
 
-  VULKAN_HPP_INLINE std::string to_string( DeviceQueueCreateFlagBits value )
-  {
-    switch ( value )
-    {
-      case DeviceQueueCreateFlagBits::eProtected : return "Protected";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
-
-  }
-
-
   VULKAN_HPP_INLINE std::string to_string( SamplerYcbcrModelConversion value )
   {
     switch ( value )
@@ -3321,6 +3350,9 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_SCI )
       case ExternalMemoryHandleTypeFlagBits::eSciBufNV : return "SciBufNV";
 #endif /*VK_USE_PLATFORM_SCI*/
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+      case ExternalMemoryHandleTypeFlagBits::eScreenBufferQNX : return "ScreenBufferQNX";
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
 
@@ -3453,6 +3485,7 @@ namespace VULKAN_HPP_NAMESPACE
       case DriverId::eMesaDozen : return "MesaDozen";
       case DriverId::eMesaNvk : return "MesaNvk";
       case DriverId::eImaginationOpenSourceMESA : return "ImaginationOpenSourceMESA";
+      case DriverId::eMesaAgxv : return "MesaAgxv";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
 
@@ -3770,19 +3803,6 @@ namespace VULKAN_HPP_NAMESPACE
     switch ( value )
     {
       case PipelineMatchControl::eApplicationUuidExactMatch : return "ApplicationUuidExactMatch";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
-
-  }
-
-
-  VULKAN_HPP_INLINE std::string to_string( PipelineCacheCreateFlagBits value )
-  {
-    switch ( value )
-    {
-      case PipelineCacheCreateFlagBits::eExternallySynchronized : return "ExternallySynchronized";
-      case PipelineCacheCreateFlagBits::eReadOnly : return "ReadOnly";
-      case PipelineCacheCreateFlagBits::eUseApplicationStorage : return "UseApplicationStorage";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
 

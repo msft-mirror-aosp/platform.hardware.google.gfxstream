@@ -94,6 +94,7 @@ endif()
 
 add_compile_definitions(GLM_FORCE_RADIANS)
 add_compile_definitions(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+add_compile_definitions(VK_GFXSTREAM_STRUCTURE_TYPE_EXT)
 
 if (MSVC)
     # ask msvc not to warn not secure C ISO functions

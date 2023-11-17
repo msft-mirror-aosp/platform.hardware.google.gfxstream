@@ -16,6 +16,9 @@ cc_library_static {
         "-Wno-unused-parameter",
         "-Wno-unused-function",
     ],
+    header_libs: [
+        "gfxstream_opengl_headers",
+    ],
     static_libs: [
         "gfxstream_base",
     ],

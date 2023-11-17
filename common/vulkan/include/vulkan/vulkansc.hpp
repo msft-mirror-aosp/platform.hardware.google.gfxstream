@@ -8,37 +8,17 @@
 #ifndef VULKAN_HPP
 #define VULKAN_HPP
 
-#if defined( _MSVC_LANG )
-#  define VULKAN_HPP_CPLUSPLUS _MSVC_LANG
-#else
-#  define VULKAN_HPP_CPLUSPLUS __cplusplus
-#endif
-
-#if 201703L < VULKAN_HPP_CPLUSPLUS
-#  define VULKAN_HPP_CPP_VERSION 20
-#elif 201402L < VULKAN_HPP_CPLUSPLUS
-#  define VULKAN_HPP_CPP_VERSION 17
-#elif 201103L < VULKAN_HPP_CPLUSPLUS
-#  define VULKAN_HPP_CPP_VERSION 14
-#elif 199711L < VULKAN_HPP_CPLUSPLUS
-#  define VULKAN_HPP_CPP_VERSION 11
-#else
-#  error "vulkansc.hpp needs at least c++ standard version 11"
-#endif
-
 #include <algorithm>
 #include <array>   // ArrayWrapperND
 #include <string>  // std::string
 #include <vulkan/vulkan_sc_core.h>
+#include <vulkan/vulkan_hpp_macros.hpp>
+
 #if 17 <= VULKAN_HPP_CPP_VERSION
 #  include <string_view>    // std::string_view
 #endif
 
-#if defined( VULKAN_HPP_DISABLE_ENHANCED_MODE )
-#  if !defined( VULKAN_HPP_NO_SMART_HANDLE )
-#    define VULKAN_HPP_NO_SMART_HANDLE
-#  endif
-#else
+#if !defined( VULKAN_HPP_DISABLE_ENHANCED_MODE )
 #  include <tuple>  // std::tie
 #  include <vector> // std::vector
 #endif
@@ -47,43 +27,12 @@
 #  include <system_error>  // std::is_error_code_enum
 #endif
 
-#if defined( VULKAN_HPP_NO_CONSTRUCTORS )
-#  if !defined( VULKAN_HPP_NO_STRUCT_CONSTRUCTORS )
-#    define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
-#  endif
-#  if !defined( VULKAN_HPP_NO_UNION_CONSTRUCTORS )
-#    define VULKAN_HPP_NO_UNION_CONSTRUCTORS
-#  endif
-#endif
-
-#if defined( VULKAN_HPP_NO_SETTERS )
-#  if !defined( VULKAN_HPP_NO_STRUCT_SETTERS )
-#    define VULKAN_HPP_NO_STRUCT_SETTERS
-#  endif
-#  if !defined( VULKAN_HPP_NO_UNION_SETTERS )
-#    define VULKAN_HPP_NO_UNION_SETTERS
-#  endif
-#endif
-
-#if !defined( VULKAN_HPP_ASSERT )
+#if ( VULKAN_HPP_ASSERT == assert )
 #  include <cassert>
-#  define VULKAN_HPP_ASSERT assert
-#endif
-
-#if !defined( VULKAN_HPP_ASSERT_ON_RESULT )
-#  define VULKAN_HPP_ASSERT_ON_RESULT VULKAN_HPP_ASSERT
-#endif
-
-#if !defined( VULKAN_HPP_STATIC_ASSERT )
-# define VULKAN_HPP_STATIC_ASSERT static_assert
-#endif
-
-#if !defined( VULKAN_HPP_ENABLE_DYNAMIC_LOADER_TOOL )
-#  define VULKAN_HPP_ENABLE_DYNAMIC_LOADER_TOOL 1
 #endif
 
 #if VULKAN_HPP_ENABLE_DYNAMIC_LOADER_TOOL == 1
-#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNXNTO__ ) || defined(__Fuchsia__)
+#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNX__ ) || defined(__Fuchsia__)
 #    include <dlfcn.h>
 #  elif defined( _WIN32 )
 typedef struct HINSTANCE__ * HINSTANCE;
@@ -98,32 +47,16 @@ extern "C" __declspec( dllimport ) FARPROC __stdcall GetProcAddress( HINSTANCE h
 #  endif
 #endif
 
-#if !defined( __has_include )
-#  define __has_include( x ) false
-#endif
-
-#if ( 201907 <= __cpp_lib_three_way_comparison ) && __has_include( <compare> ) && !defined( VULKAN_HPP_NO_SPACESHIP_OPERATOR )
-#  define VULKAN_HPP_HAS_SPACESHIP_OPERATOR
-#endif
 #if defined( VULKAN_HPP_HAS_SPACESHIP_OPERATOR )
 #  include <compare>
 #endif
 
-#if ( 201803 <= __cpp_lib_span )
-#  define VULKAN_HPP_SUPPORT_SPAN
+#if defined( VULKAN_HPP_SUPPORT_SPAN )
 #  include <span>
 #endif
 
 
-static_assert( VK_HEADER_VERSION ==  12, "Wrong VK_HEADER_VERSION!" );
-
-// 32-bit vulkan is not typesafe for non-dispatchable handles, so don't allow copy constructors on this platform by default.
-// To enable this feature on 32-bit platforms please define VULKAN_HPP_TYPESAFE_CONVERSION
-#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
-#  if !defined( VULKAN_HPP_TYPESAFE_CONVERSION )
-#    define VULKAN_HPP_TYPESAFE_CONVERSION
-#  endif
-#endif
+static_assert( VK_HEADER_VERSION ==  13, "Wrong VK_HEADER_VERSION!" );
 
 // <tuple> includes <sys/sysmacros.h> through some other header
 // this results in major(x) being resolved to gnu_dev_major(x)
@@ -141,240 +74,174 @@ static_assert( VK_HEADER_VERSION ==  12, "Wrong VK_HEADER_VERSION!" );
 #  undef MemoryBarrier
 #endif
 
-#if defined(__GNUC__)
-# define GCC_VERSION ( __GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ )
+// XLib.h defines True/False, which collides with our vk::True/vk::False
+// ->  undef them and provide some namepace-secure constexpr
+#if defined( True )
+#  undef True
+constexpr int True = 1;
 #endif
-
-#if !defined( VULKAN_HPP_HAS_UNRESTRICTED_UNIONS )
-#  if defined( __clang__ )
-#    if __has_feature( cxx_unrestricted_unions )
-#      define VULKAN_HPP_HAS_UNRESTRICTED_UNIONS
-#    endif
-#  elif defined( __GNUC__ )
-#    if 40600 <= GCC_VERSION
-#      define VULKAN_HPP_HAS_UNRESTRICTED_UNIONS
-#    endif
-#  elif defined( _MSC_VER )
-#    if 1900 <= _MSC_VER
-#      define VULKAN_HPP_HAS_UNRESTRICTED_UNIONS
-#    endif
-#  endif
+#if defined( False )
+#  undef False
+constexpr int False = 0;
 #endif
-
-#if !defined( VULKAN_HPP_INLINE )
-#  if defined( __clang__ )
-#    if __has_attribute( always_inline )
-#      define VULKAN_HPP_INLINE __attribute__( ( always_inline ) ) __inline__
-#    else
-#      define VULKAN_HPP_INLINE inline
-#    endif
-#  elif defined( __GNUC__ )
-#    define VULKAN_HPP_INLINE __attribute__( ( always_inline ) ) __inline__
-#  elif defined( _MSC_VER )
-#    define VULKAN_HPP_INLINE inline
-#  else
-#    define VULKAN_HPP_INLINE inline
-#  endif
-#endif
-
-#if defined( VULKAN_HPP_TYPESAFE_CONVERSION )
-#  define VULKAN_HPP_TYPESAFE_EXPLICIT
-#else
-#  define VULKAN_HPP_TYPESAFE_EXPLICIT explicit
-#endif
-
-#if defined( __cpp_constexpr )
-#  define VULKAN_HPP_CONSTEXPR constexpr
-#  if 201304 <= __cpp_constexpr
-#    define VULKAN_HPP_CONSTEXPR_14 constexpr
-#  else
-#    define VULKAN_HPP_CONSTEXPR_14
-#  endif
-#  if ( 201907 <= __cpp_constexpr ) && ( !defined(__GNUC__) || ( 110300 < GCC_VERSION ) )
-#    define VULKAN_HPP_CONSTEXPR_20 constexpr
-#  else
-#    define VULKAN_HPP_CONSTEXPR_20
-#  endif
-#  define VULKAN_HPP_CONST_OR_CONSTEXPR constexpr
-#else
-#  define VULKAN_HPP_CONSTEXPR
-#  define VULKAN_HPP_CONSTEXPR_14
-#  define VULKAN_HPP_CONST_OR_CONSTEXPR const
-#endif
-
-#if !defined( VULKAN_HPP_NOEXCEPT )
-#  if defined( _MSC_VER ) && ( _MSC_VER <= 1800 )
-#    define VULKAN_HPP_NOEXCEPT
-#  else
-#    define VULKAN_HPP_NOEXCEPT     noexcept
-#    define VULKAN_HPP_HAS_NOEXCEPT 1
-#    if defined( VULKAN_HPP_NO_EXCEPTIONS )
-#      define VULKAN_HPP_NOEXCEPT_WHEN_NO_EXCEPTIONS noexcept
-#    else
-#      define VULKAN_HPP_NOEXCEPT_WHEN_NO_EXCEPTIONS
-#    endif
-#  endif
-#endif
-
-#if 14 <= VULKAN_HPP_CPP_VERSION
-#  define VULKAN_HPP_DEPRECATED( msg ) [[deprecated( msg )]]
-#else
-#  define VULKAN_HPP_DEPRECATED( msg )
-#endif
-
-#if ( 17 <= VULKAN_HPP_CPP_VERSION ) && !defined( VULKAN_HPP_NO_NODISCARD_WARNINGS )
-#  define VULKAN_HPP_NODISCARD [[nodiscard]]
-#  if defined( VULKAN_HPP_NO_EXCEPTIONS )
-#    define VULKAN_HPP_NODISCARD_WHEN_NO_EXCEPTIONS [[nodiscard]]
-#  else
-#    define VULKAN_HPP_NODISCARD_WHEN_NO_EXCEPTIONS
-#  endif
-#else
-#  define VULKAN_HPP_NODISCARD
-#  define VULKAN_HPP_NODISCARD_WHEN_NO_EXCEPTIONS
-#endif
-
-#if !defined( VULKAN_HPP_NAMESPACE )
-#  define VULKAN_HPP_NAMESPACE vk
-#endif
-
-#define VULKAN_HPP_STRINGIFY2( text ) #text
-#define VULKAN_HPP_STRINGIFY( text )  VULKAN_HPP_STRINGIFY2( text )
-#define VULKAN_HPP_NAMESPACE_STRING   VULKAN_HPP_STRINGIFY( VULKAN_HPP_NAMESPACE )
 
 
 namespace VULKAN_HPP_NAMESPACE
 {
-  template <typename T, size_t N>
-  class ArrayWrapper1D : public std::array<T, N>
+template <typename T, size_t N>
+class ArrayWrapper1D : public std::array<T, N>
+{
+public:
+  VULKAN_HPP_CONSTEXPR ArrayWrapper1D() VULKAN_HPP_NOEXCEPT : std::array<T, N>() {}
+
+  VULKAN_HPP_CONSTEXPR ArrayWrapper1D( std::array<T, N> const & data ) VULKAN_HPP_NOEXCEPT : std::array<T, N>( data ) {}
+
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  VULKAN_HPP_CONSTEXPR_14 ArrayWrapper1D( std::string const & data ) VULKAN_HPP_NOEXCEPT
   {
-  public:
-    VULKAN_HPP_CONSTEXPR ArrayWrapper1D() VULKAN_HPP_NOEXCEPT
-      : std::array<T, N>()
-    {}
-
-    VULKAN_HPP_CONSTEXPR ArrayWrapper1D( std::array<T, N> const & data ) VULKAN_HPP_NOEXCEPT
-      : std::array<T, N>( data )
-    {}
-
-#if ( VK_USE_64_BIT_PTR_DEFINES == 0 )
-    // on 32 bit compiles, needs overloads on index type int to resolve ambiguities
-    VULKAN_HPP_CONSTEXPR T const & operator[]( int index ) const VULKAN_HPP_NOEXCEPT
-    {
-      return std::array<T, N>::operator[]( index );
-    }
-
-    T & operator[]( int index ) VULKAN_HPP_NOEXCEPT
-    {
-      return std::array<T, N>::operator[]( index );
-    }
-#endif
-
-    operator T const * () const VULKAN_HPP_NOEXCEPT
-    {
-      return this->data();
-    }
-
-    operator T * () VULKAN_HPP_NOEXCEPT
-    {
-      return this->data();
-    }
-
-    template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
-    operator std::string() const
-    {
-      return std::string( this->data() );
-    }
+    copy( data.data(), data.length() );
+  }
 
 #if 17 <= VULKAN_HPP_CPP_VERSION
-    template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
-    operator std::string_view() const
-    {
-      return std::string_view( this->data() );
-    }
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  VULKAN_HPP_CONSTEXPR_14 ArrayWrapper1D( std::string_view data ) VULKAN_HPP_NOEXCEPT
+  {
+    copy( data.data(), data.length() );
+  }
+#endif
+
+#if ( VK_USE_64_BIT_PTR_DEFINES == 0 )
+  // on 32 bit compiles, needs overloads on index type int to resolve ambiguities
+  VULKAN_HPP_CONSTEXPR T const & operator[]( int index ) const VULKAN_HPP_NOEXCEPT
+  {
+    return std::array<T, N>::operator[]( index );
+  }
+
+  T & operator[]( int index ) VULKAN_HPP_NOEXCEPT
+  {
+    return std::array<T, N>::operator[]( index );
+  }
+#endif
+
+  operator T const *() const VULKAN_HPP_NOEXCEPT
+  {
+    return this->data();
+  }
+
+  operator T *() VULKAN_HPP_NOEXCEPT
+  {
+    return this->data();
+  }
+
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  operator std::string() const
+  {
+    return std::string( this->data(), N );
+  }
+
+#if 17 <= VULKAN_HPP_CPP_VERSION
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  operator std::string_view() const
+  {
+    return std::string_view( this->data(), N );
+  }
 #endif
 
 #if defined( VULKAN_HPP_HAS_SPACESHIP_OPERATOR )
-    template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
-    std::strong_ordering operator<=>( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return *static_cast<std::array<char, N> const *>( this ) <=> *static_cast<std::array<char, N> const *>( &rhs );
-    }
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  std::strong_ordering operator<=>( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
+  {
+    return *static_cast<std::array<char, N> const *>( this ) <=> *static_cast<std::array<char, N> const *>( &rhs );
+  }
 #else
-    template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
-    bool operator<( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return *static_cast<std::array<char, N> const *>( this ) < *static_cast<std::array<char, N> const *>( &rhs );
-    }
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  bool operator<( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
+  {
+    return *static_cast<std::array<char, N> const *>( this ) < *static_cast<std::array<char, N> const *>( &rhs );
+  }
 
-    template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
-    bool operator<=( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return *static_cast<std::array<char, N> const *>( this ) <= *static_cast<std::array<char, N> const *>( &rhs );
-    }
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  bool operator<=( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
+  {
+    return *static_cast<std::array<char, N> const *>( this ) <= *static_cast<std::array<char, N> const *>( &rhs );
+  }
 
-    template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
-    bool operator>( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return *static_cast<std::array<char, N> const *>( this ) > *static_cast<std::array<char, N> const *>( &rhs );
-    }
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  bool operator>( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
+  {
+    return *static_cast<std::array<char, N> const *>( this ) > *static_cast<std::array<char, N> const *>( &rhs );
+  }
 
-    template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
-    bool operator>=( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return *static_cast<std::array<char, N> const *>( this ) >= *static_cast<std::array<char, N> const *>( &rhs );
-    }
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  bool operator>=( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
+  {
+    return *static_cast<std::array<char, N> const *>( this ) >= *static_cast<std::array<char, N> const *>( &rhs );
+  }
 #endif
 
-    template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
-    bool operator==( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  bool operator==( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
+  {
+    return *static_cast<std::array<char, N> const *>( this ) == *static_cast<std::array<char, N> const *>( &rhs );
+  }
+
+  template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
+  bool operator!=( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
+  {
+    return *static_cast<std::array<char, N> const *>( this ) != *static_cast<std::array<char, N> const *>( &rhs );
+  }
+
+private:
+  VULKAN_HPP_CONSTEXPR_14 void copy( char const * data, size_t len ) VULKAN_HPP_NOEXCEPT
+  {
+    size_t n = std::min( N, len );
+    for ( size_t i = 0; i < n; ++i )
     {
-      return *static_cast<std::array<char, N> const *>( this ) == *static_cast<std::array<char, N> const *>( &rhs );
+      ( *this )[i] = data[i];
     }
-
-    template <typename B = T, typename std::enable_if<std::is_same<B, char>::value, int>::type = 0>
-    bool operator!=( ArrayWrapper1D<char, N> const & rhs ) const VULKAN_HPP_NOEXCEPT
+    for ( size_t i = n; i < N; ++i )
     {
-      return *static_cast<std::array<char, N> const *>( this ) != *static_cast<std::array<char, N> const *>( &rhs );
+      ( *this )[i] = 0;
     }
-  };
-
-  // specialization of relational operators between std::string and arrays of chars
-  template <size_t N>
-  bool operator<( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
-  {
-    return lhs < rhs.data();
   }
+};
 
-  template <size_t N>
-  bool operator<=( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
-  {
-    return lhs <= rhs.data();
-  }
+// specialization of relational operators between std::string and arrays of chars
+template <size_t N>
+bool operator<( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
+{
+  return lhs < rhs.data();
+}
 
-  template <size_t N>
-  bool operator>( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
-  {
-    return lhs > rhs.data();
-  }
+template <size_t N>
+bool operator<=( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
+{
+  return lhs <= rhs.data();
+}
 
-  template <size_t N>
-  bool operator>=( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
-  {
-    return lhs >= rhs.data();
-  }
+template <size_t N>
+bool operator>( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
+{
+  return lhs > rhs.data();
+}
 
-  template <size_t N>
-  bool operator==( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
-  {
-    return lhs == rhs.data();
-  }
+template <size_t N>
+bool operator>=( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
+{
+  return lhs >= rhs.data();
+}
 
-  template <size_t N>
-  bool operator!=( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
-  {
-    return lhs != rhs.data();
-  }
+template <size_t N>
+bool operator==( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
+{
+  return lhs == rhs.data();
+}
+
+template <size_t N>
+bool operator!=( std::string const & lhs, ArrayWrapper1D<char, N> const & rhs ) VULKAN_HPP_NOEXCEPT
+{
+  return lhs != rhs.data();
+}
 
   template <typename T, size_t N, size_t M>
   class ArrayWrapper2D : public std::array<ArrayWrapper1D<T, M>, N>
@@ -388,219 +255,6 @@ namespace VULKAN_HPP_NAMESPACE
       : std::array<ArrayWrapper1D<T, M>, N>( *reinterpret_cast<std::array<ArrayWrapper1D<T, M>, N> const *>( &data ) )
     {}
   };
-
-  template <typename FlagBitsType>
-  struct FlagTraits
-  {
-    static VULKAN_HPP_CONST_OR_CONSTEXPR bool isBitmask = false;
-  };
-
-  template <typename BitType>
-  class Flags
-  {
-  public:
-    using MaskType = typename std::underlying_type<BitType>::type;
-
-    // constructors
-    VULKAN_HPP_CONSTEXPR Flags() VULKAN_HPP_NOEXCEPT
-      : m_mask( 0 )
-    {}
-
-    VULKAN_HPP_CONSTEXPR Flags( BitType bit ) VULKAN_HPP_NOEXCEPT
-      : m_mask( static_cast<MaskType>( bit ) )
-    {}
-
-    VULKAN_HPP_CONSTEXPR Flags( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT = default;
-
-    VULKAN_HPP_CONSTEXPR explicit Flags( MaskType flags ) VULKAN_HPP_NOEXCEPT
-      : m_mask( flags )
-    {}
-
-    // relational operators
-#if defined( VULKAN_HPP_HAS_SPACESHIP_OPERATOR )
-    auto operator<=>( Flags<BitType> const & ) const = default;
-#else
-    VULKAN_HPP_CONSTEXPR bool operator<( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return m_mask < rhs.m_mask;
-    }
-
-    VULKAN_HPP_CONSTEXPR bool operator<=( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return m_mask <= rhs.m_mask;
-    }
-
-    VULKAN_HPP_CONSTEXPR bool operator>( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return m_mask > rhs.m_mask;
-    }
-
-    VULKAN_HPP_CONSTEXPR bool operator>=( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return m_mask >= rhs.m_mask;
-    }
-
-    VULKAN_HPP_CONSTEXPR bool operator==( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return m_mask == rhs.m_mask;
-    }
-
-    VULKAN_HPP_CONSTEXPR bool operator!=( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return m_mask != rhs.m_mask;
-    }
-#endif
-
-    // logical operator
-    VULKAN_HPP_CONSTEXPR bool operator!() const VULKAN_HPP_NOEXCEPT
-    {
-      return !m_mask;
-    }
-
-    // bitwise operators
-    VULKAN_HPP_CONSTEXPR Flags<BitType> operator&( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return Flags<BitType>( m_mask & rhs.m_mask );
-    }
-
-    VULKAN_HPP_CONSTEXPR Flags<BitType> operator|( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return Flags<BitType>( m_mask | rhs.m_mask );
-    }
-
-    VULKAN_HPP_CONSTEXPR Flags<BitType> operator^( Flags<BitType> const & rhs ) const VULKAN_HPP_NOEXCEPT
-    {
-      return Flags<BitType>( m_mask ^ rhs.m_mask );
-    }
-
-    VULKAN_HPP_CONSTEXPR Flags<BitType> operator~() const VULKAN_HPP_NOEXCEPT
-    {
-      return Flags<BitType>( m_mask ^ FlagTraits<BitType>::allFlags.m_mask );
-    }
-
-    // assignment operators
-    VULKAN_HPP_CONSTEXPR_14 Flags<BitType> & operator=( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT = default;
-
-    VULKAN_HPP_CONSTEXPR_14 Flags<BitType> & operator|=( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT
-    {
-      m_mask |= rhs.m_mask;
-      return *this;
-    }
-
-    VULKAN_HPP_CONSTEXPR_14 Flags<BitType> & operator&=( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT
-    {
-      m_mask &= rhs.m_mask;
-      return *this;
-    }
-
-    VULKAN_HPP_CONSTEXPR_14 Flags<BitType> & operator^=( Flags<BitType> const & rhs ) VULKAN_HPP_NOEXCEPT
-    {
-      m_mask ^= rhs.m_mask;
-      return *this;
-    }
-
-    // cast operators
-    explicit VULKAN_HPP_CONSTEXPR operator bool() const VULKAN_HPP_NOEXCEPT
-    {
-      return !!m_mask;
-    }
-
-    explicit VULKAN_HPP_CONSTEXPR operator MaskType() const VULKAN_HPP_NOEXCEPT
-    {
-      return m_mask;
-    }
-
-#if defined( VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC )
-  public:
-#else
-  private:
-#endif
-    MaskType m_mask;
-  };
-
-#if !defined( VULKAN_HPP_HAS_SPACESHIP_OPERATOR )
-  // relational operators only needed for pre C++20
-  template <typename BitType>
-  VULKAN_HPP_CONSTEXPR bool operator<( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
-  {
-    return flags.operator>( bit );
-  }
-
-  template <typename BitType>
-  VULKAN_HPP_CONSTEXPR bool operator<=( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
-  {
-    return flags.operator>=( bit );
-  }
-
-  template <typename BitType>
-  VULKAN_HPP_CONSTEXPR bool operator>( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
-  {
-    return flags.operator<( bit );
-  }
-
-  template <typename BitType>
-  VULKAN_HPP_CONSTEXPR bool operator>=( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
-  {
-    return flags.operator<=( bit );
-  }
-
-  template <typename BitType>
-  VULKAN_HPP_CONSTEXPR bool operator==( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
-  {
-    return flags.operator==( bit );
-  }
-
-  template <typename BitType>
-  VULKAN_HPP_CONSTEXPR bool operator!=( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
-  {
-    return flags.operator!=( bit );
-  }
-#endif
-
-  // bitwise operators
-  template <typename BitType>
-  VULKAN_HPP_CONSTEXPR Flags<BitType> operator&( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
-  {
-    return flags.operator&( bit );
-  }
-
-  template <typename BitType>
-  VULKAN_HPP_CONSTEXPR Flags<BitType> operator|( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
-  {
-    return flags.operator|( bit );
-  }
-
-  template <typename BitType>
-  VULKAN_HPP_CONSTEXPR Flags<BitType> operator^( BitType bit, Flags<BitType> const & flags ) VULKAN_HPP_NOEXCEPT
-  {
-    return flags.operator^( bit );
-  }
-
-  // bitwise operators on BitType
-  template <typename BitType, typename std::enable_if<FlagTraits<BitType>::isBitmask, bool>::type = true>
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR Flags<BitType> operator&(BitType lhs, BitType rhs) VULKAN_HPP_NOEXCEPT
-  {
-    return Flags<BitType>( lhs ) & rhs;
-  }
-
-  template <typename BitType, typename std::enable_if<FlagTraits<BitType>::isBitmask, bool>::type = true>
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR Flags<BitType> operator|(BitType lhs, BitType rhs) VULKAN_HPP_NOEXCEPT
-  {
-    return Flags<BitType>( lhs ) | rhs;
-  }
-
-  template <typename BitType, typename std::enable_if<FlagTraits<BitType>::isBitmask, bool>::type = true>
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR Flags<BitType> operator^(BitType lhs, BitType rhs) VULKAN_HPP_NOEXCEPT
-  {
-    return Flags<BitType>( lhs ) ^ rhs;
-  }
-
-  template <typename BitType, typename std::enable_if<FlagTraits<BitType>::isBitmask, bool>::type = true>
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR Flags<BitType> operator~( BitType bit ) VULKAN_HPP_NOEXCEPT
-  {
-    return ~( Flags<BitType>( bit ) );
-  }
-
 
 #if !defined( VULKAN_HPP_DISABLE_ENHANCED_MODE )
   template <typename T>
@@ -951,26 +605,23 @@ namespace VULKAN_HPP_NAMESPACE
   template <size_t Index, typename T, typename... ChainElements>
   struct StructureChainContains
   {
-    static const bool value =
-      std::is_same<T, typename std::tuple_element<Index, std::tuple<ChainElements...>>::type>::value ||
-      StructureChainContains<Index - 1, T, ChainElements...>::value;
+    static const bool value = std::is_same<T, typename std::tuple_element<Index, std::tuple<ChainElements...>>::type>::value ||
+                              StructureChainContains<Index - 1, T, ChainElements...>::value;
   };
 
   template <typename T, typename... ChainElements>
   struct StructureChainContains<0, T, ChainElements...>
   {
-    static const bool value =
-      std::is_same<T, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value;
+    static const bool value = std::is_same<T, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value;
   };
 
   template <size_t Index, typename... ChainElements>
   struct StructureChainValidation
   {
-    using TestType = typename std::tuple_element<Index, std::tuple<ChainElements...>>::type;
-    static const bool valid =
-      StructExtends<TestType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value &&
-      ( TestType::allowDuplicate || !StructureChainContains<Index - 1, TestType, ChainElements...>::value ) &&
-      StructureChainValidation<Index - 1, ChainElements...>::valid;
+    using TestType          = typename std::tuple_element<Index, std::tuple<ChainElements...>>::type;
+    static const bool valid = StructExtends<TestType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value &&
+                              ( TestType::allowDuplicate || !StructureChainContains<Index - 1, TestType, ChainElements...>::value ) &&
+                              StructureChainValidation<Index - 1, ChainElements...>::valid;
   };
 
   template <typename... ChainElements>
@@ -985,26 +636,22 @@ namespace VULKAN_HPP_NAMESPACE
   public:
     StructureChain() VULKAN_HPP_NOEXCEPT
     {
-      static_assert( StructureChainValidation<sizeof...( ChainElements ) - 1, ChainElements...>::valid,
-                     "The structure chain is not valid!" );
+      static_assert( StructureChainValidation<sizeof...( ChainElements ) - 1, ChainElements...>::valid, "The structure chain is not valid!" );
       link<sizeof...( ChainElements ) - 1>();
     }
 
     StructureChain( StructureChain const & rhs ) VULKAN_HPP_NOEXCEPT : std::tuple<ChainElements...>( rhs )
     {
-      static_assert( StructureChainValidation<sizeof...( ChainElements ) - 1, ChainElements...>::valid,
-                     "The structure chain is not valid!" );
+      static_assert( StructureChainValidation<sizeof...( ChainElements ) - 1, ChainElements...>::valid, "The structure chain is not valid!" );
       link( &std::get<0>( *this ),
             &std::get<0>( rhs ),
             reinterpret_cast<VkBaseOutStructure *>( &std::get<0>( *this ) ),
             reinterpret_cast<VkBaseInStructure const *>( &std::get<0>( rhs ) ) );
     }
 
-    StructureChain( StructureChain && rhs ) VULKAN_HPP_NOEXCEPT
-      : std::tuple<ChainElements...>( std::forward<std::tuple<ChainElements...>>( rhs ) )
+    StructureChain( StructureChain && rhs ) VULKAN_HPP_NOEXCEPT : std::tuple<ChainElements...>( std::forward<std::tuple<ChainElements...>>( rhs ) )
     {
-      static_assert( StructureChainValidation<sizeof...( ChainElements ) - 1, ChainElements...>::valid,
-                     "The structure chain is not valid!" );
+      static_assert( StructureChainValidation<sizeof...( ChainElements ) - 1, ChainElements...>::valid, "The structure chain is not valid!" );
       link( &std::get<0>( *this ),
             &std::get<0>( rhs ),
             reinterpret_cast<VkBaseOutStructure *>( &std::get<0>( *this ) ),
@@ -1013,8 +660,7 @@ namespace VULKAN_HPP_NAMESPACE
 
     StructureChain( ChainElements const &... elems ) VULKAN_HPP_NOEXCEPT : std::tuple<ChainElements...>( elems... )
     {
-      static_assert( StructureChainValidation<sizeof...( ChainElements ) - 1, ChainElements...>::valid,
-                     "The structure chain is not valid!" );
+      static_assert( StructureChainValidation<sizeof...( ChainElements ) - 1, ChainElements...>::valid, "The structure chain is not valid!" );
       link<sizeof...( ChainElements ) - 1>();
     }
 
@@ -1033,15 +679,13 @@ namespace VULKAN_HPP_NAMESPACE
     template <typename T = typename std::tuple_element<0, std::tuple<ChainElements...>>::type, size_t Which = 0>
     T & get() VULKAN_HPP_NOEXCEPT
     {
-      return std::get<ChainElementIndex<0, T, Which, void, ChainElements...>::value>(
-        static_cast<std::tuple<ChainElements...> &>( *this ) );
+      return std::get<ChainElementIndex<0, T, Which, void, ChainElements...>::value>( static_cast<std::tuple<ChainElements...> &>( *this ) );
     }
 
     template <typename T = typename std::tuple_element<0, std::tuple<ChainElements...>>::type, size_t Which = 0>
     T const & get() const VULKAN_HPP_NOEXCEPT
     {
-      return std::get<ChainElementIndex<0, T, Which, void, ChainElements...>::value>(
-        static_cast<std::tuple<ChainElements...> const &>( *this ) );
+      return std::get<ChainElementIndex<0, T, Which, void, ChainElements...>::value>( static_cast<std::tuple<ChainElements...> const &>( *this ) );
     }
 
     template <typename T0, typename T1, typename... Ts>
@@ -1056,36 +700,37 @@ namespace VULKAN_HPP_NAMESPACE
       return std::tie( get<T0>(), get<T1>(), get<Ts>()... );
     }
 
+    // assign a complete structure to the StructureChain without modifying the chaining
+    template <typename T = typename std::tuple_element<0, std::tuple<ChainElements...>>::type, size_t Which = 0>
+    StructureChain & assign( const T & rhs ) VULKAN_HPP_NOEXCEPT
+    {
+      T &    lhs   = get<T, Which>();
+      void * pNext = lhs.pNext;
+      lhs          = rhs;
+      lhs.pNext    = pNext;
+      return *this;
+    }
+
     template <typename ClassType, size_t Which = 0>
-    typename std::enable_if<
-      std::is_same<ClassType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value &&
-        ( Which == 0 ),
-      bool>::type
+    typename std::enable_if<std::is_same<ClassType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value && ( Which == 0 ), bool>::type
       isLinked() const VULKAN_HPP_NOEXCEPT
     {
       return true;
     }
 
     template <typename ClassType, size_t Which = 0>
-    typename std::enable_if<
-      !std::is_same<ClassType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value ||
-        ( Which != 0 ),
-      bool>::type
+    typename std::enable_if<!std::is_same<ClassType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value || ( Which != 0 ), bool>::type
       isLinked() const VULKAN_HPP_NOEXCEPT
     {
-      static_assert( IsPartOfStructureChain<ClassType, ChainElements...>::valid,
-                     "Can't unlink Structure that's not part of this StructureChain!" );
+      static_assert( IsPartOfStructureChain<ClassType, ChainElements...>::valid, "Can't unlink Structure that's not part of this StructureChain!" );
       return isLinked( reinterpret_cast<VkBaseInStructure const *>( &get<ClassType, Which>() ) );
     }
 
     template <typename ClassType, size_t Which = 0>
-    typename std::enable_if<
-      !std::is_same<ClassType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value ||
-        ( Which != 0 ),
-      void>::type relink() VULKAN_HPP_NOEXCEPT
+    typename std::enable_if<!std::is_same<ClassType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value || ( Which != 0 ), void>::type
+      relink() VULKAN_HPP_NOEXCEPT
     {
-      static_assert( IsPartOfStructureChain<ClassType, ChainElements...>::valid,
-                     "Can't relink Structure that's not part of this StructureChain!" );
+      static_assert( IsPartOfStructureChain<ClassType, ChainElements...>::valid, "Can't relink Structure that's not part of this StructureChain!" );
       auto pNext = reinterpret_cast<VkBaseInStructure *>( &get<ClassType, Which>() );
       VULKAN_HPP_ASSERT( !isLinked( pNext ) );
       auto & headElement = std::get<0>( static_cast<std::tuple<ChainElements...> &>( *this ) );
@@ -1094,52 +739,41 @@ namespace VULKAN_HPP_NAMESPACE
     }
 
     template <typename ClassType, size_t Which = 0>
-    typename std::enable_if<
-      !std::is_same<ClassType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value ||
-        ( Which != 0 ),
-      void>::type unlink() VULKAN_HPP_NOEXCEPT
+    typename std::enable_if<!std::is_same<ClassType, typename std::tuple_element<0, std::tuple<ChainElements...>>::type>::value || ( Which != 0 ), void>::type
+      unlink() VULKAN_HPP_NOEXCEPT
     {
-      static_assert( IsPartOfStructureChain<ClassType, ChainElements...>::valid,
-                     "Can't unlink Structure that's not part of this StructureChain!" );
+      static_assert( IsPartOfStructureChain<ClassType, ChainElements...>::valid, "Can't unlink Structure that's not part of this StructureChain!" );
       unlink( reinterpret_cast<VkBaseOutStructure const *>( &get<ClassType, Which>() ) );
     }
 
   private:
     template <int Index, typename T, int Which, typename, class First, class... Types>
     struct ChainElementIndex : ChainElementIndex<Index + 1, T, Which, void, Types...>
-    {};
+    {
+    };
 
     template <int Index, typename T, int Which, class First, class... Types>
-    struct ChainElementIndex<Index,
-                             T,
-                             Which,
-                             typename std::enable_if<!std::is_same<T, First>::value, void>::type,
-                             First,
-                             Types...> : ChainElementIndex<Index + 1, T, Which, void, Types...>
-    {};
+    struct ChainElementIndex<Index, T, Which, typename std::enable_if<!std::is_same<T, First>::value, void>::type, First, Types...>
+      : ChainElementIndex<Index + 1, T, Which, void, Types...>
+    {
+    };
 
     template <int Index, typename T, int Which, class First, class... Types>
-    struct ChainElementIndex<Index,
-                             T,
-                             Which,
-                             typename std::enable_if<std::is_same<T, First>::value, void>::type,
-                             First,
-                             Types...> : ChainElementIndex<Index + 1, T, Which - 1, void, Types...>
-    {};
+    struct ChainElementIndex<Index, T, Which, typename std::enable_if<std::is_same<T, First>::value, void>::type, First, Types...>
+      : ChainElementIndex<Index + 1, T, Which - 1, void, Types...>
+    {
+    };
 
     template <int Index, typename T, class First, class... Types>
-    struct ChainElementIndex<Index,
-                             T,
-                             0,
-                             typename std::enable_if<std::is_same<T, First>::value, void>::type,
-                             First,
-                             Types...> : std::integral_constant<int, Index>
-    {};
+    struct ChainElementIndex<Index, T, 0, typename std::enable_if<std::is_same<T, First>::value, void>::type, First, Types...>
+      : std::integral_constant<int, Index>
+    {
+    };
 
     bool isLinked( VkBaseInStructure const * pNext ) const VULKAN_HPP_NOEXCEPT
     {
-      VkBaseInStructure const * elementPtr = reinterpret_cast<VkBaseInStructure const *>(
-        &std::get<0>( static_cast<std::tuple<ChainElements...> const &>( *this ) ) );
+      VkBaseInStructure const * elementPtr =
+        reinterpret_cast<VkBaseInStructure const *>( &std::get<0>( static_cast<std::tuple<ChainElements...> const &>( *this ) ) );
       while ( elementPtr )
       {
         if ( elementPtr->pNext == pNext )
@@ -1161,25 +795,24 @@ namespace VULKAN_HPP_NAMESPACE
 
     template <size_t Index>
     typename std::enable_if<Index == 0, void>::type link() VULKAN_HPP_NOEXCEPT
-    {}
+    {
+    }
 
     void link( void * dstBase, void const * srcBase, VkBaseOutStructure * dst, VkBaseInStructure const * src )
     {
       while ( src->pNext )
       {
-        std::ptrdiff_t offset =
-          reinterpret_cast<char const *>( src->pNext ) - reinterpret_cast<char const *>( srcBase );
-        dst->pNext = reinterpret_cast<VkBaseOutStructure *>( reinterpret_cast<char *>( dstBase ) + offset );
-        dst        = dst->pNext;
-        src        = src->pNext;
+        std::ptrdiff_t offset = reinterpret_cast<char const *>( src->pNext ) - reinterpret_cast<char const *>( srcBase );
+        dst->pNext            = reinterpret_cast<VkBaseOutStructure *>( reinterpret_cast<char *>( dstBase ) + offset );
+        dst                   = dst->pNext;
+        src                   = src->pNext;
       }
       dst->pNext = nullptr;
     }
 
     void unlink( VkBaseOutStructure const * pNext ) VULKAN_HPP_NOEXCEPT
     {
-      VkBaseOutStructure * elementPtr =
-        reinterpret_cast<VkBaseOutStructure *>( &std::get<0>( static_cast<std::tuple<ChainElements...> &>( *this ) ) );
+      VkBaseOutStructure * elementPtr = reinterpret_cast<VkBaseOutStructure *>( &std::get<0>( static_cast<std::tuple<ChainElements...> &>( *this ) ) );
       while ( elementPtr && ( elementPtr->pNext != pNext ) )
       {
         elementPtr = elementPtr->pNext;
@@ -1194,6 +827,26 @@ namespace VULKAN_HPP_NAMESPACE
       }
     }
   };
+  // interupt the VULKAN_HPP_NAMESPACE for a moment to add specializations of std::tuple_size and std::tuple_element for the StructureChain!
+}
+
+namespace std
+{
+  template <typename... Elements>
+  struct tuple_size<VULKAN_HPP_NAMESPACE::StructureChain<Elements...>>
+  {
+    static constexpr size_t value = std::tuple_size<std::tuple<Elements...>>::value;
+  };
+
+  template <std::size_t Index, typename... Elements>
+  struct tuple_element<Index, VULKAN_HPP_NAMESPACE::StructureChain<Elements...>>
+  {
+    using type = typename std::tuple_element<Index, std::tuple<Elements...>>::type;
+  };
+}  // namespace std
+
+namespace VULKAN_HPP_NAMESPACE
+{
 
 #if !defined( VULKAN_HPP_NO_SMART_HANDLE )
   template <typename Type, typename Dispatch>
@@ -3327,77 +2980,23 @@ namespace VULKAN_HPP_NAMESPACE
     }
 #endif /*VK_USE_PLATFORM_SCI*/
 
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+
+
+    VkResult vkGetScreenBufferPropertiesQNX( VkDevice device, const struct _screen_buffer * buffer, VkScreenBufferPropertiesQNX * pProperties ) const VULKAN_HPP_NOEXCEPT
+    {
+      return ::vkGetScreenBufferPropertiesQNX( device, buffer, pProperties );
+    }
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
+
   };
-#endif
 
-  class DispatchLoaderDynamic;
-#if !defined(VULKAN_HPP_DISPATCH_LOADER_DYNAMIC)
-# if defined( VK_NO_PROTOTYPES )
-#  define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-# else
-#  define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 0
-# endif
-#endif
-
-#if !defined( VULKAN_HPP_STORAGE_API )
-#  if defined( VULKAN_HPP_STORAGE_SHARED )
-#    if defined( _MSC_VER )
-#      if defined( VULKAN_HPP_STORAGE_SHARED_EXPORT )
-#        define VULKAN_HPP_STORAGE_API __declspec( dllexport )
-#      else
-#        define VULKAN_HPP_STORAGE_API __declspec( dllimport )
-#      endif
-#    elif defined( __clang__ ) || defined( __GNUC__ )
-#      if defined( VULKAN_HPP_STORAGE_SHARED_EXPORT )
-#        define VULKAN_HPP_STORAGE_API __attribute__( ( visibility( "default" ) ) )
-#      else
-#        define VULKAN_HPP_STORAGE_API
-#      endif
-#    else
-#      define VULKAN_HPP_STORAGE_API
-#      pragma warning Unknown import / export semantics
-#    endif
-#  else
-#    define VULKAN_HPP_STORAGE_API
-#  endif
-#endif
-
-#if !defined( VULKAN_HPP_DEFAULT_DISPATCHER )
-#  if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
-#    define VULKAN_HPP_DEFAULT_DISPATCHER ::VULKAN_HPP_NAMESPACE::defaultDispatchLoaderDynamic
-#    define VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE                     \
-      namespace VULKAN_HPP_NAMESPACE                                               \
-      {                                                                            \
-        VULKAN_HPP_STORAGE_API DispatchLoaderDynamic defaultDispatchLoaderDynamic; \
-      }
-  extern VULKAN_HPP_STORAGE_API DispatchLoaderDynamic defaultDispatchLoaderDynamic;
-#  else
-  static inline ::VULKAN_HPP_NAMESPACE::DispatchLoaderStatic & getDispatchLoaderStatic()
+  inline ::VULKAN_HPP_NAMESPACE::DispatchLoaderStatic & getDispatchLoaderStatic()
   {
     static ::VULKAN_HPP_NAMESPACE::DispatchLoaderStatic dls;
     return dls;
   }
-#    define VULKAN_HPP_DEFAULT_DISPATCHER ::VULKAN_HPP_NAMESPACE::getDispatchLoaderStatic()
-#    define VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
-#  endif
-#endif
-
-#if !defined( VULKAN_HPP_DEFAULT_DISPATCHER_TYPE )
-#  if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
-#    define VULKAN_HPP_DEFAULT_DISPATCHER_TYPE ::VULKAN_HPP_NAMESPACE::DispatchLoaderDynamic
-#  else
-#    define VULKAN_HPP_DEFAULT_DISPATCHER_TYPE ::VULKAN_HPP_NAMESPACE::DispatchLoaderStatic
-#  endif
-#endif
-
-#if defined( VULKAN_HPP_NO_DEFAULT_DISPATCHER )
-#  define VULKAN_HPP_DEFAULT_ARGUMENT_ASSIGNMENT
-#  define VULKAN_HPP_DEFAULT_ARGUMENT_NULLPTR_ASSIGNMENT
-#  define VULKAN_HPP_DEFAULT_DISPATCHER_ASSIGNMENT
-#else
-#  define VULKAN_HPP_DEFAULT_ARGUMENT_ASSIGNMENT         = {}
-#  define VULKAN_HPP_DEFAULT_ARGUMENT_NULLPTR_ASSIGNMENT = nullptr
-#  define VULKAN_HPP_DEFAULT_DISPATCHER_ASSIGNMENT       = VULKAN_HPP_DEFAULT_DISPATCHER
 #endif
 
 #if !defined( VULKAN_HPP_NO_SMART_HANDLE )
@@ -3590,9 +3189,9 @@ namespace VULKAN_HPP_NAMESPACE
 
 } // namespace VULKAN_HPP_NAMESPACE
 
-#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkansc_enums.hpp>
 #if !defined( VULKAN_HPP_NO_TO_STRING )
-#include <vulkan/vulkan_to_string.hpp>
+#include <vulkan/vulkansc_to_string.hpp>
 #endif
 
 #ifndef VULKAN_HPP_NO_EXCEPTIONS
@@ -3904,9 +3503,9 @@ namespace VULKAN_HPP_NAMESPACE
   };
 
 
-  namespace
+  namespace detail
   {
-    [[noreturn]] void throwResultException( Result result, char const * message )
+    [[noreturn]] VULKAN_HPP_INLINE void throwResultException( Result result, char const * message )
     {
       switch ( result )
       {
@@ -3983,12 +3582,20 @@ namespace VULKAN_HPP_NAMESPACE
       , value(std::move(v))
     {}
 
-    std::tuple<Result, UniqueHandle<Type, Dispatch>> asTuple()
+    VULKAN_HPP_DEPRECATED(
+      "asTuple() on an l-value is deprecated, as it implicitly moves the UniqueHandle out of the ResultValue. Use asTuple() on an r-value instead, requiring to explicitly move the UniqueHandle." )
+      std::tuple<Result, UniqueHandle<Type, Dispatch>>
+      asTuple() &
     {
       return std::make_tuple( result, std::move( value ) );
     }
 
-    Result                        result;
+    std::tuple<Result, UniqueHandle<Type, Dispatch>> asTuple() &&
+    {
+      return std::make_tuple( result, std::move( value ) );
+    }
+
+    Result                       result;
     UniqueHandle<Type, Dispatch>  value;
   };
 
@@ -4004,7 +3611,15 @@ namespace VULKAN_HPP_NAMESPACE
       , value( std::move( v ) )
     {}
 
-    std::tuple<Result, std::vector<UniqueHandle<Type, Dispatch>>> asTuple()
+    VULKAN_HPP_DEPRECATED(
+      "asTuple() on an l-value is deprecated, as it implicitly moves the UniqueHandle out of the ResultValue. Use asTuple() on an r-value instead, requiring to explicitly move the UniqueHandle." )
+      std::tuple<Result, std::vector<UniqueHandle<Type, Dispatch>>>
+      asTuple() &
+    {
+      return std::make_tuple( result, std::move( value ) );
+    }
+
+    std::tuple<Result, std::vector<UniqueHandle<Type, Dispatch>>> asTuple() &&
     {
       return std::make_tuple( result, std::move( value ) );
     }
@@ -4074,7 +3689,7 @@ namespace VULKAN_HPP_NAMESPACE
 #else
     if ( result != Result::eSuccess )
     {
-      throwResultException( result, message );
+      detail::throwResultException( result, message );
     }
 #endif
   }
@@ -4089,17 +3704,414 @@ namespace VULKAN_HPP_NAMESPACE
 #else
     if ( std::find( successCodes.begin(), successCodes.end(), result ) == successCodes.end() )
     {
-      throwResultException( result, message );
+      detail::throwResultException( result, message );
     }
 #endif
   }
+
+  //===========================
+  //=== CONSTEXPR CONSTANTs ===
+  //===========================
+
+  //=== VK_VERSION_1_0 ===
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t AttachmentUnused = VK_ATTACHMENT_UNUSED;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t False = VK_FALSE;
+  VULKAN_HPP_CONSTEXPR_INLINE float LodClampNone = VK_LOD_CLAMP_NONE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t QueueFamilyIgnored = VK_QUEUE_FAMILY_IGNORED;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t RemainingArrayLayers = VK_REMAINING_ARRAY_LAYERS;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t RemainingMipLevels = VK_REMAINING_MIP_LEVELS;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t SubpassExternal = VK_SUBPASS_EXTERNAL;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t True = VK_TRUE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint64_t WholeSize = VK_WHOLE_SIZE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t MaxMemoryTypes = VK_MAX_MEMORY_TYPES;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t MaxPhysicalDeviceNameSize = VK_MAX_PHYSICAL_DEVICE_NAME_SIZE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t UuidSize = VK_UUID_SIZE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t MaxExtensionNameSize = VK_MAX_EXTENSION_NAME_SIZE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t MaxDescriptionSize = VK_MAX_DESCRIPTION_SIZE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t MaxMemoryHeaps = VK_MAX_MEMORY_HEAPS;
+
+  //=== VK_VERSION_1_1 ===
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t MaxDeviceGroupSize = VK_MAX_DEVICE_GROUP_SIZE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t LuidSize = VK_LUID_SIZE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t QueueFamilyExternal = VK_QUEUE_FAMILY_EXTERNAL;
+
+  //=== VK_VERSION_1_2 ===
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t MaxDriverNameSize = VK_MAX_DRIVER_NAME_SIZE;
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t MaxDriverInfoSize = VK_MAX_DRIVER_INFO_SIZE;
+
+  //=== VK_EXT_queue_family_foreign ===
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t QueueFamilyForeignEXT = VK_QUEUE_FAMILY_FOREIGN_EXT;
+
+  //========================
+  //=== CONSTEXPR VALUEs ===
+  //========================
+  VULKAN_HPP_CONSTEXPR_INLINE uint32_t HeaderVersion = VK_HEADER_VERSION;
+
+  //=========================
+  //=== CONSTEXPR CALLEEs ===
+  //=========================
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+  VULKAN_HPP_CONSTEXPR uint32_t apiVersionMajor( T const version )
+  {
+    return (((uint32_t)(version) >> 22U) & 0x7FU);
+  }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+  VULKAN_HPP_CONSTEXPR uint32_t apiVersionMinor( T const version )
+  {
+    return (((uint32_t)(version) >> 12U) & 0x3FFU);
+  }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+  VULKAN_HPP_CONSTEXPR uint32_t apiVersionPatch( T const version )
+  {
+    return ((uint32_t)(version) & 0xFFFU);
+  }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+  VULKAN_HPP_CONSTEXPR uint32_t apiVersionVariant( T const version )
+  {
+    return ((uint32_t)(version) >> 29U);
+  }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+  VULKAN_HPP_CONSTEXPR uint32_t makeApiVersion( T const variant, T const major, T const minor, T const patch )
+  {
+    return ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)));
+  }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+  VULKAN_HPP_DEPRECATED("This define is deprecated. VK_MAKE_API_VERSION should be used instead.") VULKAN_HPP_CONSTEXPR uint32_t makeVersion( T const major, T const minor, T const patch )
+  {
+    return ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)));
+  }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+  VULKAN_HPP_DEPRECATED("This define is deprecated. VK_API_VERSION_MAJOR should be used instead.") VULKAN_HPP_CONSTEXPR uint32_t versionMajor( T const version )
+  {
+    return ((uint32_t)(version) >> 22U);
+  }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+  VULKAN_HPP_DEPRECATED("This define is deprecated. VK_API_VERSION_MINOR should be used instead.") VULKAN_HPP_CONSTEXPR uint32_t versionMinor( T const version )
+  {
+    return (((uint32_t)(version) >> 12U) & 0x3FFU);
+  }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+  VULKAN_HPP_DEPRECATED("This define is deprecated. VK_API_VERSION_PATCH should be used instead.") VULKAN_HPP_CONSTEXPR uint32_t versionPatch( T const version )
+  {
+    return ((uint32_t)(version) & 0xFFFU);
+  }
+
+  //=========================
+  //=== CONSTEXPR CALLERs ===
+  //=========================
+  VULKAN_HPP_CONSTEXPR_INLINE auto ApiVersion = makeApiVersion( 0, 1, 0, 0 );
+  VULKAN_HPP_CONSTEXPR_INLINE auto ApiVersion10 = makeApiVersion( 0, 1, 0, 0 );
+  VULKAN_HPP_CONSTEXPR_INLINE auto ApiVersion11 = makeApiVersion( 0, 1, 1, 0 );
+  VULKAN_HPP_CONSTEXPR_INLINE auto ApiVersion12 = makeApiVersion( 0, 1, 2, 0 );
+  VULKAN_HPP_CONSTEXPR_INLINE auto ApiVersion13 = makeApiVersion( 0, 1, 3, 0 );
+  VULKAN_HPP_CONSTEXPR_INLINE auto HeaderVersionComplete = makeApiVersion( VKSC_API_VARIANT, 1, 0, VK_HEADER_VERSION );
+
+  //=================================
+  //=== CONSTEXPR EXTENSION NAMEs ===
+  //=================================
+
+  
+  //=== VK_KHR_surface ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRSurfaceExtensionName = VK_KHR_SURFACE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRSurfaceSpecVersion = VK_KHR_SURFACE_SPEC_VERSION;
+
+  //=== VK_KHR_swapchain ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRSwapchainExtensionName = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRSwapchainSpecVersion = VK_KHR_SWAPCHAIN_SPEC_VERSION;
+
+  //=== VK_KHR_display ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRDisplayExtensionName = VK_KHR_DISPLAY_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRDisplaySpecVersion = VK_KHR_DISPLAY_SPEC_VERSION;
+
+  //=== VK_KHR_display_swapchain ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRDisplaySwapchainExtensionName = VK_KHR_DISPLAY_SWAPCHAIN_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRDisplaySwapchainSpecVersion = VK_KHR_DISPLAY_SWAPCHAIN_SPEC_VERSION;
+
+  //=== VK_EXT_depth_range_unrestricted ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDepthRangeUnrestrictedExtensionName = VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDepthRangeUnrestrictedSpecVersion = VK_EXT_DEPTH_RANGE_UNRESTRICTED_SPEC_VERSION;
+
+  //=== VK_NV_private_vendor_info ===
+VULKAN_HPP_CONSTEXPR_INLINE auto NVPrivateVendorInfoExtensionName = VK_NV_PRIVATE_VENDOR_INFO_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto NVPrivateVendorInfoSpecVersion = VK_NV_PRIVATE_VENDOR_INFO_SPEC_VERSION;
+
+  //=== VK_EXT_texture_compression_astc_hdr ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_texture_compression_astc_hdr extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTTextureCompressionAstcHdrExtensionName = VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_texture_compression_astc_hdr extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTTextureCompressionAstcHdrSpecVersion = VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_SPEC_VERSION;
+
+  //=== VK_EXT_astc_decode_mode ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTAstcDecodeModeExtensionName = VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTAstcDecodeModeSpecVersion = VK_EXT_ASTC_DECODE_MODE_SPEC_VERSION;
+
+  //=== VK_KHR_external_memory_fd ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRExternalMemoryFdExtensionName = VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRExternalMemoryFdSpecVersion = VK_KHR_EXTERNAL_MEMORY_FD_SPEC_VERSION;
+
+  //=== VK_KHR_external_semaphore_fd ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRExternalSemaphoreFdExtensionName = VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRExternalSemaphoreFdSpecVersion = VK_KHR_EXTERNAL_SEMAPHORE_FD_SPEC_VERSION;
+
+  //=== VK_KHR_incremental_present ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRIncrementalPresentExtensionName = VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRIncrementalPresentSpecVersion = VK_KHR_INCREMENTAL_PRESENT_SPEC_VERSION;
+
+  //=== VK_EXT_direct_mode_display ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDirectModeDisplayExtensionName = VK_EXT_DIRECT_MODE_DISPLAY_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDirectModeDisplaySpecVersion = VK_EXT_DIRECT_MODE_DISPLAY_SPEC_VERSION;
+
+  //=== VK_EXT_display_surface_counter ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDisplaySurfaceCounterExtensionName = VK_EXT_DISPLAY_SURFACE_COUNTER_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDisplaySurfaceCounterSpecVersion = VK_EXT_DISPLAY_SURFACE_COUNTER_SPEC_VERSION;
+
+  //=== VK_EXT_display_control ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDisplayControlExtensionName = VK_EXT_DISPLAY_CONTROL_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDisplayControlSpecVersion = VK_EXT_DISPLAY_CONTROL_SPEC_VERSION;
+
+  //=== VK_EXT_discard_rectangles ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDiscardRectanglesExtensionName = VK_EXT_DISCARD_RECTANGLES_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDiscardRectanglesSpecVersion = VK_EXT_DISCARD_RECTANGLES_SPEC_VERSION;
+
+  //=== VK_EXT_conservative_rasterization ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTConservativeRasterizationExtensionName = VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTConservativeRasterizationSpecVersion = VK_EXT_CONSERVATIVE_RASTERIZATION_SPEC_VERSION;
+
+  //=== VK_EXT_depth_clip_enable ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDepthClipEnableExtensionName = VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDepthClipEnableSpecVersion = VK_EXT_DEPTH_CLIP_ENABLE_SPEC_VERSION;
+
+  //=== VK_EXT_swapchain_colorspace ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTSwapchainColorSpaceExtensionName = VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTSwapchainColorSpaceSpecVersion = VK_EXT_SWAPCHAIN_COLOR_SPACE_SPEC_VERSION;
+
+  //=== VK_EXT_hdr_metadata ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTHdrMetadataExtensionName = VK_EXT_HDR_METADATA_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTHdrMetadataSpecVersion = VK_EXT_HDR_METADATA_SPEC_VERSION;
+
+  //=== VK_KHR_shared_presentable_image ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRSharedPresentableImageExtensionName = VK_KHR_SHARED_PRESENTABLE_IMAGE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRSharedPresentableImageSpecVersion = VK_KHR_SHARED_PRESENTABLE_IMAGE_SPEC_VERSION;
+
+  //=== VK_KHR_external_fence_fd ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRExternalFenceFdExtensionName = VK_KHR_EXTERNAL_FENCE_FD_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRExternalFenceFdSpecVersion = VK_KHR_EXTERNAL_FENCE_FD_SPEC_VERSION;
+
+  //=== VK_KHR_performance_query ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRPerformanceQueryExtensionName = VK_KHR_PERFORMANCE_QUERY_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRPerformanceQuerySpecVersion = VK_KHR_PERFORMANCE_QUERY_SPEC_VERSION;
+
+  //=== VK_KHR_get_surface_capabilities2 ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRGetSurfaceCapabilities2ExtensionName = VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRGetSurfaceCapabilities2SpecVersion = VK_KHR_GET_SURFACE_CAPABILITIES_2_SPEC_VERSION;
+
+  //=== VK_KHR_get_display_properties2 ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRGetDisplayProperties2ExtensionName = VK_KHR_GET_DISPLAY_PROPERTIES_2_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRGetDisplayProperties2SpecVersion = VK_KHR_GET_DISPLAY_PROPERTIES_2_SPEC_VERSION;
+
+  //=== VK_EXT_external_memory_dma_buf ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTExternalMemoryDmaBufExtensionName = VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTExternalMemoryDmaBufSpecVersion = VK_EXT_EXTERNAL_MEMORY_DMA_BUF_SPEC_VERSION;
+
+  //=== VK_EXT_queue_family_foreign ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTQueueFamilyForeignExtensionName = VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTQueueFamilyForeignSpecVersion = VK_EXT_QUEUE_FAMILY_FOREIGN_SPEC_VERSION;
+
+  //=== VK_EXT_debug_utils ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDebugUtilsExtensionName = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTDebugUtilsSpecVersion = VK_EXT_DEBUG_UTILS_SPEC_VERSION;
+
+  //=== VK_EXT_shader_stencil_export ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTShaderStencilExportExtensionName = VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTShaderStencilExportSpecVersion = VK_EXT_SHADER_STENCIL_EXPORT_SPEC_VERSION;
+
+  //=== VK_EXT_sample_locations ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTSampleLocationsExtensionName = VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTSampleLocationsSpecVersion = VK_EXT_SAMPLE_LOCATIONS_SPEC_VERSION;
+
+  //=== VK_EXT_blend_operation_advanced ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTBlendOperationAdvancedExtensionName = VK_EXT_BLEND_OPERATION_ADVANCED_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTBlendOperationAdvancedSpecVersion = VK_EXT_BLEND_OPERATION_ADVANCED_SPEC_VERSION;
+
+  //=== VK_EXT_post_depth_coverage ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTPostDepthCoverageExtensionName = VK_EXT_POST_DEPTH_COVERAGE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTPostDepthCoverageSpecVersion = VK_EXT_POST_DEPTH_COVERAGE_SPEC_VERSION;
+
+  //=== VK_EXT_image_drm_format_modifier ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTImageDrmFormatModifierExtensionName = VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTImageDrmFormatModifierSpecVersion = VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_SPEC_VERSION;
+
+  //=== VK_EXT_filter_cubic ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTFilterCubicExtensionName = VK_EXT_FILTER_CUBIC_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTFilterCubicSpecVersion = VK_EXT_FILTER_CUBIC_SPEC_VERSION;
+
+  //=== VK_EXT_global_priority ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_global_priority extension has been promoted to VK_KHR_global_priority." ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTGlobalPriorityExtensionName = VK_EXT_GLOBAL_PRIORITY_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_global_priority extension has been promoted to VK_KHR_global_priority." ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTGlobalPrioritySpecVersion = VK_EXT_GLOBAL_PRIORITY_SPEC_VERSION;
+
+  //=== VK_EXT_external_memory_host ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTExternalMemoryHostExtensionName = VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTExternalMemoryHostSpecVersion = VK_EXT_EXTERNAL_MEMORY_HOST_SPEC_VERSION;
+
+  //=== VK_KHR_shader_clock ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRShaderClockExtensionName = VK_KHR_SHADER_CLOCK_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRShaderClockSpecVersion = VK_KHR_SHADER_CLOCK_SPEC_VERSION;
+
+  //=== VK_EXT_calibrated_timestamps ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTCalibratedTimestampsExtensionName = VK_EXT_CALIBRATED_TIMESTAMPS_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTCalibratedTimestampsSpecVersion = VK_EXT_CALIBRATED_TIMESTAMPS_SPEC_VERSION;
+
+  //=== VK_EXT_vertex_attribute_divisor ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTVertexAttributeDivisorExtensionName = VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTVertexAttributeDivisorSpecVersion = VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_SPEC_VERSION;
+
+  //=== VK_KHR_swapchain_mutable_format ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRSwapchainMutableFormatExtensionName = VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRSwapchainMutableFormatSpecVersion = VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_SPEC_VERSION;
+
+  //=== VK_EXT_pci_bus_info ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTPciBusInfoExtensionName = VK_EXT_PCI_BUS_INFO_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTPciBusInfoSpecVersion = VK_EXT_PCI_BUS_INFO_SPEC_VERSION;
+
+  //=== VK_KHR_shader_terminate_invocation ===
+VULKAN_HPP_DEPRECATED( "The VK_KHR_shader_terminate_invocation extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto KHRShaderTerminateInvocationExtensionName = VK_KHR_SHADER_TERMINATE_INVOCATION_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_KHR_shader_terminate_invocation extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto KHRShaderTerminateInvocationSpecVersion = VK_KHR_SHADER_TERMINATE_INVOCATION_SPEC_VERSION;
+
+  //=== VK_EXT_subgroup_size_control ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_subgroup_size_control extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTSubgroupSizeControlExtensionName = VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_subgroup_size_control extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTSubgroupSizeControlSpecVersion = VK_EXT_SUBGROUP_SIZE_CONTROL_SPEC_VERSION;
+
+  //=== VK_KHR_fragment_shading_rate ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRFragmentShadingRateExtensionName = VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRFragmentShadingRateSpecVersion = VK_KHR_FRAGMENT_SHADING_RATE_SPEC_VERSION;
+
+  //=== VK_EXT_shader_image_atomic_int64 ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTShaderImageAtomicInt64ExtensionName = VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTShaderImageAtomicInt64SpecVersion = VK_EXT_SHADER_IMAGE_ATOMIC_INT64_SPEC_VERSION;
+
+  //=== VK_EXT_memory_budget ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTMemoryBudgetExtensionName = VK_EXT_MEMORY_BUDGET_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTMemoryBudgetSpecVersion = VK_EXT_MEMORY_BUDGET_SPEC_VERSION;
+
+  //=== VK_EXT_validation_features ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTValidationFeaturesExtensionName = VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTValidationFeaturesSpecVersion = VK_EXT_VALIDATION_FEATURES_SPEC_VERSION;
+
+  //=== VK_EXT_fragment_shader_interlock ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTFragmentShaderInterlockExtensionName = VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTFragmentShaderInterlockSpecVersion = VK_EXT_FRAGMENT_SHADER_INTERLOCK_SPEC_VERSION;
+
+  //=== VK_EXT_ycbcr_image_arrays ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTYcbcrImageArraysExtensionName = VK_EXT_YCBCR_IMAGE_ARRAYS_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTYcbcrImageArraysSpecVersion = VK_EXT_YCBCR_IMAGE_ARRAYS_SPEC_VERSION;
+
+  //=== VK_EXT_headless_surface ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTHeadlessSurfaceExtensionName = VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTHeadlessSurfaceSpecVersion = VK_EXT_HEADLESS_SURFACE_SPEC_VERSION;
+
+  //=== VK_EXT_line_rasterization ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTLineRasterizationExtensionName = VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTLineRasterizationSpecVersion = VK_EXT_LINE_RASTERIZATION_SPEC_VERSION;
+
+  //=== VK_EXT_shader_atomic_float ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTShaderAtomicFloatExtensionName = VK_EXT_SHADER_ATOMIC_FLOAT_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTShaderAtomicFloatSpecVersion = VK_EXT_SHADER_ATOMIC_FLOAT_SPEC_VERSION;
+
+  //=== VK_EXT_index_type_uint8 ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTIndexTypeUint8ExtensionName = VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTIndexTypeUint8SpecVersion = VK_EXT_INDEX_TYPE_UINT8_SPEC_VERSION;
+
+  //=== VK_EXT_extended_dynamic_state ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_extended_dynamic_state extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTExtendedDynamicStateExtensionName = VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_extended_dynamic_state extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTExtendedDynamicStateSpecVersion = VK_EXT_EXTENDED_DYNAMIC_STATE_SPEC_VERSION;
+
+  //=== VK_EXT_shader_demote_to_helper_invocation ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_shader_demote_to_helper_invocation extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTShaderDemoteToHelperInvocationExtensionName = VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_shader_demote_to_helper_invocation extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTShaderDemoteToHelperInvocationSpecVersion = VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_SPEC_VERSION;
+
+  //=== VK_EXT_texel_buffer_alignment ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_texel_buffer_alignment extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTTexelBufferAlignmentExtensionName = VK_EXT_TEXEL_BUFFER_ALIGNMENT_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_texel_buffer_alignment extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTTexelBufferAlignmentSpecVersion = VK_EXT_TEXEL_BUFFER_ALIGNMENT_SPEC_VERSION;
+
+  //=== VK_EXT_robustness2 ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTRobustness2ExtensionName = VK_EXT_ROBUSTNESS_2_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTRobustness2SpecVersion = VK_EXT_ROBUSTNESS_2_SPEC_VERSION;
+
+  //=== VK_EXT_custom_border_color ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTCustomBorderColorExtensionName = VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTCustomBorderColorSpecVersion = VK_EXT_CUSTOM_BORDER_COLOR_SPEC_VERSION;
+
+  //=== VK_KHR_object_refresh ===
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRObjectRefreshExtensionName = VK_KHR_OBJECT_REFRESH_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto KHRObjectRefreshSpecVersion = VK_KHR_OBJECT_REFRESH_SPEC_VERSION;
+
+  //=== VK_KHR_synchronization2 ===
+VULKAN_HPP_DEPRECATED( "The VK_KHR_synchronization2 extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto KHRSynchronization2ExtensionName = VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_KHR_synchronization2 extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto KHRSynchronization2SpecVersion = VK_KHR_SYNCHRONIZATION_2_SPEC_VERSION;
+
+  //=== VK_EXT_ycbcr_2plane_444_formats ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_ycbcr_2plane_444_formats extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTYcbcr2Plane444FormatsExtensionName = VK_EXT_YCBCR_2PLANE_444_FORMATS_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_ycbcr_2plane_444_formats extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTYcbcr2Plane444FormatsSpecVersion = VK_EXT_YCBCR_2PLANE_444_FORMATS_SPEC_VERSION;
+
+  //=== VK_EXT_image_robustness ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_image_robustness extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTImageRobustnessExtensionName = VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_image_robustness extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTImageRobustnessSpecVersion = VK_EXT_IMAGE_ROBUSTNESS_SPEC_VERSION;
+
+  //=== VK_KHR_copy_commands2 ===
+VULKAN_HPP_DEPRECATED( "The VK_KHR_copy_commands2 extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto KHRCopyCommands2ExtensionName = VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_KHR_copy_commands2 extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto KHRCopyCommands2SpecVersion = VK_KHR_COPY_COMMANDS_2_SPEC_VERSION;
+
+  //=== VK_EXT_4444_formats ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_4444_formats extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXT4444FormatsExtensionName = VK_EXT_4444_FORMATS_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_4444_formats extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXT4444FormatsSpecVersion = VK_EXT_4444_FORMATS_SPEC_VERSION;
+
+  //=== VK_EXT_vertex_input_dynamic_state ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTVertexInputDynamicStateExtensionName = VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTVertexInputDynamicStateSpecVersion = VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_SPEC_VERSION;
+
+#if defined( VK_USE_PLATFORM_SCI )
+  //=== VK_NV_external_sci_sync ===
+VULKAN_HPP_DEPRECATED( "The VK_NV_external_sci_sync extension has been deprecated by VK_NV_external_sci_sync2." ) VULKAN_HPP_CONSTEXPR_INLINE auto NVExternalSciSyncExtensionName = VK_NV_EXTERNAL_SCI_SYNC_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_NV_external_sci_sync extension has been deprecated by VK_NV_external_sci_sync2." ) VULKAN_HPP_CONSTEXPR_INLINE auto NVExternalSciSyncSpecVersion = VK_NV_EXTERNAL_SCI_SYNC_SPEC_VERSION;
+#endif /*VK_USE_PLATFORM_SCI*/
+
+#if defined( VK_USE_PLATFORM_SCI )
+  //=== VK_NV_external_memory_sci_buf ===
+VULKAN_HPP_CONSTEXPR_INLINE auto NVExternalMemorySciBufExtensionName = VK_NV_EXTERNAL_MEMORY_SCI_BUF_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto NVExternalMemorySciBufSpecVersion = VK_NV_EXTERNAL_MEMORY_SCI_BUF_SPEC_VERSION;
+#endif /*VK_USE_PLATFORM_SCI*/
+
+  //=== VK_EXT_extended_dynamic_state2 ===
+VULKAN_HPP_DEPRECATED( "The VK_EXT_extended_dynamic_state2 extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTExtendedDynamicState2ExtensionName = VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME;
+VULKAN_HPP_DEPRECATED( "The VK_EXT_extended_dynamic_state2 extension has been promoted to core in version 1.3."  ) VULKAN_HPP_CONSTEXPR_INLINE auto EXTExtendedDynamicState2SpecVersion = VK_EXT_EXTENDED_DYNAMIC_STATE_2_SPEC_VERSION;
+
+  //=== VK_EXT_color_write_enable ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTColorWriteEnableExtensionName = VK_EXT_COLOR_WRITE_ENABLE_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTColorWriteEnableSpecVersion = VK_EXT_COLOR_WRITE_ENABLE_SPEC_VERSION;
+
+  //=== VK_EXT_application_parameters ===
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTApplicationParametersExtensionName = VK_EXT_APPLICATION_PARAMETERS_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto EXTApplicationParametersSpecVersion = VK_EXT_APPLICATION_PARAMETERS_SPEC_VERSION;
+
+#if defined( VK_USE_PLATFORM_SCI )
+  //=== VK_NV_external_sci_sync2 ===
+VULKAN_HPP_CONSTEXPR_INLINE auto NVExternalSciSync2ExtensionName = VK_NV_EXTERNAL_SCI_SYNC_2_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto NVExternalSciSync2SpecVersion = VK_NV_EXTERNAL_SCI_SYNC_2_SPEC_VERSION;
+#endif /*VK_USE_PLATFORM_SCI*/
+
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+VULKAN_HPP_CONSTEXPR_INLINE auto QNXExternalMemoryScreenBufferExtensionName = VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME;
+VULKAN_HPP_CONSTEXPR_INLINE auto QNXExternalMemoryScreenBufferSpecVersion = VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_SPEC_VERSION;
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
+
+
 } // namespace VULKAN_HPP_NAMESPACE
 
 // clang-format off
-#include <vulkan/vulkan_handles.hpp>
-#include <vulkan/vulkan_structs.hpp>
-#include <vulkan/vulkan_funcs.hpp>
+#include <vulkan/vulkansc_handles.hpp>
+#include <vulkan/vulkansc_structs.hpp>
+#include <vulkan/vulkansc_funcs.hpp>
 // clang-format on
+
 
 namespace VULKAN_HPP_NAMESPACE
 {
@@ -4226,6 +4238,7 @@ namespace VULKAN_HPP_NAMESPACE
   template <> struct StructExtends<PipelineCreationFeedbackCreateInfo, ComputePipelineCreateInfo>{ enum { value = true }; };
   template <> struct StructExtends<PipelineCreationFeedbackCreateInfo, RayTracingPipelineCreateInfoNV>{ enum { value = true }; };
   template <> struct StructExtends<PipelineCreationFeedbackCreateInfo, RayTracingPipelineCreateInfoKHR>{ enum { value = true }; };
+  template <> struct StructExtends<PipelineCreationFeedbackCreateInfo, ExecutionGraphPipelineCreateInfoAMDX>{ enum { value = true }; };
   template <> struct StructExtends<PhysicalDeviceShaderTerminateInvocationFeatures, PhysicalDeviceFeatures2>{ enum { value = true }; };
   template <> struct StructExtends<PhysicalDeviceShaderTerminateInvocationFeatures, DeviceCreateInfo>{ enum { value = true }; };
   template <> struct StructExtends<PhysicalDeviceShaderDemoteToHelperInvocationFeatures, PhysicalDeviceFeatures2>{ enum { value = true }; };
@@ -4325,7 +4338,7 @@ namespace VULKAN_HPP_NAMESPACE
   template <> struct StructExtends<QueryPoolPerformanceCreateInfoKHR, QueryPoolCreateInfo>{ enum { value = true }; };
   template <> struct StructExtends<PerformanceQuerySubmitInfoKHR, SubmitInfo>{ enum { value = true }; };
   template <> struct StructExtends<PerformanceQuerySubmitInfoKHR, SubmitInfo2>{ enum { value = true }; };
-  template <> struct StructExtends<PerformanceQueryReservationInfoKHR, DeviceObjectReservationCreateInfo>{ enum { value = true }; };
+  template <> struct StructExtends<PerformanceQueryReservationInfoKHR, DeviceCreateInfo>{ enum { value = true }; };
 
   //=== VK_EXT_debug_utils ===
   template <> struct StructExtends<DebugUtilsMessengerCreateInfoEXT, InstanceCreateInfo>{ enum { value = true }; };
@@ -4479,8 +4492,18 @@ namespace VULKAN_HPP_NAMESPACE
   template <> struct StructExtends<PhysicalDeviceExternalSciSync2FeaturesNV, PhysicalDeviceFeatures2>{ enum { value = true }; };
   template <> struct StructExtends<PhysicalDeviceExternalSciSync2FeaturesNV, DeviceCreateInfo>{ enum { value = true }; };
   template <> struct StructExtends<SemaphoreSciSyncCreateInfoNV, SemaphoreCreateInfo>{ enum { value = true }; };
-  template <> struct StructExtends<DeviceSemaphoreSciSyncPoolReservationCreateInfoNV, DeviceObjectReservationCreateInfo>{ enum { value = true }; };
+  template <> struct StructExtends<DeviceSemaphoreSciSyncPoolReservationCreateInfoNV, DeviceCreateInfo>{ enum { value = true }; };
 #endif /*VK_USE_PLATFORM_SCI*/
+
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+  template <> struct StructExtends<ScreenBufferFormatPropertiesQNX, ScreenBufferPropertiesQNX>{ enum { value = true }; };
+  template <> struct StructExtends<ImportScreenBufferInfoQNX, MemoryAllocateInfo>{ enum { value = true }; };
+  template <> struct StructExtends<ExternalFormatQNX, ImageCreateInfo>{ enum { value = true }; };
+  template <> struct StructExtends<ExternalFormatQNX, SamplerYcbcrConversionCreateInfo>{ enum { value = true }; };
+  template <> struct StructExtends<PhysicalDeviceExternalMemoryScreenBufferFeaturesQNX, PhysicalDeviceFeatures2>{ enum { value = true }; };
+  template <> struct StructExtends<PhysicalDeviceExternalMemoryScreenBufferFeaturesQNX, DeviceCreateInfo>{ enum { value = true }; };
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
 #endif // VULKAN_HPP_DISABLE_ENHANCED_MODE
 
@@ -4496,7 +4519,7 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( !vulkanLibraryName.empty() )
       {
-#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNXNTO__ ) || defined(__Fuchsia__)
+#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNX__ ) || defined(__Fuchsia__)
         m_library = dlopen( vulkanLibraryName.c_str(), RTLD_NOW | RTLD_LOCAL );
 #  elif defined( _WIN32 )
         m_library = ::LoadLibraryA( vulkanLibraryName.c_str() );
@@ -4506,7 +4529,7 @@ namespace VULKAN_HPP_NAMESPACE
       }
       else
       {
-#  if defined( __unix__ ) || defined( __QNXNTO__ ) || defined(__Fuchsia__)
+#  if defined( __unix__ ) || defined( __QNX__ ) || defined(__Fuchsia__)
         m_library = dlopen( "libvulkan.so", RTLD_NOW | RTLD_LOCAL );
         if ( m_library == nullptr )
         {
@@ -4549,7 +4572,7 @@ namespace VULKAN_HPP_NAMESPACE
     {
       if ( m_library )
       {
-#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNXNTO__ ) || defined(__Fuchsia__)
+#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNX__ ) || defined(__Fuchsia__)
         dlclose( m_library );
 #  elif defined( _WIN32 )
         ::FreeLibrary( m_library );
@@ -4562,7 +4585,7 @@ namespace VULKAN_HPP_NAMESPACE
     template <typename T>
     T getProcAddress( const char* function ) const VULKAN_HPP_NOEXCEPT
     {
-#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNXNTO__ ) || defined(__Fuchsia__)
+#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNX__ ) || defined(__Fuchsia__)
       return (T)dlsym( m_library, function );
 #  elif defined( _WIN32 )
       return (T)::GetProcAddress( m_library, function );
@@ -4574,7 +4597,7 @@ namespace VULKAN_HPP_NAMESPACE
     bool success() const VULKAN_HPP_NOEXCEPT { return m_library != nullptr; }
 
   private:
-#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNXNTO__ ) || defined(__Fuchsia__)
+#  if defined( __unix__ ) || defined( __APPLE__ ) || defined( __QNX__ ) || defined(__Fuchsia__)
     void * m_library;
 #  elif defined( _WIN32 )
     ::HINSTANCE m_library;
@@ -5004,6 +5027,13 @@ namespace VULKAN_HPP_NAMESPACE
     PFN_dummy vkCreateSemaphoreSciSyncPoolNV_placeholder = 0;
 #endif /*VK_USE_PLATFORM_SCI*/
 
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+    PFN_vkGetScreenBufferPropertiesQNX vkGetScreenBufferPropertiesQNX = 0;
+#else
+    PFN_dummy vkGetScreenBufferPropertiesQNX_placeholder = 0;
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
+
 
   public:
     DispatchLoaderDynamic() VULKAN_HPP_NOEXCEPT = default;
@@ -5012,6 +5042,33 @@ namespace VULKAN_HPP_NAMESPACE
     DispatchLoaderDynamic(PFN_vkGetInstanceProcAddr getInstanceProcAddr) VULKAN_HPP_NOEXCEPT
     {
       init(getInstanceProcAddr);
+    }
+
+    // This interface does not require a linked vulkan library.
+    DispatchLoaderDynamic( VkInstance                instance,
+                           PFN_vkGetInstanceProcAddr getInstanceProcAddr,
+                           VkDevice                  device            = {},
+                           PFN_vkGetDeviceProcAddr   getDeviceProcAddr = nullptr ) VULKAN_HPP_NOEXCEPT
+    {
+      init( instance, getInstanceProcAddr, device, getDeviceProcAddr );
+    }
+
+    template <typename DynamicLoader
+#if VULKAN_HPP_ENABLE_DYNAMIC_LOADER_TOOL
+      = VULKAN_HPP_NAMESPACE::DynamicLoader
+#endif
+    >
+    void init()
+    {
+      static DynamicLoader dl;
+      init( dl );
+    }
+
+    template <typename DynamicLoader>
+    void init( DynamicLoader const & dl ) VULKAN_HPP_NOEXCEPT
+    {
+      PFN_vkGetInstanceProcAddr getInstanceProcAddr = dl.template getProcAddress<PFN_vkGetInstanceProcAddr>( "vkGetInstanceProcAddr" );
+      init( getInstanceProcAddr );
     }
 
     void init( PFN_vkGetInstanceProcAddr getInstanceProcAddr ) VULKAN_HPP_NOEXCEPT
@@ -5032,15 +5089,6 @@ namespace VULKAN_HPP_NAMESPACE
     }
 
     // This interface does not require a linked vulkan library.
-    DispatchLoaderDynamic( VkInstance                instance,
-                           PFN_vkGetInstanceProcAddr getInstanceProcAddr,
-                           VkDevice                  device            = {},
-                           PFN_vkGetDeviceProcAddr   getDeviceProcAddr = nullptr ) VULKAN_HPP_NOEXCEPT
-    {
-      init( instance, getInstanceProcAddr, device, getDeviceProcAddr );
-    }
-
-    // This interface does not require a linked vulkan library.
     void init( VkInstance                instance,
                PFN_vkGetInstanceProcAddr getInstanceProcAddr,
                VkDevice                  device              = {},
@@ -5049,7 +5097,8 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_ASSERT(instance && getInstanceProcAddr);
       vkGetInstanceProcAddr = getInstanceProcAddr;
       init( VULKAN_HPP_NAMESPACE::Instance(instance) );
-      if (device) {
+      if (device)
+      {
         init( VULKAN_HPP_NAMESPACE::Device(device) );
       }
     }
@@ -5480,6 +5529,11 @@ namespace VULKAN_HPP_NAMESPACE
       vkCreateSemaphoreSciSyncPoolNV = PFN_vkCreateSemaphoreSciSyncPoolNV( vkGetInstanceProcAddr( instance, "vkCreateSemaphoreSciSyncPoolNV" ) );
 #endif /*VK_USE_PLATFORM_SCI*/
 
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+      vkGetScreenBufferPropertiesQNX = PFN_vkGetScreenBufferPropertiesQNX( vkGetInstanceProcAddr( instance, "vkGetScreenBufferPropertiesQNX" ) );
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
+
     }
 
     void init( VULKAN_HPP_NAMESPACE::Device deviceCpp ) VULKAN_HPP_NOEXCEPT
@@ -5837,6 +5891,11 @@ namespace VULKAN_HPP_NAMESPACE
   //=== VK_NV_external_sci_sync2 ===
       vkCreateSemaphoreSciSyncPoolNV = PFN_vkCreateSemaphoreSciSyncPoolNV( vkGetDeviceProcAddr( device, "vkCreateSemaphoreSciSyncPoolNV" ) );
 #endif /*VK_USE_PLATFORM_SCI*/
+
+#if defined( VK_USE_PLATFORM_SCREEN_QNX )
+  //=== VK_QNX_external_memory_screen_buffer ===
+      vkGetScreenBufferPropertiesQNX = PFN_vkGetScreenBufferPropertiesQNX( vkGetDeviceProcAddr( device, "vkGetScreenBufferPropertiesQNX" ) );
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     }
 
