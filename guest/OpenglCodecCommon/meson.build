@@ -13,5 +13,5 @@ lib_codec_common = static_library(
    cpp_args: cpp_args,
    include_directories: [inc_android_compat, inc_qemu_pipe,
                          inc_qemu_pipe_types, inc_guest_iostream,
-                         inc_system],
+                         inc_system, inc_opengl_headers],
 )
