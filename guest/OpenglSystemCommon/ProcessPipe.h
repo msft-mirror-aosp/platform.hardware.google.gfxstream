@@ -41,7 +41,6 @@ extern uint64_t getPuid();
 // initial, and open it again with the same parameters.
 extern void processPipeRestart();
 extern void refreshHostConnection();
-extern void disableProcessPipeForTesting();
 
 // Each process gets a sequence number field.
 uint32_t* getSeqnoPtrForProcess();
