@@ -12,6 +12,7 @@ cc_test_host {
         "GfxstreamEnd2EndTests.cpp",
         "GfxstreamEnd2EndGlTests.cpp",
         "GfxstreamEnd2EndVkTests.cpp",
+        "snapshot/GfxstreamEnd2EndVkSnapshotBasicTests.cpp",
     ],
     header_libs: [
         "gfxstream_headers",
@@ -33,8 +34,11 @@ cc_test_host {
     static_libs: [
         "libc++fs",
         "libgmock",
+        "liblz4",
         "libplatform",
+        "gfxstream_base",
         "gfxstream_host_common",
+        "gfxstream_snapshot",
         "gfxstream_vulkan_cereal_host",
     ],
     cflags: [
@@ -42,6 +46,7 @@ cc_test_host {
         "-DVK_USE_PLATFORM_ANDROID_KHR",
         "-Wno-macro-redefined",
         "-Wno-unused-parameter",
+        "-Wno-extern-c-compat",
     ],
     test_options: {
         // Disabled by default as requires host OpenGL and Vulkan.

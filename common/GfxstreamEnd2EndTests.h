@@ -39,6 +39,8 @@
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #define VULKAN_HPP_NO_EXCEPTIONS
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vk_android_native_buffer.h>
+
 // clang-format on
 
 #include <android-base/expected.h>
@@ -350,6 +352,8 @@ class TestingAHardwareBuffer {
 
     AHardwareBuffer* asAHardwareBuffer();
 
+    buffer_handle_t asBufferHandle();
+
     EGLClientBuffer asEglClientBuffer();
 
   private:
@@ -476,6 +480,7 @@ class TestingVirtGpuSyncHelper : public SyncHelper {
 struct TestParams {
     bool with_gl;
     bool with_vk;
+    bool with_vk_snapshot = false;
 
     std::string ToString() const;
     friend std::ostream& operator<<(std::ostream& os, const TestParams& params);
