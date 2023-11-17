@@ -46,7 +46,7 @@
 // required extensions, but the approach will be to
 // implement them completely on the guest side.
 #undef VK_KHR_android_surface
-#if defined(LINUX_GUEST_BUILD)
+#if defined(LINUX_GUEST_BUILD) || defined(__Fuchsia__)
 #undef VK_ANDROID_native_buffer
 #endif
 
