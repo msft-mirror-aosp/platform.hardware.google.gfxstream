@@ -16,7 +16,6 @@ cc_library_static {
     ],
     shared_libs: [
         "libandroidemu",
-        "libcutils",
         "libdrm",
         "liblog",
     ],
@@ -35,6 +34,10 @@ cc_library_static {
     ],
     target: {
         android: {
+            shared_libs: [
+                "libbase",
+                "libcutils",
+            ],
             srcs: [
                 "goldfish_address_space.cpp",
                 "GoldfishAddressSpaceStream.cpp",
