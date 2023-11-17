@@ -349,6 +349,28 @@ int TestingVirtGpuANativeWindowHelper::getHostHandle(EGLClientBuffer buffer, Gra
     return ahb->getResourceId();
 }
 
+std::string GfxstreamTransportToEnvVar(GfxstreamTransport transport) {
+    switch (transport) {
+        case GfxstreamTransport::kVirtioGpuAsg: {
+            return "virtio-gpu-asg";
+        }
+        case GfxstreamTransport::kVirtioGpuPipe: {
+            return "virtio-gpu-pipe";
+        }
+    }
+}
+
+std::string GfxstreamTransportToString(GfxstreamTransport transport) {
+    switch (transport) {
+        case GfxstreamTransport::kVirtioGpuAsg: {
+            return "VirtioGpuAsg";
+        }
+        case GfxstreamTransport::kVirtioGpuPipe: {
+            return "VirtioGpuPipe";
+        }
+    }
+}
+
 std::string TestParams::ToString() const {
     std::string ret;
     ret += (with_gl ? "With" : "Without");
@@ -357,6 +379,8 @@ std::string TestParams::ToString() const {
     ret += "Vk";
     ret += (with_vk_snapshot ? "With" : "Without");
     ret += "Snapshot";
+    ret += "Over";
+    ret += GfxstreamTransportToString(with_transport);
     return ret;
 }
 
@@ -436,6 +460,9 @@ std::unique_ptr<vkhpp::DynamicLoader> GfxstreamEnd2EndTest::SetupGuestVk() {
 
 void GfxstreamEnd2EndTest::SetUp() {
     const TestParams params = GetParam();
+
+    const std::string transportValue = GfxstreamTransportToEnvVar(params.with_transport);
+    ASSERT_THAT(setenv("GFXSTREAM_TRANSPORT", transportValue.c_str(), /*overwrite=*/1), Eq(0));
 
     ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_GL",
                        params.with_gl ? "Y" : "N", /*overwrite=*/1), Eq(0));

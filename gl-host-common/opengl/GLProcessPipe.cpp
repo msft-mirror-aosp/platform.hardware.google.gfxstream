@@ -154,7 +154,7 @@ private:
     // identifiers, since the IDs are assigned sequentially from a 64-bit ID
     // space.
     // Please change it if you ever have a use case that exhausts them
-    uint64_t m_uniqueId;
+    uint64_t m_uniqueId = -1;
     bool m_hasData = false;
     static std::atomic<uint64_t> s_headId;
 
