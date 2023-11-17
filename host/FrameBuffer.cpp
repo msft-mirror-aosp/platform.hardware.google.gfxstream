@@ -3465,6 +3465,11 @@ bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* r
             return colorBuffer->glOpImportEglNativePixmap(resource, preserveContent);
         case RESOURCE_TYPE_EGL_IMAGE:
             return colorBuffer->glOpImportEglImage(resource, preserveContent);
+
+        // Note: Additional non-EGL resource-types can be added here, and will
+        // be propagated through color-buffer import functionality
+        case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE:
+            return colorBuffer->importNativeResource(resource, type, preserveContent);
         default:
             ERR("Error: unsupported resource type: %u", type);
             return false;
