@@ -34,6 +34,10 @@ VirtGpuBlobPtr StubVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob&) {
     return nullptr;
 }
 
+VirtGpuBlobPtr StubVirtGpuDevice::createPipeTexture2D(uint32_t, uint32_t, uint32_t) {
+    return nullptr;
+}
+
 VirtGpuBlobPtr StubVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&) {
     return nullptr;
 }
