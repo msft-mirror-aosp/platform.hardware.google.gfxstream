@@ -2440,11 +2440,6 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
     }
     AsyncResult ret = AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
 
-    // quirk
-    // b/308686547: skip the on_post when this is right after setupSubwindow
-    // TODO: find better solution that avoids crash
-    const bool same_buffer = (p_colorbuffer == m_lastPostedColorBuffer);
-
     ColorBufferPtr colorBuffer = nullptr;
     {
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
@@ -2495,7 +2490,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
     //
     // Send framebuffer (without FPS overlay) to callback
     //
-    if (m_onPost.size() == 0 || same_buffer) {
+    if (m_onPost.size() == 0) {
         goto DEC_REFCOUNT_AND_EXIT;
     }
     for (auto& iter : m_onPost) {
