@@ -50,6 +50,7 @@ thread_dep = dependency('threads')
 #===============#
 
 inc_vulkan_headers = include_directories('../common/vulkan/include')
+inc_opengl_headers = include_directories('../common/opengl/include')
 inc_fuchsia_magma = include_directories('../third-party/fuchsia/magma/include')
 inc_fuchsia_magma_nolib = include_directories('../third-party/fuchsia/magma/include/lib')
 inc_android_emu = include_directories('android-emu')
