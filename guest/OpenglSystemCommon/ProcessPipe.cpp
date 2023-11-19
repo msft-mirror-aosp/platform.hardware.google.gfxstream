@@ -82,16 +82,11 @@ namespace {
 
 static std::mutex sNeedInitMutex;
 static bool sNeedInit = true;
-static bool sProcessPipeEnabled = true;
 
 }  // namespace
 
 static void processPipeDoInit(uint32_t noRenderControlEnc) {
     initSeqno();
-
-    if (!sProcessPipeEnabled) {
-        return;
-    }
 
     // No need to setup auxiliary pipe stream in this case
     if (noRenderControlEnc) return;
@@ -177,11 +172,12 @@ void processPipeRestart() {
         }
     }
 
-    sNeedInit = true;
-}
+    if (sConnType == HOST_CONNECTION_VIRTIO_GPU_PIPE ||
+        sConnType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) {
+        VirtGpuDevice::resetInstance();
+    }
 
-void disableProcessPipeForTesting() {
-    sProcessPipeEnabled = false;
+    sNeedInit = true;
 }
 
 void refreshHostConnection() {
