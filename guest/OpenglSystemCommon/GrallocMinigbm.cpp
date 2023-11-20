@@ -61,6 +61,8 @@ bool getVirtioGpuResourceInfo(int fd, native_handle_t const* handle,
         return false;
     }
     struct ManagedDrmGem {
+        ManagedDrmGem(int fd, uint32_t handle)
+            : m_fd(fd), m_prime_handle(handle) {}
         ManagedDrmGem(const ManagedDrmGem&) = delete;
         ~ManagedDrmGem() {
             struct drm_gem_close gem_close {
@@ -75,10 +77,7 @@ bool getVirtioGpuResourceInfo(int fd, native_handle_t const* handle,
 
         int m_fd;
         uint32_t m_prime_handle;
-    } managed_prime_handle{
-        .m_fd = fd,
-        .m_prime_handle = prime_handle,
-    };
+    } managed_prime_handle(fd, prime_handle);
 
     info->bo_handle = managed_prime_handle.m_prime_handle;
 
