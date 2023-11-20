@@ -15,19 +15,20 @@
 */
 #include "HostConnection.h"
 
-#include "GrallocGoldfish.h"
-#include "GrallocMinigbm.h"
-#include "aemu/base/AndroidHealthMonitor.h"
-#include "aemu/base/AndroidHealthMonitorConsumerBasic.h"
-#include "aemu/base/threads/AndroidThread.h"
-#include "cutils/properties.h"
-#include "renderControl_types.h"
-#include "GoldfishAddressSpaceStream.h"
-#include "VirtioGpuAddressSpaceStream.h"
-
 #if defined(__ANDROID__)
 #include "ANativeWindowAndroid.h"
 #endif
+#include "GoldfishAddressSpaceStream.h"
+#include "GrallocGoldfish.h"
+#include "GrallocMinigbm.h"
+#include "VirtioGpuAddressSpaceStream.h"
+#include "aemu/base/AndroidHealthMonitor.h"
+#include "aemu/base/AndroidHealthMonitorConsumerBasic.h"
+#include "aemu/base/threads/AndroidThread.h"
+#if defined(__ANDROID__)
+#include "android-base/properties.h"
+#endif
+#include "renderControl_types.h"
 
 #ifdef HOST_BUILD
 #include "aemu/base/Tracing.h"
@@ -151,29 +152,38 @@ HealthMonitor<>* getGlobalHealthMonitor() {
 }
 
 static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capset) {
-#if defined(__ANDROID__) || defined(HOST_BUILD)
-    char transportValue[PROPERTY_VALUE_MAX] = "";
+#if defined(__Fuchsia__) || defined(LINUX_GUEST_BUILD)
+    return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
+#else
+    std::string transport;
 
-    do {
-        property_get("ro.boot.qemu.gltransport.name", transportValue, "");
-        if (transportValue[0]) { break; }
+#if defined(__ANDROID__)
+    transport = android::base::GetProperty("ro.boot.hardware.gltransport", "");
+#endif
 
-        property_get("ro.boot.qemu.gltransport", transportValue, "");
-        if (transportValue[0]) { break; }
+    if (transport.empty()) {
+#if defined(__ANDROID__)
+        return HOST_CONNECTION_QEMU_PIPE;
+#else
+        return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
+#endif
+    }
 
-        property_get("ro.boot.hardware.gltransport", transportValue, "");
-    } while (false);
+    if (transport == "asg") {
+        return HOST_CONNECTION_ADDRESS_SPACE;
+    }
+    if (transport == "pipe") {
+        return HOST_CONNECTION_QEMU_PIPE;
+    }
 
-    if (!transportValue[0]) return HOST_CONNECTION_QEMU_PIPE;
-
-    if (!strcmp("pipe", transportValue)) return HOST_CONNECTION_QEMU_PIPE;
-    if (!strcmp("asg", transportValue)) return HOST_CONNECTION_ADDRESS_SPACE;
-    if (!strcmp("virtio-gpu-pipe", transportValue) || !strcmp("virtio-gpu-asg", transportValue)) {
-        char eglProp[PROPERTY_VALUE_MAX] = "";
-        property_get(kEglProp, eglProp, "");
+    if (transport == "virtio-gpu-asg" || transport == "virtio-gpu-pipe") {
+        std::string egl;
+#if defined(__ANDROID__)
+        egl = android::base::GetProperty(kEglProp, "");
+#endif
         // ANGLE doesn't work well without ASG, particularly if HostComposer uses a pipe
         // transport and VK uses ASG.
-        if (capset == kCapsetGfxStreamVulkan || !strcmp(eglProp, "angle")) {
+        if (capset == kCapsetGfxStreamVulkan || egl == "angle") {
             return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
         } else {
             return HOST_CONNECTION_VIRTIO_GPU_PIPE;
@@ -181,30 +191,36 @@ static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capse
     }
 
     return HOST_CONNECTION_QEMU_PIPE;
-#else
-    return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
 #endif
 }
 
 static uint32_t getDrawCallFlushIntervalFromProperty() {
     constexpr uint32_t kDefaultValue = 800;
+    uint32_t value = kDefaultValue;
 
-    char flushValue[PROPERTY_VALUE_MAX] = "";
-    property_get("ro.boot.qemu.gltransport.drawFlushInterval", flushValue, "");
-    if (!flushValue[0]) return kDefaultValue;
-
-    const long interval = strtol(flushValue, 0, 10);
-    return (interval > 0) ? uint32_t(interval) : kDefaultValue;
+#if defined(__ANDROID__)
+    value = android::base::GetUintProperty("ro.boot.qemu.gltransport.drawFlushInterval",
+                                           kDefaultValue);
+#endif
+    return value;
 }
 
 static GrallocType getGrallocTypeFromProperty() {
-    char value[PROPERTY_VALUE_MAX] = "";
-    property_get("ro.hardware.gralloc", value, "");
+    std::string value;
 
-    if (!value[0]) return GRALLOC_TYPE_RANCHU;
+#if defined(__ANDROID__)
+    value = android::base::GetProperty("ro.hardware.gralloc", "");
+#endif
 
-    if (!strcmp("ranchu", value)) return GRALLOC_TYPE_RANCHU;
-    if (!strcmp("minigbm", value)) return GRALLOC_TYPE_MINIGBM;
+    if (value.empty()) {
+        return GRALLOC_TYPE_RANCHU;
+    }
+    if (value == "minigbm") {
+        return GRALLOC_TYPE_MINIGBM;
+    }
+    if (value == "ranchu") {
+        return GRALLOC_TYPE_RANCHU;
+    }
     return GRALLOC_TYPE_RANCHU;
 }
 
@@ -256,13 +272,18 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
 
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
+#if defined(__ANDROID__) || defined(__Fuchsia__)
             auto stream = createGoldfishAddressSpaceStream(STREAM_BUFFER_SIZE, getGlobalHealthMonitor());
             if (!stream) {
                 ALOGE("Failed to create AddressSpaceStream for host connection\n");
                 return nullptr;
             }
-            con->m_grallocType = GRALLOC_TYPE_RANCHU;
             con->m_stream = stream;
+#else
+            ALOGE("Fatal: HOST_CONNECTION_ADDRESS_SPACE not supported on this host.");
+            abort();
+#endif
+            con->m_grallocType = GRALLOC_TYPE_RANCHU;
 #if defined(__ANDROID__)
             con->m_grallocHelper = &m_goldfishGralloc;
 #endif
