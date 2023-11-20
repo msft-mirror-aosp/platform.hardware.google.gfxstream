@@ -151,9 +151,7 @@ HealthMonitor<>* getGlobalHealthMonitor() {
 }
 
 static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capset) {
-#ifdef __Fuchsia__
-    return HOST_CONNECTION_ADDRESS_SPACE;
-#elif defined(__ANDROID__) || defined(HOST_BUILD)
+#if defined(__ANDROID__) || defined(HOST_BUILD)
     char transportValue[PROPERTY_VALUE_MAX] = "";
 
     do {
@@ -270,6 +268,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
 #endif
             break;
         }
+#if !defined(__Fuchsia__)
         case HOST_CONNECTION_QEMU_PIPE: {
             auto stream = new QemuPipeStream(STREAM_BUFFER_SIZE);
             if (!stream) {
@@ -287,6 +286,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
 #endif
             break;
         }
+#endif
 #if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
             auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE);
