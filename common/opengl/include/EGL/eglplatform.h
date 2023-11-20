@@ -134,6 +134,12 @@ typedef void              *EGLNativeDisplayType;
 typedef khronos_uintptr_t  EGLNativePixmapType;
 typedef khronos_uintptr_t  EGLNativeWindowType;
 
+#elif defined(__Fuchsia__)
+
+typedef int EGLNativeDisplayType;
+typedef int EGLNativeWindowType;
+typedef int EGLNativePixmapType;
+
 #else
 #error "Platform not recognized"
 #endif

@@ -20,7 +20,6 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <xf86drm.h>
 
 #include "virtgpu_drm.h"
 #include "VirtGpu.h"
@@ -44,8 +43,6 @@ VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize) :
     m_virtio_mapped(nullptr),
     m_bufsize(bufSize),
     m_buf(nullptr),
-    m_read(0),
-    m_readLeft(0),
     m_writtenPos(0) { }
 
 VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int fd) :
@@ -54,8 +51,6 @@ VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int fd) :
     m_virtio_mapped(nullptr),
     m_bufsize(bufSize),
     m_buf(nullptr),
-    m_read(0),
-    m_readLeft(0),
     m_writtenPos(0) { }
 
 VirtioGpuPipeStream::~VirtioGpuPipeStream()
