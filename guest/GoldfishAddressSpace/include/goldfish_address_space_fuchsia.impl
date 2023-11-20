@@ -35,8 +35,8 @@
 #define GET_STATUS_SAFE(result, member) \
     ((result).ok() ? ((result)->member) : ZX_OK)
 
-using android::base::guest::AutoLock;
-using android::base::guest::Lock;
+using gfxstream::guest::AutoLock;
+using gfxstream::guest::Lock;
 
 using fuchsia_hardware_goldfish::AddressSpaceChildDriver;
 using fuchsia_hardware_goldfish::AddressSpaceDevice;

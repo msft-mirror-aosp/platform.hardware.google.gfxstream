@@ -50,6 +50,13 @@ static void initSeqno(void) {
     *sSeqnoPtr = 0;
 }
 
+namespace {
+
+static std::mutex sNeedInitMutex;
+static bool sNeedInit = true;
+
+}  // namespace
+
 #ifndef __Fuchsia__
 
 static void sQemuPipeInit() {
@@ -78,12 +85,7 @@ static void sQemuPipeInit() {
     }
 }
 
-namespace {
-
-static std::mutex sNeedInitMutex;
-static bool sNeedInit = true;
-
-}  // namespace
+#endif // !__Fuchsia__
 
 static void processPipeDoInit(uint32_t noRenderControlEnc) {
     initSeqno();
@@ -91,6 +93,11 @@ static void processPipeDoInit(uint32_t noRenderControlEnc) {
     // No need to setup auxiliary pipe stream in this case
     if (noRenderControlEnc) return;
 
+#if defined(__Fuchsia__)
+    // Note: sProcUID is not initialized.
+    ALOGE("Fuchsia: requires noRenderControlEnc");
+    abort();
+#else
     switch (sConnType) {
         // TODO: Move those over too
         case HOST_CONNECTION_QEMU_PIPE:
@@ -104,8 +111,8 @@ static void processPipeDoInit(uint32_t noRenderControlEnc) {
             break;
         }
     }
+#endif
 }
-#endif // !__Fuchsia__
 
 bool processPipeInit(int streamHandle, HostConnectionType connType, uint32_t noRenderControlEnc) {
     sConnType = connType;
@@ -166,10 +173,12 @@ void processPipeRestart() {
             sProcPipe = 0;
         }
     } else {
+#ifndef __Fuchsia__
         if (sVirtioGpuPipeStream) {
             delete sVirtioGpuPipeStream;
             sVirtioGpuPipeStream = nullptr;
         }
+#endif
     }
 
     if (sConnType == HOST_CONNECTION_VIRTIO_GPU_PIPE ||
