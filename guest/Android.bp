@@ -21,7 +21,6 @@ package {
 
 cc_defaults {
     name: "libgfxstream_guest_cc_defaults",
-    cpp_std: "gnu++17",
     cflags: [
         "-DGFXSTREAM",
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
