@@ -1217,6 +1217,14 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        if (auto* swapchainMaintenance1Features =
+                vk_find_struct<VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT>(
+                    &createInfoFiltered)) {
+            if (!supportsSwapchainMaintenance1(physicalDevice, vk)) {
+                swapchainMaintenance1Features->swapchainMaintenance1 = VK_FALSE;
+            }
+        }
+
         createInfoFiltered.enabledExtensionCount = (uint32_t)finalExts.size();
         createInfoFiltered.ppEnabledExtensionNames = finalExts.data();
 
@@ -2526,7 +2534,6 @@ class VkDecoderGlobalState::Impl {
                                    descriptorCopyCount, pDescriptorCopies);
     }
 
-    // jasonjason
     VkResult on_vkCreateShaderModule(android::base::BumpPool* pool, VkDevice boxed_device,
                                      const VkShaderModuleCreateInfo* pCreateInfo,
                                      const VkAllocationCallbacks* pAllocator,
@@ -5932,6 +5939,55 @@ class VkDecoderGlobalState::Impl {
         VkPhysicalDeviceFeatures feature;
         vk->vkGetPhysicalDeviceFeatures(physicalDevice, &feature);
         return !feature.textureCompressionASTC_LDR;
+    }
+
+    bool supportsSwapchainMaintenance1(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) {
+        bool hasGetPhysicalDeviceFeatures2 = false;
+        bool hasGetPhysicalDeviceFeatures2KHR = false;
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+
+            auto* physdevInfo = android::base::find(mPhysdevInfo, physicalDevice);
+            if (!physdevInfo) {
+                return false;
+            }
+
+            auto instance = mPhysicalDeviceToInstance[physicalDevice];
+            auto* instanceInfo = android::base::find(mInstanceInfo, instance);
+            if (!instanceInfo) {
+                return false;
+            }
+
+            if (instanceInfo->apiVersion >= VK_MAKE_VERSION(1, 1, 0) &&
+                physdevInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) {
+                hasGetPhysicalDeviceFeatures2 = true;
+            } else if (hasInstanceExtension(instance,
+                                            VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
+                hasGetPhysicalDeviceFeatures2KHR = true;
+            } else {
+                return false;
+            }
+        }
+
+        VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainMaintenance1Features = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT,
+            .pNext = nullptr,
+            .swapchainMaintenance1 = VK_FALSE,
+        };
+        VkPhysicalDeviceFeatures2 features2 = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+            .pNext = &swapchainMaintenance1Features,
+        };
+        if (hasGetPhysicalDeviceFeatures2) {
+            vk->vkGetPhysicalDeviceFeatures2(physicalDevice, &features2);
+        } else if (hasGetPhysicalDeviceFeatures2KHR) {
+            vk->vkGetPhysicalDeviceFeatures2KHR(physicalDevice, &features2);
+        } else {
+            return false;
+        }
+
+        return swapchainMaintenance1Features.swapchainMaintenance1 == VK_TRUE;
     }
 
     bool isEmulatedCompressedTexture(VkFormat format, VkPhysicalDevice physicalDevice,
