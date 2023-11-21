@@ -26,6 +26,7 @@
 #define VULKAN_HPP_ENABLE_DYNAMIC_LOADER_TOOL 1
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #define VULKAN_HPP_NO_EXCEPTIONS
+#define VULKAN_HPP_ASSERT_ON_RESULT
 #include <vulkan/vulkan_raii.hpp>
 #include <vulkan/vulkan_to_string.hpp>
 
@@ -55,6 +56,17 @@ namespace gfxstream {
         auto vkhpp_rv = (x);                                \
         if (vkhpp_rv.result != vkhpp::Result::eSuccess) {   \
             return gfxstream::unexpected(vkhpp_rv.result);  \
+        };                                                  \
+        std::move(vkhpp_rv.value);                          \
+    })
+
+#define VK_EXPECT_RV_OR_STRING(x)                           \
+    ({                                                      \
+        auto vkhpp_rv = (x);                                \
+        if (vkhpp_rv.result != vkhpp::Result::eSuccess) {   \
+            return gfxstream::unexpected(                   \
+                std::string("Failed to " #x ": ") +         \
+                vkhpp::to_string(vkhpp_rv.result));         \
         };                                                  \
         std::move(vkhpp_rv.value);                          \
     })
