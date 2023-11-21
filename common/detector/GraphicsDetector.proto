@@ -34,9 +34,16 @@ message EglAvailability {
     optional GlesContextAvailability gles3_availability = 6;
 }
 
+message VulkanExternalMemoryHostQuirks {
+    repeated string errors = 1;
+    optional bool can_import_shm = 2;
+}
+
 message VulkanQuirks {
     // See b/264575911.
     optional bool has_issue_with_precision_qualifiers_on_yuv_samplers = 1;
+
+    optional VulkanExternalMemoryHostQuirks external_memory_host_quirks = 2;
 }
 
 message VulkanPhysicalDevice {
