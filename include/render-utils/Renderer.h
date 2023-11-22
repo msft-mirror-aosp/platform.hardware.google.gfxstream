@@ -70,7 +70,8 @@ public:
     //   asynchronously on its own thread. |loadStream| can be used right after
     //   the call as all the required data is copied here synchronously.
     virtual RenderChannelPtr createRenderChannel(
-            android::base::Stream* loadStream = nullptr) = 0;
+            android::base::Stream* loadStream = nullptr,
+            uint32_t virtioGpuContextId = -1) = 0;
 
     // analog of createRenderChannel, but for the address space graphics device
     virtual void* addressSpaceGraphicsConsumerCreate(

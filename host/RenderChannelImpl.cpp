@@ -45,7 +45,7 @@ static constexpr size_t kGuestToHostQueueCapacity = 1024U;
 #endif
 static constexpr size_t kHostToGuestQueueCapacity = 16U;
 
-RenderChannelImpl::RenderChannelImpl(android::base::Stream* loadStream)
+RenderChannelImpl::RenderChannelImpl(android::base::Stream* loadStream, uint32_t contextId)
     : mFromGuest(kGuestToHostQueueCapacity, mLock),
       mToGuest(kHostToGuestQueueCapacity, mLock) {
     if (loadStream) {
@@ -62,7 +62,7 @@ RenderChannelImpl::RenderChannelImpl(android::base::Stream* loadStream)
     } else {
         updateStateLocked();
     }
-    mRenderThread.reset(new RenderThread(this, loadStream));
+    mRenderThread.reset(new RenderThread(this, loadStream, contextId));
     mRenderThread->start();
 }
 
