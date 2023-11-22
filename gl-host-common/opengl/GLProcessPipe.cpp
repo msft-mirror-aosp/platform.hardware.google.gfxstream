@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "host-common/AndroidPipe.h"
-
-#include "aemu/base/synchronization/Lock.h"
-#include "host-common/opengles.h"
 #include <assert.h>
 #include <atomic>
+#include <limits>
 #include <memory>
+#include <string.h>
 #include <unordered_set>
 
-#include <string.h>
+#include "aemu/base/synchronization/Lock.h"
+#include "host-common/AndroidPipe.h"
+#include "host-common/opengles.h"
 
 using android::base::AutoLock;
 using android::base::Lock;
@@ -154,7 +154,7 @@ private:
     // identifiers, since the IDs are assigned sequentially from a 64-bit ID
     // space.
     // Please change it if you ever have a use case that exhausts them
-    uint64_t m_uniqueId;
+    uint64_t m_uniqueId = std::numeric_limits<uint64_t>::max();
     bool m_hasData = false;
     static std::atomic<uint64_t> s_headId;
 
