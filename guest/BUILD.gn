@@ -61,10 +61,6 @@ source_set("goldfish_srcs") {
   configs += [ ":common_config" ]
 
   sources = [
-    "GoldfishAddressSpace/GoldfishAddressSpaceStream.cpp",
-    "GoldfishAddressSpace/VirtioGpuAddressSpaceStream.cpp",
-    "GoldfishAddressSpace/goldfish_address_space.cpp",
-    "GoldfishAddressSpace/include/goldfish_address_space.h",
     "vulkan/goldfish_vulkan.cpp",
     "vulkan_enc/ResourceTracker.cpp",
     "vulkan_enc/ResourceTracker.h",
@@ -96,7 +92,7 @@ loadable_module("libvulkan_gfxstream") {
 
   sources = [
     "GoldfishAddressSpace/AddressSpaceStream.cpp",
-    "GoldfishAddressSpace/include/goldfish_address_space.h",
+    "GoldfishAddressSpace/VirtioGpuAddressSpaceStream.cpp",
     "OpenglCodecCommon/ChecksumCalculator.cpp",
     "OpenglCodecCommon/ChecksumCalculator.h",
     "OpenglCodecCommon/glUtils.cpp",
