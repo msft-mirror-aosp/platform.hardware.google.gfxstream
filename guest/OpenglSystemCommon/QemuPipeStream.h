@@ -26,12 +26,6 @@
 
 #include <qemu_pipe_bp.h>
 
-#ifdef __Fuchsia__
-#include <fidl/fuchsia.hardware.goldfish/cpp/wire.h>
-#include <lib/zx/event.h>
-#include <lib/zx/vmo.h>
-#endif
-
 class QemuPipeStream : public gfxstream::guest::IOStream {
 public:
     typedef enum { ERR_INVALID_SOCKET = -1000 } QemuPipeStreamError;
@@ -58,14 +52,6 @@ private:
     unsigned char *m_buf;
     size_t m_read;
     size_t m_readLeft;
-#ifdef __Fuchsia__
-    std::unique_ptr<::fidl::WireSyncClient<fuchsia_hardware_goldfish::PipeDevice>>
-        m_device;
-    ::fidl::WireSyncClient<fuchsia_hardware_goldfish::Pipe>
-        m_pipe;
-    zx::event m_event;
-    zx::vmo m_vmo;
-#endif
     QemuPipeStream(QEMU_PIPE_HANDLE sock, size_t bufSize);
 };
 

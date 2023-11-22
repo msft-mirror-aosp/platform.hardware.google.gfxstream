@@ -4,31 +4,32 @@
 vk_api_xml = files('vk.xml')
 vk_icd_gen = files('vk_icd_gen.py')
 
-files_lib_vulkan_cereal = files(
+files_lib_vulkan_gfxstream = files(
   'goldfish_vulkan.cpp',
 )
 
-lib_vulkan_cereal = shared_library(
-   'vulkan_cereal',
-   files_lib_vulkan_cereal,
+lib_vulkan_gfxstream = shared_library(
+   'vulkan_gfxstream',
+   files_lib_vulkan_gfxstream,
    cpp_args: cpp_args,
-   include_directories: [inc_vulkan_headers, inc_android_emu, inc_android_compat,
-                         inc_opengl_system, inc_guest_iostream, inc_opengl_codec, inc_render_enc,
-                         inc_vulkan_enc, inc_platform, inc_goldfish_address_space, inc_system],
+   include_directories: [inc_vulkan_headers, inc_opengl_headers, inc_android_emu,
+                         inc_android_compat, inc_opengl_system, inc_guest_iostream,
+                         inc_opengl_codec, inc_render_enc, inc_vulkan_enc, inc_platform,
+                         inc_goldfish_address_space, inc_system],
    link_with: [lib_android_compat, lib_emu_android_base, lib_stream,
                lib_vulkan_enc],
    install: true,
 )
 
-cereal_icd = custom_target(
-  'cereal_icd',
+gfxstream_icd = custom_target(
+  'gfxstream_icd',
   input : [vk_icd_gen, vk_api_xml],
-  output : 'cereal_icd.@0@.json'.format(host_machine.cpu()),
+  output : 'gfxstream_icd.@0@.json'.format(host_machine.cpu()),
   command : [
     prog_python, '@INPUT0@',
     '--api-version', '1.0', '--xml', '@INPUT1@',
     '--lib-path', join_paths(get_option('prefix'), get_option('libdir'),
-                             'libvulkan_cereal.so'),
+                             'libvulkan_gfxstream.so'),
     '--out', '@OUTPUT@',
   ],
   build_by_default : true,

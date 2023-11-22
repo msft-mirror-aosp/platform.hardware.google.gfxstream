@@ -23,7 +23,9 @@
 #include <log/log.h>
 
 #include "aemu/base/system/System.h"
+#include "drm_fourcc.h"
 #include "Gralloc.h"
+#include "gfxstream/RutabagaLayerTestUtils.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
 #include "ProcessPipe.h"
@@ -43,9 +45,6 @@ using testing::IsTrue;
 using testing::Not;
 using testing::NotNull;
 
-// For now, single guest process testing.
-constexpr const uint32_t kVirtioGpuContextId = 1;
-
 std::optional<uint32_t> GlFormatToDrmFormat(uint32_t glFormat) {
     switch (glFormat) {
         case GL_RGB:
@@ -58,650 +57,10 @@ std::optional<uint32_t> GlFormatToDrmFormat(uint32_t glFormat) {
     return std::nullopt;
 }
 
-std::optional<uint32_t> DrmFormatToVirglFormat(uint32_t drmFormat) {
-    switch (drmFormat) {
-        case DRM_FORMAT_BGR888:
-        case DRM_FORMAT_RGB888:
-            return VIRGL_FORMAT_R8G8B8_UNORM;
-        case DRM_FORMAT_XRGB8888:
-            return VIRGL_FORMAT_B8G8R8X8_UNORM;
-        case DRM_FORMAT_ARGB8888:
-            return VIRGL_FORMAT_B8G8R8A8_UNORM;
-        case DRM_FORMAT_XBGR8888:
-            return VIRGL_FORMAT_R8G8B8X8_UNORM;
-        case DRM_FORMAT_ABGR8888:
-            return VIRGL_FORMAT_R8G8B8A8_UNORM;
-        case DRM_FORMAT_ABGR2101010:
-            return VIRGL_FORMAT_R10G10B10A2_UNORM;
-        case DRM_FORMAT_BGR565:
-            return VIRGL_FORMAT_B5G6R5_UNORM;
-        case DRM_FORMAT_R8:
-            return VIRGL_FORMAT_R8_UNORM;
-        case DRM_FORMAT_R16:
-            return VIRGL_FORMAT_R16_UNORM;
-        case DRM_FORMAT_RG88:
-            return VIRGL_FORMAT_R8G8_UNORM;
-        case DRM_FORMAT_NV12:
-            return VIRGL_FORMAT_NV12;
-        case DRM_FORMAT_NV21:
-            return VIRGL_FORMAT_NV21;
-        case DRM_FORMAT_YVU420:
-            return VIRGL_FORMAT_YV12;
-    }
-    return std::nullopt;
-}
-
-TestingVirtGpuBlobMapping::TestingVirtGpuBlobMapping(VirtGpuBlobPtr blob, uint8_t* mapped)
-    : mBlob(blob),
-      mMapped(mapped) {}
-
-TestingVirtGpuBlobMapping::~TestingVirtGpuBlobMapping(void) {
-    stream_renderer_resource_unmap(mBlob->getResourceHandle());
-}
-
-uint8_t* TestingVirtGpuBlobMapping::asRawPtr(void) { return mMapped; }
-
-TestingVirtGpuResource::TestingVirtGpuResource(
-        uint32_t resourceId,
-        ResourceType resourceType,
-        std::shared_ptr<TestingVirtGpuDevice> device,
-        std::shared_future<void> createCompleted,
-        std::unique_ptr<uint8_t[]> resourceGuestBytes,
-        std::shared_future<uint8_t*> mapCompleted)
-    : mResourceId(resourceId),
-        mResourceType(resourceType),
-        mDevice(device),
-        mPendingCommandWaitables({createCompleted}),
-        mResourceGuestBytes(std::move(resourceGuestBytes)),
-        mResourceMappedHostBytes(std::move(mapCompleted)) {}
-
-/*static*/
-std::shared_ptr<TestingVirtGpuResource> TestingVirtGpuResource::createBlob(
-        uint32_t resourceId,
-        std::shared_ptr<TestingVirtGpuDevice> device,
-        std::shared_future<void> createCompleted,
-        std::shared_future<uint8_t*> mapCompleted) {
-    return std::shared_ptr<TestingVirtGpuResource>(
-        new TestingVirtGpuResource(resourceId,
-                                   ResourceType::kBlob,
-                                   device,
-                                   createCompleted,
-                                   nullptr,
-                                   mapCompleted));
-}
-
-/*static*/
-std::shared_ptr<TestingVirtGpuResource> TestingVirtGpuResource::createPipe(
-        uint32_t resourceId,
-    std::shared_ptr<TestingVirtGpuDevice> device,
-    std::shared_future<void> createCompleted,
-    std::unique_ptr<uint8_t[]> resourceBytes) {
-    return std::shared_ptr<TestingVirtGpuResource>(
-        new TestingVirtGpuResource(resourceId,
-                                   ResourceType::kPipe,
-                                   device,
-                                   createCompleted,
-                                   std::move(resourceBytes)));
-}
-
-TestingVirtGpuResource::~TestingVirtGpuResource() {
-    ALOGV("Unref resource:%d", (int)mResourceId);
-    stream_renderer_resource_unref(mResourceId);
-}
-
-VirtGpuBlobMappingPtr TestingVirtGpuResource::createMapping(void) {
-    uint8_t* mappedMemory = nullptr;
-
-    if (mResourceType == ResourceType::kBlob) {
-        if (!mResourceMappedHostBytes.valid()) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Attempting to map blob resource:"
-                << mResourceId
-                << " which was created without the mappable flag.";
-        }
-
-        mappedMemory = mResourceMappedHostBytes.get();
-    } else if (mResourceType == ResourceType::kPipe) {
-        mappedMemory = mResourceGuestBytes.get();
-    } else {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Unhandled.";
-    }
-
-    return std::make_shared<TestingVirtGpuBlobMapping>(shared_from_this(), mappedMemory);
-}
-
-uint32_t TestingVirtGpuResource::getResourceHandle() {
-    return mResourceId;
-}
-
-uint32_t TestingVirtGpuResource::getBlobHandle() {
-    if (mResourceType != ResourceType::kBlob) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Attempting to get blob handle for non-blob resource";
-    }
-
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Unimplemented";
-    return 0;
-}
-
-int TestingVirtGpuResource::exportBlob(VirtGpuExternalHandle& handle) {
-    if (mResourceType != ResourceType::kBlob) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Attempting to export blob for non-blob resource";
-    }
-
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Unimplemented";
-    return 0;
-}
-
-int TestingVirtGpuResource::wait() {
-    std::vector<std::shared_future<void>> currentPendingCommandWaitables;
-
-    {
-        std::lock_guard<std::mutex> lock(mPendingCommandWaitablesMutex);
-        currentPendingCommandWaitables = mPendingCommandWaitables;
-        mPendingCommandWaitables.clear();
-    }
-
-    for (auto& waitable : currentPendingCommandWaitables) {
-        waitable.wait();
-    }
-
-    return 0;
-}
-
-void TestingVirtGpuResource::addPendingCommandWaitable(std::shared_future<void> waitable) {
-    std::lock_guard<std::mutex> lock(mPendingCommandWaitablesMutex);
-
-    mPendingCommandWaitables.erase(
-        std::remove_if(mPendingCommandWaitables.begin(),
-                        mPendingCommandWaitables.end(),
-                        [](const std::shared_future<void>& waitable) {
-                            return waitable.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
-                        }),
-        mPendingCommandWaitables.end());
-
-    mPendingCommandWaitables.push_back(std::move(waitable));
-}
-
-int TestingVirtGpuResource::transferFromHost(uint32_t offset, uint32_t size) {
-    if (mResourceType != ResourceType::kPipe) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Unexpected transferFromHost() called on non-pipe resource.";
-    }
-
-    std::shared_future<void> transferCompleteWaitable = mDevice->transferFromHost(mResourceId, offset, size);
-
-    {
-        std::lock_guard<std::mutex> lock(mPendingCommandWaitablesMutex);
-        mPendingCommandWaitables.push_back(transferCompleteWaitable);
-    }
-
-    return 0;
-}
-
-int TestingVirtGpuResource::transferToHost(uint32_t offset, uint32_t size) {
-    if (mResourceType != ResourceType::kPipe) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Unexpected transferFromHost() called on non-pipe resource.";
-    }
-
-    std::shared_future<void> transferCompleteWaitable = mDevice->transferToHost(mResourceId, offset, size);
-
-    {
-        std::lock_guard<std::mutex> lock(mPendingCommandWaitablesMutex);
-        mPendingCommandWaitables.push_back(transferCompleteWaitable);
-    }
-
-    return 0;
-}
-
-TestingVirtGpuDevice::TestingVirtGpuDevice()
-    : VirtGpuDevice(kCapsetGfxStreamVulkan),
-      mVirtioGpuTaskProcessingThread([this]() { RunVirtioGpuTaskProcessingLoop(); }) {}
-
-TestingVirtGpuDevice::~TestingVirtGpuDevice() {
-    mShuttingDown = true;
-    mVirtioGpuTaskProcessingThread.join();
-}
-
-int64_t TestingVirtGpuDevice::getDeviceHandle() { return -1; }
-
-VirtGpuCaps TestingVirtGpuDevice::getCaps() {
-    VirtGpuCaps caps = {
-        .params =
-            {
-                [kParam3D] = 1,
-                [kParamCapsetFix] = 1,
-                [kParamResourceBlob] = 1,
-                [kParamHostVisible] = 1,
-                [kParamCrossDevice] = 0,
-                [kParamContextInit] = 1,
-                [kParamSupportedCapsetIds] = 0,
-                [kParamCreateGuestHandle] = 0,
-            },
-    };
-
-    stream_renderer_fill_caps(static_cast<uint32_t>(kCapsetGfxStreamVulkan), 0, &caps.vulkanCapset);
-    return caps;
-}
-
-VirtGpuBlobPtr TestingVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
-    const uint32_t resourceId = mNextVirtioGpuResourceId++;
-
-    ALOGV("Enquing task to create blob resource-id:%d size:%" PRIu64, resourceId, blobCreate.size);
-
-    VirtioGpuTaskCreateBlob createTask{
-        .resourceId = resourceId,
-        .params = {
-            .blob_mem = static_cast<uint32_t>(blobCreate.blobMem),
-            .blob_flags = static_cast<uint32_t>(blobCreate.flags),
-            .blob_id = blobCreate.blobId,
-            .size = blobCreate.size,
-        },
-    };
-    auto createBlobCompletedWaitable = EnqueueVirtioGpuTask(std::move(createTask));
-
-    std::shared_future<uint8_t*> mappedBytesWaitable;
-
-    if (blobCreate.flags & kBlobFlagMappable) {
-        std::promise<uint8_t*> mappedBytesPromise;
-        mappedBytesWaitable = mappedBytesPromise.get_future();
-
-        VirtioGpuTaskMap mapTask{
-            .resourceId = resourceId,
-            .resourceMappedPromise = std::move(mappedBytesPromise),
-        };
-        EnqueueVirtioGpuTask(std::move(mapTask));
-    }
-
-    return TestingVirtGpuResource::createBlob(resourceId, shared_from_this(), createBlobCompletedWaitable, std::move(mappedBytesWaitable));
-}
-
-VirtGpuBlobPtr TestingVirtGpuDevice::createPipeBlob(uint32_t size) {
-    const uint32_t resourceId = mNextVirtioGpuResourceId++;
-
-    auto resourceBytes = std::make_unique<uint8_t[]>(size);
-
-    VirtioGpuTaskCreateResource task{
-        .resourceId = resourceId,
-        .resourceBytes = resourceBytes.get(),
-        .params = {
-            .handle = resourceId,
-            .target = /*PIPE_BUFFER=*/0,
-            .format = VIRGL_FORMAT_R8_UNORM,
-            .bind = VIRGL_BIND_CUSTOM,
-            .width = size,
-            .height = 1,
-            .depth = 1,
-            .array_size = 0,
-            .last_level = 0,
-            .nr_samples = 0,
-            .flags = 0,
-        },
-    };
-    auto taskCompletedWaitable = EnqueueVirtioGpuTask(std::move(task));
-    return TestingVirtGpuResource::createPipe(resourceId, shared_from_this(), taskCompletedWaitable, std::move(resourceBytes));
-}
-
-VirtGpuBlobPtr TestingVirtGpuDevice::createTexture(
-        uint32_t width,
-        uint32_t height,
-        uint32_t drmFormat) {
-    const uint32_t resourceId = mNextVirtioGpuResourceId++;
-
-    // TODO: calculate for real.
-    const uint32_t resourceSize = width * height * 4;
-
-    auto resourceBytes = std::make_unique<uint8_t[]>(resourceSize);
-
-    auto virglFormat = DrmFormatToVirglFormat(drmFormat);
-    if (!virglFormat) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Unhandled format:" << drmFormat;
-    }
-
-    VirtioGpuTaskCreateResource task{
-        .resourceId = resourceId,
-        .resourceBytes = resourceBytes.get(),
-        .params = {
-            .handle = resourceId,
-            .target = /*PIPE_TEXTURE_2D=*/2,
-            .format = *virglFormat,
-            .bind = VIRGL_BIND_CUSTOM,
-            .width = width,
-            .height = height,
-            .depth = 1,
-            .array_size = 1,
-            .last_level = 0,
-            .nr_samples = 0,
-            .flags = 0,
-        },
-    };
-
-    auto taskCompletedWaitable = EnqueueVirtioGpuTask(std::move(task));
-    return TestingVirtGpuResource::createPipe(resourceId, shared_from_this(), taskCompletedWaitable, std::move(resourceBytes));
-}
-
-int TestingVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob) {
-    std::optional<uint32_t> fence;
-
-    if (execbuffer.flags & kFenceOut) {
-        fence = CreateEmulatedFence();
-    }
-
-    VirtioGpuTaskExecBuffer task = {};
-
-    task.commandBuffer.resize(execbuffer.command_size);
-    std::memcpy(task.commandBuffer.data(), execbuffer.command, execbuffer.command_size);
-
-    auto taskCompletedWaitable = EnqueueVirtioGpuTask(std::move(task), fence);
-
-    if (blob) {
-        if (auto* b = dynamic_cast<TestingVirtGpuResource*>(blob.get()); b != nullptr) {
-            b->addPendingCommandWaitable(std::move(taskCompletedWaitable));
-        } else {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Execbuffer called with non-blob resource.";
-        }
-    }
-
-    if (execbuffer.flags & kFenceOut) {
-        execbuffer.handle.osHandle = *fence;
-        execbuffer.handle.type = kFenceHandleSyncFd;
-    }
-
-    return 0;
-}
-
-VirtGpuBlobPtr TestingVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle& handle) {
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Unimplemented";
-    return nullptr;
-}
-
-std::shared_future<void> TestingVirtGpuDevice::transferFromHost(uint32_t resourceId,
-                                                                uint32_t transferOffset,
-                                                                uint32_t transferSize) {
-    VirtioGpuTaskTransferFromHost task = {
-        .resourceId = resourceId,
-        .transferOffset = transferOffset,
-        .transferSize = transferSize,
-    };
-    return EnqueueVirtioGpuTask(std::move(task));
-}
-
-std::shared_future<void> TestingVirtGpuDevice::transferToHost(uint32_t resourceId,
-                                                              uint32_t transferOffset,
-                                                              uint32_t transferSize) {
-    VirtioGpuTaskTransferToHost task = {
-        .resourceId = resourceId,
-        .transferOffset = transferOffset,
-        .transferSize = transferSize,
-    };
-    return EnqueueVirtioGpuTask(std::move(task));
-}
-
-int TestingVirtGpuDevice::WaitOnEmulatedFence(int fenceAsFileDescriptor,
-                                              int timeoutMilliseconds) {
-    uint32_t fenceId = static_cast<uint32_t>(fenceAsFileDescriptor);
-    ALOGV("Waiting on fence:%d", (int)fenceId);
-
-    std::shared_future<void> waitable;
-
-    {
-        std::lock_guard<std::mutex> lock(mVirtioGpuFencesMutex);
-
-        auto fenceIt = mVirtioGpuFences.find(fenceId);
-        if (fenceIt == mVirtioGpuFences.end()) {
-            ALOGE("Fence:%d already signaled", (int)fenceId);
-            return 0;
-        }
-        auto& fence = fenceIt->second;
-
-        waitable = fence.waitable;
-    }
-
-    auto status = waitable.wait_for(std::chrono::milliseconds(timeoutMilliseconds));
-    if (status == std::future_status::ready) {
-        ALOGV("Finished waiting for fence:%d", (int)fenceId);
-        return 0;
-    } else {
-        ALOGE("Timed out waiting for fence:%d", (int)fenceId);
-        return -1;
-    }
-}
-
-void TestingVirtGpuDevice::SignalEmulatedFence(uint32_t fenceId) {
-    ALOGV("Signaling fence:%d", (int)fenceId);
-
-    std::lock_guard<std::mutex> lock(mVirtioGpuFencesMutex);
-
-    auto fenceIt = mVirtioGpuFences.find(fenceId);
-    if (fenceIt == mVirtioGpuFences.end()) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Failed to find fence:" << fenceId;
-    }
-    auto& fenceInfo = fenceIt->second;
-    fenceInfo.signaler.set_value();
-}
-
-void WriteFence(void* cookie, struct stream_renderer_fence* fence) {
-    auto* device = reinterpret_cast<TestingVirtGpuDevice*>(cookie);
-    device->SignalEmulatedFence(fence->fence_id);
-}
-
-uint32_t TestingVirtGpuDevice::CreateEmulatedFence() {
-    const uint32_t fenceId = mNextVirtioGpuFenceId++;
-
-    ALOGV("Creating fence:%d", (int)fenceId);
-
-    std::lock_guard<std::mutex> lock(mVirtioGpuFencesMutex);
-
-    auto [fenceIt, fenceCreated] = mVirtioGpuFences.emplace(fenceId, EmulatedFence{});
-    if (!fenceCreated) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Attempting to recreate fence:" << fenceId;
-    }
-
-    auto& fenceInfo = fenceIt->second;
-    fenceInfo.waitable = fenceInfo.signaler.get_future();
-
-    return fenceId;
-}
-
-std::shared_future<void> TestingVirtGpuDevice::EnqueueVirtioGpuTask(
-        VirtioGpuTask task,
-        std::optional<uint32_t> fence) {
-    std::promise<void> taskCompletedSignaler;
-    std::shared_future<void> taskCompletedWaitable(taskCompletedSignaler.get_future());
-
-    std::lock_guard<std::mutex> lock(mVirtioGpuTaskMutex);
-    mVirtioGpuTasks.push(
-        VirtioGpuTaskWithWaitable{
-            .task = std::move(task),
-            .taskCompletedSignaler = std::move(taskCompletedSignaler),
-            .fence = fence,
-        });
-
-    return taskCompletedWaitable;
-}
-
-void TestingVirtGpuDevice::DoTask(VirtioGpuTaskCreateBlob task) {
-    ALOGV("Performing task to create blob resource-id:%d", task.resourceId);
-
-    int ret = stream_renderer_create_blob(kVirtioGpuContextId, task.resourceId, &task.params, nullptr, 0, nullptr);
-    if (ret) {
-        ALOGE("Failed to create blob.");
-    }
-
-    ALOGV("Performing task to create blob resource-id:%d - done", task.resourceId);
-}
-
-void TestingVirtGpuDevice::DoTask(VirtioGpuTaskCreateResource task) {
-    ALOGV("Performing task to create resource resource:%d", task.resourceId);
-
-    int ret = stream_renderer_resource_create(&task.params, nullptr, 0);
-    if (ret) {
-        ALOGE("Failed to create resource:%d", task.resourceId);
-    }
-
-    struct iovec iov = {
-        .iov_base = task.resourceBytes,
-        .iov_len = task.params.width,
-    };
-    ret = stream_renderer_resource_attach_iov(task.resourceId, &iov, 1);
-    if (ret) {
-        ALOGE("Failed to attach iov to resource:%d", task.resourceId);
-    }
-
-    ALOGV("Performing task to create resource resource:%d - done", task.resourceId);
-
-    stream_renderer_ctx_attach_resource(kVirtioGpuContextId, task.resourceId);
-}
-
-void TestingVirtGpuDevice::DoTask(VirtioGpuTaskMap task) {
-    ALOGV("Performing task to map resource resource:%d", task.resourceId);
-
-    void* mapped = nullptr;
-
-    int ret = stream_renderer_resource_map(task.resourceId, &mapped, nullptr);
-    if (ret) {
-        ALOGE("Failed to map resource:%d", task.resourceId);
-        return;
-    }
-
-    task.resourceMappedPromise.set_value(reinterpret_cast<uint8_t*>(mapped));
-    ALOGV("Performing task to map resource resource:%d - done", task.resourceId);
-}
-
-void TestingVirtGpuDevice::DoTask(VirtioGpuTaskExecBuffer task) {
-    ALOGV("Performing task to execbuffer");
-
-    if (task.commandBuffer.size() % 4 != 0) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Unaligned command?";
-    }
-
-    stream_renderer_command cmd = {
-        .ctx_id = kVirtioGpuContextId,
-        .cmd_size = static_cast<uint32_t>(task.commandBuffer.size()),
-        .cmd = reinterpret_cast<uint8_t*>(task.commandBuffer.data()),
-        .num_in_fences = 0,
-        .fences = nullptr,
-    };
-
-    int ret = stream_renderer_submit_cmd(&cmd);
-    if (ret) {
-        ALOGE("Failed to execbuffer.");
-    }
-
-    ALOGV("Performing task to execbuffer - done");
-}
-
-void TestingVirtGpuDevice::DoTask(VirtioGpuTaskTransferFromHost task) {
-    struct stream_renderer_box transferBox = {
-        .x = task.transferOffset,
-        .y = 0,
-        .z = 0,
-        .w = task.transferSize,
-        .h = 1,
-        .d = 1,
-    };
-
-    int ret = stream_renderer_transfer_read_iov(task.resourceId,
-                                                    kVirtioGpuContextId,
-                                                    /*level=*/0,
-                                                    /*stride=*/0,
-                                                    /*layer_stride=*/0,
-                                                    &transferBox,
-                                                    /*offset=*/0,
-                                                    /*iov=*/nullptr,
-                                                    /*iovec_cnt=*/0);
-    if (ret) {
-        ALOGE("Failed to transferFromHost() for resource:%" PRIu32, task.resourceId);
-    }
-}
-
-void TestingVirtGpuDevice::DoTask(VirtioGpuTaskTransferToHost task) {
-    struct stream_renderer_box transferBox = {
-        .x = task.transferOffset,
-        .y = 0,
-        .z = 0,
-        .w = task.transferSize,
-        .h = 1,
-        .d = 1,
-    };
-
-    int ret = stream_renderer_transfer_write_iov(task.resourceId,
-                                                    kVirtioGpuContextId,
-                                                    /*level=*/0,
-                                                    /*stride=*/0,
-                                                    /*layer_stride=*/0,
-                                                    &transferBox,
-                                                    /*offset=*/0,
-                                                    /*iov=*/nullptr,
-                                                    /*iovec_cnt=*/0);
-    if (ret) {
-        ALOGE("Failed to transferToHost() for resource:%" PRIu32, task.resourceId);
-    }
-}
-
-void TestingVirtGpuDevice::DoTask(VirtioGpuTaskWithWaitable task) {
-    std::visit(
-        [this](auto&& work){
-            using T = std::decay_t<decltype(work)>;
-            if constexpr (std::is_same_v<T, VirtioGpuTaskCreateBlob>) {
-                DoTask(std::move(work));
-            } else if constexpr (std::is_same_v<T, VirtioGpuTaskCreateResource>) {
-                DoTask(std::move(work));
-            } else if constexpr (std::is_same_v<T, VirtioGpuTaskMap>) {
-                DoTask(std::move(work));
-            } else if constexpr (std::is_same_v<T, VirtioGpuTaskExecBuffer>) {
-                DoTask(std::move(work));
-            }  else if constexpr (std::is_same_v<T, VirtioGpuTaskTransferFromHost>) {
-                DoTask(std::move(work));
-            }  else if constexpr (std::is_same_v<T, VirtioGpuTaskTransferToHost>) {
-                DoTask(std::move(work));
-            }
-        }, task.task);
-
-    if (task.fence) {
-        const stream_renderer_fence fenceInfo = {
-            .flags = STREAM_RENDERER_FLAG_FENCE_RING_IDX,
-            .fence_id = *task.fence,
-            .ctx_id = kVirtioGpuContextId,
-            .ring_idx = 0,
-        };
-        int ret = stream_renderer_create_fence(&fenceInfo);
-        if (ret) {
-            ALOGE("Failed to create fence.");
-        }
-    }
-
-    task.taskCompletedSignaler.set_value();
-}
-
-void TestingVirtGpuDevice::RunVirtioGpuTaskProcessingLoop() {
-    while (!mShuttingDown.load()) {
-        std::optional<VirtioGpuTaskWithWaitable> task;
-
-        {
-            std::lock_guard<std::mutex> lock(mVirtioGpuTaskMutex);
-            if (!mVirtioGpuTasks.empty()) {
-                task = std::move(mVirtioGpuTasks.front());
-                mVirtioGpuTasks.pop();
-            }
-        }
-
-        if (task) {
-            DoTask(std::move(*task));
-        }
-    }
-}
-
 TestingAHardwareBuffer::TestingAHardwareBuffer(
         uint32_t width,
         uint32_t height,
-        std::shared_ptr<TestingVirtGpuResource> resource)
+        VirtGpuBlobPtr resource)
     : mWidth(width),
       mHeight(height),
       mResource(resource) {}
@@ -738,8 +97,7 @@ EGLClientBuffer TestingAHardwareBuffer::asEglClientBuffer() {
     return reinterpret_cast<EGLClientBuffer>(this);
 }
 
-TestingVirtGpuGralloc::TestingVirtGpuGralloc(std::shared_ptr<TestingVirtGpuDevice> device)
-    : mDevice(device) {}
+TestingVirtGpuGralloc::TestingVirtGpuGralloc() {}
 
 uint32_t TestingVirtGpuGralloc::createColorBuffer(
         void*,
@@ -780,20 +138,23 @@ std::unique_ptr<TestingAHardwareBuffer> TestingVirtGpuGralloc::allocate(
         uint32_t width,
         uint32_t height,
         uint32_t format) {
-    auto resource = mDevice->createTexture(width, height, format);
+    ALOGV("Allocating AHB w:%" PRIu32 " h:%" PRIu32 " f:%" PRIu32, width, height, format);
+
+    auto device = VirtGpuDevice::getInstance();
+    if (!device) {
+        ALOGE("Failed to allocate: no virtio gpu device.");
+        return nullptr;
+    }
+
+    auto resource = device->createPipeTexture2D(width, height, format);
     if (!resource) {
+        ALOGE("Failed to allocate: failed to create virtio resource.");
         return nullptr;
     }
 
     resource->wait();
 
-    auto resourceTyped = std::dynamic_pointer_cast<TestingVirtGpuResource>(resource);
-    if (!resourceTyped) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Failed to dynamic cast virtio gpu resource.";
-    }
-
-    return std::make_unique<TestingAHardwareBuffer>(width, height, std::move(resourceTyped));
+    return std::make_unique<TestingAHardwareBuffer>(width, height, std::move(resource));
 }
 
 void TestingVirtGpuGralloc::acquire(AHardwareBuffer* ahb) {
@@ -988,22 +349,6 @@ int TestingVirtGpuANativeWindowHelper::getHostHandle(EGLClientBuffer buffer, Gra
     return ahb->getResourceId();
 }
 
-TestingVirtGpuSyncHelper::TestingVirtGpuSyncHelper(std::shared_ptr<TestingVirtGpuDevice> device)
-    : mDevice(device) {}
-
-int TestingVirtGpuSyncHelper::wait(int syncFd, int timeoutMilliseconds) {
-    return mDevice->WaitOnEmulatedFence(syncFd, timeoutMilliseconds);
-}
-
-int TestingVirtGpuSyncHelper::dup(int syncFd) {
-    // TODO update reference count
-    return syncFd;
-}
-
-int TestingVirtGpuSyncHelper::close(int) {
-    return 0;
-}
-
 std::string TestParams::ToString() const {
     std::string ret;
     ret += (with_gl ? "With" : "Without");
@@ -1025,9 +370,8 @@ std::string GetTestName(const ::testing::TestParamInfo<TestParams>& info) {
 
 std::unique_ptr<GfxstreamEnd2EndTest::GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
     const std::filesystem::path testDirectory = android::base::getProgramDirectory();
-    const std::string eglLibPath = (testDirectory / "libEGL_emulation.so").string();
-    const std::string gles2LibPath = (testDirectory / "libGLESv2_emulation.so").string();
-    const std::string vkLibPath = (testDirectory / "vulkan.ranchu.so").string();
+    const std::string eglLibPath = (testDirectory / "libEGL_emulation_with_host.so").string();
+    const std::string gles2LibPath = (testDirectory / "libGLESv2_emulation_with_host.so").string();
 
     void* eglLib = dlopen(eglLibPath.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (!eglLib) {
@@ -1071,7 +415,7 @@ std::unique_ptr<GfxstreamEnd2EndTest::GuestGlDispatchTable> GfxstreamEnd2EndTest
 
 std::unique_ptr<vkhpp::DynamicLoader> GfxstreamEnd2EndTest::SetupGuestVk() {
     const std::filesystem::path testDirectory = android::base::getProgramDirectory();
-    const std::string vkLibPath = (testDirectory / "vulkan.ranchu.so").string();
+    const std::string vkLibPath = (testDirectory / "libgfxstream_guest_vulkan_with_host.so").string();
 
     auto dl = std::make_unique<vkhpp::DynamicLoader>(vkLibPath);
     if (!dl->success()) {
@@ -1093,57 +437,18 @@ std::unique_ptr<vkhpp::DynamicLoader> GfxstreamEnd2EndTest::SetupGuestVk() {
 void GfxstreamEnd2EndTest::SetUp() {
     const TestParams params = GetParam();
 
-    mDevice = std::make_shared<TestingVirtGpuDevice>();
-    VirtGpuDevice::setInstanceForTesting(mDevice.get());
-
-    std::vector<stream_renderer_param> renderer_params{
-        stream_renderer_param{
-            .key = STREAM_RENDERER_PARAM_USER_DATA,
-            .value = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(mDevice.get())),
-        },
-        stream_renderer_param{
-            .key = STREAM_RENDERER_PARAM_FENCE_CALLBACK,
-            .value = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&WriteFence)),
-        },
-        stream_renderer_param{
-            .key = STREAM_RENDERER_PARAM_RENDERER_FLAGS,
-            .value =
-                static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT) |
-                (params.with_gl ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_EGL_BIT |
-                                                        STREAM_RENDERER_FLAGS_USE_GLES_BIT)
-                                : 0) |
-                (params.with_vk ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_VK_BIT) : 0) |
-                (params.with_vk_snapshot
-                     ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS)
-                     : 0),
-        },
-        stream_renderer_param{
-            .key = STREAM_RENDERER_PARAM_WIN0_WIDTH,
-            .value = 32,
-        },
-        stream_renderer_param{
-            .key = STREAM_RENDERER_PARAM_WIN0_HEIGHT,
-            .value = 32,
-        },
-    };
-    ASSERT_THAT(stream_renderer_init(renderer_params.data(), renderer_params.size()), Eq(0));
-
-    const std::string name = testing::UnitTest::GetInstance()->current_test_info()->name();
-    stream_renderer_context_create(kVirtioGpuContextId, name.size(), name.data(), 0);
-
-    disableProcessPipeForTesting();
-
-    // TODO:
-    HostConnection::getOrCreate(kCapsetGfxStreamVulkan);
+    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_GL",
+                       params.with_gl ? "Y" : "N", /*overwrite=*/1), Eq(0));
+    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK",
+                       params.with_vk ? "Y" : "N", /*overwrite=*/1), Eq(0));
+    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK_SNAPSHOTS",
+                       params.with_vk_snapshot ? "Y" : "N", /*overwrite=*/1), Eq(0));
 
     mAnwHelper = std::make_unique<TestingVirtGpuANativeWindowHelper>();
     HostConnection::get()->setANativeWindowHelperForTesting(mAnwHelper.get());
 
-    mGralloc = std::make_unique<TestingVirtGpuGralloc>(mDevice);
+    mGralloc = std::make_unique<TestingVirtGpuGralloc>();
     HostConnection::get()->setGrallocHelperForTesting(mGralloc.get());
-
-    mSync = new TestingVirtGpuSyncHelper(mDevice);
-    HostConnection::get()->setSyncHelperForTesting(mSync);
 
     if (params.with_gl) {
         mGl = SetupGuestGl();
@@ -1153,11 +458,11 @@ void GfxstreamEnd2EndTest::SetUp() {
         mVk = SetupGuestVk();
         ASSERT_THAT(mVk, NotNull());
     }
+
+    mSync = HostConnection::get()->syncHelper();
 }
 
 void GfxstreamEnd2EndTest::TearDownGuest() {
-    mGralloc.reset();
-
     if (mGl) {
         EGLDisplay display = mGl->eglGetCurrentDisplay();
         if (display != EGL_NO_DISPLAY) {
@@ -1169,19 +474,18 @@ void GfxstreamEnd2EndTest::TearDownGuest() {
     }
     mVk.reset();
 
+    mGralloc.reset();
+    mAnwHelper.reset();
+
     HostConnection::exit();
     processPipeRestart();
-
-    mAnwHelper.reset();
-    mDevice.reset();
 
     // Figure out more reliable way for guest shutdown to complete...
     std::this_thread::sleep_for(std::chrono::seconds(3));
 }
 
 void GfxstreamEnd2EndTest::TearDownHost() {
-    stream_renderer_context_destroy(kVirtioGpuContextId);
-    stream_renderer_teardown();
+    ResetEmulatedVirtioGpu();
 }
 
 void GfxstreamEnd2EndTest::TearDown() {
@@ -1441,6 +745,7 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(uint32_t apiVersion) {
         .pQueuePriorities = &queuePriority,
     };
     const std::vector<const char*> deviceExtensions = {
+        VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME,
         VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
     };
     const vkhpp::DeviceCreateInfo deviceCreateInfo = {

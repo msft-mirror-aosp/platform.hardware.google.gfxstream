@@ -850,11 +850,6 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
     //        deleteExisting ? "deleteExisting" : "keepExisting",
     //        (long long)System::get()->getProcessTimes().wallClockMs);
 #endif
-    // The order of acquiring m_lock and blockPostWorker has created quite some race
-    // conditions and we swap them back and forth. Currently acquiring m_lock before
-    // blockPostWorker resolves the race condition in AEMU but we still need to
-    // verify it after turning on guest ANGLE and Vulkan swapchain.
-    // TODO: b/264458932
     class ScopedPromise {
        public:
         ~ScopedPromise() { mPromise.set_value(); }
@@ -1629,13 +1624,13 @@ void FrameBuffer::performDelayedColorBufferCloseLocked(bool forced) {
     // timestamp change (end of previous second -> beginning of a next one),
     // but not for long - this is a workaround for race conditions, and they
     // are quick.
-    static constexpr int kColorBufferClosingDelaySec = 1;
+    static constexpr uint64_t kColorBufferClosingDelayUs = 1000000LL;
 
     const auto now = android::base::getUnixTimeUs();
     auto it = m_colorBufferDelayedCloseList.begin();
     while (it != m_colorBufferDelayedCloseList.end() &&
            (forced ||
-           it->ts + kColorBufferClosingDelaySec <= now)) {
+           it->ts + kColorBufferClosingDelayUs <= now)) {
         if (it->cbHandle != 0) {
             AutoLock colorBufferMapLock(m_colorBufferMapLock);
             const auto& cb = m_colorbuffers.find(it->cbHandle);
@@ -2440,11 +2435,6 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
     }
     AsyncResult ret = AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
 
-    // quirk
-    // b/308686547: skip the on_post when this is right after setupSubwindow
-    // TODO: find better solution that avoids crash
-    const bool same_buffer = (p_colorbuffer == m_lastPostedColorBuffer);
-
     ColorBufferPtr colorBuffer = nullptr;
     {
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
@@ -2495,7 +2485,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
     //
     // Send framebuffer (without FPS overlay) to callback
     //
-    if (m_onPost.size() == 0 || same_buffer) {
+    if (m_onPost.size() == 0) {
         goto DEC_REFCOUNT_AND_EXIT;
     }
     for (auto& iter : m_onPost) {
