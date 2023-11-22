@@ -99,6 +99,7 @@ cc_defaults {
     shared_libs: [
         "lib_renderControl_enc",
         "libandroidemu",
+        "libbase",
         "libcutils",
         "libGLESv1_enc",
         "libGLESv2_enc",
