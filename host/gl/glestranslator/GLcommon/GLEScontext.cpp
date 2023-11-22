@@ -1950,6 +1950,14 @@ void GLEScontext::initCapsLocked(const GLubyte * extensionString, GLSupport& glS
         strstr(cstring,"GL_EXT_color_buffer_half_float")!=NULL)
         glSupport.ext_GL_EXT_color_buffer_half_float = true;
 
+    if (strstr(cstring,"GL_OVR_multiview2")!=NULL) {
+        glSupport.ext_GL_OVR_multiview2 = true;
+    }
+
+    if (strstr(cstring,"GL_EXT_multiview_texture_multisample")!=NULL) {
+        glSupport.ext_GL_EXT_multiview_texture_multisample = true;
+    }
+
     if (strstr(cstring,"GL_EXT_shader_framebuffer_fetch")!=NULL) {
         glSupport.ext_GL_EXT_shader_framebuffer_fetch = true;
     }

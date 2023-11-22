@@ -14,6 +14,9 @@ cc_library_static {
         "gfxstream_base",
         "gfxstream_host_common",
     ],
+    header_libs: [
+        "gfxstream_opengl_headers",
+    ],
     srcs: [
         "opengles.cpp",
         "opengl/EmuglBackendList.cpp",

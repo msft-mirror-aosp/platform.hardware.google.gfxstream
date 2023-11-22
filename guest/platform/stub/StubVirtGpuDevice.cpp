@@ -16,7 +16,7 @@
 
 #include "StubVirtGpu.h"
 
-StubVirtGpuDevice::StubVirtGpuDevice(enum VirtGpuCapset) {
+StubVirtGpuDevice::StubVirtGpuDevice(enum VirtGpuCapset capset) : VirtGpuDevice(capset) {
     // Unimplemented stub
 }
 
@@ -31,6 +31,10 @@ VirtGpuBlobPtr StubVirtGpuDevice::createPipeBlob(uint32_t) {
 }
 
 VirtGpuBlobPtr StubVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob&) {
+    return nullptr;
+}
+
+VirtGpuBlobPtr StubVirtGpuDevice::createPipeTexture2D(uint32_t, uint32_t, uint32_t) {
     return nullptr;
 }
 

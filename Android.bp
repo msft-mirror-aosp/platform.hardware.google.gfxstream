@@ -122,7 +122,7 @@ cc_defaults {
         // See build/soong/cc/config/global.go
         "-DUSING_ANDROID_BP",
         "-D_FILE_OFFSET_BITS=64",
-        "-DVIRGL_RENDERER_UNSTABLE_APIS",
+        "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
         "-Wno-unused-function",
@@ -157,6 +157,7 @@ cc_defaults {
         }
     },
     host_supported: true,
+    vendor_available: true,
 
     apex_available: [
         "//apex_available:platform",

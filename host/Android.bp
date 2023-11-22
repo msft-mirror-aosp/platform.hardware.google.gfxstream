@@ -19,11 +19,15 @@ package {
 cc_library_shared {
     name: "libgfxstream_backend",
     defaults: [ "gfxstream_defaults" ],
+    vendor_available: true,
     cflags: [
         "-Wno-unused-parameter",
         "-Wno-unused-variable",
         "-Wno-unused-function",
         "-Wno-unreachable-code-loop-increment",
+    ],
+    header_libs: [
+        "gfxstream_opengl_headers",
     ],
     static_libs: [
         "gfxstream_base",
@@ -87,6 +91,7 @@ cc_library_shared {
         "FrameBuffer.cpp",
         "GfxStreamAgents.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
+        "virtio-gpu-gfxstream-renderer-goldfish.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
     ],
@@ -100,7 +105,7 @@ cc_library_shared {
         android: {
             srcs: ["NativeSubWindow_android.cpp",],
         }
-    }
+    },
 }
 
 cc_test_library {
@@ -114,6 +119,9 @@ cc_test_library {
         "tests/OpenGLTestContext.cpp",
         "tests/SampleApplication.cpp",
         "tests/ShaderUtils.cpp",
+    ],
+    header_libs: [
+        "gfxstream_opengl_headers",
     ],
     shared_libs: [
         "libbase",

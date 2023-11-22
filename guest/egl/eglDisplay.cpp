@@ -283,6 +283,9 @@ EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
 {
     std::vector<std::string> paths;
 #if defined(__ANDROID__)
+    // Try to load from the current linker namespace first.
+    paths.push_back(basename + std::string(LIBSUFFIX));
+    // And then look into the known location.
     paths.push_back(std::string(PARTITION) +
                     std::string(LIBDIR) +
                     basename +
@@ -290,7 +293,9 @@ EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
 #else
     const std::string directory = gfxstream::guest::getProgramDirectory();
     paths.push_back(directory + "/" + basename + LIBSUFFIX);
+    paths.push_back(directory + "/" + basename + "_with_host" + LIBSUFFIX);
     paths.push_back(directory + "/lib64/" + basename + LIBSUFFIX);
+    paths.push_back(directory + "/lib64/" + basename + "_with_host" + LIBSUFFIX);
 #endif
 
     void* lib = nullptr;

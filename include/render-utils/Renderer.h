@@ -273,7 +273,7 @@ public:
     virtual void pauseAllPreSave() = 0;
 
     // Resumes all channels after snapshot saving or loading.
-    virtual void resumeAll() = 0;
+    virtual void resumeAll(bool waitForSave = true) = 0;
 
     virtual void save(
             android::base::Stream* stream,
@@ -281,6 +281,7 @@ public:
     virtual bool load(
             android::base::Stream* stream,
             const android::snapshot::ITextureLoaderPtr& textureLoader) = 0;
+
     // Fill GLES usage protobuf
     virtual void fillGLESUsages(android_studio::EmulatorGLESUsages*) = 0;
 

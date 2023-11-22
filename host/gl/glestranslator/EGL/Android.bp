@@ -10,6 +10,9 @@ package {
 cc_library_static {
     name: "gfxstream_translator_egl",
     defaults: [ "gfxstream_defaults" ],
+    header_libs: [
+        "gfxstream_opengl_headers",
+    ],
     static_libs: [
         "gfxstream_base",
         "gfxstream_apigen_codec_common",
@@ -21,8 +24,7 @@ cc_library_static {
         "-fvisibility=hidden",
         "-Wno-inconsistent-missing-override",
     ],
-    srcs: 
-    [
+    srcs: [
         "ClientAPIExts.cpp",
         "EglConfig.cpp",
         "EglContext.cpp",

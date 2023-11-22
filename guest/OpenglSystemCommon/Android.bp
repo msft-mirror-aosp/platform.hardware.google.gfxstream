@@ -66,8 +66,15 @@ cc_library_static {
     }
 }
 
-cc_library_shared {
-    name: "libOpenglSystemCommon",
+cc_library_headers {
+    name: "libgfxstream_guest_sync",
+    export_include_dirs: [
+        "."
+    ],
+}
+
+cc_defaults {
+    name: "libOpenglSystemCommonDefaults",
     host_supported: true,
     vendor: true,
     defaults: [
@@ -92,6 +99,7 @@ cc_library_shared {
     shared_libs: [
         "lib_renderControl_enc",
         "libandroidemu",
+        "libbase",
         "libcutils",
         "libGLESv1_enc",
         "libGLESv2_enc",
@@ -105,7 +113,6 @@ cc_library_shared {
         "libGLESv2_enc",
     ],
     static_libs: [
-        "libplatform",
         "libGoldfishAddressSpace",
         "libringbuffer",
         "libqemupipe.ranchu",
@@ -113,7 +120,6 @@ cc_library_shared {
     ],
     export_static_lib_headers: [
         "libgfxstream_guest_gralloc",
-        "libplatform",
     ],
     cflags: [
         "-DVIRTIO_GPU",
@@ -134,6 +140,12 @@ cc_library_shared {
     ],
     target: {
         android: {
+            header_libs: [
+                "gfxstream_opengl_headers",
+            ],
+            export_header_lib_headers: [
+                "gfxstream_opengl_headers",
+            ],
             shared_libs: [
                 "libnativewindow",
                 "libsync",
@@ -141,6 +153,43 @@ cc_library_shared {
             srcs: [
                 "ANativeWindowAndroid.cpp",
             ],
+        },
+    },
+}
+
+cc_library_shared {
+    name: "libOpenglSystemCommon",
+    defaults: [
+        "libOpenglSystemCommonDefaults",
+    ],
+    static_libs: [
+        "libplatform",
+    ],
+    export_static_lib_headers: [
+        "libplatform",
+    ],
+}
+
+cc_library_shared {
+    name: "libOpenglSystemCommonWithHost",
+    defaults: [
+        "libOpenglSystemCommonDefaults",
+    ],
+    shared_libs: [
+        "libgfxstream_backend",
+    ],
+    static_libs: [
+        "libplatform_rutabaga",
+    ],
+    export_static_lib_headers: [
+        "libplatform_rutabaga",
+    ],
+    target: {
+        host: {
+            compile_multilib: "64",
+        },
+        android: {
+            compile_multilib: "64",
         },
     },
 }

@@ -88,8 +88,8 @@ void stream_renderer_debug(uint32_t type, const char* format, ...) {
 #if STREAM_RENDERER_LOG_LEVEL >= 1
 #define stream_renderer_error(format, ...)                                                         \
     do {                                                                                           \
-        stream_renderer_debug(STREAM_RENDERER_DEBUG_ERROR, "[%s(%d)] " format, __FILE__, __LINE__, \
-                              ##__VA_ARGS__);                                                      \
+        stream_renderer_debug(STREAM_RENDERER_DEBUG_ERROR, "[%s(%d)] %s " format,                  \
+                              __FILE__, __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);             \
     } while (0)
 #else
 #define stream_renderer_error(format, ...)
@@ -98,8 +98,8 @@ void stream_renderer_debug(uint32_t type, const char* format, ...) {
 #if STREAM_RENDERER_LOG_LEVEL >= 3
 #define stream_renderer_info(format, ...)                                                         \
     do {                                                                                          \
-        stream_renderer_debug(STREAM_RENDERER_DEBUG_INFO, "[%s(%d)] " format, __FILE__, __LINE__, \
-                              ##__VA_ARGS__);                                                     \
+        stream_renderer_debug(STREAM_RENDERER_DEBUG_INFO, "[%s(%d)] %s " format,                  \
+                              __FILE__, __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);            \
     } while (0)
 #else
 #define stream_renderer_info(format, ...)
@@ -641,7 +641,7 @@ class PipeVirglRenderer {
                                                    0x1 /* is virtio */);
 
         if (!hostPipe) {
-            stream_renderer_error("%s: failed to create hw pipe!\n", __func__);
+            stream_renderer_error("failed to create hw pipe!\n");
             return -EINVAL;
         }
         std::unordered_map<uint32_t, uint32_t> map;
@@ -668,7 +668,7 @@ class PipeVirglRenderer {
 
         auto it = mContexts.find(handle);
         if (it == mContexts.end()) {
-            stream_renderer_error("%s: could not find context handle %u\n", __func__, handle);
+            stream_renderer_error("could not find context handle %u\n", handle);
             return -EINVAL;
         }
 
@@ -678,15 +678,15 @@ class PipeVirglRenderer {
             }
         }
 
-        auto ops = ensureAndGetServiceOps();
         auto hostPipe = it->second.hostPipe;
-
         if (!hostPipe) {
             stream_renderer_error("0 is not a valid hostpipe");
             return -EINVAL;
         }
 
+        auto ops = ensureAndGetServiceOps();
         ops->guest_close(hostPipe, GOLDFISH_PIPE_CLOSE_GRACEFUL);
+
         android_cleanupProcGLObjects(handle);
         mContexts.erase(it);
         return 0;
@@ -799,13 +799,12 @@ class PipeVirglRenderer {
                              to_string(ring).c_str(), buffer, cmd->cmd_size);
 
         if (!buffer) {
-            stream_renderer_error("%s: error: buffer null\n", __func__);
+            stream_renderer_error("error: buffer null\n");
             return -EINVAL;
         }
 
         if (cmd->cmd_size < 4) {
-            stream_renderer_error("%s: error: not enough bytes (got %d)\n", __func__,
-                                  cmd->cmd_size);
+            stream_renderer_error("error: not enough bytes (got %d)\n", cmd->cmd_size);
             return -EINVAL;
         }
 
@@ -1001,7 +1000,7 @@ class PipeVirglRenderer {
 
     void handleCreateResourceColorBuffer(struct stream_renderer_resource_create_args* args) {
         // corresponds to allocation of gralloc buffer in minigbm
-        stream_renderer_info("w h %u %u resid %u -> rcCreateColorBufferWithHandle", args->width,
+        stream_renderer_info("w h %u %u resid %u -> CreateColorBufferWithHandle", args->width,
                              args->height, args->handle);
 
         const uint32_t glformat = virgl_format_to_gl(args->format);
@@ -1562,6 +1561,9 @@ class PipeVirglRenderer {
     int createBlob(uint32_t ctx_id, uint32_t res_handle,
                    const struct stream_renderer_create_blob* create_blob,
                    const struct stream_renderer_handle* handle) {
+        stream_renderer_info("ctx:%u res:%u blob-id:%u blob-size:%u",
+                             ctx_id, res_handle, create_blob->blob_id, create_blob->size);
+
         PipeResEntry e;
         struct stream_renderer_resource_create_args args = {0};
         e.args = args;
@@ -2106,6 +2108,7 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     android::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
     bool enableVk = (renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT);
     bool enableGles = (renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT);
+    bool enableVkSnapshot = (renderer_flags & STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS);
 
     bool egl2eglByEnv = android::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
     bool egl2eglByFlag = renderer_flags & STREAM_RENDERER_FLAGS_USE_EGL_BIT;
@@ -2154,7 +2157,7 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     feature_set_enabled_override(kFeature_NativeTextureDecompression, false);
     feature_set_enabled_override(kFeature_GLDirectMem, false);
     feature_set_enabled_override(kFeature_Vulkan, enableVk);
-    feature_set_enabled_override(kFeature_VulkanSnapshots, false);
+    feature_set_enabled_override(kFeature_VulkanSnapshots, enableVkSnapshot);
     feature_set_enabled_override(kFeature_VulkanNullOptionalStrings, true);
     feature_set_enabled_override(kFeature_VulkanShaderFloat16Int8, true);
     feature_set_enabled_override(kFeature_HostComposition, true);

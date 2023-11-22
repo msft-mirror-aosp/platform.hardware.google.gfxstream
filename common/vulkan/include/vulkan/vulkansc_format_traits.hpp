@@ -8,7 +8,7 @@
 #ifndef VULKAN_FORMAT_TRAITS_HPP
 #  define VULKAN_FORMAT_TRAITS_HPP
 
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkansc.hpp>
 
 namespace VULKAN_HPP_NAMESPACE
 {
@@ -1567,7 +1567,7 @@ namespace VULKAN_HPP_NAMESPACE
         {
           case 0: return 10;
           case 1: return 11;
-          case 2: return 10;
+          case 2: return 11;
           default: VULKAN_HPP_ASSERT( false ); return 0;
         }
       case VULKAN_HPP_NAMESPACE::Format::eE5B9G9R9UfloatPack32:
@@ -2287,8 +2287,8 @@ namespace VULKAN_HPP_NAMESPACE
         switch( component )
         {
           case 0: return "B";
-          case 1: return "R";
-          case 2: return "G";
+          case 1: return "G";
+          case 2: return "R";
           case 3: return "A";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
@@ -3123,21 +3123,21 @@ namespace VULKAN_HPP_NAMESPACE
         switch( component )
         {
           case 0: return "R";
-          case 1: return "B";
+          case 1: return "G";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eR64G64Sint:
         switch( component )
         {
           case 0: return "R";
-          case 1: return "B";
+          case 1: return "G";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eR64G64Sfloat:
         switch( component )
         {
           case 0: return "R";
-          case 1: return "B";
+          case 1: return "G";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Uint:
@@ -5272,7 +5272,7 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eBc4SnormBlock:
         switch( component )
         {
-          case 0: return "SRGB";
+          case 0: return "SNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eBc5UnormBlock:
@@ -5285,8 +5285,8 @@ namespace VULKAN_HPP_NAMESPACE
       case VULKAN_HPP_NAMESPACE::Format::eBc5SnormBlock:
         switch( component )
         {
-          case 0: return "SRGB";
-          case 1: return "SRGB";
+          case 0: return "SNORM";
+          case 1: return "SNORM";
           default: VULKAN_HPP_ASSERT( false ); return "";
         }
       case VULKAN_HPP_NAMESPACE::Format::eBc6HUfloatBlock:
