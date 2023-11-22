@@ -471,12 +471,6 @@ void GfxstreamEnd2EndTest::SetUp() {
     ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK_SNAPSHOTS",
                        params.with_vk_snapshot ? "Y" : "N", /*overwrite=*/1), Eq(0));
 
-    mAnwHelper = std::make_unique<TestingVirtGpuANativeWindowHelper>();
-    HostConnection::get()->setANativeWindowHelperForTesting(mAnwHelper.get());
-
-    mGralloc = std::make_unique<TestingVirtGpuGralloc>();
-    HostConnection::get()->setGrallocHelperForTesting(mGralloc.get());
-
     if (params.with_gl) {
         mGl = SetupGuestGl();
         ASSERT_THAT(mGl, NotNull());
@@ -485,6 +479,12 @@ void GfxstreamEnd2EndTest::SetUp() {
         mVk = SetupGuestVk();
         ASSERT_THAT(mVk, NotNull());
     }
+
+    mAnwHelper = std::make_unique<TestingVirtGpuANativeWindowHelper>();
+    HostConnection::get()->setANativeWindowHelperForTesting(mAnwHelper.get());
+
+    mGralloc = std::make_unique<TestingVirtGpuGralloc>();
+    HostConnection::get()->setGrallocHelperForTesting(mGralloc.get());
 
     mSync = HostConnection::get()->syncHelper();
 }
