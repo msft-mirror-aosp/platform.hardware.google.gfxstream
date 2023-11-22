@@ -40,7 +40,8 @@ class RenderThread : public android::base::Thread {
 public:
     // Create a new RenderThread instance.
     RenderThread(RenderChannelImpl* channel,
-                 android::base::Stream* loadStream = nullptr);
+                 android::base::Stream* loadStream = nullptr,
+                 uint32_t virtioGpuContextId = -1);
 
     // Create a new RenderThread instance tied to the address space device.
     RenderThread(

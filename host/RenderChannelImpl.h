@@ -28,7 +28,8 @@ using android::base::BufferQueue;
 // RenderThread instance.
 class RenderChannelImpl final : public RenderChannel {
 public:
-    explicit RenderChannelImpl(android::base::Stream* loadStream = nullptr);
+    explicit RenderChannelImpl(android::base::Stream* loadStream = nullptr,
+                               uint32_t contextId = -1);
     ~RenderChannelImpl();
 
     /////////////////////////////////////////////////////////////////
