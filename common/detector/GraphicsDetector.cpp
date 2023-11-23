@@ -18,6 +18,7 @@
 
 #include "GraphicsDetectorGl.h"
 #include "GraphicsDetectorVk.h"
+#include "GraphicsDetectorVkExternalMemoryHost.h"
 #include "GraphicsDetectorVkPrecisionQualifiersOnYuvSamplers.h"
 #include "Subprocess.h"
 
@@ -32,9 +33,12 @@ namespace gfxstream {
          PopulateEglAndGlesAvailability},
         {"PopulateVulkanAvailability",
          PopulateVulkanAvailability},
+        {"PopulateVulkanExternalMemoryHostQuirk",
+         PopulateVulkanExternalMemoryHostQuirk},
         {"PopulateVulkanPrecisionQualifiersOnYuvSamplersQuirk",
          PopulateVulkanPrecisionQualifiersOnYuvSamplersQuirk},
     };
+
     for (const auto& check : checks) {
         auto result = DoWithSubprocessCheck([&](){ return check.second(&availability); });
         if (!result.ok()) {
