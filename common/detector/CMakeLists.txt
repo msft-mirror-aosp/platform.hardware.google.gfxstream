@@ -44,6 +44,7 @@ if(BUILD_GRAPHICS_DETECTOR)
         GraphicsDetector.cpp
         GraphicsDetectorGl.cpp
         GraphicsDetectorVk.cpp
+        GraphicsDetectorVkExternalMemoryHost.cpp
         GraphicsDetectorVkPrecisionQualifiersOnYuvSamplers.cpp
         Subprocess.cpp
         Vulkan.cpp
