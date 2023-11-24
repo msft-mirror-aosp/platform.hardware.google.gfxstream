@@ -272,10 +272,16 @@ class TestingVirtGpuANativeWindowHelper : public ANativeWindowHelper {
     int getHostHandle(EGLClientBuffer buffer, Gralloc*) override;
 };
 
+enum class GfxstreamTransport {
+  kVirtioGpuAsg,
+  kVirtioGpuPipe,
+};
+
 struct TestParams {
     bool with_gl;
     bool with_vk;
     bool with_vk_snapshot = false;
+    GfxstreamTransport with_transport = GfxstreamTransport::kVirtioGpuAsg;
 
     std::string ToString() const;
     friend std::ostream& operator<<(std::ostream& os, const TestParams& params);

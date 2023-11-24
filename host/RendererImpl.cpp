@@ -224,8 +224,9 @@ void RendererImpl::waitForProcessCleanup() {
 }
 
 RenderChannelPtr RendererImpl::createRenderChannel(
-        android::base::Stream* loadStream) {
-    const auto channel = std::make_shared<RenderChannelImpl>(loadStream);
+        android::base::Stream* loadStream, uint32_t virtioGpuContextId) {
+    const auto channel =
+        std::make_shared<RenderChannelImpl>(loadStream, virtioGpuContextId);
     {
         android::base::AutoLock lock(mChannelsLock);
 
