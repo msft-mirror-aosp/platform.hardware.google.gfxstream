@@ -7,6 +7,14 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+cc_library_headers {
+    name: "gfxstream_gl_host_common_headers",
+    defaults: [ "gfxstream_defaults" ],
+    export_include_dirs: [
+        "include",
+    ],
+}
+
 cc_library_static {
     name: "gfxstream_gl_host_common",
     defaults: [ "gfxstream_defaults" ],
@@ -15,7 +23,11 @@ cc_library_static {
         "gfxstream_host_common",
     ],
     header_libs: [
+        "gfxstream_gl_host_common_headers",
         "gfxstream_opengl_headers",
+    ],
+    export_header_lib_headers: [
+        "gfxstream_gl_host_common_headers",
     ],
     srcs: [
         "opengles.cpp",
@@ -28,9 +40,6 @@ cc_library_static {
         "opengl/misc.cpp",
         "opengl/OpenglEsPipe.cpp",
         "opengl/NativeGpuInfo_linux.cpp",
-    ],
-    local_include_dirs: [
-        "include/host-common",
     ],
 }
 
