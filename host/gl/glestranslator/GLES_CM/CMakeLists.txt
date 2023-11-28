@@ -8,6 +8,7 @@ endif()
 target_compile_options(GLES_CM_translator_static PRIVATE -Wno-macro-redefined)
 target_link_libraries(
     GLES_CM_translator_static PRIVATE
+    GLcommon
     apigen-codec-common
     aemu-base.headers
     aemu-host-common.headers
