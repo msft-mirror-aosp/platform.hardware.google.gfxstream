@@ -42,7 +42,6 @@ cc_library_headers {
     export_include_dirs: [
         ".",
         "include",
-        "gl-host-common/include",
         "host",
         "host/gl",
         "host/gl/glestranslator/include",

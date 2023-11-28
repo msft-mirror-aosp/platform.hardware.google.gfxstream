@@ -11,6 +11,7 @@ cc_library_static {
     name: "gfxstream_translator_egl",
     defaults: [ "gfxstream_defaults" ],
     header_libs: [
+        "gfxstream_gl_host_common_headers",
         "gfxstream_opengl_headers",
     ],
     static_libs: [
