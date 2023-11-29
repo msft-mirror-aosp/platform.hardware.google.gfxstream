@@ -141,8 +141,17 @@ inc_include = include_directories('include')
 inc_utils = include_directories('utils/include')
 
 if use_vulkan
-  inc_vulkan_headers = include_directories('common/vulkan/include')
-  inc_renderdoc_external = include_directories('third-party/renderdoc/include')
+  if cc.has_header('vulkan/vulkan.h')
+    inc_vulkan_headers = include_directories()
+  else
+    inc_vulkan_headers = include_directories('common/vulkan/include')
+  endif
+
+  if cc.has_header('renderdoc_app.h')
+    inc_renderdoc_external = include_directories()
+  else
+    inc_renderdoc_external = include_directories('third-party/renderdoc/include')
+  endif
 endif
 
 if use_magma
@@ -150,7 +159,11 @@ if use_magma
   inc_magma_external_lib = include_directories('third-party/fuchsia/magma/include/lib')
 endif
 
-inc_glm = include_directories('third-party/glm/include')
+if cc.has_header('glm/glm.hpp')
+  inc_glm = include_directories()
+else
+  inc_glm = include_directories('third-party/glm/include')
+endif
 
 #================#
 # Subdirectories #
