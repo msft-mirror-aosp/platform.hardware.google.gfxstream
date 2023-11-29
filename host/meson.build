@@ -5,7 +5,7 @@ inc_stream_servers = include_directories('.')
 inc_host_include = include_directories('include')
 
 subdir('apigen-codec-common')
-subdir('gl-host-common')
+subdir('gl/gl-host-common')
 
 inc_gfxstream_backend = [inc_root, inc_include, inc_apigen_codec, inc_utils,
                          inc_gl_host_common, inc_host_include]
