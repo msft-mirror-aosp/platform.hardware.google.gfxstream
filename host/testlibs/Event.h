@@ -15,41 +15,41 @@ class Event
   public:
     struct MoveEvent
     {
-        int X;
-        int Y;
+        int x;
+        int y;
     };
 
     struct SizeEvent
     {
-        int Width;
-        int Height;
+        int width;
+        int height;
     };
 
     struct KeyEvent
     {
-        Key Code;
-        bool Alt;
-        bool Control;
-        bool Shift;
-        bool System;
+        Key code;
+        bool alt;
+        bool control;
+        bool shift;
+        bool system;
     };
 
     struct MouseMoveEvent
     {
-        int X;
-        int Y;
+        int x;
+        int y;
     };
 
     struct MouseButtonEvent
     {
-        MouseButton Button;
-        int X;
-        int Y;
+        MouseButton button;
+        int x;
+        int y;
     };
 
     struct MouseWheelEvent
     {
-        int Delta;
+        int delta;
     };
 
     enum EventType
@@ -71,16 +71,16 @@ class Event
         EVENT_TEST,                  // Event for testing purposes
     };
 
-    EventType Type;
+    EventType type;
 
     union
     {
-        MoveEvent               Move;               // Move event parameters
-        SizeEvent               Size;               // Size event parameters
-        KeyEvent                Key;                // Key event parameters
-        MouseMoveEvent          MouseMove;          // Mouse move event parameters
-        MouseButtonEvent        MouseButton;        // Mouse button event parameters
-        MouseWheelEvent         MouseWheel;         // Mouse wheel event parameters
+        MoveEvent               move;               // Move event parameters
+        SizeEvent               size;               // Size event parameters
+        KeyEvent                key;                // Key event parameters
+        MouseMoveEvent          mouseMove;          // Mouse move event parameters
+        MouseButtonEvent        mouseButton;        // Mouse button event parameters
+        MouseWheelEvent         mouseWheel;         // Mouse wheel event parameters
     };
 };
 
