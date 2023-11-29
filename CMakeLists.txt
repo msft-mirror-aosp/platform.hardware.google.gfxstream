@@ -148,7 +148,6 @@ add_subdirectory(third-party)
 # Backends######################################################################
 
 add_subdirectory(utils)
-add_subdirectory(gl-host-common)
 add_subdirectory(host)
 
 # Protocols and associated code generators######################################
