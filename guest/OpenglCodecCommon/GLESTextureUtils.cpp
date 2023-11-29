@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "glUtils.h"
-#include "etc.h"
+#include "gfxstream/etc.h"
 #include "astc-codec.h"
 
 #if PLATFORM_SDK_VERSION < 26
