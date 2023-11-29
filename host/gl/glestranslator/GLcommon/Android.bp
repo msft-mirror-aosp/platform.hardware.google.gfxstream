@@ -21,9 +21,12 @@ cc_library_static {
     ],
     static_libs: [
         "gfxstream_base",
+        "libgfxstream_etc",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_etc",
     ],
     srcs: [
-        "etc.cpp",
         "rgtc.cpp",
         "FramebufferData.cpp",
         "GLBackgroundLoader.cpp",
