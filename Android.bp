@@ -42,7 +42,6 @@ cc_library_headers {
     export_include_dirs: [
         ".",
         "include",
-        "gl-host-common/include",
         "host",
         "host/gl",
         "host/gl/glestranslator/include",
@@ -157,6 +156,7 @@ cc_defaults {
         }
     },
     host_supported: true,
+    vendor_available: true,
 
     apex_available: [
         "//apex_available:platform",

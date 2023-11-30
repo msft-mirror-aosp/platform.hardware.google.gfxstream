@@ -65,8 +65,6 @@ private:
     // intermediate buffer
     size_t m_bufsize;
     unsigned char *m_buf;
-    size_t m_read;
-    size_t m_readLeft;
 
     size_t m_writtenPos;
 };
