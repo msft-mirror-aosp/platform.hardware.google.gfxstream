@@ -18,7 +18,7 @@
 
 #include "GLEScontext.h"
 #include "PaletteTexture.h"
-#include "etc.h"
+#include "gfxstream/etc.h"
 #include "rgtc.h"
 
 #include <functional>

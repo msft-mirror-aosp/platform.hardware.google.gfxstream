@@ -1,6 +1,5 @@
 add_library(
   GLcommon
-  etc.cpp
   rgtc.cpp
   FramebufferData.cpp
   GLBackgroundLoader.cpp
@@ -33,7 +32,10 @@ target_link_libraries(
     aemu-host-common.headers
     gfxstream-snapshot.headers
     gfxstream-compressedTextures
-    gfxstream_egl_headers)
+    gfxstream_egl_headers
+    gfxstream_etc_headers
+    PRIVATE
+    gfxstream_etc)
 if (NOT MSVC)
     target_compile_options(GLcommon PRIVATE -fvisibility=hidden)
 endif()
