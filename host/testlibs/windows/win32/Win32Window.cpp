@@ -248,7 +248,7 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_CLOSE:
             {
                 Event event;
-                event.type = Event::EVENT_CLOSED;
+                event.Type = Event::EVENT_CLOSED;
                 window->pushEvent(event);
                 break;
             }
@@ -264,9 +264,9 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
                 ClientToScreen(hWnd, &topLeft);
 
                 Event event;
-                event.type   = Event::EVENT_MOVED;
-                event.move.x = topLeft.x;
-                event.move.y = topLeft.y;
+                event.Type   = Event::EVENT_MOVED;
+                event.Move.X = topLeft.x;
+                event.Move.Y = topLeft.y;
                 window->pushEvent(event);
 
                 break;
@@ -288,9 +288,9 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
                 ClientToScreen(hWnd, &botRight);
 
                 Event event;
-                event.type        = Event::EVENT_RESIZED;
-                event.size.width  = botRight.x - topLeft.x;
-                event.size.height = botRight.y - topLeft.y;
+                event.Type        = Event::EVENT_RESIZED;
+                event.Size.Width  = botRight.x - topLeft.x;
+                event.Size.Height = botRight.y - topLeft.y;
                 window->pushEvent(event);
 
                 break;
@@ -299,7 +299,7 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_SETFOCUS:
             {
                 Event event;
-                event.type = Event::EVENT_GAINED_FOCUS;
+                event.Type = Event::EVENT_GAINED_FOCUS;
                 window->pushEvent(event);
                 break;
             }
@@ -307,7 +307,7 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_KILLFOCUS:
             {
                 Event event;
-                event.type = Event::EVENT_LOST_FOCUS;
+                event.Type = Event::EVENT_LOST_FOCUS;
                 window->pushEvent(event);
                 break;
             }
@@ -320,13 +320,13 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
                 bool down = (message == WM_KEYDOWN || message == WM_SYSKEYDOWN);
 
                 Event event;
-                event.type        = down ? Event::EVENT_KEY_PRESSED : Event::EVENT_KEY_RELEASED;
-                event.key.alt     = HIWORD(GetAsyncKeyState(VK_MENU)) != 0;
-                event.key.control = HIWORD(GetAsyncKeyState(VK_CONTROL)) != 0;
-                event.key.shift = HIWORD(GetAsyncKeyState(VK_SHIFT)) != 0;
-                event.key.system =
+                event.Type        = down ? Event::EVENT_KEY_PRESSED : Event::EVENT_KEY_RELEASED;
+                event.Key.Alt     = HIWORD(GetAsyncKeyState(VK_MENU)) != 0;
+                event.Key.Control = HIWORD(GetAsyncKeyState(VK_CONTROL)) != 0;
+                event.Key.Shift = HIWORD(GetAsyncKeyState(VK_SHIFT)) != 0;
+                event.Key.System =
                     HIWORD(GetAsyncKeyState(VK_LWIN)) || HIWORD(GetAsyncKeyState(VK_RWIN));
-                event.key.code = VirtualKeyCodeToKey(wParam, lParam);
+                event.Key.Code = VirtualKeyCodeToKey(wParam, lParam);
                 window->pushEvent(event);
 
                 break;
@@ -335,8 +335,8 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_MOUSEWHEEL:
             {
                 Event event;
-                event.type             = Event::EVENT_MOUSE_WHEEL_MOVED;
-                event.mouseWheel.delta = static_cast<short>(HIWORD(wParam)) / 120;
+                event.Type             = Event::EVENT_MOUSE_WHEEL_MOVED;
+                event.MouseWheel.Delta = static_cast<short>(HIWORD(wParam)) / 120;
                 window->pushEvent(event);
                 break;
             }
@@ -345,10 +345,10 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_LBUTTONDBLCLK:
             {
                 Event event;
-                event.type               = Event::EVENT_MOUSE_BUTTON_PRESSED;
-                event.mouseButton.button = MOUSEBUTTON_LEFT;
-                event.mouseButton.x      = static_cast<short>(LOWORD(lParam));
-                event.mouseButton.y = static_cast<short>(HIWORD(lParam));
+                event.Type               = Event::EVENT_MOUSE_BUTTON_PRESSED;
+                event.MouseButton.Button = MOUSEBUTTON_LEFT;
+                event.MouseButton.X      = static_cast<short>(LOWORD(lParam));
+                event.MouseButton.Y = static_cast<short>(HIWORD(lParam));
                 window->pushEvent(event);
                 break;
             }
@@ -356,10 +356,10 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_LBUTTONUP:
             {
                 Event event;
-                event.type               = Event::EVENT_MOUSE_BUTTON_RELEASED;
-                event.mouseButton.button = MOUSEBUTTON_LEFT;
-                event.mouseButton.x      = static_cast<short>(LOWORD(lParam));
-                event.mouseButton.y = static_cast<short>(HIWORD(lParam));
+                event.Type               = Event::EVENT_MOUSE_BUTTON_RELEASED;
+                event.MouseButton.Button = MOUSEBUTTON_LEFT;
+                event.MouseButton.X      = static_cast<short>(LOWORD(lParam));
+                event.MouseButton.Y = static_cast<short>(HIWORD(lParam));
                 window->pushEvent(event);
                 break;
             }
@@ -368,10 +368,10 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_RBUTTONDBLCLK:
             {
                 Event event;
-                event.type               = Event::EVENT_MOUSE_BUTTON_PRESSED;
-                event.mouseButton.button = MOUSEBUTTON_RIGHT;
-                event.mouseButton.x      = static_cast<short>(LOWORD(lParam));
-                event.mouseButton.y = static_cast<short>(HIWORD(lParam));
+                event.Type               = Event::EVENT_MOUSE_BUTTON_PRESSED;
+                event.MouseButton.Button = MOUSEBUTTON_RIGHT;
+                event.MouseButton.X      = static_cast<short>(LOWORD(lParam));
+                event.MouseButton.Y = static_cast<short>(HIWORD(lParam));
                 window->pushEvent(event);
                 break;
             }
@@ -380,10 +380,10 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_RBUTTONUP:
             {
                 Event event;
-                event.type               = Event::EVENT_MOUSE_BUTTON_RELEASED;
-                event.mouseButton.button = MOUSEBUTTON_RIGHT;
-                event.mouseButton.x      = static_cast<short>(LOWORD(lParam));
-                event.mouseButton.y = static_cast<short>(HIWORD(lParam));
+                event.Type               = Event::EVENT_MOUSE_BUTTON_RELEASED;
+                event.MouseButton.Button = MOUSEBUTTON_RIGHT;
+                event.MouseButton.X      = static_cast<short>(LOWORD(lParam));
+                event.MouseButton.Y = static_cast<short>(HIWORD(lParam));
                 window->pushEvent(event);
                 break;
             }
@@ -393,10 +393,10 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_MBUTTONDBLCLK:
             {
                 Event event;
-                event.type               = Event::EVENT_MOUSE_BUTTON_PRESSED;
-                event.mouseButton.button = MOUSEBUTTON_MIDDLE;
-                event.mouseButton.x      = static_cast<short>(LOWORD(lParam));
-                event.mouseButton.y = static_cast<short>(HIWORD(lParam));
+                event.Type               = Event::EVENT_MOUSE_BUTTON_PRESSED;
+                event.MouseButton.Button = MOUSEBUTTON_MIDDLE;
+                event.MouseButton.X      = static_cast<short>(LOWORD(lParam));
+                event.MouseButton.Y = static_cast<short>(HIWORD(lParam));
                 window->pushEvent(event);
                 break;
             }
@@ -405,10 +405,10 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_MBUTTONUP:
             {
                 Event event;
-                event.type               = Event::EVENT_MOUSE_BUTTON_RELEASED;
-                event.mouseButton.button = MOUSEBUTTON_MIDDLE;
-                event.mouseButton.x      = static_cast<short>(LOWORD(lParam));
-                event.mouseButton.y = static_cast<short>(HIWORD(lParam));
+                event.Type               = Event::EVENT_MOUSE_BUTTON_RELEASED;
+                event.MouseButton.Button = MOUSEBUTTON_MIDDLE;
+                event.MouseButton.X      = static_cast<short>(LOWORD(lParam));
+                event.MouseButton.Y = static_cast<short>(HIWORD(lParam));
                 window->pushEvent(event);
                 break;
             }
@@ -418,11 +418,11 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_XBUTTONDBLCLK:
             {
                 Event event;
-                event.type = Event::EVENT_MOUSE_BUTTON_PRESSED;
-                event.mouseButton.button =
+                event.Type = Event::EVENT_MOUSE_BUTTON_PRESSED;
+                event.MouseButton.Button =
                     (HIWORD(wParam) == XBUTTON1) ? MOUSEBUTTON_BUTTON4 : MOUSEBUTTON_BUTTON5;
-                event.mouseButton.x = static_cast<short>(LOWORD(lParam));
-                event.mouseButton.y = static_cast<short>(HIWORD(lParam));
+                event.MouseButton.X = static_cast<short>(LOWORD(lParam));
+                event.MouseButton.Y = static_cast<short>(HIWORD(lParam));
                 window->pushEvent(event);
                 break;
             }
@@ -431,11 +431,11 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_XBUTTONUP:
             {
                 Event event;
-                event.type = Event::EVENT_MOUSE_BUTTON_RELEASED;
-                event.mouseButton.button =
+                event.Type = Event::EVENT_MOUSE_BUTTON_RELEASED;
+                event.MouseButton.Button =
                     (HIWORD(wParam) == XBUTTON1) ? MOUSEBUTTON_BUTTON4 : MOUSEBUTTON_BUTTON5;
-                event.mouseButton.x = static_cast<short>(LOWORD(lParam));
-                event.mouseButton.y = static_cast<short>(HIWORD(lParam));
+                event.MouseButton.X = static_cast<short>(LOWORD(lParam));
+                event.MouseButton.Y = static_cast<short>(HIWORD(lParam));
                 window->pushEvent(event);
                 break;
             }
@@ -446,7 +446,7 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
                 {
                     window->mIsMouseInWindow = true;
                     Event event;
-                    event.type = Event::EVENT_MOUSE_ENTERED;
+                    event.Type = Event::EVENT_MOUSE_ENTERED;
                     window->pushEvent(event);
                 }
 
@@ -454,9 +454,9 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
                 int mouseY = static_cast<short>(HIWORD(lParam));
 
                 Event event;
-                event.type        = Event::EVENT_MOUSE_MOVED;
-                event.mouseMove.x = mouseX;
-                event.mouseMove.y = mouseY;
+                event.Type        = Event::EVENT_MOUSE_MOVED;
+                event.MouseMove.X = mouseX;
+                event.MouseMove.Y = mouseY;
                 window->pushEvent(event);
                 break;
             }
@@ -464,7 +464,7 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_MOUSELEAVE:
             {
                 Event event;
-                event.type = Event::EVENT_MOUSE_LEFT;
+                event.Type = Event::EVENT_MOUSE_LEFT;
                 window->pushEvent(event);
                 window->mIsMouseInWindow = false;
                 break;
@@ -473,7 +473,7 @@ LRESULT CALLBACK Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
             case WM_USER:
             {
                 Event testEvent;
-                testEvent.type = Event::EVENT_TEST;
+                testEvent.Type = Event::EVENT_TEST;
                 window->pushEvent(testEvent);
                 break;
             }
@@ -820,7 +820,7 @@ void Win32Window::pushEvent(Event event)
 {
     OSWindow::pushEvent(event);
 
-    switch (event.type)
+    switch (event.Type)
     {
         case Event::EVENT_RESIZED:
             MoveWindow(mNativeWindow, 0, 0, mWidth, mHeight, FALSE);
