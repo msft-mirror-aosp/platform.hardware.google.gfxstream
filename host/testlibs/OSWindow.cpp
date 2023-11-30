@@ -290,15 +290,15 @@ bool OSWindow::popEvent(Event *event)
 
 void OSWindow::pushEvent(Event event)
 {
-    switch (event.Type)
+    switch (event.type)
     {
       case Event::EVENT_MOVED:
-        mX = event.Move.X;
-        mY = event.Move.Y;
+        mX = event.move.x;
+        mY = event.move.y;
         break;
       case Event::EVENT_RESIZED:
-        mWidth = event.Size.Width;
-        mHeight = event.Size.Height;
+        mWidth = event.size.width;
+        mHeight = event.size.height;
         break;
       default:
         break;
@@ -316,7 +316,7 @@ bool OSWindow::didTestEventFire()
     Event topEvent;
     while (popEvent(&topEvent))
     {
-        if (topEvent.Type == Event::EVENT_TEST)
+        if (topEvent.type == Event::EVENT_TEST)
         {
             return true;
         }

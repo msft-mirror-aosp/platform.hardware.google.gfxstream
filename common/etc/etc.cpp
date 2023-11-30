@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "etc.h"
+#include "gfxstream/etc.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -896,6 +896,7 @@ int etc2_decode_image(const etc1_byte* pIn, ETC2ImageFormat format,
                     pIn += EAC_ENCODE_ALPHA_BLOCK_SIZE;
                     // Do not break
                     // Fall through to EtcRGB8 to decode the RGB part
+                    [[fallthrough]];
                 case EtcRGB8:
                     etc2_decode_rgb_block(pIn, false, block);
                     pIn += ETC1_ENCODED_BLOCK_SIZE;
