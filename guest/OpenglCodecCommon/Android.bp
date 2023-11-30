@@ -55,6 +55,7 @@ cc_library_shared {
         "liblog",
     ],
     static_libs: [
+        "libgfxstream_etc",
         "libqemupipe.ranchu",
     ],
     cflags: [
@@ -65,7 +66,6 @@ cc_library_shared {
         "auto_goldfish_dma_context.cpp",
         "ChecksumCalculator.cpp",
         "EncoderDebug.cpp",
-        "etc.cpp",
         "GLClientState.cpp",
         "GLESTextureUtils.cpp",
         "GLSharedGroup.cpp",
