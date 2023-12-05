@@ -37,7 +37,7 @@ static std::set<OSXWindow*> gAllWindows;
                 if ([window->getNSWindow() windowNumber] == [nsEvent windowNumber])
                 {
                     Event event;
-                    event.Type = Event::EVENT_TEST;
+                    event.type = Event::EVENT_TEST;
                     window->pushEvent(event);
                 }
             }
@@ -54,7 +54,7 @@ static std::set<OSXWindow*> gAllWindows;
     - (NSApplicationTerminateReply) applicationShouldTerminate: (NSApplication*) sender
     {
         Event event;
-        event.Type = Event::EVENT_CLOSED;
+        event.type = Event::EVENT_CLOSED;
         for (auto window : gAllWindows)
         {
             window->pushEvent(event);
@@ -118,7 +118,7 @@ static float YCoordToFromCG(float y)
     - (BOOL) windowShouldClose: (id) sender
     {
         Event event;
-        event.Type = Event::EVENT_CLOSED;
+        event.type = Event::EVENT_CLOSED;
         mWindow->pushEvent(event);
         return NO;
     }
@@ -127,9 +127,9 @@ static float YCoordToFromCG(float y)
     {
         NSSize windowSize = [[mWindow->getNSWindow() contentView] frame].size;
         Event event;
-        event.Type = Event::EVENT_RESIZED;
-        event.Size.Width = windowSize.width;
-        event.Size.Height = windowSize.height;
+        event.type = Event::EVENT_RESIZED;
+        event.size.width = windowSize.width;
+        event.size.height = windowSize.height;
         mWindow->pushEvent(event);
     }
 
@@ -137,16 +137,16 @@ static float YCoordToFromCG(float y)
     {
         NSRect screenspace = [mWindow->getNSWindow() frame];
         Event event;
-        event.Type = Event::EVENT_MOVED;
-        event.Move.X = screenspace.origin.x;
-        event.Move.Y = YCoordToFromCG(screenspace.origin.y + screenspace.size.height);
+        event.type = Event::EVENT_MOVED;
+        event.move.x = screenspace.origin.x;
+        event.move.y = YCoordToFromCG(screenspace.origin.y + screenspace.size.height);
         mWindow->pushEvent(event);
     }
 
     - (void) windowDidBecomeKey: (NSNotification*) notification
     {
         Event event;
-        event.Type = Event::EVENT_GAINED_FOCUS;
+        event.type = Event::EVENT_GAINED_FOCUS;
         mWindow->pushEvent(event);
         [self retain];
     }
@@ -156,7 +156,7 @@ static float YCoordToFromCG(float y)
         if (mWindow != nil)
         {
             Event event;
-            event.Type = Event::EVENT_LOST_FOCUS;
+            event.type = Event::EVENT_LOST_FOCUS;
             mWindow->pushEvent(event);
         }
         [self release];
@@ -281,10 +281,10 @@ static Key NSCodeToKey(int keyCode)
 
 static void AddNSKeyStateToEvent(Event *event, int state)
 {
-    event->Key.Shift = state & NSShiftKeyMask;
-    event->Key.Control = state & NSControlKeyMask;
-    event->Key.Alt = state & NSAlternateKeyMask;
-    event->Key.System = state & NSCommandKeyMask;
+    event->key.shift = state & NSShiftKeyMask;
+    event->key.control = state & NSControlKeyMask;
+    event->key.alt = state & NSAlternateKeyMask;
+    event->key.system = state & NSCommandKeyMask;
 }
 
 static MouseButton TranslateMouseButton(int button)
@@ -372,10 +372,10 @@ static MouseButton TranslateMouseButton(int button)
     - (void) addButtonEvent: (NSEvent*) nsEvent type:(Event::EventType) eventType button:(MouseButton) button
     {
         Event event;
-        event.Type = eventType;
-        event.MouseButton.Button = button;
-        event.MouseButton.X = [nsEvent locationInWindow].x;
-        event.MouseButton.Y = [self translateMouseY: [nsEvent locationInWindow].y];
+        event.type = eventType;
+        event.mouseButton.button = button;
+        event.mouseButton.x = [nsEvent locationInWindow].x;
+        event.mouseButton.y = [self translateMouseY: [nsEvent locationInWindow].y];
         mWindow->pushEvent(event);
     }
 
@@ -401,23 +401,23 @@ static MouseButton TranslateMouseButton(int button)
     - (void) mouseMoved: (NSEvent*) nsEvent
     {
         Event event;
-        event.Type = Event::EVENT_MOUSE_MOVED;
-        event.MouseMove.X = [nsEvent locationInWindow].x;
-        event.MouseMove.Y = [self translateMouseY: [nsEvent locationInWindow].y];
+        event.type = Event::EVENT_MOUSE_MOVED;
+        event.mouseMove.x = [nsEvent locationInWindow].x;
+        event.mouseMove.y = [self translateMouseY: [nsEvent locationInWindow].y];
         mWindow->pushEvent(event);
     }
 
     - (void) mouseEntered: (NSEvent*) nsEvent
     {
         Event event;
-        event.Type = Event::EVENT_MOUSE_ENTERED;
+        event.type = Event::EVENT_MOUSE_ENTERED;
         mWindow->pushEvent(event);
     }
 
     - (void) mouseExited: (NSEvent*) nsEvent
     {
         Event event;
-        event.Type = Event::EVENT_MOUSE_LEFT;
+        event.type = Event::EVENT_MOUSE_LEFT;
         mWindow->pushEvent(event);
     }
 
@@ -467,8 +467,8 @@ static MouseButton TranslateMouseButton(int button)
         }
 
         Event event;
-        event.Type = Event::EVENT_MOUSE_WHEEL_MOVED;
-        event.MouseWheel.Delta = [nsEvent deltaY];
+        event.type = Event::EVENT_MOUSE_WHEEL_MOVED;
+        event.mouseWheel.delta = [nsEvent deltaY];
         mWindow->pushEvent(event);
     }
 
@@ -477,8 +477,8 @@ static MouseButton TranslateMouseButton(int button)
     {
         // TODO(cwallez) also send text events
         Event event;
-        event.Type = Event::EVENT_KEY_PRESSED;
-        event.Key.Code = NSCodeToKey([nsEvent keyCode]);
+        event.type = Event::EVENT_KEY_PRESSED;
+        event.key.code = NSCodeToKey([nsEvent keyCode]);
         AddNSKeyStateToEvent(&event, [nsEvent modifierFlags]);
         mWindow->pushEvent(event);
     }
@@ -486,8 +486,8 @@ static MouseButton TranslateMouseButton(int button)
     - (void) keyUp: (NSEvent*) nsEvent
     {
         Event event;
-        event.Type = Event::EVENT_KEY_RELEASED;
-        event.Key.Code = NSCodeToKey([nsEvent keyCode]);
+        event.type = Event::EVENT_KEY_RELEASED;
+        event.key.code = NSCodeToKey([nsEvent keyCode]);
         AddNSKeyStateToEvent(&event, [nsEvent modifierFlags]);
         mWindow->pushEvent(event);
     }
@@ -504,15 +504,15 @@ static MouseButton TranslateMouseButton(int button)
         int modifier = [nsEvent modifierFlags] & NSDeviceIndependentModifierFlagsMask;
         if (modifier < mCurrentModifier)
         {
-            event.Type = Event::EVENT_KEY_RELEASED;
+            event.type = Event::EVENT_KEY_RELEASED;
         }
         else
         {
-            event.Type = Event::EVENT_KEY_PRESSED;
+            event.type = Event::EVENT_KEY_PRESSED;
         }
         mCurrentModifier = modifier;
 
-        event.Key.Code = NSCodeToKey([nsEvent keyCode]);
+        event.key.code = NSCodeToKey([nsEvent keyCode]);
         AddNSKeyStateToEvent(&event, [nsEvent modifierFlags]);
         mWindow->pushEvent(event);
     }
