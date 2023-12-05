@@ -33409,10 +33409,14 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(VkQueue queue, uint32_t wai
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint32_t);
-        if (((waitSemaphoreCount))) {
-            *countPtr += ((waitSemaphoreCount)) * 8;
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pWaitSemaphores) {
+            if (((waitSemaphoreCount))) {
+                *countPtr += ((waitSemaphoreCount)) * 8;
+            }
         }
-        uint64_t cgen_var_2;
+        uint64_t cgen_var_1;
         *countPtr += 1 * 8;
         *countPtr += sizeof(int);
     }
@@ -33441,13 +33445,20 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(VkQueue queue, uint32_t wai
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_waitSemaphoreCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    if (((waitSemaphoreCount))) {
-        uint8_t* cgen_var_1_ptr = (uint8_t*)(*streamPtrPtr);
-        for (uint32_t k = 0; k < ((waitSemaphoreCount)); ++k) {
-            uint64_t tmpval = get_host_u64_VkSemaphore(local_pWaitSemaphores[k]);
-            memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pWaitSemaphores;
+    memcpy((*streamPtrPtr), &cgen_var_1, 8);
+    gfxstream::guest::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pWaitSemaphores) {
+        if (((waitSemaphoreCount))) {
+            uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*streamPtrPtr);
+            for (uint32_t k = 0; k < ((waitSemaphoreCount)); ++k) {
+                uint64_t tmpval = get_host_u64_VkSemaphore(local_pWaitSemaphores[k]);
+                memcpy(cgen_var_1_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+            *streamPtrPtr += 8 * ((waitSemaphoreCount));
         }
-        *streamPtrPtr += 8 * ((waitSemaphoreCount));
     }
     uint64_t cgen_var_2;
     *&cgen_var_2 = get_host_u64_VkImage((*&local_image));
