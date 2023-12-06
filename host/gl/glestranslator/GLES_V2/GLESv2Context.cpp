@@ -779,7 +779,9 @@ void InitExtensionString(GLSupport& glSupport, std::string& ext) {
     if (glSupport.ext_GL_EXT_multiview_texture_multisample) ext += "GL_EXT_multiview_texture_multisample ";
     if (glSupport.ext_GL_EXT_color_buffer_float) ext += "GL_EXT_color_buffer_float ";
     if (glSupport.ext_GL_EXT_color_buffer_half_float) ext += "GL_EXT_color_buffer_half_float ";
-    if (glSupport.ext_GL_EXT_shader_framebuffer_fetch) ext += "GL_EXT_shader_framebuffer_fetch ";
+    // b/203446380
+    // Does not really work on hardware GPUs
+    if (glSupport.ext_GL_EXT_shader_framebuffer_fetch && isGles2Gles()) ext += "GL_EXT_shader_framebuffer_fetch ";
     if (glSupport.GL_EXT_TEXTURE_FORMAT_BGRA8888) {
         ext += "GL_EXT_texture_format_BGRA8888 GL_APPLE_texture_format_BGRA8888 ";
     }
