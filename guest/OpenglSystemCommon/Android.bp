@@ -123,7 +123,6 @@ cc_defaults {
     ],
     cflags: [
         "-DVIRTIO_GPU",
-        "-fno-emulated-tls",
         "-Wno-unused-variable",
         "-Wno-unused-parameter",
     ],
