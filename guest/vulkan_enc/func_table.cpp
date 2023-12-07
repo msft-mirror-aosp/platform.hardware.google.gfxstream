@@ -2167,188 +2167,6 @@ static void dynCheck_entry_vkGetDeviceImageSparseMemoryRequirements(
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
-static VkResult entry_vkCreateSwapchainKHR(VkDevice device,
-                                           const VkSwapchainCreateInfoKHR* pCreateInfo,
-                                           const VkAllocationCallbacks* pAllocator,
-                                           VkSwapchainKHR* pSwapchain) {
-    AEMU_SCOPED_TRACE("vkCreateSwapchainKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkCreateSwapchainKHR_VkResult_return = (VkResult)0;
-    vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(
-        device, pCreateInfo, pAllocator, pSwapchain, true /* do lock */);
-    return vkCreateSwapchainKHR_VkResult_return;
-}
-static VkResult dynCheck_entry_vkCreateSwapchainKHR(VkDevice device,
-                                                    const VkSwapchainCreateInfoKHR* pCreateInfo,
-                                                    const VkAllocationCallbacks* pAllocator,
-                                                    VkSwapchainKHR* pSwapchain) {
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
-        sOnInvalidDynamicallyCheckedCall("vkCreateSwapchainKHR", "VK_KHR_swapchain");
-    }
-    AEMU_SCOPED_TRACE("vkCreateSwapchainKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkCreateSwapchainKHR_VkResult_return = (VkResult)0;
-    vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(
-        device, pCreateInfo, pAllocator, pSwapchain, true /* do lock */);
-    return vkCreateSwapchainKHR_VkResult_return;
-}
-static void entry_vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapchain,
-                                        const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroySwapchainKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator, true /* do lock */);
-}
-static void dynCheck_entry_vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapchain,
-                                                 const VkAllocationCallbacks* pAllocator) {
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
-        sOnInvalidDynamicallyCheckedCall("vkDestroySwapchainKHR", "VK_KHR_swapchain");
-    }
-    AEMU_SCOPED_TRACE("vkDestroySwapchainKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator, true /* do lock */);
-}
-static VkResult entry_vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swapchain,
-                                              uint32_t* pSwapchainImageCount,
-                                              VkImage* pSwapchainImages) {
-    AEMU_SCOPED_TRACE("vkGetSwapchainImagesKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkGetSwapchainImagesKHR_VkResult_return = (VkResult)0;
-    vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(
-        device, swapchain, pSwapchainImageCount, pSwapchainImages, true /* do lock */);
-    return vkGetSwapchainImagesKHR_VkResult_return;
-}
-static VkResult dynCheck_entry_vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swapchain,
-                                                       uint32_t* pSwapchainImageCount,
-                                                       VkImage* pSwapchainImages) {
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
-        sOnInvalidDynamicallyCheckedCall("vkGetSwapchainImagesKHR", "VK_KHR_swapchain");
-    }
-    AEMU_SCOPED_TRACE("vkGetSwapchainImagesKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkGetSwapchainImagesKHR_VkResult_return = (VkResult)0;
-    vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(
-        device, swapchain, pSwapchainImageCount, pSwapchainImages, true /* do lock */);
-    return vkGetSwapchainImagesKHR_VkResult_return;
-}
-static VkResult entry_vkAcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchain,
-                                            uint64_t timeout, VkSemaphore semaphore, VkFence fence,
-                                            uint32_t* pImageIndex) {
-    AEMU_SCOPED_TRACE("vkAcquireNextImageKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
-    vkAcquireNextImageKHR_VkResult_return = vkEnc->vkAcquireNextImageKHR(
-        device, swapchain, timeout, semaphore, fence, pImageIndex, true /* do lock */);
-    return vkAcquireNextImageKHR_VkResult_return;
-}
-static VkResult dynCheck_entry_vkAcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchain,
-                                                     uint64_t timeout, VkSemaphore semaphore,
-                                                     VkFence fence, uint32_t* pImageIndex) {
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
-        sOnInvalidDynamicallyCheckedCall("vkAcquireNextImageKHR", "VK_KHR_swapchain");
-    }
-    AEMU_SCOPED_TRACE("vkAcquireNextImageKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
-    vkAcquireNextImageKHR_VkResult_return = vkEnc->vkAcquireNextImageKHR(
-        device, swapchain, timeout, semaphore, fence, pImageIndex, true /* do lock */);
-    return vkAcquireNextImageKHR_VkResult_return;
-}
-static VkResult entry_vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo) {
-    AEMU_SCOPED_TRACE("vkQueuePresentKHR");
-    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
-    VkResult vkQueuePresentKHR_VkResult_return = (VkResult)0;
-    vkQueuePresentKHR_VkResult_return =
-        vkEnc->vkQueuePresentKHR(queue, pPresentInfo, true /* do lock */);
-    return vkQueuePresentKHR_VkResult_return;
-}
-static VkResult entry_vkGetDeviceGroupPresentCapabilitiesKHR(
-    VkDevice device, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {
-    AEMU_SCOPED_TRACE("vkGetDeviceGroupPresentCapabilitiesKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
-    vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return =
-        vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities,
-                                                      true /* do lock */);
-    return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
-}
-static VkResult dynCheck_entry_vkGetDeviceGroupPresentCapabilitiesKHR(
-    VkDevice device, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
-        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupPresentCapabilitiesKHR",
-                                         "VK_KHR_swapchain");
-    }
-    AEMU_SCOPED_TRACE("vkGetDeviceGroupPresentCapabilitiesKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
-    vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return =
-        vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities,
-                                                      true /* do lock */);
-    return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
-}
-static VkResult entry_vkGetDeviceGroupSurfacePresentModesKHR(
-    VkDevice device, VkSurfaceKHR surface, VkDeviceGroupPresentModeFlagsKHR* pModes) {
-    AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
-    vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return =
-        vkEnc->vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes, true /* do lock */);
-    return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
-}
-static VkResult dynCheck_entry_vkGetDeviceGroupSurfacePresentModesKHR(
-    VkDevice device, VkSurfaceKHR surface, VkDeviceGroupPresentModeFlagsKHR* pModes) {
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
-        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupSurfacePresentModesKHR",
-                                         "VK_KHR_swapchain");
-    }
-    AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
-    vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return =
-        vkEnc->vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes, true /* do lock */);
-    return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
-}
-static VkResult entry_vkGetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice physicalDevice,
-                                                              VkSurfaceKHR surface,
-                                                              uint32_t* pRectCount,
-                                                              VkRect2D* pRects) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDevicePresentRectanglesKHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return =
-        vkEnc->vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice, surface, pRectCount, pRects,
-                                                       true /* do lock */);
-    return vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return;
-}
-static VkResult entry_vkAcquireNextImage2KHR(VkDevice device,
-                                             const VkAcquireNextImageInfoKHR* pAcquireInfo,
-                                             uint32_t* pImageIndex) {
-    AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
-    vkAcquireNextImage2KHR_VkResult_return =
-        vkEnc->vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex, true /* do lock */);
-    return vkAcquireNextImage2KHR_VkResult_return;
-}
-static VkResult dynCheck_entry_vkAcquireNextImage2KHR(VkDevice device,
-                                                      const VkAcquireNextImageInfoKHR* pAcquireInfo,
-                                                      uint32_t* pImageIndex) {
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain")) {
-        sOnInvalidDynamicallyCheckedCall("vkAcquireNextImage2KHR", "VK_KHR_swapchain");
-    }
-    AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
-    vkAcquireNextImage2KHR_VkResult_return =
-        vkEnc->vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex, true /* do lock */);
-    return vkAcquireNextImage2KHR_VkResult_return;
-}
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -4274,29 +4092,6 @@ static void dynCheck_entry_vkGetImageSubresourceLayout2EXT(
 }
 #endif
 #ifdef VK_EXT_swapchain_maintenance1
-static VkResult entry_vkReleaseSwapchainImagesEXT(
-    VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo) {
-    AEMU_SCOPED_TRACE("vkReleaseSwapchainImagesEXT");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkReleaseSwapchainImagesEXT_VkResult_return = (VkResult)0;
-    vkReleaseSwapchainImagesEXT_VkResult_return =
-        vkEnc->vkReleaseSwapchainImagesEXT(device, pReleaseInfo, true /* do lock */);
-    return vkReleaseSwapchainImagesEXT_VkResult_return;
-}
-static VkResult dynCheck_entry_vkReleaseSwapchainImagesEXT(
-    VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo) {
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_EXT_swapchain_maintenance1")) {
-        sOnInvalidDynamicallyCheckedCall("vkReleaseSwapchainImagesEXT",
-                                         "VK_EXT_swapchain_maintenance1");
-    }
-    AEMU_SCOPED_TRACE("vkReleaseSwapchainImagesEXT");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkReleaseSwapchainImagesEXT_VkResult_return = (VkResult)0;
-    vkReleaseSwapchainImagesEXT_VkResult_return =
-        vkEnc->vkReleaseSwapchainImagesEXT(device, pReleaseInfo, true /* do lock */);
-    return vkReleaseSwapchainImagesEXT_VkResult_return;
-}
 #endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
 #endif
@@ -5535,35 +5330,6 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
 #endif
-#ifdef VK_KHR_swapchain
-    if (!strcmp(name, "vkCreateSwapchainKHR")) {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkDestroySwapchainKHR")) {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkGetSwapchainImagesKHR")) {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkAcquireNextImageKHR")) {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkQueuePresentKHR")) {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR")) {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR")) {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR")) {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkAcquireNextImage2KHR")) {
-        return nullptr;
-    }
-#endif
 #ifdef VK_KHR_android_surface
     if (!strcmp(name, "vkCreateAndroidSurfaceKHR")) {
         return nullptr;
@@ -5890,11 +5656,6 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
         return nullptr;
     }
     if (!strcmp(name, "vkGetImageSubresourceLayout2EXT")) {
-        return nullptr;
-    }
-#endif
-#ifdef VK_EXT_swapchain_maintenance1
-    if (!strcmp(name, "vkReleaseSwapchainImagesEXT")) {
         return nullptr;
     }
 #endif
@@ -6665,44 +6426,6 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkGetDeviceImageSparseMemoryRequirements;
     }
 #endif
-#ifdef VK_KHR_swapchain
-    if (!strcmp(name, "vkCreateSwapchainKHR")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)dynCheck_entry_vkCreateSwapchainKHR;
-    }
-    if (!strcmp(name, "vkDestroySwapchainKHR")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)dynCheck_entry_vkDestroySwapchainKHR;
-    }
-    if (!strcmp(name, "vkGetSwapchainImagesKHR")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)dynCheck_entry_vkGetSwapchainImagesKHR;
-    }
-    if (!strcmp(name, "vkAcquireNextImageKHR")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)dynCheck_entry_vkAcquireNextImageKHR;
-    }
-    if (!strcmp(name, "vkQueuePresentKHR")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkQueuePresentKHR;
-    }
-    if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)dynCheck_entry_vkGetDeviceGroupPresentCapabilitiesKHR;
-    }
-    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)dynCheck_entry_vkGetDeviceGroupSurfacePresentModesKHR;
-    }
-    if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)entry_vkGetPhysicalDevicePresentRectanglesKHR;
-    }
-    if (!strcmp(name, "vkAcquireNextImage2KHR")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)dynCheck_entry_vkAcquireNextImage2KHR;
-    }
-#endif
 #ifdef VK_KHR_android_surface
     if (!strcmp(name, "vkCreateAndroidSurfaceKHR")) {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_android_surface");
@@ -7131,12 +6854,6 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkGetImageSubresourceLayout2EXT")) {
         // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetImageSubresourceLayout2EXT;
-    }
-#endif
-#ifdef VK_EXT_swapchain_maintenance1
-    if (!strcmp(name, "vkReleaseSwapchainImagesEXT")) {
-        // TODO(b/236246382): Check support for device extension;
-        return (void*)dynCheck_entry_vkReleaseSwapchainImagesEXT;
     }
 #endif
 #ifdef VK_EXT_private_data
@@ -7941,44 +7658,6 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return has1_3OrHigher ? (void*)entry_vkGetDeviceImageSparseMemoryRequirements : nullptr;
     }
 #endif
-#ifdef VK_KHR_swapchain
-    if (!strcmp(name, "vkCreateSwapchainKHR")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkCreateSwapchainKHR : nullptr;
-    }
-    if (!strcmp(name, "vkDestroySwapchainKHR")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkDestroySwapchainKHR : nullptr;
-    }
-    if (!strcmp(name, "vkGetSwapchainImagesKHR")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkGetSwapchainImagesKHR : nullptr;
-    }
-    if (!strcmp(name, "vkAcquireNextImageKHR")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkAcquireNextImageKHR : nullptr;
-    }
-    if (!strcmp(name, "vkQueuePresentKHR")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkQueuePresentKHR : nullptr;
-    }
-    if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkGetDeviceGroupPresentCapabilitiesKHR : nullptr;
-    }
-    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkGetDeviceGroupSurfacePresentModesKHR : nullptr;
-    }
-    if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkGetPhysicalDevicePresentRectanglesKHR : nullptr;
-    }
-    if (!strcmp(name, "vkAcquireNextImage2KHR")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkAcquireNextImage2KHR : nullptr;
-    }
-#endif
 #ifdef VK_KHR_android_surface
     if (!strcmp(name, "vkCreateAndroidSurfaceKHR")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_android_surface");
@@ -8410,12 +8089,6 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     if (!strcmp(name, "vkGetImageSubresourceLayout2EXT")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_host_image_copy");
         return hasExt ? (void*)entry_vkGetImageSubresourceLayout2EXT : nullptr;
-    }
-#endif
-#ifdef VK_EXT_swapchain_maintenance1
-    if (!strcmp(name, "vkReleaseSwapchainImagesEXT")) {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_swapchain_maintenance1");
-        return hasExt ? (void*)entry_vkReleaseSwapchainImagesEXT : nullptr;
     }
 #endif
 #ifdef VK_EXT_private_data
