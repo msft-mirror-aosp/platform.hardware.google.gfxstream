@@ -17735,16 +17735,22 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
                 memcpy((uint32_t*)&waitSemaphoreCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pWaitSemaphores,
-                                    ((waitSemaphoreCount)) * sizeof(const VkSemaphore));
-                if (((waitSemaphoreCount))) {
-                    uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((waitSemaphoreCount));
-                    for (uint32_t k = 0; k < ((waitSemaphoreCount)); ++k) {
-                        uint64_t tmpval;
-                        memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkSemaphore*)pWaitSemaphores) + k) =
-                            (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                // WARNING PTR CHECK
+                memcpy((VkSemaphore**)&pWaitSemaphores, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pWaitSemaphores);
+                *readStreamPtrPtr += 8;
+                if (pWaitSemaphores) {
+                    vkReadStream->alloc((void**)&pWaitSemaphores,
+                                        ((waitSemaphoreCount)) * sizeof(const VkSemaphore));
+                    if (((waitSemaphoreCount))) {
+                        uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*readStreamPtrPtr);
+                        *readStreamPtrPtr += 8 * ((waitSemaphoreCount));
+                        for (uint32_t k = 0; k < ((waitSemaphoreCount)); ++k) {
+                            uint64_t tmpval;
+                            memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
+                            *(((VkSemaphore*)pWaitSemaphores) + k) =
+                                (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                        }
                     }
                 }
                 uint64_t cgen_var_2;
