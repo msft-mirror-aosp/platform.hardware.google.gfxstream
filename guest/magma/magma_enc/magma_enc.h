@@ -4,8 +4,8 @@
 #ifndef GUARD_magma_encoder_context_t
 #define GUARD_magma_encoder_context_t
 
-#include "IOStream.h"
-#include "ChecksumCalculator.h"
+#include "gfxstream/guest/ChecksumCalculator.h"
+#include "gfxstream/guest/IOStream.h"
 #include "magma_client_context.h"
 
 
@@ -14,9 +14,9 @@
 struct magma_encoder_context_t : public magma_client_context_t {
 
 	gfxstream::guest::IOStream *m_stream;
-	ChecksumCalculator *m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *m_checksumCalculator;
 
-	magma_encoder_context_t(gfxstream::guest::IOStream *stream, ChecksumCalculator *checksumCalculator);
+	magma_encoder_context_t(gfxstream::guest::IOStream *stream, gfxstream::guest::ChecksumCalculator *checksumCalculator);
 	virtual uint64_t lockAndWriteDma(void*, uint32_t) { return 0; }
 };
 
