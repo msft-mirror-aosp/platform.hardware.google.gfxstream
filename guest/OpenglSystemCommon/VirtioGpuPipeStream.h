@@ -17,8 +17,8 @@
 #pragma once
 
 #include "HostConnection.h"
-#include "IOStream.h"
 #include "VirtGpu.h"
+#include "gfxstream/guest/IOStream.h"
 
 #include <stdlib.h>
 

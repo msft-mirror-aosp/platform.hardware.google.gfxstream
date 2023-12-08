@@ -16,6 +16,8 @@
 
 #include "EncoderDebug.h"
 
+using gfxstream::guest::ChecksumCalculator;
+
 using gfxstream::guest::IOStream;
 
 namespace {
@@ -32,7 +34,7 @@ GLint rcGetRendererVersion_enc(void *self )
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -55,7 +57,7 @@ GLint rcGetRendererVersion_enc(void *self )
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -73,7 +75,7 @@ EGLint rcGetEGLVersion_enc(void *self , EGLint* major, EGLint* minor)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_major =  sizeof(EGLint);
@@ -104,7 +106,7 @@ EGLint rcGetEGLVersion_enc(void *self , EGLint* major, EGLint* minor)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -122,7 +124,7 @@ EGLint rcQueryEGLString_enc(void *self , EGLenum name, void* buffer, EGLint buff
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffer =  bufferSize;
@@ -151,7 +153,7 @@ EGLint rcQueryEGLString_enc(void *self , EGLenum name, void* buffer, EGLint buff
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -169,7 +171,7 @@ EGLint rcGetGLString_enc(void *self , EGLenum name, void* buffer, EGLint bufferS
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffer =  bufferSize;
@@ -198,7 +200,7 @@ EGLint rcGetGLString_enc(void *self , EGLenum name, void* buffer, EGLint bufferS
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -216,7 +218,7 @@ EGLint rcGetNumConfigs_enc(void *self , uint32_t* numAttribs)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_numAttribs =  sizeof(uint32_t);
@@ -243,7 +245,7 @@ EGLint rcGetNumConfigs_enc(void *self , uint32_t* numAttribs)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -261,7 +263,7 @@ EGLint rcGetConfigs_enc(void *self , uint32_t bufSize, GLuint* buffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffer =  bufSize;
@@ -289,7 +291,7 @@ EGLint rcGetConfigs_enc(void *self , uint32_t bufSize, GLuint* buffer)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -307,7 +309,7 @@ EGLint rcChooseConfig_enc(void *self , EGLint* attribs, uint32_t attribs_size, u
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_attribs =  attribs_size;
@@ -341,7 +343,7 @@ EGLint rcChooseConfig_enc(void *self , EGLint* attribs, uint32_t attribs_size, u
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -359,7 +361,7 @@ EGLint rcGetFBParam_enc(void *self , EGLint param)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -383,7 +385,7 @@ EGLint rcGetFBParam_enc(void *self , EGLint param)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -401,7 +403,7 @@ uint32_t rcCreateContext_enc(void *self , uint32_t config, uint32_t share, uint3
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -427,7 +429,7 @@ uint32_t rcCreateContext_enc(void *self , uint32_t config, uint32_t share, uint3
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -445,7 +447,7 @@ void rcDestroyContext_enc(void *self , uint32_t context)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -472,7 +474,7 @@ uint32_t rcCreateWindowSurface_enc(void *self , uint32_t config, uint32_t width,
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -498,7 +500,7 @@ uint32_t rcCreateWindowSurface_enc(void *self , uint32_t config, uint32_t width,
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -516,7 +518,7 @@ void rcDestroyWindowSurface_enc(void *self , uint32_t windowSurface)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -543,7 +545,7 @@ uint32_t rcCreateColorBuffer_enc(void *self , uint32_t width, uint32_t height, G
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -569,7 +571,7 @@ uint32_t rcCreateColorBuffer_enc(void *self , uint32_t width, uint32_t height, G
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -587,7 +589,7 @@ void rcOpenColorBuffer_enc(void *self , uint32_t colorbuffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -614,7 +616,7 @@ void rcCloseColorBuffer_enc(void *self , uint32_t colorbuffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -642,7 +644,7 @@ void rcSetWindowColorBuffer_enc(void *self , uint32_t windowSurface, uint32_t co
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -670,7 +672,7 @@ int rcFlushWindowColorBuffer_enc(void *self , uint32_t windowSurface)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -694,7 +696,7 @@ int rcFlushWindowColorBuffer_enc(void *self , uint32_t windowSurface)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -712,7 +714,7 @@ EGLint rcMakeCurrent_enc(void *self , uint32_t context, uint32_t drawSurf, uint3
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -738,7 +740,7 @@ EGLint rcMakeCurrent_enc(void *self , uint32_t context, uint32_t drawSurf, uint3
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -756,7 +758,7 @@ void rcFBPost_enc(void *self , uint32_t colorBuffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -783,7 +785,7 @@ void rcFBSetSwapInterval_enc(void *self , EGLint interval)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -810,7 +812,7 @@ void rcBindTexture_enc(void *self , uint32_t colorBuffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -837,7 +839,7 @@ void rcBindRenderbuffer_enc(void *self , uint32_t colorBuffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -864,7 +866,7 @@ EGLint rcColorBufferCacheFlush_enc(void *self , uint32_t colorbuffer, EGLint pos
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -890,7 +892,7 @@ EGLint rcColorBufferCacheFlush_enc(void *self , uint32_t colorbuffer, EGLint pos
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -908,7 +910,7 @@ void rcReadColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, 
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_pixels =  (((glUtilsPixelBitSize(format, type) * width) >> 3) * height);
@@ -938,7 +940,7 @@ void rcReadColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, 
 	if (useChecksum) checksumCalculator->addBuffer(pixels, __size_pixels);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -955,7 +957,7 @@ int rcUpdateColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y,
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_pixels =  (((glUtilsPixelBitSize(format, type) * width) >> 3) * height);
@@ -992,7 +994,7 @@ int rcUpdateColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y,
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1010,7 +1012,7 @@ int rcOpenColorBuffer2_enc(void *self , uint32_t colorbuffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1034,7 +1036,7 @@ int rcOpenColorBuffer2_enc(void *self , uint32_t colorbuffer)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1052,7 +1054,7 @@ uint32_t rcCreateClientImage_enc(void *self , uint32_t context, EGLenum target, 
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1078,7 +1080,7 @@ uint32_t rcCreateClientImage_enc(void *self , uint32_t context, EGLenum target, 
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1096,7 +1098,7 @@ int rcDestroyClientImage_enc(void *self , uint32_t image)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1120,7 +1122,7 @@ int rcDestroyClientImage_enc(void *self , uint32_t image)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1138,7 +1140,7 @@ void rcSelectChecksumHelper_enc(void *self , uint32_t newProtocol, uint32_t rese
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1166,7 +1168,7 @@ void rcCreateSyncKHR_enc(void *self , EGLenum type, EGLint* attribs, uint32_t nu
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_attribs =  num_attribs;
@@ -1199,7 +1201,7 @@ void rcCreateSyncKHR_enc(void *self , EGLenum type, EGLint* attribs, uint32_t nu
 	if (useChecksum) checksumCalculator->addBuffer(syncthread_out, __size_syncthread_out);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1216,7 +1218,7 @@ EGLint rcClientWaitSyncKHR_enc(void *self , uint64_t sync, EGLint flags, uint64_
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1242,7 +1244,7 @@ EGLint rcClientWaitSyncKHR_enc(void *self , uint64_t sync, EGLint flags, uint64_
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1260,7 +1262,7 @@ void rcFlushWindowColorBufferAsync_enc(void *self , uint32_t windowSurface)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1287,7 +1289,7 @@ int rcDestroySyncKHR_enc(void *self , uint64_t sync)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1311,7 +1313,7 @@ int rcDestroySyncKHR_enc(void *self , uint64_t sync)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1329,7 +1331,7 @@ void rcSetPuid_enc(void *self , uint64_t puid)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1356,7 +1358,7 @@ int rcUpdateColorBufferDMA_enc(void *self , uint32_t colorbuffer, GLint x, GLint
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_pixels =  pixels_size;
@@ -1389,7 +1391,7 @@ int rcUpdateColorBufferDMA_enc(void *self , uint32_t colorbuffer, GLint x, GLint
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1407,7 +1409,7 @@ uint32_t rcCreateColorBufferDMA_enc(void *self , uint32_t width, uint32_t height
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1434,7 +1436,7 @@ uint32_t rcCreateColorBufferDMA_enc(void *self , uint32_t width, uint32_t height
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1452,7 +1454,7 @@ void rcWaitSyncKHR_enc(void *self , uint64_t sync, EGLint flags)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1480,7 +1482,7 @@ GLint rcCompose_enc(void *self , uint32_t bufferSize, void* buffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffer =  bufferSize;
@@ -1507,7 +1509,7 @@ GLint rcCompose_enc(void *self , uint32_t bufferSize, void* buffer)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1525,7 +1527,7 @@ int rcCreateDisplay_enc(void *self , uint32_t* displayId)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_displayId =  sizeof(uint32_t);
@@ -1552,7 +1554,7 @@ int rcCreateDisplay_enc(void *self , uint32_t* displayId)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1570,7 +1572,7 @@ int rcDestroyDisplay_enc(void *self , uint32_t displayId)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1594,7 +1596,7 @@ int rcDestroyDisplay_enc(void *self , uint32_t displayId)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1612,7 +1614,7 @@ int rcSetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t colorB
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1637,7 +1639,7 @@ int rcSetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t colorB
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1655,7 +1657,7 @@ int rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* color
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_colorBuffer =  sizeof(uint32_t);
@@ -1683,7 +1685,7 @@ int rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* color
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1701,7 +1703,7 @@ int rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* dis
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_displayId =  sizeof(uint32_t);
@@ -1729,7 +1731,7 @@ int rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* dis
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1747,7 +1749,7 @@ int rcGetDisplayPose_enc(void *self , uint32_t displayId, GLint* x, GLint* y, ui
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_x =  sizeof(int32_t);
@@ -1787,7 +1789,7 @@ int rcGetDisplayPose_enc(void *self , uint32_t displayId, GLint* x, GLint* y, ui
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1805,7 +1807,7 @@ int rcSetDisplayPose_enc(void *self , uint32_t displayId, GLint x, GLint y, uint
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1833,7 +1835,7 @@ int rcSetDisplayPose_enc(void *self , uint32_t displayId, GLint x, GLint y, uint
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1851,7 +1853,7 @@ GLint rcSetColorBufferVulkanMode_enc(void *self , uint32_t colorBuffer, uint32_t
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1876,7 +1878,7 @@ GLint rcSetColorBufferVulkanMode_enc(void *self , uint32_t colorBuffer, uint32_t
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1894,7 +1896,7 @@ void rcReadColorBufferYUV_enc(void *self , uint32_t colorbuffer, GLint x, GLint 
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_pixels =  pixels_size;
@@ -1923,7 +1925,7 @@ void rcReadColorBufferYUV_enc(void *self , uint32_t colorbuffer, GLint x, GLint 
 	if (useChecksum) checksumCalculator->addBuffer(pixels, __size_pixels);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1940,7 +1942,7 @@ int rcIsSyncSignaled_enc(void *self , uint64_t sync)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1964,7 +1966,7 @@ int rcIsSyncSignaled_enc(void *self , uint64_t sync)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -1982,7 +1984,7 @@ void rcCreateColorBufferWithHandle_enc(void *self , uint32_t width, uint32_t hei
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2012,7 +2014,7 @@ uint32_t rcCreateBuffer_enc(void *self , uint32_t size)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2036,7 +2038,7 @@ uint32_t rcCreateBuffer_enc(void *self , uint32_t size)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2054,7 +2056,7 @@ void rcCloseBuffer_enc(void *self , uint32_t buffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2081,7 +2083,7 @@ GLint rcSetColorBufferVulkanMode2_enc(void *self , uint32_t colorBuffer, uint32_
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2107,7 +2109,7 @@ GLint rcSetColorBufferVulkanMode2_enc(void *self , uint32_t colorBuffer, uint32_
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2125,7 +2127,7 @@ int rcMapGpaToBufferHandle_enc(void *self , uint32_t bufferHandle, uint64_t gpa)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2150,7 +2152,7 @@ int rcMapGpaToBufferHandle_enc(void *self , uint32_t bufferHandle, uint64_t gpa)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2168,7 +2170,7 @@ uint32_t rcCreateBuffer2_enc(void *self , uint64_t size, uint32_t memoryProperty
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2193,7 +2195,7 @@ uint32_t rcCreateBuffer2_enc(void *self , uint64_t size, uint32_t memoryProperty
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2211,7 +2213,7 @@ int rcMapGpaToBufferHandle2_enc(void *self , uint32_t bufferHandle, uint64_t gpa
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2237,7 +2239,7 @@ int rcMapGpaToBufferHandle2_enc(void *self , uint32_t bufferHandle, uint64_t gpa
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2255,7 +2257,7 @@ void rcFlushWindowColorBufferAsyncWithFrameNumber_enc(void *self , uint32_t wind
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2283,7 +2285,7 @@ void rcSetTracingForPuid_enc(void *self , uint64_t puid, uint32_t enable, uint64
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2312,7 +2314,7 @@ void rcMakeCurrentAsync_enc(void *self , uint32_t context, uint32_t drawSurf, ui
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2342,7 +2344,7 @@ void rcComposeAsync_enc(void *self , uint32_t bufferSize, void* buffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffer =  bufferSize;
@@ -2373,7 +2375,7 @@ void rcDestroySyncKHRAsync_enc(void *self , uint64_t sync)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2401,7 +2403,7 @@ GLint rcComposeWithoutPost_enc(void *self , uint32_t bufferSize, void* buffer)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffer =  bufferSize;
@@ -2428,7 +2430,7 @@ GLint rcComposeWithoutPost_enc(void *self , uint32_t bufferSize, void* buffer)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2446,7 +2448,7 @@ void rcComposeAsyncWithoutPost_enc(void *self , uint32_t bufferSize, void* buffe
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffer =  bufferSize;
@@ -2477,7 +2479,7 @@ int rcCreateDisplayById_enc(void *self , uint32_t displayId)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2501,7 +2503,7 @@ int rcCreateDisplayById_enc(void *self , uint32_t displayId)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2519,7 +2521,7 @@ int rcSetDisplayPoseDpi_enc(void *self , uint32_t displayId, GLint x, GLint y, u
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2548,7 +2550,7 @@ int rcSetDisplayPoseDpi_enc(void *self , uint32_t displayId, GLint x, GLint y, u
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2566,7 +2568,7 @@ int rcReadColorBufferDMA_enc(void *self , uint32_t colorbuffer, GLint x, GLint y
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_pixels =  pixels_size;
@@ -2601,7 +2603,7 @@ int rcReadColorBufferDMA_enc(void *self , uint32_t colorbuffer, GLint x, GLint y
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2619,7 +2621,7 @@ int rcGetFBDisplayConfigsCount_enc(void *self )
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2642,7 +2644,7 @@ int rcGetFBDisplayConfigsCount_enc(void *self )
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2660,7 +2662,7 @@ int rcGetFBDisplayConfigsParam_enc(void *self , int configId, EGLint param)
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2685,7 +2687,7 @@ int rcGetFBDisplayConfigsParam_enc(void *self , int configId, EGLint param)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2703,7 +2705,7 @@ int rcGetFBDisplayActiveConfig_enc(void *self )
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2726,7 +2728,7 @@ int rcGetFBDisplayActiveConfig_enc(void *self )
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2744,7 +2746,7 @@ void rcSetProcessMetadata_enc(void *self , char* key, RenderControlByte* valuePt
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_key =  (strlen(key) + 1);
@@ -2777,7 +2779,7 @@ int rcGetHostExtensionsString_enc(void *self , uint32_t bufferSize, void* buffer
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffer =  bufferSize;
@@ -2805,7 +2807,7 @@ int rcGetHostExtensionsString_enc(void *self , uint32_t bufferSize, void* buffer
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
