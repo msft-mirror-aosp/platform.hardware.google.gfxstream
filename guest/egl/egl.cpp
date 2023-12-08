@@ -34,8 +34,8 @@
 #endif
 #include <cutils/properties.h>
 #include "goldfish_sync.h"
-#include "GLClientState.h"
-#include "GLSharedGroup.h"
+#include "gfxstream/guest/GLClientState.h"
+#include "gfxstream/guest/GLSharedGroup.h"
 #include "eglContext.h"
 #include "ClientAPIExts.h"
 #include "EGLImage.h"
@@ -63,6 +63,7 @@
 #include <cutils/trace.h>
 
 
+using gfxstream::guest::GLClientState;
 using gfxstream::guest::getCurrentThreadId;
 
 #define DEBUG_EGL 0

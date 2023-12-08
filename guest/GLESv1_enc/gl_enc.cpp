@@ -16,6 +16,8 @@
 
 #include "EncoderDebug.h"
 
+using gfxstream::guest::ChecksumCalculator;
+
 using gfxstream::guest::IOStream;
 
 namespace {
@@ -32,7 +34,7 @@ void glAlphaFunc_enc(void *self , GLenum func, GLclampf ref)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -60,7 +62,7 @@ void glClearColor_enc(void *self , GLclampf red, GLclampf green, GLclampf blue, 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -90,7 +92,7 @@ void glClearDepthf_enc(void *self , GLclampf depth)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -117,7 +119,7 @@ void glClipPlanef_enc(void *self , GLenum plane, const GLfloat* equation)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_equation =  (4 * sizeof(float));
@@ -147,7 +149,7 @@ void glColor4f_enc(void *self , GLfloat red, GLfloat green, GLfloat blue, GLfloa
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -177,7 +179,7 @@ void glDepthRangef_enc(void *self , GLclampf zNear, GLclampf zFar)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -205,7 +207,7 @@ void glFogf_enc(void *self , GLenum pname, GLfloat param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -233,7 +235,7 @@ void glFogfv_enc(void *self , GLenum pname, const GLfloat* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -263,7 +265,7 @@ void glFrustumf_enc(void *self , GLfloat left, GLfloat right, GLfloat bottom, GL
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -295,7 +297,7 @@ void glGetClipPlanef_enc(void *self , GLenum pname, GLfloat* eqn)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_eqn =  (4 * sizeof(GLfloat));
@@ -319,7 +321,7 @@ void glGetClipPlanef_enc(void *self , GLenum pname, GLfloat* eqn)
 	if (useChecksum) checksumCalculator->addBuffer(eqn, __size_eqn);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -336,7 +338,7 @@ void glGetFloatv_enc(void *self , GLenum pname, GLfloat* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -360,7 +362,7 @@ void glGetFloatv_enc(void *self , GLenum pname, GLfloat* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -377,7 +379,7 @@ void glGetLightfv_enc(void *self , GLenum light, GLenum pname, GLfloat* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -402,7 +404,7 @@ void glGetLightfv_enc(void *self , GLenum light, GLenum pname, GLfloat* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -419,7 +421,7 @@ void glGetMaterialfv_enc(void *self , GLenum face, GLenum pname, GLfloat* params
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -444,7 +446,7 @@ void glGetMaterialfv_enc(void *self , GLenum face, GLenum pname, GLfloat* params
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -461,7 +463,7 @@ void glGetTexEnvfv_enc(void *self , GLenum env, GLenum pname, GLfloat* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -486,7 +488,7 @@ void glGetTexEnvfv_enc(void *self , GLenum env, GLenum pname, GLfloat* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -503,7 +505,7 @@ void glGetTexParameterfv_enc(void *self , GLenum target, GLenum pname, GLfloat* 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -528,7 +530,7 @@ void glGetTexParameterfv_enc(void *self , GLenum target, GLenum pname, GLfloat* 
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -545,7 +547,7 @@ void glLightModelf_enc(void *self , GLenum pname, GLfloat param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -573,7 +575,7 @@ void glLightModelfv_enc(void *self , GLenum pname, const GLfloat* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -603,7 +605,7 @@ void glLightf_enc(void *self , GLenum light, GLenum pname, GLfloat param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -632,7 +634,7 @@ void glLightfv_enc(void *self , GLenum light, GLenum pname, const GLfloat* param
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -663,7 +665,7 @@ void glLineWidth_enc(void *self , GLfloat width)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -690,7 +692,7 @@ void glLoadMatrixf_enc(void *self , const GLfloat* m)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_m =  (16 * sizeof(GLfloat));
@@ -719,7 +721,7 @@ void glMaterialf_enc(void *self , GLenum face, GLenum pname, GLfloat param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -748,7 +750,7 @@ void glMaterialfv_enc(void *self , GLenum face, GLenum pname, const GLfloat* par
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -779,7 +781,7 @@ void glMultMatrixf_enc(void *self , const GLfloat* m)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_m =  (16 * sizeof(GLfloat));
@@ -808,7 +810,7 @@ void glMultiTexCoord4f_enc(void *self , GLenum target, GLfloat s, GLfloat t, GLf
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -839,7 +841,7 @@ void glNormal3f_enc(void *self , GLfloat nx, GLfloat ny, GLfloat nz)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -868,7 +870,7 @@ void glOrthof_enc(void *self , GLfloat left, GLfloat right, GLfloat bottom, GLfl
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -900,7 +902,7 @@ void glPointParameterf_enc(void *self , GLenum pname, GLfloat param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -928,7 +930,7 @@ void glPointParameterfv_enc(void *self , GLenum pname, const GLfloat* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -958,7 +960,7 @@ void glPointSize_enc(void *self , GLfloat size)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -985,7 +987,7 @@ void glPolygonOffset_enc(void *self , GLfloat factor, GLfloat units)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1013,7 +1015,7 @@ void glRotatef_enc(void *self , GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1043,7 +1045,7 @@ void glScalef_enc(void *self , GLfloat x, GLfloat y, GLfloat z)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1072,7 +1074,7 @@ void glTexEnvf_enc(void *self , GLenum target, GLenum pname, GLfloat param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1101,7 +1103,7 @@ void glTexEnvfv_enc(void *self , GLenum target, GLenum pname, const GLfloat* par
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -1132,7 +1134,7 @@ void glTexParameterf_enc(void *self , GLenum target, GLenum pname, GLfloat param
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1161,7 +1163,7 @@ void glTexParameterfv_enc(void *self , GLenum target, GLenum pname, const GLfloa
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -1192,7 +1194,7 @@ void glTranslatef_enc(void *self , GLfloat x, GLfloat y, GLfloat z)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1221,7 +1223,7 @@ void glActiveTexture_enc(void *self , GLenum texture)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1248,7 +1250,7 @@ void glAlphaFuncx_enc(void *self , GLenum func, GLclampx ref)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1276,7 +1278,7 @@ void glBindBuffer_enc(void *self , GLenum target, GLuint buffer)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1304,7 +1306,7 @@ void glBindTexture_enc(void *self , GLenum target, GLuint texture)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1332,7 +1334,7 @@ void glBlendFunc_enc(void *self , GLenum sfactor, GLenum dfactor)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1360,7 +1362,7 @@ void glBufferData_enc(void *self , GLenum target, GLsizeiptr size, const GLvoid*
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data = ((data != NULL) ?  size : 0);
@@ -1392,7 +1394,7 @@ void glBufferSubData_enc(void *self , GLenum target, GLintptr offset, GLsizeiptr
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data = ((data != NULL) ?  size : 0);
@@ -1424,7 +1426,7 @@ void glClear_enc(void *self , GLbitfield mask)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1451,7 +1453,7 @@ void glClearColorx_enc(void *self , GLclampx red, GLclampx green, GLclampx blue,
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1481,7 +1483,7 @@ void glClearDepthx_enc(void *self , GLclampx depth)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1508,7 +1510,7 @@ void glClearStencil_enc(void *self , GLint s)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1535,7 +1537,7 @@ void glClientActiveTexture_enc(void *self , GLenum texture)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1562,7 +1564,7 @@ void glColor4ub_enc(void *self , GLubyte red, GLubyte green, GLubyte blue, GLuby
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1592,7 +1594,7 @@ void glColor4x_enc(void *self , GLfixed red, GLfixed green, GLfixed blue, GLfixe
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1622,7 +1624,7 @@ void glColorMask_enc(void *self , GLboolean red, GLboolean green, GLboolean blue
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1652,7 +1654,7 @@ void glCompressedTexImage2D_enc(void *self , GLenum target, GLint level, GLenum 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data = ((data != NULL) ?  imageSize : 0);
@@ -1688,7 +1690,7 @@ void glCompressedTexSubImage2D_enc(void *self , GLenum target, GLint level, GLin
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data = ((data != NULL) ?  imageSize : 0);
@@ -1725,7 +1727,7 @@ void glCopyTexImage2D_enc(void *self , GLenum target, GLint level, GLenum intern
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1759,7 +1761,7 @@ void glCopyTexSubImage2D_enc(void *self , GLenum target, GLint level, GLint xoff
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1793,7 +1795,7 @@ void glCullFace_enc(void *self , GLenum mode)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1820,7 +1822,7 @@ void glDeleteBuffers_enc(void *self , GLsizei n, const GLuint* buffers)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffers =  (n * sizeof(GLuint));
@@ -1850,7 +1852,7 @@ void glDeleteTextures_enc(void *self , GLsizei n, const GLuint* textures)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_textures =  (n * sizeof(GLuint));
@@ -1880,7 +1882,7 @@ void glDepthFunc_enc(void *self , GLenum func)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1907,7 +1909,7 @@ void glDepthMask_enc(void *self , GLboolean flag)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1934,7 +1936,7 @@ void glDepthRangex_enc(void *self , GLclampx zNear, GLclampx zFar)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1962,7 +1964,7 @@ void glDisable_enc(void *self , GLenum cap)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -1989,7 +1991,7 @@ void glDisableClientState_enc(void *self , GLenum array)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2016,7 +2018,7 @@ void glDrawArrays_enc(void *self , GLenum mode, GLint first, GLsizei count)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2045,7 +2047,7 @@ void glEnable_enc(void *self , GLenum cap)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2072,7 +2074,7 @@ void glEnableClientState_enc(void *self , GLenum array)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2099,7 +2101,7 @@ void glFinish_enc(void *self )
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2125,7 +2127,7 @@ void glFlush_enc(void *self )
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2151,7 +2153,7 @@ void glFogx_enc(void *self , GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2179,7 +2181,7 @@ void glFogxv_enc(void *self , GLenum pname, const GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -2209,7 +2211,7 @@ void glFrontFace_enc(void *self , GLenum mode)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2236,7 +2238,7 @@ void glFrustumx_enc(void *self , GLfixed left, GLfixed right, GLfixed bottom, GL
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2268,7 +2270,7 @@ void glGetBooleanv_enc(void *self , GLenum pname, GLboolean* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLboolean));
@@ -2292,7 +2294,7 @@ void glGetBooleanv_enc(void *self , GLenum pname, GLboolean* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2309,7 +2311,7 @@ void glGetBufferParameteriv_enc(void *self , GLenum target, GLenum pname, GLint*
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (sizeof(GLint));
@@ -2334,7 +2336,7 @@ void glGetBufferParameteriv_enc(void *self , GLenum target, GLenum pname, GLint*
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2351,7 +2353,7 @@ void glClipPlanex_enc(void *self , GLenum pname, const GLfixed* eqn)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_eqn =  (4 * sizeof(GLfixed));
@@ -2381,7 +2383,7 @@ void glGenBuffers_enc(void *self , GLsizei n, GLuint* buffers)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffers =  (n * sizeof(GLuint));
@@ -2405,7 +2407,7 @@ void glGenBuffers_enc(void *self , GLsizei n, GLuint* buffers)
 	if (useChecksum) checksumCalculator->addBuffer(buffers, __size_buffers);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2422,7 +2424,7 @@ void glGenTextures_enc(void *self , GLsizei n, GLuint* textures)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_textures =  (n * sizeof(GLuint));
@@ -2446,7 +2448,7 @@ void glGenTextures_enc(void *self , GLsizei n, GLuint* textures)
 	if (useChecksum) checksumCalculator->addBuffer(textures, __size_textures);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2463,7 +2465,7 @@ GLenum glGetError_enc(void *self )
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2486,7 +2488,7 @@ GLenum glGetError_enc(void *self )
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2504,7 +2506,7 @@ void glGetFixedv_enc(void *self , GLenum pname, GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -2528,7 +2530,7 @@ void glGetFixedv_enc(void *self , GLenum pname, GLfixed* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2545,7 +2547,7 @@ void glGetIntegerv_enc(void *self , GLenum pname, GLint* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -2569,7 +2571,7 @@ void glGetIntegerv_enc(void *self , GLenum pname, GLint* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2586,7 +2588,7 @@ void glGetLightxv_enc(void *self , GLenum light, GLenum pname, GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -2611,7 +2613,7 @@ void glGetLightxv_enc(void *self , GLenum light, GLenum pname, GLfixed* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2628,7 +2630,7 @@ void glGetMaterialxv_enc(void *self , GLenum face, GLenum pname, GLfixed* params
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -2653,7 +2655,7 @@ void glGetMaterialxv_enc(void *self , GLenum face, GLenum pname, GLfixed* params
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2670,7 +2672,7 @@ void glGetTexEnviv_enc(void *self , GLenum env, GLenum pname, GLint* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -2695,7 +2697,7 @@ void glGetTexEnviv_enc(void *self , GLenum env, GLenum pname, GLint* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2712,7 +2714,7 @@ void glGetTexEnvxv_enc(void *self , GLenum env, GLenum pname, GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -2737,7 +2739,7 @@ void glGetTexEnvxv_enc(void *self , GLenum env, GLenum pname, GLfixed* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2754,7 +2756,7 @@ void glGetTexParameteriv_enc(void *self , GLenum target, GLenum pname, GLint* pa
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (sizeof(GLint));
@@ -2779,7 +2781,7 @@ void glGetTexParameteriv_enc(void *self , GLenum target, GLenum pname, GLint* pa
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2796,7 +2798,7 @@ void glGetTexParameterxv_enc(void *self , GLenum target, GLenum pname, GLfixed* 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (sizeof(GLfixed));
@@ -2821,7 +2823,7 @@ void glGetTexParameterxv_enc(void *self , GLenum target, GLenum pname, GLfixed* 
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2838,7 +2840,7 @@ void glHint_enc(void *self , GLenum target, GLenum mode)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2866,7 +2868,7 @@ GLboolean glIsBuffer_enc(void *self , GLuint buffer)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2890,7 +2892,7 @@ GLboolean glIsBuffer_enc(void *self , GLuint buffer)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2908,7 +2910,7 @@ GLboolean glIsEnabled_enc(void *self , GLenum cap)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2932,7 +2934,7 @@ GLboolean glIsEnabled_enc(void *self , GLenum cap)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2950,7 +2952,7 @@ GLboolean glIsTexture_enc(void *self , GLuint texture)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -2974,7 +2976,7 @@ GLboolean glIsTexture_enc(void *self , GLuint texture)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -2992,7 +2994,7 @@ void glLightModelx_enc(void *self , GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3020,7 +3022,7 @@ void glLightModelxv_enc(void *self , GLenum pname, const GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -3050,7 +3052,7 @@ void glLightx_enc(void *self , GLenum light, GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3079,7 +3081,7 @@ void glLightxv_enc(void *self , GLenum light, GLenum pname, const GLfixed* param
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -3110,7 +3112,7 @@ void glLineWidthx_enc(void *self , GLfixed width)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3137,7 +3139,7 @@ void glLoadIdentity_enc(void *self )
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3163,7 +3165,7 @@ void glLoadMatrixx_enc(void *self , const GLfixed* m)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_m =  (16 * sizeof(GLfixed));
@@ -3192,7 +3194,7 @@ void glLogicOp_enc(void *self , GLenum opcode)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3219,7 +3221,7 @@ void glMaterialx_enc(void *self , GLenum face, GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3248,7 +3250,7 @@ void glMaterialxv_enc(void *self , GLenum face, GLenum pname, const GLfixed* par
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -3279,7 +3281,7 @@ void glMatrixMode_enc(void *self , GLenum mode)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3306,7 +3308,7 @@ void glMultMatrixx_enc(void *self , const GLfixed* m)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_m =  (16 * sizeof(GLfixed));
@@ -3335,7 +3337,7 @@ void glMultiTexCoord4x_enc(void *self , GLenum target, GLfixed s, GLfixed t, GLf
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3366,7 +3368,7 @@ void glNormal3x_enc(void *self , GLfixed nx, GLfixed ny, GLfixed nz)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3395,7 +3397,7 @@ void glOrthox_enc(void *self , GLfixed left, GLfixed right, GLfixed bottom, GLfi
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3427,7 +3429,7 @@ void glPixelStorei_enc(void *self , GLenum pname, GLint param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3455,7 +3457,7 @@ void glPointParameterx_enc(void *self , GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3483,7 +3485,7 @@ void glPointParameterxv_enc(void *self , GLenum pname, const GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -3513,7 +3515,7 @@ void glPointSizex_enc(void *self , GLfixed size)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3540,7 +3542,7 @@ void glPolygonOffsetx_enc(void *self , GLfixed factor, GLfixed units)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3568,7 +3570,7 @@ void glPopMatrix_enc(void *self )
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3594,7 +3596,7 @@ void glPushMatrix_enc(void *self )
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3620,7 +3622,7 @@ void glReadPixels_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei heig
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_pixels =  glesv1_enc::pixelDataSize(self, width, height, format, type, 1);
@@ -3649,7 +3651,7 @@ void glReadPixels_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei heig
 	if (useChecksum) checksumCalculator->addBuffer(pixels, __size_pixels);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -3666,7 +3668,7 @@ void glRotatex_enc(void *self , GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3696,7 +3698,7 @@ void glSampleCoverage_enc(void *self , GLclampf value, GLboolean invert)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3724,7 +3726,7 @@ void glSampleCoveragex_enc(void *self , GLclampx value, GLboolean invert)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3752,7 +3754,7 @@ void glScalex_enc(void *self , GLfixed x, GLfixed y, GLfixed z)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3781,7 +3783,7 @@ void glScissor_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei height)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3811,7 +3813,7 @@ void glShadeModel_enc(void *self , GLenum mode)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3838,7 +3840,7 @@ void glStencilFunc_enc(void *self , GLenum func, GLint ref, GLuint mask)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3867,7 +3869,7 @@ void glStencilMask_enc(void *self , GLuint mask)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3894,7 +3896,7 @@ void glStencilOp_enc(void *self , GLenum fail, GLenum zfail, GLenum zpass)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3923,7 +3925,7 @@ void glTexEnvi_enc(void *self , GLenum target, GLenum pname, GLint param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3952,7 +3954,7 @@ void glTexEnvx_enc(void *self , GLenum target, GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -3981,7 +3983,7 @@ void glTexEnviv_enc(void *self , GLenum target, GLenum pname, const GLint* param
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -4012,7 +4014,7 @@ void glTexEnvxv_enc(void *self , GLenum target, GLenum pname, const GLfixed* par
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -4043,7 +4045,7 @@ void glTexImage2D_enc(void *self , GLenum target, GLint level, GLint internalfor
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_pixels = ((pixels != NULL) ?  glesv1_enc::pixelDataSize(self, width, height, format, type, 0) : 0);
@@ -4086,7 +4088,7 @@ void glTexParameteri_enc(void *self , GLenum target, GLenum pname, GLint param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4115,7 +4117,7 @@ void glTexParameterx_enc(void *self , GLenum target, GLenum pname, GLfixed param
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4144,7 +4146,7 @@ void glTexParameteriv_enc(void *self , GLenum target, GLenum pname, const GLint*
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -4175,7 +4177,7 @@ void glTexParameterxv_enc(void *self , GLenum target, GLenum pname, const GLfixe
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -4206,7 +4208,7 @@ void glTexSubImage2D_enc(void *self , GLenum target, GLint level, GLint xoffset,
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_pixels = ((pixels != NULL) ?  glesv1_enc::pixelDataSize(self, width, height, format, type, 0) : 0);
@@ -4249,7 +4251,7 @@ void glTranslatex_enc(void *self , GLfixed x, GLfixed y, GLfixed z)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4278,7 +4280,7 @@ void glViewport_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei height
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4308,7 +4310,7 @@ void glVertexPointerOffset_enc(void *self , GLint size, GLenum type, GLsizei str
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4338,7 +4340,7 @@ void glColorPointerOffset_enc(void *self , GLint size, GLenum type, GLsizei stri
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4368,7 +4370,7 @@ void glNormalPointerOffset_enc(void *self , GLenum type, GLsizei stride, GLuint 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4397,7 +4399,7 @@ void glPointSizePointerOffset_enc(void *self , GLenum type, GLsizei stride, GLui
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4426,7 +4428,7 @@ void glTexCoordPointerOffset_enc(void *self , GLint size, GLenum type, GLsizei s
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4456,7 +4458,7 @@ void glWeightPointerOffset_enc(void *self , GLint size, GLenum type, GLsizei str
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4486,7 +4488,7 @@ void glMatrixIndexPointerOffset_enc(void *self , GLint size, GLenum type, GLsize
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4516,7 +4518,7 @@ void glVertexPointerData_enc(void *self , GLint size, GLenum type, GLsizei strid
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data =  datalen;
@@ -4549,7 +4551,7 @@ void glColorPointerData_enc(void *self , GLint size, GLenum type, GLsizei stride
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data =  datalen;
@@ -4582,7 +4584,7 @@ void glNormalPointerData_enc(void *self , GLenum type, GLsizei stride, void* dat
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data =  datalen;
@@ -4614,7 +4616,7 @@ void glTexCoordPointerData_enc(void *self , GLint unit, GLint size, GLenum type,
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data =  datalen;
@@ -4648,7 +4650,7 @@ void glPointSizePointerData_enc(void *self , GLenum type, GLsizei stride, void* 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data =  datalen;
@@ -4680,7 +4682,7 @@ void glWeightPointerData_enc(void *self , GLint size, GLenum type, GLsizei strid
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data =  datalen;
@@ -4713,7 +4715,7 @@ void glMatrixIndexPointerData_enc(void *self , GLint size, GLenum type, GLsizei 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data =  datalen;
@@ -4746,7 +4748,7 @@ void glDrawElementsOffset_enc(void *self , GLenum mode, GLsizei count, GLenum ty
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4776,7 +4778,7 @@ void glDrawElementsData_enc(void *self , GLenum mode, GLsizei count, GLenum type
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data =  datalen;
@@ -4809,7 +4811,7 @@ void glGetCompressedTextureFormats_enc(void *self , int count, GLint* formats)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_formats =  (count * sizeof(GLint));
@@ -4833,7 +4835,7 @@ void glGetCompressedTextureFormats_enc(void *self , int count, GLint* formats)
 	if (useChecksum) checksumCalculator->addBuffer(formats, __size_formats);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -4850,7 +4852,7 @@ int glFinishRoundTrip_enc(void *self )
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4873,7 +4875,7 @@ int glFinishRoundTrip_enc(void *self )
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -4891,7 +4893,7 @@ void glBlendEquationSeparateOES_enc(void *self , GLenum modeRGB, GLenum modeAlph
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4919,7 +4921,7 @@ void glBlendFuncSeparateOES_enc(void *self , GLenum srcRGB, GLenum dstRGB, GLenu
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4949,7 +4951,7 @@ void glBlendEquationOES_enc(void *self , GLenum mode)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -4976,7 +4978,7 @@ void glDrawTexsOES_enc(void *self , GLshort x, GLshort y, GLshort z, GLshort wid
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5007,7 +5009,7 @@ void glDrawTexiOES_enc(void *self , GLint x, GLint y, GLint z, GLint width, GLin
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5038,7 +5040,7 @@ void glDrawTexxOES_enc(void *self , GLfixed x, GLfixed y, GLfixed z, GLfixed wid
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5069,7 +5071,7 @@ void glDrawTexsvOES_enc(void *self , const GLshort* coords)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_coords =  (5 * sizeof(GLshort));
@@ -5098,7 +5100,7 @@ void glDrawTexivOES_enc(void *self , const GLint* coords)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_coords =  (5 * sizeof(GLint));
@@ -5127,7 +5129,7 @@ void glDrawTexxvOES_enc(void *self , const GLfixed* coords)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_coords =  (5 * sizeof(GLfixed));
@@ -5156,7 +5158,7 @@ void glDrawTexfOES_enc(void *self , GLfloat x, GLfloat y, GLfloat z, GLfloat wid
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5187,7 +5189,7 @@ void glDrawTexfvOES_enc(void *self , const GLfloat* coords)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_coords =  (5 * sizeof(GLfloat));
@@ -5216,7 +5218,7 @@ void glEGLImageTargetTexture2DOES_enc(void *self , GLenum target, GLeglImageOES 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5244,7 +5246,7 @@ void glEGLImageTargetRenderbufferStorageOES_enc(void *self , GLenum target, GLeg
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5272,7 +5274,7 @@ void glAlphaFuncxOES_enc(void *self , GLenum func, GLclampx ref)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5300,7 +5302,7 @@ void glClearColorxOES_enc(void *self , GLclampx red, GLclampx green, GLclampx bl
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5330,7 +5332,7 @@ void glClearDepthxOES_enc(void *self , GLclampx depth)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5357,7 +5359,7 @@ void glClipPlanexOES_enc(void *self , GLenum plane, const GLfixed* equation)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_equation =  (4 * sizeof(GLfixed));
@@ -5387,7 +5389,7 @@ void glClipPlanexIMG_enc(void *self , GLenum plane, const GLfixed* equation)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_equation =  (4 * sizeof(GLfixed));
@@ -5417,7 +5419,7 @@ void glColor4xOES_enc(void *self , GLfixed red, GLfixed green, GLfixed blue, GLf
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5447,7 +5449,7 @@ void glDepthRangexOES_enc(void *self , GLclampx zNear, GLclampx zFar)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5475,7 +5477,7 @@ void glFogxOES_enc(void *self , GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5503,7 +5505,7 @@ void glFogxvOES_enc(void *self , GLenum pname, const GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -5533,7 +5535,7 @@ void glFrustumxOES_enc(void *self , GLfixed left, GLfixed right, GLfixed bottom,
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5565,7 +5567,7 @@ void glGetClipPlanexOES_enc(void *self , GLenum pname, GLfixed* eqn)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_eqn =  (4 * sizeof(GLfixed));
@@ -5589,7 +5591,7 @@ void glGetClipPlanexOES_enc(void *self , GLenum pname, GLfixed* eqn)
 	if (useChecksum) checksumCalculator->addBuffer(eqn, __size_eqn);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -5606,7 +5608,7 @@ void glGetClipPlanex_enc(void *self , GLenum pname, GLfixed* eqn)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_eqn =  (4 * sizeof(GLfixed));
@@ -5630,7 +5632,7 @@ void glGetClipPlanex_enc(void *self , GLenum pname, GLfixed* eqn)
 	if (useChecksum) checksumCalculator->addBuffer(eqn, __size_eqn);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -5647,7 +5649,7 @@ void glGetFixedvOES_enc(void *self , GLenum pname, GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -5671,7 +5673,7 @@ void glGetFixedvOES_enc(void *self , GLenum pname, GLfixed* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -5688,7 +5690,7 @@ void glGetLightxvOES_enc(void *self , GLenum light, GLenum pname, GLfixed* param
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -5713,7 +5715,7 @@ void glGetLightxvOES_enc(void *self , GLenum light, GLenum pname, GLfixed* param
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -5730,7 +5732,7 @@ void glGetMaterialxvOES_enc(void *self , GLenum face, GLenum pname, GLfixed* par
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -5755,7 +5757,7 @@ void glGetMaterialxvOES_enc(void *self , GLenum face, GLenum pname, GLfixed* par
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -5772,7 +5774,7 @@ void glGetTexEnvxvOES_enc(void *self , GLenum env, GLenum pname, GLfixed* params
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -5797,7 +5799,7 @@ void glGetTexEnvxvOES_enc(void *self , GLenum env, GLenum pname, GLfixed* params
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -5814,7 +5816,7 @@ void glGetTexParameterxvOES_enc(void *self , GLenum target, GLenum pname, GLfixe
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -5839,7 +5841,7 @@ void glGetTexParameterxvOES_enc(void *self , GLenum target, GLenum pname, GLfixe
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -5856,7 +5858,7 @@ void glLightModelxOES_enc(void *self , GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5884,7 +5886,7 @@ void glLightModelxvOES_enc(void *self , GLenum pname, const GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -5914,7 +5916,7 @@ void glLightxOES_enc(void *self , GLenum light, GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -5943,7 +5945,7 @@ void glLightxvOES_enc(void *self , GLenum light, GLenum pname, const GLfixed* pa
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -5974,7 +5976,7 @@ void glLineWidthxOES_enc(void *self , GLfixed width)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6001,7 +6003,7 @@ void glLoadMatrixxOES_enc(void *self , const GLfixed* m)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_m =  (16 * sizeof(GLfixed));
@@ -6030,7 +6032,7 @@ void glMaterialxOES_enc(void *self , GLenum face, GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6059,7 +6061,7 @@ void glMaterialxvOES_enc(void *self , GLenum face, GLenum pname, const GLfixed* 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -6090,7 +6092,7 @@ void glMultMatrixxOES_enc(void *self , const GLfixed* m)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_m =  (16 * sizeof(GLfixed));
@@ -6119,7 +6121,7 @@ void glMultiTexCoord4xOES_enc(void *self , GLenum target, GLfixed s, GLfixed t, 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6150,7 +6152,7 @@ void glNormal3xOES_enc(void *self , GLfixed nx, GLfixed ny, GLfixed nz)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6179,7 +6181,7 @@ void glOrthoxOES_enc(void *self , GLfixed left, GLfixed right, GLfixed bottom, G
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6211,7 +6213,7 @@ void glPointParameterxOES_enc(void *self , GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6239,7 +6241,7 @@ void glPointParameterxvOES_enc(void *self , GLenum pname, const GLfixed* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -6269,7 +6271,7 @@ void glPointSizexOES_enc(void *self , GLfixed size)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6296,7 +6298,7 @@ void glPolygonOffsetxOES_enc(void *self , GLfixed factor, GLfixed units)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6324,7 +6326,7 @@ void glRotatexOES_enc(void *self , GLfixed angle, GLfixed x, GLfixed y, GLfixed 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6354,7 +6356,7 @@ void glSampleCoveragexOES_enc(void *self , GLclampx value, GLboolean invert)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6382,7 +6384,7 @@ void glScalexOES_enc(void *self , GLfixed x, GLfixed y, GLfixed z)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6411,7 +6413,7 @@ void glTexEnvxOES_enc(void *self , GLenum target, GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6440,7 +6442,7 @@ void glTexEnvxvOES_enc(void *self , GLenum target, GLenum pname, const GLfixed* 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -6471,7 +6473,7 @@ void glTexParameterxOES_enc(void *self , GLenum target, GLenum pname, GLfixed pa
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6500,7 +6502,7 @@ void glTexParameterxvOES_enc(void *self , GLenum target, GLenum pname, const GLf
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -6531,7 +6533,7 @@ void glTranslatexOES_enc(void *self , GLfixed x, GLfixed y, GLfixed z)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6560,7 +6562,7 @@ GLboolean glIsRenderbufferOES_enc(void *self , GLuint renderbuffer)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6584,7 +6586,7 @@ GLboolean glIsRenderbufferOES_enc(void *self , GLuint renderbuffer)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -6602,7 +6604,7 @@ void glBindRenderbufferOES_enc(void *self , GLenum target, GLuint renderbuffer)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6630,7 +6632,7 @@ void glDeleteRenderbuffersOES_enc(void *self , GLsizei n, const GLuint* renderbu
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_renderbuffers =  (n * sizeof(GLuint));
@@ -6660,7 +6662,7 @@ void glGenRenderbuffersOES_enc(void *self , GLsizei n, GLuint* renderbuffers)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_renderbuffers =  (n * sizeof(GLuint));
@@ -6684,7 +6686,7 @@ void glGenRenderbuffersOES_enc(void *self , GLsizei n, GLuint* renderbuffers)
 	if (useChecksum) checksumCalculator->addBuffer(renderbuffers, __size_renderbuffers);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -6701,7 +6703,7 @@ void glRenderbufferStorageOES_enc(void *self , GLenum target, GLenum internalfor
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6731,7 +6733,7 @@ void glGetRenderbufferParameterivOES_enc(void *self , GLenum target, GLenum pnam
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -6756,7 +6758,7 @@ void glGetRenderbufferParameterivOES_enc(void *self , GLenum target, GLenum pnam
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -6773,7 +6775,7 @@ GLboolean glIsFramebufferOES_enc(void *self , GLuint framebuffer)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6797,7 +6799,7 @@ GLboolean glIsFramebufferOES_enc(void *self , GLuint framebuffer)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -6815,7 +6817,7 @@ void glBindFramebufferOES_enc(void *self , GLenum target, GLuint framebuffer)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6843,7 +6845,7 @@ void glDeleteFramebuffersOES_enc(void *self , GLsizei n, const GLuint* framebuff
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_framebuffers =  (n * sizeof(GLuint));
@@ -6873,7 +6875,7 @@ void glGenFramebuffersOES_enc(void *self , GLsizei n, GLuint* framebuffers)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_framebuffers =  (n * sizeof(GLuint));
@@ -6897,7 +6899,7 @@ void glGenFramebuffersOES_enc(void *self , GLsizei n, GLuint* framebuffers)
 	if (useChecksum) checksumCalculator->addBuffer(framebuffers, __size_framebuffers);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -6914,7 +6916,7 @@ GLenum glCheckFramebufferStatusOES_enc(void *self , GLenum target)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6938,7 +6940,7 @@ GLenum glCheckFramebufferStatusOES_enc(void *self , GLenum target)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -6956,7 +6958,7 @@ void glFramebufferRenderbufferOES_enc(void *self , GLenum target, GLenum attachm
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -6986,7 +6988,7 @@ void glFramebufferTexture2DOES_enc(void *self , GLenum target, GLenum attachment
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7017,7 +7019,7 @@ void glGetFramebufferAttachmentParameterivOES_enc(void *self , GLenum target, GL
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -7043,7 +7045,7 @@ void glGetFramebufferAttachmentParameterivOES_enc(void *self , GLenum target, GL
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -7060,7 +7062,7 @@ void glGenerateMipmapOES_enc(void *self , GLenum target)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7087,7 +7089,7 @@ GLboolean glUnmapBufferOES_enc(void *self , GLenum target)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7111,7 +7113,7 @@ GLboolean glUnmapBufferOES_enc(void *self , GLenum target)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -7129,7 +7131,7 @@ void glCurrentPaletteMatrixOES_enc(void *self , GLuint matrixpaletteindex)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7156,7 +7158,7 @@ void glLoadPaletteFromModelViewMatrixOES_enc(void *self )
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7182,7 +7184,7 @@ GLbitfield glQueryMatrixxOES_enc(void *self , GLfixed* mantissa, GLint* exponent
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_mantissa =  (16 * sizeof(GLfixed));
@@ -7213,7 +7215,7 @@ GLbitfield glQueryMatrixxOES_enc(void *self , GLfixed* mantissa, GLint* exponent
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -7231,7 +7233,7 @@ void glDepthRangefOES_enc(void *self , GLclampf zNear, GLclampf zFar)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7259,7 +7261,7 @@ void glFrustumfOES_enc(void *self , GLfloat left, GLfloat right, GLfloat bottom,
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7291,7 +7293,7 @@ void glOrthofOES_enc(void *self , GLfloat left, GLfloat right, GLfloat bottom, G
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7323,7 +7325,7 @@ void glClipPlanefOES_enc(void *self , GLenum plane, const GLfloat* equation)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_equation =  (4 * sizeof(GLfloat));
@@ -7353,7 +7355,7 @@ void glClipPlanefIMG_enc(void *self , GLenum plane, const GLfloat* equation)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_equation =  (4 * sizeof(GLfloat));
@@ -7383,7 +7385,7 @@ void glGetClipPlanefOES_enc(void *self , GLenum pname, GLfloat* eqn)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_eqn =  (4 * sizeof(GLfloat));
@@ -7407,7 +7409,7 @@ void glGetClipPlanefOES_enc(void *self , GLenum pname, GLfloat* eqn)
 	if (useChecksum) checksumCalculator->addBuffer(eqn, __size_eqn);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -7424,7 +7426,7 @@ void glClearDepthfOES_enc(void *self , GLclampf depth)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7451,7 +7453,7 @@ void glTexGenfOES_enc(void *self , GLenum coord, GLenum pname, GLfloat param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7480,7 +7482,7 @@ void glTexGenfvOES_enc(void *self , GLenum coord, GLenum pname, const GLfloat* p
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -7511,7 +7513,7 @@ void glTexGeniOES_enc(void *self , GLenum coord, GLenum pname, GLint param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7540,7 +7542,7 @@ void glTexGenivOES_enc(void *self , GLenum coord, GLenum pname, const GLint* par
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -7571,7 +7573,7 @@ void glTexGenxOES_enc(void *self , GLenum coord, GLenum pname, GLfixed param)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7600,7 +7602,7 @@ void glTexGenxvOES_enc(void *self , GLenum coord, GLenum pname, const GLfixed* p
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -7631,7 +7633,7 @@ void glGetTexGenfvOES_enc(void *self , GLenum coord, GLenum pname, GLfloat* para
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfloat));
@@ -7662,7 +7664,7 @@ void glGetTexGenivOES_enc(void *self , GLenum coord, GLenum pname, GLint* params
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -7693,7 +7695,7 @@ void glGetTexGenxvOES_enc(void *self , GLenum coord, GLenum pname, GLfixed* para
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLfixed));
@@ -7724,7 +7726,7 @@ void glBindVertexArrayOES_enc(void *self , GLuint array)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7751,7 +7753,7 @@ void glDeleteVertexArraysOES_enc(void *self , GLsizei n, const GLuint* arrays)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_arrays =  (n * sizeof(GLuint));
@@ -7781,7 +7783,7 @@ void glGenVertexArraysOES_enc(void *self , GLsizei n, GLuint* arrays)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_arrays =  (n * sizeof(GLuint));
@@ -7805,7 +7807,7 @@ void glGenVertexArraysOES_enc(void *self , GLsizei n, GLuint* arrays)
 	if (useChecksum) checksumCalculator->addBuffer(arrays, __size_arrays);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -7822,7 +7824,7 @@ GLboolean glIsVertexArrayOES_enc(void *self , GLuint array)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7846,7 +7848,7 @@ GLboolean glIsVertexArrayOES_enc(void *self , GLuint array)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -7864,7 +7866,7 @@ void glDiscardFramebufferEXT_enc(void *self , GLenum target, GLsizei numAttachme
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_attachments =  (numAttachments * sizeof(const GLenum));
@@ -7895,7 +7897,7 @@ void glRenderbufferStorageMultisampleIMG_enc(void *self , GLenum target, GLsizei
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7926,7 +7928,7 @@ void glFramebufferTexture2DMultisampleIMG_enc(void *self , GLenum target, GLenum
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -7958,7 +7960,7 @@ void glDeleteFencesNV_enc(void *self , GLsizei n, const GLuint* fences)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_fences =  (n * sizeof(GLuint));
@@ -7988,7 +7990,7 @@ void glGenFencesNV_enc(void *self , GLsizei n, GLuint* fences)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_fences =  (n * sizeof(GLuint));
@@ -8018,7 +8020,7 @@ GLboolean glIsFenceNV_enc(void *self , GLuint fence)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8042,7 +8044,7 @@ GLboolean glIsFenceNV_enc(void *self , GLuint fence)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8060,7 +8062,7 @@ GLboolean glTestFenceNV_enc(void *self , GLuint fence)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8084,7 +8086,7 @@ GLboolean glTestFenceNV_enc(void *self , GLuint fence)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8102,7 +8104,7 @@ void glGetFenceivNV_enc(void *self , GLuint fence, GLenum pname, GLint* params)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -8127,7 +8129,7 @@ void glGetFenceivNV_enc(void *self , GLuint fence, GLenum pname, GLint* params)
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8144,7 +8146,7 @@ void glFinishFenceNV_enc(void *self , GLuint fence)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8171,7 +8173,7 @@ void glSetFenceNV_enc(void *self , GLuint fence, GLenum condition)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8199,7 +8201,7 @@ void glGetDriverControlsQCOM_enc(void *self , GLint* num, GLsizei size, GLuint* 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_num =  (1 * sizeof(GLint));
@@ -8227,7 +8229,7 @@ void glGetDriverControlsQCOM_enc(void *self , GLint* num, GLsizei size, GLuint* 
 	if (useChecksum) checksumCalculator->addBuffer(driverControls, __size_driverControls);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8244,7 +8246,7 @@ void glGetDriverControlStringQCOM_enc(void *self , GLuint driverControl, GLsizei
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_length =  (1 * sizeof(GLsizei));
@@ -8273,7 +8275,7 @@ void glGetDriverControlStringQCOM_enc(void *self , GLuint driverControl, GLsizei
 	if (useChecksum) checksumCalculator->addBuffer(driverControlString, __size_driverControlString);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8290,7 +8292,7 @@ void glEnableDriverControlQCOM_enc(void *self , GLuint driverControl)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8317,7 +8319,7 @@ void glDisableDriverControlQCOM_enc(void *self , GLuint driverControl)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8344,7 +8346,7 @@ void glExtGetTexturesQCOM_enc(void *self , GLuint* textures, GLint maxTextures, 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_textures =  (maxTextures * sizeof(GLuint));
@@ -8372,7 +8374,7 @@ void glExtGetTexturesQCOM_enc(void *self , GLuint* textures, GLint maxTextures, 
 	if (useChecksum) checksumCalculator->addBuffer(numTextures, __size_numTextures);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8389,7 +8391,7 @@ void glExtGetBuffersQCOM_enc(void *self , GLuint* buffers, GLint maxBuffers, GLi
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_buffers =  (maxBuffers * sizeof(GLuint));
@@ -8417,7 +8419,7 @@ void glExtGetBuffersQCOM_enc(void *self , GLuint* buffers, GLint maxBuffers, GLi
 	if (useChecksum) checksumCalculator->addBuffer(numBuffers, __size_numBuffers);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8434,7 +8436,7 @@ void glExtGetRenderbuffersQCOM_enc(void *self , GLuint* renderbuffers, GLint max
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_renderbuffers =  (maxRenderbuffers * sizeof(GLuint));
@@ -8462,7 +8464,7 @@ void glExtGetRenderbuffersQCOM_enc(void *self , GLuint* renderbuffers, GLint max
 	if (useChecksum) checksumCalculator->addBuffer(numRenderbuffers, __size_numRenderbuffers);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8479,7 +8481,7 @@ void glExtGetFramebuffersQCOM_enc(void *self , GLuint* framebuffers, GLint maxFr
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_framebuffers =  (maxFramebuffers * sizeof(GLuint));
@@ -8507,7 +8509,7 @@ void glExtGetFramebuffersQCOM_enc(void *self , GLuint* framebuffers, GLint maxFr
 	if (useChecksum) checksumCalculator->addBuffer(numFramebuffers, __size_numFramebuffers);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8524,7 +8526,7 @@ void glExtGetTexLevelParameterivQCOM_enc(void *self , GLuint texture, GLenum fac
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
@@ -8551,7 +8553,7 @@ void glExtGetTexLevelParameterivQCOM_enc(void *self , GLuint texture, GLenum fac
 	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8568,7 +8570,7 @@ void glExtTexObjectStateOverrideiQCOM_enc(void *self , GLenum target, GLenum pna
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8597,7 +8599,7 @@ void glExtGetTexSubImageQCOM_enc(void *self , GLenum target, GLint level, GLint 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_texels =  (depth * glesv1_enc::pixelDataSize(self, width, height, format, type, 0));
@@ -8630,7 +8632,7 @@ void glExtGetTexSubImageQCOM_enc(void *self , GLenum target, GLint level, GLint 
 	if (useChecksum) checksumCalculator->addBuffer(texels, __size_texels);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8647,7 +8649,7 @@ void glExtGetShadersQCOM_enc(void *self , GLuint* shaders, GLint maxShaders, GLi
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_shaders =  (maxShaders * sizeof(GLuint));
@@ -8675,7 +8677,7 @@ void glExtGetShadersQCOM_enc(void *self , GLuint* shaders, GLint maxShaders, GLi
 	if (useChecksum) checksumCalculator->addBuffer(numShaders, __size_numShaders);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8692,7 +8694,7 @@ void glExtGetProgramsQCOM_enc(void *self , GLuint* programs, GLint maxPrograms, 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_programs =  (maxPrograms * sizeof(GLuint));
@@ -8720,7 +8722,7 @@ void glExtGetProgramsQCOM_enc(void *self , GLuint* programs, GLint maxPrograms, 
 	if (useChecksum) checksumCalculator->addBuffer(numPrograms, __size_numPrograms);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8737,7 +8739,7 @@ GLboolean glExtIsProgramBinaryQCOM_enc(void *self , GLuint program)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8761,7 +8763,7 @@ GLboolean glExtIsProgramBinaryQCOM_enc(void *self , GLuint program)
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8779,7 +8781,7 @@ void glStartTilingQCOM_enc(void *self , GLuint x, GLuint y, GLuint width, GLuint
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8810,7 +8812,7 @@ void glEndTilingQCOM_enc(void *self , GLbitfield preserveMask)
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8837,7 +8839,7 @@ GLenum glGetGraphicsResetStatusEXT_enc(void *self )
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	 unsigned char *ptr;
@@ -8860,7 +8862,7 @@ GLenum glGetGraphicsResetStatusEXT_enc(void *self )
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
@@ -8878,7 +8880,7 @@ void glReadnPixelsEXT_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei 
 
 	gl_encoder_context_t *ctx = (gl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
-	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
 	const unsigned int __size_data =  bufSize;
@@ -8908,7 +8910,7 @@ void glReadnPixelsEXT_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei 
 	if (useChecksum) checksumCalculator->addBuffer(data, __size_data);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
-		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {

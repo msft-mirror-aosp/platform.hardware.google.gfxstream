@@ -21,7 +21,7 @@ lib_magma_enc = static_library(
    include_directories: [inc_fuchsia_magma, inc_fuchsia_magma_nolib, inc_magma, inc_magma_enc,
                          inc_android_emu, inc_guest_iostream, inc_android_compat,
                          inc_opengl_codec, inc_opengl_system, inc_render_enc, inc_system,
-                         inc_goldfish_address_space, inc_platform],
+                         inc_goldfish_address_space, inc_platform, inc_codec_common],
    link_with: [
       lib_platform,
       lib_stream, # for ASG

@@ -16,8 +16,8 @@
 #ifndef _EGL_CONTEXT_H
 #define _EGL_CONTEXT_H
 
-#include "GLClientState.h"
-#include "GLSharedGroup.h"
+#include "gfxstream/guest/GLClientState.h"
+#include "gfxstream/guest/GLSharedGroup.h"
 
 #include <string>
 #include <vector>
@@ -49,12 +49,12 @@ struct EGLContext_t {
     const char*         extensionString;
     std::vector<std::string> extensionStringArray;
     EGLint              deletePending;
-    GLClientState * getClientState(){ return clientState; }
-    GLSharedGroupPtr getSharedGroup(){ return sharedGroup; }
+    gfxstream::guest::GLClientState * getClientState(){ return clientState; }
+    gfxstream::guest::GLSharedGroupPtr getSharedGroup(){ return sharedGroup; }
     int getGoldfishSyncFd();
 private:
-    GLClientState    *    clientState;
-    GLSharedGroupPtr      sharedGroup;
+    gfxstream::guest::GLClientState    *    clientState;
+    gfxstream::guest::GLSharedGroupPtr      sharedGroup;
     int goldfishSyncFd;
 };
 
