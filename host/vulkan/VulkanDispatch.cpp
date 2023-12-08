@@ -183,18 +183,56 @@ class VulkanDispatchImpl {
     void initialize(bool forTesting);
 
     static std::vector<std::string> getPossibleLoaderPathBasenames() {
-        return std::vector<std::string>{
 #if defined(__APPLE__)
-            "libvulkan.dylib"
-#elif defined(__linux)
-            "libvulkan.so",
-            "libvulkan.so.1",
+        return std::vector<std::string>{"libvulkan.dylib"};
+#elif defined(__linux__)
+        // When running applications with Gfxstream as the Vulkan ICD, i.e. with
+        //
+        //   App -> Vulkan Loader -> Gfxstream ICD -> Vulkan Loader -> Driver ICD
+        //
+        // Gfxstream needs to use a different nested loader library to avoid issues with
+        // conflating/deadlock with the first level loader. Detect that here and look for
+        // a "libvulkan_gfxstream" which can be generated with the provided
+        // scripts/build-nested-vulkan-loader.sh script.
+        const std::vector<std::string> nestedVulkanLoaderVars = {
+            "GFXSTREAM_VK_ADD_DRIVER_FILES",
+            "GFXSTREAM_VK_ADD_LAYER_PATH",
+            "GFXSTREAM_VK_DRIVER_FILES",
+            "GFXSTREAM_VK_ICD_FILENAMES",
+            "GFXSTREAM_VK_INSTANCE_LAYERS",
+            "GFXSTREAM_VK_LAYER_PATH",
+            "GFXSTREAM_VK_LAYER_PATH",
+            "GFXSTREAM_VK_LOADER_DEBUG",
+            "GFXSTREAM_VK_LOADER_DRIVERS_DISABLE",
+            "GFXSTREAM_VK_LOADER_DRIVERS_SELECT",
+            "GFXSTREAM_VK_LOADER_LAYERS_ALLOW",
+            "GFXSTREAM_VK_LOADER_LAYERS_DISABLE",
+            "GFXSTREAM_VK_LOADER_LAYERS_ENABLE",
+        };
+        bool usesNestedVulkanLoader = false;
+        for (const std::string& var : nestedVulkanLoaderVars) {
+            if (android::base::getEnvironmentVariable(var) != "") {
+                usesNestedVulkanLoader = true;
+                break;
+            }
+        }
+        if (usesNestedVulkanLoader) {
+            return std::vector<std::string>{
+                "libvulkan_gfxstream.so",
+                "libvulkan_gfxstream.so.1",
+            };
+        } else {
+            return std::vector<std::string>{
+                "libvulkan.so",
+                "libvulkan.so.1",
+            };
+        }
+
 #elif defined(_WIN32)
-            "vulkan-1.dll"
+        return std::vector<std::string>{"vulkan-1.dll"};
 #else
 #error "Unhandled platform in VulkanDispatchImpl."
 #endif
-        };
     }
 
     std::vector<std::string> getPossibleLoaderPaths() {
