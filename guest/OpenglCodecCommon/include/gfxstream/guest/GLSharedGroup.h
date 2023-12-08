@@ -44,6 +44,9 @@
 using gfxstream::guest::AutoLock;
 using gfxstream::guest::Lock;
 
+namespace gfxstream {
+namespace guest {
+
 struct BufferData {
     BufferData();
     BufferData(GLsizeiptr size, const void* data);
@@ -261,5 +264,8 @@ public:
 };
 
 typedef std::shared_ptr<GLSharedGroup> GLSharedGroupPtr;
+
+}  // namespace guest
+}  // namespace gfxstream
 
 #endif //_GL_SHARED_GROUP_H_

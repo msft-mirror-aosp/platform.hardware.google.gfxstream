@@ -17,13 +17,14 @@
 #define __COMMON_HOST_CONNECTION_H
 
 #include "ANativeWindow.h"
-#include "ChecksumCalculator.h"
 #include "EmulatorFeatureInfo.h"
 #include "Gralloc.h"
-#include "IOStream.h"
-#include "VirtGpu.h"
-#include "renderControl_enc.h"
 #include "Sync.h"
+#include "VirtGpu.h"
+#include "gfxstream/guest/ChecksumCalculator.h"
+#include "gfxstream/guest/IOStream.h"
+#include "renderControl_enc.h"
+
 #ifdef __Fuchsia__
 struct goldfish_dma_context;
 #else
@@ -56,7 +57,8 @@ class VkEncoder;
 // that will be used to track available emulator features.
 class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
-    ExtendedRCEncoderContext(gfxstream::guest::IOStream *stream, ChecksumCalculator *checksumCalculator)
+    ExtendedRCEncoderContext(gfxstream::guest::IOStream *stream,
+                             gfxstream::guest::ChecksumCalculator *checksumCalculator)
         : renderControl_encoder_context_t(stream, checksumCalculator),
           m_dmaCxt(NULL), m_dmaPtr(NULL), m_dmaPhysAddr(0) { }
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
@@ -166,7 +168,7 @@ public:
 
     int getRendernodeFd() { return m_rendernodeFd; }
 
-    ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
+    gfxstream::guest::ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
 
     gfxstream::Gralloc* grallocHelper() { return m_grallocHelper; }
     void setGrallocHelperForTesting(gfxstream::Gralloc* gralloc) { m_grallocHelper = gralloc; }
@@ -252,7 +254,7 @@ private:
     gfxstream::vk::VkEncoder* m_vkEnc = nullptr;
     std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
-    ChecksumCalculator m_checksumHelper;
+    gfxstream::guest::ChecksumCalculator m_checksumHelper;
     gfxstream::ANativeWindowHelper* m_anwHelper = nullptr;
     gfxstream::Gralloc* m_grallocHelper = nullptr;
     std::unique_ptr<gfxstream::SyncHelper> m_syncHelper;
