@@ -43,6 +43,7 @@
 #define DPRINT(...)
 #endif
 
+using gfxstream::guest::ChecksumCalculator;
 using gfxstream::guest::CreateHealthMonitor;
 using gfxstream::guest::HealthMonitor;
 using gfxstream::guest::HealthMonitorConsumerBasic;

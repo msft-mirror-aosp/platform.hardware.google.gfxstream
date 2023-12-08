@@ -111,7 +111,7 @@ class ContextLock {
 thread_local std::unique_lock<std::mutex>* MagmaClientContext::t_lock;
 
 MagmaClientContext::MagmaClientContext(AddressSpaceStream* stream)
-    : magma_encoder_context_t(stream, new ChecksumCalculator) {
+    : magma_encoder_context_t(stream, new gfxstream::guest::ChecksumCalculator) {
     magma_device_import_enc_ = magma_client_context_t::magma_device_import;
     magma_buffer_get_handle_enc_ = magma_client_context_t::magma_buffer_get_handle;
     magma_poll_enc_ = magma_client_context_t::magma_poll;
