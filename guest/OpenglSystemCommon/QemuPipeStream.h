@@ -22,7 +22,8 @@
  */
 #include <stdlib.h>
 #include <memory>
-#include "IOStream.h"
+
+#include "gfxstream/guest/IOStream.h"
 
 #include <qemu_pipe_bp.h>
 

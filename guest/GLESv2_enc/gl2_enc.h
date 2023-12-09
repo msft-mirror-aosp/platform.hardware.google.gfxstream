@@ -4,8 +4,8 @@
 #ifndef GUARD_gl2_encoder_context_t
 #define GUARD_gl2_encoder_context_t
 
-#include "IOStream.h"
-#include "ChecksumCalculator.h"
+#include "gfxstream/guest/ChecksumCalculator.h"
+#include "gfxstream/guest/IOStream.h"
 #include "gl2_client_context.h"
 
 
@@ -16,9 +16,9 @@
 struct gl2_encoder_context_t : public gl2_client_context_t {
 
 	gfxstream::guest::IOStream *m_stream;
-	ChecksumCalculator *m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *m_checksumCalculator;
 
-	gl2_encoder_context_t(gfxstream::guest::IOStream *stream, ChecksumCalculator *checksumCalculator);
+	gl2_encoder_context_t(gfxstream::guest::IOStream *stream, gfxstream::guest::ChecksumCalculator *checksumCalculator);
 	virtual uint64_t lockAndWriteDma(void*, uint32_t) { return 0; }
 };
 

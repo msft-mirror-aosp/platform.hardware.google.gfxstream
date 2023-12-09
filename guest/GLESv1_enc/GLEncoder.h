@@ -19,19 +19,20 @@
 #include <vector>
 
 #include "gl_enc.h"
-#include "GLClientState.h"
-#include "GLSharedGroup.h"
-#include "ChecksumCalculator.h"
+#include "gfxstream/guest/ChecksumCalculator.h"
+#include "gfxstream/guest/GLClientState.h"
+#include "gfxstream/guest/GLSharedGroup.h"
 
 class GLEncoder : public gl_encoder_context_t {
 
 public:
-    GLEncoder(gfxstream::guest::IOStream *stream, ChecksumCalculator* protocol);
+    GLEncoder(gfxstream::guest::IOStream *stream,
+              gfxstream::guest::ChecksumCalculator* protocol);
     virtual ~GLEncoder();
-    void setClientState(GLClientState *state) {
+    void setClientState(gfxstream::guest::GLClientState *state) {
         m_state = state;
     }
-    void setSharedGroup(GLSharedGroupPtr shared) {
+    void setSharedGroup(gfxstream::guest::GLSharedGroupPtr shared) {
         m_shared = shared;
         if (m_state && m_shared)
             m_state->setTextureData(m_shared->getTextureData());
@@ -51,8 +52,8 @@ public:
 private:
 
     bool    m_initialized;
-    GLClientState *m_state;
-    GLSharedGroupPtr m_shared;
+    gfxstream::guest::GLClientState *m_state;
+    gfxstream::guest::GLSharedGroupPtr m_shared;
     GLenum  m_error;
     std::vector<char> m_fixedBuffer;
     GLint *m_compressedTextureFormats;
