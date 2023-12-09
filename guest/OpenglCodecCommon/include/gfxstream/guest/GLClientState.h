@@ -44,6 +44,10 @@
 #include <set>
 #include <string>
 
+
+namespace gfxstream {
+namespace guest {
+
 // Caps of host driver that make it easy to validate stuff
 struct HostDriverCaps {
     // ES 2
@@ -1067,4 +1071,8 @@ public:
     }
 
 };
+
+}  // namespace guest
+}  // namespace gfxstream
+
 #endif

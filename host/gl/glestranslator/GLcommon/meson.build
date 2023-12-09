@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 files_lib_gl_common = files(
-  'etc.cpp',
   'rgtc.cpp',
   'FramebufferData.cpp',
   'GLBackgroundLoader.cpp',
@@ -28,7 +27,7 @@ lib_gl_common = static_library(
   'gl_common',
   files_lib_gl_common,
   cpp_args: default_cpp_args,
-  include_directories: [inc_include, inc_stream_servers, inc_gles_translator],
-  link_with: lib_compressed_textures,
+  include_directories: [inc_etc, inc_include, inc_stream_servers, inc_gles_translator],
+  link_with: [lib_compressed_textures, lib_etc],
   dependencies: [aemu_base_dep, aemu_logging_dep, aemu_snapshot_dep]
 )

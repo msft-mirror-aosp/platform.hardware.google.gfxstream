@@ -13,7 +13,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include "GLClientState.h"
+#include "gfxstream/guest/GLClientState.h"
+
 #include "GLESTextureUtils.h"
 #include "ErrorLog.h"
 #include <stdio.h>
@@ -38,6 +39,9 @@
 
 using gfxstream::guest::AutoReadLock;
 using gfxstream::guest::AutoWriteLock;
+
+namespace gfxstream {
+namespace guest {
 
 void GLClientState::init() {
     m_initialized = false;
@@ -3087,3 +3091,5 @@ bool GLClientState::fenceExists(GLsync sync) {
     return sFenceRegistry.exists(sync);
 }
 
+}  // namespace guest
+}  // namespace gfxstream

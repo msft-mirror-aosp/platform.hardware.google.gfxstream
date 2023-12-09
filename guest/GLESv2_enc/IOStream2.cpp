@@ -1,4 +1,4 @@
-#include "IOStream.h"
+#include "gfxstream/guest/IOStream.h"
 
 #include "GL2Encoder.h"
 

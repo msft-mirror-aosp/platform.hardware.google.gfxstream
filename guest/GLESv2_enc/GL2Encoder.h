@@ -17,8 +17,8 @@
 #define _GL2_ENCODER_H_
 
 #include "gl2_enc.h"
-#include "GLClientState.h"
-#include "GLSharedGroup.h"
+#include "gfxstream/guest/GLClientState.h"
+#include "gfxstream/guest/GLSharedGroup.h"
 
 #include <string>
 #include <vector>
@@ -43,7 +43,8 @@ struct Extensions
 
 class GL2Encoder : public gl2_encoder_context_t {
 public:
-    GL2Encoder(gfxstream::guest::IOStream *stream, ChecksumCalculator* protocol);
+    GL2Encoder(gfxstream::guest::IOStream *stream, 
+               gfxstream::guest::ChecksumCalculator* protocol);
     virtual ~GL2Encoder();
     const Extensions& getExtensions() const { return m_extensions; }
     void setDrawCallFlushInterval(uint32_t interval) {
@@ -58,7 +59,7 @@ public:
     void setNoHostError(bool noHostError) {
         m_noHostError = noHostError;
     }
-    void setClientState(GLClientState *state) {
+    void setClientState(gfxstream::guest::GLClientState *state) {
         m_state = state;
     }
     void setVersion(int major, int minor,
@@ -68,7 +69,7 @@ public:
         m_deviceMajorVersion = deviceMajor;
         m_deviceMinorVersion = deviceMinor;
     }
-    void setClientStateMakeCurrent(GLClientState *state,
+    void setClientStateMakeCurrent(gfxstream::guest::GLClientState *state,
                                    int majorVersion,
                                    int minorVersion,
                                    int deviceMajorVersion,
@@ -80,7 +81,7 @@ public:
         m_deviceMajorVersion = deviceMajorVersion;
         m_deviceMinorVersion = deviceMinorVersion;
     }
-    void setSharedGroup(GLSharedGroupPtr shared) {
+    void setSharedGroup(gfxstream::guest::GLSharedGroupPtr shared) {
         m_shared = shared;
         if (m_state && m_shared) {
             m_state->setTextureData(m_shared->getTextureData());
@@ -104,8 +105,8 @@ public:
     bool hasExtension(const char* ext) const {
         return m_currExtensions.find(ext) != std::string::npos;
     }
-    const GLClientState *state() { return m_state; }
-    const GLSharedGroupPtr shared() { return m_shared; }
+    const gfxstream::guest::GLClientState *state() { return m_state; }
+    const gfxstream::guest::GLSharedGroupPtr shared() { return m_shared; }
     void flush() { m_stream->flush(); }
 
     void setInitialized(){ m_initialized = true; };
@@ -123,8 +124,8 @@ public:
 
     // Convenience functions for buffers
     GLuint boundBuffer(GLenum target) const;
-    BufferData* getBufferData(GLenum target) const;
-    BufferData* getBufferDataById(GLuint buffer) const;
+    gfxstream::guest::BufferData* getBufferData(GLenum target) const;
+    gfxstream::guest::BufferData* getBufferDataById(GLuint buffer) const;
     bool isBufferMapped(GLuint buffer) const;
     bool isBufferTargetMapped(GLenum target) const;
 
@@ -143,8 +144,8 @@ private:
     bool    m_hasSyncBufferData;
     bool    m_initialized;
     bool    m_noHostError;
-    GLClientState *m_state;
-    GLSharedGroupPtr m_shared;
+    gfxstream::guest::GLClientState *m_state;
+    gfxstream::guest::GLSharedGroupPtr m_shared;
     GLenum  m_error;
 
     GLint *m_compressedTextureFormats;
@@ -190,7 +191,7 @@ private:
     void* recenterIndices(const void* src,
                           GLenum type, GLsizei count,
                           int minIndex);
-    void getBufferIndexRange(BufferData* buf, const void* dataWithOffset,
+    void getBufferIndexRange(gfxstream::guest::BufferData* buf, const void* dataWithOffset,
                              GLenum type, size_t count, size_t offset,
                              int* minIndex_out, int* maxIndex_out);
     void getVBOUsage(bool* hasClientArrays, bool* hasVBOs) const;
@@ -505,7 +506,7 @@ private:
     static void* s_glMapBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
     static void* s_glMapBufferRangeAEMUImpl(GL2Encoder* ctx, GLenum target,
                                             GLintptr offset, GLsizeiptr length,
-                                            GLbitfield access, BufferData* buf);
+                                            GLbitfield access, gfxstream::guest::BufferData* buf);
     static GLboolean s_glUnmapBuffer(void* self, GLenum target);
     static void s_glFlushMappedBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length);
 
