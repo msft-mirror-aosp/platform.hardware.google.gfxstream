@@ -40,7 +40,6 @@
 #include "ClientAPIExts.h"
 #include "EGLImage.h"
 #include "ProcessPipe.h"
-#include "profiler.h"
 
 #include <qemu_pipe_bp.h>
 
@@ -1134,7 +1133,6 @@ EGLBoolean eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
         *major = s_display.getVersionMajor();
     if (minor!=NULL)
         *minor = s_display.getVersionMinor();
-    try_register_goldfish_perfetto();
     return EGL_TRUE;
 }
 
