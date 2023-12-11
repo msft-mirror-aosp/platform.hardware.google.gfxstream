@@ -95,19 +95,21 @@ std::shared_future<void> PostWorker::composeImpl(const FlatComposeRequest& compo
     }
 
     for (const ComposeLayer& guestLayer : composeRequest.layers) {
-        // Skip the ColorBuffer whose id is 0.
-        if (!guestLayer.cbHandle) {
-            continue;
-        }
-        auto source = mFb->borrowColorBufferForComposition(guestLayer.cbHandle,
-                                                           /*colorBufferIsTarget=*/false);
-        if (!source) {
-            continue;
-        }
+        if (guestLayer.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
+            // HWC2_COMPOSITION_SOLID_COLOR has no colorbuffer backing.
+            auto& compositorLayer = compositorRequest.layers.emplace_back();
+            compositorLayer.props = guestLayer;
+        } else {
+            auto source = mFb->borrowColorBufferForComposition(guestLayer.cbHandle,
+                                                            /*colorBufferIsTarget=*/false);
+            if (!source) {
+                continue;
+            }
 
-        auto& compositorLayer = compositorRequest.layers.emplace_back();
-        compositorLayer.props = guestLayer;
-        compositorLayer.source = std::move(source);
+            auto& compositorLayer = compositorRequest.layers.emplace_back();
+            compositorLayer.props = guestLayer;
+            compositorLayer.source = std::move(source);
+        }
     }
 
     return m_compositor->compose(compositorRequest);
