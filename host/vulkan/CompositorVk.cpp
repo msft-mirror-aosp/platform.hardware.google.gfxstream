@@ -728,6 +728,11 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
     compositionVk->targetFramebuffer = targetImageRenderTarget->m_vkFramebuffer;
 
     for (const CompositionRequestLayer& layer : compositionRequest.layers) {
+        // TODO(b/315817323): handle properly.
+        if (layer.props.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
+            continue;
+        }
+
         const BorrowedImageInfoVk* sourceImage = getInfoOrAbort(layer.source);
         if (!canCompositeFrom(sourceImage->imageCreateInfo)) {
             continue;
