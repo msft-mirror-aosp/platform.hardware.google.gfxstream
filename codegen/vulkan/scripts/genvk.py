@@ -845,7 +845,7 @@ if __name__ == '__main__':
             if name is not None:
                 return name
             try:
-                return entry.find("proto").find("name")
+                return entry.find("proto").find("name").text
             except AttributeError:
                 return None
 
@@ -864,6 +864,7 @@ if __name__ == '__main__':
                 if name not in originalEntryDict.keys():
                     treeEntries.append(entry)
                     continue
+                print(f'Entry {entriesName}:{name}')
 
                 originalEntry = originalEntryDict[name]
 
@@ -879,7 +880,7 @@ if __name__ == '__main__':
 
                 # Overwriting an existing entry. This happen for
                 # VkNativeBufferANDROID
-                if entriesName == "types":
+                if entriesName == "types" or entriesName == "commands":
                     originalEntry.clear()
                     originalEntry.attrib = entry.attrib
                     for child in entry:
