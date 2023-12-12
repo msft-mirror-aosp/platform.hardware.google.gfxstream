@@ -115,57 +115,6 @@ static void initIcdPaths(bool forTesting) {
     }
 }
 
-#ifdef __APPLE__
-#define VULKAN_LOADER_FILENAME "libvulkan.dylib"
-#else
-#ifdef _WIN32
-#define VULKAN_LOADER_FILENAME "vulkan-1.dll"
-#else
-#define VULKAN_LOADER_FILENAME "libvulkan.so"
-#endif
-
-#endif
-static std::string getLoaderPath(const std::string& directory, bool forTesting) {
-    auto path = android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH");
-    if (!path.empty()) {
-        return path;
-    }
-    auto androidIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
-    if (forTesting || androidIcd == "mock") {
-        auto path = pj({directory, "testlib64", VULKAN_LOADER_FILENAME});
-        // LOG(VERBOSE) << "In test environment or using Swiftshader. Using loader: " << path;
-        return path;
-    } else {
-#ifdef _WIN32
-        // LOG(VERBOSE) << "Not in test environment. Using loader: " << VULKAN_LOADER_FILENAME;
-        return VULKAN_LOADER_FILENAME;
-#else
-        auto path = pj({directory, "lib64", "vulkan", VULKAN_LOADER_FILENAME});
-        // LOG(VERBOSE) << "Not in test environment. Using loader: " << path;
-        return path;
-#endif
-    }
-}
-
-#ifdef __APPLE__
-static std::string getMoltenVkPath(const std::string& directory, bool forTesting) {
-    auto path = android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH");
-    if (!path.empty()) {
-        return path;
-    }
-    auto androidIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
-
-    // Skip loader when using MoltenVK as this gives us access to
-    // VK_MVK_moltenvk, which is required for external memory support.
-    if (!forTesting && androidIcd == "moltenvk") {
-        auto path = pj({directory, "lib64", "vulkan", "libMoltenVK.dylib"});
-        // LOG(VERBOSE) << "Skipping loader and using ICD directly: " << path;
-        return path;
-    }
-    return "";
-}
-#endif
-
 class SharedLibraries {
    public:
     explicit SharedLibraries(size_t sizeLimit = 1) : mSizeLimit(sizeLimit) {}
@@ -187,6 +136,15 @@ class SharedLibraries {
             fprintf(stderr, "cannot add library %s: failed\n", path.c_str());
             return false;
         }
+    }
+
+    bool addFirstAvailableLibrary(const std::vector<std::string>& possiblePaths) {
+        for (const std::string& possiblePath : possiblePaths) {
+            if (addLibrary(possiblePath)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     ~SharedLibraries() = default;
@@ -224,54 +182,141 @@ class VulkanDispatchImpl {
 
     void initialize(bool forTesting);
 
-    void* dlopen() {
-        bool sandbox = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD") == "";
-
-        if (mVulkanLibs.size() == 0) {
-            if (sandbox) {
-#ifdef __linux__
-                bool success = mVulkanLibs.addLibrary(VULKAN_LOADER_FILENAME);
-                if (!success) {
-                    mVulkanLibs.addLibrary("libvulkan.so.1");
-                }
-#else
-                mVulkanLibs.addLibrary(VULKAN_LOADER_FILENAME);
-#endif  // __linux__
-            } else {
-                auto loaderPath = getLoaderPath(android::base::getProgramDirectory(), mForTesting);
-                bool success = mVulkanLibs.addLibrary(loaderPath);
-
-                if (!success) {
-                    loaderPath = getLoaderPath(android::base::getLauncherDirectory(), mForTesting);
-                    mVulkanLibs.addLibrary(loaderPath);
-                }
-
-#ifdef __linux__
-                // On Linux, it might not be called libvulkan.so.
-                // Try libvulkan.so.1 if that doesn't work.
-                if (!success) {
-                    loaderPath = pj({android::base::getLauncherDirectory(), "lib64", "vulkan",
-                                     "libvulkan.so.1"});
-                    mVulkanLibs.addLibrary(loaderPath);
-                }
-#endif  // __linux__
-#ifdef __APPLE__
-                // On macOS it is possible that we are using MoltenVK as the
-                // ICD. In that case we need to add MoltenVK libraries to
-                // mSharedLibs to use MoltenVK-specific functions.
-                auto mvkPath = getMoltenVkPath(android::base::getProgramDirectory(), mForTesting);
-                if (!mvkPath.empty()) {
-                    success = mVulkanLibs.addLibrary(mvkPath);
-                }
-
-                if (!success) {
-                    mvkPath = getMoltenVkPath(android::base::getLauncherDirectory(), mForTesting);
-                    if (!mvkPath.empty()) {
-                        success = mVulkanLibs.addLibrary(mvkPath);
-                    }
-                }
-#endif  // __APPLE__
+    static std::vector<std::string> getPossibleLoaderPathBasenames() {
+#if defined(__APPLE__)
+        return std::vector<std::string>{"libvulkan.dylib"};
+#elif defined(__linux__)
+        // When running applications with Gfxstream as the Vulkan ICD, i.e. with
+        //
+        //   App -> Vulkan Loader -> Gfxstream ICD -> Vulkan Loader -> Driver ICD
+        //
+        // Gfxstream needs to use a different nested loader library to avoid issues with
+        // conflating/deadlock with the first level loader. Detect that here and look for
+        // a "libvulkan_gfxstream" which can be generated with the provided
+        // scripts/build-nested-vulkan-loader.sh script.
+        const std::vector<std::string> nestedVulkanLoaderVars = {
+            "GFXSTREAM_VK_ADD_DRIVER_FILES",
+            "GFXSTREAM_VK_ADD_LAYER_PATH",
+            "GFXSTREAM_VK_DRIVER_FILES",
+            "GFXSTREAM_VK_ICD_FILENAMES",
+            "GFXSTREAM_VK_INSTANCE_LAYERS",
+            "GFXSTREAM_VK_LAYER_PATH",
+            "GFXSTREAM_VK_LAYER_PATH",
+            "GFXSTREAM_VK_LOADER_DEBUG",
+            "GFXSTREAM_VK_LOADER_DRIVERS_DISABLE",
+            "GFXSTREAM_VK_LOADER_DRIVERS_SELECT",
+            "GFXSTREAM_VK_LOADER_LAYERS_ALLOW",
+            "GFXSTREAM_VK_LOADER_LAYERS_DISABLE",
+            "GFXSTREAM_VK_LOADER_LAYERS_ENABLE",
+        };
+        bool usesNestedVulkanLoader = false;
+        for (const std::string& var : nestedVulkanLoaderVars) {
+            if (android::base::getEnvironmentVariable(var) != "") {
+                usesNestedVulkanLoader = true;
+                break;
             }
+        }
+        if (usesNestedVulkanLoader) {
+            return std::vector<std::string>{
+                "libvulkan_gfxstream.so",
+                "libvulkan_gfxstream.so.1",
+            };
+        } else {
+            return std::vector<std::string>{
+                "libvulkan.so",
+                "libvulkan.so.1",
+            };
+        }
+
+#elif defined(_WIN32)
+        return std::vector<std::string>{"vulkan-1.dll"};
+#else
+#error "Unhandled platform in VulkanDispatchImpl."
+#endif
+    }
+
+    std::vector<std::string> getPossibleLoaderPaths() {
+        const std::string explicitPath =
+            android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH");
+        if (!explicitPath.empty()) {
+            return {
+                explicitPath,
+            };
+        }
+
+        const std::vector<std::string> possibleBasenames =
+            getPossibleLoaderPathBasenames();
+
+        const std::string explicitIcd =
+            android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
+
+#ifdef _WIN32
+        constexpr const bool isWindows = true;
+#else
+        constexpr const bool isWindows = false;
+#endif
+        if (explicitIcd.empty() || isWindows) {
+            return possibleBasenames;
+        }
+
+        std::vector<std::string> possibleDirectories;
+
+        if (mForTesting || explicitIcd == "mock") {
+            possibleDirectories = {
+                pj({android::base::getProgramDirectory(), "testlib64"}),
+                pj({android::base::getLauncherDirectory(), "testlib64"}),
+            };
+        }
+
+        possibleDirectories.push_back(
+            pj({android::base::getProgramDirectory(), "lib64", "vulkan"}));
+        possibleDirectories.push_back(
+            pj({android::base::getLauncherDirectory(), "lib64", "vulkan"}));
+
+        std::vector<std::string> possiblePaths;
+        for (const std::string& possibleDirectory : possibleDirectories) {
+            for (const std::string& possibleBasename : possibleBasenames) {
+                possiblePaths.push_back(pj({possibleDirectory, possibleBasename}));
+            }
+        }
+        return possiblePaths;
+    }
+
+#ifdef __APPLE__
+    std::vector<std::string> getPossibleMoltenVkPaths() {
+        const std::string explicitPath =
+            android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH");
+        if (!explicitPath.empty()) {
+            return {
+                explicitPath,
+            };
+        }
+
+        const std::string& customIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
+
+        // Skip loader when using MoltenVK as this gives us access to
+        // VK_MVK_moltenvk, which is required for external memory support.
+        if (!mForTesting && customIcd == "moltenvk") {
+            return {
+                pj({android::base::getProgramDirectory(), "lib64", "vulkan", "libMoltenVK.dylib"}),
+                pj({android::base::getLauncherDirectory(), "lib64", "vulkan", "libMoltenVK.dylib"}),
+            };
+        }
+
+        return {};
+    }
+#endif
+
+    void* dlopen() {
+        if (mVulkanLibs.size() == 0) {
+            mVulkanLibs.addFirstAvailableLibrary(getPossibleLoaderPaths());
+
+#ifdef __APPLE__
+            // On macOS it is possible that we are using MoltenVK as the
+            // ICD. In that case we need to add MoltenVK libraries to
+            // mSharedLibs to use MoltenVK-specific functions.
+            mVulkanLibs.addFirstAvailableLibrary(getPossibleMoltenVkPaths());
+#endif
         }
         return static_cast<void*>(&mVulkanLibs);
     }
