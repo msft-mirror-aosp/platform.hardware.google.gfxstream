@@ -169,6 +169,7 @@ endif
 # Subdirectories #
 #================#
 
+subdir('common')
 subdir('host')
 
 #================#

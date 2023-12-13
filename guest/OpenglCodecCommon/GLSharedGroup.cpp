@@ -14,10 +14,13 @@
 * limitations under the License.
 */
 
-#include "GLSharedGroup.h"
+#include "gfxstream/guest/GLSharedGroup.h"
 
 #include "KeyedVectorUtils.h"
 #include "glUtils.h"
+
+namespace gfxstream {
+namespace guest {
 
 /**** BufferData ****/
 
@@ -932,3 +935,5 @@ int GLSharedGroup::getActiveAttributesCountForProgram(GLuint program) {
     return pData->getActiveAttributesCount();
 }
 
+}  // namespace guest
+}  // namespace gfxstream

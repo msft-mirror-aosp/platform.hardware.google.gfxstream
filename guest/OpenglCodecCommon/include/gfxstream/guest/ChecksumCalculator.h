@@ -121,6 +121,9 @@
 //     return false;
 // }
 
+namespace gfxstream {
+namespace guest {
+
 class ChecksumCalculator {
 public:
     enum Sizes {
@@ -185,3 +188,6 @@ private:
     // The buffer used in protocol version 1 to compute checksum.
     uint32_t m_v1BufferTotalLength;
 };
+
+}  // namespace guest
+}  // namespace gfxstream
