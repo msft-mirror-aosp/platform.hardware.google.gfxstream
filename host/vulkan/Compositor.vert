@@ -4,6 +4,9 @@
 layout(binding = 1) uniform UniformBufferObject {
     mat4 posTransform;
     mat4 texcoordTransform;
+    uvec4 mode;
+    vec4 alpha;
+    vec4 color;
 } ubo;
 
 layout(location = 0) in vec2 inPosition;
