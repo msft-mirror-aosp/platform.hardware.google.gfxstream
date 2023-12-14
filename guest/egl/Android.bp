@@ -38,7 +38,6 @@ cc_defaults {
         "libcutils",
         "libdrm",
         "liblog",
-        "libGoldfishProfiler",
         "libOpenglCodecCommon",
     ],
     static_libs: [

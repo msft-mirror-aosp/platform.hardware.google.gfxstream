@@ -18,7 +18,6 @@ cc_test_host {
         "gfxstream_headers",
     ],
     data_libs: [
-        "libGoldfishProfiler",
         "libGLESv1_CM_emulation_with_host",
         "libGLESv2_emulation_with_host",
         "libEGL_emulation_with_host",
