@@ -564,6 +564,201 @@ TEST_F(CompositorVkTest, Crop) {
                               kDefaultSaveImageIfComparisonFailed);
 }
 
+TEST_F(CompositorVkTest, SolidColor) {
+    auto compositor = createCompositor();
+    ASSERT_NE(compositor, nullptr);
+
+    auto target = TargetImage::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
+                                      m_vkCommandPool, 256, 256);
+    ASSERT_NE(target, nullptr);
+    fillImageWith(target.get(), kColorBlack);
+
+    Compositor::CompositionRequest compositionRequest = {
+        .target = createBorrowedImageInfo(target.get()),
+    };
+    compositionRequest.layers.emplace_back(Compositor::CompositionRequestLayer{
+        .source = nullptr,
+        .props =
+            {
+                .composeMode = HWC2_COMPOSITION_SOLID_COLOR,
+                .displayFrame =
+                    {
+                        .left = 0,
+                        .top = 0,
+                        .right = static_cast<int>(target->m_width),
+                        .bottom = static_cast<int>(target->m_height),
+                    },
+                .alpha = 0.75f,
+                .color =
+                    {
+                        .r = 255,
+                        .g = 255,
+                        .b = 0,
+                        .a = 255,
+                    },
+            },
+    });
+
+    auto compositionCompleteWaitable = compositor->compose(compositionRequest);
+    compositionCompleteWaitable.wait();
+
+    compareImageWithGoldenPng(target.get(), GetTestDataPath("256x256_golden_solid_color.png"),
+                              kDefaultSaveImageIfComparisonFailed);
+}
+
+TEST_F(CompositorVkTest, SolidColorBelow) {
+    auto compositor = createCompositor();
+    ASSERT_NE(compositor, nullptr);
+
+    auto source =
+        createSourceImageFromPng(GetTestDataPath("256x256_android_with_transparency.png"));
+    ASSERT_NE(source, nullptr);
+
+    auto target = TargetImage::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
+                                      m_vkCommandPool, source->m_width, source->m_height);
+    ASSERT_NE(target, nullptr);
+    fillImageWith(target.get(), kColorBlack);
+
+    Compositor::CompositionRequest compositionRequest = {
+        .target = createBorrowedImageInfo(target.get()),
+    };
+    compositionRequest.layers.emplace_back(Compositor::CompositionRequestLayer{
+        .source = nullptr,
+        .props =
+            {
+                .composeMode = HWC2_COMPOSITION_SOLID_COLOR,
+                .displayFrame =
+                    {
+                        .left = 0,
+                        .top = 0,
+                        .right = static_cast<int>(target->m_width),
+                        .bottom = static_cast<int>(target->m_height),
+                    },
+                .alpha = 1.0f,
+                .color =
+                    {
+                        .r = 0,
+                        .g = 0,
+                        .b = 255,
+                        .a = 255,
+                    },
+            },
+    });
+    compositionRequest.layers.emplace_back(Compositor::CompositionRequestLayer{
+        .source = createBorrowedImageInfo(source.get()),
+        .props =
+            {
+                .composeMode = HWC2_COMPOSITION_DEVICE,
+                .displayFrame =
+                    {
+                        .left = 0,
+                        .top = 0,
+                        .right = static_cast<int>(target->m_width),
+                        .bottom = static_cast<int>(target->m_height),
+                    },
+                .crop =
+                    {
+                        .left = 0,
+                        .top = 0,
+                        .right = static_cast<float>(source->m_width),
+                        .bottom = static_cast<float>(source->m_height),
+                    },
+                .blendMode = HWC2_BLEND_MODE_PREMULTIPLIED,
+                .alpha = 1.0,
+                .color =
+                    {
+                        .r = 0,
+                        .g = 0,
+                        .b = 0,
+                        .a = 0,
+                    },
+                .transform = HWC_TRANSFORM_NONE,
+            },
+    });
+
+    auto compositionCompleteWaitable = compositor->compose(compositionRequest);
+    compositionCompleteWaitable.wait();
+
+    compareImageWithGoldenPng(target.get(), GetTestDataPath("256x256_golden_solid_color_below.png"),
+                              kDefaultSaveImageIfComparisonFailed);
+}
+
+TEST_F(CompositorVkTest, SolidColorAbove) {
+    auto compositor = createCompositor();
+    ASSERT_NE(compositor, nullptr);
+
+    auto source = createSourceImageFromPng(GetTestDataPath("256x256_android.png"));
+    ASSERT_NE(source, nullptr);
+
+    auto target = TargetImage::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
+                                      m_vkCommandPool, source->m_width, source->m_height);
+    ASSERT_NE(target, nullptr);
+    fillImageWith(target.get(), kColorBlack);
+
+    Compositor::CompositionRequest compositionRequest = {
+        .target = createBorrowedImageInfo(target.get()),
+    };
+    compositionRequest.layers.emplace_back(Compositor::CompositionRequestLayer{
+        .source = createBorrowedImageInfo(source.get()),
+        .props =
+            {
+                .composeMode = HWC2_COMPOSITION_DEVICE,
+                .displayFrame =
+                    {
+                        .left = 0,
+                        .top = 0,
+                        .right = static_cast<int>(target->m_width),
+                        .bottom = static_cast<int>(target->m_height),
+                    },
+                .crop =
+                    {
+                        .left = 0,
+                        .top = 0,
+                        .right = static_cast<float>(source->m_width),
+                        .bottom = static_cast<float>(source->m_height),
+                    },
+                .blendMode = HWC2_BLEND_MODE_PREMULTIPLIED,
+                .alpha = 1.0,
+                .color =
+                    {
+                        .r = 0,
+                        .g = 0,
+                        .b = 0,
+                        .a = 0,
+                    },
+                .transform = HWC_TRANSFORM_NONE,
+            },
+    });
+    compositionRequest.layers.emplace_back(Compositor::CompositionRequestLayer{
+        .source = nullptr,
+        .props =
+            {
+                .composeMode = HWC2_COMPOSITION_SOLID_COLOR,
+                .displayFrame =
+                    {
+                        .left = 0,
+                        .top = 0,
+                        .right = static_cast<int>(target->m_width),
+                        .bottom = static_cast<int>(target->m_height),
+                    },
+                .alpha = 1.0f,
+                .color =
+                    {
+                        .r = 0,
+                        .g = 255,
+                        .b = 0,
+                        .a = 127,
+                    },
+            },
+    });
+
+    auto compositionCompleteWaitable = compositor->compose(compositionRequest);
+    compositionCompleteWaitable.wait();
+
+    compareImageWithGoldenPng(target.get(), GetTestDataPath("256x256_golden_solid_color_above.png"),
+                              kDefaultSaveImageIfComparisonFailed);
+}
+
 TEST_F(CompositorVkTest, Transformations) {
     auto compositor = createCompositor();
     ASSERT_NE(compositor, nullptr);
