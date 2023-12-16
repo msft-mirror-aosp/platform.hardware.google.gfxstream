@@ -61,10 +61,6 @@ source_set("goldfish_srcs") {
   configs += [ ":common_config" ]
 
   sources = [
-    "GoldfishAddressSpace/GoldfishAddressSpaceStream.cpp",
-    "GoldfishAddressSpace/VirtioGpuAddressSpaceStream.cpp",
-    "GoldfishAddressSpace/goldfish_address_space.cpp",
-    "GoldfishAddressSpace/include/goldfish_address_space.h",
     "vulkan/goldfish_vulkan.cpp",
     "vulkan_enc/ResourceTracker.cpp",
     "vulkan_enc/ResourceTracker.h",
@@ -96,7 +92,7 @@ loadable_module("libvulkan_gfxstream") {
 
   sources = [
     "GoldfishAddressSpace/AddressSpaceStream.cpp",
-    "GoldfishAddressSpace/include/goldfish_address_space.h",
+    "GoldfishAddressSpace/VirtioGpuAddressSpaceStream.cpp",
     "OpenglCodecCommon/ChecksumCalculator.cpp",
     "OpenglCodecCommon/ChecksumCalculator.h",
     "OpenglCodecCommon/glUtils.cpp",
@@ -210,6 +206,9 @@ loadable_module("libvulkan_gfxstream") {
       "OpenglSystemCommon/QemuPipeStream.cpp",
       "qemupipe/qemu_pipe_common.cpp",
       "qemupipe/qemu_pipe_guest.cpp",
+      "platform/stub/StubVirtGpuBlob.cpp",
+      "platform/stub/StubVirtGpuBlobMapping.cpp",
+      "platform/stub/StubVirtGpuDevice.cpp",
     ]
     sources += [
       "OpenglSystemCommon/TraceProviderFuchsia.cpp",
@@ -217,6 +216,9 @@ loadable_module("libvulkan_gfxstream") {
       "fuchsia/fuchsia_stdio.cc",
       "fuchsia/port.cc",
       "fuchsia/service_connector.cc",
+      "platform/fuchsia/FuchsiaVirtGpuBlob.cpp",
+      "platform/fuchsia/FuchsiaVirtGpuBlobMapping.cpp",
+      "platform/fuchsia/FuchsiaVirtGpuDevice.cpp",
     ]
 
     include_dirs = [

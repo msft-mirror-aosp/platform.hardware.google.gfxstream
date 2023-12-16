@@ -43,6 +43,7 @@
 #define DPRINT(...)
 #endif
 
+using gfxstream::guest::ChecksumCalculator;
 using gfxstream::guest::CreateHealthMonitor;
 using gfxstream::guest::HealthMonitor;
 using gfxstream::guest::HealthMonitorConsumerBasic;
@@ -159,6 +160,11 @@ static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capse
 
 #if defined(__ANDROID__)
     transport = android::base::GetProperty("ro.boot.hardware.gltransport", "");
+#else
+    const char* transport_envvar = getenv("GFXSTREAM_TRANSPORT");
+    if (transport_envvar != nullptr) {
+        transport = std::string(transport_envvar);
+    }
 #endif
 
     if (transport.empty()) {

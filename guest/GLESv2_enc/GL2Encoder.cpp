@@ -31,7 +31,16 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
 
+using gfxstream::guest::BufferData;
+using gfxstream::guest::ChecksumCalculator;
+using gfxstream::guest::FBO_ATTACHMENT_RENDERBUFFER;
+using gfxstream::guest::FBO_ATTACHMENT_TEXTURE;
+using gfxstream::guest::FboFormatInfo;
+using gfxstream::guest::GLClientState;
+using gfxstream::guest::GLSharedGroupPtr;
 using gfxstream::guest::IOStream;
+using gfxstream::guest::ShaderData;
+using gfxstream::guest::ShaderProgramData;
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))

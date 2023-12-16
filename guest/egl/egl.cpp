@@ -34,13 +34,12 @@
 #endif
 #include <cutils/properties.h>
 #include "goldfish_sync.h"
-#include "GLClientState.h"
-#include "GLSharedGroup.h"
+#include "gfxstream/guest/GLClientState.h"
+#include "gfxstream/guest/GLSharedGroup.h"
 #include "eglContext.h"
 #include "ClientAPIExts.h"
 #include "EGLImage.h"
 #include "ProcessPipe.h"
-#include "profiler.h"
 
 #include <qemu_pipe_bp.h>
 
@@ -63,6 +62,7 @@
 #include <cutils/trace.h>
 
 
+using gfxstream::guest::GLClientState;
 using gfxstream::guest::getCurrentThreadId;
 
 #define DEBUG_EGL 0
@@ -1133,7 +1133,6 @@ EGLBoolean eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
         *major = s_display.getVersionMajor();
     if (minor!=NULL)
         *minor = s_display.getVersionMinor();
-    try_register_goldfish_perfetto();
     return EGL_TRUE;
 }
 
