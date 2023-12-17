@@ -352,8 +352,9 @@ int ApiGen::genEncoderHeader(const std::string &filename)
     fprintf(fp, "\n#ifndef GUARD_%s\n", classname.c_str());
     fprintf(fp, "#define GUARD_%s\n\n", classname.c_str());
 
-    fprintf(fp, "#include \"IOStream.h\"\n");
-    fprintf(fp, "#include \"ChecksumCalculator.h\"\n");
+    fprintf(fp, "#include \"gfxstream/guest/ChecksumCalculator.h\"\n");
+    fprintf(fp, "#include \"gfxstream/guest/IOStream.h\"\n");
+
     fprintf(fp, "#include \"%s_%s_context.h\"\n\n\n", m_basename.c_str(), sideString(CLIENT_SIDE));
 
     for (size_t i = 0; i < m_encoderHeaders.size(); i++) {
@@ -366,9 +367,9 @@ int ApiGen::genEncoderHeader(const std::string &filename)
     fprintf(fp, "struct %s : public %s_%s_context_t {\n\n",
             classname.c_str(), m_basename.c_str(), sideString(CLIENT_SIDE));
     fprintf(fp, "\tgfxstream::guest::IOStream *m_stream;\n");
-    fprintf(fp, "\tChecksumCalculator *m_checksumCalculator;\n\n");
+    fprintf(fp, "\tgfxstream::guest::ChecksumCalculator *m_checksumCalculator;\n\n");
 
-    fprintf(fp, "\t%s(gfxstream::guest::IOStream *stream, ChecksumCalculator *checksumCalculator);\n", classname.c_str());
+    fprintf(fp, "\t%s(gfxstream::guest::IOStream *stream, gfxstream::guest::ChecksumCalculator *checksumCalculator);\n", classname.c_str());
     fprintf(fp, "\tvirtual uint64_t lockAndWriteDma(void*, uint32_t) { return 0; }\n");
     fprintf(fp, "};\n\n");
 
@@ -514,7 +515,7 @@ static void writeVarLargeEncodingExpression(Var& var, FILE* fp)
 static void writeEncodingChecksumValidatorOnReturn(const char* funcName, FILE* fp) {
     fprintf(fp, "\tif (useChecksum) {\n"
                 "\t\tunsigned char *checksumBufPtr = NULL;\n"
-                "\t\tunsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];\n"
+                "\t\tunsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];\n"
                 "\t\tif (checksumSize > 0) checksumBufPtr = &checksumBuf[0];\n"
                 "\t\tstream->readback(checksumBufPtr, checksumSize);\n"
                 "\t\tif (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {\n"
@@ -580,6 +581,7 @@ int ApiGen::genEncoderImpl(const std::string &filename)
     fprintf(fp, "#include \"EncoderDebug.h\"\n\n");
 
     // fprintf(fp, "namespace gfxstream {\n\n");
+    fprintf(fp, "using gfxstream::guest::ChecksumCalculator;\n\n");
     fprintf(fp, "using gfxstream::guest::IOStream;\n\n");
     fprintf(fp, "namespace {\n\n");
 
@@ -616,7 +618,7 @@ int ApiGen::genEncoderImpl(const std::string &filename)
                 classname.c_str(),
                 classname.c_str());
         fprintf(fp, "\tIOStream *stream = ctx->m_stream;\n"
-                    "\tChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;\n"
+                    "\tgfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;\n"
                     "\tbool useChecksum = checksumCalculator->getVersion() > 0;\n\n");
         VarsArray & evars = e->vars();
         size_t  maxvars = evars.size();

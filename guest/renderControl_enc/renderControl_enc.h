@@ -4,8 +4,8 @@
 #ifndef GUARD_renderControl_encoder_context_t
 #define GUARD_renderControl_encoder_context_t
 
-#include "IOStream.h"
-#include "ChecksumCalculator.h"
+#include "gfxstream/guest/ChecksumCalculator.h"
+#include "gfxstream/guest/IOStream.h"
 #include "renderControl_client_context.h"
 
 
@@ -16,9 +16,9 @@
 struct renderControl_encoder_context_t : public renderControl_client_context_t {
 
 	gfxstream::guest::IOStream *m_stream;
-	ChecksumCalculator *m_checksumCalculator;
+	gfxstream::guest::ChecksumCalculator *m_checksumCalculator;
 
-	renderControl_encoder_context_t(gfxstream::guest::IOStream *stream, ChecksumCalculator *checksumCalculator);
+	renderControl_encoder_context_t(gfxstream::guest::IOStream *stream, gfxstream::guest::ChecksumCalculator *checksumCalculator);
 	virtual uint64_t lockAndWriteDma(void*, uint32_t) { return 0; }
 };
 

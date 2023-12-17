@@ -42,8 +42,8 @@ void RenderLibImpl::getGlesVersion(int* maj, int* min) {
 }
 
 void RenderLibImpl::setLogger(emugl_logger_struct logger) {
-    // set_emugl_logger(logger.coarse);
-    // set_emugl_cxt_logger(logger.fine);
+    set_gfxstream_logger(logger.coarse);
+    set_gfxstream_fine_logger(logger.fine);
 }
 
 void RenderLibImpl::setGLObjectCounter(
