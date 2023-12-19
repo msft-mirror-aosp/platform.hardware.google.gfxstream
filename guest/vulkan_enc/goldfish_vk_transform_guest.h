@@ -2699,6 +2699,36 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkDescriptorPoolInlineUniformBlockCreat
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toTransform);
+
+void transform_tohost_VkVertexInputBindingDivisorDescriptionEXT(
+    ResourceTracker* resourceTracker, VkVertexInputBindingDivisorDescriptionEXT* toTransform);
+
+void transform_fromhost_VkVertexInputBindingDivisorDescriptionEXT(
+    ResourceTracker* resourceTracker, VkVertexInputBindingDivisorDescriptionEXT* toTransform);
+
+void transform_tohost_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkPipelineVertexInputDivisorStateCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkPipelineVertexInputDivisorStateCreateInfoEXT* toTransform);
+
+void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toTransform);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPipelineCreationFeedbackCreateInfo,
                       transform_tohost_VkPipelineCreationFeedbackCreateInfoEXT)
