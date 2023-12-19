@@ -1710,6 +1710,11 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineCreationFeedback, deepcopy_VkPipelineCr
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      deepcopy_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
+#endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceSubgroupSizeControlFeatures,
                       deepcopy_VkPhysicalDeviceSubgroupSizeControlFeaturesEXT)
