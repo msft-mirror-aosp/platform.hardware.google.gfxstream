@@ -152,6 +152,8 @@ namespace vk {
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
@@ -603,6 +605,17 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         }
         case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT: {
             return sizeof(VkPipelineRasterizationStateStreamCreateInfoEXT);
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            return sizeof(VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            return sizeof(VkPipelineVertexInputDivisorStateCreateInfoEXT);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT);
         }
 #endif
 #ifdef VK_EXT_provoking_vertex
@@ -1137,6 +1150,17 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT: {
             return sizeof(VkPipelineRasterizationStateStreamCreateInfoEXT);
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            return sizeof(VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            return sizeof(VkPipelineVertexInputDivisorStateCreateInfoEXT);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT);
         }
 #endif
 #ifdef VK_EXT_provoking_vertex
