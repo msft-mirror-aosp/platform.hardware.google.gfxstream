@@ -1677,6 +1677,28 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkDescriptorPoolInlineUniformBlockCreateInfo,
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void deepcopy_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* from,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* to);
+
+void deepcopy_VkVertexInputBindingDivisorDescriptionEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* from,
+    VkVertexInputBindingDivisorDescriptionEXT* to);
+
+void deepcopy_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* from,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* to);
+
+void deepcopy_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* from,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* to);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineCreationFeedbackCreateInfo,
                       deepcopy_VkPipelineCreationFeedbackCreateInfoEXT)

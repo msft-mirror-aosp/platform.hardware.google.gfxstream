@@ -3184,6 +3184,40 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfo,
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forUnmarshaling);
+
+void marshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* forMarshaling);
+
+void unmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkVertexInputBindingDivisorDescriptionEXT* forUnmarshaling);
+
+void marshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(marshal_VkPipelineCreationFeedbackCreateInfo,
                       marshal_VkPipelineCreationFeedbackCreateInfoEXT)
