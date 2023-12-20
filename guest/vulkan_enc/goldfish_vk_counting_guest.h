@@ -1565,6 +1565,11 @@ DEFINE_ALIAS_FUNCTION(count_VkPipelineCreationFeedback, count_VkPipelineCreation
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      count_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
+#endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceSubgroupSizeControlFeatures,
                       count_VkPhysicalDeviceSubgroupSizeControlFeaturesEXT)
