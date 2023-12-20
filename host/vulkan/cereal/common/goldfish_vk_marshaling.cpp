@@ -15444,6 +15444,159 @@ void unmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((uint32_t*)&forMarshaling->maxVertexAttribDivisor, sizeof(uint32_t));
+}
+
+void unmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((uint32_t*)&forUnmarshaling->maxVertexAttribDivisor, sizeof(uint32_t));
+}
+
+void marshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((uint32_t*)&forMarshaling->binding, sizeof(uint32_t));
+    vkStream->write((uint32_t*)&forMarshaling->divisor, sizeof(uint32_t));
+}
+
+void unmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVertexInputBindingDivisorDescriptionEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((uint32_t*)&forUnmarshaling->binding, sizeof(uint32_t));
+    vkStream->read((uint32_t*)&forUnmarshaling->divisor, sizeof(uint32_t));
+}
+
+void marshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((uint32_t*)&forMarshaling->vertexBindingDivisorCount, sizeof(uint32_t));
+    if (forMarshaling) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->vertexBindingDivisorCount; ++i) {
+            marshal_VkVertexInputBindingDivisorDescriptionEXT(
+                vkStream, rootType,
+                (const VkVertexInputBindingDivisorDescriptionEXT*)(forMarshaling
+                                                                       ->pVertexBindingDivisors +
+                                                                   i));
+        }
+    }
+}
+
+void unmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((uint32_t*)&forUnmarshaling->vertexBindingDivisorCount, sizeof(uint32_t));
+    vkStream->alloc((void**)&forUnmarshaling->pVertexBindingDivisors,
+                    forUnmarshaling->vertexBindingDivisorCount *
+                        sizeof(const VkVertexInputBindingDivisorDescriptionEXT));
+    if (forUnmarshaling) {
+        for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->vertexBindingDivisorCount; ++i) {
+            unmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+                vkStream, rootType,
+                (VkVertexInputBindingDivisorDescriptionEXT*)(forUnmarshaling
+                                                                 ->pVertexBindingDivisors +
+                                                             i));
+        }
+    }
+}
+
+void marshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkBool32*)&forMarshaling->vertexAttributeInstanceRateDivisor,
+                    sizeof(VkBool32));
+    vkStream->write((VkBool32*)&forMarshaling->vertexAttributeInstanceRateZeroDivisor,
+                    sizeof(VkBool32));
+}
+
+void unmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateDivisor,
+                   sizeof(VkBool32));
+    vkStream->read((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateZeroDivisor,
+                   sizeof(VkBool32));
+}
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
@@ -18274,6 +18427,29 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            marshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                    structExtension));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            marshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
+                    structExtension));
+            break;
+        }
+#endif
 #ifdef VK_EXT_provoking_vertex
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: {
             marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -19385,6 +19561,29 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
             unmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                    structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            unmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            unmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            unmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
                     structExtension_out));
             break;
         }

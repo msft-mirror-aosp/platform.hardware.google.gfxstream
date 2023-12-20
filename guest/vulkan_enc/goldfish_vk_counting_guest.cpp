@@ -6423,6 +6423,74 @@ void count_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void count_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+}
+
+void count_VkVertexInputBindingDivisorDescriptionEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(uint32_t);
+    *count += sizeof(uint32_t);
+}
+
+void count_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+    if (toCount) {
+        for (uint32_t i = 0; i < (uint32_t)toCount->vertexBindingDivisorCount; ++i) {
+            count_VkVertexInputBindingDivisorDescriptionEXT(
+                featureBits, rootType,
+                (const VkVertexInputBindingDivisorDescriptionEXT*)(toCount->pVertexBindingDivisors +
+                                                                   i),
+                count);
+        }
+    }
+}
+
+void count_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
@@ -8052,6 +8120,32 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
             count_VkPipelineRasterizationStateStreamCreateInfoEXT(
                 featureBits, rootType,
                 reinterpret_cast<const VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            count_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            count_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            count_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
                     structExtension),
                 count);
             break;

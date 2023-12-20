@@ -7614,6 +7614,100 @@ void deepcopy_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void deepcopy_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* from,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkVertexInputBindingDivisorDescriptionEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* from,
+    VkVertexInputBindingDivisorDescriptionEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+}
+
+void deepcopy_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* from,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    if (from) {
+        to->pVertexBindingDivisors = nullptr;
+        if (from->pVertexBindingDivisors) {
+            to->pVertexBindingDivisors = (VkVertexInputBindingDivisorDescriptionEXT*)alloc->alloc(
+                from->vertexBindingDivisorCount *
+                sizeof(const VkVertexInputBindingDivisorDescriptionEXT));
+            to->vertexBindingDivisorCount = from->vertexBindingDivisorCount;
+            for (uint32_t i = 0; i < (uint32_t)from->vertexBindingDivisorCount; ++i) {
+                deepcopy_VkVertexInputBindingDivisorDescriptionEXT(
+                    alloc, rootType, from->pVertexBindingDivisors + i,
+                    (VkVertexInputBindingDivisorDescriptionEXT*)(to->pVertexBindingDivisors + i));
+            }
+        }
+    }
+}
+
+void deepcopy_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* from,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
@@ -9752,6 +9846,35 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                 reinterpret_cast<const VkPipelineRasterizationStateStreamCreateInfoEXT*>(
                     structExtension),
                 reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                    structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            deepcopy_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            deepcopy_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            deepcopy_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
                     structExtension_out));
             break;
         }
