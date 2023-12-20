@@ -33198,6 +33198,8 @@ void VkEncoder::vkCmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_scalar_block_layout
+#endif
 #ifdef VK_EXT_subgroup_size_control
 #endif
 #ifdef VK_EXT_tooling_info
