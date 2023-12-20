@@ -1351,6 +1351,11 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineCreationFeedback, handlemap_VkPipeline
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      handlemap_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
+#endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceSubgroupSizeControlFeatures,
                       handlemap_VkPhysicalDeviceSubgroupSizeControlFeaturesEXT)
