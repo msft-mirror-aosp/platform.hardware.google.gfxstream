@@ -624,7 +624,6 @@ bool ColorBufferGl::readContents(size_t* numBytes, void* pixels) {
         *numBytes = m_numBytes;
 
         if (!pixels) return true;
-        RecursiveScopedContextBind context(m_helper);
 
         readPixels(0, 0, m_width, m_height, m_format, m_type, pixels);
 
