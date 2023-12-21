@@ -1326,6 +1326,20 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkDescriptorPoolInlineUniformBlockCreateInfo,
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void handlemap_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toMap);
+
+void handlemap_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanHandleMapping* handlemap, VkVertexInputBindingDivisorDescriptionEXT* toMap);
+
+void handlemap_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineVertexInputDivisorStateCreateInfoEXT* toMap);
+
+void handlemap_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toMap);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineCreationFeedbackCreateInfo,
                       handlemap_VkPipelineCreationFeedbackCreateInfoEXT)
@@ -1336,6 +1350,11 @@ DEFINE_ALIAS_FUNCTION(handlemap_VkPipelineCreationFeedback, handlemap_VkPipeline
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      handlemap_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
 #endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(handlemap_VkPhysicalDeviceSubgroupSizeControlFeatures,

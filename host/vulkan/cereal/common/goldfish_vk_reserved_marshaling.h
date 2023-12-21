@@ -1698,6 +1698,24 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkDescriptorPoolInlineUniformBlockCreate
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVertexInputBindingDivisorDescriptionEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineCreationFeedbackCreateInfo,
                       reservedunmarshal_VkPipelineCreationFeedbackCreateInfoEXT)
@@ -1709,6 +1727,11 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineCreationFeedback,
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      reservedunmarshal_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
 #endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceSubgroupSizeControlFeatures,

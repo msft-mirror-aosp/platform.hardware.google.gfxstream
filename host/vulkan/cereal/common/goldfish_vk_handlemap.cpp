@@ -3549,11 +3549,58 @@ void handlemap_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void handlemap_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
+void handlemap_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanHandleMapping* handlemap, VkVertexInputBindingDivisorDescriptionEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+}
+
+void handlemap_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanHandleMapping* handlemap, VkPipelineVertexInputDivisorStateCreateInfoEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+    if (toMap) {
+        if (toMap->pVertexBindingDivisors) {
+            for (uint32_t i = 0; i < (uint32_t)toMap->vertexBindingDivisorCount; ++i) {
+                handlemap_VkVertexInputBindingDivisorDescriptionEXT(
+                    handlemap,
+                    (VkVertexInputBindingDivisorDescriptionEXT*)(toMap->pVertexBindingDivisors +
+                                                                 i));
+            }
+        }
+    }
+}
+
+void handlemap_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanHandleMapping* handlemap, VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toMap) {
+    (void)handlemap;
+    (void)toMap;
+    if (toMap->pNext) {
+        handlemap_extension_struct(handlemap, (void*)(toMap->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
 #endif
@@ -4803,6 +4850,26 @@ void handlemap_extension_struct(VulkanHandleMapping* handlemap, void* structExte
         case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT: {
             handlemap_VkPipelineRasterizationStateStreamCreateInfoEXT(
                 handlemap, reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                               structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            handlemap_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                handlemap, reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                               structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            handlemap_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                handlemap, reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                               structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            handlemap_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                handlemap, reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
                                structExtension_out));
             break;
         }
