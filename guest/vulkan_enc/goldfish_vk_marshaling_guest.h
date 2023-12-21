@@ -3184,6 +3184,40 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfo,
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forUnmarshaling);
+
+void marshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* forMarshaling);
+
+void unmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkVertexInputBindingDivisorDescriptionEXT* forUnmarshaling);
+
+void marshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(marshal_VkPipelineCreationFeedbackCreateInfo,
                       marshal_VkPipelineCreationFeedbackCreateInfoEXT)
@@ -3199,6 +3233,14 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineCreationFeedback, unmarshal_VkPipeline
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      marshal_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      unmarshal_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
 #endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceSubgroupSizeControlFeatures,
