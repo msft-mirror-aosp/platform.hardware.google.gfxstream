@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
- #include "RutabagaLayer.h"
+#include "RutabagaLayer.h"
+
+#include <inttypes.h>
+#include <log/log.h>
 
 #include <cstdlib>
 #include <future>
-#include <inttypes.h>
 #include <memory>
 #include <optional>
 #include <queue>
@@ -28,17 +30,15 @@
 #include <unordered_map>
 #include <variant>
 
-#include <log/log.h>
-
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 
 namespace gfxstream {
 namespace {
 
 constexpr const uint32_t kInvalidContextId = 0;
 
-std::vector<std::string> Split(const std::string& s,
-                               const std::string& delimiters) {
+std::vector<std::string> Split(const std::string& s, const std::string& delimiters) {
     if (delimiters.empty()) {
         return {};
     }
@@ -50,16 +50,14 @@ std::vector<std::string> Split(const std::string& s,
     while (true) {
         found = s.find_first_of(delimiters, base);
         result.push_back(s.substr(base, found - base));
-        if (found == s.npos)
-            break;
+        if (found == s.npos) break;
         base = found + 1;
     }
 
     return result;
 }
 
-std::string Join(const std::vector<std::string>& things,
-                 const std::string& separator) {
+std::string Join(const std::vector<std::string>& things, const std::string& separator) {
     if (things.empty()) {
         return "";
     }
@@ -75,14 +73,11 @@ std::string Join(const std::vector<std::string>& things,
 }  // namespace
 
 class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
-  public:
+   public:
     EmulatedVirtioGpuImpl();
     ~EmulatedVirtioGpuImpl();
 
-    bool Init(bool withGl,
-              bool withVk,
-              bool withVkSnapshots,
-              EmulatedVirtioGpu* parent);
+    bool Init(bool withGl, bool withVk, bool withVkSnapshots, EmulatedVirtioGpu* parent);
 
     VirtGpuCaps GetCaps(VirtGpuCapset capset);
 
@@ -92,32 +87,21 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
     uint8_t* Map(uint32_t resourceId);
     void Unmap(uint32_t resourceId);
 
-    int ExecBuffer(uint32_t contextId,
-                   struct VirtGpuExecBuffer& execbuffer,
+    int ExecBuffer(uint32_t contextId, struct VirtGpuExecBuffer& execbuffer,
                    std::optional<uint32_t> blobResourceId);
 
     int Wait(uint32_t resourceId);
 
-    int TransferFromHost(uint32_t contextId,
-                         uint32_t resourceId,
-                         uint32_t transferOffset,
+    int TransferFromHost(uint32_t contextId, uint32_t resourceId, uint32_t transferOffset,
                          uint32_t transferSize);
-    int TransferToHost(uint32_t contextId,
-                       uint32_t resourceId,
-                       uint32_t transferOffset,
+    int TransferToHost(uint32_t contextId, uint32_t resourceId, uint32_t transferOffset,
                        uint32_t transferSize);
 
-    std::optional<uint32_t> CreateBlob(uint32_t contextId,
-                                       const struct VirtGpuCreateBlob& params);
-    std::optional<uint32_t> CreatePipeBlob(uint32_t contextId,
-                                           uint32_t size);
-    std::optional<uint32_t> CreatePipeTexture2D(uint32_t contextId,
-                                                uint32_t width,
-                                                uint32_t height,
-                                                uint32_t format);
+    std::optional<uint32_t> CreateBlob(uint32_t contextId, const struct VirtGpuCreateBlob& params);
+    std::optional<uint32_t> CreateVirglBlob(uint32_t contextId, uint32_t width, uint32_t height,
+                                            uint32_t virglFormat);
 
-    void DestroyResource(uint32_t contextId,
-                         uint32_t resourceId);
+    void DestroyResource(uint32_t contextId, uint32_t resourceId);
 
     uint32_t CreateEmulatedFence();
 
@@ -125,7 +109,7 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
 
     int WaitOnEmulatedFence(int fenceAsFileDescriptor, int timeoutMilliseconds);
 
-  private:
+   private:
     struct VirtioGpuTaskContextAttachResource {
         uint32_t contextId;
         uint32_t resourceId;
@@ -176,17 +160,12 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
     struct VirtioGpuTaskUnrefResource {
         uint32_t resourceId;
     };
-    using VirtioGpuTask = std::variant<VirtioGpuTaskContextAttachResource,
-                                       VirtioGpuTaskContextDetachResource,
-                                       VirtioGpuTaskCreateBlob,
-                                       VirtioGpuTaskCreateContext,
-                                       VirtioGpuTaskCreateResource,
-                                       VirtioGpuTaskDestroyContext,
-                                       VirtioGpuTaskMap,
-                                       VirtioGpuTaskExecBuffer,
-                                       VirtioGpuTaskTransferFromHost,
-                                       VirtioGpuTaskTransferToHost,
-                                       VirtioGpuTaskUnrefResource>;
+    using VirtioGpuTask =
+        std::variant<VirtioGpuTaskContextAttachResource, VirtioGpuTaskContextDetachResource,
+                     VirtioGpuTaskCreateBlob, VirtioGpuTaskCreateContext,
+                     VirtioGpuTaskCreateResource, VirtioGpuTaskDestroyContext, VirtioGpuTaskMap,
+                     VirtioGpuTaskExecBuffer, VirtioGpuTaskTransferFromHost,
+                     VirtioGpuTaskTransferToHost, VirtioGpuTaskUnrefResource>;
     struct VirtioGpuTaskWithWaitable {
         uint32_t contextId;
         VirtioGpuTask task;
@@ -194,8 +173,7 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
         std::optional<uint32_t> fence;
     };
 
-    std::shared_future<void> EnqueueVirtioGpuTask(uint32_t contextId,
-                                                  VirtioGpuTask task,
+    std::shared_future<void> EnqueueVirtioGpuTask(uint32_t contextId, VirtioGpuTask task,
                                                   std::optional<uint32_t> fence = std::nullopt);
     void DoTask(VirtioGpuTaskContextAttachResource task);
     void DoTask(VirtioGpuTaskContextDetachResource task);
@@ -243,9 +221,8 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
     EmulatedResource* CreateResource(uint32_t resourceId, EmulatedResourceType resourceType) {
         std::lock_guard<std::mutex> lock(mResourcesMutex);
 
-        auto [it, created] = mResources.emplace(std::piecewise_construct,
-                                                std::forward_as_tuple(resourceId),
-                                                std::forward_as_tuple());
+        auto [it, created] = mResources.emplace(
+            std::piecewise_construct, std::forward_as_tuple(resourceId), std::forward_as_tuple());
         if (!created) {
             ALOGE("Created resource %" PRIu32 " twice?", resourceId);
         }
@@ -300,9 +277,7 @@ void WriteFenceTrampoline(void* cookie, struct stream_renderer_fence* fence) {
 
 }  // namespace
 
-bool EmulatedVirtioGpu::EmulatedVirtioGpuImpl::Init(bool withGl,
-                                                    bool withVk,
-                                                    bool withVkSnapshots,
+bool EmulatedVirtioGpu::EmulatedVirtioGpuImpl::Init(bool withGl, bool withVk, bool withVkSnapshots,
                                                     EmulatedVirtioGpu* parent) {
     std::vector<stream_renderer_param> renderer_params{
         stream_renderer_param{
@@ -317,10 +292,12 @@ bool EmulatedVirtioGpu::EmulatedVirtioGpuImpl::Init(bool withGl,
             .key = STREAM_RENDERER_PARAM_RENDERER_FLAGS,
             .value =
                 static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT) |
-                (withGl ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_EGL_BIT  |
-                                                STREAM_RENDERER_FLAGS_USE_GLES_BIT) : 0 ) |
-                (withVk ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_VK_BIT) : 0 ) |
-                (withVkSnapshots ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS): 0),
+                (withGl ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_EGL_BIT |
+                                                STREAM_RENDERER_FLAGS_USE_GLES_BIT)
+                        : 0) |
+                (withVk ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_USE_VK_BIT) : 0) |
+                (withVkSnapshots ? static_cast<uint64_t>(STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS)
+                                 : 0),
         },
         stream_renderer_param{
             .key = STREAM_RENDERER_PARAM_WIN0_WIDTH,
@@ -336,16 +313,17 @@ bool EmulatedVirtioGpu::EmulatedVirtioGpuImpl::Init(bool withGl,
 
 VirtGpuCaps EmulatedVirtioGpu::EmulatedVirtioGpuImpl::GetCaps(VirtGpuCapset capset) {
     VirtGpuCaps caps = {
-        .params = {
-            [kParam3D] = 1,
-            [kParamCapsetFix] = 1,
-            [kParamResourceBlob] = 1,
-            [kParamHostVisible] = 1,
-            [kParamCrossDevice] = 0,
-            [kParamContextInit] = 1,
-            [kParamSupportedCapsetIds] = 0,
-            [kParamCreateGuestHandle] = 0,
-        },
+        .params =
+            {
+                [kParam3D] = 1,
+                [kParamCapsetFix] = 1,
+                [kParamResourceBlob] = 1,
+                [kParamHostVisible] = 1,
+                [kParamCrossDevice] = 0,
+                [kParamContextInit] = 1,
+                [kParamSupportedCapsetIds] = 0,
+                [kParamCreateGuestHandle] = 0,
+            },
     };
 
     stream_renderer_fill_caps(static_cast<uint32_t>(capset), 0, &caps.vulkanCapset);
@@ -382,8 +360,10 @@ uint8_t* EmulatedVirtioGpu::EmulatedVirtioGpuImpl::Map(uint32_t resourceId) {
     uint8_t* mapped = nullptr;
     if (resource->type == EmulatedResourceType::kBlob) {
         if (!resource->mappedHostBytes.valid()) {
-            ALOGE("Failed to Map() resource %" PRIu32 ": attempting to map blob "
-                  "without mappable flag?", resourceId);
+            ALOGE("Failed to Map() resource %" PRIu32
+                  ": attempting to map blob "
+                  "without mappable flag?",
+                  resourceId);
             return nullptr;
         }
         mapped = resource->mappedHostBytes.get();
@@ -417,11 +397,10 @@ int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::Wait(uint32_t resourceId) {
     return 0;
 }
 
-int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferFromHost(
-        uint32_t contextId,
-        uint32_t resourceId,
-        uint32_t transferOffset,
-        uint32_t transferSize) {
+int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferFromHost(uint32_t contextId,
+                                                               uint32_t resourceId,
+                                                               uint32_t transferOffset,
+                                                               uint32_t transferSize) {
     EmulatedResource* resource = GetResource(resourceId);
     if (resource == nullptr) {
         ALOGE("Failed to TransferFromHost() on resource %" PRIu32 ": not found.", resourceId);
@@ -444,11 +423,10 @@ int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferFromHost(
     return 0;
 }
 
-int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferToHost(
-        uint32_t contextId,
-        uint32_t resourceId,
-        uint32_t transferOffset,
-        uint32_t transferSize) {
+int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferToHost(uint32_t contextId,
+                                                             uint32_t resourceId,
+                                                             uint32_t transferOffset,
+                                                             uint32_t transferSize) {
     EmulatedResource* resource = GetResource(resourceId);
     if (resource == nullptr) {
         ALOGE("Failed to TransferFromHost() on resource %" PRIu32 ": not found.", resourceId);
@@ -472,8 +450,8 @@ int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferToHost(
 }
 
 std::optional<uint32_t> EmulatedVirtioGpu::EmulatedVirtioGpuImpl::CreateBlob(
-        uint32_t contextId,
-        const struct VirtGpuCreateBlob& blobCreate) {
+    uint32_t contextId, const struct VirtGpuCreateBlob& blobCreate) {
+
     const uint32_t resourceId = mNextVirtioGpuResourceId++;
 
     ALOGV("Enquing task to create blob resource-id:%d size:%" PRIu64, resourceId, blobCreate.size);
@@ -483,12 +461,13 @@ std::optional<uint32_t> EmulatedVirtioGpu::EmulatedVirtioGpuImpl::CreateBlob(
     VirtioGpuTaskCreateBlob createTask{
         .contextId = contextId,
         .resourceId = resourceId,
-        .params = {
-            .blob_mem = static_cast<uint32_t>(blobCreate.blobMem),
-            .blob_flags = static_cast<uint32_t>(blobCreate.flags),
-            .blob_id = blobCreate.blobId,
-            .size = blobCreate.size,
-        },
+        .params =
+            {
+                .blob_mem = static_cast<uint32_t>(blobCreate.blobMem),
+                .blob_flags = static_cast<uint32_t>(blobCreate.flags),
+                .blob_id = blobCreate.blobId,
+                .size = blobCreate.size,
+            },
     };
     auto createBlobCompletedWaitable = EnqueueVirtioGpuTask(contextId, std::move(createTask));
     resource->pendingWaitables.push_back(std::move(createBlobCompletedWaitable));
@@ -514,71 +493,64 @@ std::optional<uint32_t> EmulatedVirtioGpu::EmulatedVirtioGpuImpl::CreateBlob(
     return resourceId;
 }
 
-std::optional<uint32_t> EmulatedVirtioGpu::EmulatedVirtioGpuImpl::CreatePipeBlob(
-        uint32_t contextId,
-        uint32_t size) {
+std::optional<uint32_t> EmulatedVirtioGpu::EmulatedVirtioGpuImpl::CreateVirglBlob(
+    uint32_t contextId, uint32_t width, uint32_t height, uint32_t virglFormat) {
+
     const uint32_t resourceId = mNextVirtioGpuResourceId++;
 
     EmulatedResource* resource = CreateResource(resourceId, EmulatedResourceType::kPipe);
-    resource->guestBytes = std::make_unique<uint8_t[]>(size);
+
+    uint32_t target = 0;
+    uint32_t bind = 0;
+    uint32_t bpp = 0;
+
+    switch (virglFormat) {
+        case VIRGL_FORMAT_R8G8B8A8_UNORM:
+        case VIRGL_FORMAT_B8G8R8A8_UNORM:
+            target = PIPE_TEXTURE_2D;
+            bind = VIRGL_BIND_RENDER_TARGET;
+            bpp = 4;
+            break;
+        case VIRGL_FORMAT_B5G6R5_UNORM:
+            target = PIPE_TEXTURE_2D;
+            bind = VIRGL_BIND_RENDER_TARGET;
+            bpp = 2;
+            break;
+        case VIRGL_FORMAT_R8G8B8_UNORM:
+            target = PIPE_TEXTURE_2D;
+            bind = VIRGL_BIND_RENDER_TARGET;
+            bpp = 3;
+            break;
+        case VIRGL_FORMAT_R8_UNORM:
+            target = PIPE_BUFFER;
+            bind = VIRGL_BIND_CUSTOM;
+            bpp = 1;
+            break;
+        default:
+            ALOGE("Unknown virgl format %u", virglFormat);
+            return {};
+    }
+
+    resource->guestBytes = std::make_unique<uint8_t[]>(width * height * bpp);
 
     VirtioGpuTaskCreateResource task{
         .contextId = contextId,
         .resourceId = resourceId,
         .resourceBytes = resource->guestBytes.get(),
-        .params = {
-            .handle = resourceId,
-            .target = /*PIPE_BUFFER=*/0,
-            .format = /*VIRGL_FORMAT_R8_UNORM=*/64,
-            .bind = /*VIRGL_BIND_CUSTOM=*/(1 << 17),
-            .width = size,
-            .height = 1,
-            .depth = 1,
-            .array_size = 0,
-            .last_level = 0,
-            .nr_samples = 0,
-            .flags = 0,
-        },
-    };
-    auto taskCompletedWaitable = EnqueueVirtioGpuTask(contextId, std::move(task));
-    resource->pendingWaitables.push_back(std::move(taskCompletedWaitable));
-
-    VirtioGpuTaskContextAttachResource attachTask{
-        .contextId = contextId,
-        .resourceId = resourceId,
-    };
-    EnqueueVirtioGpuTask(contextId, std::move(attachTask));
-
-    return resourceId;
-}
-
-std::optional<uint32_t> EmulatedVirtioGpu::EmulatedVirtioGpuImpl::CreatePipeTexture2D(
-        uint32_t contextId,
-        uint32_t width,
-        uint32_t height,
-        uint32_t format) {
-    const uint32_t resourceId = mNextVirtioGpuResourceId++;
-
-    EmulatedResource* resource = CreateResource(resourceId, EmulatedResourceType::kPipe);
-    resource->guestBytes = std::make_unique<uint8_t[]>(width * height * 4);
-
-    VirtioGpuTaskCreateResource task{
-        .contextId = contextId,
-        .resourceId = resourceId,
-        .resourceBytes = resource->guestBytes.get(),
-        .params = {
-            .handle = resourceId,
-            .target = /*PIPE_TEXTURE_2D=*/2,
-            .format = format,
-            .bind = 0,
-            .width = width,
-            .height = height,
-            .depth = 1,
-            .array_size = 1,
-            .last_level = 0,
-            .nr_samples = 0,
-            .flags = 0,
-        },
+        .params =
+            {
+                .handle = resourceId,
+                .target = target,
+                .format = virglFormat,
+                .bind = bind,
+                .width = width,
+                .height = height,
+                .depth = 1,
+                .array_size = 1,
+                .last_level = 0,
+                .nr_samples = 0,
+                .flags = 0,
+            },
     };
     auto taskCompletedWaitable = EnqueueVirtioGpuTask(contextId, std::move(task));
     resource->pendingWaitables.push_back(std::move(taskCompletedWaitable));
@@ -608,10 +580,9 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DestroyResource(uint32_t contextI
     EnqueueVirtioGpuTask(contextId, std::move(detachTask));
 }
 
-int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::ExecBuffer(
-        uint32_t contextId,
-        struct VirtGpuExecBuffer& execbuffer,
-        std::optional<uint32_t> blobResourceId) {
+int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::ExecBuffer(uint32_t contextId,
+                                                         struct VirtGpuExecBuffer& execbuffer,
+                                                         std::optional<uint32_t> blobResourceId) {
     std::optional<uint32_t> fence;
 
     if (execbuffer.flags & kFenceOut) {
@@ -647,9 +618,8 @@ int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::ExecBuffer(
     return 0;
 }
 
-int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::WaitOnEmulatedFence(
-        int fenceAsFileDescriptor,
-        int timeoutMilliseconds) {
+int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::WaitOnEmulatedFence(int fenceAsFileDescriptor,
+                                                                  int timeoutMilliseconds) {
     uint32_t fenceId = static_cast<uint32_t>(fenceAsFileDescriptor);
     ALOGV("Waiting on fence:%d", (int)fenceId);
 
@@ -711,50 +681,45 @@ uint32_t EmulatedVirtioGpu::EmulatedVirtioGpuImpl::CreateEmulatedFence() {
 }
 
 std::shared_future<void> EmulatedVirtioGpu::EmulatedVirtioGpuImpl::EnqueueVirtioGpuTask(
-        uint32_t contextId,
-        VirtioGpuTask task,
-        std::optional<uint32_t> fence) {
+    uint32_t contextId, VirtioGpuTask task, std::optional<uint32_t> fence) {
     std::promise<void> taskCompletedSignaler;
     std::shared_future<void> taskCompletedWaitable(taskCompletedSignaler.get_future());
 
     std::lock_guard<std::mutex> lock(mTasksMutex);
-    mTasks.push(
-        VirtioGpuTaskWithWaitable{
-            .contextId = contextId,
-            .task = std::move(task),
-            .taskCompletedSignaler = std::move(taskCompletedSignaler),
-            .fence = fence,
-        });
+    mTasks.push(VirtioGpuTaskWithWaitable{
+        .contextId = contextId,
+        .task = std::move(task),
+        .taskCompletedSignaler = std::move(taskCompletedSignaler),
+        .fence = fence,
+    });
 
     return taskCompletedWaitable;
 }
 
 void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskContextAttachResource task) {
-    ALOGV("Performing task to attach resource-id:%d to context-id:%d",
-          task.resourceId, task.contextId);
+    ALOGV("Performing task to attach resource-id:%d to context-id:%d", task.resourceId,
+          task.contextId);
 
     stream_renderer_ctx_attach_resource(task.contextId, task.resourceId);
 
-    ALOGV("Performing task to attach resource-id:%d to context-id:%d - done",
-          task.resourceId, task.contextId);
+    ALOGV("Performing task to attach resource-id:%d to context-id:%d - done", task.resourceId,
+          task.contextId);
 }
 
 void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskContextDetachResource task) {
-    ALOGV("Performing task to detach resource-id:%d to context-id:%d",
-          task.resourceId, task.contextId);
+    ALOGV("Performing task to detach resource-id:%d to context-id:%d", task.resourceId,
+          task.contextId);
 
     stream_renderer_ctx_detach_resource(task.contextId, task.resourceId);
 
-    ALOGV("Performing task to detach resource-id:%d to context-id:%d - done",
-          task.resourceId, task.contextId);
+    ALOGV("Performing task to detach resource-id:%d to context-id:%d - done", task.resourceId,
+          task.contextId);
 }
 
 void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskCreateBlob task) {
     ALOGV("Performing task to create blob resource-id:%d", task.resourceId);
 
-    int ret = stream_renderer_create_blob(task.contextId,
-                                          task.resourceId,
-                                          &task.params,
+    int ret = stream_renderer_create_blob(task.contextId, task.resourceId, &task.params,
                                           /*iovecs=*/nullptr,
                                           /*num_iovs=*/0,
                                           /*handle=*/nullptr);
@@ -770,10 +735,8 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskCreateContext
           " context-name:%s",
           task.contextId, task.contextInit, task.contextName.c_str());
 
-    int ret = stream_renderer_context_create(task.contextId,
-                                             task.contextName.size(),
-                                             task.contextName.data(),
-                                             task.contextInit);
+    int ret = stream_renderer_context_create(task.contextId, task.contextName.size(),
+                                             task.contextName.data(), task.contextInit);
     if (ret) {
         ALOGE("Failed to create context-id:%" PRIu32 ".", task.contextId);
         return;
@@ -863,12 +826,10 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskTransferFromH
         .d = 1,
     };
 
-    int ret = stream_renderer_transfer_read_iov(task.resourceId,
-                                                task.contextId,
+    int ret = stream_renderer_transfer_read_iov(task.resourceId, task.contextId,
                                                 /*level=*/0,
                                                 /*stride=*/0,
-                                                /*layer_stride=*/0,
-                                                &transferBox,
+                                                /*layer_stride=*/0, &transferBox,
                                                 /*offset=*/0,
                                                 /*iov=*/nullptr,
                                                 /*iovec_cnt=*/0);
@@ -887,12 +848,10 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskTransferToHos
         .d = 1,
     };
 
-    int ret = stream_renderer_transfer_write_iov(task.resourceId,
-                                                 task.contextId,
+    int ret = stream_renderer_transfer_write_iov(task.resourceId, task.contextId,
                                                  /*level=*/0,
                                                  /*stride=*/0,
-                                                 /*layer_stride=*/0,
-                                                 &transferBox,
+                                                 /*layer_stride=*/0, &transferBox,
                                                  /*offset=*/0,
                                                  /*iov=*/nullptr,
                                                  /*iovec_cnt=*/0);
@@ -907,7 +866,7 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskUnrefResource
 
 void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskWithWaitable task) {
     std::visit(
-        [this](auto&& work){
+        [this](auto&& work) {
             using T = std::decay_t<decltype(work)>;
             if constexpr (std::is_same_v<T, VirtioGpuTaskContextAttachResource>) {
                 DoTask(std::move(work));
@@ -932,7 +891,8 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskWithWaitable 
             } else if constexpr (std::is_same_v<T, VirtioGpuTaskUnrefResource>) {
                 DoTask(std::move(work));
             }
-        }, task.task);
+        },
+        task.task);
 
     if (task.fence) {
         const stream_renderer_fence fenceInfo = {
@@ -1002,8 +962,8 @@ EmulatedVirtioGpu& EmulatedVirtioGpu::Get() {
             }
         }
 
-        ALOGE("Initializing withGl:%d withVk:%d withVkSnapshots:%d",
-              withGl, withVk, withVkSnapshots);
+        ALOGE("Initializing withGl:%d withVk:%d withVkSnapshots:%d", withGl, withVk,
+              withVkSnapshots);
         if (!sInstance->Init(withGl, withVk, withVkSnapshots)) {
             ALOGE("Failed to initialize EmulatedVirtioGpu.");
         }
@@ -1023,46 +983,29 @@ bool EmulatedVirtioGpu::Init(bool withGl, bool withVk, bool withVkSnapshots) {
     return mImpl->Init(withGl, withVk, withVkSnapshots, this);
 }
 
-std::optional<uint32_t> EmulatedVirtioGpu::CreateContext() {
-    return mImpl->CreateContext();
-}
+std::optional<uint32_t> EmulatedVirtioGpu::CreateContext() { return mImpl->CreateContext(); }
 
-void EmulatedVirtioGpu::DestroyContext(uint32_t contextId) {
-    mImpl->DestroyContext(contextId);
-}
+void EmulatedVirtioGpu::DestroyContext(uint32_t contextId) { mImpl->DestroyContext(contextId); }
 
-VirtGpuCaps EmulatedVirtioGpu::GetCaps(VirtGpuCapset capset) {
-    return mImpl->GetCaps(capset);
-}
+VirtGpuCaps EmulatedVirtioGpu::GetCaps(VirtGpuCapset capset) { return mImpl->GetCaps(capset); }
 
-uint8_t* EmulatedVirtioGpu::Map(uint32_t resourceId) {
-    return mImpl->Map(resourceId);
-}
+uint8_t* EmulatedVirtioGpu::Map(uint32_t resourceId) { return mImpl->Map(resourceId); }
 
-void EmulatedVirtioGpu::Unmap(uint32_t resourceId) {
-    mImpl->Unmap(resourceId);
-}
+void EmulatedVirtioGpu::Unmap(uint32_t resourceId) { mImpl->Unmap(resourceId); }
 
-int EmulatedVirtioGpu::ExecBuffer(uint32_t contextId,
-                                  struct VirtGpuExecBuffer& execbuffer,
+int EmulatedVirtioGpu::ExecBuffer(uint32_t contextId, struct VirtGpuExecBuffer& execbuffer,
                                   std::optional<uint32_t> blobResourceId) {
     return mImpl->ExecBuffer(contextId, execbuffer, blobResourceId);
 }
 
-int EmulatedVirtioGpu::Wait(uint32_t resourceId) {
-    return mImpl->Wait(resourceId);
-}
+int EmulatedVirtioGpu::Wait(uint32_t resourceId) { return mImpl->Wait(resourceId); }
 
-int EmulatedVirtioGpu::TransferFromHost(uint32_t contextId,
-                                        uint32_t resourceId,\
-                                        uint32_t offset,
+int EmulatedVirtioGpu::TransferFromHost(uint32_t contextId, uint32_t resourceId, uint32_t offset,
                                         uint32_t size) {
     return mImpl->TransferFromHost(contextId, resourceId, offset, size);
 }
 
-int EmulatedVirtioGpu::TransferToHost(uint32_t contextId,
-                                      uint32_t resourceId,
-                                      uint32_t offset,
+int EmulatedVirtioGpu::TransferToHost(uint32_t contextId, uint32_t resourceId, uint32_t offset,
                                       uint32_t size) {
     return mImpl->TransferToHost(contextId, resourceId, offset, size);
 }
@@ -1072,17 +1015,9 @@ std::optional<uint32_t> EmulatedVirtioGpu::CreateBlob(uint32_t contextId,
     return mImpl->CreateBlob(contextId, params);
 }
 
-std::optional<uint32_t> EmulatedVirtioGpu::CreatePipeBlob(uint32_t contextId,
-                                                          uint32_t size) {
-    return mImpl->CreatePipeBlob(contextId, size);
-}
-
-std::optional<uint32_t> EmulatedVirtioGpu::CreatePipeTexture2D(
-        uint32_t contextId,
-        uint32_t width,
-        uint32_t height,
-        uint32_t format) {
-    return mImpl->CreatePipeTexture2D(contextId, width, height, format);
+std::optional<uint32_t> EmulatedVirtioGpu::CreateVirglBlob(uint32_t contextId, uint32_t width,
+                                                           uint32_t height, uint32_t virglFormat) {
+    return mImpl->CreateVirglBlob(contextId, width, height, virglFormat);
 }
 
 void EmulatedVirtioGpu::DestroyResource(uint32_t contextId, uint32_t resourceId) {
@@ -1093,12 +1028,8 @@ int EmulatedVirtioGpu::WaitOnEmulatedFence(int fenceAsFileDescriptor, int timeou
     return mImpl->WaitOnEmulatedFence(fenceAsFileDescriptor, timeoutMilliseconds);
 }
 
-void EmulatedVirtioGpu::SignalEmulatedFence(int fenceId) {
-    mImpl->SignalEmulatedFence(fenceId);
-}
+void EmulatedVirtioGpu::SignalEmulatedFence(int fenceId) { mImpl->SignalEmulatedFence(fenceId); }
 
-void ResetEmulatedVirtioGpu() {
-    EmulatedVirtioGpu::Reset();
-}
+void ResetEmulatedVirtioGpu() { EmulatedVirtioGpu::Reset(); }
 
 }  // namespace gfxstream

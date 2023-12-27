@@ -52,6 +52,7 @@ thread_dep = dependency('threads')
 # Includes      #
 #===============#
 
+inc_include_mesa = include_directories('mesa/include')
 inc_vulkan_headers = include_directories('../common/vulkan/include')
 inc_opengl_headers = include_directories('../common/opengl/include')
 inc_fuchsia_magma = include_directories('../third-party/fuchsia/magma/include')

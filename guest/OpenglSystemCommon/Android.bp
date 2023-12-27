@@ -48,7 +48,7 @@ cc_library_static {
         "-DVIRTIO_GPU",
     ],
     export_include_dirs: [
-        "."
+        ".",
     ],
     target: {
         android: {
@@ -62,14 +62,14 @@ cc_library_static {
                 "GrallocGoldfish.cpp",
                 "GrallocMinigbm.cpp",
             ],
-        }
-    }
+        },
+    },
 }
 
 cc_library_headers {
     name: "libgfxstream_guest_sync",
     export_include_dirs: [
-        "."
+        ".",
     ],
 }
 
@@ -98,14 +98,13 @@ cc_defaults {
     ],
     shared_libs: [
         "lib_renderControl_enc",
-        "libandroidemu",
         "libbase",
+        "libdrm",
         "libcutils",
         "libGLESv1_enc",
         "libGLESv2_enc",
         "liblog",
         "libOpenglCodecCommon",
-        "libvulkan_enc",
     ],
     export_shared_lib_headers: [
         "lib_renderControl_enc",
@@ -135,7 +134,7 @@ cc_defaults {
         "VirtioGpuPipeStream.cpp",
     ],
     export_include_dirs: [
-        "."
+        ".",
     ],
     target: {
         android: {
@@ -153,6 +152,11 @@ cc_defaults {
                 "ANativeWindowAndroid.cpp",
             ],
         },
+        host: {
+            srcs: [
+                "TestingAndroidWsi.cpp",
+            ],
+        },
     },
 }
 
@@ -161,7 +165,11 @@ cc_library_shared {
     defaults: [
         "libOpenglSystemCommonDefaults",
     ],
+    shared_libs: [
+        "libandroidemu",
+    ],
     static_libs: [
+        "libvulkan_enc",
         "libplatform",
     ],
     export_static_lib_headers: [
@@ -176,11 +184,58 @@ cc_library_shared {
     ],
     shared_libs: [
         "libgfxstream_backend",
+        "libplatform_rutabaga",
+        "libandroidemu",
     ],
     static_libs: [
+        "libgfxstream_guest_vulkan_encoder_with_host",
+    ],
+    export_shared_lib_headers: [
         "libplatform_rutabaga",
     ],
+    target: {
+        host: {
+            compile_multilib: "64",
+        },
+        android: {
+            compile_multilib: "64",
+        },
+    },
+}
+
+cc_library_static {
+    name: "libgfxstream_guest_system_common",
+    defaults: [
+        "libOpenglSystemCommonDefaults",
+    ],
+    header_libs: [
+        "vulkan_enc_headers",
+    ],
+    static_libs: [
+        "libandroidemu_static",
+        "libplatform",
+    ],
     export_static_lib_headers: [
+        "libplatform",
+    ],
+}
+
+cc_library_static {
+    name: "libgfxstream_guest_system_common_with_host",
+    defaults: [
+        "libOpenglSystemCommonDefaults",
+    ],
+    header_libs: [
+        "vulkan_enc_headers",
+    ],
+    shared_libs: [
+        "libgfxstream_backend",
+        "libplatform_rutabaga",
+    ],
+    static_libs: [
+        "libandroidemu_static",
+    ],
+    export_shared_lib_headers: [
         "libplatform_rutabaga",
     ],
     target: {
