@@ -780,6 +780,8 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         }
 #endif
         default: {
+            fprintf(stderr, "Unhandled Vulkan structure type %d, aborting.\n", structType);
+            GFXSTREAM_ABORT(::emugl::FatalError(::emugl::ABORT_REASON_OTHER));
             return (size_t)0;
         }
     }
@@ -1356,6 +1358,8 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
 #endif
         default: {
+            fprintf(stderr, "Unhandled Vulkan structure type %d, aborting.\n", structType);
+            GFXSTREAM_ABORT(::emugl::FatalError(::emugl::ABORT_REASON_OTHER));
             return (size_t)0;
         }
     }
