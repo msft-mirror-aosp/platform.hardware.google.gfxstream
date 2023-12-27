@@ -24,15 +24,6 @@
 #include "virtgpu_drm.h"
 #include "VirtGpu.h"
 
-// In a virtual machine, there should only be one GPU
-#define RENDERNODE_MINOR 128
-
-// Attributes use to allocate our response buffer
-// Similar to virgl's fence objects
-#define PIPE_BUFFER             0
-#define VIRGL_FORMAT_R8_UNORM   64
-#define VIRGL_BIND_CUSTOM       (1 << 17)
-
 static const size_t kTransferBufferSize = (1048576);
 
 static const size_t kReadSize = 512 * 1024;
@@ -78,7 +69,7 @@ int VirtioGpuPipeStream::connect(const char* serviceName)
             return -1;
         }
 
-        m_resource = m_device->createPipeBlob(kTransferBufferSize);
+        m_resource = m_device->createVirglBlob(kTransferBufferSize, 1, VIRGL_FORMAT_R8_UNORM);
         if (!m_resource) {
             ALOGE("Failed to create VirtioGpuPipeStream resource.");
             return -1;

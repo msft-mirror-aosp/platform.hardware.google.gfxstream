@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-#include "RutabagaVirtGpu.h"
-
 #include <log/log.h>
 
 #include "RutabagaLayer.h"
+#include "RutabagaVirtGpu.h"
 
 namespace gfxstream {
 
 RutabagaVirtGpuDevice::RutabagaVirtGpuDevice(uint32_t contextId, VirtGpuCapset capset)
-    : VirtGpuDevice(capset),
-      mContextId(contextId),
-      mCapset(capset) {}
+    : VirtGpuDevice(capset), mContextId(contextId), mCapset(capset) {}
 
 RutabagaVirtGpuDevice::~RutabagaVirtGpuDevice() {
     EmulatedVirtioGpu::Get().DestroyContext(mContextId);
+    EmulatedVirtioGpu::Reset();
 }
 
 int64_t RutabagaVirtGpuDevice::getDeviceHandle() { return -1; }
 
-VirtGpuCaps RutabagaVirtGpuDevice::getCaps() {
-    return EmulatedVirtioGpu::Get().GetCaps(mCapset);
-}
+VirtGpuCaps RutabagaVirtGpuDevice::getCaps() { return EmulatedVirtioGpu::Get().GetCaps(mCapset); }
 
 VirtGpuBlobPtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
     const auto resourceIdOpt = EmulatedVirtioGpu::Get().CreateBlob(mContextId, blobCreate);
@@ -43,36 +39,20 @@ VirtGpuBlobPtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob&
         return nullptr;
     }
 
-    return VirtGpuBlobPtr(
-        new RutabagaVirtGpuResource(*resourceIdOpt,
-                                    RutabagaVirtGpuResource::ResourceType::kBlob,
-                                    mContextId));
+    return VirtGpuBlobPtr(new RutabagaVirtGpuResource(
+        *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kBlob, mContextId));
 }
 
-VirtGpuBlobPtr RutabagaVirtGpuDevice::createPipeBlob(uint32_t size) {
-    const auto resourceIdOpt = EmulatedVirtioGpu::Get().CreatePipeBlob(mContextId, size);
+VirtGpuBlobPtr RutabagaVirtGpuDevice::createVirglBlob(uint32_t width, uint32_t height,
+                                                      uint32_t virglFormat) {
+    const auto resourceIdOpt =
+        EmulatedVirtioGpu::Get().CreateVirglBlob(mContextId, width, height, virglFormat);
     if (!resourceIdOpt) {
         return nullptr;
     }
 
-    return VirtGpuBlobPtr(
-        new RutabagaVirtGpuResource(*resourceIdOpt,
-                                    RutabagaVirtGpuResource::ResourceType::kPipe,
-                                    mContextId));
-}
-
-VirtGpuBlobPtr RutabagaVirtGpuDevice::createPipeTexture2D(uint32_t width,
-                                                          uint32_t height,
-                                                          uint32_t format) {
-    const auto resourceIdOpt = EmulatedVirtioGpu::Get().CreatePipeTexture2D(mContextId, width, height, format);
-    if (!resourceIdOpt) {
-        return nullptr;
-    }
-
-    return VirtGpuBlobPtr(
-        new RutabagaVirtGpuResource(*resourceIdOpt,
-                                    RutabagaVirtGpuResource::ResourceType::kPipe,
-                                    mContextId));
+    return VirtGpuBlobPtr(new RutabagaVirtGpuResource(
+        *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kPipe, mContextId));
 }
 
 int RutabagaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob) {
