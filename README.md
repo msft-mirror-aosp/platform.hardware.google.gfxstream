@@ -9,25 +9,14 @@ and forward graphics API calls from one place to another:
 
 # Build: Linux
 
-Make sure the latest CMake is installed.
-Make sure the opengl lib is installed. Otherwise, sudo apt-get install
-libglu1-mesa-dev freeglut3-dev mesa-common-dev
-Make sure you are using Clang as your `CC` and clang++ as your`CXX`. Then
-
-    mkdir build
-    cd build
-    cmake . ../
-    make -j24
-
-Unit tests:
-
-    make test
+The latest directions for the standalone Linux build are provided
+[here](https://crosvm.dev/book/appendix/rutabaga_gfx.html).
 
 # Build: Windows
 
 Make sure the latest CMake is installed.  Make sure Visual Studio 2019 is
 installed on your system along with all the Clang C++ toolchain components.
-Then
+Then:
 
     mkdir build
     cd build
@@ -38,7 +27,7 @@ studio and build the `gfxstream_backend` target.
 
 # Build: Android for host
 
-Be in the Android build system. Then
+Be in the Android build system. Then:
 
     m libgfxstream_backend
 
@@ -52,23 +41,17 @@ This also builds for Android on-device.
 
 # Regenerating Vulkan code
 
-Check out the [gfxstream-protocols](https://android.googlesource.com/platform/external/gfxstream-protocols/)
-repo at `../../../external/gfxstream-protocols` relative to the root directory of this repo, and
-run the `scripts/generate-vulkan-sources.sh` script in the `gfxstream-protocols` root folder.
+To re-generate both guest and Vulkan code, please run:
 
-If you're in an AOSP checkout, this will also modify contents of the guest Vulkan encoder in `../goldfish-opengl`.
+   scripts/generate-gfxstream-vulkan.sh
 
 # Regenerating GLES/RenderControl code
 
-First, build `build/gfxstream-generic-apigen`. Then run
+First, build `build/gfxstream-generic-apigen`. Then run:
 
     scripts/generate-apigen-source.sh
 
 # Tests
-
-## Linux Tests
-
-There are a bunch of test executables generated. They require `libEGL.so` and `libGLESv2.so` and `libvulkan.so` to be available, possibly from your GPU vendor or ANGLE, in the `$LD_LIBRARY_PATH`.
 
 ## Windows Tests
 
@@ -76,7 +59,9 @@ There are a bunch of test executables generated. They require `libEGL.dll` and `
 
 ## Android Host Tests
 
-These are currently not built due to the dependency on system libEGL/libvulkan to run correctly.
+There are Android mock testa available, runnable on Linux.  To build these tests, run:
+
+    m GfxstreamEnd2EndTests
 
 # Structure
 
@@ -105,3 +90,21 @@ code generators to make it easy to regen the protocol based on certain things.
 - `stream-servers/`: implementations of various backends for various graphics
   APIs that consume protocol. `gfxstream-virtio-gpu-renderer.cpp` contains a
   virtio-gpu backend implementation.
+
+# Guest Vulkan design
+
+gfxstream vulkan is the most actively developed component.  Some key commponents of
+the current design include:
+
+- 1:1 threading model - each guest Vulkan encoder thread gets host side decoding thread
+- Support for both virtio-gpu, goldish and testing transports.
+- Support for Android, Fuchsia, and Linux guests.
+- Ring Buffer to stream commands, in the style of io_uring.
+- Mesa embedded to provide [dispatch](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/docs/vulkan/dispatch.rst)
+  and [objects](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/docs/vulkan/base-objs.rst).
+- Currently, there are a set of Mesa objects and gfxstream objects.  For example,
+  `struct gfxstream_vk_device` and the gfxstream object `goldfish_device` both are internal
+  representations of Vulkan opaque handle `VkDevice`. The Mesa object is used first, since Mesa
+  provides dispatch.  The Mesa object contains a key to the hash table to get a gfxstream
+  internal object (for example, `gfxstream_vk_device::internal_object`).  Eventually, gfxstream
+  objects will be phased out and Mesa objects used exclusively.
