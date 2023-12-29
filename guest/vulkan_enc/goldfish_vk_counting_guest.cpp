@@ -6411,6 +6411,39 @@ void count_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void count_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkBool32);
+}
+
+void count_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT);
+    *count += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -7231,6 +7264,8 @@ void count_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     *count += sizeof(VkBool32);
 }
 
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
                             const void* structExtension, size_t* count) {
@@ -8122,6 +8157,24 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
             count_VkPipelineRasterizationStateStreamCreateInfoEXT(
                 featureBits, rootType,
                 reinterpret_cast<const VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            count_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            count_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
                     structExtension),
                 count);
             break;

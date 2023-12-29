@@ -31,12 +31,8 @@ int RutabagaVirtGpuSyncHelper::dup(int syncFd) {
     return syncFd;
 }
 
-int RutabagaVirtGpuSyncHelper::close(int) {
-    return 0;
-}
+int RutabagaVirtGpuSyncHelper::close(int) { return 0; }
 
-SyncHelper* createPlatformSyncHelper() {
-    return new RutabagaVirtGpuSyncHelper();
-}
+SyncHelper* createPlatformSyncHelper() { return new RutabagaVirtGpuSyncHelper(); }
 
 }  // namespace gfxstream

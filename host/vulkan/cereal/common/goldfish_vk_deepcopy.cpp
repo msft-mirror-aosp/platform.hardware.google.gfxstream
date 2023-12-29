@@ -7602,6 +7602,54 @@ void deepcopy_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void deepcopy_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* from,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* from,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -8873,6 +8921,8 @@ void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
 }
 
 #endif
+#ifdef VK_QNX_external_memory_screen_buffer
+#endif
 void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                                const void* structExtension, void* structExtension_out) {
     if (!structExtension) {
@@ -9848,6 +9898,25 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                 reinterpret_cast<const VkPipelineRasterizationStateStreamCreateInfoEXT*>(
                     structExtension),
                 reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                    structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            deepcopy_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            deepcopy_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
                     structExtension_out));
             break;
         }

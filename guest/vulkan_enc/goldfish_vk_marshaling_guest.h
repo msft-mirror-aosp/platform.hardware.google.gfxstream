@@ -3148,6 +3148,24 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceTextureCompressionASTCHDRFeature
                       unmarshal_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void marshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -3705,6 +3723,8 @@ void unmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forUnmarshaling);
 
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 const char* api_opcode_to_string(const uint32_t opcode);
 

@@ -25,15 +25,43 @@ cc_defaults {
     vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
+        "mesa_common_defaults_gfxstream",
+    ],
+    generated_headers: [
+        "vk_cmd_queue_header",
+        "vk_physical_device_features_header",
+        "vk_physical_device_properties_header",
     ],
     header_libs: [
         "gfxstream_vulkan_headers",
+        "mesa_common_headers_gfxstream",
+        "libnativewindow_headers",
+        "vulkan_enc_headers",
+    ],
+    static_libs: [
+        "libmesa_util_c11_gfxstream",
+        "libmesa_vulkan_util_gfxstream",
+        "libmesa_vulkan_runtime_gfxstream",
+        "libmesa_vulkan_wsi_gfxstream",
+        "libgfxstream_guest_vulkan_entrypoints",
+        "libmesa_util_gfxstream",
+        "libmesa_util_format_gfxstream",
+        "libGoldfishAddressSpace",
+        "libgfxstream_guest_gralloc",
+        "libringbuffer",
+        "libqemupipe.ranchu",
+        "libarect",
+        "libandroidemu_static",
     ],
     shared_libs: [
-        "libandroidemu",
         "liblog",
+        "libcutils",
+        "libGLESv1_enc",
+        "libGLESv2_enc",
         "lib_renderControl_enc",
         "libOpenglCodecCommon",
+        "libbase",
+        "libdrm",
     ],
     cflags: [
         "-DLOG_TAG=\"goldfish_vulkan\"",
@@ -46,17 +74,34 @@ cc_defaults {
         "-Wno-unused-parameter",
         "-Wno-cast-calling-convention",
     ],
+    ldflags: [
+        // Mesa always adds Bsymbolic when available (see 'ld_args_bsymbolic' in Meson build). Duplicate that
+        // behavior here. '--gc-sections' has stronger justification: this lets drivers drop
+        // shared code unused by that specific driver (particularly relevant for Vulkan drivers).
+        "-Wl,-Bsymbolic",
+        "-Wl,--gc-sections",
+    ],
     include_dirs: [
         "hardware/google/gfxstream/guest/GoldfishAddressSpace/include",
     ],
     srcs: [
-        "goldfish_vulkan.cpp",
+        "gfxstream_vk_device.cpp",
+        "gfxstream_vk_cmd.cpp",
+        "gfxstream_vk_wsi.cpp",
+        ":vulkan_enc_impl",
     ],
     target: {
         android: {
             relative_install_path: "hw",
             header_libs: [
                 "hwvulkan_headers",
+            ],
+            shared_libs: [
+                "libnativewindow",
+                "libsync",
+            ],
+            srcs: [
+                "gfxstream_vk_android.cpp",
             ],
         },
     },
@@ -67,9 +112,9 @@ cc_library_shared {
     defaults: [
         "libgfxstream_guest_vulkan_defaults",
     ],
-    shared_libs: [
-        "libOpenglSystemCommon",
-        "libvulkan_enc",
+    static_libs: [
+        "libplatform",
+        "libgfxstream_guest_system_common",
     ],
 }
 
@@ -79,8 +124,14 @@ cc_library_shared {
         "libgfxstream_guest_vulkan_defaults",
     ],
     shared_libs: [
-        "libOpenglSystemCommonWithHost",
-        "libgfxstream_guest_vulkan_encoder_with_host",
+        "libplatform_rutabaga",
+        "libgfxstream_backend",
+    ],
+    static_libs: [
+        "libgfxstream_guest_system_common_with_host",
+    ],
+    cflags: [
+        "-DEND2END_TESTS",
     ],
     target: {
         host: {

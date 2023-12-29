@@ -6,7 +6,8 @@ project('gfxstream_frontend', 'cpp', 'c',
          license : 'MIT OR Apache-2.0',
          default_options : ['cpp_std=gnu++17'])
 
-cc = meson.get_compiler('cpp')
+cc = meson.get_compiler('c')
+cpp = meson.get_compiler('cpp')
 prog_python = import('python').find_installation('python3')
 
 #===============#
@@ -17,6 +18,8 @@ with_vulkan_icd_dir = get_option('vulkan-icd-dir')
 if with_vulkan_icd_dir == ''
   with_vulkan_icd_dir = join_paths(get_option('datadir'), 'vulkan/icd.d')
 endif
+
+subdir('mesa')
 
 #===============#
 # Configuration #
@@ -49,6 +52,7 @@ thread_dep = dependency('threads')
 # Includes      #
 #===============#
 
+inc_include_mesa = include_directories('mesa/include')
 inc_vulkan_headers = include_directories('../common/vulkan/include')
 inc_opengl_headers = include_directories('../common/opengl/include')
 inc_fuchsia_magma = include_directories('../third-party/fuchsia/magma/include')
@@ -61,6 +65,13 @@ inc_opengl_system = include_directories('OpenglSystemCommon')
 inc_render_enc = include_directories('renderControl_enc')
 inc_system = include_directories('include')
 inc_vulkan_enc = include_directories('vulkan_enc')
+
+#================#
+# Mesa compat    #
+#================#
+# dep_libdrm = drm_dep
+# dep_dl = dl_dep
+# dep_thread = thread_dep
 
 #================#
 # Subdirectories #
