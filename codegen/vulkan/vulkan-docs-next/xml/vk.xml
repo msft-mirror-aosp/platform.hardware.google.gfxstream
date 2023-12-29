@@ -13041,8 +13041,8 @@ typedef void* <name>MTLSharedEvent_id</name>;
             <param><type>VkDevice</type> <name>device</name></param>
             <param><type>VkImage</type> <name>image</name></param>
             <param><type>int</type> <name>nativeFenceFd</name></param>
-            <param><type>VkSemaphore</type> <name>semaphore</name></param>
-            <param><type>VkFence</type> <name>fence</name></param>
+            <param optional="true"><type>VkSemaphore</type> <name>semaphore</name></param>
+            <param optional="true"><type>VkFence</type> <name>fence</name></param>
         </command>
         <command>
             <proto><type>VkResult</type> <name>vkQueueSignalReleaseImageANDROID</name></proto>

@@ -25,5 +25,7 @@ cc_defaults {
         "-DGFXSTREAM",
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
         "-DPLATFORM_SDK_VERSION=29",
+        "-Wno-missing-field-initializers",
+        "-Wno-unused-parameter",
     ],
 }

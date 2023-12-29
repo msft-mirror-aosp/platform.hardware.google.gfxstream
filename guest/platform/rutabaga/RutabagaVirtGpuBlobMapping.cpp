@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-#include "RutabagaVirtGpu.h"
-
 #include "RutabagaLayer.h"
+#include "RutabagaVirtGpu.h"
 
 namespace gfxstream {
 
 RutabagaVirtGpuBlobMapping::RutabagaVirtGpuBlobMapping(VirtGpuBlobPtr blob, uint8_t* mapped)
-    : mBlob(blob),
-      mMapped(mapped) {}
+    : mBlob(blob), mMapped(mapped) {}
 
 RutabagaVirtGpuBlobMapping::~RutabagaVirtGpuBlobMapping(void) {
     EmulatedVirtioGpu::Get().Unmap(mBlob->getResourceHandle());
