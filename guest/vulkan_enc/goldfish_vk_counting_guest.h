@@ -1536,6 +1536,24 @@ DEFINE_ALIAS_FUNCTION(count_VkDescriptorPoolInlineUniformBlockCreateInfo,
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void count_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toCount, size_t* count);
+
+void count_VkVertexInputBindingDivisorDescriptionEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* toCount, size_t* count);
+
+void count_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* toCount, size_t* count);
+
+void count_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toCount, size_t* count);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(count_VkPipelineCreationFeedbackCreateInfo,
                       count_VkPipelineCreationFeedbackCreateInfoEXT)
@@ -1546,6 +1564,11 @@ DEFINE_ALIAS_FUNCTION(count_VkPipelineCreationFeedback, count_VkPipelineCreation
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      count_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
 #endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceSubgroupSizeControlFeatures,

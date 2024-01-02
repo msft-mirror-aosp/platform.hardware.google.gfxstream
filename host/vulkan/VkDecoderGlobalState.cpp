@@ -2033,7 +2033,10 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        VK_CHECK(vk->vkResetFences(device, (uint32_t)cleanedFences.size(), cleanedFences.data()));
+        if (!cleanedFences.empty()) {
+            VK_CHECK(vk->vkResetFences(device, (uint32_t)cleanedFences.size(),
+                                       cleanedFences.data()));
+        }
 
         // For external fences, we unilaterally put them in the pool to ensure they finish
         // TODO: should store creation info / pNext chain per fence and re-apply?

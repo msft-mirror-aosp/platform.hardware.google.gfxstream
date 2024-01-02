@@ -2818,6 +2818,38 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkDescriptorPoolInlineUniformBlockCreat
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toTransform);
+
+void transform_tohost_VkVertexInputBindingDivisorDescriptionEXT(
+    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDivisorDescriptionEXT* toTransform);
+
+void transform_fromhost_VkVertexInputBindingDivisorDescriptionEXT(
+    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDivisorDescriptionEXT* toTransform);
+
+void transform_tohost_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* toTransform);
+
+void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toTransform);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPipelineCreationFeedbackCreateInfo,
                       transform_tohost_VkPipelineCreationFeedbackCreateInfoEXT)
@@ -2835,6 +2867,14 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPipelineCreationFeedback,
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      transform_tohost_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      transform_fromhost_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
 #endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceSubgroupSizeControlFeatures,
