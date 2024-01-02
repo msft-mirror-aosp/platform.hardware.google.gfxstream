@@ -14,7 +14,6 @@ add_library(OpenglRender_vulkan_cereal
     common/goldfish_vk_marshaling.cpp 
     common/goldfish_vk_reserved_marshaling.cpp 
     common/goldfish_vk_deepcopy.cpp 
-    common/goldfish_vk_handlemap.cpp 
     common/goldfish_vk_dispatch.cpp 
     common/goldfish_vk_transform.cpp )
 target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_GOOGLE_gfxstream)
