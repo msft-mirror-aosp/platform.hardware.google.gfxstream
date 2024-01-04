@@ -1685,6 +1685,16 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceTextureCompressionASTCHDRF
                       reservedmarshal_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void reservedmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* forMarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -1990,6 +2000,8 @@ void reservedmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT
     const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forMarshaling,
     uint8_t** ptr);
 
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 
 }  // namespace vk

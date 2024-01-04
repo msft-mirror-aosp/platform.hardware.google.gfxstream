@@ -77,6 +77,7 @@ SUPPORTED_FEATURES = [
     "VK_KHR_create_renderpass2",
     "VK_KHR_imageless_framebuffer",
     "VK_KHR_descriptor_update_template",
+    "VK_EXT_depth_clip_enable",
     # see aosp/2736079 + b/268351352
     "VK_EXT_swapchain_maintenance1",
     "VK_KHR_maintenance5",
@@ -128,13 +129,14 @@ SUPPORTED_FEATURES = [
     "VK_EXT_graphics_pipeline_library",
     # Used by guest ANGLE
     "VK_EXT_vertex_attribute_divisor",
+    # QNX
+    "VK_QNX_external_memory_screen_buffer",
 ]
 
 HOST_MODULES = ["goldfish_vk_extension_structs", "goldfish_vk_marshaling",
                 "goldfish_vk_reserved_marshaling", "goldfish_vk_deepcopy",
-                "goldfish_vk_handlemap", "goldfish_vk_dispatch",
-                "goldfish_vk_transform", "VkDecoder", "VkDecoderSnapshot",
-                "VkSubDecoder"]
+                "goldfish_vk_dispatch", "goldfish_vk_transform", "VkDecoder",
+                "VkDecoderSnapshot", "VkSubDecoder"]
 
 # By default, the all wrappers are run all on all features.  In certain cases,
 # we wish run wrappers when the module requires it. For example, `VK_GOOGLE_gfxstream`
@@ -151,6 +153,7 @@ SUPPORTED_MODULES = {
     "VK_KHR_external_semaphore_win32" : ["goldfish_vk_dispatch"],
     "VK_KHR_external_memory_win32" : ["goldfish_vk_dispatch"],
     "VK_KHR_external_memory_fd": ["goldfish_vk_dispatch"],
+    "VK_QNX_external_memory_screen_buffer": ["goldfish_vk_dispatch"],
     "VK_ANDROID_external_memory_android_hardware_buffer": ["func_table"],
     "VK_KHR_android_surface": ["func_table"],
     "VK_EXT_swapchain_maintenance1" : HOST_MODULES,
@@ -343,6 +346,8 @@ class IOStream;
 #include "VkEncoder.h"
 #include "../OpenglSystemCommon/HostConnection.h"
 #include "ResourceTracker.h"
+#include "gfxstream_vk_entrypoints.h"
+#include "gfxstream_vk_private.h"
 
 #include "goldfish_vk_private_defs.h"
 
@@ -402,11 +407,6 @@ class IOStream;
 #include "{self.baseLibDirPrefix}/BumpPool.h"
 using android::base::Allocator;
 using android::base::BumpPool;
-"""
-        handleMapInclude = f"""
-{self.hostCommonExtraVulkanHeaders}
-#include "goldfish_vk_private_defs.h"
-#include "VulkanHandleMapping.h"
 """
         transformIncludeGuest = """
 #include "goldfish_vk_private_defs.h"
@@ -603,7 +603,8 @@ class BumpPool;
             suppressVulkanHeaders=True,
             extraHeader=createVkExtensionStructureTypePreamble('VK_GOOGLE_GFXSTREAM'))
 
-        self.addGuestEncoderModule("func_table", extraImpl=functableImplInclude)
+        self.addGuestEncoderModule("func_table", extraImpl=functableImplInclude, implOnly = True,
+                                    useNamespace = False)
 
         self.addCppModule("common", "goldfish_vk_extension_structs",
                        extraHeader=extensionStructsInclude)
@@ -616,9 +617,6 @@ class BumpPool;
         self.addCppModule("common", "goldfish_vk_deepcopy",
                        extraHeader=poolInclude,
                        extraImpl=commonCerealImplIncludes + deepcopyInclude)
-        self.addCppModule("common", "goldfish_vk_handlemap",
-                       extraHeader=handleMapInclude,
-                       extraImpl=commonCerealImplIncludes)
         self.addCppModule("common", "goldfish_vk_dispatch",
                        extraHeader=dispatchHeaderDefs,
                        extraImpl=dispatchImplIncludes)
@@ -664,7 +662,6 @@ class BumpPool;
         self.addWrapper(cereal.VulkanMarshaling, "goldfish_vk_marshaling")
         self.addWrapper(cereal.VulkanReservedMarshaling, "goldfish_vk_reserved_marshaling", variant = "host")
         self.addWrapper(cereal.VulkanDeepcopy, "goldfish_vk_deepcopy")
-        self.addWrapper(cereal.VulkanHandleMap, "goldfish_vk_handlemap")
         self.addWrapper(cereal.VulkanDispatch, "goldfish_vk_dispatch")
         self.addWrapper(cereal.VulkanTransform, "goldfish_vk_transform", resourceTrackerTypeName="VkDecoderGlobalState")
         self.addWrapper(cereal.VulkanDecoder, "VkDecoder")
@@ -695,13 +692,13 @@ class BumpPool;
 
     def addGuestEncoderModule(
             self, basename, extraHeader="", extraImpl="", useNamespace=True, headerOnly=False,
-            suppressFeatureGuards=False, moduleName=None, suppressVulkanHeaders=False):
+            suppressFeatureGuards=False, moduleName=None, suppressVulkanHeaders=False, implOnly=False):
         if not os.path.exists(self.guest_abs_encoder_destination):
             print("Path [%s] not found (guest encoder path), skipping" % self.guest_abs_encoder_destination)
             return
         self.addCppModule(self.guest_encoder_tag, basename, extraHeader=extraHeader,
                        extraImpl=extraImpl, customAbsDir=self.guest_abs_encoder_destination,
-                       useNamespace=useNamespace, headerOnly=headerOnly,
+                       useNamespace=useNamespace, implOnly=implOnly, headerOnly=headerOnly,
                        suppressFeatureGuards=suppressFeatureGuards, moduleName=moduleName,
                        suppressVulkanHeaders=suppressVulkanHeaders)
 
