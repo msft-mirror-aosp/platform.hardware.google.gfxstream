@@ -184,6 +184,7 @@ void RendererImpl::stop(bool wait) {
     for (const auto& c : mStoppedChannels) {
         c->renderThread()->wait();
     }
+    mCleanupThread->waitForCleanup();
     mStoppedChannels.clear();
 }
 
