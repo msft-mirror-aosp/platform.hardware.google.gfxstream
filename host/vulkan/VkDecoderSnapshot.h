@@ -35,7 +35,7 @@
 #include <memory>
 
 #include "aemu/base/HealthMonitor.h"
-#include "common/goldfish_vk_private_defs.h"
+#include "goldfish_vk_private_defs.h"
 #include "utils/GfxApiLogger.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan_gfxstream.h"

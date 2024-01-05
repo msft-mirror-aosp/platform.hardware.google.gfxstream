@@ -55,7 +55,8 @@ endif
 
 if use_vulkan
   subdir('vulkan')
-  inc_gfxstream_backend += [inc_vulkan_headers, inc_vulkan_server, inc_renderdoc_external]
+  inc_gfxstream_backend += [inc_cereal, inc_cereal_common, inc_vulkan_headers,
+                            inc_vulkan_server, inc_renderdoc_external]
   link_gfxstream_backend += lib_vulkan_server
 endif
 

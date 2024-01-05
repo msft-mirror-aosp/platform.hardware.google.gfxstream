@@ -34,13 +34,6 @@ export GFXSTREAM_HOST_DECODER_DIR=$GFXSTREAM_DIR/host/vulkan
 export GFXSTREAM_OUTPUT_DIR=$GFXSTREAM_HOST_DECODER_DIR/cereal
 export GFXSTREAM_SCRIPTS_DIR=$GFXSTREAM_DIR/scripts
 
-# Legacy build info, used by cereal generator.  CMake specific, should delete eventually.
-export VK_CEREAL_BASELIB_PREFIX=aemu/base
-export VK_CEREAL_BASELIB_LINKNAME=aemu-base.headers
-export VK_CEREAL_VK_HEADER_TARGET=gfxstream_vulkan_headers
-export VK_CEREAL_UTILS_LINKNAME=gfxstream_utils.headers
-export VK_CEREAL_UTILS_PREFIX=utils
-
 export GEN_VK=$GFXSTREAM_DIR/codegen/vulkan/vulkan-docs-next/scripts/genvk.py
 export VK_XML=$GFXSTREAM_DIR/codegen/vulkan/vulkan-docs-next/xml/vk.xml
 export CUSTOM_XML=$GFXSTREAM_DIR/codegen/vulkan/vulkan-docs-next/xml/vk_gfxstream.xml
