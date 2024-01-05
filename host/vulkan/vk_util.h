@@ -46,7 +46,7 @@
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
 #include "vk_fn_info.h"
-#include "vulkan/cereal/common/vk_struct_id.h"
+#include "vk_struct_id.h"
 
 namespace gfxstream {
 namespace vk {
