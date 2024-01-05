@@ -10,10 +10,11 @@ package {
 
 cc_library_static {
     name: "gfxstream_vulkan_server",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     header_libs: [
         "gfxstream_gl_host_common_headers",
         "gfxstream_opengl_headers",
+        "gfxstream_vulkan_cereal_common",
     ],
     static_libs: [
         "gfxstream_base",
@@ -72,7 +73,7 @@ cc_library_static {
 // Run with `atest --host gfxstream_vkformatutils_tests`
 cc_test_host {
     name: "gfxstream_vkformatutils_tests",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     srcs: [
         "VkFormatUtils_unittest.cpp",
     ],

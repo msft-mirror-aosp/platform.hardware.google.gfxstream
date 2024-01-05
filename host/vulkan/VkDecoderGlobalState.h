@@ -28,7 +28,7 @@
 #include "aemu/base/AsyncResult.h"
 #include "aemu/base/HealthMonitor.h"
 #include "aemu/base/synchronization/Lock.h"
-#include "cereal/common/goldfish_vk_private_defs.h"
+#include "goldfish_vk_private_defs.h"
 #include "cereal/common/goldfish_vk_transform.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "utils/GfxApiLogger.h"
