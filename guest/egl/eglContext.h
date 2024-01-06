@@ -36,6 +36,7 @@ struct EGLContext_t {
     EGLConfig           config;
     EGLSurface          read;
     EGLSurface          draw;
+    EGLSurface          dummy_surface;
     EGLContext_t    *   shareCtx;
     uint32_t            rcContext;
     const char*         versionString;
