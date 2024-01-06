@@ -214,6 +214,7 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     config(config),
     read(EGL_NO_SURFACE),
     draw(EGL_NO_SURFACE),
+    dummy_surface(EGL_NO_SURFACE),
     shareCtx(shareCtx),
     rcContext(0),
     versionString(NULL),
@@ -1712,9 +1713,33 @@ EGLBoolean eglSwapInterval(EGLDisplay dpy, EGLint interval)
     return EGL_TRUE;
 }
 
+static EGLConfig chooseDefaultEglConfig(const EGLDisplay& display) {
+    const EGLint attribs[] = {
+        EGL_RED_SIZE,   8,
+        EGL_GREEN_SIZE, 8,
+        EGL_BLUE_SIZE,  8,
+        EGL_DEPTH_SIZE, 0,
+        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+        EGL_NONE
+    };
+    EGLint numConfigs;
+    EGLConfig config;
+    if (!eglChooseConfig(display, attribs, &config, 1, &numConfigs)) {
+        ALOGE("eglChooseConfig failed to select a default config");
+        return EGL_NO_CONFIG_KHR;
+    }
+    return config;
+}
+
 EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list)
 {
     VALIDATE_DISPLAY_INIT(dpy, EGL_NO_CONTEXT);
+
+    if (config == EGL_NO_CONFIG_KHR) {
+        config = chooseDefaultEglConfig(dpy);
+    }
+
     VALIDATE_CONFIG(config, EGL_NO_CONTEXT);
 
     EGLint majorVersion = 1; //default
@@ -1887,8 +1912,30 @@ EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
         context->rcContext = 0;
     }
 
+    if (context->dummy_surface != EGL_NO_SURFACE) {
+        eglDestroySurface(context->dpy, context->dummy_surface);
+        context->dummy_surface = EGL_NO_SURFACE;
+    }
+
     delete context;
     return EGL_TRUE;
+}
+
+static EGLSurface getOrCreateDummySurface(EGLContext_t* context) {
+    if (context->dummy_surface != EGL_NO_SURFACE) {
+        return context->dummy_surface;
+    }
+
+    EGLint attribs[] = {
+        EGL_WIDTH, 16,
+        EGL_HEIGHT, 16,
+        EGL_NONE};
+
+    context->dummy_surface = eglCreatePbufferSurface(context->dpy, context->config, attribs);
+    if (context->dummy_surface == EGL_NO_SURFACE) {
+        ALOGE("Unable to create a dummy PBuffer EGL surface");
+    }
+    return context->dummy_surface;
 }
 
 EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx)
@@ -1901,12 +1948,20 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     // thread can suddenly jump in any eglMakeCurrent
     setTlsDestructor((tlsDtorCallback)s_eglReleaseThreadImpl);
 
+    EGLContext_t * context = static_cast<EGLContext_t*>(ctx);
+
+    if (ctx != EGL_NO_CONTEXT && read == EGL_NO_SURFACE) {
+        read = getOrCreateDummySurface(context);
+    }
+    if (ctx != EGL_NO_CONTEXT && draw == EGL_NO_SURFACE) {
+        draw = getOrCreateDummySurface(context);
+    }
+
     if ((read == EGL_NO_SURFACE && draw == EGL_NO_SURFACE) && (ctx != EGL_NO_CONTEXT))
         setErrorReturn(EGL_BAD_MATCH, EGL_FALSE);
     if ((read != EGL_NO_SURFACE || draw != EGL_NO_SURFACE) && (ctx == EGL_NO_CONTEXT))
         setErrorReturn(EGL_BAD_MATCH, EGL_FALSE);
 
-    EGLContext_t * context = static_cast<EGLContext_t*>(ctx);
     uint32_t ctxHandle = (context) ? context->rcContext : 0;
     egl_surface_t * drawSurf = static_cast<egl_surface_t *>(draw);
     uint32_t drawHandle = (drawSurf) ? drawSurf->getRcSurface() : 0;
