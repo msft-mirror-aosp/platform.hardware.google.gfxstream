@@ -386,7 +386,8 @@ struct VkEmulation {
     std::optional<uint32_t> representativeColorBufferMemoryTypeIndex;
 };
 
-VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk);
+VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, bool useVulkanNativeSwapchain);
+
 struct VkEmulationFeatures {
     bool glInteropSupported = false;
     bool deferredCommands = false;

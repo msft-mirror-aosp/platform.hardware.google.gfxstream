@@ -512,7 +512,7 @@ static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList() {
     return res;
 }
 
-VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
+VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, bool useVulkanNativeSwapchain) {
 // Downstream branches can provide abort logic or otherwise use result without a new macro
 #define VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(res, ...) \
     do {                                               \
@@ -603,8 +603,10 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
     }
 #endif
 
-    for (auto extension : SwapChainStateVk::getRequiredInstanceExtensions()) {
-        enabledExtensions.emplace(extension);
+    if (useVulkanNativeSwapchain) {
+        for (auto extension : SwapChainStateVk::getRequiredInstanceExtensions()) {
+            enabledExtensions.emplace(extension);
+        }
     }
 
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
@@ -990,8 +992,10 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk) {
             selectedDeviceExtensionNames_.emplace(extension);
         }
     }
-    for (auto extension : SwapChainStateVk::getRequiredDeviceExtensions()) {
-        selectedDeviceExtensionNames_.emplace(extension);
+    if (useVulkanNativeSwapchain) {
+        for (auto extension : SwapChainStateVk::getRequiredDeviceExtensions()) {
+            selectedDeviceExtensionNames_.emplace(extension);
+        }
     }
     if (sVkEmulation->deviceInfo.hasSamplerYcbcrConversionExtension) {
         selectedDeviceExtensionNames_.emplace(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
