@@ -8086,6 +8086,41 @@ void reservedmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void reservedmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->depthClipEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkPipelineRasterizationDepthClipStateCreateFlagsEXT*)&forMarshaling->flags,
+           sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT));
+    *ptr += sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->depthClipEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -8994,6 +9029,8 @@ void reservedmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT
 }
 
 #endif
+#ifdef VK_QNX_external_memory_screen_buffer
+#endif
 void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                       const void* structExtension, uint8_t** ptr) {
     VkInstanceCreateInfo* structAccess = (VkInstanceCreateInfo*)(structExtension);
@@ -9875,6 +9912,24 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
             reservedmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<const VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
                     structExtension),
                 ptr);
             break;

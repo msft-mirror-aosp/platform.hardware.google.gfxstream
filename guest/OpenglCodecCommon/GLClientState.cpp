@@ -1909,8 +1909,6 @@ GLenum GLClientState::checkFramebufferAttachmentCompleteness(GLenum target, GLen
                             m_glesMajorVersion, m_glesMinorVersion,
                             m_has_color_buffer_float_extension,
                             m_has_color_buffer_half_float_extension);
-                    if (!renderable) {
-                        ALOGD("%s: rbo not color renderable. format: 0x%x\n", __func__, fbo_format_info.rb_format); }
                     break;
             }
             break;
@@ -1929,9 +1927,6 @@ GLenum GLClientState::checkFramebufferAttachmentCompleteness(GLenum target, GLen
                             m_glesMajorVersion, m_glesMinorVersion,
                             m_has_color_buffer_float_extension,
                             m_has_color_buffer_half_float_extension);
-                    if (!renderable) {
-                        ALOGD("%s: tex not color renderable. format: 0x%x type 0x%x maj min %d %d floatext %d hfloatext %d\n", __func__, fbo_format_info.tex_internalformat, fbo_format_info.tex_type, m_glesMajorVersion, m_glesMinorVersion, m_has_color_buffer_float_extension, m_has_color_buffer_half_float_extension);
-                    }
                     break;
             }
             break;
@@ -1940,7 +1935,30 @@ GLenum GLClientState::checkFramebufferAttachmentCompleteness(GLenum target, GLen
             return GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
     }
 
-    if (!renderable) return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+    if (!renderable) {
+        switch (fbo_format_info.type) {
+            case FBO_ATTACHMENT_RENDERBUFFER:
+                ALOGD("%s: rbo not color renderable. target=0x%x attachment=0x%x rb_format=0x%x "
+                      "gles=%d.%d floatext=%d hfloatext=%d\n",
+                      __func__, target, attachment, fbo_format_info.rb_format,
+                      m_glesMajorVersion, m_glesMinorVersion,
+                      m_has_color_buffer_float_extension,
+                      m_has_color_buffer_half_float_extension);
+                break;
+            case FBO_ATTACHMENT_TEXTURE:
+                ALOGD("%s: tex not color renderable. target=0x%x attachment=0x%x "
+                      "tex_intformat=0x%x tex_format=0x%x tex_type=0x%x gles=%d.%d "
+                      "floatext=%d hfloatext=%d\n",
+                      __func__, target, attachment, fbo_format_info.tex_internalformat,
+                      fbo_format_info.tex_format, fbo_format_info.tex_type, m_glesMajorVersion,
+                      m_glesMinorVersion, m_has_color_buffer_float_extension,
+                      m_has_color_buffer_half_float_extension);
+                break;
+            default:
+                break;
+        }
+        return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+    }
 
     // Check dimensions
     std::shared_ptr<TextureRec> texrec;

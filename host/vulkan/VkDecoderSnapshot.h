@@ -35,7 +35,7 @@
 #include <memory>
 
 #include "aemu/base/HealthMonitor.h"
-#include "common/goldfish_vk_private_defs.h"
+#include "goldfish_vk_private_defs.h"
 #include "utils/GfxApiLogger.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan_gfxstream.h"
@@ -1315,6 +1315,8 @@ class VkDecoderSnapshot {
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -1604,6 +1606,8 @@ class VkDecoderSnapshot {
 #ifdef VK_EXT_load_store_op_none
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 
    private:

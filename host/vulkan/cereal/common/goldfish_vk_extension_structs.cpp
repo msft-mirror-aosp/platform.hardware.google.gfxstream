@@ -140,6 +140,8 @@ namespace vk {
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -209,6 +211,8 @@ namespace vk {
 #ifdef VK_EXT_load_store_op_none
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 uint32_t goldfish_vk_struct_type(const void* structExtension) {
     const uint32_t asStructType = *(reinterpret_cast<const uint32_t*>(structExtension));
@@ -623,6 +627,14 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
             return sizeof(VkPipelineRasterizationStateStreamCreateInfoEXT);
         }
 #endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceDepthClipEnableFeaturesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            return sizeof(VkPipelineRasterizationDepthClipStateCreateInfoEXT);
+        }
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
             return sizeof(VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT);
@@ -780,6 +792,8 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         }
 #endif
         default: {
+            fprintf(stderr, "Unhandled Vulkan structure type %d, aborting.\n", structType);
+            GFXSTREAM_ABORT(::emugl::FatalError(::emugl::ABORT_REASON_OTHER));
             return (size_t)0;
         }
     }
@@ -1199,6 +1213,14 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
             return sizeof(VkPipelineRasterizationStateStreamCreateInfoEXT);
         }
 #endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceDepthClipEnableFeaturesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            return sizeof(VkPipelineRasterizationDepthClipStateCreateInfoEXT);
+        }
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
             return sizeof(VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT);
@@ -1356,6 +1378,8 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
 #endif
         default: {
+            fprintf(stderr, "Unhandled Vulkan structure type %d, aborting.\n", structType);
+            GFXSTREAM_ABORT(::emugl::FatalError(::emugl::ABORT_REASON_OTHER));
             return (size_t)0;
         }
     }

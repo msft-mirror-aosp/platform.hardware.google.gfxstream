@@ -11905,6 +11905,69 @@ void reservedunmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void reservedunmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->depthClipEnable, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkPipelineRasterizationDepthClipStateCreateFlagsEXT*)&forUnmarshaling->flags, *ptr,
+           sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT));
+    *ptr += sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT);
+    memcpy((VkBool32*)&forUnmarshaling->depthClipEnable, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -13632,6 +13695,8 @@ void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesE
 }
 
 #endif
+#ifdef VK_QNX_external_memory_screen_buffer
+#endif
 void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
                                         void* structExtension_out, uint8_t** ptr) {
     VkInstanceCreateInfo* structAccess = (VkInstanceCreateInfo*)(structExtension_out);
@@ -14520,6 +14585,23 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             reservedunmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            reservedunmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
                     structExtension_out),
                 ptr);
             break;
