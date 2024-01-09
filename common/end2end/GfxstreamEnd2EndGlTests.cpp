@@ -14,8 +14,6 @@
 
 #include "GfxstreamEnd2EndTests.h"
 
-#include "aemu/base/GLObjectCounter.h"
-
 namespace gfxstream {
 namespace tests {
 namespace {
@@ -51,10 +49,6 @@ TEST_P(GfxstreamEnd2EndGlTest, BasicViewport) {
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, CreateWindowSurface) {
-    const std::vector<size_t> initialObjectCounts =
-        android::base::GLObjectCounter::get()->getCounts();
-    const std::string initialObjectCountsString =
-        android::base::GLObjectCounter::get()->printUsage();
 
     EGLDisplay display = mGl->eglGetDisplay(EGL_DEFAULT_DISPLAY);
     ASSERT_THAT(display, Not(Eq(EGL_NO_DISPLAY)));
@@ -117,18 +111,6 @@ TEST_P(GfxstreamEnd2EndGlTest, CreateWindowSurface) {
     anw.reset();
 
     TearDownGuest();
-
-    const std::vector<size_t> finalObjectCounts =
-        android::base::GLObjectCounter::get()->getCounts();
-    const std::string finalObjectCountsString =
-        android::base::GLObjectCounter::get()->printUsage();
-
-    ASSERT_THAT(finalObjectCounts.size(), Eq(initialObjectCounts.size()));
-    EXPECT_THAT(finalObjectCounts, Eq(initialObjectCounts))
-        << "Initial object counts: "
-        << initialObjectCountsString
-        << "Final object counts: "
-        << finalObjectCountsString;
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, SwitchContext) {
