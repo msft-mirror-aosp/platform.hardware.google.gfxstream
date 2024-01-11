@@ -23,21 +23,15 @@ StubVirtGpuBlob::StubVirtGpuBlob(int64_t deviceHandle, uint32_t blobHandle, uint
       mResourceHandle(resourceHandle),
       mSize(size) {}
 
-StubVirtGpuBlob::~StubVirtGpuBlob(void) {
+StubVirtGpuBlob::~StubVirtGpuBlob() {
     // Unimplemented stub
 }
 
-uint32_t StubVirtGpuBlob::getBlobHandle(void) {
-    return 0;
-}
+uint32_t StubVirtGpuBlob::getBlobHandle() const { return 0; }
 
-uint32_t StubVirtGpuBlob::getResourceHandle(void) {
-    return 0;
-}
+uint32_t StubVirtGpuBlob::getResourceHandle() const { return 0; }
 
-VirtGpuBlobMappingPtr StubVirtGpuBlob::createMapping(void) {
-    return nullptr;
-}
+VirtGpuBlobMappingPtr StubVirtGpuBlob::createMapping() { return nullptr; }
 
 int StubVirtGpuBlob::wait() {
     return -1;

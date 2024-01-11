@@ -34,9 +34,9 @@ VirtGpuBlobMappingPtr RutabagaVirtGpuResource::createMapping(void) {
     return std::make_shared<RutabagaVirtGpuBlobMapping>(shared_from_this(), mapped);
 }
 
-uint32_t RutabagaVirtGpuResource::getResourceHandle() { return mResourceId; }
+uint32_t RutabagaVirtGpuResource::getResourceHandle() const { return mResourceId; }
 
-uint32_t RutabagaVirtGpuResource::getBlobHandle() {
+uint32_t RutabagaVirtGpuResource::getBlobHandle() const {
     if (mResourceType != ResourceType::kBlob) {
         ALOGE("Attempting to get blob handle for non-blob resource");
         return -1;

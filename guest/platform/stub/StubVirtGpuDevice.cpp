@@ -41,9 +41,7 @@ VirtGpuBlobPtr StubVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&
     return nullptr;
 }
 
-int StubVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer&, VirtGpuBlobPtr) {
-    return -1;
-}
+int StubVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer&, const VirtGpuBlob*) { return -1; }
 
 VirtGpuBlobPtr createColorBuffer(int, int, uint32_t) {
     return nullptr;
