@@ -23,8 +23,8 @@ class StubVirtGpuBlob : public std::enable_shared_from_this<StubVirtGpuBlob>, pu
     StubVirtGpuBlob(int64_t deviceHandle, uint32_t blobHandle, uint32_t resourceHandle, uint64_t size);
     ~StubVirtGpuBlob();
 
-    uint32_t getResourceHandle(void) override;
-    uint32_t getBlobHandle(void) override;
+    uint32_t getResourceHandle() const override;
+    uint32_t getBlobHandle() const override;
     int wait(void) override;
 
     VirtGpuBlobMappingPtr createMapping(void) override;
@@ -69,7 +69,7 @@ class StubVirtGpuDevice : public VirtGpuDevice {
     VirtGpuBlobPtr createVirglBlob(uint32_t width, uint32_t height, uint32_t virglFormat);
     VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle) override;
 
-    int execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob) override;
+    int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuBlob* blob) override;
 
     virtual VirtGpuBlobPtr createColorBuffer(int width, int height, uint32_t glFormat);
     virtual VirtGpuBlobPtr createColorBuffer(int size);
