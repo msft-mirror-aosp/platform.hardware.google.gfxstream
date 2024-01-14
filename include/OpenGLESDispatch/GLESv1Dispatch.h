@@ -19,8 +19,6 @@
 #include "OpenGLESDispatch/gles_functions.h"
 #include "KHR/khrplatform.h"
 
-#include "GLES12Translator/underlying_apis.h"
-
 #include "OpenGLESDispatch/gles1_only_static_translator_namespaced_header.h"
 #include "OpenGLESDispatch/gles1_extensions_static_translator_namespaced_header.h"
 #include "OpenGLESDispatch/gles_common_for_gles1_static_translator_namespaced_header.h"
