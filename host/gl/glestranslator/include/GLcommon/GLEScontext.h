@@ -109,6 +109,7 @@ struct GLSupport {
     bool ext_GL_EXT_shader_framebuffer_fetch = false;
     bool ext_GL_EXT_texture_buffer = false;
     bool ext_GL_EXT_draw_buffers_indexed = false;
+    bool ext_GL_EXT_clip_cull_distance = false;
 
     bool ext_GL_EXT_memory_object = false;
     bool ext_GL_EXT_semaphore = false;
