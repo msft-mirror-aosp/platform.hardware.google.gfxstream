@@ -23,7 +23,7 @@ files_lib_linux_platform = files(
 lib_emu_android_base = static_library(
    'emu_android_base',
    files_lib_linux_platform,
-   cpp_args: cpp_args,
+   cpp_args: gfxstream_guest_args,
    include_directories: [inc_android_emu, inc_android_compat],
    dependencies: thread_dep
 )
