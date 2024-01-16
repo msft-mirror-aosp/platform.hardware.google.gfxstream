@@ -2129,6 +2129,13 @@ class VkDecoderGlobalState::Impl {
 
         return vk->vkImportSemaphoreWin32HandleKHR(device, &win32ImportInfo);
 #else
+        if (!hasDeviceExtension(device, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
+            // Note: VK_KHR_external_semaphore_fd might be advertised in the guest,
+            // because SYNC_FD handling is performed guest-side only. But still need
+            // need to error out here when handling a non-sync, opaque FD.
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
         VkImportSemaphoreFdInfoKHR importInfo = *pImportSemaphoreFdInfo;
         importInfo.fd = dup(pImportSemaphoreFdInfo->fd);
         return vk->vkImportSemaphoreFdKHR(device, &importInfo);
@@ -2157,6 +2164,13 @@ class VkDecoderGlobalState::Impl {
         mExternalSemaphoresById[nextId] = pGetFdInfo->semaphore;
         *pFd = nextId;
 #else
+        if (!hasDeviceExtension(device, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
+            // Note: VK_KHR_external_semaphore_fd might be advertised in the guest,
+            // because SYNC_FD handling is performed guest-side only. But still need
+            // need to error out here when handling a non-sync, opaque FD.
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
         VkResult result = vk->vkGetSemaphoreFdKHR(device, pGetFdInfo, pFd);
         if (result != VK_SUCCESS) {
             return result;
@@ -5842,6 +5856,10 @@ class VkDecoderGlobalState::Impl {
         // decoding, etc. However, push name to indicate external memory support to guest
         if (hasDeviceExtension(properties, VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME)) {
             res.push_back(VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME);
+        }
+
+        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
+            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
         }
 #elif __unix__
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)) {
