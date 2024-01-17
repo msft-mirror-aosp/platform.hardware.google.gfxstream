@@ -659,7 +659,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     const int getDisplayActiveConfig();
 
     bool flushColorBufferFromGl(HandleType colorBufferHandle);
-    bool flushColorBufferFromGlLocked(HandleType colorBufferHandle);
     bool flushColorBufferFromVk(HandleType colorBufferHandle);
     bool flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes, size_t bytesSize);
     bool invalidateColorBufferForGl(HandleType colorBufferHandle);

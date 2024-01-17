@@ -125,6 +125,7 @@ cc_test_library {
     ],
     header_libs: [
         "gfxstream_opengl_headers",
+        "gfxstream_vulkan_cereal_common",
     ],
     shared_libs: [
         "libbase",
@@ -164,6 +165,9 @@ cc_library {
 cc_test_host {
     name: "gfxstream_compositorvk_test",
     defaults: ["gfxstream_defaults"],
+    header_libs: [
+        "gfxstream_vulkan_cereal_common",
+    ],
     srcs: [
         "tests/CompositorVk_unittest.cpp",
     ],
@@ -219,6 +223,9 @@ cc_test_host {
 cc_test_host {
     name: "gfxstream_framebuffer_tests",
     defaults: ["gfxstream_defaults"],
+    header_libs: [
+        "gfxstream_vulkan_cereal_common",
+    ],
     srcs: [
         "tests/FrameBuffer_unittest.cpp",
     ],

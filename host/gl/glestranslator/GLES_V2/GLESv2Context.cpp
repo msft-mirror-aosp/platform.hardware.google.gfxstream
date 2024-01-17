@@ -792,6 +792,9 @@ void InitExtensionString(GLSupport& glSupport, std::string& ext) {
     if (glSupport.ext_GL_EXT_draw_buffers_indexed) {
         ext += "GL_EXT_draw_buffers_indexed ";
     }
+    if (glSupport.ext_GL_EXT_clip_cull_distance) {
+        ext += "GL_EXT_clip_cull_distance ";
+    }
 }
 
 void GLESv2Context::initExtensionString() {
