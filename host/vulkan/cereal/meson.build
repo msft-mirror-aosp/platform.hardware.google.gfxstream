@@ -15,6 +15,10 @@ cereal_cpp_args = [
   '-DVK_GOOGLE_address_space',
 ]
 
+if host_machine.system() == 'qnx'
+  cereal_cpp_args += '-DVK_USE_PLATFORM_SCREEN_QNX'
+endif
+
 lib_vulkan_cereal = static_library(
   'cereal',
   files_lib_cereal,

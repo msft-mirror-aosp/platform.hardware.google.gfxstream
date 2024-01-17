@@ -406,7 +406,6 @@ class VkDecoderGlobalState {
     struct HostFeatureSupport {
         bool supportsVulkan = false;
         bool supportsVulkan1_1 = false;
-        bool supportsExternalMemory = false;
         bool useDeferredCommands = false;
         bool useCreateResourcesWithRequirements = false;
         uint32_t apiVersion = 0;

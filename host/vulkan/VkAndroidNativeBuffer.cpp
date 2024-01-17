@@ -141,7 +141,8 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     auto emu = getGlobalVkEmulation();
 
     if (emu && emu->live) {
-        externalMemoryCompatible = emu->deviceInfo.supportsExternalMemory;
+        externalMemoryCompatible = emu->deviceInfo.supportsExternalMemoryImport &&
+                                   emu->deviceInfo.supportsExternalMemoryExport;
     }
 
     bool colorBufferExportedToGl = false;
