@@ -54,7 +54,7 @@ endif
 lib_vulkan_server = static_library(
   'lib_vulkan_server',
   files_lib_vulkan_server,
-  cpp_args: vulkan_server_cpp_args + default_cpp_args,
+  cpp_args: vulkan_server_cpp_args + gfxstream_host_args,
   include_directories: [inc_root, inc_include, inc_utils, inc_apigen_codec,
                         inc_cereal, inc_cereal_common, inc_stream_servers,
                         inc_vulkan_server, inc_renderdoc_external,
