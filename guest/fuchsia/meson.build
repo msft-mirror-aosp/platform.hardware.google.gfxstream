@@ -10,6 +10,6 @@ files_lib_android_compat = files(
 lib_android_compat = static_library(
    'android_compat',
    files_lib_android_compat,
-   cpp_args: cpp_args,
+   cpp_args: gfxstream_guest_args,
    include_directories: [inc_android_compat]
 )
