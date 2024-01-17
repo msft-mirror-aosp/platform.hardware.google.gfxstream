@@ -24,8 +24,8 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(uint32_t handle, uint32_t w
                                                      uint32_t height, GLenum format,
                                                      FrameworkFormat frameworkFormat,
                                                      bool vulkanOnly, uint32_t memoryProperty) {
-    if (!setupVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
-                            memoryProperty)) {
+    if (!createVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
+                             memoryProperty)) {
         GL_LOG("Failed to create ColorBufferVk:%d", handle);
         return nullptr;
     }
@@ -56,6 +56,15 @@ bool ColorBufferVk::updateFromBytes(const std::vector<uint8_t>& bytes) {
 bool ColorBufferVk::updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h,
                                     const void* bytes) {
     return updateColorBufferFromBytes(mHandle, x, y, w, h, bytes);
+}
+
+bool ColorBufferVk::importExtMemoryHandle(void* nativeResource, uint32_t type,
+                                          bool preserveContent) {
+    // TODO: Any need to support preserveContent?
+    assert(!preserveContent);
+    VK_EXT_MEMORY_HANDLE extMemoryHandle =
+        *reinterpret_cast<VK_EXT_MEMORY_HANDLE*>(&nativeResource);
+    return importExtMemoryHandleToVkColorBuffer(mHandle, type, extMemoryHandle);
 }
 
 }  // namespace vk
