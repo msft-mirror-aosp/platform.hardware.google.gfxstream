@@ -14,7 +14,7 @@ emulated_texture_args = [
 lib_emulated_textures = static_library(
   'emulated_textures',
   files_emulated_textures,
-  cpp_args: emulated_texture_args + default_cpp_args,
+  cpp_args: emulated_texture_args + gfxstream_host_args,
   include_directories: [inc_utils, inc_root, inc_vulkan_headers, inc_vulkan_server,
                         inc_include, inc_cereal_common, inc_stream_servers],
   dependencies: [aemu_base_dep, aemu_common_dep]

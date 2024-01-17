@@ -120,7 +120,7 @@ endif
 gfxstream_backend = library(
   'gfxstream_backend',
   files_lib_gfxstream_backend,
-  cpp_args: default_cpp_args + gfxstream_backend_cpp_args,
+  cpp_args: gfxstream_host_args + gfxstream_backend_cpp_args,
   include_directories: [inc_gfxstream_backend, inc_glm],
   gnu_symbol_visibility: 'default',
   dependencies: deps_gfxstream_backend,

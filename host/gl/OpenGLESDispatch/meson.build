@@ -15,6 +15,6 @@ lib_gl_dispatch = static_library(
   'gl_dispatch',
   files_lib_gl_dispatch,
   include_directories: inc_include,
-  cpp_args: default_cpp_args,
+  cpp_args: gfxstream_host_args,
   link_with: [lib_egl_translator, lib_glescm_translator, lib_glesv2_translator]
 )
