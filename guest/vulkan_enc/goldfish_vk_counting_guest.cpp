@@ -6530,6 +6530,61 @@ void count_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_fragment_density_map
+void count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+}
+
+void count_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    count_VkExtent2D(featureBits, rootType, (VkExtent2D*)(&toCount->minFragmentDensityTexelSize),
+                     count);
+    count_VkExtent2D(featureBits, rootType, (VkExtent2D*)(&toCount->maxFragmentDensityTexelSize),
+                     count);
+    *count += sizeof(VkBool32);
+}
+
+void count_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkRenderPassFragmentDensityMapCreateInfoEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    count_VkAttachmentReference(featureBits, rootType,
+                                (VkAttachmentReference*)(&toCount->fragmentDensityMapAttachment),
+                                count);
+}
+
+#endif
 #ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
@@ -8203,6 +8258,105 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
                 reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
                     structExtension),
                 count);
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2: {
+                    count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO: {
+                    count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    count_VkImportColorBufferGOOGLE(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkImportColorBufferGOOGLE*>(structExtension), count);
+                    break;
+                }
+                default: {
+                    count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2: {
+                    count_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    count_VkCreateBlobGOOGLE(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension), count);
+                    break;
+                }
+                default: {
+                    count_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO: {
+                    count_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2: {
+                    count_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    count_VkImportBufferGOOGLE(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkImportBufferGOOGLE*>(structExtension), count);
+                    break;
+                }
+                default: {
+                    count_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+            }
             break;
         }
 #endif
