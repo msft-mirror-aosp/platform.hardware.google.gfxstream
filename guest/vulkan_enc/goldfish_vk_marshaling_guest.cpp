@@ -12194,6 +12194,100 @@ void unmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_fragment_density_map
+void marshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapFeaturesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkBool32*)&forMarshaling->fragmentDensityMap, sizeof(VkBool32));
+    vkStream->write((VkBool32*)&forMarshaling->fragmentDensityMapDynamic, sizeof(VkBool32));
+    vkStream->write((VkBool32*)&forMarshaling->fragmentDensityMapNonSubsampledImages,
+                    sizeof(VkBool32));
+}
+
+void unmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    forUnmarshaling->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    vkStream->read((VkBool32*)&forUnmarshaling->fragmentDensityMap, sizeof(VkBool32));
+    vkStream->read((VkBool32*)&forUnmarshaling->fragmentDensityMapDynamic, sizeof(VkBool32));
+    vkStream->read((VkBool32*)&forUnmarshaling->fragmentDensityMapNonSubsampledImages,
+                   sizeof(VkBool32));
+}
+
+void marshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapPropertiesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    marshal_VkExtent2D(vkStream, rootType,
+                       (VkExtent2D*)(&forMarshaling->minFragmentDensityTexelSize));
+    marshal_VkExtent2D(vkStream, rootType,
+                       (VkExtent2D*)(&forMarshaling->maxFragmentDensityTexelSize));
+    vkStream->write((VkBool32*)&forMarshaling->fragmentDensityInvocations, sizeof(VkBool32));
+}
+
+void unmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    forUnmarshaling->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    unmarshal_VkExtent2D(vkStream, rootType,
+                         (VkExtent2D*)(&forUnmarshaling->minFragmentDensityTexelSize));
+    unmarshal_VkExtent2D(vkStream, rootType,
+                         (VkExtent2D*)(&forUnmarshaling->maxFragmentDensityTexelSize));
+    vkStream->read((VkBool32*)&forUnmarshaling->fragmentDensityInvocations, sizeof(VkBool32));
+}
+
+void marshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkRenderPassFragmentDensityMapCreateInfoEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    marshal_VkAttachmentReference(
+        vkStream, rootType, (VkAttachmentReference*)(&forMarshaling->fragmentDensityMapAttachment));
+}
+
+void unmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    forUnmarshaling->sType = VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    unmarshal_VkAttachmentReference(
+        vkStream, rootType,
+        (VkAttachmentReference*)(&forUnmarshaling->fragmentDensityMapAttachment));
+}
+
+#endif
 #ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
@@ -14307,6 +14401,97 @@ void marshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType rootT
             break;
         }
 #endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2: {
+                    marshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO: {
+                    marshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    marshal_VkImportColorBufferGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkImportColorBufferGOOGLE*>(structExtension));
+                    break;
+                }
+                default: {
+                    marshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension));
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2: {
+                    marshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    marshal_VkCreateBlobGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension));
+                    break;
+                }
+                default: {
+                    marshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension));
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO: {
+                    marshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2: {
+                    marshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    marshal_VkImportBufferGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkImportBufferGOOGLE*>(structExtension));
+                    break;
+                }
+                default: {
+                    marshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension));
+                    break;
+                }
+            }
+            break;
+        }
+#endif
 #ifdef VK_EXT_provoking_vertex
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: {
             marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -15402,6 +15587,97 @@ void unmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType roo
                 vkStream, rootType,
                 reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2: {
+                    unmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension_out));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO: {
+                    unmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension_out));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    unmarshal_VkImportColorBufferGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<VkImportColorBufferGOOGLE*>(structExtension_out));
+                    break;
+                }
+                default: {
+                    unmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension_out));
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2: {
+                    unmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension_out));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    unmarshal_VkCreateBlobGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<VkCreateBlobGOOGLE*>(structExtension_out));
+                    break;
+                }
+                default: {
+                    unmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension_out));
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO: {
+                    unmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension_out));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2: {
+                    unmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension_out));
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    unmarshal_VkImportBufferGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<VkImportBufferGOOGLE*>(structExtension_out));
+                    break;
+                }
+                default: {
+                    unmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension_out));
+                    break;
+                }
+            }
             break;
         }
 #endif

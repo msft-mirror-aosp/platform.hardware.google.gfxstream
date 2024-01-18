@@ -1738,6 +1738,20 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineCreationFeedback,
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_fragment_density_map
+void reservedunmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_scalar_block_layout
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceScalarBlockLayoutFeatures,
                       reservedunmarshal_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
