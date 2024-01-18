@@ -16,9 +16,6 @@
 #ifndef _LIBRENDER_FRAMEBUFFER_H
 #define _LIBRENDER_FRAMEBUFFER_H
 
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
 #include <stdint.h>
 
 #include <array>
@@ -30,6 +27,7 @@
 #include <unordered_set>
 
 #include "Buffer.h"
+#include "ColorBuffer.h"
 #include "Compositor.h"
 #include "Display.h"
 #include "DisplaySurface.h"
@@ -48,6 +46,13 @@
 #include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/threads/Thread.h"
 #include "aemu/base/threads/WorkerThread.h"
+
+#if GFXSTREAM_ENABLE_HOST_GLES
+
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+
 #include "gl/BufferGl.h"
 #include "gl/ColorBufferGl.h"
 #include "gl/CompositorGl.h"
@@ -59,6 +64,19 @@
 #include "gl/EmulationGl.h"
 #include "gl/GLESVersionDetector.h"
 #include "gl/TextureDraw.h"
+#else
+#include "GlesCompat.h"
+#endif
+
+// values for 'param' argument of rcGetFBParam
+#define FB_WIDTH 1
+#define FB_HEIGHT 2
+#define FB_XDPI 3
+#define FB_YDPI 4
+#define FB_FPS 5
+#define FB_MIN_SWAP_INTERVAL 6
+#define FB_MAX_SWAP_INTERVAL 7
+
 #include "render-utils/Renderer.h"
 #include "render-utils/virtio_gpu_ops.h"
 #include "render-utils/render_api.h"
@@ -101,18 +119,19 @@ class ProcessResources {
     mutable std::atomic<uint32_t> mSequenceNumber;
 };
 
+#if GFXSTREAM_ENABLE_HOST_GLES
 typedef std::unordered_map<uint64_t, gl::EmulatedEglWindowSurfaceSet>
     ProcOwnedEmulatedEglWindowSurfaces;
 
 typedef std::unordered_map<uint64_t, gl::EmulatedEglContextSet> ProcOwnedEmulatedEglContexts;
+typedef std::unordered_map<uint64_t, gl::EmulatedEglImageSet> ProcOwnedEmulatedEGLImages;
+#endif
 
 typedef std::unordered_map<uint64_t, ColorBufferSet> ProcOwnedColorBuffers;
 
 typedef std::unordered_map<HandleType, BufferRef> BufferMap;
 typedef std::unordered_multiset<HandleType> BufferSet;
 typedef std::unordered_map<uint64_t, BufferSet> ProcOwnedBuffers;
-
-typedef std::unordered_map<uint64_t, gl::EmulatedEglImageSet> ProcOwnedEmulatedEGLImages;
 
 typedef std::unordered_map<void*, std::function<void()>> CallbackMap;
 typedef std::unordered_map<uint64_t, CallbackMap> ProcOwnedCleanupCallbacks;
@@ -180,54 +199,11 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // Return the emulated GPU display height in pixels.
     int getHeight() const { return m_framebufferHeight; }
 
-    // Return the list of configs available from this display.
-    const gl::EmulatedEglConfigList* getConfigs() const;
-
     // Set a callback that will be called each time the emulated GPU content
     // is updated. This can be relatively slow with host-based GPU emulation,
     // so only do this when you need to.
     void setPostCallback(Renderer::OnPostCallback onPost, void* onPostContext, uint32_t displayId,
                          bool useBgraReadback = false);
-
-    // Retrieve the GL strings of the underlying EGL/GLES implementation.
-    // On return, |*vendor|, |*renderer| and |*version| will point to strings
-    // that are owned by the instance (and must not be freed by the caller).
-    void getGLStrings(const char** vendor, const char** renderer,
-                      const char** version) const {
-        *vendor = m_graphicsAdapterVendor.c_str();
-        *renderer = m_graphicsAdapterName.c_str();
-        *version = m_graphicsApiVersion.c_str();
-    }
-
-    // Create a new EmulatedEglContext instance for this display instance.
-    // |p_config| is the index of one of the configs returned by getConfigs().
-    // |p_share| is either EGL_NO_CONTEXT or the handle of a shared context.
-    // |version| specifies the GLES version as a GLESApi enum.
-    // Return a new handle value, which will be 0 in case of error.
-    HandleType createEmulatedEglContext(int p_config, HandleType p_share,
-                                        gl::GLESApi version = gl::GLESApi_CM);
-
-    // Destroy a given EmulatedEglContext instance. |p_context| is its handle
-    // value as returned by createEmulatedEglContext().
-    void destroyEmulatedEglContext(HandleType p_context);
-
-    // Create a new EmulatedEglWindowSurface instance from this display instance.
-    // |p_config| is the index of one of the configs returned by getConfigs().
-    // |p_width| and |p_height| are the window dimensions in pixels.
-    // Return a new handle value, or 0 in case of error.
-    HandleType createEmulatedEglWindowSurface(int p_config, int p_width, int p_height);
-
-    // Destroy a given EmulatedEglWindowSurface instance. |p_surcace| is its
-    // handle value as returned by createEmulatedEglWindowSurface().
-    void destroyEmulatedEglWindowSurface(HandleType p_surface);
-
-    // Returns the set of ColorBuffers destroyed (for further cleanup)
-    std::vector<HandleType> destroyEmulatedEglWindowSurfaceLocked(HandleType p_surface);
-
-    void createEmulatedEglFenceSync(EGLenum type,
-                                    int destroyWhenSignaled,
-                                    uint64_t* outSync = nullptr,
-                                    uint64_t* outSyncThread = nullptr);
 
     // Create a new ColorBuffer instance from this display instance.
     // |p_width| and |p_height| are its dimensions in pixels.
@@ -260,21 +236,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // virtio-gpu's RESOURCE_CREATE ioctl for BLOB resources.
     void createBufferWithHandle(uint64_t size, HandleType handle);
 
-    // Call this function when a render thread terminates to destroy all
-    // resources it created. Necessary to avoid leaking host resources
-    // when a guest application crashes, for example.
-    void drainGlRenderThreadResources();
-
-    // Call this function when a render thread terminates to destroy all
-    // the remaining contexts it created. Necessary to avoid leaking host
-    // contexts when a guest application crashes, for example.
-    void drainGlRenderThreadContexts();
-
-    // Call this function when a render thread terminates to destroy all
-    // remaining window surface it created. Necessary to avoid leaking
-    // host buffers when a guest application crashes, for example.
-    void drainGlRenderThreadSurfaces();
-
     // Increment the reference count associated with a given ColorBuffer
     // instance. |p_colorbuffer| is its handle value as returned by
     // createColorBuffer().
@@ -297,54 +258,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     std::unique_ptr<ProcessResources> removeGraphicsProcessResources(uint64_t puid);
     // TODO(kaiyili): retire cleanupProcGLObjects in favor of removeGraphicsProcessResources.
     void cleanupProcGLObjects(uint64_t puid);
-
-    // Equivalent for eglMakeCurrent() for the current display.
-    // |p_context|, |p_drawSurface| and |p_readSurface| are the handle values
-    // of the context, the draw surface and the read surface, respectively.
-    // Returns true on success, false on failure.
-    // Note: if all handle values are 0, this is an unbind operation.
-    bool bindContext(HandleType p_context, HandleType p_drawSurface,
-                     HandleType p_readSurface);
-
-    // Return a render context pointer from its handle
-    gl::EmulatedEglContextPtr getContext_locked(HandleType p_context);
-
-    // Return a color buffer pointer from its handle
-    gl::EmulatedEglWindowSurfacePtr getWindowSurface_locked(HandleType p_windowsurface);
-
-    // Attach a ColorBuffer to a EmulatedEglWindowSurface instance.
-    // See the documentation for EmulatedEglWindowSurface::setColorBuffer().
-    // |p_surface| is the target EmulatedEglWindowSurface's handle value.
-    // |p_colorbuffer| is the ColorBuffer handle value.
-    // Returns true on success, false otherwise.
-    bool setEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface,
-                                                HandleType p_colorbuffer);
-
-    // Copy the content of a EmulatedEglWindowSurface's Pbuffer to its attached
-    // ColorBuffer. See the documentation for
-    // EmulatedEglWindowSurface::flushColorBuffer().
-    // |p_surface| is the target WindowSurface's handle value.
-    // Returns true on success, false on failure.
-    bool flushEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface);
-
-    // Retrieves the color buffer handle associated with |p_surface|.
-    // Returns 0 if there is no such handle.
-    HandleType getEmulatedEglWindowSurfaceColorBufferHandle(HandleType p_surface);
-
-    // Bind the current context's EGL_TEXTURE_2D texture to a ColorBuffer
-    // instance's EGLImage. This is intended to implement
-    // glEGLImageTargetTexture2DOES() for all GLES versions.
-    // |p_colorbuffer| is the ColorBuffer's handle value.
-    // Returns true on success, false on failure.
-    bool bindColorBufferToTexture(HandleType p_colorbuffer);
-    bool bindColorBufferToTexture2(HandleType p_colorbuffer);
-
-    // Bind the current context's EGL_RENDERBUFFER_OES render buffer to this
-    // ColorBuffer's EGLImage. This is intended to implement
-    // glEGLImageTargetRenderbufferStorageOES() for all GLES versions.
-    // |p_colorbuffer| is the ColorBuffer's handle value.
-    // Returns true on success, false on failure.
-    bool bindColorBufferToRenderbuffer(HandleType p_colorbuffer);
 
     // Read the content of a given Buffer into client memory.
     // |p_buffer| is the Buffer's handle value.
@@ -377,17 +290,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int width,
                             int height, void* pixels, uint32_t pixels_size);
 
-    // create a Y texture and a UV texture with width and height, the created
-    // texture ids are stored in textures respectively
-    void createYUVTextures(uint32_t type, uint32_t count, int width, int height,
-                           uint32_t* output);
-    void destroyYUVTextures(uint32_t type, uint32_t count, uint32_t* textures);
-    void updateYUVTextures(uint32_t type, uint32_t* textures, void* privData,
-                           void* func);
-    void swapTexturesAndUpdateColorBuffer(uint32_t colorbufferhandle, int x, int y, int width,
-                                          int height, uint32_t format, uint32_t type,
-                                          uint32_t texture_type, uint32_t* textures);
-
     // Update the content of a given Buffer from client data.
     // |p_buffer| is the Buffer's handle value.
     // |offset| and |size| are the position and size of a slice of the buffer
@@ -414,17 +316,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     bool updateColorBufferFromFrameworkFormat(HandleType p_colorbuffer, int x, int y, int width,
                                               int height, FrameworkFormat fwkFormat, GLenum format,
                                               GLenum type, void* pixels, void* metadata = nullptr);
-
-    // Reads back the raw color buffer to |pixels|
-    // if |pixels| is not null.
-    // Always returns in |numBytes| how many bytes were
-    // planned to be transmitted.
-    // |numBytes| is not an input parameter;
-    // fewer or more bytes cannot be specified.
-    // If the framework format is YUV, it will read
-    // back as raw YUV data.
-    bool readColorBufferContents(HandleType p_colorbuffer, size_t* numBytes,
-                                 void* pixels);
 
     bool getColorBufferInfo(HandleType p_colorbuffer, int* width, int* height,
                             GLint* internalformat,
@@ -461,16 +352,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // be re-displayed for any reason.
     bool repost(bool needLockAndBind = true);
 
-    gl::EmulationGl& getEmulationGl();
-    bool hasEmulationGl() const { return m_emulationGl != nullptr; }
-
-    // Return the host EGLDisplay used by this instance.
-    EGLDisplay getDisplay() const;
-    EGLSurface getWindowSurface() const;
-    EGLContext getContext() const;
-    EGLConfig getConfig() const;
-    ContextHelper* getPbufferSurfaceContextHelper() const;
-
     // Change the rotation of the displayed GPU sub-window.
     void setDisplayRotation(float zRot) {
         if (zRot != m_zRot) {
@@ -496,19 +377,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
         }
     }
 
-    // Return a TextureDraw instance that can be used with this surfaces
-    // and windows created by this instance.
-    gl::TextureDraw* getTextureDraw() const;
-
-    // Create an eglImage and return its handle.  Reference:
-    // https://www.khronos.org/registry/egl/extensions/KHR/EGL_KHR_image_base.txt
-    HandleType createEmulatedEglImage(HandleType context, EGLenum target,
-                                      GLuint buffer);
-    // Call the implementation of eglDestroyImageKHR, return if succeeds or
-    // not. Reference:
-    // https://www.khronos.org/registry/egl/extensions/KHR/EGL_KHR_image_base.txt
-    EGLBoolean destroyEmulatedEglImage(HandleType image);
-
     void lockContextStructureRead() { m_contextStructureLock.lockRead(); }
     void unlockContextStructureRead() { m_contextStructureLock.unlockRead(); }
 
@@ -517,12 +385,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // GL state.
     // It can be unsafe / leaky to change the structure of contexts
     // outside the facilities the FrameBuffer class provides.
-    void createTrivialContext(HandleType shared, HandleType* contextOut,
-                              HandleType* surfOut);
-    // createTrivialContext(), but with a m_pbufContext
-    // as shared, and not adding itself to the context map at all.
-    void createSharedTrivialContext(EGLContext* contextOut, EGLSurface* surfOut);
-    void destroySharedTrivialContext(EGLContext context, EGLSurface surf);
+    void createTrivialContext(HandleType shared, HandleType* contextOut, HandleType* surfOut);
 
     void setShuttingDown() { m_shuttingDown = true; }
     bool isShuttingDown() const { return m_shuttingDown; }
@@ -543,8 +406,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void lock();
     void unlock();
 
-    gl::GLESDispatchMaxVersion getMaxGLESVersion();
-
     float getDpr() const { return m_dpr; }
     int windowWidth() const { return m_windowWidth; }
     int windowHeight() const { return m_windowHeight; }
@@ -552,14 +413,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     float getPy() const { return m_py; }
     int getZrot() const { return m_zRot; }
 
-    bool isFastBlitSupported() const;
-    void disableFastBlitForTesting();
-
     bool isVulkanInteropSupported() const { return m_vulkanInteropSupported; }
     bool isVulkanEnabled() const { return m_vulkanEnabled; }
-
-    // Fill GLES usage protobuf
-    void fillGLESUsages(android_studio::EmulatorGLESUsages*);
 
     // Saves a screenshot of the previous frame.
     // nChannels should be 3 (RGB) or 4 (RGBA).
@@ -622,18 +477,13 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     static const uint32_t s_invalidIdMultiDisplay = 0xFFFFFFAB;
     static const uint32_t s_maxNumMultiDisplay = 11;
 
-    EGLContext getGlobalEGLContext() const;
     HandleType getLastPostedColorBuffer() { return m_lastPostedColorBuffer; }
-    void waitForGpu(uint64_t eglsync);
     void waitForGpuVulkan(uint64_t deviceHandle, uint64_t fenceHandle);
-    void asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallback cb);
     void asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fenceHandle, FenceCompletionCallback cb);
     void asyncWaitForGpuVulkanQsriWithCb(uint64_t image, FenceCompletionCallback cb);
     void waitForGpuVulkanQsri(uint64_t image);
 
     bool platformImportResource(uint32_t handle, uint32_t info, void* resource);
-    void* platformCreateSharedEglContext(void);
-    bool platformDestroySharedEglContext(void* context);
 
     void setGuestManagedColorBufferLifetime(bool guestManaged);
 
@@ -658,14 +508,182 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     const int getDisplayConfigsParam(int configId, EGLint param);
     const int getDisplayActiveConfig();
 
-    bool flushColorBufferFromGl(HandleType colorBufferHandle);
     bool flushColorBufferFromVk(HandleType colorBufferHandle);
-    bool flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes, size_t bytesSize);
-    bool invalidateColorBufferForGl(HandleType colorBufferHandle);
+    bool flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes,
+                                     size_t bytesSize);
     bool invalidateColorBufferForVk(HandleType colorBufferHandle);
+
+#if GFXSTREAM_ENABLE_HOST_GLES
+    // Retrieves the color buffer handle associated with |p_surface|.
+    // Returns 0 if there is no such handle.
+    HandleType getEmulatedEglWindowSurfaceColorBufferHandle(HandleType p_surface);
+
+    // createTrivialContext(), but with a m_pbufContext
+    // as shared, and not adding itself to the context map at all.
+    void createSharedTrivialContext(EGLContext* contextOut, EGLSurface* surfOut);
+    void destroySharedTrivialContext(EGLContext context, EGLSurface surf);
+
+    // Attach a ColorBuffer to a EmulatedEglWindowSurface instance.
+    // See the documentation for EmulatedEglWindowSurface::setColorBuffer().
+    // |p_surface| is the target EmulatedEglWindowSurface's handle value.
+    // |p_colorbuffer| is the ColorBuffer handle value.
+    // Returns true on success, false otherwise.
+
+    bool setEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface, HandleType p_colorbuffer);
+    // Return the list of configs available from this display.
+    const gl::EmulatedEglConfigList* getConfigs() const;
+
+    // Retrieve the GL strings of the underlying EGL/GLES implementation.
+    // On return, |*vendor|, |*renderer| and |*version| will point to strings
+    // that are owned by the instance (and must not be freed by the caller).
+    void getGLStrings(const char** vendor, const char** renderer, const char** version) const {
+        *vendor = m_graphicsAdapterVendor.c_str();
+        *renderer = m_graphicsAdapterName.c_str();
+        *version = m_graphicsApiVersion.c_str();
+    }
+
+    // Create a new EmulatedEglContext instance for this display instance.
+    // |p_config| is the index of one of the configs returned by getConfigs().
+    // |p_share| is either EGL_NO_CONTEXT or the handle of a shared context.
+    // |version| specifies the GLES version as a GLESApi enum.
+    // Return a new handle value, which will be 0 in case of error.
+    HandleType createEmulatedEglContext(int p_config, HandleType p_share,
+                                        gl::GLESApi version = gl::GLESApi_CM);
+
+    // Destroy a given EmulatedEglContext instance. |p_context| is its handle
+    // value as returned by createEmulatedEglContext().
+    void destroyEmulatedEglContext(HandleType p_context);
+
+    // Create a new EmulatedEglWindowSurface instance from this display instance.
+    // |p_config| is the index of one of the configs returned by getConfigs().
+    // |p_width| and |p_height| are the window dimensions in pixels.
+    // Return a new handle value, or 0 in case of error.
+    HandleType createEmulatedEglWindowSurface(int p_config, int p_width, int p_height);
+
+    // Destroy a given EmulatedEglWindowSurface instance. |p_surcace| is its
+    // handle value as returned by createEmulatedEglWindowSurface().
+    void destroyEmulatedEglWindowSurface(HandleType p_surface);
+
+    // Returns the set of ColorBuffers destroyed (for further cleanup)
+    std::vector<HandleType> destroyEmulatedEglWindowSurfaceLocked(HandleType p_surface);
+
+    void createEmulatedEglFenceSync(EGLenum type, int destroyWhenSignaled,
+                                    uint64_t* outSync = nullptr, uint64_t* outSyncThread = nullptr);
+
+    // Call this function when a render thread terminates to destroy all
+    // resources it created. Necessary to avoid leaking host resources
+    // when a guest application crashes, for example.
+    void drainGlRenderThreadResources();
+
+    // Call this function when a render thread terminates to destroy all
+    // the remaining contexts it created. Necessary to avoid leaking host
+    // contexts when a guest application crashes, for example.
+    void drainGlRenderThreadContexts();
+
+    // Call this function when a render thread terminates to destroy all
+    // remaining window surface it created. Necessary to avoid leaking
+    // host buffers when a guest application crashes, for example.
+    void drainGlRenderThreadSurfaces();
+
+    gl::EmulationGl& getEmulationGl();
+    bool hasEmulationGl() const { return m_emulationGl != nullptr; }
+
+    // Return the host EGLDisplay used by this instance.
+    EGLDisplay getDisplay() const;
+    EGLSurface getWindowSurface() const;
+    EGLContext getContext() const;
+    EGLConfig getConfig() const;
+
+    EGLContext getGlobalEGLContext() const;
+
+    // Return a render context pointer from its handle
+    gl::EmulatedEglContextPtr getContext_locked(HandleType p_context);
+
+    // Return a color buffer pointer from its handle
+    gl::EmulatedEglWindowSurfacePtr getWindowSurface_locked(HandleType p_windowsurface);
+
+    // Return a TextureDraw instance that can be used with this surfaces
+    // and windows created by this instance.
+    gl::TextureDraw* getTextureDraw() const;
+
+    bool isFastBlitSupported() const;
+    void disableFastBlitForTesting();
+
+    // Create an eglImage and return its handle.  Reference:
+    // https://www.khronos.org/registry/egl/extensions/KHR/EGL_KHR_image_base.txt
+    HandleType createEmulatedEglImage(HandleType context, EGLenum target, GLuint buffer);
+    // Call the implementation of eglDestroyImageKHR, return if succeeds or
+    // not. Reference:
+    // https://www.khronos.org/registry/egl/extensions/KHR/EGL_KHR_image_base.txt
+    EGLBoolean destroyEmulatedEglImage(HandleType image);
+    // Copy the content of a EmulatedEglWindowSurface's Pbuffer to its attached
+    // ColorBuffer. See the documentation for
+    // EmulatedEglWindowSurface::flushColorBuffer().
+    // |p_surface| is the target WindowSurface's handle value.
+    // Returns true on success, false on failure.
+    bool flushEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface);
+
+    gl::GLESDispatchMaxVersion getMaxGLESVersion();
+
+    // Fill GLES usage protobuf
+    void fillGLESUsages(android_studio::EmulatorGLESUsages*);
+
+    void* platformCreateSharedEglContext(void);
+    bool platformDestroySharedEglContext(void* context);
+
+    bool flushColorBufferFromGl(HandleType colorBufferHandle);
+
+    bool invalidateColorBufferForGl(HandleType colorBufferHandle);
+
+    ContextHelper* getPbufferSurfaceContextHelper() const;
+
+    // Bind the current context's EGL_TEXTURE_2D texture to a ColorBuffer
+    // instance's EGLImage. This is intended to implement
+    // glEGLImageTargetTexture2DOES() for all GLES versions.
+    // |p_colorbuffer| is the ColorBuffer's handle value.
+    // Returns true on success, false on failure.
+    bool bindColorBufferToTexture(HandleType p_colorbuffer);
+    bool bindColorBufferToTexture2(HandleType p_colorbuffer);
+
+    // Bind the current context's EGL_RENDERBUFFER_OES render buffer to this
+    // ColorBuffer's EGLImage. This is intended to implement
+    // glEGLImageTargetRenderbufferStorageOES() for all GLES versions.
+    // |p_colorbuffer| is the ColorBuffer's handle value.
+    // Returns true on success, false on failure.
+    bool bindColorBufferToRenderbuffer(HandleType p_colorbuffer);
+
+    // Equivalent for eglMakeCurrent() for the current display.
+    // |p_context|, |p_drawSurface| and |p_readSurface| are the handle values
+    // of the context, the draw surface and the read surface, respectively.
+    // Returns true on success, false on failure.
+    // Note: if all handle values are 0, this is an unbind operation.
+    bool bindContext(HandleType p_context, HandleType p_drawSurface, HandleType p_readSurface);
+
+    // create a Y texture and a UV texture with width and height, the created
+    // texture ids are stored in textures respectively
+    void createYUVTextures(uint32_t type, uint32_t count, int width, int height, uint32_t* output);
+    void destroyYUVTextures(uint32_t type, uint32_t count, uint32_t* textures);
+    void updateYUVTextures(uint32_t type, uint32_t* textures, void* privData, void* func);
+    void swapTexturesAndUpdateColorBuffer(uint32_t colorbufferhandle, int x, int y, int width,
+                                          int height, uint32_t format, uint32_t type,
+                                          uint32_t texture_type, uint32_t* textures);
+
+    // Reads back the raw color buffer to |pixels|
+    // if |pixels| is not null.
+    // Always returns in |numBytes| how many bytes were
+    // planned to be transmitted.
+    // |numBytes| is not an input parameter;
+    // fewer or more bytes cannot be specified.
+    // If the framework format is YUV, it will read
+    // back as raw YUV data.
+    bool readColorBufferContents(HandleType p_colorbuffer, size_t* numBytes, void* pixels);
+
+    void waitForGpu(uint64_t eglsync);
+    void asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallback cb);
 
     const gl::EGLDispatch* getEglDispatch();
     const gl::GLESv2Dispatch* getGles2Dispatch();
+#endif
 
    private:
     FrameBuffer(int p_width, int p_height, bool useSubWindow);
@@ -738,12 +756,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     android::base::Lock m_colorBufferMapLock;
     uint64_t mFrameNumber;
     FBNativeWindowType m_nativeWindow = 0;
-    gl::EmulatedEglContextMap m_contexts;
-    gl::EmulatedEglImageMap m_images;
-    gl::EmulatedEglWindowSurfaceMap m_windows;
+
     ColorBufferMap m_colorbuffers;
     BufferMap m_buffers;
-    std::unordered_map<HandleType, HandleType> m_EmulatedEglWindowSurfaceToColorBuffer;
 
     // A collection of color buffers that were closed without any usages
     // (|opened| == false).
@@ -813,15 +828,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     std::string m_graphicsApiVersion;
     std::string m_graphicsApiExtensions;
     std::string m_graphicsDeviceExtensions;
-
-    // The host associates color buffers with guest processes for memory
-    // cleanup. Guest processes are identified with a host generated unique ID.
-    // TODO(kaiyili): move all those resources to the ProcessResources struct.
-    ProcOwnedColorBuffers m_procOwnedColorBuffers;
-    ProcOwnedEmulatedEGLImages m_procOwnedEmulatedEglImages;
-    ProcOwnedEmulatedEglContexts m_procOwnedEmulatedEglContexts;
-    ProcOwnedEmulatedEglWindowSurfaces m_procOwnedEmulatedEglWindowSurfaces;
-    ProcOwnedCleanupCallbacks m_procOwnedCleanupCallbacks;
     std::unordered_map<uint64_t, std::unique_ptr<ProcessResources>> m_procOwnedResources;
 
     // Flag set when emulator is shutting down.
@@ -857,9 +863,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     android::base::MessageChannel<HandleType, 1024>
         mOutstandingColorBufferDestroys;
 
-    std::unique_ptr<gl::EmulationGl> m_emulationGl;
-    gl::DisplayGl* m_displayGl = nullptr;
-
     Compositor* m_compositor = nullptr;
     bool m_useVulkanComposition = false;
 
@@ -883,15 +886,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // cases, this determines whether we can support zero-copy interop.
     using VkUuid = std::array<uint8_t, VK_UUID_SIZE>;
     VkUuid m_vulkanUUID{};
-    static_assert(VK_UUID_SIZE == GL_UUID_SIZE_EXT);
 
     // Tracks platform EGL contexts that have been handed out to other users,
     // indexed by underlying native EGL context object.
-    struct PlatformEglContextInfo {
-        EGLContext context;
-        EGLSurface surface;
-    };
-    std::unordered_map<void*, PlatformEglContextInfo> m_platformEglContexts;
 
     std::unique_ptr<MetricsLogger> m_logger;
     std::unique_ptr<HealthMonitor<>> m_healthMonitor;
@@ -912,6 +909,34 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     };
     std::map<int, DisplayConfig> mDisplayConfigs;
     int mDisplayActiveConfigId = -1;
+
+    std::unique_ptr<gl::EmulationGl> m_emulationGl;
+
+    // The host associates color buffers with guest processes for memory
+    // cleanup. Guest processes are identified with a host generated unique ID.
+    // TODO(kaiyili): move all those resources to the ProcessResources struct.
+    ProcOwnedColorBuffers m_procOwnedColorBuffers;
+    ProcOwnedCleanupCallbacks m_procOwnedCleanupCallbacks;
+
+#if GFXSTREAM_ENABLE_HOST_GLES
+    gl::EmulatedEglContextMap m_contexts;
+    gl::EmulatedEglImageMap m_images;
+    gl::EmulatedEglWindowSurfaceMap m_windows;
+
+    std::unordered_map<HandleType, HandleType> m_EmulatedEglWindowSurfaceToColorBuffer;
+
+    ProcOwnedEmulatedEGLImages m_procOwnedEmulatedEglImages;
+    ProcOwnedEmulatedEglContexts m_procOwnedEmulatedEglContexts;
+    ProcOwnedEmulatedEglWindowSurfaces m_procOwnedEmulatedEglWindowSurfaces;
+    gl::DisplayGl* m_displayGl = nullptr;
+
+    struct PlatformEglContextInfo {
+        EGLContext context;
+        EGLSurface surface;
+    };
+
+    std::unordered_map<void*, PlatformEglContextInfo> m_platformEglContexts;
+#endif
 };
 
 }  // namespace gfxstream
