@@ -2746,6 +2746,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_fragment_density_map
+#endif
 #ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
