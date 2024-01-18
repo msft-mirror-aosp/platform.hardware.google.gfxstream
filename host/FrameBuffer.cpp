@@ -305,7 +305,8 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     vk::VulkanDispatch* vkDispatch = nullptr;
     if (feature_is_enabled(kFeature_Vulkan)) {
         vkDispatch = vk::vkDispatch(false /* not for testing */);
-        vkEmu = vk::createGlobalVkEmulation(vkDispatch);
+        vkEmu = vk::createGlobalVkEmulation(vkDispatch,
+                                            feature_is_enabled(kFeature_VulkanNativeSwapchain));
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
         }
@@ -3464,6 +3465,11 @@ bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* r
             return colorBuffer->glOpImportEglNativePixmap(resource, preserveContent);
         case RESOURCE_TYPE_EGL_IMAGE:
             return colorBuffer->glOpImportEglImage(resource, preserveContent);
+
+        // Note: Additional non-EGL resource-types can be added here, and will
+        // be propagated through color-buffer import functionality
+        case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE:
+            return colorBuffer->importNativeResource(resource, type, preserveContent);
         default:
             ERR("Error: unsupported resource type: %u", type);
             return false;

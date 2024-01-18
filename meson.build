@@ -15,7 +15,7 @@ prog_python = import('python').find_installation('python3')
 c_args = []
 cpp_args = []
 
-default_cpp_args = [
+gfxstream_host_args = [
   '-D_FILE_OFFSET_BITS=64',
   '-Wno-unused-parameter',
   '-Wno-unused-function',
@@ -27,7 +27,7 @@ default_cpp_args = [
 ]
 
 if host_machine.system() == 'qnx'
-  default_cpp_args += '-D_QNX_SOURCE'
+  gfxstream_host_args += '-D_QNX_SOURCE'
   qnx_target = get_option('qnx_target')
   if qnx_target == ''
     error('option qnx_target is not set')
@@ -92,11 +92,11 @@ endif
 log_level = get_option('log-level')
 
 if log_level == 'error'
-  default_cpp_args += '-DSTREAM_RENDERER_LOG_LEVEL=1'
+  gfxstream_host_args += '-DSTREAM_RENDERER_LOG_LEVEL=1'
 elif log_level == 'warn'
-  default_cpp_args += '-DSTREAM_RENDERER_LOG_LEVEL=2'
+  gfxstream_host_args += '-DSTREAM_RENDERER_LOG_LEVEL=2'
 elif log_level == 'info'
-  default_cpp_args += '-DSTREAM_RENDERER_LOG_LEVEL=3'
+  gfxstream_host_args += '-DSTREAM_RENDERER_LOG_LEVEL=3'
 endif
 
 #===============#
@@ -122,10 +122,10 @@ if use_auto
 endif
 
 if use_magma
-  default_cpp_args += '-DUSE_MAGMA=1'
+  gfxstream_host_args += '-DUSE_MAGMA=1'
   drm_dep = dependency('libdrm')
 else
-  default_cpp_args += '-DUSE_MAGMA=0'
+  gfxstream_host_args += '-DUSE_MAGMA=0'
 endif
 
 #===============#
