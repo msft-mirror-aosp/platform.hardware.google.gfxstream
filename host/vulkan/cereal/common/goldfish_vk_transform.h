@@ -2884,6 +2884,32 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPipelineCreationFeedback,
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_fragment_density_map
+void transform_tohost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toTransform);
+
+void transform_tohost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toTransform);
+
+void transform_tohost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* toTransform);
+
+#endif
 #ifdef VK_EXT_scalar_block_layout
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceScalarBlockLayoutFeatures,
                       transform_tohost_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
