@@ -1985,6 +1985,10 @@ void GLEScontext::initCapsLocked(const GLubyte * extensionString, GLSupport& glS
         glSupport.ext_GL_EXT_draw_buffers_indexed = true;
     }
 
+    if (strstr(cstring, "GL_EXT_clip_cull_distance") != NULL) {
+        glSupport.ext_GL_EXT_clip_cull_distance = true;
+    }
+
     // ASTC
     if (strstr(cstring, "GL_KHR_texture_compression_astc_ldr") != NULL) {
         glSupport.ext_GL_KHR_texture_compression_astc_ldr = true;
