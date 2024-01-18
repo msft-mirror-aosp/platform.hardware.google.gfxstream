@@ -303,7 +303,7 @@ intptr_t RenderThread::main() {
         tInfo.m_vkInfo.emplace();
     }
 
-#if USE_MAGMA
+#if GFXSTREAM_ENABLE_HOST_MAGMA
     tInfo.m_magmaInfo.emplace(mContextId);
 #endif
 
@@ -566,7 +566,7 @@ intptr_t RenderThread::main() {
             // try to process some of the command buffer using the Magma
             // decoder
             //
-#if USE_MAGMA
+#if GFXSTREAM_ENABLE_HOST_MAGMA
             if (tInfo.m_magmaInfo && tInfo.m_magmaInfo->mMagmaDec)
             {
                 last = tInfo.m_magmaInfo->mMagmaDec->decode(readBuf.buf(), readBuf.validData(),
