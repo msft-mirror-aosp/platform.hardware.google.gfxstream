@@ -1741,6 +1741,11 @@ class VkDecoderGlobalState::Impl {
         auto* memoryInfo = android::base::find(mMemoryInfo, memory);
         if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
+        auto* imageInfo = android::base::find(mImageInfo, image);
+        if (imageInfo) {
+            imageInfo->boundColorBuffer = memoryInfo->boundColorBuffer;
+        }
+
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         if (memoryInfo->mtlTexture) {
             result = m_vk->vkSetMTLTextureMVK(image, memoryInfo->mtlTexture);
@@ -1754,7 +1759,6 @@ class VkDecoderGlobalState::Impl {
             return VK_SUCCESS;
         }
 
-        auto* imageInfo = android::base::find(mImageInfo, image);
         if (!imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
@@ -1863,6 +1867,7 @@ class VkDecoderGlobalState::Impl {
         auto& imageViewInfo = mImageViewInfo[*pView];
         imageViewInfo.device = device;
         imageViewInfo.needEmulatedAlpha = needEmulatedAlpha;
+        imageViewInfo.boundColorBuffer = imageInfo->boundColorBuffer;
 
         *pView = new_boxed_non_dispatchable_VkImageView(*pView);
 
@@ -2487,15 +2492,28 @@ class VkDecoderGlobalState::Impl {
         for (uint32_t i = 0; i < descriptorWriteCount; i++) {
             const VkWriteDescriptorSet& descriptorWrite = pDescriptorWrites[i];
             descriptorWritesNeedDeepCopy[i] = false;
-            if (descriptorWrite.descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+            if (!vk_util::vk_descriptor_type_has_image_view(descriptorWrite.descriptorType)) {
                 continue;
             }
             for (uint32_t j = 0; j < descriptorWrite.descriptorCount; j++) {
                 const VkDescriptorImageInfo& imageInfo = descriptorWrite.pImageInfo[j];
                 const auto* imgViewInfo = android::base::find(mImageViewInfo, imageInfo.imageView);
+                if (!imgViewInfo) {
+                    continue;
+                }
+                if (imgViewInfo->boundColorBuffer) {
+                    // TODO(igorc): Move this to vkQueueSubmit time.
+                    auto fb = FrameBuffer::getFB();
+                    if (fb) {
+                        fb->invalidateColorBufferForVk(imgViewInfo->boundColorBuffer);
+                    }
+                }
+                if (descriptorWrite.descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+                    continue;
+                }
                 const auto* samplerInfo = android::base::find(mSamplerInfo, imageInfo.sampler);
-                if (!imgViewInfo || !samplerInfo) continue;
-                if (imgViewInfo->needEmulatedAlpha && samplerInfo->needEmulatedAlpha) {
+                if (samplerInfo && imgViewInfo->needEmulatedAlpha &&
+                    samplerInfo->needEmulatedAlpha) {
                     needEmulateWriteDescriptor = true;
                     descriptorWritesNeedDeepCopy[i] = true;
                     break;
@@ -3717,6 +3735,10 @@ class VkDecoderGlobalState::Impl {
             memoryInfo.mtlTexture = getColorBufferMTLTexture(importCbInfoPtr->colorBuffer);
         }
 #endif
+
+        if (importCbInfoPtr && !mGuestUsesAngle) {
+            memoryInfo.boundColorBuffer = importCbInfoPtr->colorBuffer;
+        }
 
         if (!hostVisible) {
             *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);
@@ -6486,6 +6508,9 @@ class VkDecoderGlobalState::Impl {
 
         // virtio-gpu blobs
         uint64_t blobId = 0;
+
+        // Color buffer, provided via vkAllocateMemory().
+        HandleType boundColorBuffer = 0;
     };
 
     struct InstanceInfo {
@@ -6550,11 +6575,17 @@ class VkDecoderGlobalState::Impl {
         VkImageCreateInfo imageCreateInfoShallow;
         std::shared_ptr<AndroidNativeBufferInfo> anbInfo;
         CompressedImageInfo cmpInfo;
+
+        // Color buffer, provided via vkAllocateMemory().
+        HandleType boundColorBuffer = 0;
     };
 
     struct ImageViewInfo {
         VkDevice device;
         bool needEmulatedAlpha = false;
+
+        // Color buffer, provided via vkAllocateMemory().
+        HandleType boundColorBuffer = 0;
     };
 
     struct SamplerInfo {
