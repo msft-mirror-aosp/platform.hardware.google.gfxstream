@@ -838,3 +838,129 @@ VkResult gfxstream_vk_CreateComputePipelines(VkDevice device, VkPipelineCache pi
     *pPipelines = gfxstream_vk_pipeline_to_handle(gfxstream_pPipelines);
     return vkCreateComputePipelines_VkResult_return;
 }
+
+struct DescriptorSetTransformStorage {
+    std::vector<std::vector<VkDescriptorImageInfo>> imageInfos;
+    std::vector<std::vector<VkDescriptorBufferInfo>> bufferInfos;
+    std::vector<std::vector<VkBufferView>> texelBuffers;
+};
+
+static std::vector<VkWriteDescriptorSet> transformDescriptorSetList(
+    const VkWriteDescriptorSet* pDescriptorSets,
+    uint32_t descriptorSetCount,
+    DescriptorSetTransformStorage& storage) {
+    std::vector<VkWriteDescriptorSet> outDescriptorSets(descriptorSetCount);
+    for (uint32_t i = 0; i < descriptorSetCount; ++i) {
+        const auto& srcDescriptorSet = pDescriptorSets[i];
+        const uint32_t descriptorCount = srcDescriptorSet.descriptorCount;
+
+        VkWriteDescriptorSet& outDescriptorSet = outDescriptorSets[i];
+        outDescriptorSet = srcDescriptorSet;
+
+        storage.imageInfos.push_back(std::vector<VkDescriptorImageInfo>());
+        storage.imageInfos[i].reserve(descriptorCount);
+        memset(&storage.imageInfos[i][0], 0, sizeof(VkDescriptorImageInfo) * descriptorCount);
+        for (uint32_t j = 0; j < descriptorCount; ++j) {
+            const auto* srcImageInfo = srcDescriptorSet.pImageInfo;
+            if (srcImageInfo) {
+                storage.imageInfos[i][j] = srcImageInfo[j];
+                storage.imageInfos[i][j].imageView = VK_NULL_HANDLE;
+                if (vk_descriptor_type_has_image_view(srcDescriptorSet.descriptorType) &&
+                    srcImageInfo[j].imageView) {
+                    VK_FROM_HANDLE(gfxstream_vk_image_view, gfxstreamImageView,
+                                   srcImageInfo[j].imageView);
+                    storage.imageInfos[i][j].imageView = gfxstreamImageView->internal_object;
+                }
+            }
+        }
+        outDescriptorSet.pImageInfo = storage.imageInfos[i].data();
+
+        storage.bufferInfos.push_back(std::vector<VkDescriptorBufferInfo>());
+        storage.bufferInfos[i].reserve(descriptorCount);
+        memset(&storage.bufferInfos[i][0], 0, sizeof(VkDescriptorBufferInfo) * descriptorCount);
+        for (uint32_t j = 0; j < descriptorCount; ++j) {
+            const auto* srcBufferInfo = srcDescriptorSet.pBufferInfo;
+            if (srcBufferInfo) {
+                storage.bufferInfos[i][j] = srcBufferInfo[j];
+                storage.bufferInfos[i][j].buffer = VK_NULL_HANDLE;
+                if (vk_descriptor_type_has_descriptor_buffer(srcDescriptorSet.descriptorType) &&
+                    srcBufferInfo[j].buffer) {
+                    VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstreamBuffer, srcBufferInfo[j].buffer);
+                    storage.bufferInfos[i][j].buffer = gfxstreamBuffer->internal_object;
+                }
+            }
+        }
+        outDescriptorSet.pBufferInfo = storage.bufferInfos[i].data();
+
+        storage.texelBuffers.push_back(std::vector<VkBufferView>());
+        storage.texelBuffers[i].reserve(descriptorCount);
+        memset(&storage.texelBuffers[i][0], 0, sizeof(VkBufferView) * descriptorCount);
+        for (uint32_t j = 0; j < descriptorCount; ++j) {
+            const auto* srcBufferView = srcDescriptorSet.pTexelBufferView;
+            if (vk_descriptor_type_has_texel_buffer(srcDescriptorSet.descriptorType) &&
+                srcBufferView) {
+                VK_FROM_HANDLE(gfxstream_vk_buffer_view, gfxstreamBufferView, srcBufferView[j]);
+                storage.texelBuffers[i][j] =
+                    gfxstreamBufferView->internal_object;
+            }
+        }
+        outDescriptorSet.pTexelBufferView = storage.texelBuffers[i].data();
+    }
+    return outDescriptorSets;
+}
+
+void gfxstream_vk_UpdateDescriptorSets(VkDevice device, uint32_t descriptorWriteCount,
+                                       const VkWriteDescriptorSet* pDescriptorWrites,
+                                       uint32_t descriptorCopyCount,
+                                       const VkCopyDescriptorSet* pDescriptorCopies) {
+    AEMU_SCOPED_TRACE("vkUpdateDescriptorSets");
+    VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
+        DescriptorSetTransformStorage descriptorSetTransformStorage;
+        std::vector<VkWriteDescriptorSet> internal_pDescriptorWrites =
+            transformDescriptorSetList(pDescriptorWrites, descriptorWriteCount,
+                                       descriptorSetTransformStorage);
+        auto resources = gfxstream::vk::ResourceTracker::get();
+        resources->on_vkUpdateDescriptorSets(
+            vkEnc, gfxstream_device->internal_object, descriptorWriteCount,
+            internal_pDescriptorWrites.data(), descriptorCopyCount, pDescriptorCopies);
+    }
+}
+
+void gfxstream_vk_QueueCommitDescriptorSetUpdatesGOOGLE(
+    VkQueue queue, uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
+    uint32_t descriptorSetCount, const VkDescriptorSetLayout* pSetLayouts,
+    const uint64_t* pDescriptorSetPoolIds, const uint32_t* pDescriptorSetWhichPool,
+    const uint32_t* pDescriptorSetPendingAllocation,
+    const uint32_t* pDescriptorWriteStartingIndices, uint32_t pendingDescriptorWriteCount,
+    const VkWriteDescriptorSet* pPendingDescriptorWrites) {
+    AEMU_SCOPED_TRACE("vkQueueCommitDescriptorSetUpdatesGOOGLE");
+    VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
+    {
+        auto vkEnc =
+            gfxstream::vk::ResourceTracker::getQueueEncoder(gfxstream_queue->internal_object);
+        std::vector<VkDescriptorPool> internal_pDescriptorPools(descriptorPoolCount);
+        for (uint32_t i = 0; i < descriptorPoolCount; ++i) {
+            VK_FROM_HANDLE(gfxstream_vk_descriptor_pool, gfxstream_pDescriptorPools,
+                           pDescriptorPools[i]);
+            internal_pDescriptorPools[i] = gfxstream_pDescriptorPools->internal_object;
+        }
+        std::vector<VkDescriptorSetLayout> internal_pSetLayouts(descriptorSetCount);
+        for (uint32_t i = 0; i < descriptorSetCount; ++i) {
+            VK_FROM_HANDLE(gfxstream_vk_descriptor_set_layout, gfxstream_pSetLayouts,
+                           pSetLayouts[i]);
+            internal_pSetLayouts[i] = gfxstream_pSetLayouts->internal_object;
+        }
+        DescriptorSetTransformStorage descriptorSetTransformStorage;
+        std::vector<VkWriteDescriptorSet> internal_pPendingDescriptorWrites =
+            transformDescriptorSetList(pPendingDescriptorWrites, pendingDescriptorWriteCount,
+                                       descriptorSetTransformStorage);
+        vkEnc->vkQueueCommitDescriptorSetUpdatesGOOGLE(
+            gfxstream_queue->internal_object, descriptorPoolCount, internal_pDescriptorPools.data(),
+            descriptorSetCount, internal_pSetLayouts.data(), pDescriptorSetPoolIds,
+            pDescriptorSetWhichPool, pDescriptorSetPendingAllocation,
+            pDescriptorWriteStartingIndices, pendingDescriptorWriteCount,
+            internal_pPendingDescriptorWrites.data(), true /* do lock */);
+    }
+}
