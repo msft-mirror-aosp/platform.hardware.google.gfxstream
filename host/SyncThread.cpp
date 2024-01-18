@@ -16,7 +16,10 @@
 
 #include "SyncThread.h"
 
+#if GFXSTREAM_ENABLE_HOST_GLES
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
+#endif
+
 #include "aemu/base/Metrics.h"
 #include "aemu/base/system/System.h"
 #include "aemu/base/threads/Thread.h"
@@ -35,8 +38,11 @@ namespace gfxstream {
 using android::base::EventHangMetadata;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
+
+#if GFXSTREAM_ENABLE_HOST_GLES
 using gl::EGLDispatch;
 using gl::EmulatedEglFenceSync;
+#endif
 
 #define DEBUG 0
 
@@ -112,15 +118,18 @@ SyncThread::SyncThread(bool hasGl, HealthMonitor<>* healthMonitor)
       mHealthMonitor(healthMonitor) {
     this->start();
     mWorkerThreadPool.start();
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (hasGl) {
         initSyncEGLContext();
     }
+#endif
 }
 
 SyncThread::~SyncThread() {
     cleanup();
 }
 
+#if GFXSTREAM_ENABLE_HOST_GLES
 void SyncThread::triggerWait(EmulatedEglFenceSync* fenceSync,
                              uint64_t timeline) {
     std::stringstream ss;
@@ -130,20 +139,6 @@ void SyncThread::triggerWait(EmulatedEglFenceSync* fenceSync,
         [fenceSync, timeline, this](WorkerId) {
             doSyncWait(fenceSync, [timeline] {
                 DPRINT("wait done (with fence), use goldfish sync timeline inc");
-                emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
-            });
-        },
-        ss.str());
-}
-
-void SyncThread::triggerWaitVk(VkFence vkFence, uint64_t timeline) {
-    std::stringstream ss;
-    ss << "triggerWaitVk vkFence=0x" << std::hex << reinterpret_cast<uintptr_t>(vkFence)
-       << " timeline=0x" << std::hex << timeline;
-    sendAsync(
-        [vkFence, timeline](WorkerId) {
-            doSyncWaitVk(vkFence, [timeline] {
-                DPRINT("vk wait done, use goldfish sync timeline inc");
                 emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
             });
         },
@@ -169,137 +164,6 @@ void SyncThread::triggerWaitWithCompletionCallback(EmulatedEglFenceSync* fenceSy
     sendAsync(
         [fenceSync, cb = std::move(cb), this](WorkerId) { doSyncWait(fenceSync, std::move(cb)); },
         ss.str());
-}
-
-
-void SyncThread::triggerWaitVkWithCompletionCallback(VkFence vkFence, FenceCompletionCallback cb) {
-    std::stringstream ss;
-    ss << "triggerWaitVkWithCompletionCallback vkFence=0x" << std::hex
-       << reinterpret_cast<uintptr_t>(vkFence);
-    sendAsync([vkFence, cb = std::move(cb)](WorkerId) { doSyncWaitVk(vkFence, std::move(cb)); },
-              ss.str());
-}
-
-void SyncThread::triggerWaitVkQsriWithCompletionCallback(VkImage vkImage, FenceCompletionCallback cb) {
-    std::stringstream ss;
-    ss << "triggerWaitVkQsriWithCompletionCallback vkImage=0x"
-       << reinterpret_cast<uintptr_t>(vkImage);
-    sendAsync(
-        [vkImage, cb = std::move(cb)](WorkerId) {
-            auto decoder = vk::VkDecoderGlobalState::get();
-            auto res = decoder->registerQsriCallback(vkImage, cb);
-            // If registerQsriCallback does not schedule the callback, we still need to complete
-            // the task, otherwise we may hit deadlocks on tasks on the same ring.
-            if (!res.CallbackScheduledOrFired()) {
-                cb();
-            }
-        },
-        ss.str());
-}
-
-void SyncThread::triggerWaitVkQsri(VkImage vkImage, uint64_t timeline) {
-     std::stringstream ss;
-    ss << "triggerWaitVkQsri vkImage=0x" << std::hex << vkImage
-       << " timeline=0x" << std::hex << timeline;
-    sendAsync(
-        [vkImage, timeline](WorkerId) {
-            auto decoder = vk::VkDecoderGlobalState::get();
-            auto res = decoder->registerQsriCallback(vkImage, [timeline](){
-                 emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
-            });
-            // If registerQsriCallback does not schedule the callback, we still need to complete
-            // the task, otherwise we may hit deadlocks on tasks on the same ring.
-            if (!res.CallbackScheduledOrFired()) {
-                emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
-            }
-        },
-        ss.str());
-}
-
-void SyncThread::triggerGeneral(FenceCompletionCallback cb, std::string description) {
-    std::stringstream ss;
-    ss << "triggerGeneral: " << description;
-    sendAsync(std::bind(std::move(cb)), ss.str());
-}
-
-void SyncThread::cleanup() {
-    sendAndWaitForResult(
-        [this](WorkerId workerId) {
-            if (mHasGl) {
-                const EGLDispatch* egl = gl::LazyLoadedEGLDispatch::get();
-
-                egl->eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-
-                egl->eglDestroyContext(mDisplay, mContext[workerId]);
-                egl->eglDestroySurface(mDisplay, mSurface[workerId]);
-                mContext[workerId] = EGL_NO_CONTEXT;
-                mSurface[workerId] = EGL_NO_SURFACE;
-            }
-            return 0;
-        },
-        "cleanup");
-    DPRINT("signal");
-    mLock.lock();
-    mExiting = true;
-    mCv.signalAndUnlock(&mLock);
-    DPRINT("exit");
-    // Wait for the control thread to exit. We can't destroy the SyncThread
-    // before we wait the control thread.
-    if (!wait(nullptr)) {
-        ERR("Fail to wait the control thread of the SyncThread to exit.");
-    }
-}
-
-// Private methods below////////////////////////////////////////////////////////
-
-intptr_t SyncThread::main() {
-    DPRINT("in sync thread");
-    mLock.lock();
-    mCv.wait(&mLock, [this] { return mExiting; });
-
-    mWorkerThreadPool.done();
-    mWorkerThreadPool.join();
-    DPRINT("exited sync thread");
-    return 0;
-}
-
-int SyncThread::sendAndWaitForResult(std::function<int(WorkerId)> job, std::string description) {
-    DPRINT("sendAndWaitForResult task(%s)", description.c_str());
-    std::packaged_task<int(WorkerId)> task(std::move(job));
-    std::future<int> resFuture = task.get_future();
-    Command command = {
-        .mTask = std::move(task),
-        .mDescription = std::move(description),
-    };
-
-    mWorkerThreadPool.enqueue(std::move(command));
-    auto res = resFuture.get();
-    DPRINT("exit");
-    return res;
-}
-
-void SyncThread::sendAsync(std::function<void(WorkerId)> job, std::string description) {
-    DPRINT("send task(%s)", description.c_str());
-    mWorkerThreadPool.enqueue(Command{
-        .mTask =
-            std::packaged_task<int(WorkerId)>([job = std::move(job)](WorkerId workerId) mutable {
-                job(workerId);
-                return 0;
-            }),
-        .mDescription = std::move(description),
-    });
-    DPRINT("exit");
-}
-
-void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) {
-    std::unique_ptr<std::unordered_map<std::string, std::string>> syncThreadData =
-        std::make_unique<std::unordered_map<std::string, std::string>>();
-    syncThreadData->insert({{"syncthread_cmd_desc", command.mDescription}});
-    auto watchdog = WATCHDOG_BUILDER(mHealthMonitor, "SyncThread task execution")
-                        .setHangType(EventHangMetadata::HangType::kSyncThread)
-                        .setAnnotations(std::move(syncThreadData))
-                        .build();
-    command.mTask(workerId);
 }
 
 void SyncThread::initSyncEGLContext() {
@@ -374,9 +238,10 @@ void SyncThread::doSyncWait(EmulatedEglFenceSync* fenceSync, std::function<void(
     DPRINT("wait on sync obj: %p", fenceSync);
     wait_result = fenceSync->wait(kDefaultTimeoutNsecs);
 
-    DPRINT("done waiting, with wait result=0x%x. "
-           "increment timeline (and signal fence)",
-           wait_result);
+    DPRINT(
+        "done waiting, with wait result=0x%x. "
+        "increment timeline (and signal fence)",
+        wait_result);
 
     if (wait_result != EGL_CONDITION_SATISFIED_KHR) {
         EGLint error = gl::s_egl.eglGetError();
@@ -419,6 +284,154 @@ void SyncThread::doSyncWait(EmulatedEglFenceSync* fenceSync, std::function<void(
     DPRINT("done timeline increment");
 
     DPRINT("exit");
+}
+
+#endif
+
+void SyncThread::triggerWaitVk(VkFence vkFence, uint64_t timeline) {
+    std::stringstream ss;
+    ss << "triggerWaitVk vkFence=0x" << std::hex << reinterpret_cast<uintptr_t>(vkFence)
+       << " timeline=0x" << std::hex << timeline;
+    sendAsync(
+        [vkFence, timeline](WorkerId) {
+            doSyncWaitVk(vkFence, [timeline] {
+                DPRINT("vk wait done, use goldfish sync timeline inc");
+                emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
+            });
+        },
+        ss.str());
+}
+
+void SyncThread::triggerWaitVkWithCompletionCallback(VkFence vkFence, FenceCompletionCallback cb) {
+    std::stringstream ss;
+    ss << "triggerWaitVkWithCompletionCallback vkFence=0x" << std::hex
+       << reinterpret_cast<uintptr_t>(vkFence);
+    sendAsync([vkFence, cb = std::move(cb)](WorkerId) { doSyncWaitVk(vkFence, std::move(cb)); },
+              ss.str());
+}
+
+void SyncThread::triggerWaitVkQsriWithCompletionCallback(VkImage vkImage, FenceCompletionCallback cb) {
+    std::stringstream ss;
+    ss << "triggerWaitVkQsriWithCompletionCallback vkImage=0x"
+       << reinterpret_cast<uintptr_t>(vkImage);
+    sendAsync(
+        [vkImage, cb = std::move(cb)](WorkerId) {
+            auto decoder = vk::VkDecoderGlobalState::get();
+            auto res = decoder->registerQsriCallback(vkImage, cb);
+            // If registerQsriCallback does not schedule the callback, we still need to complete
+            // the task, otherwise we may hit deadlocks on tasks on the same ring.
+            if (!res.CallbackScheduledOrFired()) {
+                cb();
+            }
+        },
+        ss.str());
+}
+
+void SyncThread::triggerWaitVkQsri(VkImage vkImage, uint64_t timeline) {
+     std::stringstream ss;
+    ss << "triggerWaitVkQsri vkImage=0x" << std::hex << vkImage
+       << " timeline=0x" << std::hex << timeline;
+    sendAsync(
+        [vkImage, timeline](WorkerId) {
+            auto decoder = vk::VkDecoderGlobalState::get();
+            auto res = decoder->registerQsriCallback(vkImage, [timeline](){
+                 emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
+            });
+            // If registerQsriCallback does not schedule the callback, we still need to complete
+            // the task, otherwise we may hit deadlocks on tasks on the same ring.
+            if (!res.CallbackScheduledOrFired()) {
+                emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
+            }
+        },
+        ss.str());
+}
+
+void SyncThread::triggerGeneral(FenceCompletionCallback cb, std::string description) {
+    std::stringstream ss;
+    ss << "triggerGeneral: " << description;
+    sendAsync(std::bind(std::move(cb)), ss.str());
+}
+
+void SyncThread::cleanup() {
+    sendAndWaitForResult(
+        [this](WorkerId workerId) {
+#if GFXSTREAM_ENABLE_HOST_GLES
+            if (mHasGl) {
+                const EGLDispatch* egl = gl::LazyLoadedEGLDispatch::get();
+
+                egl->eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+
+                egl->eglDestroyContext(mDisplay, mContext[workerId]);
+                egl->eglDestroySurface(mDisplay, mSurface[workerId]);
+                mContext[workerId] = EGL_NO_CONTEXT;
+                mSurface[workerId] = EGL_NO_SURFACE;
+            }
+#endif
+            return 0;
+        },
+        "cleanup");
+    DPRINT("signal");
+    mLock.lock();
+    mExiting = true;
+    mCv.signalAndUnlock(&mLock);
+    DPRINT("exit");
+    // Wait for the control thread to exit. We can't destroy the SyncThread
+    // before we wait the control thread.
+    if (!wait(nullptr)) {
+        ERR("Fail to wait the control thread of the SyncThread to exit.");
+    }
+}
+
+// Private methods below////////////////////////////////////////////////////////
+
+intptr_t SyncThread::main() {
+    DPRINT("in sync thread");
+    mLock.lock();
+    mCv.wait(&mLock, [this] { return mExiting; });
+
+    mWorkerThreadPool.done();
+    mWorkerThreadPool.join();
+    DPRINT("exited sync thread");
+    return 0;
+}
+
+int SyncThread::sendAndWaitForResult(std::function<int(WorkerId)> job, std::string description) {
+    DPRINT("sendAndWaitForResult task(%s)", description.c_str());
+    std::packaged_task<int(WorkerId)> task(std::move(job));
+    std::future<int> resFuture = task.get_future();
+    Command command = {
+        .mTask = std::move(task),
+        .mDescription = std::move(description),
+    };
+
+    mWorkerThreadPool.enqueue(std::move(command));
+    auto res = resFuture.get();
+    DPRINT("exit");
+    return res;
+}
+
+void SyncThread::sendAsync(std::function<void(WorkerId)> job, std::string description) {
+    DPRINT("send task(%s)", description.c_str());
+    mWorkerThreadPool.enqueue(Command{
+        .mTask =
+            std::packaged_task<int(WorkerId)>([job = std::move(job)](WorkerId workerId) mutable {
+                job(workerId);
+                return 0;
+            }),
+        .mDescription = std::move(description),
+    });
+    DPRINT("exit");
+}
+
+void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) {
+    std::unique_ptr<std::unordered_map<std::string, std::string>> syncThreadData =
+        std::make_unique<std::unordered_map<std::string, std::string>>();
+    syncThreadData->insert({{"syncthread_cmd_desc", command.mDescription}});
+    auto watchdog = WATCHDOG_BUILDER(mHealthMonitor, "SyncThread task execution")
+                        .setHangType(EventHangMetadata::HangType::kSyncThread)
+                        .setAnnotations(std::move(syncThreadData))
+                        .build();
+    command.mTask(workerId);
 }
 
 int SyncThread::doSyncWaitVk(VkFence vkFence, std::function<void()> onComplete) {
