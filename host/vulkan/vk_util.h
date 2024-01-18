@@ -498,6 +498,18 @@ typename vk_fn_info::GetVkFnInfo<T>::type getVkInstanceProcAddrWithFallback(
     return nullptr;
 }
 
+static inline bool vk_descriptor_type_has_image_view(VkDescriptorType type) {
+    switch (type) {
+        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+        case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+        case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+            return true;
+        default:
+            return false;
+    }
+}
+
 }  // namespace vk_util
 }  // namespace vk
 }  // namespace gfxstream
