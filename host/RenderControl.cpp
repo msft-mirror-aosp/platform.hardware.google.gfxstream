@@ -1101,7 +1101,7 @@ static void rcTriggerWait(uint64_t eglsync_ptr,
                        thread_ptr, timeline);
         SyncThread::get()->triggerWaitVkQsri(reinterpret_cast<VkImage>(eglsync_ptr), timeline);
     } else {
-        EmulatedEglFenceSync* fenceSync = reinterpret_cast<EmulatedEglFenceSync*>(eglsync_ptr);
+        EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(eglsync_ptr);
         FrameBuffer *fb = FrameBuffer::getFB();
         if (fb && fenceSync && fenceSync->isCompositionFence()) {
             fb->scheduleVsyncTask([eglsync_ptr, fenceSync, timeline](uint64_t) {
