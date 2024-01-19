@@ -18,11 +18,7 @@
 
 #include "render-utils/render_api_platform_types.h"
 
-#if GFXSTREAM_ENABLE_HOST_GLES
 #include <EGL/egl.h>
-#else
-#include "GlesCompat.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
