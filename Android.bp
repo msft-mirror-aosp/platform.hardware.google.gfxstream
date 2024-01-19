@@ -123,7 +123,6 @@ cc_defaults {
         "-DUSING_ANDROID_BP",
         "-D_FILE_OFFSET_BITS=64",
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
-        "-DGFXSTREAM_ENABLE_HOST_GLES=1",
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
         "-Wno-unused-function",

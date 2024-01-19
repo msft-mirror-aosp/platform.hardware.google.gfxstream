@@ -14,10 +14,7 @@
 
 #include "Buffer.h"
 
-#if GFXSTREAM_ENABLE_HOST_GLES
 #include "gl/EmulationGl.h"
-#endif
-
 #include "vulkan/BufferVk.h"
 #include "vulkan/VkCommonOperations.h"
 
@@ -34,7 +31,6 @@ std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmula
                                        uint64_t size, HandleType handle) {
     std::shared_ptr<Buffer> buffer(new Buffer(handle, size));
 
-#if GFXSTREAM_ENABLE_HOST_GLES
     if (emulationGl) {
         buffer->mBufferGl = emulationGl->createBuffer(size, handle);
         if (!buffer->mBufferGl) {
@@ -42,7 +38,6 @@ std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmula
             return nullptr;
         }
     }
-#endif
 
     if (emulationVk && emulationVk->live) {
         const bool vulkanOnly = emulationGl == nullptr;
@@ -54,11 +49,10 @@ std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmula
         }
 
         if (!vulkanOnly) {
-#if GFXSTREAM_ENABLE_HOST_GLES
             if (!buffer->mBufferGl) {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Missing BufferGl?";
             }
-#endif
+
             // TODO: external memory sharing.
         }
     }
@@ -74,7 +68,6 @@ std::shared_ptr<Buffer> Buffer::onLoad(gl::EmulationGl* emulationGl, vk::VkEmula
 
     std::shared_ptr<Buffer> buffer(new Buffer(handle, size));
 
-#if GFXSTREAM_ENABLE_HOST_GLES
     if (emulationGl) {
         buffer->mBufferGl = emulationGl->loadBuffer(stream);
         if (!buffer->mBufferGl) {
@@ -82,7 +75,6 @@ std::shared_ptr<Buffer> Buffer::onLoad(gl::EmulationGl* emulationGl, vk::VkEmula
             return nullptr;
         }
     }
-#endif
 
     buffer->mNeedRestore = true;
 
@@ -93,11 +85,9 @@ void Buffer::onSave(android::base::Stream* stream) {
     stream->putBe32(mHandle);
     stream->putBe64(mSize);
 
-#if GFXSTREAM_ENABLE_HOST_GLES
     if (mBufferGl) {
         mBufferGl->onSave(stream);
     }
-#endif
 }
 
 void Buffer::restore() {}
@@ -105,13 +95,10 @@ void Buffer::restore() {}
 void Buffer::readToBytes(uint64_t offset, uint64_t size, void* outBytes) {
     touch();
 
-#if GFXSTREAM_ENABLE_HOST_GLES
     if (mBufferGl) {
         mBufferGl->read(offset, size, outBytes);
         return;
     }
-#endif
-
     if (mBufferVk) {
         mBufferVk->readToBytes(offset, size, outBytes);
         return;
@@ -123,13 +110,10 @@ void Buffer::readToBytes(uint64_t offset, uint64_t size, void* outBytes) {
 bool Buffer::updateFromBytes(uint64_t offset, uint64_t size, const void* bytes) {
     touch();
 
-#if GFXSTREAM_ENABLE_HOST_GLES
     if (mBufferGl) {
         mBufferGl->subUpdate(offset, size, bytes);
         return true;
     }
-#endif
-
     if (mBufferVk) {
         return mBufferVk->updateFromBytes(offset, size, bytes);
     }

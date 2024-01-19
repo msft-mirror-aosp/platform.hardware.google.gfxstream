@@ -18,11 +18,8 @@
 
 #include "Handle.h"
 #include "aemu/base/files/Stream.h"
-#include "snapshot/LazySnapshotObj.h"
-
-#if GFXSTREAM_ENABLE_HOST_GLES
 #include "gl/BufferGl.h"
-#endif
+#include "snapshot/LazySnapshotObj.h"
 
 namespace gfxstream {
 namespace gl {
@@ -64,10 +61,8 @@ class Buffer : public android::snapshot::LazySnapshotObj<Buffer> {
     const uint64_t mSize;
     const HandleType mHandle;
 
-#if GFXSTREAM_ENABLE_HOST_GLES
     // If GL emulation is enabled.
     std::unique_ptr<gl::BufferGl> mBufferGl;
-#endif
 
     // If Vk emulation is enabled.
     std::unique_ptr<vk::BufferVk> mBufferVk;
