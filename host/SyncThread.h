@@ -16,26 +16,23 @@
 
 #pragma once
 
-#if GFXSTREAM_ENABLE_HOST_GLES
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-
-#include "gl/EmulatedEglFenceSync.h"
-#endif
 
 #include <functional>
 #include <future>
 #include <string>
 #include <type_traits>
 
-#include "aemu/base/HealthMonitor.h"
-#include "aemu/base/Optional.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
+#include "aemu/base/HealthMonitor.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/synchronization/MessageChannel.h"
+#include "aemu/base/Optional.h"
 #include "aemu/base/threads/Thread.h"
 #include "aemu/base/threads/ThreadPool.h"
+#include "gl/EmulatedEglFenceSync.h"
 #include "render-utils/virtio_gpu_ops.h"
 #include "vulkan/VkDecoderGlobalState.h"
 
@@ -57,6 +54,14 @@ class SyncThread : public android::base::Thread {
     SyncThread(bool hasGl, HealthMonitor<>* healthMonitor);
     ~SyncThread();
 
+    // |triggerWait|: async wait with a given EmulatedEglFenceSync object.
+    // We use the wait() method to do a eglClientWaitSyncKHR.
+    // After wait is over, the timeline will be incremented,
+    // which should signal the guest-side fence FD.
+    // This method is how the goldfish sync virtual device
+    // knows when to increment timelines / signal native fence FD's.
+    void triggerWait(gl::EmulatedEglFenceSync* fenceSync, uint64_t timeline);
+
     // |triggerWaitVk|: async wait with a given VkFence object.
     // The |vkFence| argument is a *boxed* host Vulkan handle of the fence.
     //
@@ -67,36 +72,17 @@ class SyncThread : public android::base::Thread {
     // knows when to increment timelines / signal native fence FD's.
     void triggerWaitVk(VkFence vkFence, uint64_t timeline);
 
-#if GFXSTREAM_ENABLE_HOST_GLES
-    // |triggerWait|: async wait with a given EmulatedEglFenceSync object.
-    // We use the wait() method to do a eglClientWaitSyncKHR.
-    // After wait is over, the timeline will be incremented,
-    // which should signal the guest-side fence FD.
-    // This method is how the goldfish sync virtual device
-    // knows when to increment timelines / signal native fence FD's.
-    void triggerWait(gl::EmulatedEglFenceSync* fenceSync, uint64_t timeline);
-
     // for use with the virtio-gpu path; is meant to have a current context
     // while waiting.
     void triggerBlockedWaitNoTimeline(gl::EmulatedEglFenceSync* fenceSync);
+    
+    // This increments the timeline after the QSRI completes.
+    void triggerWaitVkQsri(VkImage vkImage, uint64_t timeline);
 
     // For use with virtio-gpu and async fence completion callback. This is async like triggerWait,
     // but takes a fence completion callback instead of incrementing some timeline directly.
     void triggerWaitWithCompletionCallback(gl::EmulatedEglFenceSync* fenceSync,
                                            FenceCompletionCallback);
-
-    // |initSyncContext| creates an EGL context expressly for calling
-    // eglClientWaitSyncKHR in the processing caused by |triggerWait|.
-    // This is used by the constructor only. It is non-blocking.
-    // - Triggers a |SyncThreadCmd| with op code |SYNC_THREAD_EGL_INIT|
-    void initSyncEGLContext();
-
-    void doSyncWait(gl::EmulatedEglFenceSync* fenceSync, std::function<void()> onComplete);
-#endif
-
-    // This increments the timeline after the QSRI completes.
-    void triggerWaitVkQsri(VkImage vkImage, uint64_t timeline);
-
     void triggerWaitVkWithCompletionCallback(VkFence fenceHandle, FenceCompletionCallback);
     void triggerWaitVkQsriWithCompletionCallback(VkImage image, FenceCompletionCallback);
     void triggerGeneral(FenceCompletionCallback, std::string description);
@@ -125,6 +111,12 @@ class SyncThread : public android::base::Thread {
     };
     using ThreadPool = android::base::ThreadPool<Command>;
 
+    // |initSyncContext| creates an EGL context expressly for calling
+    // eglClientWaitSyncKHR in the processing caused by |triggerWait|.
+    // This is used by the constructor only. It is non-blocking.
+    // - Triggers a |SyncThreadCmd| with op code |SYNC_THREAD_EGL_INIT|
+    void initSyncEGLContext();
+
     // Thread function.
     // It keeps the workers runner until |mExiting| is set.
     virtual intptr_t main() override final;
@@ -140,17 +132,16 @@ class SyncThread : public android::base::Thread {
     // |doSyncThreadCmd| execute the actual task. These run on the sync thread.
     void doSyncThreadCmd(Command&& command, ThreadPool::WorkerId);
 
+    void doSyncWait(gl::EmulatedEglFenceSync* fenceSync, std::function<void()> onComplete);
     static int doSyncWaitVk(VkFence, std::function<void()> onComplete);
 
     // EGL objects / object handles specific to
     // a sync thread.
     static const uint32_t kNumWorkerThreads = 4u;
 
-#if GFXSTREAM_ENABLE_HOST_GLES
     EGLDisplay mDisplay = EGL_NO_DISPLAY;
     EGLSurface mSurface[kNumWorkerThreads];
     EGLContext mContext[kNumWorkerThreads];
-#endif
 
     bool mExiting = false;
     android::base::Lock mLock;
