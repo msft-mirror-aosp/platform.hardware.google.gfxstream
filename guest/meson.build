@@ -1,15 +1,6 @@
 # Copyright 2022 Android Open Source Project
 # SPDX-License-Identifier: MIT
 
-project('gfxstream_frontend', 'cpp', 'c',
-         version : '0.1.2',
-         license : 'MIT OR Apache-2.0',
-         default_options : ['cpp_std=gnu++17'])
-
-cc = meson.get_compiler('c')
-cpp = meson.get_compiler('cpp')
-prog_python = import('python').find_installation('python3')
-
 #===============#
 # Options       #
 #===============#
@@ -24,21 +15,20 @@ subdir('mesa')
 #===============#
 # Configuration #
 #===============#
-c_args = []
-cpp_args = []
+gfxstream_guest_args = []
 
 # Paravirtualization moving towards virtio
-cpp_args += '-DVIRTIO_GPU'
+gfxstream_guest_args += '-DVIRTIO_GPU'
 # Gfxstream
-cpp_args += '-DGFXSTREAM'
+gfxstream_guest_args += '-DGFXSTREAM'
 # Our internal guest build
-cpp_args += '-DLINUX_GUEST_BUILD'
+gfxstream_guest_args += '-DLINUX_GUEST_BUILD'
 # Don't want to goldfish OpenGL
-cpp_args += '-DGOLDFISH_NO_GL'
+gfxstream_guest_args += '-DGOLDFISH_NO_GL'
 # This should just be called NO_TRACE eventually
-cpp_args += '-DFUCHSIA_NO_TRACE'
+gfxstream_guest_args += '-DFUCHSIA_NO_TRACE'
 # Include the gfxstream private VkStructureType definitions
-cpp_args += '-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT'
+gfxstream_guest_args += '-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT'
 
 #===============#
 # Dependencies  #

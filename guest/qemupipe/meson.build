@@ -12,6 +12,6 @@ files_qemu_pipe = files(
 lib_qemu_pipe = static_library(
    'qemu_pipe',
    files_qemu_pipe,
-   cpp_args: cpp_args,
+   cpp_args: gfxstream_guest_args,
    include_directories: [inc_android_compat, inc_qemu_pipe, inc_qemu_pipe_types]
 )

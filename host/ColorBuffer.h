@@ -21,9 +21,14 @@
 #include "Handle.h"
 #include "Hwc2.h"
 #include "aemu/base/files/Stream.h"
-#include "gl/ColorBufferGl.h"
 #include "render-utils/Renderer.h"
 #include "snapshot/LazySnapshotObj.h"
+
+#if GFXSTREAM_ENABLE_HOST_GLES
+#include "gl/ColorBufferGl.h"
+#else
+#include "GlesCompat.h"
+#endif
 
 namespace gfxstream {
 namespace gl {
@@ -84,7 +89,9 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool flushFromVkBytes(const void* bytes, size_t bytesSize);
     bool invalidateForGl();
     bool invalidateForVk();
+    bool importNativeResource(void* nativeResource, uint32_t type, bool preserveContent);
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     GLuint glOpGetTexture();
     bool glOpBlitFromCurrentReadBuffer();
     bool glOpBindToTexture();
@@ -100,6 +107,7 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool glOpIsFastBlitSupported() const;
     void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight);
     void glOpPostViewportScaledWithOverlay(float rotation, float dx, float dy);
+#endif
 
    private:
     ColorBuffer(HandleType, uint32_t width, uint32_t height, GLenum format,
@@ -111,8 +119,12 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     const GLenum mFormat;
     const FrameworkFormat mFrameworkFormat;
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     // If GL emulation is enabled.
     std::unique_ptr<gl::ColorBufferGl> mColorBufferGl;
+#else
+    std::unique_ptr<uint32_t> mColorBufferGl = nullptr;
+#endif
 
     // If Vk emulation is enabled.
     std::unique_ptr<vk::ColorBufferVk> mColorBufferVk;
