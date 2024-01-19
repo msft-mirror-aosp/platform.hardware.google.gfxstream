@@ -41,8 +41,6 @@ option(VIRGL_RENDERER_UNSTABLE_APIS "Use unstable virglrenderer APIs" ON)
 if(VIRGL_RENDERER_UNSTABLE_APIS)
     add_definitions(-DVIRGL_RENDERER_UNSTABLE_APIS)
 endif()
-    
-add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=1)
 
 option(ASTC_CPU_DECODING "Enable decoding ASTC textures on the CPU" OFF)
 

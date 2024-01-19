@@ -14,6 +14,8 @@
 #include "RenderLibImpl.h"
 
 #include "FrameBuffer.h"
+#include "OpenGLESDispatch/EGLDispatch.h"
+#include "OpenGLESDispatch/DispatchTables.h"
 #include "RendererImpl.h"
 #include "aemu/base/files/Stream.h"
 #include "host-common/address_space_device_control_ops.h"
@@ -24,11 +26,6 @@
 #include "host-common/logging.h"
 #include "host-common/opengl/misc.h"
 #include "host-common/sync_device.h"
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-#include "OpenGLESDispatch/DispatchTables.h"
-#include "OpenGLESDispatch/EGLDispatch.h"
-#endif
 
 namespace gfxstream {
 
@@ -114,11 +111,10 @@ bool RenderLibImpl::getOpt(RenderOpt* opt) {
         return false;
     }
 
-#if GFXSTREAM_ENABLE_HOST_GLES
     opt->display = fb->getDisplay();
     opt->surface = fb->getWindowSurface();
     opt->config = fb->getConfig();
-#endif
+
     return (opt->display && opt->surface  && opt->config);
 }
 
