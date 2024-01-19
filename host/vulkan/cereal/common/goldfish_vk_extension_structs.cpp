@@ -162,6 +162,8 @@ namespace vk {
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_fragment_density_map
+#endif
 #ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
@@ -644,6 +646,64 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
             return sizeof(VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT);
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapFeaturesEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapFeaturesEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    return sizeof(VkImportColorBufferGOOGLE);
+                    break;
+                }
+                default: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapFeaturesEXT);
+                    break;
+                }
+            }
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapPropertiesEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    return sizeof(VkCreateBlobGOOGLE);
+                    break;
+                }
+                default: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapPropertiesEXT);
+                    break;
+                }
+            }
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO: {
+                    return sizeof(VkRenderPassFragmentDensityMapCreateInfoEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2: {
+                    return sizeof(VkRenderPassFragmentDensityMapCreateInfoEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    return sizeof(VkImportBufferGOOGLE);
+                    break;
+                }
+                default: {
+                    return sizeof(VkRenderPassFragmentDensityMapCreateInfoEXT);
+                    break;
+                }
+            }
         }
 #endif
 #ifdef VK_EXT_provoking_vertex
@@ -1230,6 +1290,64 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
             return sizeof(VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT);
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapFeaturesEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapFeaturesEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    return sizeof(VkImportColorBufferGOOGLE);
+                    break;
+                }
+                default: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapFeaturesEXT);
+                    break;
+                }
+            }
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapPropertiesEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    return sizeof(VkCreateBlobGOOGLE);
+                    break;
+                }
+                default: {
+                    return sizeof(VkPhysicalDeviceFragmentDensityMapPropertiesEXT);
+                    break;
+                }
+            }
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO: {
+                    return sizeof(VkRenderPassFragmentDensityMapCreateInfoEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2: {
+                    return sizeof(VkRenderPassFragmentDensityMapCreateInfoEXT);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    return sizeof(VkImportBufferGOOGLE);
+                    break;
+                }
+                default: {
+                    return sizeof(VkRenderPassFragmentDensityMapCreateInfoEXT);
+                    break;
+                }
+            }
         }
 #endif
 #ifdef VK_EXT_provoking_vertex
