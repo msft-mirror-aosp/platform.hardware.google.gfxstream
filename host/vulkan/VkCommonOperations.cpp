@@ -1962,6 +1962,8 @@ bool initializeVkColorBufferLocked(
     imageCi->pQueueFamilyIndices = nullptr;
     imageCi->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
+    auto imageCiChain = vk_make_chain_iterator(imageCi.get());
+
     // Create the image. If external memory is supported, make it external.
     VkExternalMemoryImageCreateInfo extImageCi = {
         VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
@@ -1969,14 +1971,23 @@ bool initializeVkColorBufferLocked(
         VK_EXT_MEMORY_HANDLE_TYPE_BIT,
     };
 
-    VkExternalMemoryImageCreateInfo* extImageCiPtr = nullptr;
-
     if (sVkEmulation->deviceInfo.supportsExternalMemoryImport ||
         sVkEmulation->deviceInfo.supportsExternalMemoryExport) {
-        extImageCiPtr = &extImageCi;
+        vk_append_struct(&imageCiChain, &extImageCi);
     }
 
-    imageCi->pNext = extImageCiPtr;
+#if defined(__QNX__)
+    VkExternalFormatQNX externalFormatQnx = {
+        .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX,
+        .pNext = NULL,
+        .externalFormat = 0, /* Do not override screen format */
+    };
+    if (VK_EXT_MEMORY_HANDLE_INVALID != extMemHandle) {
+        vk_append_struct(&imageCiChain, &externalFormatQnx);
+        /* Maintain linear tiling on QNX for downstream display controller interaction */
+        imageCi->tiling = VK_IMAGE_TILING_LINEAR;
+    }
+#endif
 
     auto vk = sVkEmulation->dvk;
 
