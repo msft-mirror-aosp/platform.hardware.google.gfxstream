@@ -17,5 +17,6 @@ lib_emulated_textures = static_library(
   cpp_args: emulated_texture_args + gfxstream_host_args,
   include_directories: [inc_utils, inc_root, inc_vulkan_headers, inc_vulkan_server,
                         inc_include, inc_cereal_common, inc_stream_servers],
+  link_with: [lib_compressed_textures],
   dependencies: [aemu_base_dep, aemu_common_dep]
 )

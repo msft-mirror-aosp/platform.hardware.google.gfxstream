@@ -14,7 +14,10 @@
 
 #include "ColorBuffer.h"
 
+#if GFXSTREAM_ENABLE_HOST_GLES
 #include "gl/EmulationGl.h"
+#endif
+
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
 #include "vulkan/ColorBufferVk.h"
@@ -55,6 +58,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
     std::shared_ptr<ColorBuffer> colorBuffer(
         new ColorBuffer(handle, width, height, format, frameworkFormat));
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (emulationGl) {
         colorBuffer->mColorBufferGl =
             emulationGl->createColorBuffer(width, height, format, frameworkFormat, handle);
@@ -63,6 +67,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
             return nullptr;
         }
     }
+#endif
 
     if (emulationVk && emulationVk->live) {
         const bool vulkanOnly = colorBuffer->mColorBufferGl == nullptr;
@@ -81,6 +86,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
         }
     }
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     bool b271028352Workaround = emulationGl && strstr(emulationGl->getGlesRenderer().c_str(), "Intel");
 
     if (colorBuffer->mColorBufferGl && colorBuffer->mColorBufferVk &&
@@ -97,6 +103,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
             }
         }
     }
+#endif
 
     return colorBuffer;
 }
@@ -113,6 +120,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl, v
     std::shared_ptr<ColorBuffer> colorBuffer(
         new ColorBuffer(handle, width, height, format, frameworkFormat));
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (emulationGl) {
         colorBuffer->mColorBufferGl = emulationGl->loadColorBuffer(stream);
         if (!colorBuffer->mColorBufferGl) {
@@ -120,6 +128,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl, v
             return nullptr;
         }
     }
+#endif
 
     colorBuffer->mNeedRestore = true;
 
@@ -133,25 +142,32 @@ void ColorBuffer::onSave(android::base::Stream* stream) {
     stream->putBe32(static_cast<uint32_t>(mFormat));
     stream->putBe32(static_cast<uint32_t>(mFrameworkFormat));
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         mColorBufferGl->onSave(stream);
     }
+#endif
 }
 
 void ColorBuffer::restore() {
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         mColorBufferGl->restore();
     }
+#endif
 }
 
 void ColorBuffer::readToBytes(int x, int y, int width, int height, GLenum pixelsFormat,
                               GLenum pixelsType, void* outPixels) {
     touch();
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         mColorBufferGl->readPixels(x, y, width, height, pixelsFormat, pixelsType, outPixels);
         return;
     }
+#endif
+
     if (mColorBufferVk) {
         mColorBufferVk->readToBytes(x, y, width, height, outPixels);
         return;
@@ -165,11 +181,13 @@ void ColorBuffer::readToBytesScaled(int pixelsWidth, int pixelsHeight, GLenum pi
                                     void* outPixels) {
     touch();
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         mColorBufferGl->readPixelsScaled(pixelsWidth, pixelsHeight, pixelsFormat, pixelsType,
                                          pixelsRotation, rect, outPixels);
         return;
     }
+#endif
 
     GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Unimplemented.";
 }
@@ -178,10 +196,13 @@ void ColorBuffer::readYuvToBytes(int x, int y, int width, int height, void* outP
                                  uint32_t pixelsSize) {
     touch();
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         mColorBufferGl->readPixelsYUVCached(x, y, width, height, outPixels, pixelsSize);
         return;
     }
+#endif
+
     if (mColorBufferVk) {
         mColorBufferVk->readToBytes(x, y, width, height, outPixels);
         return;
@@ -195,11 +216,14 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height,
                                   GLenum pixelsType, const void* pixels, void* metadata) {
     touch();
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         mColorBufferGl->subUpdateFromFrameworkFormat(x, y, width, height, frameworkFormat,
                                                      pixelsFormat, pixelsType, pixels, metadata);
         return true;
     }
+#endif
+
     if (mColorBufferVk) {
         return mColorBufferVk->updateFromBytes(x, y, width, height, pixels);
     }
@@ -212,9 +236,12 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height, GLenum pi
                                   GLenum pixelsType, const void* pixels) {
     touch();
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         return mColorBufferGl->subUpdate(x, y, width, height, pixelsFormat, pixelsType, pixels);
     }
+#endif
+
     if (mColorBufferVk) {
         return mColorBufferVk->updateFromBytes(x, y, width, height, pixels);
     }
@@ -224,11 +251,13 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height, GLenum pi
 }
 
 bool ColorBuffer::updateGlFromBytes(const void* bytes, std::size_t bytesSize) {
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         touch();
 
         return mColorBufferGl->replaceContents(bytes, bytesSize);
     }
+#endif
 
     return true;
 }
@@ -236,10 +265,12 @@ bool ColorBuffer::updateGlFromBytes(const void* bytes, std::size_t bytesSize) {
 std::unique_ptr<BorrowedImageInfo> ColorBuffer::borrowForComposition(UsedApi api, bool isTarget) {
     switch (api) {
         case UsedApi::kGl: {
+#if GFXSTREAM_ENABLE_HOST_GLES
             if (!mColorBufferGl) {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "ColorBufferGl not available.";
             }
             return mColorBufferGl->getBorrowedImageInfo();
+#endif
         }
         case UsedApi::kVk: {
             if (!mColorBufferVk) {
@@ -255,10 +286,12 @@ std::unique_ptr<BorrowedImageInfo> ColorBuffer::borrowForComposition(UsedApi api
 std::unique_ptr<BorrowedImageInfo> ColorBuffer::borrowForDisplay(UsedApi api) {
     switch (api) {
         case UsedApi::kGl: {
+#if GFXSTREAM_ENABLE_HOST_GLES
             if (!mColorBufferGl) {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "ColorBufferGl not available.";
             }
             return mColorBufferGl->getBorrowedImageInfo();
+#endif
         }
         case UsedApi::kVk: {
             if (!mColorBufferVk) {
@@ -293,7 +326,6 @@ bool ColorBuffer::flushFromVk() {
     if (mGlAndVkAreSharingExternalMemory) {
         return true;
     }
-
     std::vector<uint8_t> contents;
     if (!vk::readColorBufferToBytes(mHandle, &contents)) {
         ERR("Failed to get VK contents for ColorBuffer:%d", mHandle);
@@ -304,10 +336,12 @@ bool ColorBuffer::flushFromVk() {
         return false;
     }
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (!mColorBufferGl->replaceContents(contents.data(), contents.size())) {
         ERR("Failed to set GL contents for ColorBuffer:%d", mHandle);
         return false;
     }
+#endif
 
     return true;
 }
@@ -321,12 +355,14 @@ bool ColorBuffer::flushFromVkBytes(const void* bytes, size_t bytesSize) {
         return true;
     }
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         if (!mColorBufferGl->replaceContents(bytes, bytesSize)) {
             ERR("Failed to update ColorBuffer:%d GL backing from VK bytes.", mHandle);
             return false;
         }
     }
+#endif
 
     return true;
 }
@@ -354,6 +390,7 @@ bool ColorBuffer::invalidateForVk() {
         return true;
     }
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     std::size_t contentsSize = 0;
     if (!mColorBufferGl->readContents(&contentsSize, nullptr)) {
         ERR("Failed to get GL contents size for ColorBuffer:%d", mHandle);
@@ -371,6 +408,7 @@ bool ColorBuffer::invalidateForVk() {
         ERR("Failed to set VK contents for ColorBuffer:%d", mHandle);
         return false;
     }
+#endif
 
     return true;
 }
@@ -399,6 +437,7 @@ bool ColorBuffer::importNativeResource(void* nativeResource, uint32_t type, bool
     }
 }
 
+#if GFXSTREAM_ENABLE_HOST_GLES
 bool ColorBuffer::glOpBlitFromCurrentReadBuffer() {
     if (!mColorBufferGl) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "ColorBufferGl not available.";
@@ -529,5 +568,6 @@ void ColorBuffer::glOpPostViewportScaledWithOverlay(float rotation, float dx, fl
 
     mColorBufferGl->postViewportScaledWithOverlay(rotation, dx, dy);
 }
+#endif
 
 }  // namespace gfxstream

@@ -94,6 +94,14 @@ if use_auto
   use_magma = host_machine.system() == 'linux'
 endif
 
+gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=@0@'.format(use_gles ? '1' : '0')
+if use_magma
+  gfxstream_host_args += '-DUSE_MAGMA=1'
+  drm_dep = dependency('libdrm')
+else
+  gfxstream_host_args += '-DUSE_MAGMA=0'
+endif
+
 if use_magma
   gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=1'
   drm_dep = dependency('libdrm')
@@ -147,7 +155,7 @@ subdir('gl/gl-host-common')
 inc_gfxstream_backend = [inc_root, inc_include, inc_apigen_codec, inc_utils,
                          inc_gl_host_common, inc_host_include]
 
-link_gfxstream_backend = [lib_gl_host_common]
+link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec]
 
 files_lib_gfxstream_backend = files(
   'Buffer.cpp',
@@ -165,7 +173,6 @@ files_lib_gfxstream_backend = files(
   'RenderThreadInfo.cpp',
   'RingStream.cpp',
   'SyncThread.cpp',
-  'RenderControl.cpp',
   'RenderWindow.cpp',
   'RenderLibImpl.cpp',
   'RendererImpl.cpp',
@@ -185,6 +192,7 @@ if use_gles
 
   files_lib_gfxstream_backend += files('PostWorkerGl.cpp')
   files_lib_gfxstream_backend += files('RenderThreadInfoGl.cpp')
+  files_lib_gfxstream_backend += files('RenderControl.cpp')
 
   inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gles_translator]
   link_gfxstream_backend += lib_gl_server
@@ -209,11 +217,13 @@ if use_magma
   link_gfxstream_backend += lib_magma_server
 endif
 
-if host_machine.system() == 'darwin'
+if not use_gles
+  files_lib_gfxstream_backend += files('NativeSubWindow_stub.cpp')
+elif host_machine.system() == 'darwin'
   files_lib_gfxstream_backend += files('NativeSubWindow_cocoa.m')
 elif host_machine.system() == 'windows'
   files_lib_gfxstream_backend += files('NativeSubWindow_win32.cpp')
-elif host_machine.system() == 'linux'
+elif host_machine.system() == 'linux' and use_gles
   files_lib_gfxstream_backend += files('NativeSubWindow_x11.cpp')
 elif host_machine.system() == 'qnx'
   files_lib_gfxstream_backend += files(
