@@ -484,8 +484,6 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
 bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes);
 bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                                 uint32_t h, const void* pixels);
-bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y,
-                                      uint32_t w, uint32_t h, const void* pixels);
 
 // Data buffer operations
 bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
