@@ -14,7 +14,7 @@ inc_magma_enc = include_directories('magma_enc')
 lib_magma_enc = static_library(
    'magma',
    files_lib_magma_enc,
-   cpp_args: cpp_args + [
+   cpp_args: gfxstream_guest_args + [
       '-Wno-misleading-indentation',
       '-Wno-unused-function',
    ],

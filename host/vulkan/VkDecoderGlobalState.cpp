@@ -127,6 +127,31 @@ void validateRequiredHandle(const char* api_name, const char* parameter_name, T 
     }
 }
 
+#if defined(_WIN32)
+// External sync objects are HANDLE on Windows
+typedef HANDLE VK_EXT_SYNC_HANDLE;
+// corresponds to INVALID_HANDLE_VALUE
+#define VK_EXT_SYNC_HANDLE_INVALID (VK_EXT_SYNC_HANDLE)(uintptr_t)(-1)
+#else
+// External sync objects are fd's on other POSIX systems
+typedef int VK_EXT_SYNC_HANDLE;
+#define VK_EXT_SYNC_HANDLE_INVALID (-1)
+#endif
+
+VK_EXT_SYNC_HANDLE dupExternalSync(VK_EXT_SYNC_HANDLE h) {
+#ifdef _WIN32
+    auto myProcessHandle = GetCurrentProcess();
+    VK_EXT_SYNC_HANDLE res;
+    DuplicateHandle(myProcessHandle, h,     // source process and handle
+                    myProcessHandle, &res,  // target process and pointer to handle
+                    0 /* desired access (ignored) */, true /* inherit */,
+                    DUPLICATE_SAME_ACCESS /* same access option */);
+    return res;
+#else
+    return dup(h);
+#endif
+}
+
 // A list of device extensions that should not be passed to the host driver.
 // These will mainly include Vulkan features that we emulate ourselves.
 static constexpr const char* const kEmulatedDeviceExtensions[] = {
@@ -142,6 +167,10 @@ static constexpr const char* const kEmulatedDeviceExtensions[] = {
     VK_KHR_EXTERNAL_FENCE_EXTENSION_NAME,
     VK_KHR_EXTERNAL_FENCE_FD_EXTENSION_NAME,
     VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+#if defined(__QNX__)
+    VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+    VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME,
+#endif
 };
 
 // A list of instance extensions that should not be passed to the host driver.
@@ -1712,6 +1741,11 @@ class VkDecoderGlobalState::Impl {
         auto* memoryInfo = android::base::find(mMemoryInfo, memory);
         if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
+        auto* imageInfo = android::base::find(mImageInfo, image);
+        if (imageInfo) {
+            imageInfo->boundColorBuffer = memoryInfo->boundColorBuffer;
+        }
+
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         if (memoryInfo->mtlTexture) {
             result = m_vk->vkSetMTLTextureMVK(image, memoryInfo->mtlTexture);
@@ -1725,7 +1759,6 @@ class VkDecoderGlobalState::Impl {
             return VK_SUCCESS;
         }
 
-        auto* imageInfo = android::base::find(mImageInfo, image);
         if (!imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
@@ -1834,6 +1867,7 @@ class VkDecoderGlobalState::Impl {
         auto& imageViewInfo = mImageViewInfo[*pView];
         imageViewInfo.device = device;
         imageViewInfo.needEmulatedAlpha = needEmulatedAlpha;
+        imageViewInfo.boundColorBuffer = imageInfo->boundColorBuffer;
 
         *pView = new_boxed_non_dispatchable_VkImageView(*pView);
 
@@ -2086,7 +2120,7 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_INVALID_EXTERNAL_HANDLE;
         }
 
-        VK_EXT_MEMORY_HANDLE handle = dupExternalMemory(infoPtr->externalHandle);
+        VK_EXT_SYNC_HANDLE handle = dupExternalSync(infoPtr->externalHandle);
 
         VkImportSemaphoreWin32HandleInfoKHR win32ImportInfo = {
             VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR,
@@ -2100,6 +2134,13 @@ class VkDecoderGlobalState::Impl {
 
         return vk->vkImportSemaphoreWin32HandleKHR(device, &win32ImportInfo);
 #else
+        if (!hasDeviceExtension(device, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
+            // Note: VK_KHR_external_semaphore_fd might be advertised in the guest,
+            // because SYNC_FD handling is performed guest-side only. But still need
+            // need to error out here when handling a non-sync, opaque FD.
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
         VkImportSemaphoreFdInfoKHR importInfo = *pImportSemaphoreFdInfo;
         importInfo.fd = dup(pImportSemaphoreFdInfo->fd);
         return vk->vkImportSemaphoreFdKHR(device, &importInfo);
@@ -2117,7 +2158,7 @@ class VkDecoderGlobalState::Impl {
             pGetFdInfo->semaphore,
             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT,
         };
-        VK_EXT_MEMORY_HANDLE handle;
+        VK_EXT_SYNC_HANDLE handle;
         VkResult result = vk->vkGetSemaphoreWin32HandleKHR(device, &getWin32, &handle);
         if (result != VK_SUCCESS) {
             return result;
@@ -2128,6 +2169,13 @@ class VkDecoderGlobalState::Impl {
         mExternalSemaphoresById[nextId] = pGetFdInfo->semaphore;
         *pFd = nextId;
 #else
+        if (!hasDeviceExtension(device, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
+            // Note: VK_KHR_external_semaphore_fd might be advertised in the guest,
+            // because SYNC_FD handling is performed guest-side only. But still need
+            // need to error out here when handling a non-sync, opaque FD.
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
         VkResult result = vk->vkGetSemaphoreFdKHR(device, pGetFdInfo, pFd);
         if (result != VK_SUCCESS) {
             return result;
@@ -2146,7 +2194,7 @@ class VkDecoderGlobalState::Impl {
 #ifndef _WIN32
         const auto& ite = mSemaphoreInfo.find(semaphore);
         if (ite != mSemaphoreInfo.end() &&
-            (ite->second.externalHandle != VK_EXT_MEMORY_HANDLE_INVALID)) {
+            (ite->second.externalHandle != VK_EXT_SYNC_HANDLE_INVALID)) {
             close(ite->second.externalHandle);
         }
 #endif
@@ -2444,15 +2492,28 @@ class VkDecoderGlobalState::Impl {
         for (uint32_t i = 0; i < descriptorWriteCount; i++) {
             const VkWriteDescriptorSet& descriptorWrite = pDescriptorWrites[i];
             descriptorWritesNeedDeepCopy[i] = false;
-            if (descriptorWrite.descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+            if (!vk_util::vk_descriptor_type_has_image_view(descriptorWrite.descriptorType)) {
                 continue;
             }
             for (uint32_t j = 0; j < descriptorWrite.descriptorCount; j++) {
                 const VkDescriptorImageInfo& imageInfo = descriptorWrite.pImageInfo[j];
                 const auto* imgViewInfo = android::base::find(mImageViewInfo, imageInfo.imageView);
+                if (!imgViewInfo) {
+                    continue;
+                }
+                if (imgViewInfo->boundColorBuffer) {
+                    // TODO(igorc): Move this to vkQueueSubmit time.
+                    auto fb = FrameBuffer::getFB();
+                    if (fb) {
+                        fb->invalidateColorBufferForVk(imgViewInfo->boundColorBuffer);
+                    }
+                }
+                if (descriptorWrite.descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+                    continue;
+                }
                 const auto* samplerInfo = android::base::find(mSamplerInfo, imageInfo.sampler);
-                if (!imgViewInfo || !samplerInfo) continue;
-                if (imgViewInfo->needEmulatedAlpha && samplerInfo->needEmulatedAlpha) {
+                if (samplerInfo && imgViewInfo->needEmulatedAlpha &&
+                    samplerInfo->needEmulatedAlpha) {
                     needEmulateWriteDescriptor = true;
                     descriptorWritesNeedDeepCopy[i] = true;
                     break;
@@ -3409,6 +3470,12 @@ class VkDecoderGlobalState::Impl {
             VK_EXT_MEMORY_HANDLE_INVALID,
             L"",
         };
+#elif defined(__QNX__)
+        VkImportScreenBufferInfoQNX importInfo{
+            VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX,
+            0,
+            VK_EXT_MEMORY_HANDLE_INVALID,
+        };
 #else
         VkImportMemoryFdInfoKHR importInfo{
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
@@ -3454,12 +3521,16 @@ class VkDecoderGlobalState::Impl {
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
 
+#if defined(__QNX__)
+                importInfo.buffer = cbExtMemoryHandle;
+#else
                 externalMemoryHandle = ManagedDescriptor(dupExternalMemory(cbExtMemoryHandle));
 
 #ifdef _WIN32
                 importInfo.handle = externalMemoryHandle.get().value_or(static_cast<HANDLE>(NULL));
 #else
                 importInfo.fd = externalMemoryHandle.get().value_or(-1);
+#endif
 #endif
                 vk_append_struct(&structChainIter, &importInfo);
             }
@@ -3489,12 +3560,16 @@ class VkDecoderGlobalState::Impl {
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
 
+#if defined(__QNX__)
+                importInfo.buffer = bufferExtMemoryHandle;
+#else
                 bufferExtMemoryHandle = dupExternalMemory(bufferExtMemoryHandle);
 
 #ifdef _WIN32
                 importInfo.handle = bufferExtMemoryHandle;
 #else
                 importInfo.fd = bufferExtMemoryHandle;
+#endif
 #endif
                 vk_append_struct(&structChainIter, &importInfo);
             }
@@ -3577,7 +3652,7 @@ class VkDecoderGlobalState::Impl {
                 ERR("Failed vkAllocateMemory: missing descriptor info.");
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
-#if defined(__linux__) || defined(__QNX__)
+#if defined(__linux__)
             importInfo.fd = rawDescriptor;
 #endif
 
@@ -3660,6 +3735,10 @@ class VkDecoderGlobalState::Impl {
             memoryInfo.mtlTexture = getColorBufferMTLTexture(importCbInfoPtr->colorBuffer);
         }
 #endif
+
+        if (importCbInfoPtr && !mGuestUsesAngle) {
+            memoryInfo.boundColorBuffer = importCbInfoPtr->colorBuffer;
+        }
 
         if (!hostVisible) {
             *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);
@@ -3832,7 +3911,6 @@ class VkDecoderGlobalState::Impl {
         const auto& props = emu->deviceInfo.physdevProps;
 
         res.supportsVulkan1_1 = props.apiVersion >= VK_API_VERSION_1_1;
-        res.supportsExternalMemory = emu->deviceInfo.supportsExternalMemory;
         res.useDeferredCommands = emu->useDeferredCommands;
         res.useCreateResourcesWithRequirements = emu->useCreateResourcesWithRequirements;
 
@@ -5795,6 +5873,16 @@ class VkDecoderGlobalState::Impl {
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME)) {
             res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
         }
+#elif defined(__QNX__)
+        // Note: VK_QNX_external_memory_screen_buffer is not supported in API translation,
+        // decoding, etc. However, push name to indicate external memory support to guest
+        if (hasDeviceExtension(properties, VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME)) {
+            res.push_back(VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME);
+        }
+
+        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
+            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
+        }
 #elif __unix__
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)) {
             res.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
@@ -6420,6 +6508,9 @@ class VkDecoderGlobalState::Impl {
 
         // virtio-gpu blobs
         uint64_t blobId = 0;
+
+        // Color buffer, provided via vkAllocateMemory().
+        HandleType boundColorBuffer = 0;
     };
 
     struct InstanceInfo {
@@ -6484,11 +6575,17 @@ class VkDecoderGlobalState::Impl {
         VkImageCreateInfo imageCreateInfoShallow;
         std::shared_ptr<AndroidNativeBufferInfo> anbInfo;
         CompressedImageInfo cmpInfo;
+
+        // Color buffer, provided via vkAllocateMemory().
+        HandleType boundColorBuffer = 0;
     };
 
     struct ImageViewInfo {
         VkDevice device;
         bool needEmulatedAlpha = false;
+
+        // Color buffer, provided via vkAllocateMemory().
+        HandleType boundColorBuffer = 0;
     };
 
     struct SamplerInfo {
@@ -6532,7 +6629,7 @@ class VkDecoderGlobalState::Impl {
     struct SemaphoreInfo {
         VkDevice device;
         int externalHandleId = 0;
-        VK_EXT_MEMORY_HANDLE externalHandle = VK_EXT_MEMORY_HANDLE_INVALID;
+        VK_EXT_SYNC_HANDLE externalHandle = VK_EXT_SYNC_HANDLE_INVALID;
     };
 
     struct DescriptorSetLayoutInfo {
