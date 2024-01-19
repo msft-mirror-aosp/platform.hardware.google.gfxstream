@@ -19,20 +19,23 @@
 #include "FrameBuffer.h"
 #include "ReadBuffer.h"
 #include "RenderChannelImpl.h"
-#include "RenderControl.h"
 #include "RenderThreadInfo.h"
 #include "RingStream.h"
 #include "VkDecoderContext.h"
-#include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
 #include "aemu/base/HealthMonitor.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/Metrics.h"
 #include "aemu/base/files/StreamSerializing.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/system/System.h"
+#include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
 #include "host-common/feature_control.h"
 #include "host-common/logging.h"
 #include "vulkan/VkCommonOperations.h"
+
+#if GFXSTREAM_ENABLE_HOST_GLES
+#include "RenderControl.h"
+#endif
 
 #define EMUGL_DEBUG_LEVEL 0
 #include "host-common/debug.h"
@@ -270,12 +273,13 @@ intptr_t RenderThread::main() {
 
     //
     // initialize decoders
-    //
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (!feature_is_enabled(kFeature_GuestUsesAngle)) {
         tInfo.initGl();
     }
 
     initRenderControlContext(&tInfo.m_rcDec);
+#endif
 
     if (!mChannel && !mRingStream) {
         GL_LOG("Exited a loader RenderThread @%p", this);
@@ -523,6 +527,7 @@ intptr_t RenderThread::main() {
                 FrameBuffer::getFB()->lockContextStructureRead();
             }
 
+#if GFXSTREAM_ENABLE_HOST_GLES
             if (tInfo.m_glInfo) {
                 {
                     last = tInfo.m_glInfo->m_glDec.decode(
@@ -547,12 +552,14 @@ intptr_t RenderThread::main() {
                     }
                 }
             }
+#endif
 
             FrameBuffer::getFB()->unlockContextStructureRead();
             //
             // try to process some of the command buffer using the
             // renderControl decoder
             //
+#if GFXSTREAM_ENABLE_HOST_GLES
             {
                 last = tInfo.m_rcDec.decode(readBuf.buf(), readBuf.validData(),
                                             ioStream, &checksumCalc);
@@ -561,6 +568,7 @@ intptr_t RenderThread::main() {
                     progress = true;
                 }
             }
+#endif
 
             //
             // try to process some of the command buffer using the Magma
@@ -589,9 +597,11 @@ intptr_t RenderThread::main() {
         fclose(dumpFP);
     }
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     if (tInfo.m_glInfo) {
         FrameBuffer::getFB()->drainGlRenderThreadResources();
     }
+#endif
 
     setFinished();
 

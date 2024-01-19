@@ -498,11 +498,16 @@ bool RenderWindow::getHardwareStrings(const char** vendor,
         D("No framebuffer!\n");
         return false;
     }
+
+#if GFXSTREAM_ENABLE_HOST_GLES
     fb->getGLStrings(vendor, renderer, version);
     D("Exiting vendor=[%s] renderer=[%s] version=[%s]\n",
       *vendor, *renderer, *version);
 
     return true;
+#else
+    return false;
+#endif
 }
 
 void RenderWindow::setPostCallback(Renderer::OnPostCallback onPost, void* onPostContext,
@@ -610,11 +615,11 @@ void RenderWindow::setTranslation(float px, float py) {
 
 void RenderWindow::setScreenMask(int width, int height, const unsigned char* rgbaData) {
     if (FrameBuffer* fb = FrameBuffer::getFB()) {
+#if GFXSTREAM_ENABLE_HOST_GLES
         if (fb->hasEmulationGl()) {
             fb->getTextureDraw()->setScreenMask(width, height, rgbaData);
-        } else {
-            ERR("RenderWindow::setScreenMask() not supported without GL emulation.");
         }
+#endif
     }
 }
 

@@ -21,8 +21,12 @@
 #include <unordered_set>
 
 #include "aemu/base/files/Stream.h"
+
+#if GFXSTREAM_ENABLE_HOST_GLES
 #include "renderControl_dec/renderControl_dec.h"
 #include "RenderThreadInfoGl.h"
+#endif
+
 #include "RenderThreadInfoVk.h"
 
 #if GFXSTREAM_ENABLE_HOST_MAGMA
@@ -47,15 +51,19 @@ struct RenderThreadInfo {
     // Loop over all active render thread infos
     static void forAllRenderThreadInfos(std::function<void(RenderThreadInfo*)>);
 
+#if GFXSTREAM_ENABLE_HOST_GLES
     void initGl();
-
-    renderControl_decoder_context_t m_rcDec;
+#endif
 
     // The unique id of owner guest process of this render thread
     uint64_t                        m_puid = 0;
     std::optional<std::string>      m_processName;
 
+#if GFXSTREAM_ENABLE_HOST_GLES
+    renderControl_decoder_context_t m_rcDec;
     std::optional<gl::RenderThreadInfoGl> m_glInfo;
+#endif
+
     std::optional<vk::RenderThreadInfoVk> m_vkInfo;
 
 #if GFXSTREAM_ENABLE_HOST_MAGMA
