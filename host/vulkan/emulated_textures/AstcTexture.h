@@ -15,7 +15,7 @@
 
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
 #include "host/vulkan/VkDecoderContext.h"
-#include "vulkan/cereal/common/goldfish_vk_dispatch.h"
+#include "goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 
 namespace gfxstream {
