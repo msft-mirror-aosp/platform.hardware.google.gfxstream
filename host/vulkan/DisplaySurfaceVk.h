@@ -19,7 +19,7 @@
 
 #include "DisplaySurface.h"
 #include "render-utils/render_api_platform_types.h"
-#include "vulkan/cereal/common/goldfish_vk_dispatch.h"
+#include "goldfish_vk_dispatch.h"
 
 namespace gfxstream {
 namespace vk {

@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include "vulkan/cereal/common/goldfish_vk_dispatch.h"
+#include "goldfish_vk_dispatch.h"
 
 namespace gfxstream {
 namespace vk {
