@@ -52,7 +52,7 @@ lib_egl_translator = static_library(
   'egl_translator',
   files_lib_egl_translator,
   cpp_args: egl_cpp_args + gfxstream_host_args,
-  include_directories: [inc_include, inc_gles_translator, inc_apigen_codec,
+  include_directories: [inc_gfxstream_include, inc_include, inc_gles_translator, inc_apigen_codec,
                         inc_gl_host_common, inc_stream_servers, inc_etc],
   link_with: [lib_gl_common, lib_apigen_codec, lib_gl_host_common],
   dependencies: [aemu_base_dep, aemu_common_dep, aemu_snapshot_dep,
