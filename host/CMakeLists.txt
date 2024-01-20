@@ -116,6 +116,7 @@ target_compile_options(
     -Wno-invalid-offsetof
     -Wno-free-nonheap-object
     -Wno-attributes
+    -DGFXSTREAM_ENABLE_HOST_GLES=1
     )
 
 # gfxstream_backend.dll

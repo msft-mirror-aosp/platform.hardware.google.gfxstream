@@ -7022,6 +7022,76 @@ void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_fragment_density_map
+void transform_tohost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkExtent2D(resourceTracker,
+                                (VkExtent2D*)(&toTransform->minFragmentDensityTexelSize));
+    transform_tohost_VkExtent2D(resourceTracker,
+                                (VkExtent2D*)(&toTransform->maxFragmentDensityTexelSize));
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkExtent2D(resourceTracker,
+                                  (VkExtent2D*)(&toTransform->minFragmentDensityTexelSize));
+    transform_fromhost_VkExtent2D(resourceTracker,
+                                  (VkExtent2D*)(&toTransform->maxFragmentDensityTexelSize));
+}
+
+void transform_tohost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkRenderPassFragmentDensityMapCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkAttachmentReference(
+        resourceTracker, (VkAttachmentReference*)(&toTransform->fragmentDensityMapAttachment));
+}
+
+void transform_fromhost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkRenderPassFragmentDensityMapCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkAttachmentReference(
+        resourceTracker, (VkAttachmentReference*)(&toTransform->fragmentDensityMapAttachment));
+}
+
+#endif
 #ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
@@ -8679,6 +8749,26 @@ void transform_tohost_extension_struct(ResourceTracker* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            transform_tohost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            transform_tohost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            transform_tohost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                resourceTracker, reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                                     structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_provoking_vertex
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: {
             transform_tohost_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -9722,6 +9812,26 @@ void transform_fromhost_extension_struct(ResourceTracker* resourceTracker,
                 resourceTracker,
                 reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            transform_fromhost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            transform_fromhost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            transform_fromhost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                resourceTracker, reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                                     structExtension_out));
             break;
         }
 #endif
