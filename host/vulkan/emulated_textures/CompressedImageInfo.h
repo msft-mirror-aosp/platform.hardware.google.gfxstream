@@ -21,7 +21,7 @@
 
 #include "host/vulkan/emulated_textures/AstcTexture.h"
 #include "host/vulkan/emulated_textures/GpuDecompressionPipeline.h"
-#include "vulkan/cereal/common/goldfish_vk_dispatch.h"
+#include "goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 
 namespace gfxstream {

@@ -17,7 +17,7 @@
 #include "Hwc2.h"
 #include "SwapChainStateVk.h"
 #include "aemu/base/synchronization/Lock.h"
-#include "vulkan/cereal/common/goldfish_vk_dispatch.h"
+#include "goldfish_vk_dispatch.h"
 
 // The DisplayVk class holds the Vulkan and other states required to draw a
 // frame in a host window.
