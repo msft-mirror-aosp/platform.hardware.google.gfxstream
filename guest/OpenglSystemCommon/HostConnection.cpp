@@ -30,9 +30,6 @@
 #endif
 #include "renderControl_types.h"
 
-#ifdef HOST_BUILD
-#include "aemu/base/Tracing.h"
-#endif
 #include "aemu/base/Process.h"
 
 #define DEBUG_HOSTCONNECTION 0
@@ -209,11 +206,7 @@ HostConnection::HostConnection()
       m_checksumHelper(),
       m_hostExtensions(),
       m_noHostError(true),
-      m_rendernodeFd(-1) {
-#ifdef HOST_BUILD
-    gfxstream::guest::initializeTracing();
-#endif
-}
+      m_rendernodeFd(-1) { }
 
 HostConnection::~HostConnection()
 {
