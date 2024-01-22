@@ -265,11 +265,7 @@ void eglDisplay::terminate()
 #endif // !__APPLE__
 
 #ifndef HOST_BUILD
-#if PLATFORM_SDK_VERSION >= 26
-#define PARTITION "/vendor"
-#else
 #define PARTITION "/system"
-#endif // !PLATFORM_SDK_VERSION >= 26
 #if __LP64__
 #define LIBDIR "/lib64/egl/"
 #else
