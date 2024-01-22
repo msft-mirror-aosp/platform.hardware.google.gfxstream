@@ -77,30 +77,8 @@ public:
 #include "GL2Encoder.h"
 #endif
 
-#ifdef GFXSTREAM
 #include "VkEncoder.h"
 #include "AddressSpaceStream.h"
-#else
-namespace gfxstream {
-namespace vk {
-struct VkEncoder {
-    VkEncoder(IOStream* stream, HealthMonitor<>* healthMonitor = nullptr) { }
-    void decRef() { }
-    int placeholder;
-};
-}  // namespace vk
-}  // namespace gfxstream
-class QemuPipeStream;
-typedef QemuPipeStream AddressSpaceStream;
-AddressSpaceStream* createAddressSpaceStream(size_t bufSize, HealthMonitor<>* healthMonitor) {
-    ALOGE("%s: FATAL: Trying to create ASG stream in unsupported build\n", __func__);
-    abort();
-}
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMonitor) {
-    ALOGE("%s: FATAL: Trying to create VirtioGpu ASG stream in unsupported build\n", __func__);
-    abort();
-}
-#endif
 
 using gfxstream::vk::VkEncoder;
 
