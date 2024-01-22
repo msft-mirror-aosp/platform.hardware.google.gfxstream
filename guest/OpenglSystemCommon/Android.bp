@@ -44,9 +44,6 @@ cc_library_static {
     export_shared_lib_headers: [
         "lib_renderControl_enc",
     ],
-    cflags: [
-        "-DVIRTIO_GPU",
-    ],
     export_include_dirs: [
         ".",
     ],
@@ -121,7 +118,6 @@ cc_defaults {
         "libgfxstream_guest_gralloc",
     ],
     cflags: [
-        "-DVIRTIO_GPU",
         "-Wno-unused-variable",
         "-Wno-unused-parameter",
     ],

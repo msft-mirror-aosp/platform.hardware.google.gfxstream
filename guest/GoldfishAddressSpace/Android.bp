@@ -27,7 +27,6 @@ cc_library_static {
     ],
     cflags: [
         "-DLOG_TAG=\"goldfish-address-space\"",
-        "-DVIRTIO_GPU",
     ],
     include_dirs: [
         "hardware/google/gfxstream/guest/include",

@@ -41,7 +41,6 @@ cc_library_shared {
     cflags: [
         "-DGL_GLEXT_PROTOTYPES",
         "-DLOG_TAG=\"emuglGLESv2_enc\"",
-        "-DVIRTIO_GPU",
         "-Wno-unused-private-field",
     ],
     srcs: [
