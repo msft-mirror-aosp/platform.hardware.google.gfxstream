@@ -957,6 +957,7 @@ def makeGenOpts(args):
             CerealGenerator,
             CGeneratorOptions(
                 conventions       = conventions,
+                filename          = "CMakeLists.txt",
                 directory         = directory,
                 apiname           = 'vulkan',
                 profile           = None,
@@ -1038,7 +1039,7 @@ def genTarget(args):
         createGenerator = genOpts[args.target][0]
         options = genOpts[args.target][1]
 
-        logDiag('* Building', args.target)
+        logDiag('* Building', options.filename)
         logDiag('* options.versions          =', options.versions)
         logDiag('* options.emitversions      =', options.emitversions)
         logDiag('* options.defaultExtensions =', options.defaultExtensions)
@@ -1234,7 +1235,7 @@ if __name__ == '__main__':
     else:
         startTimer(args.time)
         reg.apiGen()
-        endTimer(args.time, '* Time to generate ' + args.target + ' =')
+        endTimer(args.time, '* Time to generate ' + options.filename + ' =')
 
     if not args.quiet:
-        logDiag('* Generated', args.target)
+        logDiag('* Generated', options.filename)

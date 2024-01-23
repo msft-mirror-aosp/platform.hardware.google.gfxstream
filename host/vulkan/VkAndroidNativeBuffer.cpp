@@ -22,8 +22,7 @@
 #include "VulkanDispatch.h"
 #include "cereal/common/goldfish_vk_deepcopy.h"
 #include "cereal/common/goldfish_vk_extension_structs.h"
-
-#include "goldfish_vk_private_defs.h"
+#include "cereal/common/goldfish_vk_private_defs.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host/FrameBuffer.h"
 #include "vulkan/vk_enum_string_helper.h"

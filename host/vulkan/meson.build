@@ -1,8 +1,7 @@
 # Copyright 2023 Android Open Source Project
 # SPDX-License-Identifier: MIT
 
-inc_cereal = include_directories('cereal')
-inc_cereal_common = include_directories('cereal/common')
+inc_vulkan_cereal = include_directories('cereal')
 inc_vulkan_server = include_directories('.')
 
 subdir('cereal')
@@ -57,7 +56,7 @@ lib_vulkan_server = static_library(
   files_lib_vulkan_server,
   cpp_args: vulkan_server_cpp_args + default_cpp_args,
   include_directories: [inc_root, inc_include, inc_utils, inc_apigen_codec,
-                        inc_cereal, inc_cereal_common, inc_stream_servers,
+                        inc_vulkan_cereal, inc_stream_servers,
                         inc_vulkan_server, inc_renderdoc_external,
                         inc_gl_host_common, inc_vulkan_headers, inc_glm],
   link_with: [lib_vulkan_cereal, lib_emulated_textures],

@@ -98,7 +98,6 @@ target_include_directories(
         ${GFXSTREAM_REPO_ROOT}/host/magma
         ${GFXSTREAM_REPO_ROOT}/host/magma/magma_dec
         ${GFXSTREAM_REPO_ROOT}/host/vulkan
-        ${GFXSTREAM_REPO_ROOT}/host/vulkan/cereal/common
         ${GFXSTREAM_REPO_ROOT}/third-party/fuchsia/magma/include
         ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
 
