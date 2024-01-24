@@ -40,6 +40,8 @@ class GoldfishGralloc : public Gralloc {
 
     size_t getAllocatedSize(const native_handle_t* handle) override;
     size_t getAllocatedSize(const AHardwareBuffer* handle) override;
+
+    bool treatBlobAsImage() override;
 };
 
 
