@@ -34,6 +34,7 @@
 #include "Hwc2.h"
 #include "PostCommands.h"
 #include "PostWorker.h"
+#include "ProcessResources.h"
 #include "ReadbackWorker.h"
 #include "VsyncThread.h"
 #include "aemu/base/AsyncResult.h"
@@ -98,25 +99,6 @@ using emugl::MetricsLogger;
 
 struct BufferRef {
     BufferPtr buffer;
-};
-
-class ProcessResources {
-   public:
-    // We only allow ProcessResources to be created on the heap, because the pointer to
-    // mSequenceNumber shouldn't change until ProcessResources is destroyed.
-    static std::unique_ptr<ProcessResources> create() {
-        return std::unique_ptr<ProcessResources>(new ProcessResources());
-    }
-    DISALLOW_COPY_ASSIGN_AND_MOVE(ProcessResources);
-
-    ~ProcessResources() = default;
-    std::atomic<uint32_t>* getSequenceNumberPtr() const {
-        return &mSequenceNumber;
-    }
-
-   private:
-    ProcessResources() : mSequenceNumber(0) {}
-    mutable std::atomic<uint32_t> mSequenceNumber;
 };
 
 #if GFXSTREAM_ENABLE_HOST_GLES

@@ -35,6 +35,7 @@
 #include <memory>
 
 #include "VkDecoderContext.h"
+#include "host/ProcessResources.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan_gfxstream.h"
 
@@ -46,7 +47,6 @@ class BumpPool;
 
 namespace gfxstream {
 class IOStream;
-class ProcessResources;
 }  // namespace gfxstream
 
 namespace gfxstream {
