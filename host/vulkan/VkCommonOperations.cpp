@@ -96,6 +96,10 @@ static StaticMap<VkDevice, uint32_t> sKnownStagingTypeIndices;
 
 static android::base::StaticLock sVkEmulationLock;
 
+static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y,
+                                             uint32_t w, uint32_t h, const void* pixels,
+                                             size_t inputPixelsSize);
+
 #if !defined(__QNX__)
 VK_EXT_MEMORY_HANDLE dupExternalMemory(VK_EXT_MEMORY_HANDLE h) {
 #ifdef _WIN32
@@ -1650,6 +1654,7 @@ static VkFormat glFormat2VkFormat(GLint internalFormat) {
             // b/281550953
             // RGB8 is not supported on many vulkan drivers.
             // Try RGBA8 instead.
+            // Note: copyImageData() performs channel conversion for this case.
             return VK_FORMAT_R8G8B8A8_UNORM;
         case GL_RGB565:
             return VK_FORMAT_R5G6B5_UNORM_PACK16;
@@ -1962,6 +1967,8 @@ bool initializeVkColorBufferLocked(
     imageCi->pQueueFamilyIndices = nullptr;
     imageCi->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
+    auto imageCiChain = vk_make_chain_iterator(imageCi.get());
+
     // Create the image. If external memory is supported, make it external.
     VkExternalMemoryImageCreateInfo extImageCi = {
         VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
@@ -1969,14 +1976,23 @@ bool initializeVkColorBufferLocked(
         VK_EXT_MEMORY_HANDLE_TYPE_BIT,
     };
 
-    VkExternalMemoryImageCreateInfo* extImageCiPtr = nullptr;
-
     if (sVkEmulation->deviceInfo.supportsExternalMemoryImport ||
         sVkEmulation->deviceInfo.supportsExternalMemoryExport) {
-        extImageCiPtr = &extImageCi;
+        vk_append_struct(&imageCiChain, &extImageCi);
     }
 
-    imageCi->pNext = extImageCiPtr;
+#if defined(__QNX__)
+    VkExternalFormatQNX externalFormatQnx = {
+        .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX,
+        .pNext = NULL,
+        .externalFormat = 0, /* Do not override screen format */
+    };
+    if (VK_EXT_MEMORY_HANDLE_INVALID != extMemHandle) {
+        vk_append_struct(&imageCiChain, &externalFormatQnx);
+        /* Maintain linear tiling on QNX for downstream display controller interaction */
+        imageCi->tiling = VK_IMAGE_TILING_LINEAR;
+    }
+#endif
 
     auto vk = sVkEmulation->dvk;
 
@@ -2120,9 +2136,9 @@ bool initializeVkColorBufferLocked(
     return true;
 }
 
-bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum internalFormat,
-                               FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
-                               bool vulkanOnly, uint32_t memoryProperty) {
+static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum internalFormat,
+                                      FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
+                                      bool vulkanOnly, uint32_t memoryProperty) {
     auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
     // Already initialized
     if (infoPtr) {
@@ -2509,30 +2525,9 @@ bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<ui
         return false;
     }
 
-    VkDeviceSize transferSize = 0;
-    bool result = getFormatTransferInfo(colorBufferInfo->imageCreateInfoShallow.format,
-                                        colorBufferInfo->imageCreateInfoShallow.extent.width,
-                                        colorBufferInfo->imageCreateInfoShallow.extent.height,
-                                        &transferSize, nullptr);
-    if (!result) {
-        VK_COMMON_ERROR("Failed to update ColorBuffer:%d, failed to get expected size.",
-                        colorBufferHandle);
-        return false;
-    }
-
-    const auto bytesProvided = bytes.size();
-    const auto bytesExpected = static_cast<std::size_t>(transferSize);
-    if (bytesProvided != bytesExpected) {
-        VK_COMMON_ERROR(
-            "Unexpected contents size when trying to update ColorBuffer:%d, "
-            "provided:%zu expected:%zu",
-            colorBufferHandle, bytesProvided, bytesExpected);
-        return false;
-    }
-
     return updateColorBufferFromBytesLocked(
         colorBufferHandle, 0, 0, colorBufferInfo->imageCreateInfoShallow.extent.width,
-        colorBufferInfo->imageCreateInfoShallow.extent.height, bytes.data());
+        colorBufferInfo->imageCreateInfoShallow.extent.height, bytes.data(), bytes.size());
 }
 
 bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
@@ -2543,11 +2538,24 @@ bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t
     }
 
     AutoLock lock(sVkEmulationLock);
-    return updateColorBufferFromBytesLocked(colorBufferHandle, x, y, w, h, pixels);
+    return updateColorBufferFromBytesLocked(colorBufferHandle, x, y, w, h, pixels, 0);
 }
 
-bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y,
-                                      uint32_t w, uint32_t h, const void* pixels) {
+static void convertRgbToRgbaPixels(void* dst, const void* src, uint32_t w, uint32_t h) {
+    const size_t pixelCount = w * h;
+    const uint8_t* srcBytes = reinterpret_cast<const uint8_t*>(src);
+    uint32_t* dstPixels = reinterpret_cast<uint32_t*>(dst);
+    for (size_t i = 0; i < pixelCount; ++i) {
+        const uint8_t r = *(srcBytes++);
+        const uint8_t g = *(srcBytes++);
+        const uint8_t b = *(srcBytes++);
+        *(dstPixels++) = 0xff000000 | (b << 16) | (g << 8) | r;
+    }
+}
+
+static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y,
+                                             uint32_t w, uint32_t h, const void* pixels,
+                                             size_t inputPixelsSize) {
     if (!sVkEmulation || !sVkEmulation->live) {
         VK_COMMON_ERROR("VkEmulation not available.");
         return false;
@@ -2572,27 +2580,47 @@ bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, ui
         return false;
     }
 
-    VkDeviceSize bufferCopySize = 0;
+    VkDeviceSize dstBufferSize = 0;
     std::vector<VkBufferImageCopy> bufferImageCopies;
     if (!getFormatTransferInfo(colorBufferInfo->imageCreateInfoShallow.format,
                                colorBufferInfo->imageCreateInfoShallow.extent.width,
                                colorBufferInfo->imageCreateInfoShallow.extent.height,
-                               &bufferCopySize, &bufferImageCopies)) {
+                               &dstBufferSize, &bufferImageCopies)) {
         VK_COMMON_ERROR("Failed to update ColorBuffer:%d, unable to get transfer info.",
                         colorBufferHandle);
         return false;
     }
 
     const VkDeviceSize stagingBufferSize = sVkEmulation->staging.size;
-    if (bufferCopySize > stagingBufferSize) {
+    if (dstBufferSize > stagingBufferSize) {
         VK_COMMON_ERROR("Failed to update ColorBuffer:%d, transfer size %" PRIu64
                         " too large for staging buffer size:%" PRIu64 ".",
-                        colorBufferHandle, bufferCopySize, stagingBufferSize);
+                        colorBufferHandle, dstBufferSize, stagingBufferSize);
+        return false;
+    }
+
+    bool isThreeByteRgb = (colorBufferInfo->internalFormat == GL_RGB ||
+        colorBufferInfo->internalFormat == GL_RGB8);
+    size_t expectedInputSize = (isThreeByteRgb ? dstBufferSize / 4 * 3 : dstBufferSize);
+
+    if (inputPixelsSize != 0 && inputPixelsSize != expectedInputSize) {
+        VK_COMMON_ERROR(
+            "Unexpected contents size when trying to update ColorBuffer:%d, "
+            "provided:%zu expected:%zu",
+            colorBufferHandle, inputPixelsSize, expectedInputSize);
         return false;
     }
 
     auto* stagingBufferPtr = sVkEmulation->staging.memory.mappedPtr;
-    std::memcpy(stagingBufferPtr, pixels, bufferCopySize);
+
+    if  (isThreeByteRgb) {
+        // Convert RGB to RGBA, since only for these types glFormat2VkFormat() makes
+        // an incompatible choice of 4-byte backing VK_FORMAT_R8G8B8A8_UNORM.
+        // b/281550953
+        convertRgbToRgbaPixels(stagingBufferPtr, pixels, w, h);
+    } else {
+        std::memcpy(stagingBufferPtr, pixels, dstBufferSize);
+    }
 
     // Avoid transitioning from VK_IMAGE_LAYOUT_UNDEFINED. Unfortunetly, Android does not
     // yet have a mechanism for sharing the expected VkImageLayout. However, the Vulkan

@@ -1575,6 +1575,20 @@ DEFINE_ALIAS_FUNCTION(count_VkPipelineCreationFeedback, count_VkPipelineCreation
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
+#ifdef VK_EXT_fragment_density_map
+void count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toCount, size_t* count);
+
+void count_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toCount, size_t* count);
+
+void count_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkRenderPassFragmentDensityMapCreateInfoEXT* toCount, size_t* count);
+
+#endif
 #ifdef VK_EXT_scalar_block_layout
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceScalarBlockLayoutFeatures,
                       count_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)

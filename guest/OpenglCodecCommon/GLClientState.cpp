@@ -22,11 +22,7 @@
 #include <string.h>
 #include "glUtils.h"
 
-#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
-#else
-#include <log/log.h>
-#endif
 
 #ifndef MAX
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
