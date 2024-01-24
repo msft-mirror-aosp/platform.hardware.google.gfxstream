@@ -28,22 +28,6 @@ using testing::IsNull;
 using testing::Not;
 using testing::NotNull;
 
-uint32_t GetMemoryType(const vkhpp::PhysicalDevice& physicalDevice,
-                       const vkhpp::MemoryRequirements& memoryRequirements,
-                       vkhpp::MemoryPropertyFlags memoryProperties) {
-  const auto props = physicalDevice.getMemoryProperties();
-  for (uint32_t i = 0; i < props.memoryTypeCount; i++) {
-    if (!(memoryRequirements.memoryTypeBits & (1 << i))) {
-      continue;
-    }
-    if ((props.memoryTypes[i].propertyFlags & memoryProperties) != memoryProperties) {
-      continue;
-    }
-    return i;
-  }
-  return -1;
-}
-
 template <typename DurationType>
 constexpr uint64_t AsVkTimeout(DurationType duration) {
     return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count());
