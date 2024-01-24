@@ -189,6 +189,12 @@ static constexpr uint64_t kPageMaskForBlob = ~(0xfff);
 
 static uint64_t hostBlobId = 0;
 
+// b/319729462
+// On snapshot load, thread local data is not available, thus we use a
+// fake context ID. We will eventually need to fix it once we start using
+// snapshot with virtio.
+static uint32_t kTemporaryContextIdForSnapshotLoading = 1;
+
 #define DEFINE_BOXED_HANDLE_TYPE_TAG(type) Tag_##type,
 
 enum BoxedHandleTypeTag {
@@ -398,7 +404,28 @@ class VkDecoderGlobalState::Impl {
 
     bool vkCleanupEnabled() const { return mVkCleanupEnabled; }
 
-    void save(android::base::Stream* stream) { snapshot()->save(stream); }
+    void save(android::base::Stream* stream) {
+        mSnapshotState = SnapshotState::Saving;
+        snapshot()->save(stream);
+        // Save mapped memory
+        uint32_t memoryCount = 0;
+        for (const auto& it : mMemoryInfo) {
+            if (it.second.ptr) {
+                memoryCount++;
+            }
+        }
+        stream->putBe32(memoryCount);
+        for (const auto& it : mMemoryInfo) {
+            if (!it.second.ptr) {
+                continue;
+            }
+            stream->putBe64(reinterpret_cast<uint64_t>(
+                unboxed_to_boxed_non_dispatchable_VkDeviceMemory(it.first)));
+            stream->putBe64(it.second.size);
+            stream->write(it.second.ptr, it.second.size);
+        }
+        mSnapshotState = SnapshotState::Normal;
+    }
 
     void load(android::base::Stream* stream, GfxApiLogger& gfxLogger,
               HealthMonitor<>* healthMonitor) {
@@ -407,9 +434,27 @@ class VkDecoderGlobalState::Impl {
 
         // destroy all current internal data structures
         clear();
-
+        mSnapshotState = SnapshotState::Loading;
         // this part will replay in the decoder
         snapshot()->load(stream, gfxLogger, healthMonitor);
+        // load mapped memory
+        uint32_t memoryCount = stream->getBe32();
+        for (uint32_t i = 0; i < memoryCount; i++) {
+            VkDeviceMemory boxedMemory = reinterpret_cast<VkDeviceMemory>(stream->getBe64());
+            VkDeviceMemory unboxedMemory = unbox_VkDeviceMemory(boxedMemory);
+            auto it = mMemoryInfo.find(unboxedMemory);
+            if (it == mMemoryInfo.end()) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Snapshot load failure: cannot find memory handle for " << boxedMemory;
+            }
+            VkDeviceSize size = stream->getBe64();
+            if (size != it->second.size || !it->second.ptr) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Snapshot load failure: memory size does not match for " << boxedMemory;
+            }
+            stream->read(it->second.ptr, size);
+        }
+        mSnapshotState = SnapshotState::Normal;
     }
 
     void lock() { mLock.lock(); }
@@ -3684,8 +3729,11 @@ class VkDecoderGlobalState::Impl {
         if (createBlobInfoPtr && createBlobInfoPtr->blobMem == STREAM_BLOB_MEM_GUEST &&
             (createBlobInfoPtr->blobFlags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
             DescriptorType rawDescriptor;
+            uint32_t ctx_id = mSnapshotState == SnapshotState::Loading
+                                  ? kTemporaryContextIdForSnapshotLoading
+                                  : tInfo->ctx_id;
             auto descriptorInfoOpt =
-                BlobManager::get()->removeDescriptorInfo(tInfo->ctx_id, createBlobInfoPtr->blobId);
+                BlobManager::get()->removeDescriptorInfo(ctx_id, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
                 auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
                 if (rawDescriptorOpt) {
@@ -4144,6 +4192,9 @@ class VkDecoderGlobalState::Impl {
     VkResult vkGetBlobInternal(VkDevice boxed_device, VkDeviceMemory memory, uint64_t hostBlobId) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         auto* tInfo = RenderThreadInfoVk::get();
+        uint32_t ctx_id = mSnapshotState == SnapshotState::Loading
+                              ? kTemporaryContextIdForSnapshotLoading
+                              : tInfo->ctx_id;
 
         auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -4155,7 +4206,7 @@ class VkDecoderGlobalState::Impl {
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
-            BlobManager::get()->addDescriptorInfo(tInfo->ctx_id, hostBlobId,
+            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId,
                                                   info->sharedMemory->releaseHandle(), handleType,
                                                   info->caching, std::nullopt);
         } else if (feature_is_enabled(kFeature_ExternalBlob)) {
@@ -4213,13 +4264,12 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             ManagedDescriptor managedHandle(handle);
-            BlobManager::get()->addDescriptorInfo(
-                tInfo->ctx_id, hostBlobId, std::move(managedHandle), handleType, info->caching,
-                std::optional<VulkanInfo>(vulkanInfo));
+            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId, std::move(managedHandle),
+                                                  handleType, info->caching,
+                                                  std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
             auto device = unbox_VkDevice(boxed_device);
             auto vk = dispatch_VkDevice(boxed_device);
-
             VkResult mapResult = vk->vkMapMemory(device, memory, 0, info->size, 0, &info->ptr);
             if (mapResult != VK_SUCCESS) {
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -4243,8 +4293,7 @@ class VkDecoderGlobalState::Impl {
                     "using this blob may be corrupted/offset.",
                     kPageSizeforBlob, hva, alignedHva);
             }
-
-            BlobManager::get()->addMapping(tInfo->ctx_id, hostBlobId, (void*)(uintptr_t)alignedHva,
+            BlobManager::get()->addMapping(ctx_id, hostBlobId, (void*)(uintptr_t)alignedHva,
                                            info->caching);
             info->virtioGpuMapped = true;
             info->hostmemId = hostBlobId;
@@ -6984,6 +7033,13 @@ class VkDecoderGlobalState::Impl {
 
     std::unordered_map<LinearImageCreateInfo, LinearImageProperties, LinearImageCreateInfo::Hash>
         mLinearImageProperties;
+
+    enum SnapshotState {
+        Normal,
+        Saving,
+        Loading,
+    };
+    SnapshotState mSnapshotState = SnapshotState::Normal;
 };
 
 VkDecoderGlobalState::VkDecoderGlobalState() : mImpl(new VkDecoderGlobalState::Impl()) {}
