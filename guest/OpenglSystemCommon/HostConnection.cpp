@@ -406,6 +406,8 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     return con;
 }
 
+bool HostConnection::isInit() { return (getEGLThreadInfo()->hostConn != NULL); }
+
 HostConnection* HostConnection::get() { return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone); }
 
 HostConnection* HostConnection::getOrCreate(enum VirtGpuCapset capset) {
