@@ -23,6 +23,7 @@ cc_defaults {
     name: "libgfxstream_guest_cc_defaults",
     cflags: [
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
+        "-DGFXSTREAM_ENABLE_GUEST_GOLDFISH=1",
         "-Wno-missing-field-initializers",
         "-Wno-unused-parameter",
     ],
