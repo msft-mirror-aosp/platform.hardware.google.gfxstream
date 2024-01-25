@@ -106,12 +106,7 @@ public:
     void setGLESMaxVersion(GLESMaxVersion ver) { m_featureInfo.glesMaxVersion = ver; }
     GLESMaxVersion getGLESMaxVersion() const { return m_featureInfo.glesMaxVersion; }
     bool hasDirectMem() const {
-#ifdef HOST_BUILD
-        // unit tests do not support restoring "guest" ram because there is no VM
-        return false;
-#else
         return m_featureInfo.hasDirectMem;
-#endif
     }
 
     const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
