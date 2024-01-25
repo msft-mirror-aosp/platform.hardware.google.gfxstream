@@ -132,11 +132,7 @@ constexpr size_t kPageSize = PAGE_SIZE;
 
 #undef LOG_TAG
 #define LOG_TAG "HostConnection"
-#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
-#else
-#include <log/log.h>
-#endif
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 #define STREAM_PORT_NUM     22468
@@ -409,6 +405,8 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     processPipeInit(fd, connType, noRenderControlEnc);
     return con;
 }
+
+bool HostConnection::isInit() { return (getEGLThreadInfo()->hostConn != NULL); }
 
 HostConnection* HostConnection::get() { return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone); }
 

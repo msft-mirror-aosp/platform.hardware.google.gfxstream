@@ -6,11 +6,7 @@
 #include "gfxstream/etc.h"
 #include "astc-codec.h"
 
-#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
-#else
-#include <log/log.h>
-#endif
 
 #define ASTC_FORMATS_LIST(EXPAND_MACRO) \
     EXPAND_MACRO(GL_COMPRESSED_RGBA_ASTC_4x4_KHR, astc_codec::FootprintType::k4x4, false) \
