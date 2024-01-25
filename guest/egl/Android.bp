@@ -48,7 +48,6 @@ cc_defaults {
         "-DGL_GLEXT_PROTOTYPES",
         "-DEGL_EGLEXT_PROTOTYPES",
         "-DLOG_TAG=\"EGL_emulation\"",
-        "-DVIRTIO_GPU",
         "-DWITH_GLES2",
         "-Wno-gnu-designator",
     ],

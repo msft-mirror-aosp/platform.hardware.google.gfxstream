@@ -34,7 +34,6 @@ cc_defaults {
     cflags: [
         "-DGL_GLEXT_PROTOTYPES",
         "-DLOG_TAG=\"GLES_emulation\"",
-        "-DVIRTIO_GPU",
     ],
     srcs: [
         "gl.cpp",
