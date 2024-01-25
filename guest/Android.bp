@@ -24,8 +24,12 @@ cc_defaults {
     cflags: [
         "-DGFXSTREAM",
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
-        "-DPLATFORM_SDK_VERSION=29",
         "-Wno-missing-field-initializers",
         "-Wno-unused-parameter",
     ],
+    product_variables: {
+        platform_sdk_version: {
+            cflags: ["-DANDROID_API_LEVEL=%d"],
+        },
+    },
 }
