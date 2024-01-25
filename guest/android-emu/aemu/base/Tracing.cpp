@@ -14,7 +14,7 @@
 // limitations under the License.
 #include "aemu/base/Tracing.h"
 
-#if defined(__ANDROID__) || defined(HOST_BUILD)
+#if defined(__ANDROID__)
 
 #include <cutils/trace.h>
 #define TRACE_TAG ATRACE_TAG_GRAPHICS
@@ -31,7 +31,7 @@ namespace gfxstream {
 namespace guest {
 
 bool isTracingEnabled() {
-#if defined(__ANDROID__) || defined(HOST_BUILD)
+#if defined(__ANDROID__)
     return atrace_is_tag_enabled(TRACE_TAG);
 #else
     // TODO: Fuchsia + Linux
@@ -40,7 +40,7 @@ bool isTracingEnabled() {
 }
 
 void ScopedTraceGuest::beginTraceImpl(const char* name) {
-#if defined(__ANDROID__) || defined(HOST_BUILD)
+#if defined(__ANDROID__)
     atrace_begin(TRACE_TAG, name);
 #elif defined(__Fuchsia__) && !defined(FUCHSIA_NO_TRACE)
     TRACE_DURATION_BEGIN(TRACE_TAG, name);
@@ -51,7 +51,7 @@ void ScopedTraceGuest::beginTraceImpl(const char* name) {
 }
 
 void ScopedTraceGuest::endTraceImpl(const char* name) {
-#if defined(__ANDROID__) || defined(HOST_BUILD)
+#if defined(__ANDROID__)
     (void)name;
     atrace_end(TRACE_TAG);
 #elif defined(__Fuchsia__) && !defined(FUCHSIA_NO_TRACE)

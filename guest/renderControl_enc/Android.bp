@@ -42,7 +42,6 @@ cc_library_shared {
         "libOpenglCodecCommon",
     ],
     cflags: [
-        "-DVIRTIO_GPU",
         "-Wno-unused-function",
     ],
     srcs: [

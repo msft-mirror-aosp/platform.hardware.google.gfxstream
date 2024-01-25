@@ -17,10 +17,6 @@ subdir('mesa')
 #===============#
 gfxstream_guest_args = []
 
-# Paravirtualization moving towards virtio
-gfxstream_guest_args += '-DVIRTIO_GPU'
-# Gfxstream
-gfxstream_guest_args += '-DGFXSTREAM'
 # Our internal guest build
 gfxstream_guest_args += '-DLINUX_GUEST_BUILD'
 # Don't want to goldfish OpenGL
