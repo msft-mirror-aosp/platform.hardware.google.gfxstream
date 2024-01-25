@@ -42,13 +42,10 @@
 
 #include <GLES3/gl31.h>
 
-#ifdef VIRTIO_GPU
 #include <xf86drm.h>
 #include <poll.h>
 #include "VirtGpu.h"
 #include "virtgpu_drm.h"
-
-#endif // VIRTIO_GPU
 
 #include "aemu/base/Tracing.h"
 #include <cutils/trace.h>
@@ -627,10 +624,6 @@ static uint64_t createNativeSync_virtioGpu(
     bool destroy_when_signaled,
     int fd_in,
     int* fd_out) {
-#ifndef VIRTIO_GPU
-    ALOGE("%s: Error: called with no virtio-gpu support built in\n", __func__);
-    return 0;
-#else
     DEFINE_HOST_CONNECTION;
 
     uint64_t sync_handle;
@@ -685,7 +678,6 @@ static uint64_t createNativeSync_virtioGpu(
     }
 
     return sync_handle;
-#endif
 }
 
 // createGoldfishOpenGLNativeSync() is for creating host-only sync objects
