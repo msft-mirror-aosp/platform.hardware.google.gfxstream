@@ -372,11 +372,23 @@ ColorBufferGl::~ColorBufferGl() {
     delete m_resizer;
 }
 
-void ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
+static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint32_t h) {
+    const size_t pixelCount = w * h;
+    const uint32_t* srcPixels = reinterpret_cast<const uint32_t*>(src);
+    uint8_t* dstBytes = reinterpret_cast<uint8_t*>(dst);
+    for (size_t i = 0; i < pixelCount; ++i) {
+        const uint32_t pixel = *(srcPixels++);
+        *(dstBytes++) = (pixel & 0xff);
+        *(dstBytes++) = ((pixel >> 8) & 0xff);
+        *(dstBytes++) = ((pixel >> 16) & 0xff);
+    }
+}
+
+bool ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
                                void* pixels) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
-        return;
+        return false;
     }
 
     GL_SCOPED_DEBUG_GROUP("ColorBufferGl::readPixels(handle:%d fbo:%d tex:%d)", mHndl, m_fbo,
@@ -391,17 +403,27 @@ void ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_for
         GLint prevAlignment = 0;
         s_gles2.glGetIntegerv(GL_PACK_ALIGNMENT, &prevAlignment);
         s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        s_gles2.glReadPixels(x, y, width, height, p_format, p_type, pixels);
+        if ((p_format == GL_RGB || p_format == GL_RGB8) && p_type == GL_UNSIGNED_BYTE) {
+            // GL_RGB reads fail with SwiftShader.
+            uint8_t* tmpPixels = new uint8_t[width * height * 4];
+            s_gles2.glReadPixels(x, y, width, height, GL_RGBA, p_type, tmpPixels);
+            convertRgbaToRgbPixels(pixels, tmpPixels, width, height);
+        } else {
+            s_gles2.glReadPixels(x, y, width, height, p_format, p_type, pixels);
+        }
         s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, prevAlignment);
         unbindFbo();
+        return true;
     }
+
+    return false;
 }
 
-void ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type,
+bool ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type,
                                      int rotation, Rect rect, void* pixels) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
-        return;
+        return false;
     }
     bool useSnipping = rect.size.w != 0 && rect.size.h != 0;
     // Boundary check
@@ -411,7 +433,7 @@ void ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLe
         ERR("readPixelsScaled failed. Out-of-bound rectangle: (%d, %d) [%d x %d]"
             " with screen [%d x %d]",
             rect.pos.x, rect.pos.y, rect.size.w, rect.size.h);
-        return;
+        return false;
     }
     p_format = sGetUnsizedColorBufferFormat(p_format);
 
@@ -458,14 +480,17 @@ void ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLe
         }
         s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, prevAlignment);
         unbindFbo();
+        return true;
     }
+
+    return false;
 }
 
-void ColorBufferGl::readPixelsYUVCached(int x, int y, int width, int height, void* pixels,
+bool ColorBufferGl::readPixelsYUVCached(int x, int y, int width, int height, void* pixels,
                                         uint32_t pixels_size) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
-        return;
+        return false;
     }
 
     waitSync();
@@ -479,7 +504,7 @@ void ColorBufferGl::readPixelsYUVCached(int x, int y, int width, int height, voi
 
     m_yuv_converter->readPixels((uint8_t*)pixels, pixels_size);
 
-    return;
+    return true;
 }
 
 void ColorBufferGl::reformat(GLint internalformat, GLenum type) {
@@ -616,19 +641,16 @@ bool ColorBufferGl::readContents(size_t* numBytes, void* pixels) {
     if (m_yuv_converter) {
         // common code path for vk & gles
         *numBytes = m_yuv_converter->getDataSize();
-        if (pixels) {
-            readPixelsYUVCached(0, 0, 0, 0, pixels, *numBytes);
+        if (!pixels) {
+            return true;
         }
-        return true;
+        return readPixelsYUVCached(0, 0, 0, 0, pixels, *numBytes);
     } else {
         *numBytes = m_numBytes;
-
-        if (!pixels) return true;
-        RecursiveScopedContextBind context(m_helper);
-
-        readPixels(0, 0, m_width, m_height, m_format, m_type, pixels);
-
-        return true;
+        if (!pixels) {
+            return true;
+        }
+        return readPixels(0, 0, m_width, m_height, m_format, m_type, pixels);
     }
 }
 

@@ -26,8 +26,8 @@ files_lib_gl_common = files(
 lib_gl_common = static_library(
   'gl_common',
   files_lib_gl_common,
-  cpp_args: default_cpp_args,
-  include_directories: [inc_etc, inc_include, inc_stream_servers, inc_gles_translator],
+  cpp_args: gfxstream_host_args,
+  include_directories: [inc_etc, inc_gfxstream_include, inc_include, inc_stream_servers, inc_gles_translator],
   link_with: [lib_compressed_textures, lib_etc],
   dependencies: [aemu_base_dep, aemu_logging_dep, aemu_snapshot_dep]
 )

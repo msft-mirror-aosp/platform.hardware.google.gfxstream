@@ -35,7 +35,7 @@
 #include <memory>
 
 #include "aemu/base/HealthMonitor.h"
-#include "common/goldfish_vk_private_defs.h"
+#include "goldfish_vk_private_defs.h"
 #include "utils/GfxApiLogger.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan_gfxstream.h"
@@ -1336,6 +1336,8 @@ class VkDecoderSnapshot {
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_fragment_density_map
 #endif
 #ifdef VK_EXT_scalar_block_layout
 #endif

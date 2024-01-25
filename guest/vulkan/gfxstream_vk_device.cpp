@@ -27,29 +27,30 @@
 #include "vk_instance.h"
 #include "vk_sync_dummy.h"
 
-static HostConnection* getConnection(void) {
-    auto hostCon = HostConnection::get();
-    return hostCon;
-}
+#define VK_HOST_CONNECTION(ret)                                                    \
+    HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan); \
+    gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();                        \
+    if (!vkEnc) {                                                                  \
+        ALOGE("vulkan: Failed to get Vulkan encoder\n");                           \
+        return ret;                                                                \
+    }
 
-static gfxstream::vk::VkEncoder* getVkEncoder(HostConnection* con) { return con->vkEncoder(); }
+namespace {
 
-gfxstream::vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = {
-    .hostConnectionGetFunc = getConnection,
-    .vkEncoderGetFunc = getVkEncoder,
-};
+static bool process_initialized = false;
+static uint32_t no_render_control_enc = 0;
+static bool instance_extension_table_initialized = false;
+static struct vk_instance_extension_table gfxstream_vk_instance_extensions_supported = {0};
 
-VkResult SetupInstance(void) {
-    uint32_t noRenderControlEnc = 0;
+static VkResult SetupInstanceForThread() {
     HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan);
     if (!hostCon) {
         ALOGE("vulkan: Failed to get host connection\n");
         return VK_ERROR_DEVICE_LOST;
     }
 
-    gfxstream::vk::ResourceTracker::get()->setupCaps(noRenderControlEnc);
     // Legacy goldfish path: could be deleted once goldfish not used guest-side.
-    if (!noRenderControlEnc) {
+    if (!no_render_control_enc) {
         // Implicitly sets up sequence number
         ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();
         if (!rcEnc) {
@@ -57,11 +58,11 @@ VkResult SetupInstance(void) {
             return VK_ERROR_DEVICE_LOST;
         }
 
+        // This is technically per-process, but it should not differ
+        // per-rcEncoder on a process.
         gfxstream::vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const());
     }
 
-    gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks);
-    gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess());
     gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();
     if (!vkEnc) {
         ALOGE("vulkan: Failed to get Vulkan encoder\n");
@@ -71,16 +72,43 @@ VkResult SetupInstance(void) {
     return VK_SUCCESS;
 }
 
-#define VK_HOST_CONNECTION(ret)                                                    \
-    HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan); \
-    gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();                        \
-    if (!vkEnc) {                                                                  \
-        ALOGE("vulkan: Failed to get Vulkan encoder\n");                           \
-        return ret;                                                                \
+static HostConnection* getConnection() {
+    if (!process_initialized) {
+        // The process must be initialized prior to this call.
+        ALOGE("Call to get a host connection before process initialization!");
+        return nullptr;
     }
+    if (!HostConnection::isInit()) {
+        ALOGW("Call to getConnection when HostConnection is not initialized - treating as normal.");
+        if (SetupInstanceForThread() != VK_SUCCESS) {
+            ALOGE("Failed to initialize HostConnection! Aborting!");
+            return nullptr;
+        }
+    }
+    // This ::get call should already be initialized with the proper caps
+    // thanks to SetupInstanceForThread, but this should be made explicit.
+    auto hostCon = HostConnection::get();
+    return hostCon;
+}
 
-static bool instance_extension_table_initialized = false;
-static struct vk_instance_extension_table gfxstream_vk_instance_extensions_supported = {0};
+static gfxstream::vk::VkEncoder* getVkEncoder(HostConnection* con) { return con->vkEncoder(); }
+
+static VkResult SetupInstanceForProcess() {
+    process_initialized = true;
+    gfxstream::vk::ResourceTracker::get()->setupCaps(no_render_control_enc);
+
+    // To get the SeqnoPtr, we need the Process info, and for that we need the
+    // rcEncoder to be initialized for this thread.
+    auto thread_return = SetupInstanceForThread();
+
+    gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess());
+    gfxstream::vk::ResourceTracker::get()->setThreadingCallbacks({
+        .hostConnectionGetFunc = getConnection,
+        .vkEncoderGetFunc = getVkEncoder,
+    });
+
+    return thread_return;
+}
 
 // Provided by Mesa components only; never encoded/decoded through gfxstream
 static const char* const kMesaOnlyInstanceExtension[] = {
@@ -255,7 +283,7 @@ static struct vk_instance_extension_table* get_instance_extensions() {
     struct vk_instance_extension_table* const retTablePtr =
         &gfxstream_vk_instance_extensions_supported;
     if (!instance_extension_table_initialized) {
-        VkResult result = SetupInstance();
+        VkResult result = SetupInstanceForProcess();
         if (VK_SUCCESS == result) {
             VK_HOST_CONNECTION(retTablePtr)
             auto resources = gfxstream::vk::ResourceTracker::get();
@@ -292,6 +320,8 @@ static struct vk_instance_extension_table* get_instance_extensions() {
     return retTablePtr;
 }
 
+}  // namespace
+
 VkResult gfxstream_vk_CreateInstance(const VkInstanceCreateInfo* pCreateInfo,
                                      const VkAllocationCallbacks* pAllocator,
                                      VkInstance* pInstance) {
@@ -310,7 +340,7 @@ VkResult gfxstream_vk_CreateInstance(const VkInstanceCreateInfo* pCreateInfo,
     /* Encoder call */
     {
         ALOGE("calling setup instance internally");
-        result = SetupInstance();
+        result = SetupInstanceForProcess();
         if (VK_SUCCESS != result) {
             return vk_error(NULL, result);
         }
@@ -755,7 +785,7 @@ VkResult gfxstream_vk_GetMemoryFdKHR(VkDevice device, const VkMemoryGetFdInfoKHR
 VkResult gfxstream_vk_EnumerateInstanceLayerProperties(uint32_t* pPropertyCount,
                                                        VkLayerProperties* pProperties) {
     AEMU_SCOPED_TRACE("vkEnumerateInstanceLayerProperties");
-    auto result = SetupInstance();
+    auto result = SetupInstanceForProcess();
     if (VK_SUCCESS != result) {
         return vk_error(NULL, result);
     }
@@ -772,7 +802,7 @@ VkResult gfxstream_vk_EnumerateInstanceLayerProperties(uint32_t* pPropertyCount,
 
 VkResult gfxstream_vk_EnumerateInstanceVersion(uint32_t* pApiVersion) {
     AEMU_SCOPED_TRACE("vkEnumerateInstanceVersion");
-    auto result = SetupInstance();
+    auto result = SetupInstanceForProcess();
     if (VK_SUCCESS != result) {
         return vk_error(NULL, result);
     }
@@ -837,4 +867,130 @@ VkResult gfxstream_vk_CreateComputePipelines(VkDevice device, VkPipelineCache pi
     }
     *pPipelines = gfxstream_vk_pipeline_to_handle(gfxstream_pPipelines);
     return vkCreateComputePipelines_VkResult_return;
+}
+
+struct DescriptorSetTransformStorage {
+    std::vector<std::vector<VkDescriptorImageInfo>> imageInfos;
+    std::vector<std::vector<VkDescriptorBufferInfo>> bufferInfos;
+    std::vector<std::vector<VkBufferView>> texelBuffers;
+};
+
+static std::vector<VkWriteDescriptorSet> transformDescriptorSetList(
+    const VkWriteDescriptorSet* pDescriptorSets,
+    uint32_t descriptorSetCount,
+    DescriptorSetTransformStorage& storage) {
+    std::vector<VkWriteDescriptorSet> outDescriptorSets(descriptorSetCount);
+    for (uint32_t i = 0; i < descriptorSetCount; ++i) {
+        const auto& srcDescriptorSet = pDescriptorSets[i];
+        const uint32_t descriptorCount = srcDescriptorSet.descriptorCount;
+
+        VkWriteDescriptorSet& outDescriptorSet = outDescriptorSets[i];
+        outDescriptorSet = srcDescriptorSet;
+
+        storage.imageInfos.push_back(std::vector<VkDescriptorImageInfo>());
+        storage.imageInfos[i].reserve(descriptorCount);
+        memset(&storage.imageInfos[i][0], 0, sizeof(VkDescriptorImageInfo) * descriptorCount);
+        for (uint32_t j = 0; j < descriptorCount; ++j) {
+            const auto* srcImageInfo = srcDescriptorSet.pImageInfo;
+            if (srcImageInfo) {
+                storage.imageInfos[i][j] = srcImageInfo[j];
+                storage.imageInfos[i][j].imageView = VK_NULL_HANDLE;
+                if (vk_descriptor_type_has_image_view(srcDescriptorSet.descriptorType) &&
+                    srcImageInfo[j].imageView) {
+                    VK_FROM_HANDLE(gfxstream_vk_image_view, gfxstreamImageView,
+                                   srcImageInfo[j].imageView);
+                    storage.imageInfos[i][j].imageView = gfxstreamImageView->internal_object;
+                }
+            }
+        }
+        outDescriptorSet.pImageInfo = storage.imageInfos[i].data();
+
+        storage.bufferInfos.push_back(std::vector<VkDescriptorBufferInfo>());
+        storage.bufferInfos[i].reserve(descriptorCount);
+        memset(&storage.bufferInfos[i][0], 0, sizeof(VkDescriptorBufferInfo) * descriptorCount);
+        for (uint32_t j = 0; j < descriptorCount; ++j) {
+            const auto* srcBufferInfo = srcDescriptorSet.pBufferInfo;
+            if (srcBufferInfo) {
+                storage.bufferInfos[i][j] = srcBufferInfo[j];
+                storage.bufferInfos[i][j].buffer = VK_NULL_HANDLE;
+                if (vk_descriptor_type_has_descriptor_buffer(srcDescriptorSet.descriptorType) &&
+                    srcBufferInfo[j].buffer) {
+                    VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstreamBuffer, srcBufferInfo[j].buffer);
+                    storage.bufferInfos[i][j].buffer = gfxstreamBuffer->internal_object;
+                }
+            }
+        }
+        outDescriptorSet.pBufferInfo = storage.bufferInfos[i].data();
+
+        storage.texelBuffers.push_back(std::vector<VkBufferView>());
+        storage.texelBuffers[i].reserve(descriptorCount);
+        memset(&storage.texelBuffers[i][0], 0, sizeof(VkBufferView) * descriptorCount);
+        for (uint32_t j = 0; j < descriptorCount; ++j) {
+            const auto* srcBufferView = srcDescriptorSet.pTexelBufferView;
+            if (vk_descriptor_type_has_texel_buffer(srcDescriptorSet.descriptorType) &&
+                srcBufferView) {
+                VK_FROM_HANDLE(gfxstream_vk_buffer_view, gfxstreamBufferView, srcBufferView[j]);
+                storage.texelBuffers[i][j] =
+                    gfxstreamBufferView->internal_object;
+            }
+        }
+        outDescriptorSet.pTexelBufferView = storage.texelBuffers[i].data();
+    }
+    return outDescriptorSets;
+}
+
+void gfxstream_vk_UpdateDescriptorSets(VkDevice device, uint32_t descriptorWriteCount,
+                                       const VkWriteDescriptorSet* pDescriptorWrites,
+                                       uint32_t descriptorCopyCount,
+                                       const VkCopyDescriptorSet* pDescriptorCopies) {
+    AEMU_SCOPED_TRACE("vkUpdateDescriptorSets");
+    VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
+        DescriptorSetTransformStorage descriptorSetTransformStorage;
+        std::vector<VkWriteDescriptorSet> internal_pDescriptorWrites =
+            transformDescriptorSetList(pDescriptorWrites, descriptorWriteCount,
+                                       descriptorSetTransformStorage);
+        auto resources = gfxstream::vk::ResourceTracker::get();
+        resources->on_vkUpdateDescriptorSets(
+            vkEnc, gfxstream_device->internal_object, descriptorWriteCount,
+            internal_pDescriptorWrites.data(), descriptorCopyCount, pDescriptorCopies);
+    }
+}
+
+void gfxstream_vk_QueueCommitDescriptorSetUpdatesGOOGLE(
+    VkQueue queue, uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
+    uint32_t descriptorSetCount, const VkDescriptorSetLayout* pSetLayouts,
+    const uint64_t* pDescriptorSetPoolIds, const uint32_t* pDescriptorSetWhichPool,
+    const uint32_t* pDescriptorSetPendingAllocation,
+    const uint32_t* pDescriptorWriteStartingIndices, uint32_t pendingDescriptorWriteCount,
+    const VkWriteDescriptorSet* pPendingDescriptorWrites) {
+    AEMU_SCOPED_TRACE("vkQueueCommitDescriptorSetUpdatesGOOGLE");
+    VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
+    {
+        auto vkEnc =
+            gfxstream::vk::ResourceTracker::getQueueEncoder(gfxstream_queue->internal_object);
+        std::vector<VkDescriptorPool> internal_pDescriptorPools(descriptorPoolCount);
+        for (uint32_t i = 0; i < descriptorPoolCount; ++i) {
+            VK_FROM_HANDLE(gfxstream_vk_descriptor_pool, gfxstream_pDescriptorPools,
+                           pDescriptorPools[i]);
+            internal_pDescriptorPools[i] = gfxstream_pDescriptorPools->internal_object;
+        }
+        std::vector<VkDescriptorSetLayout> internal_pSetLayouts(descriptorSetCount);
+        for (uint32_t i = 0; i < descriptorSetCount; ++i) {
+            VK_FROM_HANDLE(gfxstream_vk_descriptor_set_layout, gfxstream_pSetLayouts,
+                           pSetLayouts[i]);
+            internal_pSetLayouts[i] = gfxstream_pSetLayouts->internal_object;
+        }
+        DescriptorSetTransformStorage descriptorSetTransformStorage;
+        std::vector<VkWriteDescriptorSet> internal_pPendingDescriptorWrites =
+            transformDescriptorSetList(pPendingDescriptorWrites, pendingDescriptorWriteCount,
+                                       descriptorSetTransformStorage);
+        vkEnc->vkQueueCommitDescriptorSetUpdatesGOOGLE(
+            gfxstream_queue->internal_object, descriptorPoolCount, internal_pDescriptorPools.data(),
+            descriptorSetCount, internal_pSetLayouts.data(), pDescriptorSetPoolIds,
+            pDescriptorSetWhichPool, pDescriptorSetPendingAllocation,
+            pDescriptorWriteStartingIndices, pendingDescriptorWriteCount,
+            internal_pPendingDescriptorWrites.data(), true /* do lock */);
+    }
 }

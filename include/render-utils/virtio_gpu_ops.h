@@ -131,6 +131,7 @@ typedef void (*wait_for_gpu_vulkan_qsri_t)(uint64_t image);
 // types
 #define RESOURCE_TYPE_EGL_NATIVE_PIXMAP 0x01
 #define RESOURCE_TYPE_EGL_IMAGE 0x02
+#define RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE 0x03
 
 // uses
 #define RESOURCE_USE_PRESERVE 0x10

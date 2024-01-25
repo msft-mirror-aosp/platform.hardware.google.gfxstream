@@ -14,10 +14,8 @@
 * limitations under the License.
 */
 
-#ifdef GFXSTREAM
 #include <atomic>
 #include <time.h>
-#endif
 
 #include <assert.h>
 
@@ -27,11 +25,7 @@
 #include "eglDisplay.h"
 #include "eglSync.h"
 #include "egl_ftable.h"
-#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
-#else
-#include <log/log.h>
-#endif
 #include <cutils/properties.h>
 #include "goldfish_sync.h"
 #include "gfxstream/guest/GLClientState.h"
@@ -48,19 +42,13 @@
 
 #include <GLES3/gl31.h>
 
-#ifdef VIRTIO_GPU
 #include <xf86drm.h>
 #include <poll.h>
 #include "VirtGpu.h"
 #include "virtgpu_drm.h"
 
-#endif // VIRTIO_GPU
-
-#ifdef GFXSTREAM
 #include "aemu/base/Tracing.h"
-#endif
 #include <cutils/trace.h>
-
 
 using gfxstream::guest::GLClientState;
 using gfxstream::guest::getCurrentThreadId;
@@ -214,6 +202,7 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     config(config),
     read(EGL_NO_SURFACE),
     draw(EGL_NO_SURFACE),
+    dummy_surface(EGL_NO_SURFACE),
     shareCtx(shareCtx),
     rcContext(0),
     versionString(NULL),
@@ -635,10 +624,6 @@ static uint64_t createNativeSync_virtioGpu(
     bool destroy_when_signaled,
     int fd_in,
     int* fd_out) {
-#ifndef VIRTIO_GPU
-    ALOGE("%s: Error: called with no virtio-gpu support built in\n", __func__);
-    return 0;
-#else
     DEFINE_HOST_CONNECTION;
 
     uint64_t sync_handle;
@@ -693,7 +678,6 @@ static uint64_t createNativeSync_virtioGpu(
     }
 
     return sync_handle;
-#endif
 }
 
 // createGoldfishOpenGLNativeSync() is for creating host-only sync objects
@@ -716,7 +700,6 @@ struct FrameTracingState {
     uint32_t frameNumber = 0;
     bool tracingEnabled = false;
     void onSwapBuffersSuccesful(ExtendedRCEncoderContext* rcEnc) {
-#ifdef GFXSTREAM
         // edge trigger
         if (gfxstream::guest::isTracingEnabled() && !tracingEnabled) {
             if (rcEnc->hasHostSideTracing()) {
@@ -729,7 +712,6 @@ struct FrameTracingState {
             }
         }
         tracingEnabled = gfxstream::guest::isTracingEnabled();
-#endif
         ++frameNumber;
     }
 };
@@ -1712,9 +1694,33 @@ EGLBoolean eglSwapInterval(EGLDisplay dpy, EGLint interval)
     return EGL_TRUE;
 }
 
+static EGLConfig chooseDefaultEglConfig(const EGLDisplay& display) {
+    const EGLint attribs[] = {
+        EGL_RED_SIZE,   8,
+        EGL_GREEN_SIZE, 8,
+        EGL_BLUE_SIZE,  8,
+        EGL_DEPTH_SIZE, 0,
+        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+        EGL_NONE
+    };
+    EGLint numConfigs;
+    EGLConfig config;
+    if (!eglChooseConfig(display, attribs, &config, 1, &numConfigs)) {
+        ALOGE("eglChooseConfig failed to select a default config");
+        return EGL_NO_CONFIG_KHR;
+    }
+    return config;
+}
+
 EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list)
 {
     VALIDATE_DISPLAY_INIT(dpy, EGL_NO_CONTEXT);
+
+    if (config == EGL_NO_CONFIG_KHR) {
+        config = chooseDefaultEglConfig(dpy);
+    }
+
     VALIDATE_CONFIG(config, EGL_NO_CONTEXT);
 
     EGLint majorVersion = 1; //default
@@ -1887,8 +1893,30 @@ EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
         context->rcContext = 0;
     }
 
+    if (context->dummy_surface != EGL_NO_SURFACE) {
+        eglDestroySurface(context->dpy, context->dummy_surface);
+        context->dummy_surface = EGL_NO_SURFACE;
+    }
+
     delete context;
     return EGL_TRUE;
+}
+
+static EGLSurface getOrCreateDummySurface(EGLContext_t* context) {
+    if (context->dummy_surface != EGL_NO_SURFACE) {
+        return context->dummy_surface;
+    }
+
+    EGLint attribs[] = {
+        EGL_WIDTH, 16,
+        EGL_HEIGHT, 16,
+        EGL_NONE};
+
+    context->dummy_surface = eglCreatePbufferSurface(context->dpy, context->config, attribs);
+    if (context->dummy_surface == EGL_NO_SURFACE) {
+        ALOGE("Unable to create a dummy PBuffer EGL surface");
+    }
+    return context->dummy_surface;
 }
 
 EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx)
@@ -1901,12 +1929,20 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     // thread can suddenly jump in any eglMakeCurrent
     setTlsDestructor((tlsDtorCallback)s_eglReleaseThreadImpl);
 
+    EGLContext_t * context = static_cast<EGLContext_t*>(ctx);
+
+    if (ctx != EGL_NO_CONTEXT && read == EGL_NO_SURFACE) {
+        read = getOrCreateDummySurface(context);
+    }
+    if (ctx != EGL_NO_CONTEXT && draw == EGL_NO_SURFACE) {
+        draw = getOrCreateDummySurface(context);
+    }
+
     if ((read == EGL_NO_SURFACE && draw == EGL_NO_SURFACE) && (ctx != EGL_NO_CONTEXT))
         setErrorReturn(EGL_BAD_MATCH, EGL_FALSE);
     if ((read != EGL_NO_SURFACE || draw != EGL_NO_SURFACE) && (ctx == EGL_NO_CONTEXT))
         setErrorReturn(EGL_BAD_MATCH, EGL_FALSE);
 
-    EGLContext_t * context = static_cast<EGLContext_t*>(ctx);
     uint32_t ctxHandle = (context) ? context->rcContext : 0;
     egl_surface_t * drawSurf = static_cast<egl_surface_t *>(draw);
     uint32_t drawHandle = (drawSurf) ? drawSurf->getRcSurface() : 0;
@@ -2225,16 +2261,10 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
             case HAL_PIXEL_FORMAT_RGB_565:
             case HAL_PIXEL_FORMAT_YV12:
             case HAL_PIXEL_FORMAT_BGRA_8888:
-#if PLATFORM_SDK_VERSION >= 26
             case HAL_PIXEL_FORMAT_RGBA_FP16:
             case HAL_PIXEL_FORMAT_RGBA_1010102:
-#endif
-#if PLATFORM_SDK_VERSION >= 28
             case HAL_PIXEL_FORMAT_YCBCR_420_888:
-#endif
-#if PLATFORM_SDK_VERSION >= 30
             case HAL_PIXEL_FORMAT_YCBCR_P010:
-#endif
                 break;
             case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
                 ALOGW("%s:%d using HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED\n", __func__, __LINE__);

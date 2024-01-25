@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "vulkan/cereal/common/goldfish_vk_dispatch.h"
+#include "goldfish_vk_dispatch.h"
 
 namespace gfxstream {
 namespace vk {

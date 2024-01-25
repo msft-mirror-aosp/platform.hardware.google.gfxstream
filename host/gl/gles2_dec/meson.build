@@ -10,8 +10,8 @@ files_lib_gles2_dec = files(
 lib_gles2_dec = static_library(
   'gles2_dec',
   files_lib_gles2_dec,
-  cpp_args: default_cpp_args,
-  include_directories: [inc_include, inc_apigen_codec, inc_gles_translator,
+  cpp_args: gfxstream_host_args,
+  include_directories: [inc_gfxstream_include, inc_include, inc_apigen_codec, inc_gles_translator,
                         inc_gl_snapshot],
   link_with: lib_gl_snapshot,
   dependencies: [aemu_base_dep, aemu_logging_dep]

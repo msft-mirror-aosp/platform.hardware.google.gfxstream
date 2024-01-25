@@ -31,11 +31,7 @@ struct goldfish_dma_context;
 #include "goldfish_dma.h"
 #endif
 
-#ifdef GFXSTREAM
 #include <mutex>
-#else
-#include <utils/threads.h>
-#endif
 
 #include <memory>
 #include <optional>
@@ -110,12 +106,7 @@ public:
     void setGLESMaxVersion(GLESMaxVersion ver) { m_featureInfo.glesMaxVersion = ver; }
     GLESMaxVersion getGLESMaxVersion() const { return m_featureInfo.glesMaxVersion; }
     bool hasDirectMem() const {
-#ifdef HOST_BUILD
-        // unit tests do not support restoring "guest" ram because there is no VM
-        return false;
-#else
         return m_featureInfo.hasDirectMem;
-#endif
     }
 
     const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
@@ -149,6 +140,7 @@ class HostConnection
 {
 public:
     static HostConnection *get();
+    static bool isInit();
     static HostConnection* getOrCreate(enum VirtGpuCapset capset = kCapsetNone);
 
     static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo,
@@ -260,11 +252,7 @@ private:
     std::unique_ptr<gfxstream::SyncHelper> m_syncHelper;
     std::string m_hostExtensions;
     bool m_noHostError;
-#ifdef GFXSTREAM
     mutable std::mutex m_lock;
-#else
-    mutable android::Mutex m_lock;
-#endif
     int m_rendernodeFd;
 };
 

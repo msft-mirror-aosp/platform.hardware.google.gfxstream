@@ -18,7 +18,7 @@ package {
 
 cc_library_shared {
     name: "libgfxstream_backend",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     vendor_available: true,
     cflags: [
         "-Wno-unused-parameter",
@@ -28,6 +28,7 @@ cc_library_shared {
     ],
     header_libs: [
         "gfxstream_opengl_headers",
+        "gfxstream_vulkan_cereal_common",
     ],
     static_libs: [
         "gfxstream_base",
@@ -102,11 +103,11 @@ cc_library_shared {
     ],
     target: {
         host: {
-            srcs: ["NativeSubWindow_x11.cpp",],
+            srcs: ["NativeSubWindow_x11.cpp"],
         },
         android: {
-            srcs: ["NativeSubWindow_android.cpp",],
-        }
+            srcs: ["NativeSubWindow_android.cpp"],
+        },
     },
 }
 
@@ -124,6 +125,7 @@ cc_test_library {
     ],
     header_libs: [
         "gfxstream_opengl_headers",
+        "gfxstream_vulkan_cereal_common",
     ],
     shared_libs: [
         "libbase",
@@ -147,7 +149,7 @@ cc_test_library {
 
 cc_library {
     name: "libgfxstream_test_image_utils",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     shared_libs: [
         "libbase",
     ],
@@ -162,7 +164,10 @@ cc_library {
 // Run with `atest --host gfxstream_compositorvk_test`
 cc_test_host {
     name: "gfxstream_compositorvk_test",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
+    header_libs: [
+        "gfxstream_vulkan_cereal_common",
+    ],
     srcs: [
         "tests/CompositorVk_unittest.cpp",
     ],
@@ -217,7 +222,10 @@ cc_test_host {
 // Run with `atest --host gfxstream_framebuffer_tests`
 cc_test_host {
     name: "gfxstream_framebuffer_tests",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
+    header_libs: [
+        "gfxstream_vulkan_cereal_common",
+    ],
     srcs: [
         "tests/FrameBuffer_unittest.cpp",
     ],
@@ -249,7 +257,7 @@ cc_test_host {
 
 cc_test_host {
     name: "gfxstream_magma_tests",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     srcs: [
         "tests/Magma_unittest.cpp",
     ],

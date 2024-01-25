@@ -22,9 +22,7 @@
 #define GL_APIENTRYP
 #endif
 
-#ifdef GFXSTREAM
 #include "StateTrackingSupport.h"
-#endif
 
 #include "TextureSharedData.h"
 
@@ -586,7 +584,6 @@ private:
     bool m_initialized;
     PixelStoreState m_pixelStore;
 
-#ifdef GFXSTREAM
     using DirtyMap = PredicateMap<uint32_t, true>;
 
     ExistenceMap mBufferIds;
@@ -614,9 +611,6 @@ private:
 
     // Dirty maps
     DirtyMap mHostMappedBufferDirty;
-#else
-    std::set<GLuint> mBufferIds;
-#endif
 
     // GL_ARRAY_BUFFER_BINDING is separate from VAO state
     GLuint m_arrayBuffer;

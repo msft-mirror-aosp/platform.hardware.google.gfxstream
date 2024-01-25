@@ -22,7 +22,8 @@
 #include "VulkanDispatch.h"
 #include "cereal/common/goldfish_vk_deepcopy.h"
 #include "cereal/common/goldfish_vk_extension_structs.h"
-#include "cereal/common/goldfish_vk_private_defs.h"
+
+#include "goldfish_vk_private_defs.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host/FrameBuffer.h"
 #include "vulkan/vk_enum_string_helper.h"
@@ -140,7 +141,8 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     auto emu = getGlobalVkEmulation();
 
     if (emu && emu->live) {
-        externalMemoryCompatible = emu->deviceInfo.supportsExternalMemory;
+        externalMemoryCompatible = emu->deviceInfo.supportsExternalMemoryImport &&
+                                   emu->deviceInfo.supportsExternalMemoryExport;
     }
 
     bool colorBufferExportedToGl = false;

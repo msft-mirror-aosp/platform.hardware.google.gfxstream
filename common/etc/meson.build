@@ -10,6 +10,5 @@ files_lib_etc = files(
 lib_etc = static_library(
   'etc',
   files_lib_etc,
-  cpp_args: default_cpp_args,
   include_directories: [inc_etc],
 )

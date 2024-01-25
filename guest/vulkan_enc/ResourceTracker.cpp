@@ -50,22 +50,12 @@
 #include <sys/mman.h>
 #include <sys/syscall.h>
 
-#ifdef HOST_BUILD
-#include "android/utils/tempfile.h"
-#endif
 
 static inline int inline_memfd_create(const char* name, unsigned int flags) {
-#ifdef HOST_BUILD
-    TempFile* tmpFile = tempfile_create();
-    return open(tempfile_path(tmpFile), O_RDWR);
-    // TODO: Windows is not suppose to support VkSemaphoreGetFdInfoKHR
-#elif !defined(__ANDROID__)
-    (void)name;
-    (void)flags;
-    ALOGE("Not yet supported.");
-    abort();
-#else
+#if defined(__ANDROID__)
     return syscall(SYS_memfd_create, name, flags);
+#else
+    return -1;
 #endif
 }
 
@@ -712,7 +702,7 @@ SetBufferCollectionBufferConstraintsResult setBufferCollectionBufferConstraintsI
 
 uint64_t getAHardwareBufferId(AHardwareBuffer* ahw) {
     uint64_t id = 0;
-#if defined(PLATFORM_SDK_VERSION) && PLATFORM_SDK_VERSION >= 31
+#if defined(__ANDROID__) && ANDROID_API_LEVEL >= 31
     AHardwareBuffer_getId(ahw, &id);
 #else
     (void)ahw;
@@ -1005,7 +995,7 @@ void decDescriptorSetLayoutRef(void* context, VkDevice device,
 }
 
 void ResourceTracker::ensureSyncDeviceFd() {
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
     if (mSyncDeviceFd >= 0) return;
     mSyncDeviceFd = goldfish_sync_open();
     if (mSyncDeviceFd >= 0) {
@@ -1775,6 +1765,7 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         "VK_KHR_descriptor_update_template",
         "VK_KHR_storage_buffer_storage_class",
         "VK_EXT_depth_clip_enable",
+        "VK_KHR_create_renderpass2",
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         "VK_KHR_external_semaphore",
         "VK_KHR_external_semaphore_fd",
@@ -1785,7 +1776,6 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         "VK_EXT_device_memory_report",
 #endif
 #if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
-        "VK_KHR_create_renderpass2",
         "VK_KHR_imageless_framebuffer",
 #endif
         // Vulkan 1.3
@@ -1808,15 +1798,6 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
             return hostRes;
         }
     }
-
-    bool hostHasWin32ExternalSemaphore =
-        getHostDeviceExtensionIndex("VK_KHR_external_semaphore_win32") != -1;
-
-    bool hostHasPosixExternalSemaphore =
-        getHostDeviceExtensionIndex("VK_KHR_external_semaphore_fd") != -1;
-
-    bool hostSupportsExternalSemaphore =
-        hostHasWin32ExternalSemaphore || hostHasPosixExternalSemaphore;
 
     std::vector<VkExtensionProperties> filteredExts;
 
@@ -1851,7 +1832,13 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
 #endif
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-    if (hostSupportsExternalSemaphore && !hostHasPosixExternalSemaphore) {
+    bool hostHasPosixExternalSemaphore =
+        getHostDeviceExtensionIndex("VK_KHR_external_semaphore_fd") != -1;
+    if (!hostHasPosixExternalSemaphore) {
+        // Always advertise posix external semaphore capabilities on Android/Linux.
+        // SYNC_FD handles will always work, regardless of host support. Support
+        // for non-sync, opaque FDs, depends on host driver support, but will
+        // be handled accordingly by host.
         filteredExts.push_back(VkExtensionProperties{"VK_KHR_external_semaphore_fd", 1});
     }
 #endif
@@ -3068,7 +3055,7 @@ VkResult ResourceTracker::allocateCoherentMemory(VkDevice device,
         exec.command_size = sizeof(placeholderCmd);
         exec.flags = kRingIdx;
         exec.ring_idx = 1;
-        if (instance->execBuffer(exec, guestBlob)) {
+        if (instance->execBuffer(exec, guestBlob.get())) {
             ALOGE("Failed to allocate coherent memory: failed to execbuffer for wait.");
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
@@ -3444,7 +3431,8 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
             ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
 
         const uint32_t hostHandle = gralloc->getHostHandle(ahw);
-        if (gralloc->getFormat(ahw) == AHARDWAREBUFFER_FORMAT_BLOB) {
+        if (gralloc->getFormat(ahw) == AHARDWAREBUFFER_FORMAT_BLOB &&
+            !gralloc->treatBlobAsImage()) {
             importBufferInfo.buffer = hostHandle;
             vk_append_struct(&structChainIter, &importBufferInfo);
         } else {
@@ -4521,7 +4509,7 @@ VkResult ResourceTracker::on_vkResetFences(void* context, VkResult, VkDevice dev
         auto& info = it->second;
         if (!info.external) continue;
 
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
         if (info.syncFd >= 0) {
             ALOGV("%s: resetting fence. make fd -1\n", __func__);
             goldfish_sync_signal(info.syncFd);
@@ -4570,11 +4558,13 @@ VkResult ResourceTracker::on_vkImportFenceFdKHR(void* context, VkResult, VkDevic
     auto& info = it->second;
 
     auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
     if (info.syncFd >= 0) {
         ALOGV("%s: previous sync fd exists, close it\n", __func__);
         goldfish_sync_signal(info.syncFd);
         syncHelper->close(info.syncFd);
     }
+#endif
 
     if (pImportFenceFdInfo->fd < 0) {
         ALOGV("%s: import -1, set to -1 and exit\n", __func__);
@@ -4656,10 +4646,12 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
 
             *pFd = osHandle;
         } else {
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
             goldfish_sync_queue_work(
                 mSyncDeviceFd, get_host_u64_VkFence(pGetFdInfo->fence) /* the handle */,
                 GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC /* thread handle (doubling as type field) */,
                 pFd);
+#endif
         }
 
         // relinquish ownership
@@ -5430,6 +5422,7 @@ VkResult ResourceTracker::on_vkCreateSemaphore(void* context, VkResult input_res
 
             info.syncFd.emplace(osHandle);
         } else {
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
             ensureSyncDeviceFd();
 
             if (exportSyncFd) {
@@ -5441,6 +5434,7 @@ VkResult ResourceTracker::on_vkCreateSemaphore(void* context, VkResult input_res
                     &syncFd);
                 info.syncFd.emplace(syncFd);
             }
+#endif
         }
     }
 #endif
@@ -5888,7 +5882,7 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
                 zx_object_signal(event, 0, ZX_EVENT_SIGNALED);
             }
 #endif
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
             for (auto& fd : post_wait_sync_fds) {
                 goldfish_sync_signal(fd);
             }
@@ -6496,6 +6490,19 @@ void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferProperties_common(
     VkExternalBufferProperties* pExternalBufferProperties) {
     VkEncoder* enc = (VkEncoder*)context;
 
+    // Older versions of Goldfish's Gralloc did not support allocating AHARDWAREBUFFER_FORMAT_BLOB
+    // with GPU usage (b/299520213).
+    if (ResourceTracker::threadingCallbacks.hostConnectionGetFunc()
+            ->grallocHelper()
+            ->treatBlobAsImage() &&
+        pExternalBufferInfo->handleType ==
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
+        pExternalBufferProperties->externalMemoryProperties.externalMemoryFeatures = 0;
+        pExternalBufferProperties->externalMemoryProperties.exportFromImportedHandleTypes = 0;
+        pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = 0;
+        return;
+    }
+
     uint32_t supportedHandleType = 0;
 #ifdef VK_USE_PLATFORM_FUCHSIA
     supportedHandleType |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
@@ -6905,10 +6912,12 @@ VkResult ResourceTracker::exportSyncFdForQSRILocked(VkImage image, int* fd) {
 
         *fd = exec.handle.osHandle;
     } else {
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
         ensureSyncDeviceFd();
         goldfish_sync_queue_work(
             mSyncDeviceFd, get_host_u64_VkImage(image) /* the handle */,
             GOLDFISH_SYNC_VULKAN_QSRI /* thread handle (doubling as type field) */, fd);
+#endif
     }
 
     ALOGV("%s: got fd: %d\n", __func__, *fd);

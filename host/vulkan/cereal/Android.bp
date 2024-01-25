@@ -9,8 +9,8 @@ package {
 
 cc_library_static {
     name: "gfxstream_vulkan_cereal_host",
-    defaults: [ "gfxstream_defaults" ],
-    static_libs: [ "gfxstream_base" ],
+    defaults: ["gfxstream_defaults"],
+    static_libs: ["gfxstream_base"],
     srcs: [
         "common/goldfish_vk_extension_structs.cpp",
         "common/goldfish_vk_marshaling.cpp",
@@ -21,6 +21,7 @@ cc_library_static {
     ],
     header_libs: [
         "gfxstream_vulkan_headers",
+        "gfxstream_vulkan_cereal_common",
     ],
     export_header_lib_headers: [
         "gfxstream_vulkan_headers",
@@ -29,5 +30,5 @@ cc_library_static {
         "-DVK_ANDROID_native_buffer",
         "-DVK_GOOGLE_address_space",
     ],
-    export_include_dirs: [ "." ],
+    export_include_dirs: ["."],
 }
