@@ -30,8 +30,15 @@ message EglAvailability {
         optional string extensions = 4;
     }
 
+    // Loading GLES functions via EGL's eglGetProcAddress().
     optional GlesContextAvailability gles2_availability = 5;
     optional GlesContextAvailability gles3_availability = 6;
+
+    // Loading GLES functions via GLESv2 library directly.
+    optional GlesContextAvailability gles2_direct_availability = 7;
+    optional GlesContextAvailability gles3_direct_availability = 8;
+
+    repeated string errors = 9;
 }
 
 message VulkanExternalMemoryHostQuirks {
