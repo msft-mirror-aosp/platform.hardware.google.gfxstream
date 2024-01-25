@@ -31,11 +31,7 @@ struct goldfish_dma_context;
 #include "goldfish_dma.h"
 #endif
 
-#ifdef GFXSTREAM
 #include <mutex>
-#else
-#include <utils/threads.h>
-#endif
 
 #include <memory>
 #include <optional>
@@ -261,11 +257,7 @@ private:
     std::unique_ptr<gfxstream::SyncHelper> m_syncHelper;
     std::string m_hostExtensions;
     bool m_noHostError;
-#ifdef GFXSTREAM
     mutable std::mutex m_lock;
-#else
-    mutable android::Mutex m_lock;
-#endif
     int m_rendernodeFd;
 };
 
