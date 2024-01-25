@@ -153,15 +153,15 @@ public:
         mLib = android::base::SharedLibrary::open(kEGLLibName, error, sizeof(error));
         if (!mLib) {
 #ifdef __linux__
-            ERR("%s: Could not open EGL library %s [%s]. Trying again with [%s]\n", __FUNCTION__,
+            ERR("%s: Could not open EGL library %s [%s]. Trying again with [%s]", __FUNCTION__,
                 kEGLLibName, error, kEGLLibNameAlt);
             mLib = android::base::SharedLibrary::open(kEGLLibNameAlt, error, sizeof(error));
             if (!mLib) {
-                ERR("%s: Could not open EGL library %s [%s]\n", __FUNCTION__,
+                ERR("%s: Could not open EGL library %s [%s]", __FUNCTION__,
                     kEGLLibNameAlt, error);
             }
 #else
-            ERR("%s: Could not open EGL library %s [%s]\n", __FUNCTION__,
+            ERR("%s: Could not open EGL library %s [%s]", __FUNCTION__,
                 kEGLLibName, error);
 #endif
         }
@@ -196,15 +196,15 @@ public:
         mLib = android::base::SharedLibrary::open(kGLES2LibName, error, sizeof(error));
         if (!mLib) {
 #ifdef __linux__
-            ERR("%s: Could not open GL library %s [%s]. Trying again with [%s]\n", __FUNCTION__,
+            ERR("%s: Could not open GL library %s [%s]. Trying again with [%s]", __FUNCTION__,
                 kGLES2LibName, error, kGLES2LibNameAlt);
             mLib = android::base::SharedLibrary::open(kGLES2LibNameAlt, error, sizeof(error));
             if (!mLib) {
-                ERR("%s: Could not open GL library %s [%s]\n", __FUNCTION__,
+                ERR("%s: Could not open GL library %s [%s]", __FUNCTION__,
                     kGLES2LibNameAlt, error);
             }
 #else
-            ERR("%s: Could not open GL library %s [%s]\n", __FUNCTION__,
+            ERR("%s: Could not open GL library %s [%s]", __FUNCTION__,
                 kGLES2LibName, error);
 #endif
         }
