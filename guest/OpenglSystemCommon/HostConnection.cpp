@@ -30,9 +30,6 @@
 #endif
 #include "renderControl_types.h"
 
-#ifdef HOST_BUILD
-#include "aemu/base/Tracing.h"
-#endif
 #include "aemu/base/Process.h"
 
 #define DEBUG_HOSTCONNECTION 0
@@ -77,30 +74,8 @@ public:
 #include "GL2Encoder.h"
 #endif
 
-#ifdef GFXSTREAM
 #include "VkEncoder.h"
 #include "AddressSpaceStream.h"
-#else
-namespace gfxstream {
-namespace vk {
-struct VkEncoder {
-    VkEncoder(IOStream* stream, HealthMonitor<>* healthMonitor = nullptr) { }
-    void decRef() { }
-    int placeholder;
-};
-}  // namespace vk
-}  // namespace gfxstream
-class QemuPipeStream;
-typedef QemuPipeStream AddressSpaceStream;
-AddressSpaceStream* createAddressSpaceStream(size_t bufSize, HealthMonitor<>* healthMonitor) {
-    ALOGE("%s: FATAL: Trying to create ASG stream in unsupported build\n", __func__);
-    abort();
-}
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMonitor) {
-    ALOGE("%s: FATAL: Trying to create VirtioGpu ASG stream in unsupported build\n", __func__);
-    abort();
-}
-#endif
 
 using gfxstream::vk::VkEncoder;
 
@@ -112,13 +87,9 @@ using gfxstream::vk::VkEncoder;
 
 using gfxstream::guest::getCurrentThreadId;
 
-#ifdef VIRTIO_GPU
-
 #include "VirtGpu.h"
 #include "VirtioGpuPipeStream.h"
 #include "virtgpu_drm.h"
-
-#endif
 
 #if defined(__linux__) || defined(__ANDROID__)
 #include <fstream>
@@ -235,11 +206,7 @@ HostConnection::HostConnection()
       m_checksumHelper(),
       m_hostExtensions(),
       m_noHostError(true),
-      m_rendernodeFd(-1) {
-#ifdef HOST_BUILD
-    gfxstream::guest::initializeTracing();
-#endif
-}
+      m_rendernodeFd(-1) { }
 
 HostConnection::~HostConnection()
 {
@@ -310,7 +277,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
             break;
         }
 #endif
-#if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
             auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE);
             if (!stream) {
@@ -375,7 +341,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
 #endif
             break;
         }
-#endif // !VIRTIO_GPU && !HOST_BUILD_
         default:
             break;
     }
@@ -405,6 +370,8 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     processPipeInit(fd, connType, noRenderControlEnc);
     return con;
 }
+
+bool HostConnection::isInit() { return (getEGLThreadInfo()->hostConn != NULL); }
 
 HostConnection* HostConnection::get() { return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone); }
 

@@ -15,12 +15,10 @@
 config("common_config") {
   defines = [
     "LOG_TAG=\"gfxstream_vulkan\"",
-    "GFXSTREAM",
     "GOLDFISH_NO_GL",
     "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
     "VK_USE_PLATFORM_FUCHSIA",
     "PAGE_SIZE=4096",
-    "VIRTIO_GPU=1",
   ]
 
   include_dirs = [
