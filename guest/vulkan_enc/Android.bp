@@ -143,7 +143,6 @@ cc_defaults {
     ],
     cflags: [
         "-DLOG_TAG=\"goldfish_vulkan\"",
-        "-DVIRTIO_GPU",
         "-DVK_ANDROID_native_buffer",
         "-DVK_EXT_device_memory_report",
         "-DVK_GOOGLE_gfxstream",

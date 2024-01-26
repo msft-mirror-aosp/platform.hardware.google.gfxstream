@@ -27,7 +27,7 @@
 
 #include "virtgpu_drm.h"
 
-#if defined(PAGE_SIZE) && defined(VIRTIO_GPU)
+#if defined(PAGE_SIZE)
 constexpr size_t kPageSize = PAGE_SIZE;
 #else
 #include <unistd.h>
