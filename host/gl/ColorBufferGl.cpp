@@ -226,7 +226,7 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
     if (!sGetFormatParameters(&p_internalFormat, &texFormat, &pixelType,
                               &bytesPerPixel, &p_sizedInternalFormat,
                               &isBlob)) {
-        fprintf(stderr, "ColorBufferGl::create invalid format 0x%x\n", p_internalFormat);
+        ERR("ColorBufferGl::create invalid format 0x%x", p_internalFormat);
         return nullptr;
     }
     const unsigned long bufsize = ((unsigned long)bytesPerPixel) * p_width
