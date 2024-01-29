@@ -15,12 +15,6 @@
 #include <string>
 
 #include "GfxstreamEnd2EndTests.h"
-#include "aemu/base/files/StdioStream.h"
-#include "gfxstream/virtio-gpu-gfxstream-renderer-goldfish.h"
-#include "host-common/feature_control.h"
-#include "snapshot/TextureLoader.h"
-#include "snapshot/TextureSaver.h"
-#include "snapshot/common.h"
 
 namespace gfxstream {
 namespace tests {
@@ -31,24 +25,7 @@ class GfxstreamEnd2EndVkSnapshotBasicTest : public GfxstreamEnd2EndTest {};
 TEST_P(GfxstreamEnd2EndVkSnapshotBasicTest, BasicSaveLoad) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
         VK_ASSERT(SetUpTypicalVkTestEnvironment());
-    std::string snapshotFileName = testing::TempDir() + "snapshot.bin";
-    std::string textureFileName = testing::TempDir() + "texture.bin";
-    std::unique_ptr<android::base::StdioStream> stream(new android::base::StdioStream(
-        fopen(snapshotFileName.c_str(), "wb"), android::base::StdioStream::kOwner));
-    android::snapshot::ITextureSaverPtr textureSaver(
-        new android::snapshot::TextureSaver(android::base::StdioStream(
-            fopen(textureFileName.c_str(), "wb"), android::base::StdioStream::kOwner)));
-    stream_renderer_snapshot_presave_pause();
-    stream_renderer_snapshot_save(stream.get(), &textureSaver);
-    stream.reset();
-    textureSaver.reset();
-    stream.reset(new android::base::StdioStream(fopen(snapshotFileName.c_str(), "rb"),
-                                                android::base::StdioStream::kOwner));
-    android::snapshot::ITextureLoaderPtr textureLoader(
-        new android::snapshot::TextureLoader(android::base::StdioStream(
-            fopen(textureFileName.c_str(), "rb"), android::base::StdioStream::kOwner)));
-    stream_renderer_snapshot_load(stream.get(), &textureLoader);
-    stream_renderer_snapshot_postsave_resume_for_testing();
+    SnapshotSaveAndLoad();
 }
 
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotBasicTest,
