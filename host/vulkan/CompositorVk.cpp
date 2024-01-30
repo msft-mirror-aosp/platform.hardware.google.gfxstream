@@ -1017,6 +1017,7 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
         };
 
         if (layer.props.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
+            descriptorSetContents.binding0.sampledImageId = 0;
             descriptorSetContents.binding0.sampledImageView = m_defaultImage.m_vkImageView;
             descriptorSetContents.binding1.color =
                 glm::vec4(static_cast<float>(layer.props.color.r) / 255.0f,
@@ -1029,6 +1030,7 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "CompositorVk failed to find sourceImage.";
             }
+            descriptorSetContents.binding0.sampledImageId = sourceImage->id;
             descriptorSetContents.binding0.sampledImageView = sourceImage->imageView;
             compositionVk->layersSourceImages.emplace_back(sourceImage);
         }
@@ -1299,14 +1301,16 @@ void CompositorVk::onImageDestroyed(uint32_t imageId) { m_renderTargetCache.remo
 
 bool operator==(const CompositorVkBase::DescriptorSetContents& lhs,
                 const CompositorVkBase::DescriptorSetContents& rhs) {
-    return std::tie(lhs.binding0.sampledImageView,   //
+    return std::tie(lhs.binding0.sampledImageId,     //
+                    lhs.binding0.sampledImageView,   //
                     lhs.binding1.mode,               //
                     lhs.binding1.alpha,              //
                     lhs.binding1.color,              //
                     lhs.binding1.positionTransform,  //
                     lhs.binding1.texCoordTransform)  //
                      ==                              //
-           std::tie(rhs.binding0.sampledImageView,   //
+           std::tie(rhs.binding0.sampledImageId,     //
+                    rhs.binding0.sampledImageView,   //
                     rhs.binding1.mode,               //
                     rhs.binding1.alpha,              //
                     rhs.binding1.color,              //

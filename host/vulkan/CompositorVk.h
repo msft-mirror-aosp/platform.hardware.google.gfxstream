@@ -73,6 +73,9 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
 
     // Keep in sync with vulkan/Compositor.frag.
     struct SamplerBinding {
+        // Include the image id to trigger a descriptor update to handle the case
+        // that the VkImageView is recycled across different images (b/322998473).
+        uint32_t sampledImageId = 0;
         VkImageView sampledImageView = VK_NULL_HANDLE;
     };
 
