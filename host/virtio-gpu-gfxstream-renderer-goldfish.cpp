@@ -15,6 +15,7 @@
 #include "gfxstream/virtio-gpu-gfxstream-renderer-goldfish.h"
 
 #include "host-common/opengles.h"
+#include "snapshot/common.h"
 
 VG_EXPORT int stream_renderer_snapshot_presave_pause() {
     android_getOpenglesRenderer()->pauseAllPreSave();
@@ -28,21 +29,19 @@ VG_EXPORT int stream_renderer_snapshot_postsave_resume() {
 
 // In end2end tests, we don't really do snapshot save for render threads.
 // We will need to resume all render threads without waiting for snapshot.
-VG_EXPORT int stream_renderer_snapshot_postsave_resume_for_testing() {
+VG_EXPORT int stream_renderer_snapshot_postload_resume_for_testing() {
     android_getOpenglesRenderer()->resumeAll(false);
     return 0;
 }
 
-VG_EXPORT int stream_renderer_snapshot_save(void* stream, void* textureSaver) {
-    android_getOpenglesRenderer()->save(
-        static_cast<android::base::Stream*>(stream),
-        *static_cast<const android::snapshot::ITextureSaverPtr*>(textureSaver));
+VG_EXPORT int stream_renderer_snapshot_save(void* saverStream) {
+    auto* saver = static_cast<android::snapshot::SnapshotSaveStream*>(saverStream);
+    android_getOpenglesRenderer()->save(saver->stream, saver->textureSaver);
     return 0;
 }
 
-VG_EXPORT int stream_renderer_snapshot_load(void* stream, void* textureLoader) {
-    android_getOpenglesRenderer()->load(
-        static_cast<android::base::Stream*>(stream),
-        *static_cast<const android::snapshot::ITextureLoaderPtr*>(textureLoader));
+VG_EXPORT int stream_renderer_snapshot_load(void* loaderStream) {
+    auto* loader = static_cast<android::snapshot::SnapshotLoadStream*>(loaderStream);
+    android_getOpenglesRenderer()->load(loader->stream, loader->textureLoader);
     return 0;
 }
