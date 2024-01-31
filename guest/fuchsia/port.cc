@@ -33,8 +33,9 @@ static void linux_log_prefix(const char *prefix, const char *file, int line, con
     return;
 
   snprintf(buf, sizeof(buf), "[%s(%d)]", basename(dup), line);
-  fprintf(stderr, "%s\n", buf);
+  fprintf(stderr, "%s", buf);
   vfprintf(stderr, format, ap);
+  fprintf(stderr, "\n");
 
   free(dup);
 }
