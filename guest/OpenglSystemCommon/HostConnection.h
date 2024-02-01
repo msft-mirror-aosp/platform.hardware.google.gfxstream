@@ -25,12 +25,6 @@
 #include "gfxstream/guest/IOStream.h"
 #include "renderControl_enc.h"
 
-#ifdef __Fuchsia__
-struct goldfish_dma_context;
-#else
-#include "goldfish_dma.h"
-#endif
-
 #include <mutex>
 
 #include <memory>
@@ -55,10 +49,8 @@ class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
     ExtendedRCEncoderContext(gfxstream::guest::IOStream *stream,
                              gfxstream::guest::ChecksumCalculator *checksumCalculator)
-        : renderControl_encoder_context_t(stream, checksumCalculator),
-          m_dmaCxt(NULL), m_dmaPtr(NULL), m_dmaPhysAddr(0) { }
+        : renderControl_encoder_context_t(stream, checksumCalculator) {}
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
-    void setDmaImpl(DmaImpl dmaImpl) { m_featureInfo.dmaImpl = dmaImpl; }
     void setHostComposition(HostComposition hostComposition) {
         m_featureInfo.hostComposition = hostComposition; }
     bool hasNativeSync() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V2; }
@@ -84,25 +76,6 @@ public:
     bool hasHWCMultiConfigs() const {
         return m_featureInfo.hasHWCMultiConfigs;
     }
-    DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
-    void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
-    void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
-        m_dmaPtr = dmaPtr;
-        m_dmaPhysAddr = dmaPhysAddr;
-    }
-    virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
-        if (m_dmaPtr && m_dmaPhysAddr) {
-            if (data != m_dmaPtr) {
-                memcpy(m_dmaPtr, data, size);
-            }
-            return m_dmaPhysAddr;
-        } else if (m_dmaCxt) {
-            return writeGoldfishDma(data, size, m_dmaCxt);
-        } else {
-            ALOGE("%s: ERROR: No DMA context bound!", __func__);
-            return 0;
-        }
-    }
     void setGLESMaxVersion(GLESMaxVersion ver) { m_featureInfo.glesMaxVersion = ver; }
     GLESMaxVersion getGLESMaxVersion() const { return m_featureInfo.glesMaxVersion; }
     bool hasDirectMem() const {
@@ -112,26 +85,7 @@ public:
     const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
     EmulatorFeatureInfo* featureInfo() { return &m_featureInfo; }
 private:
-    static uint64_t writeGoldfishDma(void* data, uint32_t size,
-                                     struct goldfish_dma_context* dmaCxt) {
-#ifdef __Fuchsia__
-        ALOGE("%s Not implemented!", __FUNCTION__);
-        return 0u;
-#else
-        ALOGV("%s(data=%p, size=%u): call", __func__, data, size);
-
-        goldfish_dma_write(dmaCxt, data, size);
-        uint64_t paddr = goldfish_dma_guest_paddr(dmaCxt);
-
-        ALOGV("%s: paddr=0x%llx", __func__, (unsigned long long)paddr);
-        return paddr;
-#endif
-    }
-
     EmulatorFeatureInfo m_featureInfo;
-    struct goldfish_dma_context* m_dmaCxt;
-    void* m_dmaPtr;
-    uint64_t m_dmaPhysAddr;
 };
 
 struct EGLThreadInfo;
