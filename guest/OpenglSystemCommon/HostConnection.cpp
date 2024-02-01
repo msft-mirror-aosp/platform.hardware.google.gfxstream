@@ -368,10 +368,12 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
 
     auto fd = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
     processPipeInit(fd, connType, noRenderControlEnc);
+    if (!noRenderControlEnc) {
+        con->rcEncoder();
+    }
+
     return con;
 }
-
-bool HostConnection::isInit() { return (getEGLThreadInfo()->hostConn != NULL); }
 
 HostConnection* HostConnection::get() { return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone); }
 

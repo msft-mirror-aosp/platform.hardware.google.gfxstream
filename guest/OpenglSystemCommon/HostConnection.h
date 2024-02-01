@@ -140,7 +140,6 @@ class HostConnection
 {
 public:
     static HostConnection *get();
-    static bool isInit();
     static HostConnection* getOrCreate(enum VirtGpuCapset capset = kCapsetNone);
 
     static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo,
