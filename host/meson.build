@@ -104,7 +104,7 @@ endif
 
 if use_magma
   gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=1'
-  drm_dep = dependency('libdrm')
+  drm_dep = dependency('libdrm', fallback: ['libdrm', 'libdrm_dep'])
 else
   gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=0'
 endif
