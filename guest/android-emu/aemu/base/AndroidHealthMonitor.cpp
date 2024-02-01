@@ -271,7 +271,7 @@ std::unique_ptr<HealthMonitor<>> CreateHealthMonitor(HealthMonitorConsumer& cons
 #else
     (void)consumer;
     (void)heartbeatInterval;
-    ALOGI("HealthMonitor disabled. Returning nullptr");
+    ALOGV("HealthMonitor disabled. Returning nullptr");
     return nullptr;
 #endif
 }
