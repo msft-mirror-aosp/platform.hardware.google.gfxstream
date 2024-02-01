@@ -89,9 +89,9 @@ using gfxstream::guest::getCurrentThreadId;
 
 #include "VirtGpu.h"
 #include "VirtioGpuPipeStream.h"
-#include "virtgpu_drm.h"
 
 #if defined(__linux__) || defined(__ANDROID__)
+#include "virtgpu_drm.h"
 #include <fstream>
 #include <string>
 #include <unistd.h>
