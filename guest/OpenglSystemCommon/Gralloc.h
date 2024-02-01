@@ -62,7 +62,7 @@ class Gralloc {
     virtual size_t getAllocatedSize(const native_handle_t* handle) = 0;
     virtual size_t getAllocatedSize(const AHardwareBuffer* handle) = 0;
 
-    virtual bool treatBlobAsImage() { return false; };
+    virtual bool treatBlobAsImage() { return false; }
 };
 
 }  // namespace gfxstream
