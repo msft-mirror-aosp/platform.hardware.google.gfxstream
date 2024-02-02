@@ -189,6 +189,12 @@ static constexpr uint64_t kPageMaskForBlob = ~(0xfff);
 
 static uint64_t hostBlobId = 0;
 
+// b/319729462
+// On snapshot load, thread local data is not available, thus we use a
+// fake context ID. We will eventually need to fix it once we start using
+// snapshot with virtio.
+static uint32_t kTemporaryContextIdForSnapshotLoading = 1;
+
 #define DEFINE_BOXED_HANDLE_TYPE_TAG(type) Tag_##type,
 
 enum BoxedHandleTypeTag {
@@ -398,7 +404,28 @@ class VkDecoderGlobalState::Impl {
 
     bool vkCleanupEnabled() const { return mVkCleanupEnabled; }
 
-    void save(android::base::Stream* stream) { snapshot()->save(stream); }
+    void save(android::base::Stream* stream) {
+        mSnapshotState = SnapshotState::Saving;
+        snapshot()->save(stream);
+        // Save mapped memory
+        uint32_t memoryCount = 0;
+        for (const auto& it : mMemoryInfo) {
+            if (it.second.ptr) {
+                memoryCount++;
+            }
+        }
+        stream->putBe32(memoryCount);
+        for (const auto& it : mMemoryInfo) {
+            if (!it.second.ptr) {
+                continue;
+            }
+            stream->putBe64(reinterpret_cast<uint64_t>(
+                unboxed_to_boxed_non_dispatchable_VkDeviceMemory(it.first)));
+            stream->putBe64(it.second.size);
+            stream->write(it.second.ptr, it.second.size);
+        }
+        mSnapshotState = SnapshotState::Normal;
+    }
 
     void load(android::base::Stream* stream, GfxApiLogger& gfxLogger,
               HealthMonitor<>* healthMonitor) {
@@ -407,9 +434,27 @@ class VkDecoderGlobalState::Impl {
 
         // destroy all current internal data structures
         clear();
-
+        mSnapshotState = SnapshotState::Loading;
         // this part will replay in the decoder
         snapshot()->load(stream, gfxLogger, healthMonitor);
+        // load mapped memory
+        uint32_t memoryCount = stream->getBe32();
+        for (uint32_t i = 0; i < memoryCount; i++) {
+            VkDeviceMemory boxedMemory = reinterpret_cast<VkDeviceMemory>(stream->getBe64());
+            VkDeviceMemory unboxedMemory = unbox_VkDeviceMemory(boxedMemory);
+            auto it = mMemoryInfo.find(unboxedMemory);
+            if (it == mMemoryInfo.end()) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Snapshot load failure: cannot find memory handle for " << boxedMemory;
+            }
+            VkDeviceSize size = stream->getBe64();
+            if (size != it->second.size || !it->second.ptr) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Snapshot load failure: memory size does not match for " << boxedMemory;
+            }
+            stream->read(it->second.ptr, size);
+        }
+        mSnapshotState = SnapshotState::Normal;
     }
 
     void lock() { mLock.lock(); }
@@ -1424,37 +1469,26 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroyDeviceLocked(VkDevice device, const VkAllocationCallbacks* pAllocator) {
-        auto deviceInfoIt = mDeviceInfo.find(device);
-        if (deviceInfoIt == mDeviceInfo.end()) return;
-        auto& deviceInfo = deviceInfoIt->second;
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) return;
 
-        VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo.boxed);
+        deviceInfo->decompPipelines->clear();
 
-        // Destroy corresponding queues:
-        auto queueIt = mQueueInfo.begin();
-        for (; queueIt != mQueueInfo.end();) {
-            VkQueue queue = queueIt->first;
-            QueueInfo& queueInfo = queueIt->second;
-            if (queueInfo.device == device) {
-                // Ensure all command submissions have completed including submissions generated
-                // by Gfxstream (e.g. wait for the submissions used to signal the VkFences and
-                // VkSemaphores used during vkAcquireImageANDROID() before destructing those sync
-                // objects below).
-                {
-                    AutoLock queueLock(*queueInfo.lock);
-                    deviceDispatch->vkQueueWaitIdle(queue);
-                }
-
-                delete queueInfo.lock;
-                delete_VkQueue(queueInfo.boxed);
-                queueIt = mQueueInfo.erase(queueIt);
+        auto eraseIt = mQueueInfo.begin();
+        for (; eraseIt != mQueueInfo.end();) {
+            if (eraseIt->second.device == device) {
+                delete eraseIt->second.lock;
+                delete_VkQueue(eraseIt->second.boxed);
+                eraseIt = mQueueInfo.erase(eraseIt);
             } else {
-                ++queueIt;
+                ++eraseIt;
             }
         }
 
+        VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo->boxed);
+
         // Destroy pooled external fences
-        auto deviceFences = deviceInfo.externalFencePool->popAll();
+        auto deviceFences = deviceInfo->externalFencePool->popAll();
         for (auto fence : deviceFences) {
             deviceDispatch->vkDestroyFence(device, fence, pAllocator);
             mFenceInfo.erase(fence);
@@ -1465,18 +1499,10 @@ class VkDecoderGlobalState::Impl {
             mFenceInfo.erase(fence);
         }
 
-        for (auto fence : deviceInfo.deferredDestructionFences) {
-            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
-        }
-
-        for (auto semaphore : deviceInfo.deferredDestructionSemaphores) {
-            deviceDispatch->vkDestroySemaphore(device, semaphore, pAllocator);
-        }
-
         // Run the underlying API call.
         m_vk->vkDestroyDevice(device, pAllocator);
 
-        delete_VkDevice(deviceInfo.boxed);
+        delete_VkDevice(deviceInfo->boxed);
     }
 
     void on_vkDestroyDevice(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -2245,27 +2271,16 @@ class VkDecoderGlobalState::Impl {
 
     void destroySemaphoreLocked(VkDevice device, VulkanDispatch* deviceDispatch,
                                 VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator) {
-        auto semaphoreInfoIt = mSemaphoreInfo.find(semaphore);
-        if (semaphoreInfoIt == mSemaphoreInfo.end()) return;
-        auto& semaphoreInfo = semaphoreInfoIt->second;
-
 #ifndef _WIN32
-        if (semaphoreInfo.externalHandle != VK_EXT_SYNC_HANDLE_INVALID) {
-            close(semaphoreInfo.externalHandle);
+        const auto& ite = mSemaphoreInfo.find(semaphore);
+        if (ite != mSemaphoreInfo.end() &&
+            (ite->second.externalHandle != VK_EXT_SYNC_HANDLE_INVALID)) {
+            close(ite->second.externalHandle);
         }
 #endif
-        if (semaphoreInfo.usedForAcquireImage) {
-            // See comment near DeviceInfo::deferredDestructionSemaphores.
-            auto deviceInfoIt = mDeviceInfo.find(device);
-            if (deviceInfoIt != mDeviceInfo.end()) {
-                auto& deviceInfo = deviceInfoIt->second;
-                deviceInfo.deferredDestructionSemaphores.push_back(semaphore);
-            }
-        } else {
-            deviceDispatch->vkDestroySemaphore(device, semaphore, pAllocator);
-        }
+        deviceDispatch->vkDestroySemaphore(device, semaphore, pAllocator);
 
-        mSemaphoreInfo.erase(semaphoreInfoIt);
+        mSemaphoreInfo.erase(semaphore);
     }
 
     void on_vkDestroySemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -2280,40 +2295,24 @@ class VkDecoderGlobalState::Impl {
     void on_vkDestroyFence(android::base::BumpPool* pool, VkDevice boxed_device, VkFence fence,
                            const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
-        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
 
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            auto fenceInfoIt = mFenceInfo.find(fence);
-            if (fenceInfoIt != mFenceInfo.end()) return;
-            auto& fenceInfo = fenceInfoIt->second;
-
-            auto deviceInfoIt = mDeviceInfo.find(device);
-            if (deviceInfoIt != mDeviceInfo.end()) {
-                auto& deviceInfo = deviceInfoIt->second;
-
-                fenceInfo.boxed = VK_NULL_HANDLE;
-
-                // External fences are just slated for recycling. This addresses known
-                // behavior where the guest might destroy the fence prematurely. b/228221208
-                if (fenceInfo.external) {
-                    deviceInfo.externalFencePool->add(fence);
-                    return;
-                }
-
-                // Fences used for swapchains have their destruction deferred until device
-                // destruction. See comment near DeviceInfo::deferredDestructionFences.
-                if (fenceInfo.usedForAcquireImage) {
-                    deviceInfo.deferredDestructionFences.push_back(fence);
+            // External fences are just slated for recycling. This addresses known
+            // behavior where the guest might destroy the fence prematurely. b/228221208
+            if (mFenceInfo[fence].external) {
+                auto* deviceInfo = android::base::find(mDeviceInfo, device);
+                if (deviceInfo) {
+                    deviceInfo->externalFencePool->add(fence);
+                    mFenceInfo[fence].boxed = VK_NULL_HANDLE;
                     return;
                 }
             }
-
             mFenceInfo.erase(fence);
         }
 
-        deviceDispatch->vkDestroyFence(device, fence, pAllocator);
+        vk->vkDestroyFence(device, fence, pAllocator);
     }
 
     VkResult on_vkCreateDescriptorSetLayout(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -3719,8 +3718,11 @@ class VkDecoderGlobalState::Impl {
         if (createBlobInfoPtr && createBlobInfoPtr->blobMem == STREAM_BLOB_MEM_GUEST &&
             (createBlobInfoPtr->blobFlags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
             DescriptorType rawDescriptor;
+            uint32_t ctx_id = mSnapshotState == SnapshotState::Loading
+                                  ? kTemporaryContextIdForSnapshotLoading
+                                  : tInfo->ctx_id;
             auto descriptorInfoOpt =
-                BlobManager::get()->removeDescriptorInfo(tInfo->ctx_id, createBlobInfoPtr->blobId);
+                BlobManager::get()->removeDescriptorInfo(ctx_id, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
                 auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
                 if (rawDescriptorOpt) {
@@ -4087,21 +4089,6 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
-        if (semaphore != VK_NULL_HANDLE) {
-            auto semaphoreInfo = android::base::find(mSemaphoreInfo, semaphore);
-            if (!semaphoreInfo) {
-                return VK_ERROR_INITIALIZATION_FAILED;
-            }
-            semaphoreInfo->usedForAcquireImage = true;
-        }
-        if (fence != VK_NULL_HANDLE) {
-            auto fenceInfo = android::base::find(mFenceInfo, fence);
-            if (!fenceInfo) {
-                return VK_ERROR_INITIALIZATION_FAILED;
-            }
-            fenceInfo->usedForAcquireImage = true;
-        }
-
         AndroidNativeBufferInfo* anbInfo = imageInfo->anbInfo.get();
 
         return setAndroidNativeImageSemaphoreSignaled(vk, device, defaultQueue,
@@ -4179,6 +4166,9 @@ class VkDecoderGlobalState::Impl {
     VkResult vkGetBlobInternal(VkDevice boxed_device, VkDeviceMemory memory, uint64_t hostBlobId) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         auto* tInfo = RenderThreadInfoVk::get();
+        uint32_t ctx_id = mSnapshotState == SnapshotState::Loading
+                              ? kTemporaryContextIdForSnapshotLoading
+                              : tInfo->ctx_id;
 
         auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -4190,7 +4180,7 @@ class VkDecoderGlobalState::Impl {
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
-            BlobManager::get()->addDescriptorInfo(tInfo->ctx_id, hostBlobId,
+            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId,
                                                   info->sharedMemory->releaseHandle(), handleType,
                                                   info->caching, std::nullopt);
         } else if (feature_is_enabled(kFeature_ExternalBlob)) {
@@ -4248,13 +4238,12 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             ManagedDescriptor managedHandle(handle);
-            BlobManager::get()->addDescriptorInfo(
-                tInfo->ctx_id, hostBlobId, std::move(managedHandle), handleType, info->caching,
-                std::optional<VulkanInfo>(vulkanInfo));
+            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId, std::move(managedHandle),
+                                                  handleType, info->caching,
+                                                  std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
             auto device = unbox_VkDevice(boxed_device);
             auto vk = dispatch_VkDevice(boxed_device);
-
             VkResult mapResult = vk->vkMapMemory(device, memory, 0, info->size, 0, &info->ptr);
             if (mapResult != VK_SUCCESS) {
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -4278,8 +4267,7 @@ class VkDecoderGlobalState::Impl {
                     "using this blob may be corrupted/offset.",
                     kPageSizeforBlob, hva, alignedHva);
             }
-
-            BlobManager::get()->addMapping(tInfo->ctx_id, hostBlobId, (void*)(uintptr_t)alignedHva,
+            BlobManager::get()->addMapping(ctx_id, hostBlobId, (void*)(uintptr_t)alignedHva,
                                            info->caching);
             info->virtioGpuMapped = true;
             info->hostmemId = hostBlobId;
@@ -6637,18 +6625,6 @@ class VkDecoderGlobalState::Impl {
         std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
         std::set<VkFormat> imageFormats = {};  // image formats used on this device
         std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
-        // The host needs to ensure that any additional vkQueueSubmitKHR() used to
-        // signal the semaphore and/or fence used in vkAcquireNextImageKHR() or
-        // vkAcquireImageANDROID() have completed before destroying those semaphores
-        // and fences as the guest is not aware of those additional submits. For simplicity,
-        // defer the destruction of those semaphores and fences until device destruction,
-        // with the assumption that the number of semaphores and fences used for
-        // vkAcquireNextImageKHR() or vkAcquireImageANDROID() will be small as swapchain
-        // implementations typically recycle and re-use semaphores and fences, instead of
-        // trying to create additional sync objects to track when the semaphores and fences
-        // can be safely destroyed.
-        std::vector<VkSemaphore> deferredDestructionSemaphores;
-        std::vector<VkFence> deferredDestructionFences;
 
         // True if this is a compressed image that needs to be decompressed on the GPU (with our
         // compute shader)
@@ -6734,21 +6710,12 @@ class VkDecoderGlobalState::Impl {
         State state = State::kNotWaitable;
 
         bool external = false;
-
-        // If this fence was used for vkAcquireNextImageKHR() / vkAcquireImageANDROID(),
-        // then a vkDeviceWaitIdle() is needed before destruction to ensure any queue
-        // submits used to signal this semaphore have completed before destructing.
-        bool usedForAcquireImage = false;
     };
 
     struct SemaphoreInfo {
         VkDevice device;
         int externalHandleId = 0;
         VK_EXT_SYNC_HANDLE externalHandle = VK_EXT_SYNC_HANDLE_INVALID;
-        // If this semaphore was used for vkAcquireNextImageKHR() / vkAcquireImageANDROID(),
-        // then a vkDeviceWaitIdle() is needed before destruction to ensure any queue
-        // submits used to signal this semaphore have completed before destructing.
-        bool usedForAcquireImage = false;
     };
 
     struct DescriptorSetLayoutInfo {
@@ -7021,6 +6988,13 @@ class VkDecoderGlobalState::Impl {
 
     std::unordered_map<LinearImageCreateInfo, LinearImageProperties, LinearImageCreateInfo::Hash>
         mLinearImageProperties;
+
+    enum SnapshotState {
+        Normal,
+        Saving,
+        Loading,
+    };
+    SnapshotState mSnapshotState = SnapshotState::Normal;
 };
 
 VkDecoderGlobalState::VkDecoderGlobalState() : mImpl(new VkDecoderGlobalState::Impl()) {}

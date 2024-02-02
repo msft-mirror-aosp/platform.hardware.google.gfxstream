@@ -12,7 +12,7 @@
 
 #include <stdio.h>
 
-// TODO(fxbug.dev/122605): Why is modification needed for these two includes?
+// TODO(fxbug.dev/42073574): Why is modification needed for these two includes?
 #include "aemu/base/Tracing.h"
 #include "cutils/log.h"
 
