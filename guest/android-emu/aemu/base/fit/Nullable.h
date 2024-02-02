@@ -72,7 +72,7 @@ struct IsNullable<void> : public std::false_type {};
 // - sizeof(fit::nullable<int>) == sizeof(struct { bool; int; })
 // - sizeof(std::optional<int>) == sizeof(struct { bool; int; })
 //
-// TODO(fxbug.dev/4681): fit::nullable does not precisely mirror
+// TODO(fxbug.dev/42123486): fit::nullable does not precisely mirror
 // std::optional. This should be corrected to avoid surprises when switching
 // between the types.
 template <typename T,
