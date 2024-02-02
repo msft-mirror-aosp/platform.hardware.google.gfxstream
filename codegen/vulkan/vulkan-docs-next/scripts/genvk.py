@@ -957,7 +957,6 @@ def makeGenOpts(args):
             CerealGenerator,
             CGeneratorOptions(
                 conventions       = conventions,
-                filename          = "CMakeLists.txt",
                 directory         = directory,
                 apiname           = 'vulkan',
                 profile           = None,
@@ -1039,7 +1038,7 @@ def genTarget(args):
         createGenerator = genOpts[args.target][0]
         options = genOpts[args.target][1]
 
-        logDiag('* Building', options.filename)
+        logDiag('* Building', args.target)
         logDiag('* options.versions          =', options.versions)
         logDiag('* options.emitversions      =', options.emitversions)
         logDiag('* options.defaultExtensions =', options.defaultExtensions)
@@ -1179,7 +1178,7 @@ if __name__ == '__main__':
             if name is not None:
                 return name
             try:
-                return entry.find("proto").find("name")
+                return entry.find("proto").find("name").text
             except AttributeError:
                 return None
 
@@ -1198,6 +1197,7 @@ if __name__ == '__main__':
                 if name not in originalEntryDict.keys():
                     treeEntries.append(entry)
                     continue
+                print(f'Entry {entriesName}:{name}')
 
                 originalEntry = originalEntryDict[name]
 
@@ -1213,7 +1213,7 @@ if __name__ == '__main__':
 
                 # Overwriting an existing entry. This happen for
                 # VkNativeBufferANDROID
-                if entriesName == "types":
+                if entriesName == "types" or entriesName == "commands":
                     originalEntry.clear()
                     originalEntry.attrib = entry.attrib
                     for child in entry:
@@ -1234,7 +1234,7 @@ if __name__ == '__main__':
     else:
         startTimer(args.time)
         reg.apiGen()
-        endTimer(args.time, '* Time to generate ' + options.filename + ' =')
+        endTimer(args.time, '* Time to generate ' + args.target + ' =')
 
     if not args.quiet:
-        logDiag('* Generated', options.filename)
+        logDiag('* Generated', args.target)

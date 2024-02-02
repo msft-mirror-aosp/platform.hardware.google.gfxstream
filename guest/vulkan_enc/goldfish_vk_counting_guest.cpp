@@ -5711,177 +5711,6 @@ void count_VkDeviceImageMemoryRequirements(uint32_t featureBits, VkStructureType
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
-void count_VkSwapchainCreateInfoKHR(uint32_t featureBits, VkStructureType rootType,
-                                    const VkSwapchainCreateInfoKHR* toCount, size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += sizeof(VkSwapchainCreateFlagsKHR);
-    uint64_t cgen_var_0;
-    *count += 1 * 8;
-    *count += sizeof(uint32_t);
-    *count += sizeof(VkFormat);
-    *count += sizeof(VkColorSpaceKHR);
-    count_VkExtent2D(featureBits, rootType, (VkExtent2D*)(&toCount->imageExtent), count);
-    *count += sizeof(uint32_t);
-    *count += sizeof(VkImageUsageFlags);
-    *count += sizeof(VkSharingMode);
-    *count += sizeof(uint32_t);
-    // WARNING PTR CHECK
-    *count += 8;
-    if (toCount->pQueueFamilyIndices) {
-        if (toCount) {
-            *count += toCount->queueFamilyIndexCount * sizeof(const uint32_t);
-        }
-    }
-    *count += sizeof(VkSurfaceTransformFlagBitsKHR);
-    *count += sizeof(VkCompositeAlphaFlagBitsKHR);
-    *count += sizeof(VkPresentModeKHR);
-    *count += sizeof(VkBool32);
-    uint64_t cgen_var_1;
-    *count += 1 * 8;
-}
-
-void count_VkPresentInfoKHR(uint32_t featureBits, VkStructureType rootType,
-                            const VkPresentInfoKHR* toCount, size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += sizeof(uint32_t);
-    if (toCount->waitSemaphoreCount) {
-        *count += toCount->waitSemaphoreCount * 8;
-    }
-    *count += sizeof(uint32_t);
-    if (toCount->swapchainCount) {
-        *count += toCount->swapchainCount * 8;
-    }
-    if (toCount) {
-        *count += toCount->swapchainCount * sizeof(const uint32_t);
-    }
-    // WARNING PTR CHECK
-    *count += 8;
-    if (toCount->pResults) {
-        if (toCount) {
-            *count += toCount->swapchainCount * sizeof(VkResult);
-        }
-    }
-}
-
-void count_VkImageSwapchainCreateInfoKHR(uint32_t featureBits, VkStructureType rootType,
-                                         const VkImageSwapchainCreateInfoKHR* toCount,
-                                         size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    uint64_t cgen_var_0;
-    *count += 1 * 8;
-}
-
-void count_VkBindImageMemorySwapchainInfoKHR(uint32_t featureBits, VkStructureType rootType,
-                                             const VkBindImageMemorySwapchainInfoKHR* toCount,
-                                             size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    uint64_t cgen_var_0;
-    *count += 1 * 8;
-    *count += sizeof(uint32_t);
-}
-
-void count_VkAcquireNextImageInfoKHR(uint32_t featureBits, VkStructureType rootType,
-                                     const VkAcquireNextImageInfoKHR* toCount, size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    uint64_t cgen_var_0;
-    *count += 1 * 8;
-    *count += sizeof(uint64_t);
-    uint64_t cgen_var_1;
-    *count += 1 * 8;
-    uint64_t cgen_var_2;
-    *count += 1 * 8;
-    *count += sizeof(uint32_t);
-}
-
-void count_VkDeviceGroupPresentCapabilitiesKHR(uint32_t featureBits, VkStructureType rootType,
-                                               const VkDeviceGroupPresentCapabilitiesKHR* toCount,
-                                               size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += VK_MAX_DEVICE_GROUP_SIZE * sizeof(uint32_t);
-    *count += sizeof(VkDeviceGroupPresentModeFlagsKHR);
-}
-
-void count_VkDeviceGroupPresentInfoKHR(uint32_t featureBits, VkStructureType rootType,
-                                       const VkDeviceGroupPresentInfoKHR* toCount, size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += sizeof(uint32_t);
-    if (toCount) {
-        *count += toCount->swapchainCount * sizeof(const uint32_t);
-    }
-    *count += sizeof(VkDeviceGroupPresentModeFlagBitsKHR);
-}
-
-void count_VkDeviceGroupSwapchainCreateInfoKHR(uint32_t featureBits, VkStructureType rootType,
-                                               const VkDeviceGroupSwapchainCreateInfoKHR* toCount,
-                                               size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += sizeof(VkDeviceGroupPresentModeFlagsKHR);
-}
-
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -6582,6 +6411,39 @@ void count_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void count_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkBool32);
+}
+
+void count_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT);
+    *count += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -6594,11 +6456,136 @@ void count_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void count_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+}
+
+void count_VkVertexInputBindingDivisorDescriptionEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(uint32_t);
+    *count += sizeof(uint32_t);
+}
+
+void count_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+    if (toCount) {
+        for (uint32_t i = 0; i < (uint32_t)toCount->vertexBindingDivisorCount; ++i) {
+            count_VkVertexInputBindingDivisorDescriptionEXT(
+                featureBits, rootType,
+                (const VkVertexInputBindingDivisorDescriptionEXT*)(toCount->pVertexBindingDivisors +
+                                                                   i),
+                count);
+        }
+    }
+}
+
+void count_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_fragment_density_map
+void count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+}
+
+void count_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    count_VkExtent2D(featureBits, rootType, (VkExtent2D*)(&toCount->minFragmentDensityTexelSize),
+                     count);
+    count_VkExtent2D(featureBits, rootType, (VkExtent2D*)(&toCount->maxFragmentDensityTexelSize),
+                     count);
+    *count += sizeof(VkBool32);
+}
+
+void count_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkRenderPassFragmentDensityMapCreateInfoEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    count_VkAttachmentReference(featureBits, rootType,
+                                (VkAttachmentReference*)(&toCount->fragmentDensityMapAttachment),
+                                count);
+}
+
+#endif
+#ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
 #endif
@@ -6960,112 +6947,6 @@ void count_VkHostImageCopyDevicePerformanceQueryEXT(
 
 #endif
 #ifdef VK_EXT_swapchain_maintenance1
-void count_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
-    uint32_t featureBits, VkStructureType rootType,
-    const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT* toCount, size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += sizeof(VkBool32);
-}
-
-void count_VkSwapchainPresentFenceInfoEXT(uint32_t featureBits, VkStructureType rootType,
-                                          const VkSwapchainPresentFenceInfoEXT* toCount,
-                                          size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += sizeof(uint32_t);
-    if (toCount->swapchainCount) {
-        *count += toCount->swapchainCount * 8;
-    }
-}
-
-void count_VkSwapchainPresentModesCreateInfoEXT(uint32_t featureBits, VkStructureType rootType,
-                                                const VkSwapchainPresentModesCreateInfoEXT* toCount,
-                                                size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += sizeof(uint32_t);
-    if (toCount) {
-        *count += toCount->presentModeCount * sizeof(const VkPresentModeKHR);
-    }
-}
-
-void count_VkSwapchainPresentModeInfoEXT(uint32_t featureBits, VkStructureType rootType,
-                                         const VkSwapchainPresentModeInfoEXT* toCount,
-                                         size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += sizeof(uint32_t);
-    if (toCount) {
-        *count += toCount->swapchainCount * sizeof(const VkPresentModeKHR);
-    }
-}
-
-void count_VkSwapchainPresentScalingCreateInfoEXT(
-    uint32_t featureBits, VkStructureType rootType,
-    const VkSwapchainPresentScalingCreateInfoEXT* toCount, size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    *count += sizeof(VkPresentScalingFlagsEXT);
-    *count += sizeof(VkPresentGravityFlagsEXT);
-    *count += sizeof(VkPresentGravityFlagsEXT);
-}
-
-void count_VkReleaseSwapchainImagesInfoEXT(uint32_t featureBits, VkStructureType rootType,
-                                           const VkReleaseSwapchainImagesInfoEXT* toCount,
-                                           size_t* count) {
-    (void)featureBits;
-    (void)rootType;
-    (void)toCount;
-    (void)count;
-    *count += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = toCount->sType;
-    }
-    count_extension_struct(featureBits, rootType, toCount->pNext, count);
-    uint64_t cgen_var_0;
-    *count += 1 * 8;
-    *count += sizeof(uint32_t);
-    if (toCount) {
-        *count += toCount->imageIndexCount * sizeof(const uint32_t);
-    }
-}
-
 #endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
 #endif
@@ -7438,6 +7319,8 @@ void count_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     *count += sizeof(VkBool32);
 }
 
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
                             const void* structExtension, size_t* count) {
@@ -8213,33 +8096,6 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
             break;
         }
 #endif
-#ifdef VK_KHR_swapchain
-        case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR: {
-            count_VkImageSwapchainCreateInfoKHR(
-                featureBits, rootType,
-                reinterpret_cast<const VkImageSwapchainCreateInfoKHR*>(structExtension), count);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR: {
-            count_VkBindImageMemorySwapchainInfoKHR(
-                featureBits, rootType,
-                reinterpret_cast<const VkBindImageMemorySwapchainInfoKHR*>(structExtension), count);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR: {
-            count_VkDeviceGroupPresentInfoKHR(
-                featureBits, rootType,
-                reinterpret_cast<const VkDeviceGroupPresentInfoKHR*>(structExtension), count);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR: {
-            count_VkDeviceGroupSwapchainCreateInfoKHR(
-                featureBits, rootType,
-                reinterpret_cast<const VkDeviceGroupSwapchainCreateInfoKHR*>(structExtension),
-                count);
-            break;
-        }
-#endif
 #ifdef VK_KHR_dynamic_rendering
         case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR: {
             count_VkRenderingFragmentShadingRateAttachmentInfoKHR(
@@ -8361,6 +8217,149 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            count_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            count_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            count_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            count_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            count_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2: {
+                    count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO: {
+                    count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    count_VkImportColorBufferGOOGLE(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkImportColorBufferGOOGLE*>(structExtension), count);
+                    break;
+                }
+                default: {
+                    count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2: {
+                    count_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    count_VkCreateBlobGOOGLE(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkCreateBlobGOOGLE*>(structExtension), count);
+                    break;
+                }
+                default: {
+                    count_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO: {
+                    count_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2: {
+                    count_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    count_VkImportBufferGOOGLE(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkImportBufferGOOGLE*>(structExtension), count);
+                    break;
+                }
+                default: {
+                    count_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        featureBits, rootType,
+                        reinterpret_cast<const VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension),
+                        count);
+                    break;
+                }
+            }
+            break;
+        }
+#endif
 #ifdef VK_EXT_provoking_vertex
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: {
             count_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -8458,42 +8457,6 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
             count_VkHostImageCopyDevicePerformanceQueryEXT(
                 featureBits, rootType,
                 reinterpret_cast<const VkHostImageCopyDevicePerformanceQueryEXT*>(structExtension),
-                count);
-            break;
-        }
-#endif
-#ifdef VK_EXT_swapchain_maintenance1
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT: {
-            count_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
-                featureBits, rootType,
-                reinterpret_cast<const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT*>(
-                    structExtension),
-                count);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_EXT: {
-            count_VkSwapchainPresentFenceInfoEXT(
-                featureBits, rootType,
-                reinterpret_cast<const VkSwapchainPresentFenceInfoEXT*>(structExtension), count);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODES_CREATE_INFO_EXT: {
-            count_VkSwapchainPresentModesCreateInfoEXT(
-                featureBits, rootType,
-                reinterpret_cast<const VkSwapchainPresentModesCreateInfoEXT*>(structExtension),
-                count);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODE_INFO_EXT: {
-            count_VkSwapchainPresentModeInfoEXT(
-                featureBits, rootType,
-                reinterpret_cast<const VkSwapchainPresentModeInfoEXT*>(structExtension), count);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_SCALING_CREATE_INFO_EXT: {
-            count_VkSwapchainPresentScalingCreateInfoEXT(
-                featureBits, rootType,
-                reinterpret_cast<const VkSwapchainPresentScalingCreateInfoEXT*>(structExtension),
                 count);
             break;
         }

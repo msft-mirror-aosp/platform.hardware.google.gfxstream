@@ -98,6 +98,7 @@ target_include_directories(
         ${GFXSTREAM_REPO_ROOT}/host/magma
         ${GFXSTREAM_REPO_ROOT}/host/magma/magma_dec
         ${GFXSTREAM_REPO_ROOT}/host/vulkan
+        ${GFXSTREAM_REPO_ROOT}/host/vulkan/cereal/common
         ${GFXSTREAM_REPO_ROOT}/third-party/fuchsia/magma/include
         ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
 
@@ -115,6 +116,7 @@ target_compile_options(
     -Wno-invalid-offsetof
     -Wno-free-nonheap-object
     -Wno-attributes
+    -DGFXSTREAM_ENABLE_HOST_GLES=1
     )
 
 # gfxstream_backend.dll
@@ -143,7 +145,12 @@ if (APPLE)
         LINK_FLAGS  "-undefined dynamic_lookup -flat_namespace")
 endif()
 
-android_install_shared(gfxstream_backend)
+if(CONFIG_AEMU)
+    android_install_shared(gfxstream_backend)
+else()
+    install(
+      TARGETS gfxstream_backend RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
 
 # Testing libraries
 add_subdirectory(testlibs)
@@ -312,8 +319,7 @@ endfunction()
     if (APPLE)
         target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_METAL_EXT)
     elseif (QNX)
-        # TODO(jsimonot): fix build error
-        # target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_SCREEN_QNX)
+        target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_SCREEN_QNX)
     elseif (UNIX)
         target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_XCB_KHR)
     endif()

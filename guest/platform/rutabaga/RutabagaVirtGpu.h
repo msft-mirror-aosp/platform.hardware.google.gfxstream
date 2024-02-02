@@ -44,8 +44,8 @@ class RutabagaVirtGpuResource : public std::enable_shared_from_this<RutabagaVirt
 
     VirtGpuBlobMappingPtr createMapping(void) override;
 
-    uint32_t getResourceHandle() override;
-    uint32_t getBlobHandle() override;
+    uint32_t getResourceHandle() const override;
+    uint32_t getBlobHandle() const override;
 
     int exportBlob(VirtGpuExternalHandle& handle) override;
     int wait() override;
@@ -82,15 +82,13 @@ class RutabagaVirtGpuDevice : public std::enable_shared_from_this<RutabagaVirtGp
 
     VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate) override;
 
-    VirtGpuBlobPtr createPipeBlob(uint32_t size) override;
-
-    VirtGpuBlobPtr createPipeTexture2D(uint32_t width, uint32_t height, uint32_t format) override;
+    VirtGpuBlobPtr createVirglBlob(uint32_t width, uint32_t height, uint32_t virglFormat) override;
 
     VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle) override;
 
-    int execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob) override;
+    int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuBlob* blob) override;
 
-  private:
+   private:
     const uint32_t mContextId;
     const VirtGpuCapset mCapset;
 

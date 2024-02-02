@@ -13,7 +13,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include "GLClientState.h"
+#include "gfxstream/guest/GLClientState.h"
+
 #include "GLESTextureUtils.h"
 #include "ErrorLog.h"
 #include <stdio.h>
@@ -21,11 +22,7 @@
 #include <string.h>
 #include "glUtils.h"
 
-#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
-#else
-#include <log/log.h>
-#endif
 
 #ifndef MAX
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
@@ -38,6 +35,9 @@
 
 using gfxstream::guest::AutoReadLock;
 using gfxstream::guest::AutoWriteLock;
+
+namespace gfxstream {
+namespace guest {
 
 void GLClientState::init() {
     m_initialized = false;
@@ -133,7 +133,6 @@ void GLClientState::init() {
 
     m_extensions_set = false;
 
-#ifdef GFXSTREAM
     // The default transform feedback buffer object
     // The default sampler object
     GLuint defaultId = 0;
@@ -146,7 +145,6 @@ void GLClientState::init() {
     mBoundQueryValidity_AnySamplesPassed.valid = false;
     mBoundQueryValidity_AnySamplesPassedConservative.valid = false;
     mBoundQueryValidity_TransformFeedbackPrimitivesWritten.valid = false;
-#endif
 }
 
 GLClientState::GLClientState()
@@ -452,8 +450,6 @@ static void sClearIndexedBufferBinding(GLuint id, std::vector<GLClientState::Buf
     }
 }
 
-#ifdef GFXSTREAM
-
 void GLClientState::addBuffer(GLuint id) {
     mBufferIds.add(id);
     mBufferIds.set(id, true);
@@ -665,36 +661,6 @@ GLenum GLClientState::getLastQueryTarget(GLuint id) {
     if (!targetPtr) return 0;
     return *targetPtr;
 }
-
-#else // GFXSTREAM
-
-void GLClientState::addBuffer(GLuint id) {
-    mBufferIds.insert(id);
-}
-
-void GLClientState::removeBuffer(GLuint id) {
-    mBufferIds.erase(id);
-}
-
-bool GLClientState::bufferIdExists(GLuint id) const {
-    return mBufferIds.find(id) != mBufferIds.end();
-}
-
-void GLClientState::setBufferHostMapDirty(GLuint id, bool dirty) {
-    (void)id;
-    (void)dirty;
-}
-
-bool GLClientState::isBufferHostMapDirty(GLuint id) const {
-    (void)id;
-    return true;
-}
-
-void GLClientState::setExistence(ObjectType, bool, GLsizei, const GLuint*) {
-    // no-op in non-gfxstream
-}
-
-#endif // !GFXSTREAM
 
 void GLClientState::setBoundPixelPackBufferDirtyForHostMap() {
     if (m_pixelPackBuffer)
@@ -1905,8 +1871,6 @@ GLenum GLClientState::checkFramebufferAttachmentCompleteness(GLenum target, GLen
                             m_glesMajorVersion, m_glesMinorVersion,
                             m_has_color_buffer_float_extension,
                             m_has_color_buffer_half_float_extension);
-                    if (!renderable) {
-                        ALOGD("%s: rbo not color renderable. format: 0x%x\n", __func__, fbo_format_info.rb_format); }
                     break;
             }
             break;
@@ -1925,9 +1889,6 @@ GLenum GLClientState::checkFramebufferAttachmentCompleteness(GLenum target, GLen
                             m_glesMajorVersion, m_glesMinorVersion,
                             m_has_color_buffer_float_extension,
                             m_has_color_buffer_half_float_extension);
-                    if (!renderable) {
-                        ALOGD("%s: tex not color renderable. format: 0x%x type 0x%x maj min %d %d floatext %d hfloatext %d\n", __func__, fbo_format_info.tex_internalformat, fbo_format_info.tex_type, m_glesMajorVersion, m_glesMinorVersion, m_has_color_buffer_float_extension, m_has_color_buffer_half_float_extension);
-                    }
                     break;
             }
             break;
@@ -1936,7 +1897,30 @@ GLenum GLClientState::checkFramebufferAttachmentCompleteness(GLenum target, GLen
             return GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
     }
 
-    if (!renderable) return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+    if (!renderable) {
+        switch (fbo_format_info.type) {
+            case FBO_ATTACHMENT_RENDERBUFFER:
+                ALOGD("%s: rbo not color renderable. target=0x%x attachment=0x%x rb_format=0x%x "
+                      "gles=%d.%d floatext=%d hfloatext=%d\n",
+                      __func__, target, attachment, fbo_format_info.rb_format,
+                      m_glesMajorVersion, m_glesMinorVersion,
+                      m_has_color_buffer_float_extension,
+                      m_has_color_buffer_half_float_extension);
+                break;
+            case FBO_ATTACHMENT_TEXTURE:
+                ALOGD("%s: tex not color renderable. target=0x%x attachment=0x%x "
+                      "tex_intformat=0x%x tex_format=0x%x tex_type=0x%x gles=%d.%d "
+                      "floatext=%d hfloatext=%d\n",
+                      __func__, target, attachment, fbo_format_info.tex_internalformat,
+                      fbo_format_info.tex_format, fbo_format_info.tex_type, m_glesMajorVersion,
+                      m_glesMinorVersion, m_has_color_buffer_float_extension,
+                      m_has_color_buffer_half_float_extension);
+                break;
+            default:
+                break;
+        }
+        return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+    }
 
     // Check dimensions
     std::shared_ptr<TextureRec> texrec;
@@ -3087,3 +3071,5 @@ bool GLClientState::fenceExists(GLsync sync) {
     return sFenceRegistry.exists(sync);
 }
 
+}  // namespace guest
+}  // namespace gfxstream

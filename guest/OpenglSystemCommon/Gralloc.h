@@ -23,6 +23,10 @@ typedef struct AHardwareBuffer AHardwareBuffer;
 
 namespace gfxstream {
 
+constexpr uint32_t kGlRGB = 0x1907;
+constexpr uint32_t kGlRGBA = 0x1908;
+constexpr uint32_t kGlRGB565 = 0x8D62;
+
 // Abstraction for gralloc handle conversion
 class Gralloc {
    public:
@@ -57,6 +61,8 @@ class Gralloc {
 
     virtual size_t getAllocatedSize(const native_handle_t* handle) = 0;
     virtual size_t getAllocatedSize(const AHardwareBuffer* handle) = 0;
+
+    virtual bool treatBlobAsImage() { return false; }
 };
 
 }  // namespace gfxstream

@@ -26,7 +26,10 @@ int64_t StubVirtGpuDevice::getDeviceHandle(void) {
     return mDeviceHandle;
 }
 
-VirtGpuBlobPtr StubVirtGpuDevice::createPipeBlob(uint32_t) {
+VirtGpuBlobPtr StubVirtGpuDevice::createVirglBlob(uint32_t width, uint32_t height, uint32_t virglFormat) {
+    (void)width;
+    (void)height;
+    (void)virglFormat;
     return nullptr;
 }
 
@@ -34,16 +37,18 @@ VirtGpuBlobPtr StubVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob&) {
     return nullptr;
 }
 
-VirtGpuBlobPtr StubVirtGpuDevice::createPipeTexture2D(uint32_t, uint32_t, uint32_t) {
-    return nullptr;
-}
-
 VirtGpuBlobPtr StubVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&) {
     return nullptr;
 }
 
-int StubVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer&, VirtGpuBlobPtr) {
-    return -1;
+int StubVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer&, const VirtGpuBlob*) { return -1; }
+
+VirtGpuBlobPtr createColorBuffer(int, int, uint32_t) {
+    return nullptr;
+}
+
+VirtGpuBlobPtr createColorBuffer(int) {
+    return nullptr;
 }
 
 StubVirtGpuDevice::~StubVirtGpuDevice() {

@@ -19,7 +19,10 @@
 #include <assert.h>
 #include <vector>
 
+using gfxstream::guest::BufferData;
+using gfxstream::guest::ChecksumCalculator;
 using gfxstream::guest::IOStream;
+using gfxstream::guest::GLClientState;
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))

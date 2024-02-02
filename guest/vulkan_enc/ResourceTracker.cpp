@@ -23,6 +23,7 @@
 #include "Resources.h"
 #include "VkEncoder.h"
 #include "aemu/base/AlignedBuf.h"
+#include "gfxstream_vk_private.h"
 #include "goldfish_address_space.h"
 #include "goldfish_vk_private_defs.h"
 #include "util.h"
@@ -35,6 +36,7 @@
 #include <stdlib.h>
 #include <vndk/hardware_buffer.h>
 
+#include <algorithm>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -48,22 +50,12 @@
 #include <sys/mman.h>
 #include <sys/syscall.h>
 
-#ifdef HOST_BUILD
-#include "android/utils/tempfile.h"
-#endif
 
 static inline int inline_memfd_create(const char* name, unsigned int flags) {
-#ifdef HOST_BUILD
-    TempFile* tmpFile = tempfile_create();
-    return open(tempfile_path(tmpFile), O_RDWR);
-    // TODO: Windows is not suppose to support VkSemaphoreGetFdInfoKHR
-#elif !defined(__ANDROID__)
-    (void)name;
-    (void)flags;
-    ALOGE("Not yet supported.");
-    abort();
-#else
+#if defined(__ANDROID__)
     return syscall(SYS_memfd_create, name, flags);
+#else
+    return -1;
 #endif
 }
 
@@ -199,10 +191,10 @@ struct CommandBufferPendingDescriptorSets {
     std::unordered_set<VkDescriptorSet> sets;
 };
 
-#define HANDLE_REGISTER_IMPL_IMPL(type)                \
-    void ResourceTracker::register_##type(type obj) {  \
-        AutoLock<RecursiveLock> lock(mLock);           \
-        info_##type[obj] = type##_Info();              \
+#define HANDLE_REGISTER_IMPL_IMPL(type)               \
+    void ResourceTracker::register_##type(type obj) { \
+        AutoLock<RecursiveLock> lock(mLock);          \
+        info_##type[obj] = type##_Info();             \
     }
 
 #define HANDLE_UNREGISTER_IMPL_IMPL(type)               \
@@ -285,7 +277,8 @@ bool descriptorBindingIsImmutableSampler(VkDescriptorSet dstSet, uint32_t dstBin
     return as_goldfish_VkDescriptorSet(dstSet)->reified->bindingIsImmutableSampler[dstBinding];
 }
 
-VkDescriptorImageInfo ResourceTracker::filterNonexistentSampler(const VkDescriptorImageInfo& inputInfo) {
+VkDescriptorImageInfo ResourceTracker::filterNonexistentSampler(
+    const VkDescriptorImageInfo& inputInfo) {
     VkSampler sampler = inputInfo.sampler;
 
     VkDescriptorImageInfo res = inputInfo;
@@ -299,9 +292,11 @@ VkDescriptorImageInfo ResourceTracker::filterNonexistentSampler(const VkDescript
     return res;
 }
 
-void ResourceTracker::emitDeviceMemoryReport(VkDevice_Info info, VkDeviceMemoryReportEventTypeEXT type,
-                            uint64_t memoryObjectId, VkDeviceSize size, VkObjectType objectType,
-                            uint64_t objectHandle, uint32_t heapIndex) {
+void ResourceTracker::emitDeviceMemoryReport(VkDevice_Info info,
+                                             VkDeviceMemoryReportEventTypeEXT type,
+                                             uint64_t memoryObjectId, VkDeviceSize size,
+                                             VkObjectType objectType, uint64_t objectHandle,
+                                             uint32_t heapIndex) {
     if (info.deviceMemoryReportCallbacks.empty()) return;
 
     const VkDeviceMemoryReportCallbackDataEXT callbackData = {
@@ -494,7 +489,7 @@ static VkFormat sysmemPixelFormatTypeToVk(fuchsia_sysmem::wire::PixelFormatType 
     }
 }
 
-// TODO(fxbug.dev/90856): This is currently only used for allocating
+// TODO(fxbug.dev/42172354): This is currently only used for allocating
 // memory for dedicated external images. It should be migrated to use
 // SetBufferCollectionImageConstraintsFUCHSIA.
 VkResult ResourceTracker::setBufferCollectionConstraintsFUCHSIA(
@@ -639,9 +634,10 @@ VkResult addImageBufferCollectionConstraintsFUCHSIA(
         createInfoDup.pNext = nullptr;
         enc->vkGetLinearImageLayout2GOOGLE(device, &createInfoDup, &offset, &rowPitchAlignment,
                                            true /* do lock */);
-        ALOGD("vkGetLinearImageLayout2GOOGLE: format %d offset %lu "
-          "rowPitchAlignment = %lu",
-          (int)createInfo->format, offset, rowPitchAlignment);
+        ALOGD(
+            "vkGetLinearImageLayout2GOOGLE: format %d offset %lu "
+            "rowPitchAlignment = %lu",
+            (int)createInfo->format, offset, rowPitchAlignment);
     }
 
     imageConstraints.min_coded_width = createInfo->extent.width;
@@ -706,7 +702,7 @@ SetBufferCollectionBufferConstraintsResult setBufferCollectionBufferConstraintsI
 
 uint64_t getAHardwareBufferId(AHardwareBuffer* ahw) {
     uint64_t id = 0;
-#if defined(PLATFORM_SDK_VERSION) && PLATFORM_SDK_VERSION >= 31
+#if defined(__ANDROID__) && ANDROID_API_LEVEL >= 31
     AHardwareBuffer_getId(ahw, &id);
 #else
     (void)ahw;
@@ -720,8 +716,8 @@ void transformExternalResourceMemoryDedicatedRequirementsForGuest(
     dedicatedReqs->requiresDedicatedAllocation = VK_TRUE;
 }
 
-void ResourceTracker::setMemoryRequirementsForSysmemBackedImage(VkImage image,
-    VkMemoryRequirements* pMemoryRequirements) {
+void ResourceTracker::transformImageMemoryRequirementsForGuestLocked(VkImage image,
+                                                                     VkMemoryRequirements* reqs) {
 #ifdef VK_USE_PLATFORM_FUCHSIA
     auto it = info_VkImage.find(image);
     if (it == info_VkImage.end()) return;
@@ -729,21 +725,25 @@ void ResourceTracker::setMemoryRequirementsForSysmemBackedImage(VkImage image,
     if (info.isSysmemBackedMemory) {
         auto width = info.createInfo.extent.width;
         auto height = info.createInfo.extent.height;
-        pMemoryRequirements->size = width * height * 4;
+        reqs->size = width * height * 4;
+    }
+#elif defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+    auto it = info_VkImage.find(image);
+    if (it == info_VkImage.end()) return;
+    auto& info = it->second;
+    if (info.isWsiImage) {
+        static const uint32_t kColorBufferBpp = 4;
+        reqs->size = kColorBufferBpp * info.createInfo.extent.width * info.createInfo.extent.height;
     }
 #else
     // Bypass "unused parameter" checks.
     (void)image;
-    (void)pMemoryRequirements;
+    (void)reqs;
 #endif
 }
 
-void ResourceTracker::transformImageMemoryRequirementsForGuestLocked(VkImage image,
-    VkMemoryRequirements* reqs) {
-    setMemoryRequirementsForSysmemBackedImage(image, reqs);
-}
-
-CoherentMemoryPtr ResourceTracker::freeCoherentMemoryLocked(VkDeviceMemory memory, VkDeviceMemory_Info& info) {
+CoherentMemoryPtr ResourceTracker::freeCoherentMemoryLocked(VkDeviceMemory memory,
+                                                            VkDeviceMemory_Info& info) {
     if (info.coherentMemory && info.ptr) {
         if (info.coherentMemory->getDeviceMemory() != memory) {
             delete_goldfish_VkDeviceMemory(memory);
@@ -995,7 +995,7 @@ void decDescriptorSetLayoutRef(void* context, VkDevice device,
 }
 
 void ResourceTracker::ensureSyncDeviceFd() {
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
     if (mSyncDeviceFd >= 0) return;
     mSyncDeviceFd = goldfish_sync_open();
     if (mSyncDeviceFd >= 0) {
@@ -1340,7 +1340,8 @@ void ResourceTracker::setDeviceInfo(VkDevice device, VkPhysicalDevice physdev,
 void ResourceTracker::setDeviceMemoryInfo(VkDevice device, VkDeviceMemory memory,
                                           VkDeviceSize allocationSize, uint8_t* ptr,
                                           uint32_t memoryTypeIndex, AHardwareBuffer* ahw,
-                                          bool imported, zx_handle_t vmoHandle) {
+                                          bool imported, zx_handle_t vmoHandle,
+                                          VirtGpuBlobPtr blobPtr) {
     AutoLock<RecursiveLock> lock(mLock);
     auto& info = info_VkDeviceMemory[memory];
 
@@ -1353,6 +1354,7 @@ void ResourceTracker::setDeviceMemoryInfo(VkDevice device, VkDeviceMemory memory
 #endif
     info.imported = imported;
     info.vmoHandle = vmoHandle;
+    info.blobPtr = blobPtr;
 }
 
 void ResourceTracker::setImageInfo(VkImage image, VkDevice device,
@@ -1641,6 +1643,7 @@ VkResult ResourceTracker::on_vkEnumerateInstanceExtensionProperties(
         "VK_KHR_external_semaphore_capabilities",
         "VK_KHR_external_memory_capabilities",
         "VK_KHR_external_fence_capabilities",
+        "VK_EXT_debug_utils",
 #endif
     };
 
@@ -1758,8 +1761,11 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         "VK_KHR_incremental_present",
         "VK_KHR_pipeline_executable_properties",
         "VK_EXT_queue_family_foreign",
+        "VK_EXT_scalar_block_layout",
         "VK_KHR_descriptor_update_template",
         "VK_KHR_storage_buffer_storage_class",
+        "VK_EXT_depth_clip_enable",
+        "VK_KHR_create_renderpass2",
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         "VK_KHR_external_semaphore",
         "VK_KHR_external_semaphore_fd",
@@ -1769,8 +1775,7 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         "VK_KHR_external_fence_fd",
         "VK_EXT_device_memory_report",
 #endif
-#if !defined(VK_USE_PLATFORM_ANDROID_KHR) && defined(__linux__)
-        "VK_KHR_create_renderpass2",
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
         "VK_KHR_imageless_framebuffer",
 #endif
         // Vulkan 1.3
@@ -1793,15 +1798,6 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
             return hostRes;
         }
     }
-
-    bool hostHasWin32ExternalSemaphore =
-        getHostDeviceExtensionIndex("VK_KHR_external_semaphore_win32") != -1;
-
-    bool hostHasPosixExternalSemaphore =
-        getHostDeviceExtensionIndex("VK_KHR_external_semaphore_fd") != -1;
-
-    bool hostSupportsExternalSemaphore =
-        hostHasWin32ExternalSemaphore || hostHasPosixExternalSemaphore;
 
     std::vector<VkExtensionProperties> filteredExts;
 
@@ -1836,7 +1832,13 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
 #endif
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-    if (hostSupportsExternalSemaphore && !hostHasPosixExternalSemaphore) {
+    bool hostHasPosixExternalSemaphore =
+        getHostDeviceExtensionIndex("VK_KHR_external_semaphore_fd") != -1;
+    if (!hostHasPosixExternalSemaphore) {
+        // Always advertise posix external semaphore capabilities on Android/Linux.
+        // SYNC_FD handles will always work, regardless of host support. Support
+        // for non-sync, opaque FDs, depends on host driver support, but will
+        // be handled accordingly by host.
         filteredExts.push_back(VkExtensionProperties{"VK_KHR_external_semaphore_fd", 1});
     }
 #endif
@@ -1844,9 +1846,11 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
     bool win32ExtMemAvailable = getHostDeviceExtensionIndex("VK_KHR_external_memory_win32") != -1;
     bool posixExtMemAvailable = getHostDeviceExtensionIndex("VK_KHR_external_memory_fd") != -1;
     bool moltenVkExtAvailable = getHostDeviceExtensionIndex("VK_MVK_moltenvk") != -1;
+    bool qnxExtMemAvailable =
+        getHostDeviceExtensionIndex("VK_QNX_external_memory_screen_buffer") != -1;
 
     bool hostHasExternalMemorySupport =
-        win32ExtMemAvailable || posixExtMemAvailable || moltenVkExtAvailable;
+        win32ExtMemAvailable || posixExtMemAvailable || moltenVkExtAvailable || qnxExtMemAvailable;
 
     if (hostHasExternalMemorySupport) {
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
@@ -1863,6 +1867,24 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         filteredExts.push_back(VkExtensionProperties{"VK_EXT_external_memory_dma_buf", 1});
 #endif
     }
+
+    // NOTE: the Vulkan Loader's trampoline functions will remove duplicates. This can lead
+    // to lead errors if this function returns VK_SUCCESS with N elements (including a duplicate)
+    // but the Vulkan Loader's trampoline function returns VK_INCOMPLETE with N-1 elements
+    // (without the duplicate).
+    std::sort(filteredExts.begin(),
+              filteredExts.end(),
+              [](const VkExtensionProperties& a,
+                 const VkExtensionProperties& b) {
+                  return strcmp(a.extensionName, b.extensionName) < 0;
+              });
+    filteredExts.erase(std::unique(filteredExts.begin(),
+                                   filteredExts.end(),
+                                   [](const VkExtensionProperties& a,
+                                      const VkExtensionProperties& b) {
+                                       return strcmp(a.extensionName, b.extensionName) == 0;
+                                   }),
+                       filteredExts.end());
 
     // Spec:
     //
@@ -2008,7 +2030,19 @@ VkResult ResourceTracker::on_vkEnumeratePhysicalDevices(void* context, VkResult,
 }
 
 void ResourceTracker::on_vkGetPhysicalDeviceProperties(void*, VkPhysicalDevice,
-                                                       VkPhysicalDeviceProperties*) {}
+                                                       VkPhysicalDeviceProperties* pProperties) {
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+    if (pProperties) {
+        if (VK_PHYSICAL_DEVICE_TYPE_CPU == pProperties->deviceType) {
+            /* For Linux guest: Even if host driver reports DEVICE_TYPE_CPU,
+             * override this to VIRTUAL_GPU, otherwise Linux DRM interfaces
+             * will take unexpected code paths to deal with "software" driver
+             */
+            pProperties->deviceType = VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+        }
+    }
+#endif
+}
 
 void ResourceTracker::on_vkGetPhysicalDeviceFeatures2(void*, VkPhysicalDevice,
                                                       VkPhysicalDeviceFeatures2* pFeatures) {
@@ -2027,7 +2061,8 @@ void ResourceTracker::on_vkGetPhysicalDeviceFeatures2KHR(void* context,
     on_vkGetPhysicalDeviceFeatures2(context, physicalDevice, pFeatures);
 }
 
-void ResourceTracker::on_vkGetPhysicalDeviceProperties2(void*, VkPhysicalDevice,
+void ResourceTracker::on_vkGetPhysicalDeviceProperties2(void* context,
+                                                        VkPhysicalDevice physicalDevice,
                                                         VkPhysicalDeviceProperties2* pProperties) {
     if (pProperties) {
         VkPhysicalDeviceDeviceMemoryReportFeaturesEXT* memoryReportFeaturesEXT =
@@ -2035,6 +2070,7 @@ void ResourceTracker::on_vkGetPhysicalDeviceProperties2(void*, VkPhysicalDevice,
         if (memoryReportFeaturesEXT) {
             memoryReportFeaturesEXT->deviceMemoryReport = VK_TRUE;
         }
+        on_vkGetPhysicalDeviceProperties(context, physicalDevice, &pProperties->properties);
     }
 }
 
@@ -2120,6 +2156,12 @@ void ResourceTracker::on_vkDestroyDevice_pre(void* context, VkDevice device,
         }
     }
 }
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+void updateMemoryTypeBits(uint32_t* memoryTypeBits, uint32_t memoryIndex) {
+    *memoryTypeBits = 1u << memoryIndex;
+}
+#endif
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 
@@ -2257,7 +2299,7 @@ VkResult ResourceTracker::on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
         // Importing read-only host memory into the Vulkan driver should not
         // work, but it is not an error to try to do so. Returning a
         // VkMemoryZirconHandlePropertiesFUCHSIA with no available
-        // memoryType bits should be enough for clients. See fxbug.dev/24225
+        // memoryType bits should be enough for clients. See fxbug.dev/42098398
         // for other issues this this flow.
         ALOGW("GetBufferHandleInfo failed: %d", result.value().error_value());
         pProperties->memoryTypeBits = 0;
@@ -2489,7 +2531,7 @@ SetBufferCollectionImageConstraintsResult ResourceTracker::setBufferCollectionIm
                 ALOGW(
                     "%s: Non-zero flags (%08x) in image format "
                     "constraints; this is currently not supported, see "
-                    "fxbug.dev/68833.",
+                    "fxbug.dev/42147900.",
                     __func__, formatConstraints->flags);
             }
         }
@@ -2822,6 +2864,33 @@ VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
 }
 #endif
 
+static uint32_t getVirglFormat(VkFormat vkFormat) {
+    uint32_t virglFormat = 0;
+
+    switch (vkFormat) {
+        case VK_FORMAT_R8G8B8A8_SINT:
+        case VK_FORMAT_R8G8B8A8_UNORM:
+        case VK_FORMAT_R8G8B8A8_SRGB:
+        case VK_FORMAT_R8G8B8A8_SNORM:
+        case VK_FORMAT_R8G8B8A8_SSCALED:
+        case VK_FORMAT_R8G8B8A8_USCALED:
+            virglFormat = VIRGL_FORMAT_R8G8B8A8_UNORM;
+            break;
+        case VK_FORMAT_B8G8R8A8_SINT:
+        case VK_FORMAT_B8G8R8A8_UNORM:
+        case VK_FORMAT_B8G8R8A8_SRGB:
+        case VK_FORMAT_B8G8R8A8_SNORM:
+        case VK_FORMAT_B8G8R8A8_SSCALED:
+        case VK_FORMAT_B8G8R8A8_USCALED:
+            virglFormat = VIRGL_FORMAT_B8G8R8A8_UNORM;
+            break;
+        default:
+            break;
+    }
+
+    return virglFormat;
+}
+
 CoherentMemoryPtr ResourceTracker::createCoherentMemory(
     VkDevice device, VkDeviceMemory mem, const VkMemoryAllocateInfo& hostAllocationInfo,
     VkEncoder* enc, VkResult& res) {
@@ -2986,7 +3055,7 @@ VkResult ResourceTracker::allocateCoherentMemory(VkDevice device,
         exec.command_size = sizeof(placeholderCmd);
         exec.flags = kRingIdx;
         exec.ring_idx = 1;
-        if (instance->execBuffer(exec, guestBlob)) {
+        if (instance->execBuffer(exec, guestBlob.get())) {
             ALOGE("Failed to allocate coherent memory: failed to execbuffer for wait.");
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
@@ -3200,6 +3269,13 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
     const void* importAhbInfoPtr = nullptr;
 #endif
 
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+    const VkImportMemoryFdInfoKHR* importFdInfoPtr =
+        vk_find_struct<VkImportMemoryFdInfoKHR>(pAllocateInfo);
+#else
+    const VkImportMemoryFdInfoKHR* importFdInfoPtr = nullptr;
+#endif
+
 #ifdef VK_USE_PLATFORM_FUCHSIA
     const VkImportMemoryBufferCollectionFUCHSIA* importBufferCollectionInfoPtr =
         vk_find_struct<VkImportMemoryBufferCollectionFUCHSIA>(pAllocateInfo);
@@ -3247,9 +3323,11 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
     // State needed for import/export.
     bool exportAhb = false;
     bool exportVmo = false;
+    bool exportDmabuf = false;
     bool importAhb = false;
     bool importBufferCollection = false;
     bool importVmo = false;
+    bool importDmabuf = false;
     (void)exportVmo;
 
     // Even if we export allocate, the underlying operation
@@ -3270,6 +3348,9 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
         exportVmo = exportAllocateInfoPtr->handleTypes &
                     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
 #endif  // VK_USE_PLATFORM_FUCHSIA
+        exportDmabuf =
+            exportAllocateInfoPtr->handleTypes & (VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT |
+                                                  VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
     } else if (importAhbInfoPtr) {
         importAhb = true;
     } else if (importBufferCollectionInfoPtr) {
@@ -3277,7 +3358,13 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
     } else if (importVmoInfoPtr) {
         importVmo = true;
     }
-    bool isImport = importAhb || importBufferCollection || importVmo;
+
+    if (importFdInfoPtr) {
+        importDmabuf =
+            (importFdInfoPtr->handleType & (VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT |
+                                            VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT));
+    }
+    bool isImport = importAhb || importBufferCollection || importVmo || importDmabuf;
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     if (exportAhb) {
@@ -3344,7 +3431,8 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
             ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
 
         const uint32_t hostHandle = gralloc->getHostHandle(ahw);
-        if (gralloc->getFormat(ahw) == AHARDWAREBUFFER_FORMAT_BLOB) {
+        if (gralloc->getFormat(ahw) == AHARDWAREBUFFER_FORMAT_BLOB &&
+            !gralloc->treatBlobAsImage()) {
             importBufferInfo.buffer = hostHandle;
             vk_append_struct(&structChainIter, &importBufferInfo);
         } else {
@@ -3472,7 +3560,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
             fidl::WireSyncClient<fuchsia_sysmem::BufferCollection> collection(
                 std::move(collection_ends->client));
             if (hasDedicatedImage) {
-                // TODO(fxbug.dev/90856): Use setBufferCollectionImageConstraintsFUCHSIA.
+                // TODO(fxbug.dev/42172354): Use setBufferCollectionImageConstraintsFUCHSIA.
                 VkResult res = setBufferCollectionConstraintsFUCHSIA(enc, device, &collection,
                                                                      pImageCreateInfo);
                 if (res == VK_ERROR_FORMAT_NOT_SUPPORTED) {
@@ -3650,7 +3738,96 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
     }
 #endif
 
-    if (ahw || !requestedMemoryIsHostVisible) {
+    VirtGpuBlobPtr colorBufferBlob = nullptr;
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+    if (exportDmabuf) {
+        VirtGpuDevice* instance = VirtGpuDevice::getInstance();
+        // // TODO: any special action for VK_STRUCTURE_TYPE_WSI_MEMORY_ALLOCATE_INFO_MESA? Can mark
+        // special state if needed.
+        // // const wsi_memory_allocate_info* wsiAllocateInfoPtr =
+        // vk_find_struct<wsi_memory_allocate_info>(pAllocateInfo);
+        bool hasDedicatedImage =
+            dedicatedAllocInfoPtr && (dedicatedAllocInfoPtr->image != VK_NULL_HANDLE);
+        bool hasDedicatedBuffer =
+            dedicatedAllocInfoPtr && (dedicatedAllocInfoPtr->buffer != VK_NULL_HANDLE);
+        if (!hasDedicatedImage && !hasDedicatedBuffer) {
+            ALOGE(
+                "%s: dma-buf exportable memory requires dedicated Image or Buffer information.\n");
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
+
+        if (hasDedicatedImage) {
+            VkImageCreateInfo imageCreateInfo;
+            {
+                AutoLock<RecursiveLock> lock(mLock);
+
+                auto it = info_VkImage.find(dedicatedAllocInfoPtr->image);
+                if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
+                const auto& imageInfo = it->second;
+
+                imageCreateInfo = imageInfo.createInfo;
+            }
+            uint32_t virglFormat = gfxstream::vk::getVirglFormat(imageCreateInfo.format);
+            if (virglFormat < 0) {
+                ALOGE("%s: Unsupported VK format for colorBuffer, vkFormat: 0x%x", __func__,
+                      imageCreateInfo.format);
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+            }
+            colorBufferBlob = instance->createVirglBlob(imageCreateInfo.extent.width,
+                                                        imageCreateInfo.extent.height, virglFormat);
+            if (!colorBufferBlob) {
+                ALOGE("%s: Failed to create colorBuffer resource for Image memory\n", __func__);
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+            if (0 != colorBufferBlob->wait()) {
+                ALOGE("%s: Failed to wait for colorBuffer resource for Image memory\n", __func__);
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+        }
+
+        if (hasDedicatedBuffer) {
+            VkBufferCreateInfo bufferCreateInfo;
+            {
+                AutoLock<RecursiveLock> lock(mLock);
+
+                auto it = info_VkBuffer.find(dedicatedAllocInfoPtr->buffer);
+                if (it == info_VkBuffer.end()) return VK_ERROR_INITIALIZATION_FAILED;
+                const auto& bufferInfo = it->second;
+                bufferCreateInfo = bufferInfo.createInfo;
+            }
+            colorBufferBlob = instance->createVirglBlob(bufferCreateInfo.size / 4, 1,
+                                                        VIRGL_FORMAT_R8G8B8A8_UNORM);
+            if (!colorBufferBlob) {
+                ALOGE("%s: Failed to create colorBuffer resource for Buffer memory\n", __func__);
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+            if (0 != colorBufferBlob->wait()) {
+                ALOGE("%s: Failed to wait for colorBuffer resource for Buffer memory\n", __func__);
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+        }
+    }
+
+    if (importDmabuf) {
+        VirtGpuExternalHandle importHandle = {};
+        importHandle.osHandle = importFdInfoPtr->fd;
+        importHandle.type = kMemHandleDmabuf;
+
+        auto instance = VirtGpuDevice::getInstance();
+        colorBufferBlob = instance->importBlob(importHandle);
+        if (!colorBufferBlob) {
+            ALOGE("%s: Failed to import colorBuffer resource\n", __func__);
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
+    }
+
+    if (colorBufferBlob) {
+        importCbInfo.colorBuffer = colorBufferBlob->getResourceHandle();
+        vk_append_struct(&structChainIter, &importCbInfo);
+    }
+#endif
+
+    if (ahw || colorBufferBlob || !requestedMemoryIsHostVisible) {
         input_result =
             enc->vkAllocateMemory(device, &finalAllocInfo, pAllocator, pMemory, true /* do lock */);
 
@@ -3658,7 +3835,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
 
         VkDeviceSize allocationSize = finalAllocInfo.allocationSize;
         setDeviceMemoryInfo(device, *pMemory, 0, nullptr, finalAllocInfo.memoryTypeIndex, ahw,
-                            isImport, vmo_handle);
+                            isImport, vmo_handle, colorBufferBlob);
 
         _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
     }
@@ -3693,7 +3870,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
 
         setDeviceMemoryInfo(device, *pMemory, finalAllocInfo.allocationSize,
                             reinterpret_cast<uint8_t*>(addr), finalAllocInfo.memoryTypeIndex,
-                            /*ahw=*/nullptr, isImport, vmo_handle);
+                            /*ahw=*/nullptr, isImport, vmo_handle, /*blobPtr=*/nullptr);
         return VK_SUCCESS;
     }
 #endif
@@ -3836,11 +4013,11 @@ void ResourceTracker::transformImageMemoryRequirements2ForGuest(VkImage image,
     auto& info = it->second;
 
     if (!info.external || !info.externalCreateInfo.handleTypes) {
-        setMemoryRequirementsForSysmemBackedImage(image, &reqs2->memoryRequirements);
+        transformImageMemoryRequirementsForGuestLocked(image, &reqs2->memoryRequirements);
         return;
     }
 
-    setMemoryRequirementsForSysmemBackedImage(image, &reqs2->memoryRequirements);
+    transformImageMemoryRequirementsForGuestLocked(image, &reqs2->memoryRequirements);
 
     VkMemoryDedicatedRequirements* dedicatedReqs =
         vk_find_struct<VkMemoryDedicatedRequirements>(reqs2);
@@ -3888,10 +4065,28 @@ VkResult ResourceTracker::on_vkCreateImage(void* context, VkResult, VkDevice dev
 
     const VkExternalMemoryImageCreateInfo* extImgCiPtr =
         vk_find_struct<VkExternalMemoryImageCreateInfo>(pCreateInfo);
+
     if (extImgCiPtr) {
         localExtImgCi = vk_make_orphan_copy(*extImgCiPtr);
         vk_append_struct(&structChainIter, &localExtImgCi);
     }
+
+    bool isWsiImage = false;
+
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+    if (extImgCiPtr &&
+        (extImgCiPtr->handleTypes & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT)) {
+        // Assumes that handleType with DMA_BUF_BIT indicates creation of a
+        // image for WSI use; no other external dma_buf usage is supported
+        isWsiImage = true;
+        // Must be linear. Otherwise querying stride and other properties
+        // can be implementation-dependent.
+        localCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
+        if (gfxstream::vk::getVirglFormat(localCreateInfo.format) < 0) {
+            localCreateInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+        }
+    }
+#endif
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     VkNativeBufferANDROID localAnb;
@@ -4064,13 +4259,16 @@ VkResult ResourceTracker::on_vkCreateImage(void* context, VkResult, VkDevice dev
     }
 #endif
 
+    info.isWsiImage = isWsiImage;
+
 // Delete `protocolVersion` check goldfish drivers are gone.
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
     if (mCaps.vulkanCapset.colorBufferMemoryIndex == 0xFFFFFFFF) {
         mCaps.vulkanCapset.colorBufferMemoryIndex = getColorBufferMemoryIndex(context, device);
     }
-    if (extImgCiPtr && (extImgCiPtr->handleTypes &
-                        VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
+    if (isWsiImage ||
+        (extImgCiPtr && (extImgCiPtr->handleTypes &
+                         VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID))) {
         updateMemoryTypeBits(&memReqs.memoryTypeBits, mCaps.vulkanCapset.colorBufferMemoryIndex);
     }
 #endif
@@ -4311,7 +4509,7 @@ VkResult ResourceTracker::on_vkResetFences(void* context, VkResult, VkDevice dev
         auto& info = it->second;
         if (!info.external) continue;
 
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
         if (info.syncFd >= 0) {
             ALOGV("%s: resetting fence. make fd -1\n", __func__);
             goldfish_sync_signal(info.syncFd);
@@ -4360,11 +4558,13 @@ VkResult ResourceTracker::on_vkImportFenceFdKHR(void* context, VkResult, VkDevic
     auto& info = it->second;
 
     auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
     if (info.syncFd >= 0) {
         ALOGV("%s: previous sync fd exists, close it\n", __func__);
         goldfish_sync_signal(info.syncFd);
         syncHelper->close(info.syncFd);
     }
+#endif
 
     if (pImportFenceFdInfo->fd < 0) {
         ALOGV("%s: import -1, set to -1 and exit\n", __func__);
@@ -4446,10 +4646,12 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
 
             *pFd = osHandle;
         } else {
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
             goldfish_sync_queue_work(
                 mSyncDeviceFd, get_host_u64_VkFence(pGetFdInfo->fence) /* the handle */,
                 GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC /* thread handle (doubling as type field) */,
                 pFd);
+#endif
         }
 
         // relinquish ownership
@@ -4960,7 +5162,6 @@ VkResult ResourceTracker::on_vkCreateBuffer(void* context, VkResult, VkDevice de
         vk_append_struct(&structChainIter, &localExtBufCi);
     }
 
-
     VkBufferOpaqueCaptureAddressCreateInfo localCapAddrCi;
     const VkBufferOpaqueCaptureAddressCreateInfo* pCapAddrCi =
         vk_find_struct<VkBufferOpaqueCaptureAddressCreateInfo>(pCreateInfo);
@@ -5036,12 +5237,14 @@ VkResult ResourceTracker::on_vkCreateBuffer(void* context, VkResult, VkDevice de
 
     if (res != VK_SUCCESS) return res;
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
     if (mCaps.vulkanCapset.colorBufferMemoryIndex == 0xFFFFFFFF) {
         mCaps.vulkanCapset.colorBufferMemoryIndex = getColorBufferMemoryIndex(context, device);
     }
-    if (extBufCiPtr && (extBufCiPtr->handleTypes &
-                        VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
+    if (extBufCiPtr &&
+        ((extBufCiPtr->handleTypes &
+          VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) ||
+         (extBufCiPtr->handleTypes & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT))) {
         updateMemoryTypeBits(&memReqs.memoryTypeBits, mCaps.vulkanCapset.colorBufferMemoryIndex);
     }
 #endif
@@ -5219,6 +5422,7 @@ VkResult ResourceTracker::on_vkCreateSemaphore(void* context, VkResult input_res
 
             info.syncFd.emplace(osHandle);
         } else {
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
             ensureSyncDeviceFd();
 
             if (exportSyncFd) {
@@ -5230,6 +5434,7 @@ VkResult ResourceTracker::on_vkCreateSemaphore(void* context, VkResult input_res
                     &syncFd);
                 info.syncFd.emplace(syncFd);
             }
+#endif
         }
     }
 #endif
@@ -5329,6 +5534,53 @@ VkResult ResourceTracker::on_vkImportSemaphoreFdKHR(
     (void)input_result;
     (void)device;
     (void)pImportSemaphoreFdInfo;
+    return VK_ERROR_INCOMPATIBLE_DRIVER;
+#endif
+}
+
+VkResult ResourceTracker::on_vkGetMemoryFdKHR(void* context, VkResult, VkDevice device,
+                                              const VkMemoryGetFdInfoKHR* pGetFdInfo, int* pFd) {
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+    if (!pGetFdInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+    if (!pGetFdInfo->memory) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+    if (!(pGetFdInfo->handleType & (VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT |
+                                    VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT))) {
+        ALOGE("%s: Export operation not defined for handleType: 0x%x\n", __func__,
+              pGetFdInfo->handleType);
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+    // Sanity-check device
+    AutoLock<RecursiveLock> lock(mLock);
+    auto deviceIt = info_VkDevice.find(device);
+    if (deviceIt == info_VkDevice.end()) {
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
+    auto deviceMemIt = info_VkDeviceMemory.find(pGetFdInfo->memory);
+    if (deviceMemIt == info_VkDeviceMemory.end()) {
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+    auto& info = deviceMemIt->second;
+
+    if (!info.blobPtr) {
+        ALOGE("%s: VkDeviceMemory does not have a resource available for export.\n", __func__);
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
+    VirtGpuExternalHandle handle{};
+    int ret = info.blobPtr->exportBlob(handle);
+    if (ret != 0 || handle.osHandle < 0) {
+        ALOGE("%s: Failed to export host resource to FD.\n", __func__);
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+    *pFd = handle.osHandle;
+    return VK_SUCCESS;
+#else
+    (void)context;
+    (void)device;
+    (void)pGetFdInfo;
+    (void)pFd;
     return VK_ERROR_INCOMPATIBLE_DRIVER;
 #endif
 }
@@ -5529,7 +5781,7 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
                     post_wait_events.push_back({semInfo.eventHandle, semInfo.eventKoid});
 #ifndef FUCHSIA_NO_TRACE
                     if (semInfo.eventKoid != ZX_KOID_INVALID) {
-                        // TODO(fxbug.dev/66098): Remove the "semaphore"
+                        // TODO(fxbug.dev/42144867): Remove the "semaphore"
                         // FLOW_END events once it is removed from clients
                         // (for example, gfx Engine).
                         TRACE_FLOW_END("gfx", "semaphore", semInfo.eventKoid);
@@ -5630,7 +5882,7 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
                 zx_object_signal(event, 0, ZX_EVENT_SIGNALED);
             }
 #endif
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
             for (auto& fd : post_wait_sync_fds) {
                 goldfish_sync_signal(fd);
             }
@@ -5683,9 +5935,14 @@ void ResourceTracker::unwrap_VkNativeBufferANDROID(const VkNativeBufferANDROID* 
     }
 
     auto* gralloc = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
+    const native_handle_t* nativeHandle = (const native_handle_t*)inputNativeInfo->handle;
 
-    *(uint32_t*)(outputNativeInfo->handle) =
-        gralloc->getHostHandle((const native_handle_t*)inputNativeInfo->handle);
+#if defined(END2END_TESTS)
+    // This is valid since the testing backend creates the handle and we know the layout.
+    *(uint32_t*)(outputNativeInfo->handle) = (uint32_t)nativeHandle->data[0];
+#else
+    *(uint32_t*)(outputNativeInfo->handle) = gralloc->getHostHandle(nativeHandle);
+#endif
 }
 
 void ResourceTracker::unwrap_VkBindImageMemorySwapchainInfoKHR(
@@ -5696,8 +5953,7 @@ void ResourceTracker::unwrap_VkBindImageMemorySwapchainInfoKHR(
     }
 
     if (!outputBimsi || !outputBimsi->swapchain) {
-        ALOGE("FATAL: Local VkBindImageMemorySwapchainInfoKHR not properly allocated!");
-        abort();
+        return;
     }
 
     // Android based swapchains are implemented by the Android framework's
@@ -6020,6 +6276,14 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
 
                 memcpy(((uint8_t*)imageInfos) + currImageInfoOffset, user,
                        sizeof(VkDescriptorImageInfo));
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+                // Convert mesa to internal for objects in the user buffer
+                VkDescriptorImageInfo* internalImageInfo =
+                    (VkDescriptorImageInfo*)(((uint8_t*)imageInfos) + currImageInfoOffset);
+                VK_FROM_HANDLE(gfxstream_vk_image_view, gfxstream_image_view,
+                               internalImageInfo->imageView);
+                internalImageInfo->imageView = gfxstream_image_view->internal_object;
+#endif
                 currImageInfoOffset += sizeof(VkDescriptorImageInfo);
             }
 
@@ -6039,6 +6303,13 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
 
                 memcpy(((uint8_t*)bufferInfos) + currBufferInfoOffset, user,
                        sizeof(VkDescriptorBufferInfo));
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+                // Convert mesa to internal for objects in the user buffer
+                VkDescriptorBufferInfo* internalBufferInfo =
+                    (VkDescriptorBufferInfo*)(((uint8_t*)bufferInfos) + currBufferInfoOffset);
+                VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, internalBufferInfo->buffer);
+                internalBufferInfo->buffer = gfxstream_buffer->internal_object;
+#endif
                 currBufferInfoOffset += sizeof(VkDescriptorBufferInfo);
             }
 
@@ -6057,6 +6328,15 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
                 const VkBufferView* user = (const VkBufferView*)(userBuffer + offset + j * stride);
 
                 memcpy(((uint8_t*)bufferViews) + currBufferViewOffset, user, sizeof(VkBufferView));
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+                // Convert mesa to internal for objects in the user buffer
+                VkBufferView* internalBufferView =
+                    (VkBufferView*)(((uint8_t*)bufferViews) + currBufferViewOffset);
+                VK_FROM_HANDLE(gfxstream_vk_buffer_view, gfxstream_buffer_view,
+                               *internalBufferView);
+                *internalBufferView = gfxstream_buffer_view->internal_object;
+#endif
+
                 currBufferViewOffset += sizeof(VkBufferView);
             }
 
@@ -6094,6 +6374,13 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
         bufferViews, inlineUniformBlockBuffer, true /* do lock */);
 }
 
+void ResourceTracker::on_vkUpdateDescriptorSetWithTemplateKHR(
+    void* context, VkDevice device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, const void* pData) {
+    on_vkUpdateDescriptorSetWithTemplate(context, device, descriptorSet, descriptorUpdateTemplate,
+                                         pData);
+}
+
 VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2_common(
     bool isKhr, void* context, VkResult input_result, VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
@@ -6119,7 +6406,6 @@ VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2_common(
         VK_FORMAT_R8G8_SSCALED,   VK_FORMAT_R8G8_SRGB,
     };
 
-
     if (ext_img_properties) {
         if (std::find(std::begin(kExternalImageSupportedFormats),
                       std::end(kExternalImageSupportedFormats),
@@ -6134,7 +6420,7 @@ VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2_common(
     VkAndroidHardwareBufferUsageANDROID* output_ahw_usage =
         vk_find_struct<VkAndroidHardwareBufferUsageANDROID>(pImageFormatProperties);
     supportedHandleType |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT |
-        VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
+                           VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
 #endif
     const VkPhysicalDeviceExternalImageFormatInfo* ext_img_info =
         vk_find_struct<VkPhysicalDeviceExternalImageFormatInfo>(pImageFormatInfo);
@@ -6181,7 +6467,8 @@ VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2_common(
     }
 #endif
     if (ext_img_properties) {
-        transformImpl_VkExternalMemoryProperties_fromhost(&ext_img_properties->externalMemoryProperties, 0);
+        transformImpl_VkExternalMemoryProperties_fromhost(
+            &ext_img_properties->externalMemoryProperties, 0);
     }
     return hostRes;
 }
@@ -6210,17 +6497,31 @@ void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferProperties_common(
     VkExternalBufferProperties* pExternalBufferProperties) {
     VkEncoder* enc = (VkEncoder*)context;
 
+    // Older versions of Goldfish's Gralloc did not support allocating AHARDWAREBUFFER_FORMAT_BLOB
+    // with GPU usage (b/299520213).
+    if (ResourceTracker::threadingCallbacks.hostConnectionGetFunc()
+            ->grallocHelper()
+            ->treatBlobAsImage() &&
+        pExternalBufferInfo->handleType ==
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
+        pExternalBufferProperties->externalMemoryProperties.externalMemoryFeatures = 0;
+        pExternalBufferProperties->externalMemoryProperties.exportFromImportedHandleTypes = 0;
+        pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = 0;
+        return;
+    }
+
     uint32_t supportedHandleType = 0;
 #ifdef VK_USE_PLATFORM_FUCHSIA
     supportedHandleType |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
 #endif
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     supportedHandleType |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT |
-            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
+                           VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
 #endif
     if (supportedHandleType) {
         // 0 is a valid handleType so we can't check against 0
-        if (pExternalBufferInfo->handleType != (pExternalBufferInfo->handleType & supportedHandleType)) {
+        if (pExternalBufferInfo->handleType !=
+            (pExternalBufferInfo->handleType & supportedHandleType)) {
             return;
         }
     }
@@ -6232,7 +6533,8 @@ void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferProperties_common(
         enc->vkGetPhysicalDeviceExternalBufferProperties(
             physicalDevice, pExternalBufferInfo, pExternalBufferProperties, true /* do lock */);
     }
-    transformImpl_VkExternalMemoryProperties_fromhost(&pExternalBufferProperties->externalMemoryProperties, 0);
+    transformImpl_VkExternalMemoryProperties_fromhost(
+        &pExternalBufferProperties->externalMemoryProperties, 0);
 }
 
 void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferProperties(
@@ -6241,8 +6543,7 @@ void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferProperties(
     VkExternalBufferProperties* pExternalBufferProperties) {
     return on_vkGetPhysicalDeviceExternalBufferProperties_common(
         false /* not KHR */, context, physicalDevice, pExternalBufferInfo,
-        pExternalBufferProperties
-    );
+        pExternalBufferProperties);
 }
 
 void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferPropertiesKHR(
@@ -6250,9 +6551,7 @@ void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     const VkPhysicalDeviceExternalBufferInfoKHR* pExternalBufferInfo,
     VkExternalBufferPropertiesKHR* pExternalBufferProperties) {
     return on_vkGetPhysicalDeviceExternalBufferProperties_common(
-        true /* is KHR */, context, physicalDevice, pExternalBufferInfo,
-        pExternalBufferProperties
-    );
+        true /* is KHR */, context, physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
 }
 
 void ResourceTracker::on_vkGetPhysicalDeviceExternalSemaphoreProperties(
@@ -6620,10 +6919,12 @@ VkResult ResourceTracker::exportSyncFdForQSRILocked(VkImage image, int* fd) {
 
         *fd = exec.handle.osHandle;
     } else {
+#if GFXSTREAM_ENABLE_GUEST_GOLDFISH
         ensureSyncDeviceFd();
         goldfish_sync_queue_work(
             mSyncDeviceFd, get_host_u64_VkImage(image) /* the handle */,
             GOLDFISH_SYNC_VULKAN_QSRI /* thread handle (doubling as type field) */, fd);
+#endif
     }
 
     ALOGV("%s: got fd: %d\n", __func__, *fd);
@@ -6756,8 +7057,10 @@ VkResult ResourceTracker::on_vkCreateGraphicsPipelines(
             vk_find_struct<VkPipelineRenderingCreateInfo>(&graphicsPipelineCreateInfo);
 
         if (pipelineRenderingInfo) {
-            forceDepthStencilState |= pipelineRenderingInfo->depthAttachmentFormat != VK_FORMAT_UNDEFINED;
-            forceDepthStencilState |= pipelineRenderingInfo->stencilAttachmentFormat != VK_FORMAT_UNDEFINED;
+            forceDepthStencilState |=
+                pipelineRenderingInfo->depthAttachmentFormat != VK_FORMAT_UNDEFINED;
+            forceDepthStencilState |=
+                pipelineRenderingInfo->stencilAttachmentFormat != VK_FORMAT_UNDEFINED;
             forceColorBlendState |= pipelineRenderingInfo->colorAttachmentCount != 0;
         }
 
@@ -6978,7 +7281,8 @@ ResourceTracker* ResourceTracker::get() {
 }
 
 // static
-ALWAYS_INLINE VkEncoder* ResourceTracker::getCommandBufferEncoder(VkCommandBuffer commandBuffer) {
+ALWAYS_INLINE_GFXSTREAM VkEncoder* ResourceTracker::getCommandBufferEncoder(
+    VkCommandBuffer commandBuffer) {
     if (!(ResourceTracker::streamFeatureBits &
           VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT)) {
         auto enc = ResourceTracker::getThreadLocalEncoder();
@@ -6999,7 +7303,7 @@ ALWAYS_INLINE VkEncoder* ResourceTracker::getCommandBufferEncoder(VkCommandBuffe
 }
 
 // static
-ALWAYS_INLINE VkEncoder* ResourceTracker::getQueueEncoder(VkQueue queue) {
+ALWAYS_INLINE_GFXSTREAM VkEncoder* ResourceTracker::getQueueEncoder(VkQueue queue) {
     auto enc = ResourceTracker::getThreadLocalEncoder();
     if (!(ResourceTracker::streamFeatureBits &
           VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT)) {
@@ -7009,7 +7313,7 @@ ALWAYS_INLINE VkEncoder* ResourceTracker::getQueueEncoder(VkQueue queue) {
 }
 
 // static
-ALWAYS_INLINE VkEncoder* ResourceTracker::getThreadLocalEncoder() {
+ALWAYS_INLINE_GFXSTREAM VkEncoder* ResourceTracker::getThreadLocalEncoder() {
     auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
     auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
     return vkEncoder;
@@ -7019,13 +7323,13 @@ ALWAYS_INLINE VkEncoder* ResourceTracker::getThreadLocalEncoder() {
 void ResourceTracker::setSeqnoPtr(uint32_t* seqnoptr) { sSeqnoPtr = seqnoptr; }
 
 // static
-ALWAYS_INLINE uint32_t ResourceTracker::nextSeqno() {
+ALWAYS_INLINE_GFXSTREAM uint32_t ResourceTracker::nextSeqno() {
     uint32_t res = __atomic_add_fetch(sSeqnoPtr, 1, __ATOMIC_SEQ_CST);
     return res;
 }
 
 // static
-ALWAYS_INLINE uint32_t ResourceTracker::getSeqno() {
+ALWAYS_INLINE_GFXSTREAM uint32_t ResourceTracker::getSeqno() {
     uint32_t res = __atomic_load_n(sSeqnoPtr, __ATOMIC_SEQ_CST);
     return res;
 }

@@ -472,10 +472,10 @@ protected:
 
 TEST_F(VulkanFrameBufferTest, VkColorBufferWithoutMemoryProperties) {
     // Create a color buffer without any memory properties restriction.
-    EXPECT_TRUE(setupVkColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE,
-                                   kArbitraryColorBufferHandle, true, /* vulkanOnly */
-                                   0                                  /* memoryProperty */
-                                   ));
+    EXPECT_TRUE(createVkColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE,
+                                    kArbitraryColorBufferHandle, true, /* vulkanOnly */
+                                    0                                  /* memoryProperty */
+                                    ));
     EXPECT_TRUE(teardownVkColorBuffer(kArbitraryColorBufferHandle));
 }
 
@@ -537,9 +537,9 @@ TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
     }
 
     // Create a color buffer with the target memory property flags.
-    EXPECT_TRUE(setupVkColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE,
-                                   kArbitraryColorBufferHandle, true, /* vulkanOnly */
-                                   static_cast<uint32_t>(kTargetMemoryPropertyFlags)));
+    EXPECT_TRUE(createVkColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE,
+                                    kArbitraryColorBufferHandle, true, /* vulkanOnly */
+                                    static_cast<uint32_t>(kTargetMemoryPropertyFlags)));
 
     uint32_t allocatedTypeIndex = 0u;
     EXPECT_TRUE(getColorBufferAllocationInfo(kArbitraryColorBufferHandle, nullptr,

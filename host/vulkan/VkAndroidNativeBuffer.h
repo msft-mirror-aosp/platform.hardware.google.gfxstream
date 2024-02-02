@@ -26,7 +26,7 @@
 #include "aemu/base/BumpPool.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
 #include "aemu/base/synchronization/Lock.h"
-#include "cereal/common/goldfish_vk_private_defs.h"
+#include "goldfish_vk_private_defs.h"
 
 namespace gfxstream {
 namespace vk {

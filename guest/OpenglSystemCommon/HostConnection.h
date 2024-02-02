@@ -17,24 +17,15 @@
 #define __COMMON_HOST_CONNECTION_H
 
 #include "ANativeWindow.h"
-#include "ChecksumCalculator.h"
 #include "EmulatorFeatureInfo.h"
 #include "Gralloc.h"
-#include "IOStream.h"
-#include "VirtGpu.h"
-#include "renderControl_enc.h"
 #include "Sync.h"
-#ifdef __Fuchsia__
-struct goldfish_dma_context;
-#else
-#include "goldfish_dma.h"
-#endif
+#include "VirtGpu.h"
+#include "gfxstream/guest/ChecksumCalculator.h"
+#include "gfxstream/guest/IOStream.h"
+#include "renderControl_enc.h"
 
-#ifdef GFXSTREAM
 #include <mutex>
-#else
-#include <utils/threads.h>
-#endif
 
 #include <memory>
 #include <optional>
@@ -56,11 +47,10 @@ class VkEncoder;
 // that will be used to track available emulator features.
 class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
-    ExtendedRCEncoderContext(gfxstream::guest::IOStream *stream, ChecksumCalculator *checksumCalculator)
-        : renderControl_encoder_context_t(stream, checksumCalculator),
-          m_dmaCxt(NULL), m_dmaPtr(NULL), m_dmaPhysAddr(0) { }
+    ExtendedRCEncoderContext(gfxstream::guest::IOStream *stream,
+                             gfxstream::guest::ChecksumCalculator *checksumCalculator)
+        : renderControl_encoder_context_t(stream, checksumCalculator) {}
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
-    void setDmaImpl(DmaImpl dmaImpl) { m_featureInfo.dmaImpl = dmaImpl; }
     void setHostComposition(HostComposition hostComposition) {
         m_featureInfo.hostComposition = hostComposition; }
     bool hasNativeSync() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V2; }
@@ -86,59 +76,16 @@ public:
     bool hasHWCMultiConfigs() const {
         return m_featureInfo.hasHWCMultiConfigs;
     }
-    DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
-    void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
-    void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
-        m_dmaPtr = dmaPtr;
-        m_dmaPhysAddr = dmaPhysAddr;
-    }
-    virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
-        if (m_dmaPtr && m_dmaPhysAddr) {
-            if (data != m_dmaPtr) {
-                memcpy(m_dmaPtr, data, size);
-            }
-            return m_dmaPhysAddr;
-        } else if (m_dmaCxt) {
-            return writeGoldfishDma(data, size, m_dmaCxt);
-        } else {
-            ALOGE("%s: ERROR: No DMA context bound!", __func__);
-            return 0;
-        }
-    }
     void setGLESMaxVersion(GLESMaxVersion ver) { m_featureInfo.glesMaxVersion = ver; }
     GLESMaxVersion getGLESMaxVersion() const { return m_featureInfo.glesMaxVersion; }
     bool hasDirectMem() const {
-#ifdef HOST_BUILD
-        // unit tests do not support restoring "guest" ram because there is no VM
-        return false;
-#else
         return m_featureInfo.hasDirectMem;
-#endif
     }
 
     const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
     EmulatorFeatureInfo* featureInfo() { return &m_featureInfo; }
 private:
-    static uint64_t writeGoldfishDma(void* data, uint32_t size,
-                                     struct goldfish_dma_context* dmaCxt) {
-#ifdef __Fuchsia__
-        ALOGE("%s Not implemented!", __FUNCTION__);
-        return 0u;
-#else
-        ALOGV("%s(data=%p, size=%u): call", __func__, data, size);
-
-        goldfish_dma_write(dmaCxt, data, size);
-        uint64_t paddr = goldfish_dma_guest_paddr(dmaCxt);
-
-        ALOGV("%s: paddr=0x%llx", __func__, (unsigned long long)paddr);
-        return paddr;
-#endif
-    }
-
     EmulatorFeatureInfo m_featureInfo;
-    struct goldfish_dma_context* m_dmaCxt;
-    void* m_dmaPtr;
-    uint64_t m_dmaPhysAddr;
 };
 
 struct EGLThreadInfo;
@@ -166,7 +113,7 @@ public:
 
     int getRendernodeFd() { return m_rendernodeFd; }
 
-    ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
+    gfxstream::guest::ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
 
     gfxstream::Gralloc* grallocHelper() { return m_grallocHelper; }
     void setGrallocHelperForTesting(gfxstream::Gralloc* gralloc) { m_grallocHelper = gralloc; }
@@ -252,17 +199,13 @@ private:
     gfxstream::vk::VkEncoder* m_vkEnc = nullptr;
     std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
-    ChecksumCalculator m_checksumHelper;
+    gfxstream::guest::ChecksumCalculator m_checksumHelper;
     gfxstream::ANativeWindowHelper* m_anwHelper = nullptr;
     gfxstream::Gralloc* m_grallocHelper = nullptr;
     std::unique_ptr<gfxstream::SyncHelper> m_syncHelper;
     std::string m_hostExtensions;
     bool m_noHostError;
-#ifdef GFXSTREAM
     mutable std::mutex m_lock;
-#else
-    mutable android::Mutex m_lock;
-#endif
     int m_rendernodeFd;
 };
 

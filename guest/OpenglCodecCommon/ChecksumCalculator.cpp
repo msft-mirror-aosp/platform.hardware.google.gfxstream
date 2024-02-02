@@ -14,9 +14,12 @@
 * limitations under the License.
 */
 
-#include "ChecksumCalculator.h"
+#include "gfxstream/guest/ChecksumCalculator.h"
 
 #include <string.h>
+
+namespace gfxstream {
+namespace guest {
 
 // Checklist when implementing new protocol:
 // 1. update CHECKSUMHELPER_MAX_VERSION
@@ -153,3 +156,6 @@ uint32_t ChecksumCalculator::computeV1Checksum() {
     revLen = (revLen & 0xaaaaaaaa) >> 1 | (revLen & 0x55555555) << 1;
     return revLen;
 }
+
+}  // namespace guest
+}  // namespace gfxstream

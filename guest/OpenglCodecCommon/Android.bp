@@ -44,17 +44,20 @@ cc_library_shared {
         "gfxstream_opengl_headers",
     ],
     shared_libs: [
-        "libandroidemu",
         "libcutils",
         "liblog",
         "libutils",
     ],
     export_shared_lib_headers: [
-        "libandroidemu",
         "libcutils",
         "liblog",
     ],
+    export_static_lib_headers: [
+        "libandroidemu_static",
+    ],
     static_libs: [
+        "libgfxstream_etc",
+        "libandroidemu_static",
         "libqemupipe.ranchu",
     ],
     cflags: [
@@ -62,18 +65,15 @@ cc_library_shared {
         "-Wno-unused-private-field",
     ],
     srcs: [
-        "auto_goldfish_dma_context.cpp",
         "ChecksumCalculator.cpp",
         "EncoderDebug.cpp",
-        "etc.cpp",
         "GLClientState.cpp",
         "GLESTextureUtils.cpp",
         "GLSharedGroup.cpp",
         "glUtils.cpp",
-        "goldfish_dma.cpp",
         "IndexRangeCache.cpp",
     ],
     export_include_dirs: [
-        ".",
+        "include",
     ],
 }

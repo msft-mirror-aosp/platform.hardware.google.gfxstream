@@ -27,7 +27,7 @@
 
 #include "virtgpu_drm.h"
 
-#if defined(PAGE_SIZE) && defined(VIRTIO_GPU)
+#if defined(PAGE_SIZE)
 constexpr size_t kPageSize = PAGE_SIZE;
 #else
 #include <unistd.h>
@@ -88,7 +88,15 @@ bool getVirtioGpuResourceInfo(int fd, native_handle_t const* handle,
     // We need to use a different mechanism to synchronize with the host if
     // the minigbm gralloc swiches to virtio-gpu blobs or cross-domain
     // backend.
-    ret = drmIoctl(fd, DRM_IOCTL_VIRTGPU_WAIT, &virtgpuWait);
+    int retry = 0;
+    do {
+        if (retry > 10) {
+            ALOGE("%s DRM_IOCTL_VIRTGPU_WAIT failed with EBUSY %d times.", __func__, retry);
+            return false;
+        }
+        ret = drmIoctl(fd, DRM_IOCTL_VIRTGPU_WAIT, &virtgpuWait);
+        ++retry;
+    } while (ret < 0 && errno == EBUSY);
     if (ret) {
         ALOGE("%s: DRM_IOCTL_VIRTGPU_WAIT failed: %s(%d)", __func__, strerror(errno), errno);
         return false;
@@ -109,8 +117,6 @@ bool getVirtioGpuResourceInfo(int fd, native_handle_t const* handle,
 uint32_t MinigbmGralloc::createColorBuffer(void*, int width, int height,
                                            uint32_t glformat) {
     // Only supported format for pbuffers in gfxstream should be RGBA8
-    const uint32_t kGlRGB = 0x1907;
-    const uint32_t kGlRGBA = 0x1908;
     const uint32_t kVirglFormatRGBA = 67;  // VIRGL_FORMAT_R8G8B8A8_UNORM;
     uint32_t virtgpu_format = 0;
     uint32_t bpp = 0;

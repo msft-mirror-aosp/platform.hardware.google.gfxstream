@@ -15,11 +15,11 @@ cc_library_static {
         "libgfxstream_guest_iostream",
     ],
     shared_libs: [
-        "libandroidemu",
         "libdrm",
         "liblog",
     ],
     static_libs: [
+        "libandroidemu_static",
         "libplatform",
     ],
     export_include_dirs: [
@@ -27,7 +27,6 @@ cc_library_static {
     ],
     cflags: [
         "-DLOG_TAG=\"goldfish-address-space\"",
-        "-DVIRTIO_GPU",
     ],
     include_dirs: [
         "hardware/google/gfxstream/guest/include",

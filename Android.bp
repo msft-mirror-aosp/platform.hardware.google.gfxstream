@@ -31,6 +31,7 @@ license {
         "SPDX-license-identifier-CC-BY-4.0",
         "SPDX-license-identifier-ISC",
         "SPDX-license-identifier-MIT",
+        "SPDX-license-identifier-BSL-1.0",
         "legacy_unencumbered",
     ],
 }
@@ -42,7 +43,6 @@ cc_library_headers {
     export_include_dirs: [
         ".",
         "include",
-        "gl-host-common/include",
         "host",
         "host/gl",
         "host/gl/glestranslator/include",
@@ -123,6 +123,7 @@ cc_defaults {
         "-DUSING_ANDROID_BP",
         "-D_FILE_OFFSET_BITS=64",
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
+        "-DGFXSTREAM_ENABLE_HOST_GLES=1",
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
         "-Wno-unused-function",

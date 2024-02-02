@@ -129,14 +129,13 @@ CompositorVk::RenderTarget::~RenderTarget() {
     }
 }
 
-std::unique_ptr<CompositorVk> CompositorVk::create(const VulkanDispatch& vk, VkDevice vkDevice,
-                                                   VkPhysicalDevice vkPhysicalDevice,
-                                                   VkQueue vkQueue,
-                                                   std::shared_ptr<android::base::Lock> queueLock,
-                                                   uint32_t queueFamilyIndex,
-                                                   uint32_t maxFramesInFlight) {
-    auto res = std::unique_ptr<CompositorVk>(new CompositorVk(
-        vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex, maxFramesInFlight));
+std::unique_ptr<CompositorVk> CompositorVk::create(
+    const VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
+    std::shared_ptr<android::base::Lock> queueLock, uint32_t queueFamilyIndex,
+    uint32_t maxFramesInFlight, DebugUtilsHelper debugUtils) {
+    auto res = std::unique_ptr<CompositorVk>(new CompositorVk(vk, vkDevice, vkPhysicalDevice,
+                                                              vkQueue, queueLock, queueFamilyIndex,
+                                                              maxFramesInFlight, debugUtils));
     res->setUpCommandPool();
     res->setUpSampler();
     res->setUpGraphicsPipeline();
@@ -144,6 +143,7 @@ std::unique_ptr<CompositorVk> CompositorVk::create(const VulkanDispatch& vk, VkD
     res->setUpUniformBuffers();
     res->setUpDescriptorSets();
     res->setUpFences();
+    res->setUpDefaultImage();
     res->setUpFrameResourceFutures();
     return res;
 }
@@ -151,9 +151,10 @@ std::unique_ptr<CompositorVk> CompositorVk::create(const VulkanDispatch& vk, VkD
 CompositorVk::CompositorVk(const VulkanDispatch& vk, VkDevice vkDevice,
                            VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
                            std::shared_ptr<android::base::Lock> queueLock,
-                           uint32_t queueFamilyIndex, uint32_t maxFramesInFlight)
+                           uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
+                           DebugUtilsHelper debugUtilsHelper)
     : CompositorVkBase(vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex,
-                       maxFramesInFlight),
+                       maxFramesInFlight, debugUtilsHelper),
       m_maxFramesInFlight(maxFramesInFlight),
       m_renderTargetCache(k_renderTargetCacheSize) {}
 
@@ -161,6 +162,15 @@ CompositorVk::~CompositorVk() {
     {
         android::base::AutoLock lock(*m_vkQueueLock);
         VK_CHECK(vk_util::waitForVkQueueIdleWithRetry(m_vk, m_vkQueue));
+    }
+    if (m_defaultImage.m_vkImageView != VK_NULL_HANDLE) {
+        m_vk.vkDestroyImageView(m_vkDevice, m_defaultImage.m_vkImageView, nullptr);
+    }
+    if (m_defaultImage.m_vkImage != VK_NULL_HANDLE) {
+        m_vk.vkDestroyImage(m_vkDevice, m_defaultImage.m_vkImage, nullptr);
+    }
+    if (m_defaultImage.m_vkImageMemory != VK_NULL_HANDLE) {
+        m_vk.vkFreeMemory(m_vkDevice, m_defaultImage.m_vkImageMemory, nullptr);
     }
     m_vk.vkDestroyDescriptorPool(m_vkDevice, m_vkDescriptorPool, nullptr);
     if (m_uniformStorage.m_vkDeviceMemory != VK_NULL_HANDLE) {
@@ -296,7 +306,7 @@ void CompositorVk::setUpGraphicsPipeline() {
             .binding = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
             .pImmutableSamplers = nullptr,
         },
     };
@@ -496,6 +506,7 @@ void CompositorVk::setUpCommandPool() {
     VkCommandPool commandPool = VK_NULL_HANDLE;
     VK_CHECK(m_vk.vkCreateCommandPool(m_vkDevice, &commandPoolCreateInfo, nullptr, &commandPool));
     m_vkCommandPool = commandPool;
+    m_debugUtilsHelper.addDebugLabel(m_vkCommandPool, "CompositorVk command pool");
 }
 
 void CompositorVk::setUpFences() {
@@ -511,6 +522,186 @@ void CompositorVk::setUpFences() {
 
         frameResources.m_vkFence = fence;
     }
+}
+
+void CompositorVk::setUpDefaultImage() {
+    const VkImageCreateInfo imageCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = VK_FORMAT_R8G8B8A8_UNORM,
+        .extent =
+            {
+                .width = 2,
+                .height = 2,
+                .depth = 1,
+            },
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+    VkImage image = VK_NULL_HANDLE;
+    VK_CHECK(m_vk.vkCreateImage(m_vkDevice, &imageCreateInfo, nullptr, &image));
+
+    VkMemoryRequirements imageMemoryRequirements;
+    m_vk.vkGetImageMemoryRequirements(m_vkDevice, image, &imageMemoryRequirements);
+
+    auto memoryTypeIndexOpt =
+        findMemoryType(imageMemoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if (!memoryTypeIndexOpt) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            << "CompositorVk failed to find memory type for default image.";
+    }
+
+    const VkMemoryAllocateInfo imageMemoryAllocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = imageMemoryRequirements.size,
+        .memoryTypeIndex = *memoryTypeIndexOpt,
+    };
+    VkDeviceMemory imageMemory = VK_NULL_HANDLE;
+    VK_CHECK_MEMALLOC(
+        m_vk.vkAllocateMemory(m_vkDevice, &imageMemoryAllocInfo, nullptr, &imageMemory),
+        imageMemoryAllocInfo);
+
+    VK_CHECK(m_vk.vkBindImageMemory(m_vkDevice, image, imageMemory, 0));
+
+    const VkImageViewCreateInfo imageViewCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .image = image,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = VK_FORMAT_R8G8B8A8_UNORM,
+        .components =
+            {
+                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+            },
+        .subresourceRange =
+            {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+    };
+    VkImageView imageView = VK_NULL_HANDLE;
+    VK_CHECK(m_vk.vkCreateImageView(m_vkDevice, &imageViewCreateInfo, nullptr, &imageView));
+
+    const std::vector<uint8_t> pixels = {
+        0xFF, 0x00, 0xFF, 0xFF,  //
+        0xFF, 0x00, 0xFF, 0xFF,  //
+        0xFF, 0x00, 0xFF, 0xFF,  //
+        0xFF, 0x00, 0xFF, 0xFF,  //
+    };
+    VkBuffer stagingBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
+    std::tie(stagingBuffer, stagingBufferMemory) =
+        createStagingBufferWithData(pixels.data(), pixels.size());
+
+    runSingleTimeCommands(m_vkQueue, m_vkQueueLock, [&, this](const VkCommandBuffer& cmdBuff) {
+        const VkImageMemoryBarrier toTransferDstImageBarrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        m_vk.vkCmdPipelineBarrier(cmdBuff,
+                                  /*srcStageMask=*/VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                  /*dstStageMask=*/VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                  /*dependencyFlags=*/0,
+                                  /*memoryBarrierCount=*/0,
+                                  /*pMemoryBarriers=*/nullptr,
+                                  /*bufferMemoryBarrierCount=*/0,
+                                  /*pBufferMemoryBarriers=*/nullptr, 1, &toTransferDstImageBarrier);
+
+        const VkBufferImageCopy bufferToImageCopy = {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .mipLevel = 0,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+            .imageOffset =
+                {
+                    .x = 0,
+                    .y = 0,
+                    .z = 0,
+                },
+            .imageExtent =
+                {
+                    .width = 2,
+                    .height = 2,
+                    .depth = 1,
+                },
+        };
+        m_vk.vkCmdCopyBufferToImage(cmdBuff, stagingBuffer, image,
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferToImageCopy);
+
+        const VkImageMemoryBarrier toSampledImageImageBarrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        m_vk.vkCmdPipelineBarrier(cmdBuff,
+                                  /*srcStageMask=*/VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                  /*dstStageMask=*/VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                  /*dependencyFlags=*/0,
+                                  /*memoryBarrierCount=*/0,
+                                  /*pMemoryBarriers=*/nullptr,
+                                  /*bufferMemoryBarrierCount=*/0,
+                                  /*pBufferMemoryBarriers=*/nullptr, 1,
+                                  &toSampledImageImageBarrier);
+    });
+
+    m_vk.vkDestroyBuffer(m_vkDevice, stagingBuffer, nullptr);
+    m_vk.vkFreeMemory(m_vkDevice, stagingBufferMemory, nullptr);
+
+    m_defaultImage.m_vkImage = image;
+    m_defaultImage.m_vkImageView = imageView;
+    m_defaultImage.m_vkImageMemory = imageMemory;
 }
 
 void CompositorVk::setUpFrameResourceFutures() {
@@ -728,13 +919,22 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
     compositionVk->targetFramebuffer = targetImageRenderTarget->m_vkFramebuffer;
 
     for (const CompositionRequestLayer& layer : compositionRequest.layers) {
-        const BorrowedImageInfoVk* sourceImage = getInfoOrAbort(layer.source);
-        if (!canCompositeFrom(sourceImage->imageCreateInfo)) {
-            continue;
-        }
+        uint32_t sourceImageWidth = 0;
+        uint32_t sourceImageHeight = 0;
+        const BorrowedImageInfoVk* sourceImage = nullptr;
 
-        const uint32_t sourceImageWidth = sourceImage->width;
-        const uint32_t sourceImageHeight = sourceImage->height;
+        if (layer.props.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
+            sourceImageWidth = targetWidth;
+            sourceImageHeight = targetHeight;
+        } else {
+            sourceImage = getInfoOrAbort(layer.source);
+            if (!canCompositeFrom(sourceImage->imageCreateInfo)) {
+                continue;
+            }
+
+            sourceImageWidth = sourceImage->width;
+            sourceImageHeight = sourceImage->height;
+        }
 
         // Calculate the posTransform and the texcoordTransform needed in the
         // uniform of the Compositor.vert shader. The posTransform should transform
@@ -796,23 +996,46 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
                 break;
         }
 
-        const DescriptorSetContents descriptorSetContents = {
-            .binding0 =
+        DescriptorSetContents descriptorSetContents = {
+            .binding1 =
                 {
-                    .sampledImageView = sourceImage->imageView,
+                    .positionTransform =
+                        glm::translate(glm::mat4(1.0f),
+                                       glm::vec3(posTranslateX, posTranslateY, 0.0f)) *
+                        glm::scale(glm::mat4(1.0f), glm::vec3(posScaleX, posScaleY, 1.0f)),
+                    .texCoordTransform =
+                        glm::translate(glm::mat4(1.0f),
+                                       glm::vec3(texCoordTranslateX, texCoordTranslateY, 0.0f)) *
+                        glm::scale(glm::mat4(1.0f),
+                                   glm::vec3(texCoordScaleX, texCoordScaleY, 1.0f)) *
+                        glm::rotate(glm::mat4(1.0f), texcoordRotation, glm::vec3(0.0f, 0.0f, 1.0f)),
+                    .mode = glm::uvec4(static_cast<uint32_t>(layer.props.composeMode), 0, 0, 0),
+                    .alpha =
+                        glm::vec4(layer.props.alpha, layer.props.alpha, layer.props.alpha,
+                                  layer.props.alpha),
                 },
-            .binding1 = {
-                .positionTransform =
-                    glm::translate(glm::mat4(1.0f), glm::vec3(posTranslateX, posTranslateY, 0.0f)) *
-                    glm::scale(glm::mat4(1.0f), glm::vec3(posScaleX, posScaleY, 1.0f)),
-                .texCoordTransform =
-                    glm::translate(glm::mat4(1.0f),
-                                   glm::vec3(texCoordTranslateX, texCoordTranslateY, 0.0f)) *
-                    glm::scale(glm::mat4(1.0f), glm::vec3(texCoordScaleX, texCoordScaleY, 1.0f)) *
-                    glm::rotate(glm::mat4(1.0f), texcoordRotation, glm::vec3(0.0f, 0.0f, 1.0f)),
-            }};
+        };
+
+        if (layer.props.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
+            descriptorSetContents.binding0.sampledImageId = 0;
+            descriptorSetContents.binding0.sampledImageView = m_defaultImage.m_vkImageView;
+            descriptorSetContents.binding1.color =
+                glm::vec4(static_cast<float>(layer.props.color.r) / 255.0f,
+                          static_cast<float>(layer.props.color.g) / 255.0f,
+                          static_cast<float>(layer.props.color.b) / 255.0f,
+                          static_cast<float>(layer.props.color.a) / 255.0f);
+
+        } else {
+            if (sourceImage == nullptr) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "CompositorVk failed to find sourceImage.";
+            }
+            descriptorSetContents.binding0.sampledImageId = sourceImage->id;
+            descriptorSetContents.binding0.sampledImageView = sourceImage->imageView;
+            compositionVk->layersSourceImages.emplace_back(sourceImage);
+        }
+
         compositionVk->layersDescriptorSets.descriptorSets.emplace_back(descriptorSetContents);
-        compositionVk->layersSourceImages.emplace_back(sourceImage);
     }
 }
 
@@ -849,6 +1072,9 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
             &postCompositionLayoutTransitionBarriers, &postCompositionQueueTransferBarriers);
     }
 
+    static uint32_t sCompositionNumber = 0;
+    const uint32_t thisCompositionNumber = sCompositionNumber++;
+
     VkCommandBuffer& commandBuffer = frameResources->m_vkCommandBuffer;
     if (commandBuffer != VK_NULL_HANDLE) {
         m_vk.vkFreeCommandBuffers(m_vkDevice, m_vkCommandPool, 1, &commandBuffer);
@@ -862,11 +1088,18 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
     };
     VK_CHECK(m_vk.vkAllocateCommandBuffers(m_vkDevice, &commandBufferAllocInfo, &commandBuffer));
 
+    m_debugUtilsHelper.addDebugLabel(commandBuffer, "CompositorVk composition:%d command buffer",
+                                     thisCompositionNumber);
+
     const VkCommandBufferBeginInfo beginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
     VK_CHECK(m_vk.vkBeginCommandBuffer(commandBuffer, &beginInfo));
+
+    m_debugUtilsHelper.cmdBeginDebugLabel(commandBuffer,
+                                          "CompositorVk composition:%d into ColorBuffer:%d",
+                                          thisCompositionNumber, compositionVk.targetImage->id);
 
     if (!preCompositionQueueTransferBarriers.empty()) {
         m_vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
@@ -941,7 +1174,11 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
 
     m_vk.vkCmdBindIndexBuffer(commandBuffer, m_indexVkBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-    for (int layerIndex = 0; layerIndex < compositionVk.layersSourceImages.size(); ++layerIndex) {
+    const uint32_t numLayers = compositionVk.layersDescriptorSets.descriptorSets.size();
+    for (uint32_t layerIndex = 0; layerIndex < numLayers; ++layerIndex) {
+        m_debugUtilsHelper.cmdBeginDebugLabel(commandBuffer, "CompositorVk compose layer:%d",
+                                              layerIndex);
+
         VkDescriptorSet layerDescriptorSet = frameResources->m_layerDescriptorSets[layerIndex];
 
         m_vk.vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -952,6 +1189,8 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
                                      /*pDynamicOffsets=*/nullptr);
 
         m_vk.vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(k_indices.size()), 1, 0, 0, 0);
+
+        m_debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
     }
 
     m_vk.vkCmdEndRenderPass(commandBuffer);
@@ -999,9 +1238,14 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
             postCompositionQueueTransferBarriers.data());
     }
 
+    m_debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
+
     VK_CHECK(m_vk.vkEndCommandBuffer(commandBuffer));
 
     VkFence composeCompleteFence = frameResources->m_vkFence;
+    m_debugUtilsHelper.addDebugLabel(
+        composeCompleteFence, "CompositorVk composition:%d complete fence", thisCompositionNumber);
+
     VK_CHECK(m_vk.vkResetFences(m_vkDevice, 1, &composeCompleteFence));
 
     const VkPipelineStageFlags submitWaitStages[] = {
@@ -1057,10 +1301,21 @@ void CompositorVk::onImageDestroyed(uint32_t imageId) { m_renderTargetCache.remo
 
 bool operator==(const CompositorVkBase::DescriptorSetContents& lhs,
                 const CompositorVkBase::DescriptorSetContents& rhs) {
-    return std::tie(lhs.binding0.sampledImageView, lhs.binding1.positionTransform,
-                    lhs.binding1.texCoordTransform) == std::tie(rhs.binding0.sampledImageView,
-                                                                rhs.binding1.positionTransform,
-                                                                rhs.binding1.texCoordTransform);
+    return std::tie(lhs.binding0.sampledImageId,     //
+                    lhs.binding0.sampledImageView,   //
+                    lhs.binding1.mode,               //
+                    lhs.binding1.alpha,              //
+                    lhs.binding1.color,              //
+                    lhs.binding1.positionTransform,  //
+                    lhs.binding1.texCoordTransform)  //
+                     ==                              //
+           std::tie(rhs.binding0.sampledImageId,     //
+                    rhs.binding0.sampledImageView,   //
+                    rhs.binding1.mode,               //
+                    rhs.binding1.alpha,              //
+                    rhs.binding1.color,              //
+                    rhs.binding1.positionTransform,  //
+                    rhs.binding1.texCoordTransform);
 }
 
 bool operator==(const CompositorVkBase::FrameDescriptorSetsContents& lhs,

@@ -38,7 +38,6 @@ cc_defaults {
         "libcutils",
         "libdrm",
         "liblog",
-        "libGoldfishProfiler",
         "libOpenglCodecCommon",
     ],
     static_libs: [
@@ -49,7 +48,6 @@ cc_defaults {
         "-DGL_GLEXT_PROTOTYPES",
         "-DEGL_EGLEXT_PROTOTYPES",
         "-DLOG_TAG=\"EGL_emulation\"",
-        "-DVIRTIO_GPU",
         "-DWITH_GLES2",
         "-Wno-gnu-designator",
     ],
@@ -91,10 +89,8 @@ cc_library_shared {
     ],
     shared_libs: [
         "libOpenglSystemCommonWithHost",
-        "libgfxstream_backend",
-    ],
-    static_libs: [
         "libplatform_rutabaga",
+        "libgfxstream_backend",
     ],
     target: {
         host: {

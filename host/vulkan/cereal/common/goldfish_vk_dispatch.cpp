@@ -145,6 +145,8 @@ namespace vk {
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -157,11 +159,17 @@ namespace vk {
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_fragment_density_map
+#endif
+#ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
 #endif
@@ -210,6 +218,8 @@ namespace vk {
 #ifdef VK_EXT_load_store_op_none
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 
 void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dlSymFunc,
@@ -941,6 +951,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
             lib, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
     out->vkQueueSubmitAsync2GOOGLE =
         (PFN_vkQueueSubmitAsync2GOOGLE)dlSymFunc(lib, "vkQueueSubmitAsync2GOOGLE");
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
+    out->vkGetScreenBufferPropertiesQNX =
+        (PFN_vkGetScreenBufferPropertiesQNX)dlSymFunc(lib, "vkGetScreenBufferPropertiesQNX");
 #endif
 }
 
@@ -1882,6 +1896,11 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkQueueSubmitAsync2GOOGLE = (PFN_vkQueueSubmitAsync2GOOGLE)vk->vkGetInstanceProcAddr(
         instance, "vkQueueSubmitAsync2GOOGLE");
 #endif
+#ifdef VK_QNX_external_memory_screen_buffer
+    out->vkGetScreenBufferPropertiesQNX =
+        (PFN_vkGetScreenBufferPropertiesQNX)vk->vkGetInstanceProcAddr(
+            instance, "vkGetScreenBufferPropertiesQNX");
+#endif
 }
 
 void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, VulkanDispatch* out) {
@@ -2794,6 +2813,11 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
             device, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
     out->vkQueueSubmitAsync2GOOGLE =
         (PFN_vkQueueSubmitAsync2GOOGLE)vk->vkGetDeviceProcAddr(device, "vkQueueSubmitAsync2GOOGLE");
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
+    out->vkGetScreenBufferPropertiesQNX =
+        (PFN_vkGetScreenBufferPropertiesQNX)vk->vkGetDeviceProcAddr(
+            device, "vkGetScreenBufferPropertiesQNX");
 #endif
 }
 

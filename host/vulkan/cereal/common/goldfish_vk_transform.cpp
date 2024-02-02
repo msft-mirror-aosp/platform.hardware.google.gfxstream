@@ -7078,6 +7078,48 @@ void transform_fromhost_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void transform_tohost_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -7090,11 +7132,183 @@ void transform_fromhost_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkVertexInputBindingDivisorDescriptionEXT(
+    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDivisorDescriptionEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkVertexInputBindingDivisorDescriptionEXT(
+    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDivisorDescriptionEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform) {
+        if (toTransform->pVertexBindingDivisors) {
+            for (uint32_t i = 0; i < (uint32_t)toTransform->vertexBindingDivisorCount; ++i) {
+                transform_tohost_VkVertexInputBindingDivisorDescriptionEXT(
+                    resourceTracker,
+                    (VkVertexInputBindingDivisorDescriptionEXT*)(toTransform
+                                                                     ->pVertexBindingDivisors +
+                                                                 i));
+            }
+        }
+    }
+}
+
+void transform_fromhost_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform) {
+        if (toTransform->pVertexBindingDivisors) {
+            for (uint32_t i = 0; i < (uint32_t)toTransform->vertexBindingDivisorCount; ++i) {
+                transform_fromhost_VkVertexInputBindingDivisorDescriptionEXT(
+                    resourceTracker,
+                    (VkVertexInputBindingDivisorDescriptionEXT*)(toTransform
+                                                                     ->pVertexBindingDivisors +
+                                                                 i));
+            }
+        }
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_fragment_density_map
+void transform_tohost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkExtent2D(resourceTracker,
+                                (VkExtent2D*)(&toTransform->minFragmentDensityTexelSize));
+    transform_tohost_VkExtent2D(resourceTracker,
+                                (VkExtent2D*)(&toTransform->maxFragmentDensityTexelSize));
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkExtent2D(resourceTracker,
+                                  (VkExtent2D*)(&toTransform->minFragmentDensityTexelSize));
+    transform_fromhost_VkExtent2D(resourceTracker,
+                                  (VkExtent2D*)(&toTransform->maxFragmentDensityTexelSize));
+}
+
+void transform_tohost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkAttachmentReference(
+        resourceTracker, (VkAttachmentReference*)(&toTransform->fragmentDensityMapAttachment));
+}
+
+void transform_fromhost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkAttachmentReference(
+        resourceTracker, (VkAttachmentReference*)(&toTransform->fragmentDensityMapAttachment));
+}
+
+#endif
+#ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
 #endif
@@ -8066,6 +8280,8 @@ void transform_fromhost_VkPhysicalDeviceImageCompressionControlSwapchainFeatures
 }
 
 #endif
+#ifdef VK_QNX_external_memory_screen_buffer
+#endif
 void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
                                        void* structExtension_out) {
     if (!structExtension_out) {
@@ -8862,6 +9078,63 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
         case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT: {
             transform_tohost_VkPipelineRasterizationStateStreamCreateInfoEXT(
                 resourceTracker, reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            transform_tohost_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            transform_tohost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
+                    structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            transform_tohost_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                resourceTracker, reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            transform_tohost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            transform_tohost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            transform_tohost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            transform_tohost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                resourceTracker, reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
                                      structExtension_out));
             break;
         }
@@ -9930,6 +10203,63 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
         case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT: {
             transform_fromhost_VkPipelineRasterizationStateStreamCreateInfoEXT(
                 resourceTracker, reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(
+                                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            transform_fromhost_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            transform_fromhost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
+                    structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            transform_fromhost_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                resourceTracker, reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            transform_fromhost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            transform_fromhost_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            transform_fromhost_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                resourceTracker, reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
                                      structExtension_out));
             break;
         }

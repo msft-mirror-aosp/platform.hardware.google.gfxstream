@@ -29,12 +29,7 @@
 #if defined(__ANDROID__)
 #include "android-base/properties.h"
 #endif
-#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
-#else
-#include <log/log.h>
-#endif
-
 
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
@@ -597,7 +592,7 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
 }
 
 void AddressSpaceStream::backoff() {
-#if defined(HOST_BUILD) || defined(__APPLE__) || defined(__MACOSX) || defined(__Fuchsia__) || defined(__linux__)
+#if defined(__APPLE__) || defined(__MACOSX) || defined(__Fuchsia__) || defined(__linux__)
     static const uint32_t kBackoffItersThreshold = 50000000;
     static const uint32_t kBackoffFactorDoublingIncrement = 50000000;
 #elif defined(__ANDROID__)

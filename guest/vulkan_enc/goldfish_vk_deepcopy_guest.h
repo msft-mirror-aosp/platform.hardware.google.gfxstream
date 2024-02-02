@@ -1150,37 +1150,6 @@ void deepcopy_VkDeviceImageMemoryRequirements(Allocator* alloc, VkStructureType 
 #ifdef VK_KHR_surface
 #endif
 #ifdef VK_KHR_swapchain
-void deepcopy_VkSwapchainCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
-                                       const VkSwapchainCreateInfoKHR* from,
-                                       VkSwapchainCreateInfoKHR* to);
-
-void deepcopy_VkPresentInfoKHR(Allocator* alloc, VkStructureType rootType,
-                               const VkPresentInfoKHR* from, VkPresentInfoKHR* to);
-
-void deepcopy_VkImageSwapchainCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
-                                            const VkImageSwapchainCreateInfoKHR* from,
-                                            VkImageSwapchainCreateInfoKHR* to);
-
-void deepcopy_VkBindImageMemorySwapchainInfoKHR(Allocator* alloc, VkStructureType rootType,
-                                                const VkBindImageMemorySwapchainInfoKHR* from,
-                                                VkBindImageMemorySwapchainInfoKHR* to);
-
-void deepcopy_VkAcquireNextImageInfoKHR(Allocator* alloc, VkStructureType rootType,
-                                        const VkAcquireNextImageInfoKHR* from,
-                                        VkAcquireNextImageInfoKHR* to);
-
-void deepcopy_VkDeviceGroupPresentCapabilitiesKHR(Allocator* alloc, VkStructureType rootType,
-                                                  const VkDeviceGroupPresentCapabilitiesKHR* from,
-                                                  VkDeviceGroupPresentCapabilitiesKHR* to);
-
-void deepcopy_VkDeviceGroupPresentInfoKHR(Allocator* alloc, VkStructureType rootType,
-                                          const VkDeviceGroupPresentInfoKHR* from,
-                                          VkDeviceGroupPresentInfoKHR* to);
-
-void deepcopy_VkDeviceGroupSwapchainCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
-                                                  const VkDeviceGroupSwapchainCreateInfoKHR* from,
-                                                  VkDeviceGroupSwapchainCreateInfoKHR* to);
-
 #endif
 #ifdef VK_KHR_xcb_surface
 #endif
@@ -1684,6 +1653,18 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceTextureCompressionASTCHDRFeatures
                       deepcopy_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void deepcopy_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* from,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* to);
+
+void deepcopy_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* from,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* to);
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -1708,6 +1689,28 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkDescriptorPoolInlineUniformBlockCreateInfo,
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void deepcopy_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* from,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* to);
+
+void deepcopy_VkVertexInputBindingDivisorDescriptionEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* from,
+    VkVertexInputBindingDivisorDescriptionEXT* to);
+
+void deepcopy_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* from,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* to);
+
+void deepcopy_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* from,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* to);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineCreationFeedbackCreateInfo,
                       deepcopy_VkPipelineCreationFeedbackCreateInfoEXT)
@@ -1718,6 +1721,28 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineCreationFeedback, deepcopy_VkPipelineCr
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_fragment_density_map
+void deepcopy_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapFeaturesEXT* from,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* to);
+
+void deepcopy_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapPropertiesEXT* from,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* to);
+
+void deepcopy_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkRenderPassFragmentDensityMapCreateInfoEXT* from,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* to);
+
+#endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      deepcopy_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
 #endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceSubgroupSizeControlFeatures,
@@ -1833,31 +1858,6 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkImageSubresource2KHR, deepcopy_VkImageSubresour
 
 #endif
 #ifdef VK_EXT_swapchain_maintenance1
-void deepcopy_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
-    Allocator* alloc, VkStructureType rootType,
-    const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT* from,
-    VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT* to);
-
-void deepcopy_VkSwapchainPresentFenceInfoEXT(Allocator* alloc, VkStructureType rootType,
-                                             const VkSwapchainPresentFenceInfoEXT* from,
-                                             VkSwapchainPresentFenceInfoEXT* to);
-
-void deepcopy_VkSwapchainPresentModesCreateInfoEXT(Allocator* alloc, VkStructureType rootType,
-                                                   const VkSwapchainPresentModesCreateInfoEXT* from,
-                                                   VkSwapchainPresentModesCreateInfoEXT* to);
-
-void deepcopy_VkSwapchainPresentModeInfoEXT(Allocator* alloc, VkStructureType rootType,
-                                            const VkSwapchainPresentModeInfoEXT* from,
-                                            VkSwapchainPresentModeInfoEXT* to);
-
-void deepcopy_VkSwapchainPresentScalingCreateInfoEXT(
-    Allocator* alloc, VkStructureType rootType, const VkSwapchainPresentScalingCreateInfoEXT* from,
-    VkSwapchainPresentScalingCreateInfoEXT* to);
-
-void deepcopy_VkReleaseSwapchainImagesInfoEXT(Allocator* alloc, VkStructureType rootType,
-                                              const VkReleaseSwapchainImagesInfoEXT* from,
-                                              VkReleaseSwapchainImagesInfoEXT* to);
-
 #endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures,
@@ -2003,6 +2003,8 @@ void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* from,
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* to);
 
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 
 }  // namespace vk

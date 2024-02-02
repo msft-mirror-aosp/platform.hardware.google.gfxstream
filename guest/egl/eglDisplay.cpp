@@ -17,11 +17,6 @@
 #include "HostConnection.h"
 #include "KeyedVectorUtils.h"
 
-#ifdef HOST_BUILD
-#include "android/base/files/PathUtils.cpp"
-#include "android/base/system/System.cpp"
-#endif
-
 #include <string>
 #include <vector>
 
@@ -264,18 +259,12 @@ void eglDisplay::terminate()
 #endif // !_WIN32 (linux)
 #endif // !__APPLE__
 
-#ifndef HOST_BUILD
-#if PLATFORM_SDK_VERSION >= 26
-#define PARTITION "/vendor"
-#else
 #define PARTITION "/system"
-#endif // !PLATFORM_SDK_VERSION >= 26
 #if __LP64__
 #define LIBDIR "/lib64/egl/"
 #else
 #define LIBDIR "/lib/egl/"
 #endif // !__LP64__
-#endif // !HOST_BUILD
 
 EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
                                                        EGLClient_eglInterface *eglIface,

@@ -22,6 +22,9 @@
 namespace gfxstream {
 namespace {
 
+using ::gfxstream::proto::EglAvailability;
+using GlesContextAvailability = ::gfxstream::proto::EglAvailability::GlesContextAvailability;
+
 constexpr const char kSurfacelessContextExt[] = "EGL_KHR_surfaceless_context";
 
 class Closer {
@@ -33,13 +36,75 @@ class Closer {
     std::function<void()> on_close_;
 };
 
+enum class GlesLoadMethod {
+    VIA_EGL,
+    VIA_GLESV2,
+};
+
+gfxstream::expected<GlesContextAvailability, std::string> GetGlesContextAvailability(
+    Egl& egl, EGLDisplay eglDisplay, EGLConfig eglConfig, EGLint contextVersion,
+    GlesLoadMethod loadMethod) {
+    GlesContextAvailability availability;
+
+    const EGLint contextAttributes[] = {
+        // clang-format off
+        EGL_CONTEXT_CLIENT_VERSION, contextVersion,
+        EGL_NONE,
+        // clang-format on
+    };
+
+    EGLContext context =
+        egl.eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttributes);
+    if (context == EGL_NO_CONTEXT) {
+        return gfxstream::unexpected("Failed to create context.");
+    }
+    Closer contextCloser([&]() { egl.eglDestroyContext(eglDisplay, context); });
+
+    if (egl.eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, context) != EGL_TRUE) {
+        return gfxstream::unexpected("Failed to make context current.");
+    }
+
+    auto gles = loadMethod == GlesLoadMethod::VIA_EGL ? GFXSTREAM_EXPECT(Gles::LoadFromEgl(&egl))
+                                                      : GFXSTREAM_EXPECT(Gles::Load());
+
+    const GLubyte* gles_vendor = gles.glGetString(GL_VENDOR);
+    if (gles_vendor == nullptr) {
+        return gfxstream::unexpected("Failed to query vendor.");
+    }
+    const std::string gles_vendor_string((const char*)gles_vendor);
+    availability.set_vendor(gles_vendor_string);
+
+    const GLubyte* gles_version = gles.glGetString(GL_VERSION);
+    if (gles_version == nullptr) {
+        gfxstream::unexpected("Failed to query vendor.");
+    }
+    const std::string gles_version_string((const char*)gles_version);
+    availability.set_version(gles_version_string);
+
+    const GLubyte* gles_renderer = gles.glGetString(GL_RENDERER);
+    if (gles_renderer == nullptr) {
+        gfxstream::unexpected("Failed to query renderer.");
+    }
+    const std::string gles_renderer_string((const char*)gles_renderer);
+    availability.set_renderer(gles_renderer_string);
+
+    const GLubyte* gles_extensions = gles.glGetString(GL_EXTENSIONS);
+    if (gles_extensions == nullptr) {
+        return gfxstream::unexpected("Failed to query extensions.");
+    }
+    const std::string gles_extensions_string((const char*)gles_extensions);
+    availability.set_extensions(gles_extensions_string);
+
+    return availability;
+}
+
 }  // namespace
 
 gfxstream::expected<Ok, std::string> PopulateEglAndGlesAvailability(
         ::gfxstream::proto::GraphicsAvailability* availability) {
     auto egl = GFXSTREAM_EXPECT(Egl::Load());
 
-    ::gfxstream::proto::EglAvailability* eglAvailability = availability->mutable_egl();
+    EglAvailability* eglAvailability = availability->mutable_egl();
 
     EGLDisplay display = egl.eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (display == EGL_NO_DISPLAY) {
@@ -91,7 +156,8 @@ gfxstream::expected<Ok, std::string> PopulateEglAndGlesAvailability(
         return gfxstream::unexpected("Failed to bind GLES API.");
     }
 
-    const EGLint framebuffer_config_attributes[] = {
+    const EGLint framebufferConfigAttributes[] = {
+        // clang-format off
         EGL_SURFACE_TYPE,    EGL_PBUFFER_BIT,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
         EGL_RED_SIZE,        1,
@@ -99,103 +165,70 @@ gfxstream::expected<Ok, std::string> PopulateEglAndGlesAvailability(
         EGL_BLUE_SIZE,       1,
         EGL_ALPHA_SIZE,      0,
         EGL_NONE,
+        // clang-format on
     };
 
-    EGLConfig framebuffer_config;
-    EGLint num_framebuffer_configs = 0;
-    if (egl.eglChooseConfig(display, framebuffer_config_attributes, &framebuffer_config, 1, &num_framebuffer_configs) != EGL_TRUE) {
+    EGLConfig framebufferConfig;
+    EGLint numFramebufferConfigs = 0;
+    if (egl.eglChooseConfig(display, framebufferConfigAttributes, &framebufferConfig, 1,
+                            &numFramebufferConfigs) != EGL_TRUE) {
         return gfxstream::unexpected("Failed to find matching framebuffer config.");
     }
 
+    struct GlesContextCheckOptions {
+        std::function<GlesContextAvailability*()> availabilityProvider;
+        EGLint contextVersion;
+        GlesLoadMethod loadMethod;
 
-    const EGLint gles2_context_attributes[] = {
-        EGL_CONTEXT_CLIENT_VERSION, 2,
-        EGL_NONE,
+        std::string to_string() const {
+            std::string ret;
+            ret += "options {";
+
+            ret += " version: ";
+            ret += std::to_string(contextVersion);
+
+            ret += " load-method: ";
+            ret += loadMethod == GlesLoadMethod::VIA_EGL ? "via-egl" : "via-glesv2";
+
+            ret += " }";
+            return ret;
+        }
     };
-    EGLContext gles2_context = egl.eglCreateContext(display, framebuffer_config, EGL_NO_CONTEXT, gles2_context_attributes);
-    if (gles2_context != EGL_NO_CONTEXT) {
-        Closer context_closer(
-            [&]() { egl.eglDestroyContext(display, gles2_context); });
-
-        if (egl.eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, gles2_context) != EGL_TRUE) {
-            return gfxstream::unexpected("Failed to make GLES2 context current.");
-        }
-
-        auto *gles2Availability = eglAvailability->mutable_gles2_availability();
-
-        auto gles = GFXSTREAM_EXPECT(Gles::LoadFromEgl(&egl));
-
-        const GLubyte* gles2_vendor = gles.glGetString(GL_VENDOR);
-        if (gles2_vendor == nullptr) {
-            return gfxstream::unexpected("Failed to query GLES2 vendor.");
-        }
-        const std::string gles2_vendor_string((const char*)gles2_vendor);
-        gles2Availability->set_vendor(gles2_vendor_string);
-
-        const GLubyte* gles2_version = gles.glGetString(GL_VERSION);
-        if (gles2_version == nullptr) {
-             gfxstream::unexpected("Failed to query GLES2 vendor.");
-        }
-        const std::string gles2_version_string((const char*)gles2_version);
-        gles2Availability->set_version(gles2_version_string);
-
-        const GLubyte* gles2_renderer = gles.glGetString(GL_RENDERER);
-        if (gles2_renderer == nullptr) {
-             gfxstream::unexpected("Failed to query GLES2 renderer.");
-        }
-        const std::string gles2_renderer_string((const char*)gles2_renderer);
-        gles2Availability->set_renderer(gles2_renderer_string);
-
-        const GLubyte* gles2_extensions = gles.glGetString(GL_EXTENSIONS);
-        if (gles2_extensions == nullptr) {
-            return gfxstream::unexpected("Failed to query GLES2 extensions.");
-        }
-        const std::string gles2_extensions_string((const char*)gles2_extensions);
-        gles2Availability->set_extensions(gles2_extensions_string);
-    }
-
-    const EGLint gles3_context_attributes[] = {
-        EGL_CONTEXT_CLIENT_VERSION, 3,
-        EGL_NONE,
+    const std::vector<GlesContextCheckOptions> contextChecks = {
+        GlesContextCheckOptions{
+            .availabilityProvider = [&]() { return eglAvailability->mutable_gles2_availability(); },
+            .contextVersion = 2,
+            .loadMethod = GlesLoadMethod::VIA_EGL,
+        },
+        GlesContextCheckOptions{
+            .availabilityProvider =
+                [&]() { return eglAvailability->mutable_gles2_direct_availability(); },
+            .contextVersion = 2,
+            .loadMethod = GlesLoadMethod::VIA_GLESV2,
+        },
+        GlesContextCheckOptions{
+            .availabilityProvider = [&]() { return eglAvailability->mutable_gles3_availability(); },
+            .contextVersion = 3,
+            .loadMethod = GlesLoadMethod::VIA_EGL,
+        },
+        GlesContextCheckOptions{
+            .availabilityProvider =
+                [&]() { return eglAvailability->mutable_gles3_direct_availability(); },
+            .contextVersion = 3,
+            .loadMethod = GlesLoadMethod::VIA_GLESV2,
+        },
     };
-    EGLContext gles3_context = egl.eglCreateContext(display, framebuffer_config, EGL_NO_CONTEXT, gles3_context_attributes);
-    if (gles3_context != EGL_NO_CONTEXT) {
-        Closer context_closer([&]() { egl.eglDestroyContext(display, gles3_context); });
 
-        if (egl.eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, gles3_context) != EGL_TRUE) {
-            return gfxstream::unexpected("Failed to make GLES3 context current.");
+    for (const GlesContextCheckOptions& contextCheck : contextChecks) {
+        auto contextCheckResult = GetGlesContextAvailability(
+            egl, display, framebufferConfig, contextCheck.contextVersion, contextCheck.loadMethod);
+        if (contextCheckResult.ok()) {
+            *contextCheck.availabilityProvider() = contextCheckResult.value();
+        } else {
+            eglAvailability->add_errors("Failed to complete GLES context check using " +
+                                        contextCheck.to_string() + ": " +
+                                        contextCheckResult.error());
         }
-        auto *gles3Availability = eglAvailability->mutable_gles3_availability();
-
-        auto gles = GFXSTREAM_EXPECT(Gles::LoadFromEgl(&egl));
-
-        const GLubyte* gles3_vendor = gles.glGetString(GL_VENDOR);
-        if (gles3_vendor == nullptr) {
-            gfxstream::unexpected("Failed to query GLES3 vendor.");
-        }
-        const std::string gles3_vendor_string((const char*)gles3_vendor);
-        gles3Availability->set_vendor(gles3_vendor_string);
-
-        const GLubyte* gles3_version = gles.glGetString(GL_VERSION);
-        if (gles3_version == nullptr) {
-            gfxstream::unexpected("Failed to query GLES2 vendor.");
-        }
-        const std::string gles3_version_string((const char*)gles3_version);
-        gles3Availability->set_version(gles3_version_string);
-
-        const GLubyte* gles3_renderer = gles.glGetString(GL_RENDERER);
-        if (gles3_renderer == nullptr) {
-            return gfxstream::unexpected("Failed to query GLES3 renderer.");
-        }
-        const std::string gles3_renderer_string((const char*)gles3_renderer);
-        gles3Availability->set_renderer(gles3_renderer_string);
-
-        const GLubyte* gles3_extensions = gles.glGetString(GL_EXTENSIONS);
-        if (gles3_extensions == nullptr) {
-            return gfxstream::unexpected("Failed to query GLES3 extensions.");
-        }
-        const std::string gles3_extensions_string((const char*)gles3_extensions);
-        gles3Availability->set_extensions(gles3_extensions_string);
     }
 
     return Ok{};

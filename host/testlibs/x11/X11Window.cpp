@@ -143,10 +143,10 @@ static Key X11CodeToKey(Display *display, unsigned int scancode)
 
 static void AddX11KeyStateToEvent(Event *event, unsigned int state)
 {
-    event->Key.Shift = state & ShiftMask;
-    event->Key.Control = state & ControlMask;
-    event->Key.Alt = state & Mod1Mask;
-    event->Key.System = state & Mod4Mask;
+    event->key.shift = state & ShiftMask;
+    event->key.control = state & ControlMask;
+    event->key.alt = state & Mod1Mask;
+    event->key.system = state & Mod4Mask;
 }
 
 }
@@ -434,17 +434,17 @@ void X11Window::processEvent(const XEvent &xEvent)
 
             if (wheelY != 0)
             {
-                event.Type = Event::EVENT_MOUSE_WHEEL_MOVED;
-                event.MouseWheel.Delta = wheelY;
+                event.type = Event::EVENT_MOUSE_WHEEL_MOVED;
+                event.mouseWheel.delta = wheelY;
                 pushEvent(event);
             }
 
             if (button != MOUSEBUTTON_UNKNOWN)
             {
-                event.Type = Event::EVENT_MOUSE_BUTTON_RELEASED;
-                event.MouseButton.Button = button;
-                event.MouseButton.X = xEvent.xbutton.x;
-                event.MouseButton.Y = xEvent.xbutton.y;
+                event.type = Event::EVENT_MOUSE_BUTTON_RELEASED;
+                event.mouseButton.button = button;
+                event.mouseButton.x = xEvent.xbutton.x;
+                event.mouseButton.y = xEvent.xbutton.y;
                 pushEvent(event);
             }
         }
@@ -479,10 +479,10 @@ void X11Window::processEvent(const XEvent &xEvent)
 
             if (button != MOUSEBUTTON_UNKNOWN)
             {
-                event.Type = Event::EVENT_MOUSE_BUTTON_RELEASED;
-                event.MouseButton.Button = button;
-                event.MouseButton.X = xEvent.xbutton.x;
-                event.MouseButton.Y = xEvent.xbutton.y;
+                event.type = Event::EVENT_MOUSE_BUTTON_RELEASED;
+                event.mouseButton.button = button;
+                event.mouseButton.x = xEvent.xbutton.x;
+                event.mouseButton.y = xEvent.xbutton.y;
                 pushEvent(event);
             }
         }
@@ -491,8 +491,8 @@ void X11Window::processEvent(const XEvent &xEvent)
       case KeyPress:
         {
             Event event;
-            event.Type = Event::EVENT_KEY_PRESSED;
-            event.Key.Code = X11CodeToKey(mDisplay, xEvent.xkey.keycode);
+            event.type = Event::EVENT_KEY_PRESSED;
+            event.key.code = X11CodeToKey(mDisplay, xEvent.xkey.keycode);
             AddX11KeyStateToEvent(&event, xEvent.xkey.state);
             pushEvent(event);
         }
@@ -501,8 +501,8 @@ void X11Window::processEvent(const XEvent &xEvent)
       case KeyRelease:
         {
             Event event;
-            event.Type = Event::EVENT_KEY_RELEASED;
-            event.Key.Code = X11CodeToKey(mDisplay, xEvent.xkey.keycode);
+            event.type = Event::EVENT_KEY_RELEASED;
+            event.key.code = X11CodeToKey(mDisplay, xEvent.xkey.keycode);
             AddX11KeyStateToEvent(&event, xEvent.xkey.state);
             pushEvent(event);
         }
@@ -511,7 +511,7 @@ void X11Window::processEvent(const XEvent &xEvent)
       case EnterNotify:
         {
             Event event;
-            event.Type = Event::EVENT_MOUSE_ENTERED;
+            event.type = Event::EVENT_MOUSE_ENTERED;
             pushEvent(event);
         }
         break;
@@ -519,7 +519,7 @@ void X11Window::processEvent(const XEvent &xEvent)
       case LeaveNotify:
         {
             Event event;
-            event.Type = Event::EVENT_MOUSE_LEFT;
+            event.type = Event::EVENT_MOUSE_LEFT;
             pushEvent(event);
         }
         break;
@@ -527,9 +527,9 @@ void X11Window::processEvent(const XEvent &xEvent)
       case MotionNotify:
         {
             Event event;
-            event.Type = Event::EVENT_MOUSE_MOVED;
-            event.MouseMove.X = xEvent.xmotion.x;
-            event.MouseMove.Y = xEvent.xmotion.y;
+            event.type = Event::EVENT_MOUSE_MOVED;
+            event.mouseMove.x = xEvent.xmotion.x;
+            event.mouseMove.y = xEvent.xmotion.y;
             pushEvent(event);
         }
         break;
@@ -539,9 +539,9 @@ void X11Window::processEvent(const XEvent &xEvent)
             if (xEvent.xconfigure.width != mWidth || xEvent.xconfigure.height != mHeight)
             {
                 Event event;
-                event.Type = Event::EVENT_RESIZED;
-                event.Size.Width = xEvent.xconfigure.width;
-                event.Size.Height = xEvent.xconfigure.height;
+                event.type = Event::EVENT_RESIZED;
+                event.size.width = xEvent.xconfigure.width;
+                event.size.height = xEvent.xconfigure.height;
                 pushEvent(event);
             }
             if (xEvent.xconfigure.x != mX || xEvent.xconfigure.y != mY)
@@ -560,9 +560,9 @@ void X11Window::processEvent(const XEvent &xEvent)
                 if (x != mX || y != mY)
                 {
                     Event event;
-                    event.Type = Event::EVENT_MOVED;
-                    event.Move.X = x;
-                    event.Move.Y = y;
+                    event.type = Event::EVENT_MOVED;
+                    event.move.x = x;
+                    event.move.y = y;
                     pushEvent(event);
                 }
             }
@@ -573,7 +573,7 @@ void X11Window::processEvent(const XEvent &xEvent)
         if (xEvent.xfocus.mode == NotifyNormal || xEvent.xfocus.mode == NotifyWhileGrabbed)
         {
             Event event;
-            event.Type = Event::EVENT_GAINED_FOCUS;
+            event.type = Event::EVENT_GAINED_FOCUS;
             pushEvent(event);
         }
         break;
@@ -582,7 +582,7 @@ void X11Window::processEvent(const XEvent &xEvent)
         if (xEvent.xfocus.mode == NotifyNormal || xEvent.xfocus.mode == NotifyWhileGrabbed)
         {
             Event event;
-            event.Type = Event::EVENT_LOST_FOCUS;
+            event.type = Event::EVENT_LOST_FOCUS;
             pushEvent(event);
         }
         break;
@@ -596,13 +596,13 @@ void X11Window::processEvent(const XEvent &xEvent)
             static_cast<Atom>(xEvent.xclient.data.l[0]) == WM_DELETE_WINDOW)
         {
             Event event;
-            event.Type = Event::EVENT_CLOSED;
+            event.type = Event::EVENT_CLOSED;
             pushEvent(event);
         }
         else if (xEvent.xclient.message_type == TEST_EVENT)
         {
             Event event;
-            event.Type = Event::EVENT_TEST;
+            event.type = Event::EVENT_TEST;
             pushEvent(event);
         }
         break;

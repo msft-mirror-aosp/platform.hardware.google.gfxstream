@@ -8,7 +8,8 @@ files_lib_render_control_enc = files(
 lib_render_control_enc = static_library(
    'render_control',
    files_lib_render_control_enc,
-   cpp_args: cpp_args,
+   cpp_args: gfxstream_guest_args,
    include_directories: [inc_guest_iostream, inc_opengl_codec, inc_android_emu,
-                         inc_android_compat, inc_system, inc_opengl_headers],
+                         inc_android_compat, inc_system, inc_opengl_headers,
+                         inc_codec_common],
 )

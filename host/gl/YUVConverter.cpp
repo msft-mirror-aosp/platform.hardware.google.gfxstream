@@ -93,7 +93,7 @@ GLint getGlTextureFormat(FrameworkFormat format, YUVPlane plane) {
         case YUVPlane::V:
             return GL_R8;
         case YUVPlane::UV:
-            FATAL("Invalid plane:%d for format:%d", plane, format);
+            FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_YUV_420_888:
@@ -105,7 +105,7 @@ GLint getGlTextureFormat(FrameworkFormat format, YUVPlane plane) {
                 return GL_RG8;
             case YUVPlane::U:
             case YUVPlane::V:
-                FATAL("Invalid plane:%d for format:%d", plane, format);
+                FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         } else {
@@ -115,7 +115,7 @@ GLint getGlTextureFormat(FrameworkFormat format, YUVPlane plane) {
             case YUVPlane::V:
                 return GL_R8;
             case YUVPlane::UV:
-                FATAL("Invalid plane:%d for format:%d", plane, format);
+                FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         }
@@ -127,7 +127,7 @@ GLint getGlTextureFormat(FrameworkFormat format, YUVPlane plane) {
             return GL_RG8;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane:%d for format:%d", plane, format);
+            FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_P010:
@@ -138,7 +138,7 @@ GLint getGlTextureFormat(FrameworkFormat format, YUVPlane plane) {
             return GL_RG16UI;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane:%d for format:%d", plane, format);
+            FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     default:
@@ -156,7 +156,7 @@ GLenum getGlPixelFormat(FrameworkFormat format, YUVPlane plane) {
         case YUVPlane::V:
             return GL_RED;
         case YUVPlane::UV:
-            FATAL("Invalid plane:%d for format:%d", plane, format);
+            FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_YUV_420_888:
@@ -168,7 +168,7 @@ GLenum getGlPixelFormat(FrameworkFormat format, YUVPlane plane) {
                 return GL_RG;
             case YUVPlane::U:
             case YUVPlane::V:
-                FATAL("Invalid plane:%d for format:%d", plane, format);
+                FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         } else {
@@ -178,7 +178,7 @@ GLenum getGlPixelFormat(FrameworkFormat format, YUVPlane plane) {
             case YUVPlane::V:
                 return GL_RED;
             case YUVPlane::UV:
-                FATAL("Invalid plane:%d for format:%d", plane, format);
+                FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         }
@@ -190,7 +190,7 @@ GLenum getGlPixelFormat(FrameworkFormat format, YUVPlane plane) {
             return GL_RG;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane:%d for format:%d", plane, format);
+            FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_P010:
@@ -201,7 +201,7 @@ GLenum getGlPixelFormat(FrameworkFormat format, YUVPlane plane) {
             return GL_RG_INTEGER;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane:%d for format:%d", plane, format);
+            FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     default:
@@ -219,7 +219,7 @@ GLsizei getGlPixelType(FrameworkFormat format, YUVPlane plane) {
         case YUVPlane::V:
             return GL_UNSIGNED_BYTE;
         case YUVPlane::UV:
-            FATAL("Invalid plane:%d for format:%d", plane, format);
+            FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_YUV_420_888:
@@ -230,7 +230,7 @@ GLsizei getGlPixelType(FrameworkFormat format, YUVPlane plane) {
                 return GL_UNSIGNED_BYTE;
             case YUVPlane::U:
             case YUVPlane::V:
-                FATAL("Invalid plane:%d for format:%d", plane, format);
+                FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         } else {
@@ -240,7 +240,7 @@ GLsizei getGlPixelType(FrameworkFormat format, YUVPlane plane) {
             case YUVPlane::V:
                 return GL_UNSIGNED_BYTE;
             case YUVPlane::UV:
-                FATAL("Invalid plane:%d for format:%d", plane, format);
+                FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         }
@@ -251,7 +251,7 @@ GLsizei getGlPixelType(FrameworkFormat format, YUVPlane plane) {
             return GL_UNSIGNED_BYTE;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane:%d for format:%d", plane, format);
+            FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_P010:
@@ -261,7 +261,7 @@ GLsizei getGlPixelType(FrameworkFormat format, YUVPlane plane) {
             return GL_UNSIGNED_SHORT;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane:%d for format:%d", plane, format);
+            FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     default:

@@ -11905,6 +11905,69 @@ void reservedunmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void reservedunmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->depthClipEnable, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkPipelineRasterizationDepthClipStateCreateFlagsEXT*)&forUnmarshaling->flags, *ptr,
+           sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT));
+    *ptr += sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT);
+    memcpy((VkBool32*)&forUnmarshaling->depthClipEnable, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -11917,11 +11980,226 @@ void reservedunmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->maxVertexAttribDivisor, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedunmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVertexInputBindingDivisorDescriptionEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((uint32_t*)&forUnmarshaling->binding, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->divisor, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->vertexBindingDivisorCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pVertexBindingDivisors,
+                    forUnmarshaling->vertexBindingDivisorCount *
+                        sizeof(const VkVertexInputBindingDivisorDescriptionEXT));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->vertexBindingDivisorCount; ++i) {
+        reservedunmarshal_VkVertexInputBindingDivisorDescriptionEXT(
+            vkStream, rootType,
+            (VkVertexInputBindingDivisorDescriptionEXT*)(forUnmarshaling->pVertexBindingDivisors +
+                                                         i),
+            ptr);
+    }
+}
+
+void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateDivisor, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateZeroDivisor, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_fragment_density_map
+void reservedunmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    forUnmarshaling->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->fragmentDensityMap, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->fragmentDensityMapDynamic, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->fragmentDensityMapNonSubsampledImages, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    forUnmarshaling->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    reservedunmarshal_VkExtent2D(vkStream, rootType,
+                                 (VkExtent2D*)(&forUnmarshaling->minFragmentDensityTexelSize), ptr);
+    reservedunmarshal_VkExtent2D(vkStream, rootType,
+                                 (VkExtent2D*)(&forUnmarshaling->maxFragmentDensityTexelSize), ptr);
+    memcpy((VkBool32*)&forUnmarshaling->fragmentDensityInvocations, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    forUnmarshaling->sType = VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    reservedunmarshal_VkAttachmentReference(
+        vkStream, rootType,
+        (VkAttachmentReference*)(&forUnmarshaling->fragmentDensityMapAttachment), ptr);
+}
+
+#endif
+#ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
 #endif
@@ -13519,6 +13797,8 @@ void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesE
 }
 
 #endif
+#ifdef VK_QNX_external_memory_screen_buffer
+#endif
 void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
                                         void* structExtension_out, uint8_t** ptr) {
     VkInstanceCreateInfo* structAccess = (VkInstanceCreateInfo*)(structExtension_out);
@@ -14409,6 +14689,148 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
                 reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(
                     structExtension_out),
                 ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
+            reservedunmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_vertex_attribute_divisor
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
+            reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2: {
+                    reservedunmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension_out),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO: {
+                    reservedunmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension_out),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    reservedunmarshal_VkImportColorBufferGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<VkImportColorBufferGOOGLE*>(structExtension_out), ptr);
+                    break;
+                }
+                default: {
+                    reservedunmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapFeaturesEXT*>(
+                            structExtension_out),
+                        ptr);
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2: {
+                    reservedunmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension_out),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    reservedunmarshal_VkCreateBlobGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<VkCreateBlobGOOGLE*>(structExtension_out), ptr);
+                    break;
+                }
+                default: {
+                    reservedunmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkPhysicalDeviceFragmentDensityMapPropertiesEXT*>(
+                            structExtension_out),
+                        ptr);
+                    break;
+                }
+            }
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: {
+            switch (rootType) {
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO: {
+                    reservedunmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension_out),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2: {
+                    reservedunmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension_out),
+                        ptr);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: {
+                    reservedunmarshal_VkImportBufferGOOGLE(
+                        vkStream, rootType,
+                        reinterpret_cast<VkImportBufferGOOGLE*>(structExtension_out), ptr);
+                    break;
+                }
+                default: {
+                    reservedunmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
+                        vkStream, rootType,
+                        reinterpret_cast<VkRenderPassFragmentDensityMapCreateInfoEXT*>(
+                            structExtension_out),
+                        ptr);
+                    break;
+                }
+            }
             break;
         }
 #endif

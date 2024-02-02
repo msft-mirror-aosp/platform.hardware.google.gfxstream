@@ -1677,6 +1677,18 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceTextureCompressionASTCHDRFeatures
                       deepcopy_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void deepcopy_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceDepthClipEnableFeaturesEXT* from,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* to);
+
+void deepcopy_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPipelineRasterizationDepthClipStateCreateInfoEXT* from,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* to);
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -1701,6 +1713,28 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkDescriptorPoolInlineUniformBlockCreateInfo,
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
+#ifdef VK_EXT_vertex_attribute_divisor
+void deepcopy_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* from,
+    VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* to);
+
+void deepcopy_VkVertexInputBindingDivisorDescriptionEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkVertexInputBindingDivisorDescriptionEXT* from,
+    VkVertexInputBindingDivisorDescriptionEXT* to);
+
+void deepcopy_VkPipelineVertexInputDivisorStateCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPipelineVertexInputDivisorStateCreateInfoEXT* from,
+    VkPipelineVertexInputDivisorStateCreateInfoEXT* to);
+
+void deepcopy_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* from,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* to);
+
+#endif
 #ifdef VK_EXT_pipeline_creation_feedback
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineCreationFeedbackCreateInfo,
                       deepcopy_VkPipelineCreationFeedbackCreateInfoEXT)
@@ -1711,6 +1745,28 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineCreationFeedback, deepcopy_VkPipelineCr
 #ifdef VK_NV_shader_subgroup_partitioned
 #endif
 #ifdef VK_EXT_metal_surface
+#endif
+#ifdef VK_EXT_fragment_density_map
+void deepcopy_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapFeaturesEXT* from,
+    VkPhysicalDeviceFragmentDensityMapFeaturesEXT* to);
+
+void deepcopy_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceFragmentDensityMapPropertiesEXT* from,
+    VkPhysicalDeviceFragmentDensityMapPropertiesEXT* to);
+
+void deepcopy_VkRenderPassFragmentDensityMapCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkRenderPassFragmentDensityMapCreateInfoEXT* from,
+    VkRenderPassFragmentDensityMapCreateInfoEXT* to);
+
+#endif
+#ifdef VK_EXT_scalar_block_layout
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceScalarBlockLayoutFeatures,
+                      deepcopy_VkPhysicalDeviceScalarBlockLayoutFeaturesEXT)
+
 #endif
 #ifdef VK_EXT_subgroup_size_control
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceSubgroupSizeControlFeatures,
@@ -1996,6 +2052,8 @@ void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* from,
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* to);
 
+#endif
+#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 
 }  // namespace vk

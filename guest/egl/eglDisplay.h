@@ -21,8 +21,9 @@
 #include "glUtils.h"
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+
 #include "EGLClientIface.h"
-#include "GLClientState.h"
+#include "gfxstream/guest/GLClientState.h"
 
 #if __cplusplus >= 201103L
 #include <unordered_set>

@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-#include "RutabagaVirtGpu.h"
-
 #include <log/log.h>
 
 #include "RutabagaLayer.h"
+#include "RutabagaVirtGpu.h"
 
 namespace gfxstream {
 
-RutabagaVirtGpuResource::RutabagaVirtGpuResource(
-        uint32_t resourceId,
-        ResourceType resourceType,
-        uint32_t contextId)
-    : mContextId(contextId),
-      mResourceId(resourceId),
-      mResourceType(resourceType) {}
+RutabagaVirtGpuResource::RutabagaVirtGpuResource(uint32_t resourceId, ResourceType resourceType,
+                                                 uint32_t contextId)
+    : mContextId(contextId), mResourceId(resourceId), mResourceType(resourceType) {}
 
 RutabagaVirtGpuResource::~RutabagaVirtGpuResource() {
     EmulatedVirtioGpu::Get().DestroyResource(mContextId, mResourceId);
@@ -39,11 +34,9 @@ VirtGpuBlobMappingPtr RutabagaVirtGpuResource::createMapping(void) {
     return std::make_shared<RutabagaVirtGpuBlobMapping>(shared_from_this(), mapped);
 }
 
-uint32_t RutabagaVirtGpuResource::getResourceHandle() {
-    return mResourceId;
-}
+uint32_t RutabagaVirtGpuResource::getResourceHandle() const { return mResourceId; }
 
-uint32_t RutabagaVirtGpuResource::getBlobHandle() {
+uint32_t RutabagaVirtGpuResource::getBlobHandle() const {
     if (mResourceType != ResourceType::kBlob) {
         ALOGE("Attempting to get blob handle for non-blob resource");
         return -1;
@@ -63,9 +56,7 @@ int RutabagaVirtGpuResource::exportBlob(VirtGpuExternalHandle&) {
     return -1;
 }
 
-int RutabagaVirtGpuResource::wait() {
-    return EmulatedVirtioGpu::Get().Wait(mResourceId);
-}
+int RutabagaVirtGpuResource::wait() { return EmulatedVirtioGpu::Get().Wait(mResourceId); }
 
 int RutabagaVirtGpuResource::transferFromHost(uint32_t offset, uint32_t size) {
     if (mResourceType != ResourceType::kPipe) {

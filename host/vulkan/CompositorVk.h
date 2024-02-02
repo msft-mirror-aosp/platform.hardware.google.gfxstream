@@ -15,10 +15,11 @@
 #include "BorrowedImage.h"
 #include "BorrowedImageVk.h"
 #include "Compositor.h"
+#include "DebugUtilsHelper.h"
 #include "Hwc2.h"
-#include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/LruCache.h"
-#include "vulkan/cereal/common/goldfish_vk_dispatch.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "goldfish_vk_dispatch.h"
 #include "vulkan/vk_util.h"
 
 namespace gfxstream {
@@ -41,6 +42,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     const VkPhysicalDevice m_vkPhysicalDevice;
     const VkQueue m_vkQueue;
     const uint32_t m_queueFamilyIndex;
+    const DebugUtilsHelper m_debugUtilsHelper;
     std::shared_ptr<android::base::Lock> m_vkQueueLock;
     VkDescriptorSetLayout m_vkDescriptorSetLayout;
     VkPipelineLayout m_vkPipelineLayout;
@@ -54,6 +56,13 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     VkCommandPool m_vkCommandPool;
     // TODO: create additional VkSampler-s for YCbCr layers.
     VkSampler m_vkSampler;
+    // Unused image that is solely used to occupy the sampled image binding
+    // when compositing a solid color layer.
+    struct DefaultImage {
+        VkImage m_vkImage = VK_NULL_HANDLE;
+        VkImageView m_vkImageView = VK_NULL_HANDLE;
+        VkDeviceMemory m_vkImageMemory = VK_NULL_HANDLE;
+    } m_defaultImage;
 
     // The underlying storage for all of the uniform buffer objects.
     struct UniformBufferStorage {
@@ -64,6 +73,9 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
 
     // Keep in sync with vulkan/Compositor.frag.
     struct SamplerBinding {
+        // Include the image id to trigger a descriptor update to handle the case
+        // that the VkImageView is recycled across different images (b/322998473).
+        uint32_t sampledImageId = 0;
         VkImageView sampledImageView = VK_NULL_HANDLE;
     };
 
@@ -71,6 +83,9 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     struct UniformBufferBinding {
         alignas(16) glm::mat4 positionTransform;
         alignas(16) glm::mat4 texCoordTransform;
+        alignas(16) glm::uvec4 mode;
+        alignas(16) glm::vec4 alpha;
+        alignas(16) glm::vec4 color;
     };
 
     // The cached contents of a given descriptor set.
@@ -104,12 +119,14 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     explicit CompositorVkBase(const VulkanDispatch& vk, VkDevice device,
                               VkPhysicalDevice physicalDevice, VkQueue queue,
                               std::shared_ptr<android::base::Lock> queueLock,
-                              uint32_t queueFamilyIndex, uint32_t maxFramesInFlight)
+                              uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
+                              DebugUtilsHelper debugUtils)
         : m_vk(vk),
           m_vkDevice(device),
           m_vkPhysicalDevice(physicalDevice),
           m_vkQueue(queue),
           m_queueFamilyIndex(queueFamilyIndex),
+          m_debugUtilsHelper(debugUtils),
           m_vkQueueLock(queueLock),
           m_vkDescriptorSetLayout(VK_NULL_HANDLE),
           m_vkPipelineLayout(VK_NULL_HANDLE),
@@ -127,11 +144,11 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
 
 class CompositorVk : protected CompositorVkBase, public Compositor {
    public:
-    static std::unique_ptr<CompositorVk> create(const VulkanDispatch& vk, VkDevice vkDevice,
-                                                VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
-                                                std::shared_ptr<android::base::Lock> queueLock,
-                                                uint32_t queueFamilyIndex,
-                                                uint32_t maxFramesInFlight);
+    static std::unique_ptr<CompositorVk> create(
+        const VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice,
+        VkQueue vkQueue, std::shared_ptr<android::base::Lock> queueLock, uint32_t queueFamilyIndex,
+        uint32_t maxFramesInFlight,
+        DebugUtilsHelper debugUtils = DebugUtilsHelper::withUtilsDisabled());
 
     ~CompositorVk();
 
@@ -146,7 +163,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
    private:
     explicit CompositorVk(const VulkanDispatch&, VkDevice, VkPhysicalDevice, VkQueue,
                           std::shared_ptr<android::base::Lock> queueLock, uint32_t queueFamilyIndex,
-                          uint32_t maxFramesInFlight);
+                          uint32_t maxFramesInFlight, DebugUtilsHelper debugUtils);
 
     void setUpGraphicsPipeline();
     void setUpVertexBuffers();
@@ -155,6 +172,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     void setUpUniformBuffers();
     void setUpCommandPool();
     void setUpFences();
+    void setUpDefaultImage();
     void setUpFrameResourceFutures();
 
     std::optional<std::tuple<VkBuffer, VkDeviceMemory>> createBuffer(VkDeviceSize,
