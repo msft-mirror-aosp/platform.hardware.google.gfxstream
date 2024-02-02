@@ -36,25 +36,31 @@ class DebugUtilsHelper {
         }
 
         VkObjectType objectType = VK_OBJECT_TYPE_UNKNOWN;
-        if constexpr(std::is_same_v<VkObjectT, VkCommandBuffer>) {
+        if constexpr (std::is_same_v<VkObjectT, VkBuffer>) {
+            objectType = VK_OBJECT_TYPE_BUFFER;
+        } else if constexpr (std::is_same_v<VkObjectT, VkCommandBuffer>) {
             objectType = VK_OBJECT_TYPE_COMMAND_BUFFER;
-        } else if constexpr(std::is_same_v<VkObjectT, VkCommandPool>) {
+        } else if constexpr (std::is_same_v<VkObjectT, VkCommandPool>) {
             objectType = VK_OBJECT_TYPE_COMMAND_POOL;
-        } else if constexpr(std::is_same_v<VkObjectT, VkDescriptorSet>) {
+        } else if constexpr (std::is_same_v<VkObjectT, VkDescriptorSet>) {
             objectType = VK_OBJECT_TYPE_DESCRIPTOR_SET;
-        } else if constexpr(std::is_same_v<VkObjectT, VkFramebuffer>) {
+        } else if constexpr (std::is_same_v<VkObjectT, VkDeviceMemory>) {
+            objectType = VK_OBJECT_TYPE_DEVICE_MEMORY;
+        } else if constexpr (std::is_same_v<VkObjectT, VkFence>) {
+            objectType = VK_OBJECT_TYPE_FENCE;
+        } else if constexpr (std::is_same_v<VkObjectT, VkFramebuffer>) {
             objectType = VK_OBJECT_TYPE_FRAMEBUFFER;
-        } else if constexpr(std::is_same_v<VkObjectT, VkImage>) {
+        } else if constexpr (std::is_same_v<VkObjectT, VkImage>) {
             objectType = VK_OBJECT_TYPE_IMAGE;
-        } else if constexpr(std::is_same_v<VkObjectT, VkImageView>) {
+        } else if constexpr (std::is_same_v<VkObjectT, VkImageView>) {
             objectType = VK_OBJECT_TYPE_IMAGE_VIEW;
-        } else if constexpr(std::is_same_v<VkObjectT, VkPipeline>) {
+        } else if constexpr (std::is_same_v<VkObjectT, VkPipeline>) {
             objectType = VK_OBJECT_TYPE_PIPELINE;
-        } else if constexpr(std::is_same_v<VkObjectT, VkSampler>) {
+        } else if constexpr (std::is_same_v<VkObjectT, VkSampler>) {
             objectType = VK_OBJECT_TYPE_SAMPLER;
         } else {
             static_assert(sizeof(VkObjectT) == 0,
-                                 "Unhandled VkObjectT. Please update DebugUtilsHelper.h.");
+                          "Unhandled VkObjectT. Please update DebugUtilsHelper.h.");
         }
 
         addDebugLabelToHandle((uint64_t)object, objectType, format, std::forward<T>(formatArgs)...);
@@ -62,6 +68,8 @@ class DebugUtilsHelper {
 
     void cmdBeginDebugLabel(VkCommandBuffer commandBuffer, const char* format, ...) const;
     void cmdEndDebugLabel(VkCommandBuffer commandBuffer) const;
+
+    bool isEnabled() const { return m_debugUtilsEnabled; }
 
    private:
     DebugUtilsHelper(bool enabled, VkDevice device, const VulkanDispatch* dispatch);
