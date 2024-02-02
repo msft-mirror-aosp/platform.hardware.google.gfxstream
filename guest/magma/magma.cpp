@@ -154,7 +154,7 @@ magma_status_t MagmaClientContext::get_fd_for_buffer(magma_buffer_t buffer, int*
     }
     auto& info = it->second;
 
-    // TODO(fxbug.dev/122604): Evaluate deferred guest resource creation.
+    // TODO(fxbug.dev/42073573): Evaluate deferred guest resource creation.
     auto blob = VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamMagma)
                     ->createBlob({.size = info.size,
                                   .flags = kBlobFlagMappable | kBlobFlagShareable,
