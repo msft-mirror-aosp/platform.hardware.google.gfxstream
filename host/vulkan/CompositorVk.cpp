@@ -129,14 +129,13 @@ CompositorVk::RenderTarget::~RenderTarget() {
     }
 }
 
-std::unique_ptr<CompositorVk> CompositorVk::create(const VulkanDispatch& vk, VkDevice vkDevice,
-                                                   VkPhysicalDevice vkPhysicalDevice,
-                                                   VkQueue vkQueue,
-                                                   std::shared_ptr<android::base::Lock> queueLock,
-                                                   uint32_t queueFamilyIndex,
-                                                   uint32_t maxFramesInFlight) {
-    auto res = std::unique_ptr<CompositorVk>(new CompositorVk(
-        vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex, maxFramesInFlight));
+std::unique_ptr<CompositorVk> CompositorVk::create(
+    const VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
+    std::shared_ptr<android::base::Lock> queueLock, uint32_t queueFamilyIndex,
+    uint32_t maxFramesInFlight, DebugUtilsHelper debugUtils) {
+    auto res = std::unique_ptr<CompositorVk>(new CompositorVk(vk, vkDevice, vkPhysicalDevice,
+                                                              vkQueue, queueLock, queueFamilyIndex,
+                                                              maxFramesInFlight, debugUtils));
     res->setUpCommandPool();
     res->setUpSampler();
     res->setUpGraphicsPipeline();
@@ -152,9 +151,10 @@ std::unique_ptr<CompositorVk> CompositorVk::create(const VulkanDispatch& vk, VkD
 CompositorVk::CompositorVk(const VulkanDispatch& vk, VkDevice vkDevice,
                            VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
                            std::shared_ptr<android::base::Lock> queueLock,
-                           uint32_t queueFamilyIndex, uint32_t maxFramesInFlight)
+                           uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
+                           DebugUtilsHelper debugUtilsHelper)
     : CompositorVkBase(vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex,
-                       maxFramesInFlight),
+                       maxFramesInFlight, debugUtilsHelper),
       m_maxFramesInFlight(maxFramesInFlight),
       m_renderTargetCache(k_renderTargetCacheSize) {}
 
@@ -506,6 +506,7 @@ void CompositorVk::setUpCommandPool() {
     VkCommandPool commandPool = VK_NULL_HANDLE;
     VK_CHECK(m_vk.vkCreateCommandPool(m_vkDevice, &commandPoolCreateInfo, nullptr, &commandPool));
     m_vkCommandPool = commandPool;
+    m_debugUtilsHelper.addDebugLabel(m_vkCommandPool, "CompositorVk command pool");
 }
 
 void CompositorVk::setUpFences() {
@@ -1016,17 +1017,20 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
         };
 
         if (layer.props.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
+            descriptorSetContents.binding0.sampledImageId = 0;
             descriptorSetContents.binding0.sampledImageView = m_defaultImage.m_vkImageView;
             descriptorSetContents.binding1.color =
                 glm::vec4(static_cast<float>(layer.props.color.r) / 255.0f,
                           static_cast<float>(layer.props.color.g) / 255.0f,
                           static_cast<float>(layer.props.color.b) / 255.0f,
                           static_cast<float>(layer.props.color.a) / 255.0f);
+
         } else {
             if (sourceImage == nullptr) {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "CompositorVk failed to find sourceImage.";
             }
+            descriptorSetContents.binding0.sampledImageId = sourceImage->id;
             descriptorSetContents.binding0.sampledImageView = sourceImage->imageView;
             compositionVk->layersSourceImages.emplace_back(sourceImage);
         }
@@ -1068,6 +1072,9 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
             &postCompositionLayoutTransitionBarriers, &postCompositionQueueTransferBarriers);
     }
 
+    static uint32_t sCompositionNumber = 0;
+    const uint32_t thisCompositionNumber = sCompositionNumber++;
+
     VkCommandBuffer& commandBuffer = frameResources->m_vkCommandBuffer;
     if (commandBuffer != VK_NULL_HANDLE) {
         m_vk.vkFreeCommandBuffers(m_vkDevice, m_vkCommandPool, 1, &commandBuffer);
@@ -1081,11 +1088,18 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
     };
     VK_CHECK(m_vk.vkAllocateCommandBuffers(m_vkDevice, &commandBufferAllocInfo, &commandBuffer));
 
+    m_debugUtilsHelper.addDebugLabel(commandBuffer, "CompositorVk composition:%d command buffer",
+                                     thisCompositionNumber);
+
     const VkCommandBufferBeginInfo beginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
     VK_CHECK(m_vk.vkBeginCommandBuffer(commandBuffer, &beginInfo));
+
+    m_debugUtilsHelper.cmdBeginDebugLabel(commandBuffer,
+                                          "CompositorVk composition:%d into ColorBuffer:%d",
+                                          thisCompositionNumber, compositionVk.targetImage->id);
 
     if (!preCompositionQueueTransferBarriers.empty()) {
         m_vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
@@ -1162,6 +1176,9 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
 
     const uint32_t numLayers = compositionVk.layersDescriptorSets.descriptorSets.size();
     for (uint32_t layerIndex = 0; layerIndex < numLayers; ++layerIndex) {
+        m_debugUtilsHelper.cmdBeginDebugLabel(commandBuffer, "CompositorVk compose layer:%d",
+                                              layerIndex);
+
         VkDescriptorSet layerDescriptorSet = frameResources->m_layerDescriptorSets[layerIndex];
 
         m_vk.vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -1172,6 +1189,8 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
                                      /*pDynamicOffsets=*/nullptr);
 
         m_vk.vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(k_indices.size()), 1, 0, 0, 0);
+
+        m_debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
     }
 
     m_vk.vkCmdEndRenderPass(commandBuffer);
@@ -1219,9 +1238,14 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
             postCompositionQueueTransferBarriers.data());
     }
 
+    m_debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
+
     VK_CHECK(m_vk.vkEndCommandBuffer(commandBuffer));
 
     VkFence composeCompleteFence = frameResources->m_vkFence;
+    m_debugUtilsHelper.addDebugLabel(
+        composeCompleteFence, "CompositorVk composition:%d complete fence", thisCompositionNumber);
+
     VK_CHECK(m_vk.vkResetFences(m_vkDevice, 1, &composeCompleteFence));
 
     const VkPipelineStageFlags submitWaitStages[] = {
@@ -1277,14 +1301,16 @@ void CompositorVk::onImageDestroyed(uint32_t imageId) { m_renderTargetCache.remo
 
 bool operator==(const CompositorVkBase::DescriptorSetContents& lhs,
                 const CompositorVkBase::DescriptorSetContents& rhs) {
-    return std::tie(lhs.binding0.sampledImageView,   //
+    return std::tie(lhs.binding0.sampledImageId,     //
+                    lhs.binding0.sampledImageView,   //
                     lhs.binding1.mode,               //
                     lhs.binding1.alpha,              //
                     lhs.binding1.color,              //
                     lhs.binding1.positionTransform,  //
                     lhs.binding1.texCoordTransform)  //
                      ==                              //
-           std::tie(rhs.binding0.sampledImageView,   //
+           std::tie(rhs.binding0.sampledImageId,     //
+                    rhs.binding0.sampledImageView,   //
                     rhs.binding1.mode,               //
                     rhs.binding1.alpha,              //
                     rhs.binding1.color,              //
