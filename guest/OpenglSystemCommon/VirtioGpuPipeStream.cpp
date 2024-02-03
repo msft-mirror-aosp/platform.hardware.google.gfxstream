@@ -21,7 +21,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "virtgpu_drm.h"
 #include "VirtGpu.h"
 
 static const size_t kTransferBufferSize = (1048576);

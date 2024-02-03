@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/python/python_action.gni")
+import("//build/python/python_binary.gni")
+import("mesa-gn/mesa.gni")
+
 config("common_config") {
   defines = [
     "LOG_TAG=\"gfxstream_vulkan\"",
@@ -30,9 +34,11 @@ config("common_config") {
     "qemupipe/include",
     "qemupipe/include-types",
     "OpenglCodecCommon",
+    "OpenglCodecCommon/include",
     "OpenglSystemCommon",
     "renderControl_enc",
     "vulkan_enc",
+    "$mesa_source_root/include",
     "platform/include",
   ]
 
@@ -53,30 +59,78 @@ config("common_config") {
   ]
 }
 
+python_binary("vk_entrypoints_gen_bin") {
+  main_source = "$mesa_source_root/src/vulkan/util/vk_entrypoints_gen.py"
+
+  sources = [
+    "$mesa_source_root/src/vulkan/util/vk_entrypoints.py",
+    "$mesa_source_root/src/vulkan/util/vk_extensions.py",
+  ]
+  deps = [ "//third_party/mako" ]
+}
+
+config("gfxstream_vk_entrypoints_config") {
+  include_dirs = [ "$target_gen_dir" ]
+}
+
+python_action("gfxstream_vk_entrypoints_header") {
+  public_configs = [ ":gfxstream_vk_entrypoints_config" ]
+
+  binary_label = ":vk_entrypoints_gen_bin"
+
+  sources = [ mesa_vk_xml ]
+
+  h_file = "$target_gen_dir/gfxstream_vk_entrypoints.h"
+  c_file = "$target_gen_dir/placeholder.c"
+
+  outputs = [
+    h_file,
+    c_file,
+  ]
+
+  args = [
+    "--xml",
+    rebase_path(mesa_vk_xml, root_build_dir),
+    "--proto",
+    "--weak",
+    "--out-h",
+    rebase_path(h_file, root_build_dir),
+    "--out-c",
+    rebase_path(c_file, root_build_dir),
+    "--prefix",
+    "gfxstream_vk",
+    "--beta",
+    "false",
+  ]
+}
+
 # These sources require access to the Fuchsia goldfish protocols.
 source_set("goldfish_srcs") {
   configs += [ ":common_config" ]
 
   sources = [
-    "vulkan/goldfish_vulkan.cpp",
+    "vulkan/gfxstream_vk_fuchsia.cpp",
     "vulkan_enc/ResourceTracker.cpp",
     "vulkan_enc/ResourceTracker.h",
   ]
 
   public_deps = [
+    "$mesa_build_root/src/vulkan/runtime",
+    "$mesa_build_root/src/vulkan/util",
     "//sdk/fidl/fuchsia.hardware.goldfish:fuchsia.hardware.goldfish_cpp",
     "//sdk/fidl/fuchsia.logger:fuchsia.logger_cpp",
     "//sdk/fidl/fuchsia.sysmem:fuchsia.sysmem_cpp",
+    "//sdk/lib/syslog/structured_backend",
     "//third_party/Vulkan-Headers:vulkan_headers",
-    "//third_party/mesa/include:drm-uapi",
     "//zircon/system/ulib/async:async-cpp",
     "//zircon/system/ulib/async-loop:async-loop-cpp",
-    "//zircon/system/ulib/syslog:syslog-static",
     "//zircon/system/ulib/trace:trace-with-static-engine",
     "//zircon/system/ulib/trace-provider:trace-provider-with-static-engine",
     "//zircon/system/ulib/zx",
     "//zircon/system/ulib/zxio",
   ]
+
+  deps = [ ":gfxstream_vk_entrypoints_header" ]
 
   defines = [
     "QEMU_PIPE_PATH=\"/loader-gpu-devices/class/goldfish-pipe/000\"",
@@ -87,6 +141,11 @@ source_set("goldfish_srcs") {
 loadable_module("libvulkan_gfxstream") {
   configs += [ ":common_config" ]
 
+  deps = [
+    ":gfxstream_vk_entrypoints_header",
+    "$mesa_build_root/src/vulkan/runtime",
+  ]
+
   sources = [
     "GoldfishAddressSpace/AddressSpaceStream.cpp",
     "GoldfishAddressSpace/VirtioGpuAddressSpaceStream.cpp",
@@ -94,14 +153,12 @@ loadable_module("libvulkan_gfxstream") {
     "OpenglCodecCommon/ChecksumCalculator.h",
     "OpenglCodecCommon/glUtils.cpp",
     "OpenglCodecCommon/glUtils.h",
-    "OpenglCodecCommon/goldfish_dma.cpp",
-    "OpenglCodecCommon/goldfish_dma.h",
     "OpenglSystemCommon/HostConnection.cpp",
     "OpenglSystemCommon/HostConnection.h",
     "OpenglSystemCommon/ProcessPipe.cpp",
     "OpenglSystemCommon/ProcessPipe.h",
-    "OpenglSystemCommon/QemuPipeStream.h",
     "OpenglSystemCommon/QemuPipeStream.cpp",
+    "OpenglSystemCommon/QemuPipeStream.h",
     "OpenglSystemCommon/ThreadInfo.cpp",
     "OpenglSystemCommon/ThreadInfo.h",
     "OpenglSystemCommon/VirtioGpuPipeStream.cpp",
@@ -198,14 +255,12 @@ loadable_module("libvulkan_gfxstream") {
 
   if (target_os == "fuchsia") {
     sources -= [
-      "OpenglCodecCommon/goldfish_dma.cpp",
-      "OpenglCodecCommon/goldfish_dma.h",
       "OpenglSystemCommon/QemuPipeStream.cpp",
-      "qemupipe/qemu_pipe_common.cpp",
-      "qemupipe/qemu_pipe_guest.cpp",
       "platform/stub/StubVirtGpuBlob.cpp",
       "platform/stub/StubVirtGpuBlobMapping.cpp",
       "platform/stub/StubVirtGpuDevice.cpp",
+      "qemupipe/qemu_pipe_common.cpp",
+      "qemupipe/qemu_pipe_guest.cpp",
     ]
     sources += [
       "OpenglSystemCommon/TraceProviderFuchsia.cpp",
@@ -224,7 +279,7 @@ loadable_module("libvulkan_gfxstream") {
       "//third_party/Vulkan-Headers/include",
     ]
 
-    deps = [
+    deps += [
       ":goldfish_srcs",
       "//sdk/fidl/fuchsia.logger:fuchsia.logger_cpp",
       "//sdk/fidl/fuchsia.sysmem:fuchsia.sysmem_cpp",
