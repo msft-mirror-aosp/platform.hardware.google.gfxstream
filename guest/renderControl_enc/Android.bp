@@ -19,6 +19,18 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+cc_library_headers {
+    name: "libgfxstream_guest_rendercontrol_encoder_headers",
+    host_supported: true,
+    vendor_available: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+}
+
 cc_library_shared {
     name: "lib_renderControl_enc",
     host_supported: true,
@@ -32,6 +44,7 @@ cc_library_shared {
     ],
     export_header_lib_headers: [
         "libgfxstream_guest_graphics_headers",
+        "libgfxstream_guest_iostream",
     ],
     shared_libs: [
         "libandroidemu",

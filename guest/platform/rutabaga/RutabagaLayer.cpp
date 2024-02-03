@@ -929,55 +929,62 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::RunVirtioGpuTaskProcessingLoop() 
     }
 }
 
-namespace {
-
-EmulatedVirtioGpu* sInstance = nullptr;
-
-}  // namespace
-
 EmulatedVirtioGpu::EmulatedVirtioGpu()
     : mImpl{std::make_unique<EmulatedVirtioGpu::EmulatedVirtioGpuImpl>()} {}
 
+namespace {
+
+static std::mutex sInstanceMutex;
+static std::weak_ptr<EmulatedVirtioGpu> sInstance;
+
+}  // namespace
+
 /*static*/
-EmulatedVirtioGpu& EmulatedVirtioGpu::Get() {
-    if (sInstance == nullptr) {
-        sInstance = new EmulatedVirtioGpu();
+std::shared_ptr<EmulatedVirtioGpu> EmulatedVirtioGpu::Get() {
+    std::lock_guard<std::mutex> lock(sInstanceMutex);
 
-        bool withGl = false;
-        bool withVk = true;
-        bool withVkSnapshots = false;
+    std::shared_ptr<EmulatedVirtioGpu> instance = sInstance.lock();
+    if (instance != nullptr) {
+        return instance;
+    }
 
-        struct Option {
-            std::string env;
-            bool* val;
-        };
-        const std::vector<Option> options = {
-            {"GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_GL", &withGl},
-            {"GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK", &withVk},
-            {"GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK_SNAPSHOTS", &withVkSnapshots},
-        };
-        for (const Option option : options) {
-            const char* val = std::getenv(option.env.c_str());
-            if (val != nullptr && (val[0] == 'Y' || val[0] == 'y')) {
-                *option.val = true;
-            }
-        }
+    instance = std::shared_ptr<EmulatedVirtioGpu>(new EmulatedVirtioGpu());
 
-        ALOGE("Initializing withGl:%d withVk:%d withVkSnapshots:%d", withGl, withVk,
-              withVkSnapshots);
-        if (!sInstance->Init(withGl, withVk, withVkSnapshots)) {
-            ALOGE("Failed to initialize EmulatedVirtioGpu.");
+    bool withGl = false;
+    bool withVk = true;
+    bool withVkSnapshots = false;
+
+    struct Option {
+        std::string env;
+        bool* val;
+    };
+    const std::vector<Option> options = {
+        {"GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_GL", &withGl},
+        {"GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK", &withVk},
+        {"GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK_SNAPSHOTS", &withVkSnapshots},
+    };
+    for (const Option option : options) {
+        const char* val = std::getenv(option.env.c_str());
+        if (val != nullptr && (val[0] == 'Y' || val[0] == 'y')) {
+            *option.val = true;
         }
     }
-    return *sInstance;
+
+    ALOGE("Initializing withGl:%d withVk:%d withVkSnapshots:%d", withGl, withVk, withVkSnapshots);
+    if (!instance->Init(withGl, withVk, withVkSnapshots)) {
+        ALOGE("Failed to initialize EmulatedVirtioGpu.");
+        return nullptr;
+    }
+    ALOGE("Successfully initialized EmulatedVirtioGpu.");
+    sInstance = instance;
+    return instance;
 }
 
 /*static*/
-void EmulatedVirtioGpu::Reset() {
-    if (sInstance != nullptr) {
-        delete sInstance;
-        sInstance = nullptr;
-    }
+uint32_t EmulatedVirtioGpu::GetNumActiveUsers() {
+    std::lock_guard<std::mutex> lock(sInstanceMutex);
+    std::shared_ptr<EmulatedVirtioGpu> instance = sInstance.lock();
+    return instance.use_count();
 }
 
 bool EmulatedVirtioGpu::Init(bool withGl, bool withVk, bool withVkSnapshots) {
@@ -1031,6 +1038,6 @@ int EmulatedVirtioGpu::WaitOnEmulatedFence(int fenceAsFileDescriptor, int timeou
 
 void EmulatedVirtioGpu::SignalEmulatedFence(int fenceId) { mImpl->SignalEmulatedFence(fenceId); }
 
-void ResetEmulatedVirtioGpu() { EmulatedVirtioGpu::Reset(); }
+bool GetNumActiveEmulatedVirtioGpuUsers() { return EmulatedVirtioGpu::GetNumActiveUsers(); }
 
 }  // namespace gfxstream
