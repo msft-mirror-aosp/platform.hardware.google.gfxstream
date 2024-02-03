@@ -123,11 +123,7 @@ inc_include = include_directories('../guest/mesa/include')
 inc_utils = include_directories('../utils/include')
 
 if use_vulkan
-  if cc.has_header('vulkan/vulkan.h')
-    inc_vulkan_headers = include_directories()
-  else
-    inc_vulkan_headers = include_directories('../common/vulkan/include')
-  endif
+  inc_vulkan_headers = include_directories('../common/vulkan/include')
 
   if cc.has_header('renderdoc_app.h')
     inc_renderdoc_external = include_directories()
