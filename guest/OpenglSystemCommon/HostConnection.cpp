@@ -368,7 +368,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
 
     auto fd = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
     processPipeInit(fd, connType, noRenderControlEnc);
-    if (!noRenderControlEnc) {
+    if (!noRenderControlEnc && capset == kCapsetGfxStreamVulkan) {
         con->rcEncoder();
     }
 
