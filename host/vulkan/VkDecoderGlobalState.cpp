@@ -27,7 +27,9 @@
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
 #include "VkDecoderContext.h"
+#include "VkDecoderInternalStructs.h"
 #include "VkDecoderSnapshot.h"
+#include "VkDecoderSnapshotUtils.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
 #include "aemu/base/ManagedDescriptor.hpp"
@@ -52,9 +54,9 @@
 #include "host-common/emugl_vm_operations.h"
 #include "host-common/feature_control.h"
 #include "host-common/vm_operations.h"
-#include "vulkan/VkFormatUtils.h"
 #include "utils/RenderDoc.h"
 #include "vk_util.h"
+#include "vulkan/VkFormatUtils.h"
 #include "vulkan/emulated_textures/AstcTexture.h"
 #include "vulkan/emulated_textures/CompressedImageInfo.h"
 #include "vulkan/emulated_textures/GpuDecompressionPipeline.h"
@@ -424,6 +426,56 @@ class VkDecoderGlobalState::Impl {
             stream->putBe64(it.second.size);
             stream->write(it.second.ptr, it.second.size);
         }
+        // Set up VK structs to snapshot other Vulkan objects
+        // TODO(b/323064243): group all images from the same device and reuse queue / command pool
+
+        VulkanDispatch* ivk = getGlobalVkEmulation()->ivk;
+        VulkanDispatch* dvk = getGlobalVkEmulation()->dvk;
+        for (const auto& imageIte : mImageInfo) {
+            const ImageInfo& imageInfo = imageIte.second;
+            if (imageInfo.memory == VK_NULL_HANDLE) {
+                continue;
+            }
+            const auto& device = imageInfo.device;
+            const auto& deviceInfo = android::base::find(mDeviceInfo, device);
+            const auto physicalDevice = deviceInfo->physicalDevice;
+            const auto& physicalDeviceInfo = android::base::find(mPhysdevInfo, physicalDevice);
+            StateBlock stateBlock{
+                .physicalDevice = physicalDevice,
+                .physicalDeviceInfo = physicalDeviceInfo,
+                .device = device,
+                .queue = VK_NULL_HANDLE,
+                .commandPool = VK_NULL_HANDLE,
+            };
+
+            uint32_t queueFamilyCount = 0;
+            ivk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+                                                          nullptr);
+            std::vector<VkQueueFamilyProperties> queueFamilyProps(queueFamilyCount);
+            ivk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+                                                          queueFamilyProps.data());
+            uint32_t queueFamilyIndex = 0;
+            for (auto queue : deviceInfo->queues) {
+                int idx = queue.first;
+                if ((queueFamilyProps[idx].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) {
+                    continue;
+                }
+                stateBlock.queue = queue.second[0];
+                queueFamilyIndex = idx;
+                break;
+            }
+
+            VkCommandPoolCreateInfo commandPoolCi = {
+                VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+                0,
+                VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+                queueFamilyIndex,
+            };
+            dvk->vkCreateCommandPool(device, &commandPoolCi, nullptr, &stateBlock.commandPool);
+            // TODO(b/294277842): make sure the queue is empty before using.
+            saveImageContent(stream, &stateBlock, imageIte.first, &imageInfo);
+            dvk->vkDestroyCommandPool(device, stateBlock.commandPool, nullptr);
+        }
         mSnapshotState = SnapshotState::Normal;
     }
 
@@ -453,6 +505,56 @@ class VkDecoderGlobalState::Impl {
                     << "Snapshot load failure: memory size does not match for " << boxedMemory;
             }
             stream->read(it->second.ptr, size);
+        }
+        // Set up VK structs to snapshot other Vulkan objects
+        // TODO(b/323064243): group all images from the same device and reuse queue / command pool
+
+        VulkanDispatch* ivk = getGlobalVkEmulation()->ivk;
+        VulkanDispatch* dvk = getGlobalVkEmulation()->dvk;
+        for (const auto& imageIte : mImageInfo) {
+            const ImageInfo& imageInfo = imageIte.second;
+            if (imageInfo.memory == VK_NULL_HANDLE) {
+                continue;
+            }
+            const auto& device = imageInfo.device;
+            const auto& deviceInfo = android::base::find(mDeviceInfo, device);
+            const auto physicalDevice = deviceInfo->physicalDevice;
+            const auto& physicalDeviceInfo = android::base::find(mPhysdevInfo, physicalDevice);
+            StateBlock stateBlock{
+                .physicalDevice = physicalDevice,
+                .physicalDeviceInfo = physicalDeviceInfo,
+                .device = device,
+                .queue = VK_NULL_HANDLE,
+                .commandPool = VK_NULL_HANDLE,
+            };
+
+            uint32_t queueFamilyCount = 0;
+            ivk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+                                                          nullptr);
+            std::vector<VkQueueFamilyProperties> queueFamilyProps(queueFamilyCount);
+            ivk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+                                                          queueFamilyProps.data());
+            uint32_t queueFamilyIndex = 0;
+            for (auto queue : deviceInfo->queues) {
+                int idx = queue.first;
+                if ((queueFamilyProps[idx].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) {
+                    continue;
+                }
+                stateBlock.queue = queue.second[0];
+                queueFamilyIndex = idx;
+                break;
+            }
+
+            VkCommandPoolCreateInfo commandPoolCi = {
+                VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+                0,
+                VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+                queueFamilyIndex,
+            };
+            dvk->vkCreateCommandPool(device, &commandPoolCi, nullptr, &stateBlock.commandPool);
+            // TODO(b/294277842): make sure the queue is empty before using.
+            loadImageContent(stream, &stateBlock, imageIte.first, &imageInfo);
+            dvk->vkDestroyCommandPool(device, stateBlock.commandPool, nullptr);
         }
         mSnapshotState = SnapshotState::Normal;
     }
@@ -1690,6 +1792,7 @@ class VkDecoderGlobalState::Impl {
         imageInfo.device = device;
         imageInfo.cmpInfo = std::move(cmpInfo);
         imageInfo.imageCreateInfoShallow = vk_make_orphan_copy(*pCreateInfo);
+        imageInfo.layout = pCreateInfo->initialLayout;
         if (nativeBufferANDROID) imageInfo.anbInfo = std::move(anbInfo);
 
         *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
@@ -1795,15 +1898,6 @@ class VkDecoderGlobalState::Impl {
         auto* memoryInfo = android::base::find(mMemoryInfo, memory);
         if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-        auto* imageInfo = android::base::find(mImageInfo, image);
-        if (imageInfo) {
-            imageInfo->boundColorBuffer = memoryInfo->boundColorBuffer;
-            if (imageInfo->boundColorBuffer) {
-                deviceInfo->debugUtilsHelper.addDebugLabel(image, "ColorBuffer:%d",
-                                                           *imageInfo->boundColorBuffer);
-            }
-        }
-
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         if (memoryInfo->mtlTexture) {
             result = m_vk->vkSetMTLTextureMVK(image, memoryInfo->mtlTexture);
@@ -1813,11 +1907,19 @@ class VkDecoderGlobalState::Impl {
             }
         }
 #endif
+
+        auto* imageInfo = android::base::find(mImageInfo, image);
+        if (!imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+        imageInfo->boundColorBuffer = memoryInfo->boundColorBuffer;
+        if (imageInfo->boundColorBuffer) {
+            deviceInfo->debugUtilsHelper.addDebugLabel(image, "ColorBuffer:%d",
+                                                       *imageInfo->boundColorBuffer);
+        }
+        imageInfo->memory = memory;
+
         if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
             return VK_SUCCESS;
         }
-
-        if (!imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
         if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
@@ -3325,6 +3427,7 @@ class VkDecoderGlobalState::Impl {
         DeviceInfo* deviceInfo = android::base::find(mDeviceInfo, cmdBufferInfo->device);
         if (!deviceInfo) return;
 
+        // TODO: update image layout in ImageInfo
         if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
             vk->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags,
                                      memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
@@ -6563,210 +6666,6 @@ class VkDecoderGlobalState::Impl {
     bool mGuestUsesAngle = false;
 
     std::recursive_mutex mLock;
-
-    // We always map the whole size on host.
-    // This makes it much easier to implement
-    // the memory map API.
-    struct MemoryInfo {
-        // This indicates whether the VkDecoderGlobalState needs to clean up
-        // and unmap the mapped memory; only the owner of the mapped memory
-        // should call unmap.
-        bool needUnmap = false;
-        // When ptr is null, it means the VkDeviceMemory object
-        // was not allocated with the HOST_VISIBLE property.
-        void* ptr = nullptr;
-        VkDeviceSize size;
-        // GLDirectMem info
-        bool directMapped = false;
-        bool virtioGpuMapped = false;
-        uint32_t caching = 0;
-        uint64_t guestPhysAddr = 0;
-        void* pageAlignedHva = nullptr;
-        uint64_t sizeToPage = 0;
-        uint64_t hostmemId = 0;
-        VkDevice device = VK_NULL_HANDLE;
-        MTLTextureRef mtlTexture = nullptr;
-        uint32_t memoryIndex = 0;
-        // Set if the memory is backed by shared memory.
-        std::optional<SharedMemory> sharedMemory;
-
-        // virtio-gpu blobs
-        uint64_t blobId = 0;
-
-        // Buffer, provided via vkAllocateMemory().
-        std::optional<HandleType> boundBuffer;
-        // ColorBuffer, provided via vkAllocateMemory().
-        std::optional<HandleType> boundColorBuffer;
-    };
-
-    struct InstanceInfo {
-        std::vector<std::string> enabledExtensionNames;
-        uint32_t apiVersion = VK_MAKE_VERSION(1, 0, 0);
-        VkInstance boxed = nullptr;
-        bool isAngle = false;
-    };
-
-    struct PhysicalDeviceInfo {
-        VkPhysicalDeviceProperties props;
-        VkPhysicalDeviceMemoryProperties memoryProperties;
-        std::vector<VkQueueFamilyProperties> queueFamilyProperties;
-        VkPhysicalDevice boxed = nullptr;
-    };
-
-    struct DeviceInfo {
-        std::unordered_map<uint32_t, std::vector<VkQueue>> queues;
-        std::vector<std::string> enabledExtensionNames;
-        bool emulateTextureEtc2 = false;
-        bool emulateTextureAstc = false;
-        bool useAstcCpuDecompression = false;
-        VkPhysicalDevice physicalDevice;
-        VkDevice boxed = nullptr;
-        DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
-        std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
-        std::set<VkFormat> imageFormats = {};  // image formats used on this device
-        std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
-
-        // True if this is a compressed image that needs to be decompressed on the GPU (with our
-        // compute shader)
-        bool needGpuDecompression(const CompressedImageInfo& cmpInfo) {
-            return ((cmpInfo.isEtc2() && emulateTextureEtc2) ||
-                    (cmpInfo.isAstc() && emulateTextureAstc && !useAstcCpuDecompression));
-        }
-        bool needEmulatedDecompression(const CompressedImageInfo& cmpInfo) {
-            return ((cmpInfo.isEtc2() && emulateTextureEtc2) ||
-                    (cmpInfo.isAstc() && emulateTextureAstc));
-        }
-        bool needEmulatedDecompression(VkFormat format) {
-            return (gfxstream::vk::isEtc2(format) && emulateTextureEtc2) || (gfxstream::vk::isAstc(format) && emulateTextureAstc);
-        }
-    };
-
-    struct QueueInfo {
-        Lock* lock = nullptr;
-        VkDevice device;
-        uint32_t queueFamilyIndex;
-        VkQueue boxed = nullptr;
-        uint32_t sequenceNumber = 0;
-    };
-
-    struct BufferInfo {
-        VkDevice device;
-        VkDeviceMemory memory = 0;
-        VkDeviceSize memoryOffset = 0;
-        VkDeviceSize size;
-    };
-
-    struct ImageInfo {
-        VkDevice device;
-        VkImageCreateInfo imageCreateInfoShallow;
-        std::shared_ptr<AndroidNativeBufferInfo> anbInfo;
-        CompressedImageInfo cmpInfo;
-
-        // ColorBuffer, provided via vkAllocateMemory().
-        std::optional<HandleType> boundColorBuffer;
-    };
-
-    struct ImageViewInfo {
-        VkDevice device;
-        bool needEmulatedAlpha = false;
-
-        // ColorBuffer, provided via vkAllocateMemory().
-        std::optional<HandleType> boundColorBuffer;
-    };
-
-    struct SamplerInfo {
-        VkDevice device;
-        bool needEmulatedAlpha = false;
-        VkSamplerCreateInfo createInfo = {};
-        VkSampler emulatedborderSampler = VK_NULL_HANDLE;
-        android::base::BumpPool pool = android::base::BumpPool(256);
-        SamplerInfo() = default;
-        SamplerInfo& operator=(const SamplerInfo& other) {
-            deepcopy_VkSamplerCreateInfo(&pool, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                                         &other.createInfo, &createInfo);
-            device = other.device;
-            needEmulatedAlpha = other.needEmulatedAlpha;
-            emulatedborderSampler = other.emulatedborderSampler;
-            return *this;
-        }
-        SamplerInfo(const SamplerInfo& other) { *this = other; }
-        SamplerInfo(SamplerInfo&& other) = delete;
-        SamplerInfo& operator=(SamplerInfo&& other) = delete;
-    };
-
-    struct FenceInfo {
-        VkDevice device = VK_NULL_HANDLE;
-        VkFence boxed = VK_NULL_HANDLE;
-        VulkanDispatch* vk = nullptr;
-
-        StaticLock lock;
-        android::base::ConditionVariable cv;
-
-        enum class State {
-            kWaitable,
-            kNotWaitable,
-            kWaiting,
-        };
-        State state = State::kNotWaitable;
-
-        bool external = false;
-    };
-
-    struct SemaphoreInfo {
-        VkDevice device;
-        int externalHandleId = 0;
-        VK_EXT_SYNC_HANDLE externalHandle = VK_EXT_SYNC_HANDLE_INVALID;
-    };
-
-    struct DescriptorSetLayoutInfo {
-        VkDevice device = 0;
-        VkDescriptorSetLayout boxed = 0;
-        VkDescriptorSetLayoutCreateInfo createInfo;
-        std::vector<VkDescriptorSetLayoutBinding> bindings;
-    };
-
-    struct DescriptorPoolInfo {
-        VkDevice device = 0;
-        VkDescriptorPool boxed = 0;
-        struct PoolState {
-            VkDescriptorType type;
-            uint32_t descriptorCount;
-            uint32_t used;
-        };
-
-        VkDescriptorPoolCreateInfo createInfo;
-        uint32_t maxSets;
-        uint32_t usedSets;
-        std::vector<PoolState> pools;
-
-        std::unordered_map<VkDescriptorSet, VkDescriptorSet> allocedSetsToBoxed;
-        std::vector<uint64_t> poolIds;
-    };
-
-    struct DescriptorSetInfo {
-        VkDescriptorPool pool;
-        std::vector<VkDescriptorSetLayoutBinding> bindings;
-    };
-
-    struct ShaderModuleInfo {
-        VkDevice device;
-    };
-
-    struct PipelineCacheInfo {
-        VkDevice device;
-    };
-
-    struct PipelineInfo {
-        VkDevice device;
-    };
-
-    struct RenderPassInfo {
-        VkDevice device;
-    };
-
-    struct FramebufferInfo {
-        VkDevice device;
-    };
 
     bool isBindingFeasibleForAlloc(const DescriptorPoolInfo::PoolState& poolState,
                                    const VkDescriptorSetLayoutBinding& binding) {
