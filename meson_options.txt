@@ -731,6 +731,7 @@ option(
     'both',
     'guest',
     'host',
+    'guest-test',
   ],
   description : 'Which portions of gfxstream to build'
 )
