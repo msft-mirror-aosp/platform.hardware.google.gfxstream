@@ -1319,8 +1319,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkRenderPassBeginInfo(
                         globalstate, (VkRenderPassBeginInfo*)(pRenderPassBegin));
                 }
-                vk->vkCmdBeginRenderPass((VkCommandBuffer)dispatchHandle, pRenderPassBegin,
-                                         contents);
+                this->on_vkCmdBeginRenderPass(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                              pRenderPassBegin, contents);
                 android::base::endTrace();
                 break;
             }
@@ -1486,8 +1486,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassBeginInfo(globalstate,
                                                         (VkSubpassBeginInfo*)(pSubpassBeginInfo));
                 }
-                vk->vkCmdBeginRenderPass2((VkCommandBuffer)dispatchHandle, pRenderPassBegin,
-                                          pSubpassBeginInfo);
+                this->on_vkCmdBeginRenderPass2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                               pRenderPassBegin, pSubpassBeginInfo);
                 android::base::endTrace();
                 break;
             }
@@ -2121,8 +2121,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassBeginInfo(globalstate,
                                                         (VkSubpassBeginInfo*)(pSubpassBeginInfo));
                 }
-                vk->vkCmdBeginRenderPass2KHR((VkCommandBuffer)dispatchHandle, pRenderPassBegin,
-                                             pSubpassBeginInfo);
+                this->on_vkCmdBeginRenderPass2KHR(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                                  pRenderPassBegin, pSubpassBeginInfo);
                 android::base::endTrace();
                 break;
             }
