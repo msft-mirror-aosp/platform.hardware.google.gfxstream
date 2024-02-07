@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ErrorLog.h"
+#include "auto_goldfish_dma_context.h"
 #include "IndexRangeCache.h"
 #include "StateTrackingSupport.h"
 
@@ -64,6 +65,9 @@ struct BufferData {
     // Internal bookkeeping
     std::vector<char> m_fixedBuffer; // actual buffer is shadowed here
     IndexRangeCache m_indexRangeCache;
+
+    // DMA support
+    AutoGoldfishDmaContext dma_buffer;
 };
 
 class ProgramData {
