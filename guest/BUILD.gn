@@ -94,6 +94,8 @@ loadable_module("libvulkan_gfxstream") {
     "OpenglCodecCommon/ChecksumCalculator.h",
     "OpenglCodecCommon/glUtils.cpp",
     "OpenglCodecCommon/glUtils.h",
+    "OpenglCodecCommon/goldfish_dma.cpp",
+    "OpenglCodecCommon/goldfish_dma.h",
     "OpenglSystemCommon/HostConnection.cpp",
     "OpenglSystemCommon/HostConnection.h",
     "OpenglSystemCommon/ProcessPipe.cpp",
@@ -196,6 +198,8 @@ loadable_module("libvulkan_gfxstream") {
 
   if (target_os == "fuchsia") {
     sources -= [
+      "OpenglCodecCommon/goldfish_dma.cpp",
+      "OpenglCodecCommon/goldfish_dma.h",
       "OpenglSystemCommon/QemuPipeStream.cpp",
       "qemupipe/qemu_pipe_common.cpp",
       "qemupipe/qemu_pipe_guest.cpp",
