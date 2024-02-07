@@ -34,6 +34,10 @@ dl_dep = cc.find_library('dl', required: false)
 drm_dep = dependency('libdrm')
 thread_dep = dependency('threads')
 
+if with_guest_test
+  gfxstream_backend_dep = dependency('gfxstream_backend')
+endif
+
 #===============#
 # Includes      #
 #===============#

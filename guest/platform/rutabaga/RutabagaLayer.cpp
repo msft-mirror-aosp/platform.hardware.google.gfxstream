@@ -322,6 +322,7 @@ VirtGpuCaps EmulatedVirtioGpu::EmulatedVirtioGpuImpl::GetCaps(VirtGpuCapset caps
                 [kParamCrossDevice] = 0,
                 [kParamContextInit] = 1,
                 [kParamSupportedCapsetIds] = 0,
+                [kParamExplicitDebugName] = 0,
                 [kParamCreateGuestHandle] = 0,
             },
     };

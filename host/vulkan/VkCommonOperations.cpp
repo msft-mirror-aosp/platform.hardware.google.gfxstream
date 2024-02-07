@@ -2635,16 +2635,15 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
         std::memcpy(stagingBufferPtr, pixels, dstBufferSize);
     }
 
-    // Avoid transitioning from VK_IMAGE_LAYOUT_UNDEFINED. Unfortunetly, Android does not
-    // yet have a mechanism for sharing the expected VkImageLayout. However, the Vulkan
-    // spec's image layout transition sections says "If the old layout is
-    // VK_IMAGE_LAYOUT_UNDEFINED, the contents of that range may be discarded." Some
-    // Vulkan drivers have been observed to actually perform the discard which leads to
-    // ColorBuffer-s being unintentionally cleared. See go/ahb-vkimagelayout for a more
-    // thorough write up.
-    if (colorBufferInfo->currentLayout == VK_IMAGE_LAYOUT_UNDEFINED) {
-        colorBufferInfo->currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    }
+    // NOTE: Host vulkan state might not know the correct layout of the
+    // destination image, as guest grallocs are designed to be used by either
+    // GL or Vulkan. Consequently, we typically avoid image transitions from
+    // VK_IMAGE_LAYOUT_UNDEFINED as Vulkan spec allows the contents to be
+    // discarded (and some drivers have been observed doing it). You can
+    // check go/ahb-vkimagelayout for more information. But since this
+    // function does not allow subrects (see above), it will write the
+    // provided contents onto the entirety of the target buffer, meaning this
+    // risk of discarding data should not impact anything.
 
     // Record our synchronization commands.
     const VkCommandBufferBeginInfo beginInfo = {
