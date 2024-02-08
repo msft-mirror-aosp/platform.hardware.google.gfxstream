@@ -3424,37 +3424,7 @@ void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset,
     buf->m_mappedOffset = offset;
     buf->m_mappedLength = length;
 
-    if (ctx->hasExtension("ANDROID_EMU_dma_v2")) {
-        if (buf->dma_buffer.get().size < length) {
-            goldfish_dma_context region;
-
-            const int PAGE_BITS = 12;
-            GLsizeiptr aligned_length = (length + (1 << PAGE_BITS) - 1) & ~((1 << PAGE_BITS) - 1);
-
-            if (goldfish_dma_create_region(aligned_length, &region)) {
-                buf->dma_buffer.reset(NULL);
-                return s_glMapBufferRangeAEMUImpl(ctx, target, offset, length, access, buf);
-            }
-
-            if (!goldfish_dma_map(&region)) {
-                buf->dma_buffer.reset(NULL);
-                return s_glMapBufferRangeAEMUImpl(ctx, target, offset, length, access, buf);
-            }
-
-            buf->m_guest_paddr = goldfish_dma_guest_paddr(&region);
-            buf->dma_buffer.reset(&region);
-        }
-
-        ctx->glMapBufferRangeDMA(
-                ctx, target,
-                offset, length,
-                access,
-                buf->m_guest_paddr);
-
-        return reinterpret_cast<void*>(buf->dma_buffer.get().mapped_addr);
-    } else {
-        return s_glMapBufferRangeAEMUImpl(ctx, target, offset, length, access, buf);
-    }
+    return s_glMapBufferRangeAEMUImpl(ctx, target, offset, length, access, buf);
 }
 
 GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
@@ -3481,37 +3451,23 @@ GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
 
     GLboolean host_res = GL_TRUE;
 
-    if (buf->dma_buffer.get().mapped_addr) {
-        memcpy(&buf->m_fixedBuffer[buf->m_mappedOffset],
-               reinterpret_cast<void*>(buf->dma_buffer.get().mapped_addr),
-               buf->m_mappedLength);
-
-        ctx->glUnmapBufferDMA(
-            ctx, target,
-            buf->m_mappedOffset,
-            buf->m_mappedLength,
-            buf->m_mappedAccess,
-            goldfish_dma_guest_paddr(&buf->dma_buffer.get()),
-            &host_res);
+    if (ctx->m_hasAsyncUnmapBuffer) {
+        ctx->glUnmapBufferAsyncAEMU(
+                ctx, target,
+                buf->m_mappedOffset,
+                buf->m_mappedLength,
+                buf->m_mappedAccess,
+                &buf->m_fixedBuffer[buf->m_mappedOffset],
+                &host_res);
     } else {
-        if (ctx->m_hasAsyncUnmapBuffer) {
-            ctx->glUnmapBufferAsyncAEMU(
+        if (buf->m_mappedAccess & GL_MAP_WRITE_BIT) {
+            ctx->glUnmapBufferAEMU(
                     ctx, target,
                     buf->m_mappedOffset,
                     buf->m_mappedLength,
                     buf->m_mappedAccess,
                     &buf->m_fixedBuffer[buf->m_mappedOffset],
                     &host_res);
-        } else {
-            if (buf->m_mappedAccess & GL_MAP_WRITE_BIT) {
-                ctx->glUnmapBufferAEMU(
-                        ctx, target,
-                        buf->m_mappedOffset,
-                        buf->m_mappedLength,
-                        buf->m_mappedAccess,
-                        &buf->m_fixedBuffer[buf->m_mappedOffset],
-                        &host_res);
-            }
         }
     }
 
