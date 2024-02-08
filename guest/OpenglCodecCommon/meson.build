@@ -5,6 +5,7 @@ inc_codec_common = include_directories('include')
 
 files_lib_codec_common = files(
   'ChecksumCalculator.cpp',
+  'goldfish_dma.cpp',
   'glUtils.cpp',
 )
 

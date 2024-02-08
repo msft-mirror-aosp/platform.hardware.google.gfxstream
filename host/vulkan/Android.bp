@@ -53,6 +53,7 @@ cc_library_static {
         "VkDecoderGlobalState.cpp",
         "RenderThreadInfoVk.cpp",
         "VkDecoderSnapshot.cpp",
+        "VkDecoderSnapshotUtils.cpp",
         "VkFormatUtils.cpp",
         "VkReconstruction.cpp",
         "VulkanDispatch.cpp",
