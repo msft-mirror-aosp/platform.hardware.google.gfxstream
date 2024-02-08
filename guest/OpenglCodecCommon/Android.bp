@@ -65,12 +65,14 @@ cc_library_shared {
         "-Wno-unused-private-field",
     ],
     srcs: [
+        "auto_goldfish_dma_context.cpp",
         "ChecksumCalculator.cpp",
         "EncoderDebug.cpp",
         "GLClientState.cpp",
         "GLESTextureUtils.cpp",
         "GLSharedGroup.cpp",
         "glUtils.cpp",
+        "goldfish_dma.cpp",
         "IndexRangeCache.cpp",
     ],
     export_include_dirs: [
