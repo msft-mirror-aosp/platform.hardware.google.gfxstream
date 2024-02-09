@@ -21,17 +21,21 @@
 
 namespace gfxstream {
 
-RutabagaVirtGpuResource::RutabagaVirtGpuResource(uint32_t resourceId, ResourceType resourceType,
+RutabagaVirtGpuResource::RutabagaVirtGpuResource(std::shared_ptr<EmulatedVirtioGpu> emulation,
+                                                 uint32_t resourceId, ResourceType resourceType,
                                                  uint32_t contextId)
-    : mContextId(contextId), mResourceId(resourceId), mResourceType(resourceType) {}
+    : mEmulation(emulation),
+      mContextId(contextId),
+      mResourceId(resourceId),
+      mResourceType(resourceType) {}
 
 RutabagaVirtGpuResource::~RutabagaVirtGpuResource() {
-    EmulatedVirtioGpu::Get().DestroyResource(mContextId, mResourceId);
+    mEmulation->DestroyResource(mContextId, mResourceId);
 }
 
 VirtGpuBlobMappingPtr RutabagaVirtGpuResource::createMapping(void) {
-    uint8_t* mapped = EmulatedVirtioGpu::Get().Map(mResourceId);
-    return std::make_shared<RutabagaVirtGpuBlobMapping>(shared_from_this(), mapped);
+    uint8_t* mapped = mEmulation->Map(mResourceId);
+    return std::make_shared<RutabagaVirtGpuBlobMapping>(mEmulation, shared_from_this(), mapped);
 }
 
 uint32_t RutabagaVirtGpuResource::getResourceHandle() const { return mResourceId; }
@@ -56,7 +60,7 @@ int RutabagaVirtGpuResource::exportBlob(VirtGpuExternalHandle&) {
     return -1;
 }
 
-int RutabagaVirtGpuResource::wait() { return EmulatedVirtioGpu::Get().Wait(mResourceId); }
+int RutabagaVirtGpuResource::wait() { return mEmulation->Wait(mResourceId); }
 
 int RutabagaVirtGpuResource::transferFromHost(uint32_t offset, uint32_t size) {
     if (mResourceType != ResourceType::kPipe) {
@@ -64,7 +68,7 @@ int RutabagaVirtGpuResource::transferFromHost(uint32_t offset, uint32_t size) {
         return -1;
     }
 
-    return EmulatedVirtioGpu::Get().TransferFromHost(mContextId, mResourceId, offset, size);
+    return mEmulation->TransferFromHost(mContextId, mResourceId, offset, size);
 }
 
 int RutabagaVirtGpuResource::transferToHost(uint32_t offset, uint32_t size) {
@@ -73,7 +77,7 @@ int RutabagaVirtGpuResource::transferToHost(uint32_t offset, uint32_t size) {
         return -1;
     }
 
-    return EmulatedVirtioGpu::Get().TransferToHost(mContextId, mResourceId, offset, size);
+    return mEmulation->TransferToHost(mContextId, mResourceId, offset, size);
 }
 
 }  // namespace gfxstream

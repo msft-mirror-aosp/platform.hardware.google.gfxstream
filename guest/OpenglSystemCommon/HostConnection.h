@@ -16,21 +16,23 @@
 #ifndef __COMMON_HOST_CONNECTION_H
 #define __COMMON_HOST_CONNECTION_H
 
-#include "ANativeWindow.h"
+#if defined(ANDROID)
+#include "gfxstream/guest/ANativeWindow.h"
+#include "gfxstream/guest/Gralloc.h"
+#endif
+
+#include <cstring>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <string>
+
 #include "EmulatorFeatureInfo.h"
-#include "Gralloc.h"
 #include "Sync.h"
 #include "VirtGpu.h"
 #include "gfxstream/guest/ChecksumCalculator.h"
 #include "gfxstream/guest/IOStream.h"
 #include "renderControl_enc.h"
-
-#include <mutex>
-
-#include <memory>
-#include <optional>
-#include <cstring>
-#include <string>
 
 class GLEncoder;
 struct gl_client_context_t;
@@ -134,14 +136,11 @@ public:
 
     gfxstream::guest::ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
 
-    gfxstream::Gralloc* grallocHelper() { return m_grallocHelper; }
-    void setGrallocHelperForTesting(gfxstream::Gralloc* gralloc) { m_grallocHelper = gralloc; }
-
+#if defined(ANDROID)
+    gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper.get(); }
+    gfxstream::Gralloc* grallocHelper() { return m_grallocHelper.get(); }
+#endif
     gfxstream::SyncHelper* syncHelper() { return m_syncHelper.get(); }
-    void setSyncHelperForTesting(gfxstream::SyncHelper* sync) { m_syncHelper.reset(sync); }
-
-    gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper; }
-    void setANativeWindowHelperForTesting(gfxstream::ANativeWindowHelper* anw) { m_anwHelper = anw; }
 
     void flush() {
         if (m_stream) {
@@ -205,27 +204,28 @@ private:
  GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
 
 private:
-    HostConnectionType m_connectionType;
-    GrallocType m_grallocType;
+ HostConnectionType m_connectionType;
 
-    // intrusively refcounted
-    gfxstream::guest::IOStream* m_stream = nullptr;
+ // intrusively refcounted
+ gfxstream::guest::IOStream* m_stream = nullptr;
 
-    std::unique_ptr<GLEncoder> m_glEnc;
-    std::unique_ptr<GL2Encoder> m_gl2Enc;
+ std::unique_ptr<GLEncoder> m_glEnc;
+ std::unique_ptr<GL2Encoder> m_gl2Enc;
 
-    // intrusively refcounted
-    gfxstream::vk::VkEncoder* m_vkEnc = nullptr;
-    std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
+ // intrusively refcounted
+ gfxstream::vk::VkEncoder* m_vkEnc = nullptr;
+ std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
-    gfxstream::guest::ChecksumCalculator m_checksumHelper;
-    gfxstream::ANativeWindowHelper* m_anwHelper = nullptr;
-    gfxstream::Gralloc* m_grallocHelper = nullptr;
-    std::unique_ptr<gfxstream::SyncHelper> m_syncHelper;
-    std::string m_hostExtensions;
-    bool m_noHostError;
-    mutable std::mutex m_lock;
-    int m_rendernodeFd;
+ gfxstream::guest::ChecksumCalculator m_checksumHelper;
+#if defined(ANDROID)
+ std::unique_ptr<gfxstream::ANativeWindowHelper> m_anwHelper;
+ std::unique_ptr<gfxstream::Gralloc> m_grallocHelper;
+#endif
+ std::unique_ptr<gfxstream::SyncHelper> m_syncHelper;
+ std::string m_hostExtensions;
+ bool m_noHostError;
+ mutable std::mutex m_lock;
+ int m_rendernodeFd;
 };
 
 #endif
