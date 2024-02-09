@@ -22,7 +22,6 @@
 
 #include <filesystem>
 
-#include "Gralloc.h"
 #include "ProcessPipe.h"
 #include "aemu/base/files/StdioStream.h"
 #include "aemu/base/system/System.h"
@@ -42,6 +41,7 @@ namespace tests {
 using testing::AnyOf;
 using testing::Eq;
 using testing::Gt;
+using testing::IsFalse;
 using testing::IsTrue;
 using testing::Not;
 using testing::NotNull;
@@ -177,13 +177,9 @@ void GfxstreamEnd2EndTest::SetUp() {
         ASSERT_THAT(mVk, NotNull());
     }
 
-    mAnwHelper = std::make_unique<TestingVirtGpuANativeWindowHelper>();
-    HostConnection::get()->setANativeWindowHelperForTesting(mAnwHelper.get());
-
-    mGralloc = std::make_unique<TestingVirtGpuGralloc>();
-    HostConnection::get()->setGrallocHelperForTesting(mGralloc.get());
-
-    mSync = HostConnection::get()->syncHelper();
+    mAnwHelper.reset(createPlatformANativeWindowHelper());
+    mGralloc.reset(createPlatformGralloc());
+    mSync.reset(createPlatformSyncHelper());
 }
 
 void GfxstreamEnd2EndTest::TearDownGuest() {
@@ -198,10 +194,10 @@ void GfxstreamEnd2EndTest::TearDownGuest() {
     }
     mVk.reset();
 
-    mGralloc.reset();
     mAnwHelper.reset();
+    mGralloc.reset();
+    mSync.reset();
 
-    HostConnection::exit();
     processPipeRestart();
 
     // Figure out more reliable way for guest shutdown to complete...
@@ -209,22 +205,20 @@ void GfxstreamEnd2EndTest::TearDownGuest() {
 }
 
 void GfxstreamEnd2EndTest::TearDownHost() {
-    ResetEmulatedVirtioGpu();
+    const uint32_t users = GetNumActiveEmulatedVirtioGpuUsers();
+    if (users != 0) {
+        ALOGE("The EmulationVirtioGpu was found to still be active by %" PRIu32
+              " after the "
+              "end of the test. Please ensure you have fully destroyed all objects created "
+              "during the test (Gralloc allocations, ANW allocations, etc).",
+              users);
+        abort();
+    }
 }
 
 void GfxstreamEnd2EndTest::TearDown() {
     TearDownGuest();
     TearDownHost();
-}
-
-std::unique_ptr<TestingANativeWindow> GfxstreamEnd2EndTest::CreateEmulatedANW(
-        uint32_t width,
-        uint32_t height) {
-    std::vector<std::unique_ptr<TestingAHardwareBuffer>> buffers;
-    for (int i = 0; i < 3; i++) {
-        buffers.push_back(mGralloc->allocate(width, height, DRM_FORMAT_ABGR8888));
-    }
-    return std::make_unique<TestingANativeWindow>(width, height, DRM_FORMAT_ABGR8888, std::move(buffers));
 }
 
 void GfxstreamEnd2EndTest::SetUpEglContextAndSurface(

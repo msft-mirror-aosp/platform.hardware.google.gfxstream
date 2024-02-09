@@ -88,10 +88,9 @@ TEST_P(GfxstreamEnd2EndGlTest, CreateWindowSurface) {
     constexpr const int width = 32;
     constexpr const int height = 32;
 
-    auto anw = CreateEmulatedANW(width, height);
-    auto anwEgl = anw->asEglNativeWindowType();
+    auto anw = mAnwHelper->createNativeWindowForTesting(mGralloc.get(), width, height);
 
-    EGLSurface surface = mGl->eglCreateWindowSurface(display, config, anwEgl, nullptr);
+    EGLSurface surface = mGl->eglCreateWindowSurface(display, config, anw, nullptr);
     ASSERT_THAT(surface, Not(Eq(EGL_NO_SURFACE)));
 
     ASSERT_THAT(mGl->eglMakeCurrent(display, surface, surface, context), IsTrue());
@@ -108,7 +107,7 @@ TEST_P(GfxstreamEnd2EndGlTest, CreateWindowSurface) {
     ASSERT_THAT(mGl->eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT), IsTrue());
     ASSERT_THAT(mGl->eglDestroyContext(display, context), IsTrue());
     ASSERT_THAT(mGl->eglDestroySurface(display, surface), IsTrue());
-    anw.reset();
+    mAnwHelper->release(anw);
 
     TearDownGuest();
 }

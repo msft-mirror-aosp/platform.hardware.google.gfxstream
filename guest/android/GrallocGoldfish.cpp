@@ -21,18 +21,13 @@
 
 namespace gfxstream {
 
-uint32_t GoldfishGralloc::createColorBuffer(void* rcEnc, int width,
-                                            int height, uint32_t glformat) {
+uint32_t GoldfishGralloc::createColorBuffer(void* rcEnc, int width, int height, uint32_t glformat) {
     auto* rc = reinterpret_cast<renderControl_client_context_t*>(rcEnc);
     return rc->rcCreateColorBuffer(rc, width, height, glformat);
 }
 
-int GoldfishGralloc::allocate(uint32_t width,
-                              uint32_t height,
-                              uint32_t format,
-                              uint64_t usage,
-                              AHardwareBuffer** outputAhb)  {
-
+int GoldfishGralloc::allocate(uint32_t width, uint32_t height, uint32_t format, uint64_t usage,
+                              AHardwareBuffer** outputAhb) {
     struct AHardwareBuffer_Desc desc = {
         .width = width,
         .height = height,
@@ -44,13 +39,9 @@ int GoldfishGralloc::allocate(uint32_t width,
     return AHardwareBuffer_allocate(&desc, outputAhb);
 }
 
-void GoldfishGralloc::acquire(AHardwareBuffer* ahb) {
-    AHardwareBuffer_acquire(ahb);
-}
+void GoldfishGralloc::acquire(AHardwareBuffer* ahb) { AHardwareBuffer_acquire(ahb); }
 
-void GoldfishGralloc::release(AHardwareBuffer* ahb) {
-    AHardwareBuffer_release(ahb);
-}
+void GoldfishGralloc::release(AHardwareBuffer* ahb) { AHardwareBuffer_release(ahb); }
 
 uint32_t GoldfishGralloc::getHostHandle(native_handle_t const* handle) {
     return cb_handle_t::from(handle)->hostHandle;
@@ -59,6 +50,10 @@ uint32_t GoldfishGralloc::getHostHandle(native_handle_t const* handle) {
 uint32_t GoldfishGralloc::getHostHandle(const AHardwareBuffer* ahb) {
     const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
     return getHostHandle(handle);
+}
+
+const native_handle_t* GoldfishGralloc::getNativeHandle(const AHardwareBuffer* ahb) {
+    return AHardwareBuffer_getNativeHandle(ahb);
 }
 
 int GoldfishGralloc::getFormat(const native_handle_t* handle) {
@@ -77,6 +72,16 @@ size_t GoldfishGralloc::getAllocatedSize(const native_handle_t* handle) {
 size_t GoldfishGralloc::getAllocatedSize(const AHardwareBuffer* ahb) {
     const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
     return getAllocatedSize(handle);
+}
+
+int GoldfishGralloc::getId(const AHardwareBuffer* ahb, uint64_t* id) {
+#if ANDROID_API_LEVEL >= 31
+    return AHardwareBuffer_getId(ahb, id);
+#else
+    (void)ahb;
+    *id = 0;
+    return 0;
+#endif
 }
 
 bool GoldfishGralloc::treatBlobAsImage() { return true; }

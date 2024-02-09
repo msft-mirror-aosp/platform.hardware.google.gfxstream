@@ -19,11 +19,12 @@
 
 namespace gfxstream {
 
-RutabagaVirtGpuBlobMapping::RutabagaVirtGpuBlobMapping(VirtGpuBlobPtr blob, uint8_t* mapped)
-    : mBlob(blob), mMapped(mapped) {}
+RutabagaVirtGpuBlobMapping::RutabagaVirtGpuBlobMapping(std::shared_ptr<EmulatedVirtioGpu> emulation,
+                                                       VirtGpuBlobPtr blob, uint8_t* mapped)
+    : mEmulation(emulation), mBlob(blob), mMapped(mapped) {}
 
 RutabagaVirtGpuBlobMapping::~RutabagaVirtGpuBlobMapping(void) {
-    EmulatedVirtioGpu::Get().Unmap(mBlob->getResourceHandle());
+    mEmulation->Unmap(mBlob->getResourceHandle());
 }
 
 uint8_t* RutabagaVirtGpuBlobMapping::asRawPtr(void) { return mMapped; }

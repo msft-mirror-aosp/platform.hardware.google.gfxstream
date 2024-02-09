@@ -14,16 +14,16 @@
 
 #include "GrallocMinigbm.h"
 
-#include <cinttypes>
-#include <cstring>
-#include <stdlib.h>
-
 #include <cros_gralloc/cros_gralloc_handle.h>
 #include <errno.h>
 #include <log/log.h>
+#include <stdlib.h>
 #include <sys/user.h>
-#include <xf86drm.h>
 #include <vndk/hardware_buffer.h>
+#include <xf86drm.h>
+
+#include <cinttypes>
+#include <cstring>
 
 #include "virtgpu_drm.h"
 
@@ -33,7 +33,6 @@ constexpr size_t kPageSize = PAGE_SIZE;
 #include <unistd.h>
 static const size_t kPageSize = getpagesize();
 #endif
-
 
 namespace gfxstream {
 namespace {
@@ -61,8 +60,7 @@ bool getVirtioGpuResourceInfo(int fd, native_handle_t const* handle,
         return false;
     }
     struct ManagedDrmGem {
-        ManagedDrmGem(int fd, uint32_t handle)
-            : m_fd(fd), m_prime_handle(handle) {}
+        ManagedDrmGem(int fd, uint32_t handle) : m_fd(fd), m_prime_handle(handle) {}
         ManagedDrmGem(const ManagedDrmGem&) = delete;
         ~ManagedDrmGem() {
             struct drm_gem_close gem_close {
@@ -114,8 +112,7 @@ bool getVirtioGpuResourceInfo(int fd, native_handle_t const* handle,
 
 }  // namespace
 
-uint32_t MinigbmGralloc::createColorBuffer(void*, int width, int height,
-                                           uint32_t glformat) {
+uint32_t MinigbmGralloc::createColorBuffer(void*, int width, int height, uint32_t glformat) {
     // Only supported format for pbuffers in gfxstream should be RGBA8
     const uint32_t kVirglFormatRGBA = 67;  // VIRGL_FORMAT_R8G8B8A8_UNORM;
     uint32_t virtgpu_format = 0;
@@ -162,12 +159,8 @@ uint32_t MinigbmGralloc::createColorBuffer(void*, int width, int height,
     return res_create.res_handle;
 }
 
-int MinigbmGralloc::allocate(uint32_t width,
-                             uint32_t height,
-                             uint32_t format,
-                             uint64_t usage,
+int MinigbmGralloc::allocate(uint32_t width, uint32_t height, uint32_t format, uint64_t usage,
                              AHardwareBuffer** outputAhb) {
-
     struct AHardwareBuffer_Desc desc = {
         .width = width,
         .height = height,
@@ -179,13 +172,9 @@ int MinigbmGralloc::allocate(uint32_t width,
     return AHardwareBuffer_allocate(&desc, outputAhb);
 }
 
-void MinigbmGralloc::acquire(AHardwareBuffer* ahb) {
-    AHardwareBuffer_acquire(ahb);
-}
+void MinigbmGralloc::acquire(AHardwareBuffer* ahb) { AHardwareBuffer_acquire(ahb); }
 
-void MinigbmGralloc::release(AHardwareBuffer* ahb) {
-    AHardwareBuffer_release(ahb);
-}
+void MinigbmGralloc::release(AHardwareBuffer* ahb) { AHardwareBuffer_release(ahb); }
 
 uint32_t MinigbmGralloc::getHostHandle(const native_handle_t* handle) {
     struct drm_virtgpu_resource_info info;
@@ -200,6 +189,10 @@ uint32_t MinigbmGralloc::getHostHandle(const native_handle_t* handle) {
 uint32_t MinigbmGralloc::getHostHandle(const AHardwareBuffer* ahb) {
     const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
     return getHostHandle(handle);
+}
+
+const native_handle_t* MinigbmGralloc::getNativeHandle(const AHardwareBuffer* ahb) {
+    return AHardwareBuffer_getNativeHandle(ahb);
 }
 
 int MinigbmGralloc::getFormat(const native_handle_t* handle) {
@@ -233,6 +226,16 @@ size_t MinigbmGralloc::getAllocatedSize(const native_handle_t* handle) {
 size_t MinigbmGralloc::getAllocatedSize(const AHardwareBuffer* ahb) {
     const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
     return getAllocatedSize(handle);
+}
+
+int MinigbmGralloc::getId(const AHardwareBuffer* ahb, uint64_t* id) {
+#if ANDROID_API_LEVEL >= 31
+    return AHardwareBuffer_getId(ahb, id);
+#else
+    (void)ahb;
+    *id = 0;
+    return 0;
+#endif
 }
 
 }  // namespace gfxstream
