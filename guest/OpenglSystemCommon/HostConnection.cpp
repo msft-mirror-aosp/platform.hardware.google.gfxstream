@@ -460,6 +460,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         ExtendedRCEncoderContext* rcEnc = m_rcEnc.get();
         setChecksumHelper(rcEnc);
         queryAndSetSyncImpl(rcEnc);
+        queryAndSetDmaImpl(rcEnc);
         queryAndSetGLESMaxVersion(rcEnc);
         queryAndSetNoErrorState(rcEnc);
         queryAndSetHostCompositionImpl(rcEnc);
@@ -583,6 +584,15 @@ void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
         rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V2);
     } else {
         rcEnc->setSyncImpl(SYNC_IMPL_NONE);
+    }
+}
+
+void HostConnection::queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kDmaExtStr_v1) != std::string::npos) {
+        rcEnc->setDmaImpl(DMA_IMPL_v1);
+    } else {
+        rcEnc->setDmaImpl(DMA_IMPL_NONE);
     }
 }
 
