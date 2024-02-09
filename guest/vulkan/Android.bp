@@ -47,7 +47,6 @@ cc_defaults {
         "libmesa_util_gfxstream",
         "libmesa_util_format_gfxstream",
         "libGoldfishAddressSpace",
-        "libgfxstream_guest_gralloc",
         "libringbuffer",
         "libqemupipe.ranchu",
         "libarect",
@@ -114,6 +113,7 @@ cc_library_shared {
     ],
     static_libs: [
         "libplatform",
+        "libgfxstream_guest_android",
         "libgfxstream_guest_system_common",
     ],
 }
@@ -124,11 +124,12 @@ cc_library_shared {
         "libgfxstream_guest_vulkan_defaults",
     ],
     shared_libs: [
-        "libplatform_rutabaga",
-        "libgfxstream_backend",
+        "libplatform_rutabaga_server",
     ],
     static_libs: [
+        "libgfxstream_guest_android_with_host",
         "libgfxstream_guest_system_common_with_host",
+        "libplatform_rutabaga",
     ],
     cflags: [
         "-DEND2END_TESTS",
