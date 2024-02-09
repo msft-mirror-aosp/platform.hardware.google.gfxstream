@@ -3424,7 +3424,7 @@ void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset,
     buf->m_mappedOffset = offset;
     buf->m_mappedLength = length;
 
-        return s_glMapBufferRangeAEMUImpl(ctx, target, offset, length, access, buf);
+    return s_glMapBufferRangeAEMUImpl(ctx, target, offset, length, access, buf);
 }
 
 GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
@@ -3450,25 +3450,26 @@ GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
     }
 
     GLboolean host_res = GL_TRUE;
-        if (ctx->m_hasAsyncUnmapBuffer) {
-            ctx->glUnmapBufferAsyncAEMU(
+
+    if (ctx->m_hasAsyncUnmapBuffer) {
+        ctx->glUnmapBufferAsyncAEMU(
+                ctx, target,
+                buf->m_mappedOffset,
+                buf->m_mappedLength,
+                buf->m_mappedAccess,
+                &buf->m_fixedBuffer[buf->m_mappedOffset],
+                &host_res);
+    } else {
+        if (buf->m_mappedAccess & GL_MAP_WRITE_BIT) {
+            ctx->glUnmapBufferAEMU(
                     ctx, target,
                     buf->m_mappedOffset,
                     buf->m_mappedLength,
                     buf->m_mappedAccess,
                     &buf->m_fixedBuffer[buf->m_mappedOffset],
                     &host_res);
-        } else {
-            if (buf->m_mappedAccess & GL_MAP_WRITE_BIT) {
-                ctx->glUnmapBufferAEMU(
-                        ctx, target,
-                        buf->m_mappedOffset,
-                        buf->m_mappedLength,
-                        buf->m_mappedAccess,
-                        &buf->m_fixedBuffer[buf->m_mappedOffset],
-                        &host_res);
-            }
         }
+    }
 
     buf->m_mapped = false;
     buf->m_mappedAccess = 0;

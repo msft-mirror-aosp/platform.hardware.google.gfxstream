@@ -51,6 +51,7 @@ public:
                              gfxstream::guest::ChecksumCalculator *checksumCalculator)
         : renderControl_encoder_context_t(stream, checksumCalculator) {}
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
+    void setDmaImpl(DmaImpl dmaImpl) { m_featureInfo.dmaImpl = dmaImpl; }
     void setHostComposition(HostComposition hostComposition) {
         m_featureInfo.hostComposition = hostComposition; }
     bool hasNativeSync() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V2; }
@@ -76,6 +77,21 @@ public:
     bool hasHWCMultiConfigs() const {
         return m_featureInfo.hasHWCMultiConfigs;
     }
+    void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
+        m_dmaPtr = dmaPtr;
+        m_dmaPhysAddr = dmaPhysAddr;
+    }
+    virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
+        if (m_dmaPtr && m_dmaPhysAddr) {
+            if (data != m_dmaPtr) {
+                memcpy(m_dmaPtr, data, size);
+            }
+            return m_dmaPhysAddr;
+        } else {
+            ALOGE("%s: ERROR: No DMA context bound!", __func__);
+            return 0;
+        }
+    }
     void setGLESMaxVersion(GLESMaxVersion ver) { m_featureInfo.glesMaxVersion = ver; }
     GLESMaxVersion getGLESMaxVersion() const { return m_featureInfo.glesMaxVersion; }
     bool hasDirectMem() const {
@@ -84,8 +100,11 @@ public:
 
     const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
     EmulatorFeatureInfo* featureInfo() { return &m_featureInfo; }
+
 private:
     EmulatorFeatureInfo m_featureInfo;
+    void* m_dmaPtr = nullptr;
+    uint64_t m_dmaPhysAddr = 0;
 };
 
 struct EGLThreadInfo;
