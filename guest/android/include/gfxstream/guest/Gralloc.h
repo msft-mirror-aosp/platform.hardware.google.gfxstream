@@ -14,10 +14,11 @@
 
 #pragma once
 
-#include <stddef.h>
-#include <stdint.h>
+#if defined(ANDROID)
 
 #include <cutils/native_handle.h>
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct AHardwareBuffer AHardwareBuffer;
 
@@ -32,17 +33,15 @@ class Gralloc {
    public:
     virtual ~Gralloc() {}
 
-    virtual uint32_t createColorBuffer(void* rcEnc, int width, int height,
-                                       uint32_t glformat) = 0;
+    virtual uint32_t createColorBuffer(void* rcEnc, int width, int height, uint32_t glformat) = 0;
 
     virtual void acquire(AHardwareBuffer* ahb) = 0;
     virtual void release(AHardwareBuffer* ahb) = 0;
 
-    virtual int allocate(uint32_t width,
-                         uint32_t height,
-                         uint32_t format,
-                         uint64_t usage,
+    virtual int allocate(uint32_t width, uint32_t height, uint32_t format, uint64_t usage,
                          AHardwareBuffer** outputAhb) = 0;
+
+    virtual const native_handle_t* getNativeHandle(const AHardwareBuffer* ahb) = 0;
 
     virtual uint32_t getHostHandle(const native_handle_t* handle) = 0;
     virtual uint32_t getHostHandle(const AHardwareBuffer* handle) = 0;
@@ -62,7 +61,13 @@ class Gralloc {
     virtual size_t getAllocatedSize(const native_handle_t* handle) = 0;
     virtual size_t getAllocatedSize(const AHardwareBuffer* handle) = 0;
 
+    virtual int getId(const AHardwareBuffer* ahb, uint64_t* id) = 0;
+
     virtual bool treatBlobAsImage() { return false; }
 };
 
+Gralloc* createPlatformGralloc(int deviceFd = -1);
+
 }  // namespace gfxstream
+
+#endif  // defined(ANDROID)
