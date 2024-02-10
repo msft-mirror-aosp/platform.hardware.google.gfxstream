@@ -113,6 +113,7 @@ cc_defaults {
     ],
     header_libs: [
         "gfxstream_vulkan_headers",
+        "libOpenglSystemCommonHeaders",
         "libgfxstream_guest_iostream",
         "libnativewindow_headers",
         "mesa_common_headers_gfxstream",
@@ -133,9 +134,9 @@ cc_defaults {
         "libdrm",
         "libandroidemu_static",
         "libGoldfishAddressSpace",
-        "libgfxstream_guest_gralloc",
         "libmesa_vulkan_util_gfxstream",
         "libmesa_vulkan_runtime_gfxstream",
+        "libgfxstream_guest_android",
         "libgfxstream_guest_vulkan_entrypoints",
         "libmesa_util_gfxstream",
         "libmesa_util_format_gfxstream",
@@ -196,9 +197,11 @@ cc_library_static {
     defaults: [
         "libgfxstream_guest_vulkan_encoder_defaults",
     ],
-    shared_libs: [
+    static_libs: [
         "libplatform_rutabaga",
-        "libgfxstream_backend",
+    ],
+    export_static_lib_headers: [
+        "libplatform_rutabaga",
     ],
     target: {
         host: {

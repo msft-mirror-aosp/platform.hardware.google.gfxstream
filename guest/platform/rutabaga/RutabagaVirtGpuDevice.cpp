@@ -21,38 +21,35 @@
 
 namespace gfxstream {
 
-RutabagaVirtGpuDevice::RutabagaVirtGpuDevice(uint32_t contextId, VirtGpuCapset capset)
-    : VirtGpuDevice(capset), mContextId(contextId), mCapset(capset) {}
+RutabagaVirtGpuDevice::RutabagaVirtGpuDevice(std::shared_ptr<EmulatedVirtioGpu> emulation,
+                                             uint32_t contextId, VirtGpuCapset capset)
+    : VirtGpuDevice(capset), mEmulation(emulation), mContextId(contextId), mCapset(capset) {}
 
-RutabagaVirtGpuDevice::~RutabagaVirtGpuDevice() {
-    EmulatedVirtioGpu::Get().DestroyContext(mContextId);
-    EmulatedVirtioGpu::Reset();
-}
+RutabagaVirtGpuDevice::~RutabagaVirtGpuDevice() { mEmulation->DestroyContext(mContextId); }
 
 int64_t RutabagaVirtGpuDevice::getDeviceHandle() { return -1; }
 
-VirtGpuCaps RutabagaVirtGpuDevice::getCaps() { return EmulatedVirtioGpu::Get().GetCaps(mCapset); }
+VirtGpuCaps RutabagaVirtGpuDevice::getCaps() { return mEmulation->GetCaps(mCapset); }
 
 VirtGpuBlobPtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
-    const auto resourceIdOpt = EmulatedVirtioGpu::Get().CreateBlob(mContextId, blobCreate);
+    const auto resourceIdOpt = mEmulation->CreateBlob(mContextId, blobCreate);
     if (!resourceIdOpt) {
         return nullptr;
     }
 
     return VirtGpuBlobPtr(new RutabagaVirtGpuResource(
-        *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kBlob, mContextId));
+        mEmulation, *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kBlob, mContextId));
 }
 
 VirtGpuBlobPtr RutabagaVirtGpuDevice::createVirglBlob(uint32_t width, uint32_t height,
                                                       uint32_t virglFormat) {
-    const auto resourceIdOpt =
-        EmulatedVirtioGpu::Get().CreateVirglBlob(mContextId, width, height, virglFormat);
+    const auto resourceIdOpt = mEmulation->CreateVirglBlob(mContextId, width, height, virglFormat);
     if (!resourceIdOpt) {
         return nullptr;
     }
 
     return VirtGpuBlobPtr(new RutabagaVirtGpuResource(
-        *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kPipe, mContextId));
+        mEmulation, *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kPipe, mContextId));
 }
 
 int RutabagaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
@@ -61,7 +58,7 @@ int RutabagaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
     if (blob) {
         blobResourceId = blob->getResourceHandle();
     }
-    return EmulatedVirtioGpu::Get().ExecBuffer(mContextId, execbuffer, blobResourceId);
+    return mEmulation->ExecBuffer(mContextId, execbuffer, blobResourceId);
 }
 
 VirtGpuBlobPtr RutabagaVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&) {
@@ -72,10 +69,16 @@ VirtGpuBlobPtr RutabagaVirtGpuDevice::importBlob(const struct VirtGpuExternalHan
 }  // namespace gfxstream
 
 VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int) {
-    const auto contextIdOp = gfxstream::EmulatedVirtioGpu::Get().CreateContext();
+    std::shared_ptr<gfxstream::EmulatedVirtioGpu> emulation = gfxstream::EmulatedVirtioGpu::Get();
+    if (!emulation) {
+        ALOGE("Failed to create RutabagaVirtGpuDevice: failed to get emulation layer.");
+        return nullptr;
+    }
+
+    const auto contextIdOp = emulation->CreateContext();
     if (!contextIdOp) {
         ALOGE("Failed to create RutabagaVirtGpuDevice: failed to create context.");
         return nullptr;
     }
-    return new gfxstream::RutabagaVirtGpuDevice(*contextIdOp, capset);
+    return new gfxstream::RutabagaVirtGpuDevice(emulation, *contextIdOp, capset);
 }
