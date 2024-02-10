@@ -68,7 +68,6 @@ void ANativeWindowHelperAndroid::release(EGLNativeWindowType window) {
 #endif  // defined(__ANDROID__)
 }
 
-
 void ANativeWindowHelperAndroid::acquire(EGLClientBuffer buffer) {
 #if defined(__ANDROID__)
     auto* anwb = reinterpret_cast<ANativeWindowBuffer*>(buffer);
@@ -169,7 +168,8 @@ void ANativeWindowHelperAndroid::setSwapInterval(EGLNativeWindowType window, int
 #endif  // defined(__ANDROID__)
 }
 
-int ANativeWindowHelperAndroid::queueBuffer(EGLNativeWindowType window, EGLClientBuffer buffer, int fence) {
+int ANativeWindowHelperAndroid::queueBuffer(EGLNativeWindowType window, EGLClientBuffer buffer,
+                                            int fence) {
 #if defined(__ANDROID__)
     auto* anw = reinterpret_cast<ANativeWindow*>(window);
     auto* anb = reinterpret_cast<ANativeWindowBuffer*>(buffer);
@@ -182,7 +182,8 @@ int ANativeWindowHelperAndroid::queueBuffer(EGLNativeWindowType window, EGLClien
 #endif  // defined(__ANDROID__)
 }
 
-int ANativeWindowHelperAndroid::dequeueBuffer(EGLNativeWindowType window, EGLClientBuffer* buffer, int* fence) {
+int ANativeWindowHelperAndroid::dequeueBuffer(EGLNativeWindowType window, EGLClientBuffer* buffer,
+                                              int* fence) {
 #if defined(__ANDROID__)
     auto* anw = reinterpret_cast<ANativeWindow*>(window);
     auto* anb = reinterpret_cast<ANativeWindowBuffer**>(buffer);
@@ -216,6 +217,10 @@ int ANativeWindowHelperAndroid::getHostHandle(EGLClientBuffer buffer, Gralloc* g
     (void)gralloc;
     return -1;
 #endif  // defined(__ANDROID__)
+}
+
+ANativeWindowHelper* createPlatformANativeWindowHelper() {
+    return new ANativeWindowHelperAndroid();
 }
 
 }  // namespace gfxstream

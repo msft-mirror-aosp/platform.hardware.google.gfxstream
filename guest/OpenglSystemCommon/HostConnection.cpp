@@ -15,12 +15,7 @@
 */
 #include "HostConnection.h"
 
-#if defined(__ANDROID__)
-#include "ANativeWindowAndroid.h"
-#endif
 #include "GoldfishAddressSpaceStream.h"
-#include "GrallocGoldfish.h"
-#include "GrallocMinigbm.h"
 #include "VirtioGpuAddressSpaceStream.h"
 #include "aemu/base/AndroidHealthMonitor.h"
 #include "aemu/base/AndroidHealthMonitorConsumerBasic.h"
@@ -45,8 +40,6 @@ using gfxstream::guest::CreateHealthMonitor;
 using gfxstream::guest::HealthMonitor;
 using gfxstream::guest::HealthMonitorConsumerBasic;
 using gfxstream::guest::IOStream;
-using gfxstream::GoldfishGralloc;
-using gfxstream::MinigbmGralloc;
 
 #ifdef GOLDFISH_NO_GL
 struct gl_client_context_t {
@@ -178,29 +171,6 @@ static uint32_t getDrawCallFlushIntervalFromProperty() {
     return value;
 }
 
-static GrallocType getGrallocTypeFromProperty() {
-    std::string value;
-
-#if defined(__ANDROID__)
-    value = android::base::GetProperty("ro.hardware.gralloc", "");
-#endif
-
-    if (value.empty()) {
-        return GRALLOC_TYPE_RANCHU;
-    }
-    if (value == "minigbm") {
-        return GRALLOC_TYPE_MINIGBM;
-    }
-    if (value == "ranchu") {
-        return GRALLOC_TYPE_RANCHU;
-    }
-    return GRALLOC_TYPE_RANCHU;
-}
-
-#if defined(__ANDROID__)
-static GoldfishGralloc m_goldfishGralloc;
-#endif
-
 HostConnection::HostConnection()
     : exitUncleanly(false),
       m_checksumHelper(),
@@ -214,10 +184,6 @@ HostConnection::~HostConnection()
     // before process pipe closure is detected.
     if (m_rcEnc && !exitUncleanly) {
         (void)m_rcEnc->rcGetRendererVersion(m_rcEnc.get());
-    }
-
-    if (m_grallocType == GRALLOC_TYPE_MINIGBM) {
-        delete m_grallocHelper;
     }
 
     if (m_vkEnc) {
@@ -252,10 +218,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
             ALOGE("Fatal: HOST_CONNECTION_ADDRESS_SPACE not supported on this host.");
             abort();
 #endif
-            con->m_grallocType = GRALLOC_TYPE_RANCHU;
-#if defined(__ANDROID__)
-            con->m_grallocHelper = &m_goldfishGralloc;
-#endif
+
             break;
         }
 #if !defined(__Fuchsia__)
@@ -269,11 +232,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to connect to host (QemuPipeStream)\n");
                 return nullptr;
             }
-            con->m_grallocType = GRALLOC_TYPE_RANCHU;
             con->m_stream = stream;
-#if defined(__ANDROID__)
-            con->m_grallocHelper = &m_goldfishGralloc;
-#endif
             break;
         }
 #endif
@@ -287,26 +246,9 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to connect to host (VirtioGpu)\n");
                 return nullptr;
             }
-            con->m_grallocType = getGrallocTypeFromProperty();
             auto rendernodeFd = stream->getRendernodeFd();
             con->m_stream = stream;
             con->m_rendernodeFd = rendernodeFd;
-#if defined(__ANDROID__)
-            switch (con->m_grallocType) {
-                case GRALLOC_TYPE_RANCHU:
-                    con->m_grallocHelper = &m_goldfishGralloc;
-                    break;
-                case GRALLOC_TYPE_MINIGBM: {
-                    MinigbmGralloc* m = new MinigbmGralloc;
-                    m->setFd(rendernodeFd);
-                    con->m_grallocHelper = m;
-                    break;
-                }
-                default:
-                    ALOGE("Fatal: Unknown gralloc type 0x%x\n", con->m_grallocType);
-                    abort();
-            }
-#endif
             break;
         }
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
@@ -320,36 +262,28 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to create virtgpu AddressSpaceStream\n");
                 return nullptr;
             }
-            con->m_grallocType = getGrallocTypeFromProperty();
             con->m_stream = stream;
             con->m_rendernodeFd = deviceHandle;
-#if defined(__ANDROID__)
-            switch (con->m_grallocType) {
-                case GRALLOC_TYPE_RANCHU:
-                    con->m_grallocHelper = &m_goldfishGralloc;
-                    break;
-                case GRALLOC_TYPE_MINIGBM: {
-                    MinigbmGralloc* m = new gfxstream::MinigbmGralloc;
-                    m->setFd(deviceHandle);
-                    con->m_grallocHelper = m;
-                    break;
-                }
-                default:
-                    ALOGE("Fatal: Unknown gralloc type 0x%x\n", con->m_grallocType);
-                    abort();
-            }
-#endif
             break;
         }
         default:
             break;
     }
 
-#if defined(__ANDROID__)
-    con->m_anwHelper = new gfxstream::ANativeWindowHelperAndroid();
-#else
-    // Host builds are expected to set an ANW helper for testing.
+#if defined(ANDROID)
+    con->m_grallocHelper.reset(gfxstream::createPlatformGralloc(con->m_rendernodeFd));
+    if (!con->m_grallocHelper) {
+        ALOGE("Failed to create platform Gralloc!");
+        abort();
+    }
+
+    con->m_anwHelper.reset(gfxstream::createPlatformANativeWindowHelper());
+    if (!con->m_anwHelper) {
+        ALOGE("Failed to create platform ANativeWindowHelper!");
+        abort();
+    }
 #endif
+
     con->m_syncHelper.reset(gfxstream::createPlatformSyncHelper());
 
     // send zero 'clientFlags' to the host.
