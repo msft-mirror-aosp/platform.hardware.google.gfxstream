@@ -102,6 +102,10 @@ struct stream_renderer_resource_info {
 VG_EXPORT int stream_renderer_resource_get_info(int res_handle,
                                                 struct stream_renderer_resource_info* info);
 
+VG_EXPORT int stream_renderer_snapshot(const char* dir);
+
+VG_EXPORT int stream_renderer_restore(const char* dir);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
