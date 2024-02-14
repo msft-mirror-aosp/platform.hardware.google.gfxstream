@@ -35,6 +35,10 @@ enum {
     HAL_PIXEL_FORMAT_YV12 = 842094169,
 };
 #endif
+
+#if !defined(__INTRODUCED_IN)
+#define __INTRODUCED_IN(__api_level) /* nothing */
+#endif
 #include <vndk/hardware_buffer.h>
 #include <vulkan/vulkan.h>
 
@@ -57,6 +61,8 @@ namespace vk {
 // VK_FORMAT_G8_B8R8_2PLANE_420_UNORM.
 static inline VkFormat vk_format_from_android(unsigned android_format) {
     switch (android_format) {
+        case AHARDWAREBUFFER_FORMAT_R8_UNORM:
+            return VK_FORMAT_R8_UNORM;
         case AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM:
             return VK_FORMAT_R8G8B8A8_UNORM;
         case AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM:
@@ -89,6 +95,8 @@ static inline VkFormat vk_format_from_android(unsigned android_format) {
 
 static inline unsigned android_format_from_vk(VkFormat vk_format) {
     switch (vk_format) {
+        case VK_FORMAT_R8_UNORM:
+            return AHARDWAREBUFFER_FORMAT_R8_UNORM;
         case VK_FORMAT_R8G8B8A8_UNORM:
             return AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM;
         case VK_FORMAT_R8G8B8_UNORM:
@@ -111,6 +119,7 @@ static inline unsigned android_format_from_vk(VkFormat vk_format) {
 static inline bool android_format_is_yuv(unsigned android_format) {
     switch (android_format) {
         case AHARDWAREBUFFER_FORMAT_BLOB:
+        case AHARDWAREBUFFER_FORMAT_R8_UNORM:
         case AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM:
         case AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM:
         case AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM:

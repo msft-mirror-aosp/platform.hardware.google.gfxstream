@@ -19,54 +19,28 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_library_static {
-    name: "libgfxstream_guest_gralloc",
-    vendor: true,
-    host_supported: true,
-    defaults: [
-        "libgfxstream_guest_cc_defaults",
-    ],
-    header_libs: [
-        "libdrm_headers",
-        "libgfxstream_guest_graphics_headers",
-        "libgfxstream_guest_iostream",
-        "libgralloc_cb.ranchu",
-        "minigbm_headers",
-    ],
-    export_header_lib_headers: [
-        "libgfxstream_guest_graphics_headers",
-        "libgfxstream_guest_iostream",
-        "libgralloc_cb.ranchu",
-    ],
-    shared_libs: [
-        "lib_renderControl_enc",
-    ],
-    export_shared_lib_headers: [
-        "lib_renderControl_enc",
-    ],
-    export_include_dirs: [
-        ".",
-    ],
-    target: {
-        android: {
-            shared_libs: [
-                "libnativewindow",
-            ],
-            export_shared_lib_headers: [
-                "libnativewindow",
-            ],
-            srcs: [
-                "GrallocGoldfish.cpp",
-                "GrallocMinigbm.cpp",
-            ],
-        },
-    },
-}
-
 cc_library_headers {
     name: "libgfxstream_guest_sync",
     export_include_dirs: [
         ".",
+    ],
+}
+
+cc_library_headers {
+    name: "libOpenglSystemCommonHeaders",
+    host_supported: true,
+    vendor: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+    header_libs: [
+        "libgfxstream_guest_rendercontrol_encoder_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_guest_rendercontrol_encoder_headers",
     ],
 }
 
@@ -81,15 +55,12 @@ cc_defaults {
         "gfxstream_vulkan_headers",
         "libgfxstream_guest_graphics_headers",
         "libgfxstream_guest_iostream",
-        "libgralloc_cb.ranchu",
         "libhardware_headers",
         "libnativebase_headers",
-        "minigbm_headers",
     ],
     export_header_lib_headers: [
         "libgfxstream_guest_graphics_headers",
         "libgfxstream_guest_iostream",
-        "libgralloc_cb.ranchu",
         "libhardware_headers",
         "libnativebase_headers",
     ],
@@ -112,10 +83,6 @@ cc_defaults {
         "libGoldfishAddressSpace",
         "libringbuffer",
         "libqemupipe.ranchu",
-        "libgfxstream_guest_gralloc",
-    ],
-    export_static_lib_headers: [
-        "libgfxstream_guest_gralloc",
     ],
     cflags: [
         "-Wno-unused-variable",
@@ -140,18 +107,6 @@ cc_defaults {
             export_header_lib_headers: [
                 "gfxstream_opengl_headers",
             ],
-            shared_libs: [
-                "libnativewindow",
-                "libsync",
-            ],
-            srcs: [
-                "ANativeWindowAndroid.cpp",
-            ],
-        },
-        host: {
-            srcs: [
-                "TestingAndroidWsi.cpp",
-            ],
         },
     },
 }
@@ -165,12 +120,22 @@ cc_library_shared {
         "libandroidemu",
     ],
     static_libs: [
+        "libgfxstream_guest_android",
         "libvulkan_enc",
         "libplatform",
     ],
     export_static_lib_headers: [
+        "libgfxstream_guest_android",
         "libplatform",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libnativewindow",
+                "libsync",
+            ],
+        }
+    },
 }
 
 cc_library_shared {
@@ -179,14 +144,16 @@ cc_library_shared {
         "libOpenglSystemCommonDefaults",
     ],
     shared_libs: [
-        "libgfxstream_backend",
-        "libplatform_rutabaga",
         "libandroidemu",
+        "libplatform_rutabaga_server",
     ],
     static_libs: [
+        "libgfxstream_guest_android_with_host",
         "libgfxstream_guest_vulkan_encoder_with_host",
+        "libplatform_rutabaga",
     ],
-    export_shared_lib_headers: [
+    export_static_lib_headers: [
+        "libgfxstream_guest_android_with_host",
         "libplatform_rutabaga",
     ],
     target: {
@@ -209,9 +176,11 @@ cc_library_static {
     ],
     static_libs: [
         "libandroidemu_static",
+        "libgfxstream_guest_android",
         "libplatform",
     ],
     export_static_lib_headers: [
+        "libgfxstream_guest_android",
         "libplatform",
     ],
 }
@@ -225,13 +194,15 @@ cc_library_static {
         "vulkan_enc_headers",
     ],
     shared_libs: [
-        "libgfxstream_backend",
-        "libplatform_rutabaga",
+        "libplatform_rutabaga_server",
     ],
     static_libs: [
         "libandroidemu_static",
+        "libgfxstream_guest_android_with_host",
+        "libplatform_rutabaga",
     ],
-    export_shared_lib_headers: [
+    export_static_lib_headers: [
+        "libgfxstream_guest_android_with_host",
         "libplatform_rutabaga",
     ],
     target: {

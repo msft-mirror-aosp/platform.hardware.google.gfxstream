@@ -18,6 +18,6 @@
 
 namespace gfxstream {
 
-void ResetEmulatedVirtioGpu();
+uint32_t GetNumActiveEmulatedVirtioGpuUsers();
 
 }  // namespace gfxstream
