@@ -23,6 +23,9 @@ if host_machine.system() == 'qnx'
   endif
 endif
 
+pkg_cflags = []
+pkg_cflags += '-DGFXSTREAM_UNSTABLE=1'
+
 #===============#
 # Dependencies  #
 #===============#
@@ -280,5 +283,6 @@ install_headers(gfxstream_headers,
 pkg = import('pkgconfig')
 pkg.generate(gfxstream_backend,
              description: 'gfxstream backend',
+             extra_cflags: pkg_cflags,
              subdirs: 'gfxstream'
 )
