@@ -26,6 +26,11 @@ config("common_config") {
   mesa_version = "unknown"
 
   defines = [
+    # Pretend to be Linux for now so we avoid the need to
+    # introduce DETECT_OS_FUCHSIA into mesa.
+    "DETECT_OS_LINUX=1",
+    "DETECT_OS_UNIX=1",
+    "HAVE_PROGRAM_INVOCATION_NAME=1",
     "HAVE_ENDIAN_H=1",
     "HAVE_PTHREAD=1",
     "HAVE_STRUCT_TIMESPEC=1",
@@ -73,5 +78,6 @@ config("common_config") {
     "-Wno-int-in-bool-context",
     "-Wno-conversion",
     "-Wno-deprecated-anon-enum-enum-conversion",
+    "-Wno-strict-prototypes",
   ]
 }
