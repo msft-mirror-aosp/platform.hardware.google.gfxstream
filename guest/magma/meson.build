@@ -33,12 +33,14 @@ lib_magma_enc = static_library(
    dependencies: [
     dependency('libdrm')
    ],
+   install: true,
 )
 
-lib_magma_gfxstream_dep = declare_dependency(
-   include_directories: [
-      inc_fuchsia_magma,
-      inc_fuchsia_magma_nolib
-   ],
-   link_with: [lib_magma_enc],
+install_subdir('../../third-party/fuchsia/magma',
+               install_dir: 'include')
+
+pkg = import('pkgconfig')
+pkg.generate(lib_magma_enc,
+             description: 'magma',
+             subdirs: ['magma/include', 'magma/include/lib/'],
 )
