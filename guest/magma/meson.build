@@ -6,6 +6,7 @@ files_lib_magma_enc = files(
     'magma_enc_util.cpp',
     'magma_enc/magma_enc.cpp',
     'magma_enc/magma_entry.cpp',
+    'magma_enc/magma_stubs.cpp',
     'magma_enc/magma_client_context.cpp',
   )
 
