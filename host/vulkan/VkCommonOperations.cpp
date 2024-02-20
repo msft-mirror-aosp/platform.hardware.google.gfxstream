@@ -1300,9 +1300,10 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
         if (sVkEmulation->compositorVk) {
             ERR("Reset VkEmulation::compositorVk.");
         }
-        sVkEmulation->compositorVk = CompositorVk::create(
-            *sVkEmulation->ivk, sVkEmulation->device, sVkEmulation->physdev, sVkEmulation->queue,
-            sVkEmulation->queueLock, sVkEmulation->queueFamilyIndex, 3);
+        sVkEmulation->compositorVk =
+            CompositorVk::create(*sVkEmulation->ivk, sVkEmulation->device, sVkEmulation->physdev,
+                                 sVkEmulation->queue, sVkEmulation->queueLock,
+                                 sVkEmulation->queueFamilyIndex, 3, sVkEmulation->debugUtilsHelper);
     }
 
     if (features->useVulkanNativeSwapchain) {
@@ -2131,6 +2132,13 @@ bool initializeVkColorBufferLocked(
     }
 #endif
 
+    sVkEmulation->debugUtilsHelper.addDebugLabel(infoPtr->image, "ColorBuffer:%d",
+                                                 colorBufferHandle);
+    sVkEmulation->debugUtilsHelper.addDebugLabel(infoPtr->imageView, "ColorBuffer:%d",
+                                                 colorBufferHandle);
+    sVkEmulation->debugUtilsHelper.addDebugLabel(infoPtr->memory.memory, "ColorBuffer:%d",
+                                                 colorBufferHandle);
+
     infoPtr->initialized = true;
 
     return true;
@@ -2438,6 +2446,9 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
 
     VK_CHECK(vk->vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
+    sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
+        commandBuffer, "readColorBufferToBytes(ColorBuffer:%d)", colorBufferHandle);
+
     const VkImageMemoryBarrier toTransferSrcImageBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
@@ -2467,6 +2478,8 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
     vk->vkCmdCopyImageToBuffer(commandBuffer, colorBufferInfo->image,
                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, sVkEmulation->staging.buffer,
                                bufferImageCopies.size(), bufferImageCopies.data());
+
+    sVkEmulation->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
 
     VK_CHECK(vk->vkEndCommandBuffer(commandBuffer));
 
@@ -2622,16 +2635,15 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
         std::memcpy(stagingBufferPtr, pixels, dstBufferSize);
     }
 
-    // Avoid transitioning from VK_IMAGE_LAYOUT_UNDEFINED. Unfortunetly, Android does not
-    // yet have a mechanism for sharing the expected VkImageLayout. However, the Vulkan
-    // spec's image layout transition sections says "If the old layout is
-    // VK_IMAGE_LAYOUT_UNDEFINED, the contents of that range may be discarded." Some
-    // Vulkan drivers have been observed to actually perform the discard which leads to
-    // ColorBuffer-s being unintentionally cleared. See go/ahb-vkimagelayout for a more
-    // thorough write up.
-    if (colorBufferInfo->currentLayout == VK_IMAGE_LAYOUT_UNDEFINED) {
-        colorBufferInfo->currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    }
+    // NOTE: Host vulkan state might not know the correct layout of the
+    // destination image, as guest grallocs are designed to be used by either
+    // GL or Vulkan. Consequently, we typically avoid image transitions from
+    // VK_IMAGE_LAYOUT_UNDEFINED as Vulkan spec allows the contents to be
+    // discarded (and some drivers have been observed doing it). You can
+    // check go/ahb-vkimagelayout for more information. But since this
+    // function does not allow subrects (see above), it will write the
+    // provided contents onto the entirety of the target buffer, meaning this
+    // risk of discarding data should not impact anything.
 
     // Record our synchronization commands.
     const VkCommandBufferBeginInfo beginInfo = {
@@ -2643,6 +2655,9 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
     VkCommandBuffer commandBuffer = sVkEmulation->commandBuffer;
 
     VK_CHECK(vk->vkBeginCommandBuffer(commandBuffer, &beginInfo));
+
+    sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
+        commandBuffer, "updateColorBufferFromBytes(ColorBuffer:%d)", colorBufferHandle);
 
     const VkImageMemoryBarrier toTransferDstImageBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -2674,6 +2689,8 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
     vk->vkCmdCopyBufferToImage(commandBuffer, sVkEmulation->staging.buffer, colorBufferInfo->image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, bufferImageCopies.size(),
                                bufferImageCopies.data());
+
+    sVkEmulation->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
 
     VK_CHECK(vk->vkEndCommandBuffer(commandBuffer));
 
@@ -2982,6 +2999,10 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
     res.glExported = false;
 
     sVkEmulation->buffers[bufferHandle] = res;
+
+    sVkEmulation->debugUtilsHelper.addDebugLabel(res.buffer, "Buffer:%d", bufferHandle);
+    sVkEmulation->debugUtilsHelper.addDebugLabel(res.memory.memory, "Buffer:%d", bufferHandle);
+
     return allocRes;
 }
 
@@ -3052,6 +3073,9 @@ bool readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint64_t size, vo
 
     VK_CHECK(vk->vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
+    sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(commandBuffer, "readBufferToBytes(Buffer:%d)",
+                                                      bufferHandle);
+
     const VkBufferCopy bufferCopy = {
         .srcOffset = offset,
         .dstOffset = 0,
@@ -3059,6 +3083,8 @@ bool readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint64_t size, vo
     };
     vk->vkCmdCopyBuffer(commandBuffer, bufferInfo->buffer, stagingBufferInfo.buffer, 1,
                         &bufferCopy);
+
+    sVkEmulation->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
 
     VK_CHECK(vk->vkEndCommandBuffer(commandBuffer));
 
@@ -3154,6 +3180,9 @@ bool updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, uint64_t size
 
     VK_CHECK(vk->vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
+    sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
+        commandBuffer, "updateBufferFromBytes(Buffer:%d)", bufferHandle);
+
     const VkBufferCopy bufferCopy = {
         .srcOffset = 0,
         .dstOffset = offset,
@@ -3161,6 +3190,8 @@ bool updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, uint64_t size
     };
     vk->vkCmdCopyBuffer(commandBuffer, stagingBufferInfo.buffer, bufferInfo->buffer, 1,
                         &bufferCopy);
+
+    sVkEmulation->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
 
     VK_CHECK(vk->vkEndCommandBuffer(commandBuffer));
 
@@ -3416,6 +3447,9 @@ void releaseColorBufferForGuestUse(uint32_t colorBufferHandle) {
     };
     VK_CHECK(vk->vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
+    sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
+        commandBuffer, "releaseColorBufferForGuestUse(ColorBuffer:%d)", colorBufferHandle);
+
     if (layoutTransitionBarrier) {
         vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                  VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,
@@ -3426,6 +3460,8 @@ void releaseColorBufferForGuestUse(uint32_t colorBufferHandle) {
                                  VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,
                                  &queueTransferBarrier.value());
     }
+
+    sVkEmulation->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
 
     VK_CHECK(vk->vkEndCommandBuffer(commandBuffer));
 

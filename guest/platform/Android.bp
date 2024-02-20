@@ -19,10 +19,19 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+cc_library_headers {
+    name: "libplatform_headers",
+    host_supported: true,
+    vendor_available: true,
+    export_include_dirs: [
+        "include"
+    ],
+}
+
 cc_library_static {
     name: "libplatform",
     host_supported: true,
-    vendor_available: true,
+    vendor: true,
     srcs: [
         "VirtGpu.cpp",
         "linux/LinuxVirtGpuBlob.cpp",
@@ -56,17 +65,47 @@ cc_library_static {
             shared_libs: [
                 "libsync",
             ],
-        }
-    }
+        },
+    },
 }
 
 cc_library_shared {
+    name: "libplatform_rutabaga_server",
+    host_supported: true,
+    vendor_available: true,
+    srcs: [
+        "rutabaga/RutabagaLayer.cpp",
+    ],
+    header_libs: [
+        "libplatform_headers",
+    ],
+    shared_libs: [
+        "libcutils",
+        "libgfxstream_backend",
+        "liblog",
+        "libutils",
+    ],
+    export_include_dirs: [
+        // TODO: restrict to just RutabagaLayer.h
+        "rutabaga/include",
+        "rutabaga",
+    ],
+    target: {
+        host: {
+            compile_multilib: "64",
+        },
+        android: {
+            compile_multilib: "64",
+        },
+    },
+}
+
+cc_library_static {
     name: "libplatform_rutabaga",
     host_supported: true,
     vendor_available: true,
     srcs: [
         "VirtGpu.cpp",
-        "rutabaga/RutabagaLayer.cpp",
         "rutabaga/RutabagaVirtGpuBlob.cpp",
         "rutabaga/RutabagaVirtGpuBlobMapping.cpp",
         "rutabaga/RutabagaVirtGpuDevice.cpp",
@@ -75,7 +114,7 @@ cc_library_shared {
     shared_libs: [
         "libcutils",
         "libdrm",
-        "libgfxstream_backend",
+        "libplatform_rutabaga_server",
         "liblog",
         "libutils",
     ],

@@ -34,7 +34,6 @@
 
 #include <cstring>
 
-#include "../OpenglSystemCommon/HostConnection.h"
 #include "ResourceTracker.h"
 #include "VkEncoder.h"
 #include "gfxstream_vk_entrypoints.h"
@@ -4016,9 +4015,10 @@ void gfxstream_vk_UpdateDescriptorSetWithTemplateKHR(
                    descriptorUpdateTemplate);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
-        vkEnc->vkUpdateDescriptorSetWithTemplateKHR(
-            gfxstream_device->internal_object, descriptorSet,
-            gfxstream_descriptorUpdateTemplate->internal_object, pData, true /* do lock */);
+        auto resources = gfxstream::vk::ResourceTracker::get();
+        resources->on_vkUpdateDescriptorSetWithTemplateKHR(
+            vkEnc, gfxstream_device->internal_object, descriptorSet,
+            gfxstream_descriptorUpdateTemplate->internal_object, pData);
     }
 }
 #endif

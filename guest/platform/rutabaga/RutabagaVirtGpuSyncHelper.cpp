@@ -16,14 +16,21 @@
 
 #include "RutabagaVirtGpuSyncHelper.h"
 
+#include <log/log.h>
+
 #include "RutabagaLayer.h"
 
 namespace gfxstream {
 
 RutabagaVirtGpuSyncHelper::RutabagaVirtGpuSyncHelper() {}
 
+bool RutabagaVirtGpuSyncHelper::Init() {
+    mEmulation = EmulatedVirtioGpu::Get();
+    return mEmulation != nullptr;
+}
+
 int RutabagaVirtGpuSyncHelper::wait(int syncFd, int timeoutMilliseconds) {
-    return EmulatedVirtioGpu::Get().WaitOnEmulatedFence(syncFd, timeoutMilliseconds);
+    return mEmulation->WaitOnEmulatedFence(syncFd, timeoutMilliseconds);
 }
 
 int RutabagaVirtGpuSyncHelper::dup(int syncFd) {
@@ -33,6 +40,13 @@ int RutabagaVirtGpuSyncHelper::dup(int syncFd) {
 
 int RutabagaVirtGpuSyncHelper::close(int) { return 0; }
 
-SyncHelper* createPlatformSyncHelper() { return new RutabagaVirtGpuSyncHelper(); }
+SyncHelper* createPlatformSyncHelper() {
+    RutabagaVirtGpuSyncHelper* sync = new RutabagaVirtGpuSyncHelper();
+    if (!sync->Init()) {
+        ALOGE("Failed to initialize RutabagaVirtGpuSyncHelper: Failed to get emulation layer.");
+        return nullptr;
+    }
+    return sync;
+}
 
 }  // namespace gfxstream

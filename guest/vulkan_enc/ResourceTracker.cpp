@@ -489,7 +489,7 @@ static VkFormat sysmemPixelFormatTypeToVk(fuchsia_sysmem::wire::PixelFormatType 
     }
 }
 
-// TODO(fxbug.dev/90856): This is currently only used for allocating
+// TODO(fxbug.dev/42172354): This is currently only used for allocating
 // memory for dedicated external images. It should be migrated to use
 // SetBufferCollectionImageConstraintsFUCHSIA.
 VkResult ResourceTracker::setBufferCollectionConstraintsFUCHSIA(
@@ -702,8 +702,9 @@ SetBufferCollectionBufferConstraintsResult setBufferCollectionBufferConstraintsI
 
 uint64_t getAHardwareBufferId(AHardwareBuffer* ahw) {
     uint64_t id = 0;
-#if defined(__ANDROID__) && ANDROID_API_LEVEL >= 31
-    AHardwareBuffer_getId(ahw, &id);
+#if defined(ANDROID)
+    auto* gralloc = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
+    gralloc->getId(ahw, &id);
 #else
     (void)ahw;
 #endif
@@ -2299,7 +2300,7 @@ VkResult ResourceTracker::on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
         // Importing read-only host memory into the Vulkan driver should not
         // work, but it is not an error to try to do so. Returning a
         // VkMemoryZirconHandlePropertiesFUCHSIA with no available
-        // memoryType bits should be enough for clients. See fxbug.dev/24225
+        // memoryType bits should be enough for clients. See fxbug.dev/42098398
         // for other issues this this flow.
         ALOGW("GetBufferHandleInfo failed: %d", result.value().error_value());
         pProperties->memoryTypeBits = 0;
@@ -2531,7 +2532,7 @@ SetBufferCollectionImageConstraintsResult ResourceTracker::setBufferCollectionIm
                 ALOGW(
                     "%s: Non-zero flags (%08x) in image format "
                     "constraints; this is currently not supported, see "
-                    "fxbug.dev/68833.",
+                    "fxbug.dev/42147900.",
                     __func__, formatConstraints->flags);
             }
         }
@@ -3155,6 +3156,8 @@ VkResult ResourceTracker::getCoherentMemory(const VkMemoryAllocateInfo* pAllocat
     {
         AutoLock<RecursiveLock> lock(mLock);
         for (const auto& [memory, info] : info_VkDeviceMemory) {
+            if (info.device != device) continue;
+
             if (info.memoryTypeIndex != pAllocateInfo->memoryTypeIndex) continue;
 
             if (info.dedicated || dedicated) continue;
@@ -3560,7 +3563,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
             fidl::WireSyncClient<fuchsia_sysmem::BufferCollection> collection(
                 std::move(collection_ends->client));
             if (hasDedicatedImage) {
-                // TODO(fxbug.dev/90856): Use setBufferCollectionImageConstraintsFUCHSIA.
+                // TODO(fxbug.dev/42172354): Use setBufferCollectionImageConstraintsFUCHSIA.
                 VkResult res = setBufferCollectionConstraintsFUCHSIA(enc, device, &collection,
                                                                      pImageCreateInfo);
                 if (res == VK_ERROR_FORMAT_NOT_SUPPORTED) {
@@ -5781,7 +5784,7 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
                     post_wait_events.push_back({semInfo.eventHandle, semInfo.eventKoid});
 #ifndef FUCHSIA_NO_TRACE
                     if (semInfo.eventKoid != ZX_KOID_INVALID) {
-                        // TODO(fxbug.dev/66098): Remove the "semaphore"
+                        // TODO(fxbug.dev/42144867): Remove the "semaphore"
                         // FLOW_END events once it is removed from clients
                         // (for example, gfx Engine).
                         TRACE_FLOW_END("gfx", "semaphore", semInfo.eventKoid);
@@ -5936,13 +5939,7 @@ void ResourceTracker::unwrap_VkNativeBufferANDROID(const VkNativeBufferANDROID* 
 
     auto* gralloc = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
     const native_handle_t* nativeHandle = (const native_handle_t*)inputNativeInfo->handle;
-
-#if defined(END2END_TESTS)
-    // This is valid since the testing backend creates the handle and we know the layout.
-    *(uint32_t*)(outputNativeInfo->handle) = (uint32_t)nativeHandle->data[0];
-#else
     *(uint32_t*)(outputNativeInfo->handle) = gralloc->getHostHandle(nativeHandle);
-#endif
 }
 
 void ResourceTracker::unwrap_VkBindImageMemorySwapchainInfoKHR(
@@ -6374,6 +6371,13 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
         bufferViews, inlineUniformBlockBuffer, true /* do lock */);
 }
 
+void ResourceTracker::on_vkUpdateDescriptorSetWithTemplateKHR(
+    void* context, VkDevice device, VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, const void* pData) {
+    on_vkUpdateDescriptorSetWithTemplate(context, device, descriptorSet, descriptorUpdateTemplate,
+                                         pData);
+}
+
 VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2_common(
     bool isKhr, void* context, VkResult input_result, VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
@@ -6490,6 +6494,7 @@ void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferProperties_common(
     VkExternalBufferProperties* pExternalBufferProperties) {
     VkEncoder* enc = (VkEncoder*)context;
 
+#if defined(ANDROID)
     // Older versions of Goldfish's Gralloc did not support allocating AHARDWAREBUFFER_FORMAT_BLOB
     // with GPU usage (b/299520213).
     if (ResourceTracker::threadingCallbacks.hostConnectionGetFunc()
@@ -6502,6 +6507,7 @@ void ResourceTracker::on_vkGetPhysicalDeviceExternalBufferProperties_common(
         pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = 0;
         return;
     }
+#endif
 
     uint32_t supportedHandleType = 0;
 #ifdef VK_USE_PLATFORM_FUCHSIA

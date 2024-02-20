@@ -4,7 +4,8 @@
 project('gfxstream', 'cpp', 'c',
          version : '0.1.2',
          license : 'MIT OR Apache-2.0',
-         default_options : ['cpp_std=gnu++17'])
+         default_options : ['cpp_std=gnu++17',
+                            'b_ndebug=if-release'])
 
 cc = meson.get_compiler('cpp')
 prog_python = import('python').find_installation('python3')
@@ -17,6 +18,7 @@ build = get_option('gfxstream-build')
 
 with_guest = build.contains('guest') or build.contains('both')
 with_host = build.contains('host') or build.contains('both')
+with_guest_test = build.contains('guest-test')
 
 #========================#
 # Logging + error report #
@@ -34,10 +36,10 @@ use_vulkan = decoders.contains('vulkan') and with_host
 use_magma = decoders.contains('magma') and with_host
 use_composer = decoders.contains('composer') and with_host
 
-if with_guest
+if with_guest or with_guest_test
   subdir('guest')
 endif
-if with_host
+if with_host and not with_guest_test
   subdir('common')
   subdir('host')
 endif

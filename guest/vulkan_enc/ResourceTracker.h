@@ -88,7 +88,7 @@ typedef uint64_t zx_koid_t;
 #include "AndroidHardwareBuffer.h"
 #endif
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__Fuchsia__)
 #include <android/hardware_buffer.h>
 #endif
 
@@ -425,6 +425,11 @@ class ResourceTracker {
         VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate);
 
     void on_vkUpdateDescriptorSetWithTemplate(void* context, VkDevice device,
+                                              VkDescriptorSet descriptorSet,
+                                              VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+                                              const void* pData);
+
+    void on_vkUpdateDescriptorSetWithTemplateKHR(void* context, VkDevice device,
                                               VkDescriptorSet descriptorSet,
                                               VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                               const void* pData);

@@ -20,8 +20,9 @@
 #endif
 
 #include <assert.h>
+#include <log/log.h>
 
-#include "../OpenglSystemCommon/HostConnection.h"
+#include "gfxstream/guest/Gralloc.h"
 #include "vk_format_info.h"
 #include "vk_util.h"
 
@@ -65,6 +66,9 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
     const auto format = grallocHelper->getFormat(buffer);
     if (ahbFormatProps) {
         switch (format) {
+            case AHARDWAREBUFFER_FORMAT_R8_UNORM:
+                ahbFormatProps->format = VK_FORMAT_R8_UNORM;
+                break;
             case AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM:
                 ahbFormatProps->format = VK_FORMAT_R8G8B8A8_UNORM;
                 break;
