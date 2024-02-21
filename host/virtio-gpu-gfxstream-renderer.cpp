@@ -45,6 +45,10 @@
 #include "virtgpu_gfxstream_protocol.h"
 #include "vk_util.h"
 
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+#include "aemu/base/files/StdioStream.h"
+#endif
+
 extern "C" {
 #include "drm_fourcc.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
@@ -1977,6 +1981,52 @@ VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
     return sRenderer()->vulkanInfo(res_handle, vulkan_info);
 }
 
+VG_EXPORT int stream_renderer_snapshot(const char* dir) {
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+    std::string dirString(dir);
+
+    std::string snapshotFileName = dirString + "snapshot.bin";
+
+    std::unique_ptr<android::base::StdioStream> stream(new android::base::StdioStream(
+        fopen(snapshotFileName.c_str(), "wb"), android::base::StdioStream::kOwner));
+
+    android_getOpenglesRenderer()->pauseAllPreSave();
+    android::snapshot::SnapshotSaveStream saveStream{
+        .stream = stream.get(),
+    };
+
+    android_getOpenglesRenderer()->save(saveStream.stream, saveStream.textureSaver);
+    return 0;
+#else
+    stream_renderer_error("Snapshot save requested without support.");
+    return -EINVAL;
+#endif
+}
+
+VG_EXPORT int stream_renderer_restore(const char* dir) {
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+    std::string dirString(dir);
+    std::string snapshotFileName = dirString + "snapshot.bin";
+
+    std::unique_ptr<android::base::StdioStream> stream(new android::base::StdioStream(
+        fopen(snapshotFileName.c_str(), "rb"), android::base::StdioStream::kOwner));
+
+    android::snapshot::SnapshotLoadStream loadStream{
+        .stream = stream.get(),
+    };
+
+    android_getOpenglesRenderer()->load(loadStream.stream, loadStream.textureLoader);
+
+    // In end2end tests, we don't really do snapshot save for render threads.
+    // We will need to resume all render threads without waiting for snapshot.
+    android_getOpenglesRenderer()->resumeAll(false);
+    return 0;
+#else
+    stream_renderer_error("Snapshot save requested without support.");
+    return -EINVAL;
+#endif
+}
+
 static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
     // guest_open()
     [](GoldfishHwPipe* hwPipe) -> GoldfishHostPipe* {
@@ -2108,7 +2158,6 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     android::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
     bool enableVk = (renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT);
     bool enableGles = (renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT);
-    bool enableVkSnapshot = (renderer_flags & STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS);
 
     bool egl2eglByEnv = android::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
     bool egl2eglByFlag = renderer_flags & STREAM_RENDERER_FLAGS_USE_EGL_BIT;
@@ -2157,7 +2206,6 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     feature_set_enabled_override(kFeature_NativeTextureDecompression, false);
     feature_set_enabled_override(kFeature_GLDirectMem, false);
     feature_set_enabled_override(kFeature_Vulkan, enableVk);
-    feature_set_enabled_override(kFeature_VulkanSnapshots, enableVkSnapshot);
     feature_set_enabled_override(kFeature_VulkanNullOptionalStrings, true);
     feature_set_enabled_override(kFeature_VulkanShaderFloat16Int8, true);
     feature_set_enabled_override(kFeature_HostComposition, true);
@@ -2171,6 +2219,10 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     feature_set_enabled_override(kFeature_VirtioGpuFenceContexts, true);
     feature_set_enabled_override(kFeature_ExternalBlob, useExternalBlob);
     feature_set_enabled_override(kFeature_SystemBlob, useSystemBlob);
+
+    if (android::base::getEnvironmentVariable("ANDROID_GFXSTREAM_CAPTURE_VK_SNAPSHOT") == "1") {
+        feature_set_enabled_override(kFeature_VulkanSnapshots, true);
+    }
 
     android::featurecontrol::productFeatureOverride();
 

@@ -207,7 +207,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
 
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
-#if defined(__ANDROID__) || defined(__Fuchsia__)
+#if defined(__ANDROID__)
             auto stream = createGoldfishAddressSpaceStream(STREAM_BUFFER_SIZE, getGlobalHealthMonitor());
             if (!stream) {
                 ALOGE("Failed to create AddressSpaceStream for host connection\n");
