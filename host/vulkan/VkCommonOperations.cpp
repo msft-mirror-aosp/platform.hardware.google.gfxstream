@@ -1622,7 +1622,7 @@ bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevic
         VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
         &dedicatedInfo,
         VK_EXT_MEMORY_HANDLE_TYPE_BIT,
-        info->externalHandle,
+        dupExternalMemory(info->externalHandle),
     };
 #endif
     VkMemoryAllocateInfo allocInfo = {
