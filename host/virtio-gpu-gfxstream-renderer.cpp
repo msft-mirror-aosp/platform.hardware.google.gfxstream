@@ -30,6 +30,7 @@
 #include "aemu/base/Tracing.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/Strings.h"
 #include "host-common/AddressSpaceService.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/address_space_device.h"
@@ -2137,7 +2138,7 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
 };
 
 static int stream_renderer_opengles_init(uint32_t display_width, uint32_t display_height,
-                                         int renderer_flags) {
+                                         int renderer_flags, const std::string& renderer_features) {
     stream_renderer_info("start. display dimensions: width %u height %u, renderer flags: 0x%x",
                          display_width, display_height, renderer_flags);
 
@@ -2222,6 +2223,36 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
 
     if (android::base::getEnvironmentVariable("ANDROID_GFXSTREAM_CAPTURE_VK_SNAPSHOT") == "1") {
         feature_set_enabled_override(kFeature_VulkanSnapshots, true);
+    }
+
+    for (const std::string& renderer_feature : gfxstream::Split(renderer_features, ",")) {
+        if (renderer_feature.empty()) continue;
+
+        const std::vector<std::string>& parts = gfxstream::Split(renderer_feature, ":");
+        if (parts.size() != 2) {
+            stream_renderer_error("Error: invalid renderer features: %s",
+                                  renderer_features.c_str());
+            return -EINVAL;
+        }
+
+        const std::string& feature_name = parts[0];
+        const Feature feature = feature_from_name(feature_name.c_str());
+        if (feature == kFeature_unknown) {
+            stream_renderer_error("Error: invalid renderer feature: '%s'", feature_name.c_str());
+            return -EINVAL;
+        }
+
+        const std::string& feature_status = parts[1];
+        if (feature_status != "enabled" && feature_status != "disabled") {
+            stream_renderer_error("Error: invalid option %s for renderer feature: %s",
+                                  feature_status.c_str(), feature_name.c_str());
+            return -EINVAL;
+        }
+
+        feature_set_enabled_override(feature, feature_status == "enabled");
+
+        stream_renderer_error("Gfxstream feature %s %s", feature_name.c_str(),
+                              feature_status.c_str());
     }
 
     android::featurecontrol::productFeatureOverride();
@@ -2341,6 +2372,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     uint32_t display_height = 0;
     void* renderer_cookie = nullptr;
     int renderer_flags = 0;
+    std::string renderer_features;
     stream_renderer_fence_callback fence_callback = nullptr;
     bool skip_opengles = false;
 
@@ -2419,6 +2451,11 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                     static_cast<uintptr_t>(param.value));
                 break;
             }
+            case STREAM_RENDERER_PARAM_RENDERER_FEATURES: {
+                renderer_features =
+                    std::string(reinterpret_cast<const char*>(static_cast<uintptr_t>(param.value)));
+                break;
+            }
             case STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION: {
                 MetricsLogger::set_crash_annotation_callback =
                     reinterpret_cast<stream_renderer_param_metrics_callback_set_annotation>(
@@ -2481,7 +2518,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     if (!skip_opengles) {
         // aemu currently does its own opengles initialization in
         // qemu/android/android-emu/android/opengles.cpp.
-        int ret = stream_renderer_opengles_init(display_width, display_height, renderer_flags);
+        int ret = stream_renderer_opengles_init(display_width, display_height, renderer_flags,
+                                                renderer_features);
         if (ret) {
             return ret;
         }
