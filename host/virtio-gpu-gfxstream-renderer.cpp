@@ -31,6 +31,7 @@
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "gfxstream/Strings.h"
+#include "gfxstream/host/Features.h"
 #include "host-common/AddressSpaceService.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/address_space_device.h"
@@ -595,9 +596,10 @@ class PipeVirglRenderer {
    public:
     PipeVirglRenderer() = default;
 
-    int init(void* cookie, int flags, stream_renderer_fence_callback fence_callback) {
+    int init(void* cookie, gfxstream::host::FeatureSet features, stream_renderer_fence_callback fence_callback) {
         stream_renderer_debug("cookie: %p", cookie);
         mCookie = cookie;
+        mFeatures = features;
         mFenceCallback = fence_callback;
         mVirtioGpuOps = android_getVirtioGpuOps();
         if (!mVirtioGpuOps) {
@@ -1554,7 +1556,7 @@ class PipeVirglRenderer {
     int createRingBlob(PipeResEntry& entry, uint32_t res_handle,
                        const struct stream_renderer_create_blob* create_blob,
                        const struct stream_renderer_handle* handle) {
-        if (feature_is_enabled(kFeature_ExternalBlob)) {
+        if (mFeatures.ExternalBlob.enabled) {
             std::string name = "shared-memory-" + std::to_string(res_handle);
             auto ringBlob = std::make_shared<SharedMemory>(name, create_blob->size);
             int ret = ringBlob->create(0600);
@@ -1599,7 +1601,7 @@ class PipeVirglRenderer {
             if (ret) {
                 return ret;
             }
-        } else if (feature_is_enabled(kFeature_ExternalBlob)) {
+        } else if (mFeatures.ExternalBlob.enabled) {
             if (create_blob->blob_mem == STREAM_BLOB_MEM_GUEST &&
                 (create_blob->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
 #if defined(__linux__) || defined(__QNX__)
@@ -1648,7 +1650,7 @@ class PipeVirglRenderer {
     }
 
     int resourceMap(uint32_t res_handle, void** hvaOut, uint64_t* sizeOut) {
-        if (feature_is_enabled(kFeature_ExternalBlob)) return -EINVAL;
+        if (mFeatures.ExternalBlob.enabled) return -EINVAL;
 
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) {
@@ -1844,6 +1846,7 @@ class PipeVirglRenderer {
     }
 
     void* mCookie = nullptr;
+    gfxstream::host::FeatureSet mFeatures;
     stream_renderer_fence_callback mFenceCallback;
     AndroidVirtioGpuOps* mVirtioGpuOps = nullptr;
     uint32_t mPageSize = 4096;
@@ -2158,7 +2161,7 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
 };
 
 static int stream_renderer_opengles_init(uint32_t display_width, uint32_t display_height,
-                                         int renderer_flags, const std::string& renderer_features) {
+                                         int renderer_flags, gfxstream::host::FeatureSet features) {
     stream_renderer_debug("start. display dimensions: width %u height %u, renderer flags: 0x%x",
                           display_width, display_height, renderer_flags);
 
@@ -2177,8 +2180,6 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     // end for test on GCE
 
     android::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
-    bool enableVk = (renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT);
-    bool enableGles = (renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT);
 
     bool egl2eglByEnv = android::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
     bool egl2eglByFlag = renderer_flags & STREAM_RENDERER_FLAGS_USE_EGL_BIT;
@@ -2189,98 +2190,8 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     }
 
     bool surfaceless = renderer_flags & STREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT;
-    bool enableGlEs31Flag = enableGles;
-    bool useExternalBlob = renderer_flags & STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB;
-    bool useSystemBlob = renderer_flags & STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB;
-    bool guestUsesAngle = enableVk && !enableGles;
-    bool useVulkanNativeSwapchain =
-        renderer_flags & STREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT;
-
-    stream_renderer_info("GLES enabled? %d", enableGles);
-    stream_renderer_info("Vulkan enabled? %d", enableVk);
-    stream_renderer_info("egl2egl enabled? %d", enable_egl2egl);
-    stream_renderer_info("surfaceless? %d", surfaceless);
-    stream_renderer_info("OpenGL ES 3.1 enabled? %d", enableGlEs31Flag);
-    stream_renderer_info("use external blob? %d", useExternalBlob);
-    stream_renderer_info("use system blob? %d", useSystemBlob);
-    stream_renderer_info("guest using ANGLE? %d", guestUsesAngle);
-    stream_renderer_info("use Vulkan native swapchain on the host? %d", useVulkanNativeSwapchain);
-
-    if (useSystemBlob) {
-        if (!useExternalBlob) {
-            stream_renderer_error("USE_EXTERNAL_BLOB must be on with USE_SYSTEM_BLOB");
-            return -EINVAL;
-        }
-
-#ifndef _WIN32
-        stream_renderer_warn("Warning: USE_SYSTEM_BLOB has only been tested on Windows");
-#endif
-    }
-
-    feature_set_enabled_override(kFeature_GLPipeChecksum, false);
-    feature_set_enabled_override(kFeature_GLESDynamicVersion, true);
-    feature_set_enabled_override(kFeature_PlayStoreImage, !enableGlEs31Flag);
-    feature_set_enabled_override(kFeature_GLDMA, false);
-    feature_set_enabled_override(kFeature_GLAsyncSwap, false);
-    feature_set_enabled_override(kFeature_RefCountPipe, false);
-    feature_set_enabled_override(kFeature_NoDelayCloseColorBuffer, true);
-    feature_set_enabled_override(kFeature_NativeTextureDecompression, false);
-    feature_set_enabled_override(kFeature_GLDirectMem, false);
-    feature_set_enabled_override(kFeature_Vulkan, enableVk);
-    feature_set_enabled_override(kFeature_VulkanNullOptionalStrings, true);
-    feature_set_enabled_override(kFeature_VulkanShaderFloat16Int8, true);
-    feature_set_enabled_override(kFeature_HostComposition, true);
-    feature_set_enabled_override(kFeature_VulkanIgnoredHandles, true);
-    feature_set_enabled_override(kFeature_VirtioGpuNext, true);
-    feature_set_enabled_override(kFeature_VirtioGpuNativeSync, true);
-    feature_set_enabled_override(kFeature_GuestUsesAngle, guestUsesAngle);
-    feature_set_enabled_override(kFeature_VulkanQueueSubmitWithCommands, true);
-    feature_set_enabled_override(kFeature_VulkanNativeSwapchain, useVulkanNativeSwapchain);
-    feature_set_enabled_override(kFeature_VulkanBatchedDescriptorSetUpdate, true);
-    feature_set_enabled_override(kFeature_VirtioGpuFenceContexts, true);
-    feature_set_enabled_override(kFeature_ExternalBlob, useExternalBlob);
-    feature_set_enabled_override(kFeature_SystemBlob, useSystemBlob);
-
-    if (android::base::getEnvironmentVariable("ANDROID_GFXSTREAM_CAPTURE_VK_SNAPSHOT") == "1") {
-        feature_set_enabled_override(kFeature_VulkanSnapshots, true);
-    }
-
-    for (const std::string& renderer_feature : gfxstream::Split(renderer_features, ",")) {
-        if (renderer_feature.empty()) continue;
-
-        const std::vector<std::string>& parts = gfxstream::Split(renderer_feature, ":");
-        if (parts.size() != 2) {
-            stream_renderer_error("Error: invalid renderer features: %s",
-                                  renderer_features.c_str());
-            return -EINVAL;
-        }
-
-        const std::string& feature_name = parts[0];
-        const Feature feature = feature_from_name(feature_name.c_str());
-        if (feature == kFeature_unknown) {
-            stream_renderer_error("Error: invalid renderer feature: '%s'", feature_name.c_str());
-            return -EINVAL;
-        }
-
-        const std::string& feature_status = parts[1];
-        if (feature_status != "enabled" && feature_status != "disabled") {
-            stream_renderer_error("Error: invalid option %s for renderer feature: %s",
-                                  feature_status.c_str(), feature_name.c_str());
-            return -EINVAL;
-        }
-
-        feature_set_enabled_override(feature, feature_status == "enabled");
-
-        stream_renderer_error("Gfxstream feature %s %s", feature_name.c_str(),
-                              feature_status.c_str());
-    }
 
     android::featurecontrol::productFeatureOverride();
-
-    if (useVulkanNativeSwapchain && !enableVk) {
-        stream_renderer_error("can't enable vulkan native swapchain, Vulkan is disabled");
-        return -EINVAL;
-    }
 
     gfxstream::vk::vkDispatch(false /* don't use test ICD */);
 
@@ -2316,7 +2227,7 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     int min;
     android_startOpenglesRenderer(display_width, display_height, 1, 28, getGraphicsAgents()->vm,
                                   getGraphicsAgents()->emu, getGraphicsAgents()->multi_display,
-                                  &maj, &min);
+                                  &features, &maj, &min);
 
     char* vendor = nullptr;
     char* renderer = nullptr;
@@ -2340,6 +2251,121 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
 
     return 0;
 }
+
+namespace {
+
+int parseGfxstreamFeatures(const int renderer_flags,
+                           const std::string& renderer_features,
+                           gfxstream::host::FeatureSet& features) {
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, ExternalBlob,
+        renderer_flags & STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, GlAsyncSwap, false);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, GlDirectMem, false);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, GlDma, false);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, GlesDynamicVersion, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, GlPipeChecksum, false);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, GuestUsesAngle,
+        (renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT) &&
+        !(renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT));
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, HostComposition, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, NativeTextureDecompression, false);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, NoDelayCloseColorBuffer, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, PlayStoreImage,
+        !(renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT));
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, RefCountPipe,
+        /*Resources are ref counted via guest file objects.*/false);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, SystemBlob,
+        renderer_flags & STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VirtioGpuFenceContexts, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VirtioGpuNativeSync, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VirtioGpuNext, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, Vulkan,
+        renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VulkanBatchedDescriptorSetUpdate, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VulkanIgnoredHandles, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VulkanNativeSwapchain,
+        renderer_flags & STREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VulkanNullOptionalStrings, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VulkanQueueSubmitWithCommands, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VulkanShaderFloat16Int8, true);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VulkanSnapshots,
+        android::base::getEnvironmentVariable("ANDROID_GFXSTREAM_CAPTURE_VK_SNAPSHOT") == "1");
+
+    for (const std::string& renderer_feature : gfxstream::Split(renderer_features, ",")) {
+        if (renderer_feature.empty()) continue;
+
+        const std::vector<std::string>& parts = gfxstream::Split(renderer_feature, ":");
+        if (parts.size() != 2) {
+            stream_renderer_error("Error: invalid renderer features: %s",
+                                  renderer_features.c_str());
+            return -EINVAL;
+        }
+
+        const std::string& feature_name = parts[0];
+
+        auto feature_it = features.map.find(feature_name);
+        if (feature_it == features.map.end()) {
+            stream_renderer_error("Error: invalid renderer feature: '%s'", feature_name.c_str());
+            return -EINVAL;
+        }
+
+        const std::string& feature_status = parts[1];
+        if (feature_status != "enabled" && feature_status != "disabled") {
+            stream_renderer_error("Error: invalid option %s for renderer feature: %s",
+                                  feature_status.c_str(), feature_name.c_str());
+            return -EINVAL;
+        }
+
+        auto& feature_info = feature_it->second;
+        feature_info->enabled = feature_status == "enabled";
+        feature_info->reason = "Overridden via STREAM_RENDERER_PARAM_RENDERER_FEATURES";
+
+        stream_renderer_error("Gfxstream feature %s %s", feature_name.c_str(),
+                              feature_status.c_str());
+    }
+
+    if (features.SystemBlob.enabled) {
+        if(!features.ExternalBlob.enabled) {
+            stream_renderer_error("The SystemBlob features requires the ExternalBlob feature.");
+            return -EINVAL;
+        }
+#ifndef _WIN32
+        stream_renderer_warn("Warning: USE_SYSTEM_BLOB has only been tested on Windows");
+#endif
+    }
+    if (features.VulkanNativeSwapchain.enabled && !features.Vulkan.enabled) {
+        stream_renderer_error("can't enable vulkan native swapchain, Vulkan is disabled");
+        return -EINVAL;
+    }
+
+    return 0;
+}
+
+}  // namespace
 
 VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer_params,
                                    uint64_t num_params) {
@@ -2392,7 +2418,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     uint32_t display_height = 0;
     void* renderer_cookie = nullptr;
     int renderer_flags = 0;
-    std::string renderer_features;
+    std::string renderer_features_str;
     stream_renderer_fence_callback fence_callback = nullptr;
     bool skip_opengles = false;
 
@@ -2474,7 +2500,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                 break;
             }
             case STREAM_RENDERER_PARAM_RENDERER_FEATURES: {
-                renderer_features =
+                renderer_features_str =
                     std::string(reinterpret_cast<const char*>(static_cast<uintptr_t>(param.value)));
                 break;
             }
@@ -2511,6 +2537,19 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
         return -EINVAL;
     }
 
+    gfxstream::host::FeatureSet features;
+    int ret = parseGfxstreamFeatures(renderer_flags, renderer_features_str, features);
+    if (ret) {
+        stream_renderer_error("Failed to initialize: failed to parse Gfxstream features.");
+        return ret;
+    }
+
+    stream_renderer_info("Gfxstream features:");
+    for (const auto& [_, featureInfo] : features.map) {
+        stream_renderer_info("    %s: %s (%s)", featureInfo->name.c_str(),
+                             (featureInfo->enabled ? "enabled" : "disabled"), featureInfo->reason.c_str());
+    }
+
     // Set non product-specific callbacks
     gfxstream::vk::vk_util::setVkCheckCallbacks(
         std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
@@ -2540,14 +2579,13 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     if (!skip_opengles) {
         // aemu currently does its own opengles initialization in
         // qemu/android/android-emu/android/opengles.cpp.
-        int ret = stream_renderer_opengles_init(display_width, display_height, renderer_flags,
-                                                renderer_features);
+        int ret = stream_renderer_opengles_init(display_width, display_height, renderer_flags, features);
         if (ret) {
             return ret;
         }
     }
 
-    sRenderer()->init(renderer_cookie, renderer_flags, fence_callback);
+    sRenderer()->init(renderer_cookie, features, fence_callback);
     gfxstream::FrameBuffer::waitUntilInitialized();
 
     stream_renderer_info("Gfxstream initialized successfully!");

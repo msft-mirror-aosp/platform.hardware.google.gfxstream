@@ -35,6 +35,7 @@ cc_library_shared {
         "gfxstream_base",
         "gfxstream_host_common",
         "libgfxstream_common_utils",
+        "libgfxstream_host_features",
         "libgfxstream_etc",
         "libgfxstream_glestranslator_egl",
         "libgfxstream_glestranslator_glescm",
@@ -58,6 +59,7 @@ cc_library_shared {
     ],
     export_static_lib_headers: [
         "gfxstream_base",
+        "libgfxstream_host_features",
         "libgfxstream_host_gl_host_common",
         "libgfxstream_host_gles2_dec",
         "libgfxstream_host_glsnapshot",

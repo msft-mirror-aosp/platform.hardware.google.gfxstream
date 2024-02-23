@@ -1,9 +1,9 @@
-add_library(OpenglRender_vulkan_cereal 
-    common/goldfish_vk_extension_structs.cpp 
-    common/goldfish_vk_marshaling.cpp 
-    common/goldfish_vk_reserved_marshaling.cpp 
-    common/goldfish_vk_deepcopy.cpp 
-    common/goldfish_vk_dispatch.cpp 
+add_library(OpenglRender_vulkan_cereal
+    common/goldfish_vk_extension_structs.cpp
+    common/goldfish_vk_marshaling.cpp
+    common/goldfish_vk_reserved_marshaling.cpp
+    common/goldfish_vk_deepcopy.cpp
+    common/goldfish_vk_dispatch.cpp
     common/goldfish_vk_transform.cpp )
 target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_GOOGLE_gfxstream)
 if (WIN32)
@@ -13,6 +13,7 @@ target_link_libraries(
     OpenglRender_vulkan_cereal
     PUBLIC
     aemu-base.headers
+    gfxstream_features
     gfxstream_vulkan_headers
     PRIVATE
     gfxstream_utils.headers)
