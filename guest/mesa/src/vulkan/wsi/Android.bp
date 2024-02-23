@@ -20,23 +20,23 @@ package {
 }
 
 genrule {
-    name: "wsi_common_entrypoints_header",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "wsi_common_entrypoints_header_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["wsi_common_entrypoints.h"],
-    tools: ["vk_entrypoints_gen"],
-    cmd: "python3 $(location vk_entrypoints_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --proto --weak --out-h " +
+    tools: ["vk_entrypoints_gen_gfxstream"],
+    cmd: "python3 $(location vk_entrypoints_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --proto --weak --out-h " +
         "$(location wsi_common_entrypoints.h) --out-c " +
         "$(genDir)/placeholder.c --prefix wsi --beta false",
 }
 
 genrule {
-    name: "wsi_common_entrypoints_impl",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "wsi_common_entrypoints_impl_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["wsi_common_entrypoints.c"],
-    tools: ["vk_entrypoints_gen"],
-    cmd: "python3 $(location vk_entrypoints_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --proto --weak --out-h " +
+    tools: ["vk_entrypoints_gen_gfxstream"],
+    cmd: "python3 $(location vk_entrypoints_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --proto --weak --out-h " +
         "$(genDir)/wsi_common_entrypoints.h --out-c " +
         "$(location wsi_common_entrypoints.c) --prefix wsi " +
         "--beta false",
@@ -66,13 +66,13 @@ cc_library_static {
         "-DVK_NO_NIR",
     ],
     generated_headers: [
-        "vk_cmd_queue_header",
-        "vk_physical_device_features_header",
-        "vk_physical_device_properties_header",
-        "wsi_common_entrypoints_header",
+        "vk_cmd_queue_header_gfxstream",
+        "vk_physical_device_features_header_gfxstream",
+        "vk_physical_device_properties_header_gfxstream",
+        "wsi_common_entrypoints_header_gfxstream",
     ],
     generated_sources: [
-        "wsi_common_entrypoints_impl",
+        "wsi_common_entrypoints_impl_gfxstream",
     ],
     srcs: [
         "wsi_common.c",
