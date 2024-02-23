@@ -63,9 +63,6 @@ class EmulatedVirtioGpu {
 
    int WaitOnEmulatedFence(int fenceAsFileDescriptor, int timeoutMilliseconds);
 
-   void SnapshotSave(std::string directory);
-   void SnapshotRestore(std::string directory);
-
   private:
     EmulatedVirtioGpu();
 

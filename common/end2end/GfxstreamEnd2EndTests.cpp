@@ -23,9 +23,15 @@
 #include <filesystem>
 
 #include "ProcessPipe.h"
-#include "RutabagaLayer.h"
-#include "aemu/base/Path.h"
+#include "aemu/base/files/StdioStream.h"
+#include "aemu/base/system/System.h"
+#include "drm_fourcc.h"
 #include "gfxstream/RutabagaLayerTestUtils.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer-goldfish.h"
+#include "host-common/logging.h"
+#include "snapshot/TextureLoader.h"
+#include "snapshot/TextureSaver.h"
+#include "snapshot/common.h"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -84,7 +90,7 @@ std::string GetTestName(const ::testing::TestParamInfo<TestParams>& info) {
 }
 
 std::unique_ptr<GfxstreamEnd2EndTest::GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
-    const std::filesystem::path testDirectory = gfxstream::guest::getProgramDirectory();
+    const std::filesystem::path testDirectory = android::base::getProgramDirectory();
     const std::string eglLibPath = (testDirectory / "libEGL_emulation_with_host.so").string();
     const std::string gles2LibPath = (testDirectory / "libGLESv2_emulation_with_host.so").string();
 
@@ -129,7 +135,7 @@ std::unique_ptr<GfxstreamEnd2EndTest::GuestGlDispatchTable> GfxstreamEnd2EndTest
 }
 
 std::unique_ptr<vkhpp::DynamicLoader> GfxstreamEnd2EndTest::SetupGuestVk() {
-    const std::filesystem::path testDirectory = gfxstream::guest::getProgramDirectory();
+    const std::filesystem::path testDirectory = android::base::getProgramDirectory();
     const std::string vkLibPath = (testDirectory / "libgfxstream_guest_vulkan_with_host.so").string();
 
     auto dl = std::make_unique<vkhpp::DynamicLoader>(vkLibPath);
@@ -157,13 +163,10 @@ void GfxstreamEnd2EndTest::SetUp() {
 
     ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_GL",
                        params.with_gl ? "Y" : "N", /*overwrite=*/1), Eq(0));
-    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK", params.with_vk ? "Y" : "N",
-                       /*overwrite=*/1),
-                Eq(0));
+    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK",
+                       params.with_vk ? "Y" : "N", /*overwrite=*/1), Eq(0));
     ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK_SNAPSHOTS",
-                       params.with_vk_snapshot ? "Y" : "N",
-                       /*overwrite=*/1),
-                Eq(0));
+                       params.with_vk_snapshot ? "Y" : "N", /*overwrite=*/1), Eq(0));
 
     if (params.with_gl) {
         mGl = SetupGuestGl();
@@ -501,12 +504,22 @@ uint32_t GfxstreamEnd2EndTest::GetMemoryType(const vkhpp::PhysicalDevice& physic
 }
 
 void GfxstreamEnd2EndTest::SnapshotSaveAndLoad() {
-    auto directory = testing::TempDir();
-
-    std::shared_ptr<gfxstream::EmulatedVirtioGpu> emulation = gfxstream::EmulatedVirtioGpu::Get();
-
-    emulation->SnapshotSave(directory);
-    emulation->SnapshotRestore(directory);
+    std::string snapshotFileName = testing::TempDir() + "snapshot.bin";
+    std::string textureFileName = testing::TempDir() + "texture.bin";
+    std::unique_ptr<android::base::StdioStream> stream(new android::base::StdioStream(
+        fopen(snapshotFileName.c_str(), "wb"), android::base::StdioStream::kOwner));
+    stream_renderer_snapshot_presave_pause();
+    android::snapshot::SnapshotSaveStream saveStream{
+        .stream = stream.get(),
+    };
+    stream_renderer_snapshot_save(&saveStream);
+    stream.reset(new android::base::StdioStream(fopen(snapshotFileName.c_str(), "rb"),
+                                                android::base::StdioStream::kOwner));
+    android::snapshot::SnapshotLoadStream loadStream{
+        .stream = stream.get(),
+    };
+    stream_renderer_snapshot_load(&loadStream);
+    stream_renderer_snapshot_postload_resume_for_testing();
 }
 
 }  // namespace tests

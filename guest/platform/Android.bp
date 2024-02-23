@@ -88,7 +88,6 @@ cc_library_shared {
     export_include_dirs: [
         // TODO: restrict to just RutabagaLayer.h
         "rutabaga/include",
-        "rutabaga",
     ],
     target: {
         host: {
