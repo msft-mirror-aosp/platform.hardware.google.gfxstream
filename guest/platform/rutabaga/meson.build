@@ -16,5 +16,5 @@ lib_platform = static_library(
    cpp_args: gfxstream_guest_args,
    include_directories: [inc_platform, inc_android_compat],
    link_with: [lib_android_compat],
-   dependencies: [drm_dep, gfxstream_backend_dep],
+   dependencies: [drm_dep, rutabaga_gfx_ffi_dep],
 )
