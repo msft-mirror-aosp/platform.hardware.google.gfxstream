@@ -3899,7 +3899,7 @@ class VkDecoderGlobalState::Impl {
                               .pNext = NULL,
                               .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
                               .pHostPointer = mappedPtr};
-            localAllocInfo.pNext = &importHostInfo;
+            vk_append_struct(&structChainIter, &importHostInfo);
         }
 
         VkResult result = vk->vkAllocateMemory(device, &localAllocInfo, pAllocator, pMemory);
