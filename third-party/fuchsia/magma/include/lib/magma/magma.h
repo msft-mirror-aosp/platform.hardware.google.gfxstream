@@ -32,10 +32,10 @@
 
 // clang-format off
 
-#ifndef LIB_MAGMA_CLIENT_INCLUDE_LIB_MAGMA_MAGMA_H_
-#define LIB_MAGMA_CLIENT_INCLUDE_LIB_MAGMA_MAGMA_H_
+#ifndef LIB_MAGMA_MAGMA_H_
+#define LIB_MAGMA_MAGMA_H_
 
-#include <lib/magma/magma_common_defs.h>
+#include <lib/magma/magma_common_defs.h> // IWYU pragma: export
 #include <stdint.h>
 
 // LINT.IfChange
@@ -44,7 +44,8 @@ extern "C" {
 #endif
 
 ///
-/// \brief Imports and takes ownership of a channel to a device.
+/// \brief Imports and takes ownership of a channel to a device. Takes ownership of |device_channel|
+///        on both success and failure.
 /// \param device_channel A channel connecting to a gpu class device.
 /// \param device_out Returned device.
 ///
@@ -91,9 +92,9 @@ MAGMA_EXPORT void magma_connection_release(
     magma_connection_t connection);
 
 ///
-/// \brief When a system driver error occurs, the connection will be closed, and interfaces can
-///        return MAGMA_STATUS_CONNECTION_LOST.  In that case, this returns the system driver error.
-///        This may incur a round-trip sync.
+/// \brief If a system driver error occurs, the connection will be closed, and this interface will
+///        eventually return the error. This interface does not flush messages that may be pending
+///        (see magma_connection_flush).
 /// \param connection An open connection.
 ///
 MAGMA_EXPORT magma_status_t magma_connection_get_error(
@@ -142,7 +143,8 @@ MAGMA_EXPORT void magma_connection_release_buffer(
     magma_buffer_t buffer);
 
 ///
-/// \brief Imports and takes ownership of the buffer referred to by the given handle.
+/// \brief Imports and takes ownership of the buffer referred to by the given handle. Takes
+///        ownership of |buffer_handle| on both success and failure.
 /// \param connection An open connection.
 /// \param buffer_handle A valid handle.
 /// \param size_out The size of the buffer in bytes.
@@ -177,15 +179,18 @@ MAGMA_EXPORT void magma_connection_release_semaphore(
     magma_semaphore_t semaphore);
 
 ///
-/// \brief Imports and takes ownership of the semaphore referred to by the given handle.
+/// \brief Imports and takes ownership of the semaphore referred to by the given handle. Takes
+///        ownership of |semaphore_handle| on both success and failure.
 /// \param connection An open connection.
 /// \param semaphore_handle A valid semaphore handle.
+/// \param flags Pass MAGMA_IMPORT_SEMAPHORE_ONESHOT to prevent auto-reset after wait.
 /// \param semaphore_out The returned semaphore.
 /// \param id_out The id of the semaphore.
 ///
-MAGMA_EXPORT magma_status_t magma_connection_import_semaphore(
+MAGMA_EXPORT magma_status_t magma_connection_import_semaphore2(
     magma_connection_t connection,
     magma_handle_t semaphore_handle,
+    uint64_t flags,
     magma_semaphore_t* semaphore_out,
     magma_semaphore_id_t* id_out);
 
@@ -260,7 +265,8 @@ MAGMA_EXPORT magma_status_t magma_connection_execute_immediate_commands(
 
 ///
 /// \brief Incurs a round-trip to the system driver, used to ensure all previous messages have been
-///        observed, but not necessarily completed.
+///        observed, but not necessarily completed.  If a system driver error occurs, the connection
+///        will be closed, and this interface will return the error.
 /// \param connection An open connection.
 ///
 MAGMA_EXPORT magma_status_t magma_connection_flush(
@@ -390,7 +396,10 @@ MAGMA_EXPORT magma_status_t magma_semaphore_export(
 
 ///
 /// \brief Waits for at least one of the given items to meet a condition. Does not reset any
-///        semaphores. Results are returned in the items array.
+///        semaphores. When MAGMA_STATUS_OK is returned, results are returned in the items array.
+///        MAGMA_STATUS_TIMED_OUT is returned if no conditions are met before the given timeout
+///        expires. If the notification channel handle is included in the item list, and the magma
+///        connection is closed, then MAGMA_STATUS_CONNECTION_LOST is returned.
 /// \param items Array of poll items. Type should be either MAGMA_POLL_TYPE_SEMAPHORE or
 ///        MAGMA_POLL_TYPE_HANDLE. Condition may be set to MAGMA_POLL_CONDITION_SIGNALED OR
 ///        MAGMA_POLL_CONDITION_READABLE. If condition is 0 the item is ignored. Item results are
@@ -584,4 +593,4 @@ MAGMA_EXPORT magma_status_t magma_virt_connection_get_image_info(
 #endif
 
 // LINT.ThenChange(magma_common_defs.h:version)
-#endif // LIB_MAGMA_CLIENT_INCLUDE_LIB_MAGMA_MAGMA_H_
+#endif  // LIB_MAGMA_MAGMA_H_

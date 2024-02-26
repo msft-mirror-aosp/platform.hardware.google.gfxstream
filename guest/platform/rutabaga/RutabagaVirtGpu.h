@@ -74,9 +74,10 @@ class RutabagaVirtGpuResource : public std::enable_shared_from_this<RutabagaVirt
 
 class RutabagaVirtGpuDevice : public std::enable_shared_from_this<RutabagaVirtGpuDevice>, public VirtGpuDevice {
   public:
-   RutabagaVirtGpuDevice(std::shared_ptr<EmulatedVirtioGpu> emulation, uint32_t contextId,
-                         VirtGpuCapset capset);
+   RutabagaVirtGpuDevice(std::shared_ptr<EmulatedVirtioGpu> emulation, VirtGpuCapset capset);
    ~RutabagaVirtGpuDevice();
+
+   bool Init();
 
    int64_t getDeviceHandle() override;
 
@@ -92,8 +93,9 @@ class RutabagaVirtGpuDevice : public std::enable_shared_from_this<RutabagaVirtGp
 
   private:
    const std::shared_ptr<EmulatedVirtioGpu> mEmulation;
-   const uint32_t mContextId;
-   const VirtGpuCapset mCapset;
+   uint32_t mContextId;
+   VirtGpuCapset mCapset;
+   struct VirtGpuCaps mCaps;
 
    friend class RutabagaVirtGpuResource;
    uint32_t GetContextId() const { return mContextId; }
