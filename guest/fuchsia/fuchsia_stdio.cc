@@ -3,14 +3,25 @@
 // found in the LICENSE file.
 
 #include <assert.h>
-#include <lib/syslog/global.h>
+#include <lib/syslog/structured_backend/cpp/fuchsia_syslog.h>
+#include <log/log.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void __assert_fail(const char *expr, const char *file, int line, const char *func)
-{
-  FX_LOGF(ERROR, "goldfish", "Assertion failed: %s (%s: %s: %d)", expr, file, func, line);
-  abort();
+#include <cstdarg>
+
+static void log_vararg(int8_t severity, const char* tag, const char* file, int line,
+                                 const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    gfxstream_fuchsia_log(severity, tag, file, line, format, args);
+    va_end(args);
+}
+
+void __assert_fail(const char* expr, const char* file, int line, const char* func) {
+    log_vararg(FUCHSIA_LOG_ERROR, "gfxstream", file, line,
+                                "Assertion failed: %s (%s: %s: %d)", expr, file, func, line);
+    abort();
 }
 
 int puts(const char *s)
@@ -45,29 +56,25 @@ int fprintf(FILE *stream, const char *format, ...)
   return 0;
 }
 
-static inline fx_log_severity_t severity(FILE *stream)
-{
-  return stream == stdout ? FX_LOG_INFO : FX_LOG_ERROR;
+static inline FuchsiaLogSeverity severity(FILE* stream) {
+    return stream == stdout ? FUCHSIA_LOG_INFO : FUCHSIA_LOG_ERROR;
 }
 
-int fputs(const char *s, FILE *stream)
-{
-  assert(stream == stdout || stream == stderr);
-  if (stream == stdout || stream == stderr)
-  {
-    _FX_LOG(severity(stream), "goldfish", s);
-  }
-  return 0;
+int fputs(const char* s, FILE* stream) {
+    assert(stream == stdout || stream == stderr);
+    if (stream == stdout || stream == stderr) {
+        // File is set to nullptr as that information isn't available here.
+        log_vararg(severity(stream), "gfxstream", nullptr, 0, s);
+    }
+    return 0;
 }
 
-int vfprintf(FILE *stream, const char *format, va_list ap)
-{
-  assert(stream == stdout || stream == stderr);
-  if (stream == stdout || stream == stderr)
-  {
-    _FX_LOGVF(severity(stream), "goldfish", __FILE__, __LINE__,format, ap);
-  }
-  return 0;
+int vfprintf(FILE* stream, const char* format, va_list ap) {
+    assert(stream == stdout || stream == stderr);
+    if (stream == stdout || stream == stderr) {
+        gfxstream_fuchsia_log(severity(stream), "gfxstream", __FILE__, __LINE__, format, ap);
+    }
+    return 0;
 }
 
 size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *stream)
