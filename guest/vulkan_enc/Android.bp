@@ -21,22 +21,22 @@ package {
 
 genrule {
     name: "gfxstream_vk_entrypoints_header",
-    srcs: [":libmesa_vulkan_xml"],
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["gfxstream_vk_entrypoints.h"],
-    tools: ["vk_entrypoints_gen"],
-    cmd: "python3 $(location vk_entrypoints_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --proto --weak --out-h " +
+    tools: ["vk_entrypoints_gen_gfxstream"],
+    cmd: "python3 $(location vk_entrypoints_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --proto --weak --out-h " +
         "$(location gfxstream_vk_entrypoints.h) --out-c " +
         "$(genDir)/placeholder.c --prefix gfxstream_vk --beta false",
 }
 
 genrule {
     name: "gfxstream_vk_entrypoints_impl",
-    srcs: [":libmesa_vulkan_xml"],
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["gfxstream_vk_entrypoints.c"],
-    tools: ["vk_entrypoints_gen"],
-    cmd: "python3 $(location vk_entrypoints_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --proto --weak --out-h " +
+    tools: ["vk_entrypoints_gen_gfxstream"],
+    cmd: "python3 $(location vk_entrypoints_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --proto --weak --out-h " +
         "$(genDir)/gfxstream_vk_entrypoints.h --out-c " +
         "$(location gfxstream_vk_entrypoints.c) --prefix gfxstream_vk " +
         "--beta false",
@@ -119,10 +119,10 @@ cc_defaults {
         "mesa_common_headers_gfxstream",
     ],
     generated_headers: [
-        "vk_cmd_queue_header",
-        "vk_physical_device_features_header",
-        "vk_physical_device_properties_header",
-        "u_format_pack_header",
+        "vk_cmd_queue_header_gfxstream",
+        "vk_physical_device_features_header_gfxstream",
+        "vk_physical_device_properties_header_gfxstream",
+        "u_format_pack_header_gfxstream",
     ],
     shared_libs: [
         "libcutils",
