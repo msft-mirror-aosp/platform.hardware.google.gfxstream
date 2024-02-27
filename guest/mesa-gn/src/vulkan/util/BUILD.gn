@@ -183,7 +183,7 @@ python_binary("vk_struct_type_cast_gen_bin") {
 python_action("vk_struct_type_cast_header") {
   binary_label = ":vk_struct_type_cast_gen_bin"
 
-  outputs = [ "$target_gen_dir/vk_struct_type_cast_gen.h" ]
+  outputs = [ "$target_gen_dir/vk_struct_type_cast.h" ]
 
   inputs = [
     "$util/vk_extensions.py",
