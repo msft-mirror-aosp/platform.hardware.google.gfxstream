@@ -20,7 +20,8 @@ package {
 }
 
 python_binary_host {
-    name: "vk_format_info_gen",
+    name: "vk_format_info_gen_gfxstream",
+    main: "vk_format_info_gen.py",
     srcs: ["vk_format_info_gen.py"],
     libs: [
         "mako",
@@ -28,158 +29,158 @@ python_binary_host {
 }
 
 genrule {
-    name: "vk_cmd_queue_header",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_cmd_queue_header_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_cmd_queue.h"],
-    tools: ["vk_cmd_queue_gen"],
-    cmd: "python3 $(location vk_cmd_queue_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --out-h " +
+    tools: ["vk_cmd_queue_gen_gfxstream"],
+    cmd: "python3 $(location vk_cmd_queue_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --out-h " +
         "$(location vk_cmd_queue.h) --out-c " +
         "$(genDir)/placeholder.c --beta false",
 }
 
 genrule {
-    name: "vk_cmd_queue_impl",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_cmd_queue_impl_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_cmd_queue.c"],
-    tools: ["vk_cmd_queue_gen"],
-    cmd: "python3 $(location vk_cmd_queue_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --out-c " +
+    tools: ["vk_cmd_queue_gen_gfxstream"],
+    cmd: "python3 $(location vk_cmd_queue_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --out-c " +
         "$(location vk_cmd_queue.c) --out-h " +
         "$(genDir)/vk_cmd_queue.h --beta false",
 }
 
 genrule {
-    name: "vk_common_entrypoints_header",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_common_entrypoints_header_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_common_entrypoints.h"],
-    tools: ["vk_entrypoints_gen"],
-    cmd: "python3 $(location vk_entrypoints_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --proto --weak --out-h " +
+    tools: ["vk_entrypoints_gen_gfxstream"],
+    cmd: "python3 $(location vk_entrypoints_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --proto --weak --out-h " +
         "$(location vk_common_entrypoints.h) --out-c " +
         "$(genDir)/placeholder.c --prefix vk_common --beta false",
 }
 
 genrule {
-    name: "vk_common_entrypoints_impl",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_common_entrypoints_impl_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_common_entrypoints.c"],
-    tools: ["vk_entrypoints_gen"],
-    cmd: "python3 $(location vk_entrypoints_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --proto --weak --out-h " +
+    tools: ["vk_entrypoints_gen_gfxstream"],
+    cmd: "python3 $(location vk_entrypoints_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --proto --weak --out-h " +
         "$(genDir)/vk_common_entrypoints.h --out-c " +
         "$(location vk_common_entrypoints.c) --prefix vk_common " +
         "--beta false",
 }
 
 genrule {
-    name: "vk_cmd_enqueue_entrypoints_header",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_cmd_enqueue_entrypoints_header_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_cmd_enqueue_entrypoints.h"],
-    tools: ["vk_entrypoints_gen"],
-    cmd: "python3 $(location vk_entrypoints_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --proto --weak --out-h " +
+    tools: ["vk_entrypoints_gen_gfxstream"],
+    cmd: "python3 $(location vk_entrypoints_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --proto --weak --out-h " +
         "$(location vk_cmd_enqueue_entrypoints.h) --out-c " +
         "$(genDir)/placeholder.c --prefix vk_cmd_enqueue " +
         " --prefix vk_cmd_enqueue_unless_primary --beta false",
 }
 
 genrule {
-    name: "vk_cmd_enqueue_entrypoints_impl",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_cmd_enqueue_entrypoints_impl_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_cmd_enqueue_entrypoints.c"],
-    tools: ["vk_entrypoints_gen"],
-    cmd: "python3 $(location vk_entrypoints_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --proto --weak --out-h " +
+    tools: ["vk_entrypoints_gen_gfxstream"],
+    cmd: "python3 $(location vk_entrypoints_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --proto --weak --out-h " +
         "$(genDir)/vk_cmd_enqueue_entrypoints.h --out-c " +
         "$(location vk_cmd_enqueue_entrypoints.c) --prefix vk_cmd_enqueue " +
         "--prefix vk_cmd_enqueue_unless_primary --beta false",
 }
 
 genrule {
-    name: "vk_dispatch_trampolines_header",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_dispatch_trampolines_header_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_dispatch_trampolines.h"],
-    tools: ["vk_dispatch_trampolines_gen"],
-    cmd: "python3 $(location vk_dispatch_trampolines_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --out-h " +
+    tools: ["vk_dispatch_trampolines_gen_gfxstream"],
+    cmd: "python3 $(location vk_dispatch_trampolines_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --out-h " +
         "$(location vk_dispatch_trampolines.h) --out-c " +
         "$(genDir)/placeholder.c --beta false",
 }
 
 genrule {
-    name: "vk_dispatch_trampolines_impl",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_dispatch_trampolines_impl_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_dispatch_trampolines.c"],
-    tools: ["vk_dispatch_trampolines_gen"],
-    cmd: "python3 $(location vk_dispatch_trampolines_gen) --xml " +
-        "$(location :libmesa_vulkan_xml)  --out-h " +
+    tools: ["vk_dispatch_trampolines_gen_gfxstream"],
+    cmd: "python3 $(location vk_dispatch_trampolines_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream)  --out-h " +
         "$(genDir)/vk_dispatch_trampolines.h --out-c " +
         "$(location vk_dispatch_trampolines.c) --beta false",
 }
 
 genrule {
-    name: "vk_physical_device_features_header",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_physical_device_features_header_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_physical_device_features.h"],
-    tools: ["vk_physical_device_features_gen"],
-    cmd: "python3 $(location vk_physical_device_features_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --out-h " +
+    tools: ["vk_physical_device_features_gen_gfxstream"],
+    cmd: "python3 $(location vk_physical_device_features_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --out-h " +
         "$(location vk_physical_device_features.h) --out-c " +
         "$(genDir)/placeholder.c --beta false",
 }
 
 genrule {
-    name: "vk_physical_device_features_impl",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_physical_device_features_impl_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_physical_device_features.c"],
-    tools: ["vk_physical_device_features_gen"],
-    cmd: "python3 $(location vk_physical_device_features_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --out-h " +
+    tools: ["vk_physical_device_features_gen_gfxstream"],
+    cmd: "python3 $(location vk_physical_device_features_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --out-h " +
         "$(genDir)/vk_physical_device_features.h --out-c " +
         "$(location vk_physical_device_features.c) --beta false",
 }
 
 genrule {
-    name: "vk_physical_device_properties_header",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_physical_device_properties_header_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_physical_device_properties.h"],
-    tools: ["vk_physical_device_properties_gen"],
-    cmd: "python3 $(location vk_physical_device_properties_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --out-h " +
+    tools: ["vk_physical_device_properties_gen_gfxstream"],
+    cmd: "python3 $(location vk_physical_device_properties_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --out-h " +
         "$(location vk_physical_device_properties.h) --out-c " +
         "$(genDir)/placeholder.c --beta false",
 }
 
 genrule {
-    name: "vk_physical_device_properties_impl",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_physical_device_properties_impl_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_physical_device_properties.c"],
-    tools: ["vk_physical_device_properties_gen"],
-    cmd: "python3 $(location vk_physical_device_properties_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --out-h " +
+    tools: ["vk_physical_device_properties_gen_gfxstream"],
+    cmd: "python3 $(location vk_physical_device_properties_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --out-h " +
         "$(genDir)/vk_physical_device_properties.h --out-c " +
         "$(location vk_physical_device_properties.c) --beta false",
 }
 
 genrule {
-    name: "vk_format_info_header",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_format_info_header_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_format_info.h"],
-    tools: ["vk_format_info_gen"],
-    cmd: "python3 $(location vk_format_info_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --out-h " +
+    tools: ["vk_format_info_gen_gfxstream"],
+    cmd: "python3 $(location vk_format_info_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --out-h " +
         "$(location vk_format_info.h) --out-c " +
         "$(genDir)/placeholder.c",
 }
 
 genrule {
-    name: "vk_format_info_impl",
-    srcs: [":libmesa_vulkan_xml"],
+    name: "vk_format_info_impl_gfxstream",
+    srcs: [":libmesa_vulkan_xml_gfxstream"],
     out: ["vk_format_info.c"],
-    tools: ["vk_format_info_gen"],
-    cmd: "python3 $(location vk_format_info_gen) --xml " +
-        "$(location :libmesa_vulkan_xml) --out-h " +
+    tools: ["vk_format_info_gen_gfxstream"],
+    cmd: "python3 $(location vk_format_info_gen_gfxstream) --xml " +
+        "$(location :libmesa_vulkan_xml_gfxstream) --out-h " +
         "$(genDir)/vk_format_info.h --out-c " +
         "$(location vk_format_info.c)",
 }
@@ -205,22 +206,22 @@ cc_library_static {
         "-DVK_NO_NIR",
     ],
     generated_headers: [
-        "vk_cmd_queue_header",
-        "vk_common_entrypoints_header",
-        "vk_cmd_enqueue_entrypoints_header",
-        "vk_dispatch_trampolines_header",
-        "vk_physical_device_features_header",
-        "vk_physical_device_properties_header",
-        "vk_format_info_header",
+        "vk_cmd_queue_header_gfxstream",
+        "vk_common_entrypoints_header_gfxstream",
+        "vk_cmd_enqueue_entrypoints_header_gfxstream",
+        "vk_dispatch_trampolines_header_gfxstream",
+        "vk_physical_device_features_header_gfxstream",
+        "vk_physical_device_properties_header_gfxstream",
+        "vk_format_info_header_gfxstream",
     ],
     generated_sources: [
-        "vk_cmd_queue_impl",
-        "vk_common_entrypoints_impl",
-        "vk_cmd_enqueue_entrypoints_impl",
-        "vk_dispatch_trampolines_impl",
-        "vk_physical_device_features_impl",
-        "vk_physical_device_properties_impl",
-        "vk_format_info_impl",
+        "vk_cmd_queue_impl_gfxstream",
+        "vk_common_entrypoints_impl_gfxstream",
+        "vk_cmd_enqueue_entrypoints_impl_gfxstream",
+        "vk_dispatch_trampolines_impl_gfxstream",
+        "vk_physical_device_features_impl_gfxstream",
+        "vk_physical_device_properties_impl_gfxstream",
+        "vk_format_info_impl_gfxstream",
     ],
     srcs: [
         "rmv/vk_rmv_common.c",
