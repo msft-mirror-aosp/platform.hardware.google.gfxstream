@@ -52,12 +52,12 @@ cc_library_headers {
     header_libs: [
         "aemu_common_headers",
         "gfxstream_magma_headers",
-        "gfxstream_vulkan_headers",
+        "libgfxstream_vulkan_headers",
     ],
     export_header_lib_headers: [
         "aemu_common_headers",
         "gfxstream_magma_headers",
-        "gfxstream_vulkan_headers",
+        "libgfxstream_vulkan_headers",
     ],
     apex_available: [
         "//apex_available:platform",

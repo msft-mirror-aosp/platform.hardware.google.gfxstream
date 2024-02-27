@@ -16,7 +16,7 @@ cc_library_headers {
 }
 
 cc_library_static {
-    name: "gfxstream_gl_host_common",
+    name: "libgfxstream_host_gl_host_common",
     defaults: [ "gfxstream_defaults" ],
     static_libs: [
         "gfxstream_base",

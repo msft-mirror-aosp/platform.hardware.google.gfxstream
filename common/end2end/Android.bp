@@ -23,20 +23,20 @@ cc_test_host {
         "libGLESv2_emulation_with_host",
         "libEGL_emulation_with_host",
         "libgfxstream_guest_vulkan_with_host",
-        "libplatform_rutabaga_server",
+        "libgfxstream_platform_rutabaga_server",
     ],
     shared_libs: [
         "libandroidemu",
         "libOpenglSystemCommonWithHost",
         "libbase",
         "liblog",
-        "libplatform_rutabaga_server",
+        "libgfxstream_platform_rutabaga_server",
     ],
     static_libs: [
         "libc++fs",
         "libgfxstream_guest_android_with_host",
         "libgmock",
-        "libplatform_rutabaga",
+        "libgfxstream_platform_rutabaga",
     ],
     cflags: [
         // TODO: remove

@@ -88,7 +88,7 @@ cc_library_static {
         "libgfxstream_guest_android_defaults",
     ],
     static_libs: [
-        "libplatform_rutabaga",
+        "libgfxstream_platform_rutabaga",
     ],
     target: {
         host: {

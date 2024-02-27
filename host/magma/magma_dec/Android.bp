@@ -3,10 +3,10 @@ package {
 }
 
 cc_library_static {
-    name: "gfxstream_magma_dec",
+    name: "libgfxstream_host_magma_dec",
     defaults: [ "gfxstream_defaults" ],
     static_libs: [
-        "gfxstream_apigen_codec_common",
+        "libgfxstream_host_apigen_codec_common",
     ],
     srcs: [
         "magma_dec.cpp",

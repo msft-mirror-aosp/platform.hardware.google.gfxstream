@@ -9,7 +9,7 @@ package {
 }
 
 cc_library_static {
-    name: "gfxstream_gl_server",
+    name: "libgfxstream_host_gl_server",
     defaults: [ "gfxstream_defaults" ],
     srcs: [
         "BufferGl.cpp",
@@ -35,8 +35,8 @@ cc_library_static {
         "gfxstream_opengl_headers",
     ],
     static_libs: [
-        "gfxstream_gles1_dec",
-        "gfxstream_gles2_dec",
-        "gfxstream_glsnapshot",
+        "libgfxstream_host_gles1_dec",
+        "libgfxstream_host_gles2_dec",
+        "libgfxstream_host_glsnapshot",
     ],
 }

@@ -8,7 +8,7 @@ package {
 }
 
 cc_library_static {
-    name: "gfxstream_glm",
+    name: "libgfxstream_thirdparty_glm",
     defaults: ["gfxstream_defaults"],
     export_include_dirs: [ "include" ],
 }

@@ -8,10 +8,10 @@ package {
 }
 
 cc_library_static {
-    name: "gfxstream_emulated_textures",
+    name: "libgfxstream_host_vulkan_emulatedtextures",
     defaults: [ "gfxstream_defaults" ],
     header_libs: [
-        "gfxstream_vulkan_cereal_common",
+        "libgfxstream_host_vulkan_cereal_common",
     ],
     srcs: [
         "AstcTexture.cpp",
