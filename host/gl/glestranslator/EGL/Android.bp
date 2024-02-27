@@ -9,7 +9,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_glestranslator_egl",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     header_libs: [
         "gfxstream_gl_host_common_headers",
         "gfxstream_opengl_headers",
@@ -48,6 +48,6 @@ cc_library_static {
                 "EglOsApi_glx.cpp",
                 "X11ErrorHandler.cpp",
             ],
-        }
-    }
+        },
+    },
 }

@@ -9,7 +9,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_glestranslator_glcommon",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     cflags: [
         "-fvisibility=hidden",
         "-Wno-inconsistent-missing-override",

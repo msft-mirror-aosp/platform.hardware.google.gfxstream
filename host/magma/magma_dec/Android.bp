@@ -4,7 +4,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_magma_dec",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     static_libs: [
         "libgfxstream_host_apigen_codec_common",
     ],

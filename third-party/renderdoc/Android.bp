@@ -20,5 +20,8 @@ cc_library_headers {
     defaults: ["gfxstream_defaults"],
     vendor_available: true,
     host_supported: true,
-    export_include_dirs: [ ".", "include" ],
+    export_include_dirs: [
+        ".",
+        "include",
+    ],
 }

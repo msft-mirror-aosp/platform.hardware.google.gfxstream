@@ -39,7 +39,7 @@ cc_defaults {
         "libdrm",
     ],
     export_include_dirs: [
-        "include"
+        "include",
     ],
     local_include_dirs: [
         ".",

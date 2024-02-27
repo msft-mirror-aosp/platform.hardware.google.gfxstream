@@ -9,7 +9,7 @@ package {
 
 cc_library_headers {
     name: "gfxstream_gl_host_common_headers",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     export_include_dirs: [
         "include",
     ],
@@ -17,7 +17,7 @@ cc_library_headers {
 
 cc_library_static {
     name: "libgfxstream_host_gl_host_common",
-    defaults: [ "gfxstream_defaults" ],
+    defaults: ["gfxstream_defaults"],
     static_libs: [
         "gfxstream_base",
         "gfxstream_host_common",
@@ -42,4 +42,3 @@ cc_library_static {
         "opengl/NativeGpuInfo_linux.cpp",
     ],
 }
-

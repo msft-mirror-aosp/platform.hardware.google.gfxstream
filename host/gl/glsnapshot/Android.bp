@@ -12,7 +12,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_glsnapshot",
-    defaults: [ "gfxstream_defaults" ],
-    srcs: [ "GLSnapshot.cpp", ],
-    export_include_dirs: [ "." ],
+    defaults: ["gfxstream_defaults"],
+    srcs: ["GLSnapshot.cpp"],
+    export_include_dirs: ["."],
 }

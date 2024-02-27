@@ -147,16 +147,16 @@ cc_defaults {
             cflags: [
                 "-U__ANDROID__",
                 "-UANDROID",
-            ]
+            ],
         },
         android: {
             compile_multilib: "64",
-            shared_libs: [ "libnativewindow", ],
+            shared_libs: ["libnativewindow"],
         },
         linux_bionic_arm64: {
             enabled: true,
-            cflags: [ "-Dandroidbionic", ],
-        }
+            cflags: ["-Dandroidbionic"],
+        },
     },
     host_supported: true,
     vendor_available: true,

@@ -10,5 +10,5 @@ package {
 cc_library_static {
     name: "libgfxstream_thirdparty_glm",
     defaults: ["gfxstream_defaults"],
-    export_include_dirs: [ "include" ],
+    export_include_dirs: ["include"],
 }
