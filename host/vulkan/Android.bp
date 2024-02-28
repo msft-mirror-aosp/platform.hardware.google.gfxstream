@@ -1,4 +1,5 @@
 package {
+    default_team: "trendy_team_android_developer_tools",
     // See: http://go/android-license-faq
     // A large-scale-change added 'default_applicable_licenses' to import
     // all of the 'license_kinds' from "hardware_google_gfxstream_license"
@@ -9,21 +10,21 @@ package {
 }
 
 cc_library_static {
-    name: "gfxstream_vulkan_server",
+    name: "libgfxstream_host_vulkan_server",
     defaults: ["gfxstream_defaults"],
     header_libs: [
         "gfxstream_gl_host_common_headers",
         "gfxstream_opengl_headers",
-        "gfxstream_vulkan_cereal_common",
+        "libgfxstream_host_vulkan_cereal_common",
     ],
     static_libs: [
         "gfxstream_base",
-        "gfxstream_glm",
-        "gfxstream_compressedTextures",
-        "gfxstream_emulated_textures",
+        "libgfxstream_thirdparty_glm",
+        "libgfxstream_host_compressedtextures",
+        "libgfxstream_host_vulkan_emulatedtextures",
         "gfxstream_host_common",
-        "gfxstream_apigen_codec_common",
-        "gfxstream_vulkan_cereal_host",
+        "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_vulkan_cereal",
     ],
     cflags: [
         "-fvisibility=hidden",
@@ -83,9 +84,9 @@ cc_test_host {
         "liblog",
     ],
     static_libs: [
-        "gfxstream_glm",
+        "libgfxstream_thirdparty_glm",
         "gfxstream_host_common",
-        "gfxstream_vulkan_server",
+        "libgfxstream_host_vulkan_server",
         "libgtest",
         "libgmock",
     ],

@@ -16,27 +16,23 @@
 #ifndef __COMMON_HOST_CONNECTION_H
 #define __COMMON_HOST_CONNECTION_H
 
-#include "ANativeWindow.h"
+#if defined(ANDROID)
+#include "gfxstream/guest/ANativeWindow.h"
+#include "gfxstream/guest/Gralloc.h"
+#endif
+
+#include <cstring>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <string>
+
 #include "EmulatorFeatureInfo.h"
-#include "Gralloc.h"
 #include "Sync.h"
 #include "VirtGpu.h"
 #include "gfxstream/guest/ChecksumCalculator.h"
 #include "gfxstream/guest/IOStream.h"
 #include "renderControl_enc.h"
-
-#ifdef __Fuchsia__
-struct goldfish_dma_context;
-#else
-#include "goldfish_dma.h"
-#endif
-
-#include <mutex>
-
-#include <memory>
-#include <optional>
-#include <cstring>
-#include <string>
 
 class GLEncoder;
 struct gl_client_context_t;
@@ -55,8 +51,7 @@ class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
     ExtendedRCEncoderContext(gfxstream::guest::IOStream *stream,
                              gfxstream::guest::ChecksumCalculator *checksumCalculator)
-        : renderControl_encoder_context_t(stream, checksumCalculator),
-          m_dmaCxt(NULL), m_dmaPtr(NULL), m_dmaPhysAddr(0) { }
+        : renderControl_encoder_context_t(stream, checksumCalculator) {}
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
     void setDmaImpl(DmaImpl dmaImpl) { m_featureInfo.dmaImpl = dmaImpl; }
     void setHostComposition(HostComposition hostComposition) {
@@ -84,8 +79,6 @@ public:
     bool hasHWCMultiConfigs() const {
         return m_featureInfo.hasHWCMultiConfigs;
     }
-    DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
-    void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
     void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
         m_dmaPtr = dmaPtr;
         m_dmaPhysAddr = dmaPhysAddr;
@@ -96,8 +89,6 @@ public:
                 memcpy(m_dmaPtr, data, size);
             }
             return m_dmaPhysAddr;
-        } else if (m_dmaCxt) {
-            return writeGoldfishDma(data, size, m_dmaCxt);
         } else {
             ALOGE("%s: ERROR: No DMA context bound!", __func__);
             return 0;
@@ -111,27 +102,11 @@ public:
 
     const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
     EmulatorFeatureInfo* featureInfo() { return &m_featureInfo; }
+
 private:
-    static uint64_t writeGoldfishDma(void* data, uint32_t size,
-                                     struct goldfish_dma_context* dmaCxt) {
-#ifdef __Fuchsia__
-        ALOGE("%s Not implemented!", __FUNCTION__);
-        return 0u;
-#else
-        ALOGV("%s(data=%p, size=%u): call", __func__, data, size);
-
-        goldfish_dma_write(dmaCxt, data, size);
-        uint64_t paddr = goldfish_dma_guest_paddr(dmaCxt);
-
-        ALOGV("%s: paddr=0x%llx", __func__, (unsigned long long)paddr);
-        return paddr;
-#endif
-    }
-
     EmulatorFeatureInfo m_featureInfo;
-    struct goldfish_dma_context* m_dmaCxt;
-    void* m_dmaPtr;
-    uint64_t m_dmaPhysAddr;
+    void* m_dmaPtr = nullptr;
+    uint64_t m_dmaPhysAddr = 0;
 };
 
 struct EGLThreadInfo;
@@ -161,14 +136,11 @@ public:
 
     gfxstream::guest::ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
 
-    gfxstream::Gralloc* grallocHelper() { return m_grallocHelper; }
-    void setGrallocHelperForTesting(gfxstream::Gralloc* gralloc) { m_grallocHelper = gralloc; }
-
+#if defined(ANDROID)
+    gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper.get(); }
+    gfxstream::Gralloc* grallocHelper() { return m_grallocHelper.get(); }
+#endif
     gfxstream::SyncHelper* syncHelper() { return m_syncHelper.get(); }
-    void setSyncHelperForTesting(gfxstream::SyncHelper* sync) { m_syncHelper.reset(sync); }
-
-    gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper; }
-    void setANativeWindowHelperForTesting(gfxstream::ANativeWindowHelper* anw) { m_anwHelper = anw; }
 
     void flush() {
         if (m_stream) {
@@ -232,27 +204,28 @@ private:
  GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
 
 private:
-    HostConnectionType m_connectionType;
-    GrallocType m_grallocType;
+ HostConnectionType m_connectionType;
 
-    // intrusively refcounted
-    gfxstream::guest::IOStream* m_stream = nullptr;
+ // intrusively refcounted
+ gfxstream::guest::IOStream* m_stream = nullptr;
 
-    std::unique_ptr<GLEncoder> m_glEnc;
-    std::unique_ptr<GL2Encoder> m_gl2Enc;
+ std::unique_ptr<GLEncoder> m_glEnc;
+ std::unique_ptr<GL2Encoder> m_gl2Enc;
 
-    // intrusively refcounted
-    gfxstream::vk::VkEncoder* m_vkEnc = nullptr;
-    std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
+ // intrusively refcounted
+ gfxstream::vk::VkEncoder* m_vkEnc = nullptr;
+ std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
-    gfxstream::guest::ChecksumCalculator m_checksumHelper;
-    gfxstream::ANativeWindowHelper* m_anwHelper = nullptr;
-    gfxstream::Gralloc* m_grallocHelper = nullptr;
-    std::unique_ptr<gfxstream::SyncHelper> m_syncHelper;
-    std::string m_hostExtensions;
-    bool m_noHostError;
-    mutable std::mutex m_lock;
-    int m_rendernodeFd;
+ gfxstream::guest::ChecksumCalculator m_checksumHelper;
+#if defined(ANDROID)
+ std::unique_ptr<gfxstream::ANativeWindowHelper> m_anwHelper;
+ std::unique_ptr<gfxstream::Gralloc> m_grallocHelper;
+#endif
+ std::unique_ptr<gfxstream::SyncHelper> m_syncHelper;
+ std::string m_hostExtensions;
+ bool m_noHostError;
+ mutable std::mutex m_lock;
+ int m_rendernodeFd;
 };
 
 #endif

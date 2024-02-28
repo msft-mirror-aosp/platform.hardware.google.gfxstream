@@ -23,6 +23,9 @@ if host_machine.system() == 'qnx'
   endif
 endif
 
+pkg_cflags = []
+pkg_cflags += '-DGFXSTREAM_UNSTABLE=1'
+
 #===============#
 # Dependencies  #
 #===============#
@@ -150,9 +153,9 @@ subdir('apigen-codec-common')
 subdir('gl/gl-host-common')
 
 inc_gfxstream_backend = [inc_root, inc_gfxstream_include, inc_include, inc_apigen_codec, inc_utils,
-                         inc_gl_host_common, inc_host_include]
+                         inc_gl_host_common, inc_host_include, inc_common_utils]
 
-link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec]
+link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils]
 
 files_lib_gfxstream_backend = files(
   'Buffer.cpp',
@@ -280,5 +283,6 @@ install_headers(gfxstream_headers,
 pkg = import('pkgconfig')
 pkg.generate(gfxstream_backend,
              description: 'gfxstream backend',
+             extra_cflags: pkg_cflags,
              subdirs: 'gfxstream'
 )

@@ -28,14 +28,16 @@ class RutabagaVirtGpuDevice;
 
 class RutabagaVirtGpuBlobMapping : public VirtGpuBlobMapping {
   public:
-    RutabagaVirtGpuBlobMapping(VirtGpuBlobPtr blob, uint8_t* mapped);
-    ~RutabagaVirtGpuBlobMapping();
+   RutabagaVirtGpuBlobMapping(std::shared_ptr<EmulatedVirtioGpu> emulation, VirtGpuBlobPtr blob,
+                              uint8_t* mapped);
+   ~RutabagaVirtGpuBlobMapping();
 
-    uint8_t* asRawPtr(void) override;
+   uint8_t* asRawPtr(void) override;
 
   private:
-    VirtGpuBlobPtr mBlob;
-    uint8_t* mMapped = nullptr;
+   const std::shared_ptr<EmulatedVirtioGpu> mEmulation;
+   const VirtGpuBlobPtr mBlob;
+   uint8_t* mMapped = nullptr;
 };
 
 class RutabagaVirtGpuResource : public std::enable_shared_from_this<RutabagaVirtGpuResource>, public VirtGpuBlob {
@@ -61,11 +63,10 @@ class RutabagaVirtGpuResource : public std::enable_shared_from_this<RutabagaVirt
         kPipe,
     };
 
-    RutabagaVirtGpuResource(uint32_t resourceId,
-                            ResourceType resourceType,
-                            uint32_t contextId);
+    RutabagaVirtGpuResource(std::shared_ptr<EmulatedVirtioGpu> emulation, uint32_t resourceId,
+                            ResourceType resourceType, uint32_t contextId);
 
-
+    const std::shared_ptr<EmulatedVirtioGpu> mEmulation;
     const uint32_t mContextId;
     const uint32_t mResourceId;
     const ResourceType mResourceType;
@@ -73,27 +74,31 @@ class RutabagaVirtGpuResource : public std::enable_shared_from_this<RutabagaVirt
 
 class RutabagaVirtGpuDevice : public std::enable_shared_from_this<RutabagaVirtGpuDevice>, public VirtGpuDevice {
   public:
-    RutabagaVirtGpuDevice(uint32_t contextId, VirtGpuCapset capset);
-    ~RutabagaVirtGpuDevice();
+   RutabagaVirtGpuDevice(std::shared_ptr<EmulatedVirtioGpu> emulation, VirtGpuCapset capset);
+   ~RutabagaVirtGpuDevice();
 
-    int64_t getDeviceHandle() override;
+   bool Init();
 
-    VirtGpuCaps getCaps() override;
+   int64_t getDeviceHandle() override;
 
-    VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate) override;
+   VirtGpuCaps getCaps() override;
 
-    VirtGpuBlobPtr createVirglBlob(uint32_t width, uint32_t height, uint32_t virglFormat) override;
+   VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate) override;
 
-    VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle) override;
+   VirtGpuBlobPtr createVirglBlob(uint32_t width, uint32_t height, uint32_t virglFormat) override;
 
-    int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuBlob* blob) override;
+   VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle) override;
 
-   private:
-    const uint32_t mContextId;
-    const VirtGpuCapset mCapset;
+   int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuBlob* blob) override;
 
-    friend class RutabagaVirtGpuResource;
-    uint32_t GetContextId() const { return mContextId; }
+  private:
+   const std::shared_ptr<EmulatedVirtioGpu> mEmulation;
+   uint32_t mContextId;
+   VirtGpuCapset mCapset;
+   struct VirtGpuCaps mCaps;
+
+   friend class RutabagaVirtGpuResource;
+   uint32_t GetContextId() const { return mContextId; }
 };
 
 }  // namespace gfxstream

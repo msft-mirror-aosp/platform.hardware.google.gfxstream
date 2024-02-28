@@ -15,6 +15,7 @@
  */
 
 package {
+    default_team: "trendy_team_android_developer_tools",
     // See: http://go/android-license-faq
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
@@ -29,7 +30,7 @@ cc_test {
         "CommandBufferStagingStream_test.cpp",
     ],
     header_libs: [
-        "gfxstream_vulkan_headers",
+        "libgfxstream_vulkan_headers",
         "libgfxstream_guest_iostream",
     ],
     shared_libs: [

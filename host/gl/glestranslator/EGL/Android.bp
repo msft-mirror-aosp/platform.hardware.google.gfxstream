@@ -8,18 +8,18 @@ package {
 }
 
 cc_library_static {
-    name: "gfxstream_translator_egl",
-    defaults: [ "gfxstream_defaults" ],
+    name: "libgfxstream_glestranslator_egl",
+    defaults: ["gfxstream_defaults"],
     header_libs: [
         "gfxstream_gl_host_common_headers",
         "gfxstream_opengl_headers",
     ],
     static_libs: [
         "gfxstream_base",
-        "gfxstream_apigen_codec_common",
-        "gfxstream_translator_glcommon",
-        "gfxstream_translator_glescm",
-        "gfxstream_translator_glesv2",
+        "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_glestranslator_glcommon",
+        "libgfxstream_glestranslator_glescm",
+        "libgfxstream_glestranslator_glesv2",
     ],
     cflags: [
         "-fvisibility=hidden",
@@ -48,6 +48,6 @@ cc_library_static {
                 "EglOsApi_glx.cpp",
                 "X11ErrorHandler.cpp",
             ],
-        }
-    }
+        },
+    },
 }

@@ -17,12 +17,12 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#include "ANativeWindow.h"
+#include "gfxstream/guest/ANativeWindow.h"
 
 namespace gfxstream {
 
 class ANativeWindowHelperAndroid : public ANativeWindowHelper {
-  public:
+   public:
     ANativeWindowHelperAndroid() = default;
 
     bool isValid(EGLNativeWindowType window);

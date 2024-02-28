@@ -20,18 +20,18 @@ package {
 }
 
 filegroup {
-    name: "libmesa_drirc",
+    name: "libmesa_drirc_gfxstream",
     srcs: ["00-mesa-defaults.conf"],
 }
 
 python_binary_host {
-    name: "format_srgb_gen",
+    name: "format_srgb_gen_gfxstream",
     main: "format_srgb.py",
     srcs: ["format_srgb.py"],
 }
 
 python_binary_host {
-    name: "driconf_static_gen",
+    name: "driconf_static_gen_gfxstream",
     main: "driconf_static.py",
     srcs: ["driconf_static.py"],
     libs: [
@@ -40,20 +40,20 @@ python_binary_host {
 }
 
 genrule {
-    name: "format_srgb_impl",
+    name: "format_srgb_impl_gfxstream",
     out: ["format_srgb.c"],
-    tools: ["format_srgb_gen"],
-    cmd: "python3 $(location format_srgb_gen) " +
+    tools: ["format_srgb_gen_gfxstream"],
+    cmd: "python3 $(location format_srgb_gen_gfxstream) " +
         "&> $(location format_srgb.c)",
 }
 
 genrule {
-    name: "driconf_static_header",
-    srcs: [":libmesa_drirc"],
+    name: "driconf_static_header_gfxstream",
+    srcs: [":libmesa_drirc_gfxstream"],
     out: ["driconf_static.h"],
-    tools: ["driconf_static_gen"],
-    cmd: "python3 $(location driconf_static_gen) " +
-        "$(location :libmesa_drirc) " +
+    tools: ["driconf_static_gen_gfxstream"],
+    cmd: "python3 $(location driconf_static_gen_gfxstream) " +
+        "$(location :libmesa_drirc_gfxstream) " +
         "$(location driconf_static.h)",
 }
 
@@ -74,7 +74,7 @@ cc_library_static {
         "mesa_common_defaults_gfxstream",
     ],
     generated_headers: [
-        "driconf_static_header",
+        "driconf_static_header_gfxstream",
     ],
     static_libs: [
         "libmesa_util_c11_gfxstream",

@@ -22,7 +22,7 @@ package {
 cc_library_static {
     name: "libplatform",
     host_supported: true,
-    vendor_available: true,
+    vendor: true,
     srcs: [
         "VirtGpu.cpp",
         "linux/LinuxVirtGpuBlob.cpp",
@@ -40,7 +40,7 @@ cc_library_static {
         "libdrm",
     ],
     export_include_dirs: [
-        "include"
+        "include",
     ],
     cflags: [
         "-DLOG_TAG=\"platform\"",
@@ -56,17 +56,48 @@ cc_library_static {
             shared_libs: [
                 "libsync",
             ],
-        }
-    }
+        },
+    },
 }
 
 cc_library_shared {
-    name: "libplatform_rutabaga",
+    name: "libgfxstream_platform_rutabaga_server",
+    host_supported: true,
+    vendor_available: true,
+    srcs: [
+        "rutabaga/RutabagaLayer.cpp",
+    ],
+    header_libs: [
+        "rutabaga_gfx_ffi_headers",
+    ],
+    shared_libs: [
+        "libcutils",
+        "librutabaga_gfx_ffi",
+        "libgfxstream_backend",
+        "liblog",
+        "libutils",
+    ],
+    export_include_dirs: [
+        // TODO: restrict to just RutabagaLayer.h
+        "rutabaga/include",
+        "rutabaga",
+    ],
+    target: {
+        host: {
+            compile_multilib: "64",
+        },
+        android: {
+            compile_multilib: "64",
+        },
+    },
+}
+
+cc_library_static {
+    name: "libgfxstream_platform_rutabaga",
     host_supported: true,
     vendor_available: true,
     srcs: [
         "VirtGpu.cpp",
-        "rutabaga/RutabagaLayer.cpp",
         "rutabaga/RutabagaVirtGpuBlob.cpp",
         "rutabaga/RutabagaVirtGpuBlobMapping.cpp",
         "rutabaga/RutabagaVirtGpuDevice.cpp",
@@ -75,7 +106,7 @@ cc_library_shared {
     shared_libs: [
         "libcutils",
         "libdrm",
-        "libgfxstream_backend",
+        "libgfxstream_platform_rutabaga_server",
         "liblog",
         "libutils",
     ],
@@ -107,7 +138,7 @@ cc_library_shared {
 }
 
 cc_library_static {
-    name: "libplatform_stub",
+    name: "libgfxstream_platform_stub",
     host_supported: true,
     vendor: true,
     srcs: [
@@ -127,7 +158,7 @@ cc_library_static {
         "libdrm",
     ],
     export_include_dirs: [
-        "include"
+        "include",
     ],
     cflags: [
         "-DLOG_TAG=\"platform\"",

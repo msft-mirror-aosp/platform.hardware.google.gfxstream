@@ -21,6 +21,8 @@
 
 import("../../mesa.gni")
 
+util = "$mesa_source_root/src/util"
+
 config("util_public_config") {
   include_dirs = [
     "$mesa_source_root/src",
@@ -28,7 +30,37 @@ config("util_public_config") {
   ]
 }
 
-# Add source files here as necessary
 mesa_source_set("util") {
   public_configs = [ ":util_public_config" ]
+  public_deps = [
+    "$mesa_build_root/include:c_compat",
+    "format",
+  ]
+  deps = [ "$mesa_build_root/src/c11" ]
+  sources = [
+    "$util/hash_table.c",
+    "$util/hash_table.h",
+    "$util/log.c",
+    "$util/log.h",
+    "$util/os_misc.c",
+    "$util/os_misc.h",
+    "$util/os_time.c",
+    "$util/os_time.h",
+    "$util/ralloc.c",
+    "$util/ralloc.h",
+    "$util/simple_mtx.c",
+    "$util/simple_mtx.h",
+    "$util/sparse_array.c",
+    "$util/sparse_array.h",
+    "$util/u_call_once.c",
+    "$util/u_call_once.h",
+    "$util/u_debug.c",
+    "$util/u_debug.h",
+    "$util/u_dynarray.c",
+    "$util/u_dynarray.h",
+    "$util/u_printf.c",
+    "$util/u_printf.h",
+    "$util/u_process.c",
+    "$util/u_process.h",
+  ]
 }

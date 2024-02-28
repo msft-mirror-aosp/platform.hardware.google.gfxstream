@@ -24,6 +24,7 @@
 #include <utility>
 
 #include <cstddef>
+#include <cstdlib>
 
 // Optional<T> - a template class to store an optional value of type T.
 //

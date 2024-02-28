@@ -94,6 +94,8 @@ vk_ahb_format_to_image_format(uint32_t ahb_format)
       return VK_FORMAT_D32_SFLOAT_S8_UINT;
    case AHARDWAREBUFFER_FORMAT_S8_UINT:
       return VK_FORMAT_S8_UINT;
+   case AHARDWAREBUFFER_FORMAT_R8_UNORM:
+      return VK_FORMAT_R8_UNORM;
    default:
       return VK_FORMAT_UNDEFINED;
    }
@@ -131,6 +133,8 @@ vk_image_format_to_ahb_format(VkFormat vk_format)
       return AHARDWAREBUFFER_FORMAT_D32_FLOAT_S8_UINT;
    case VK_FORMAT_S8_UINT:
       return AHARDWAREBUFFER_FORMAT_S8_UINT;
+   case VK_FORMAT_R8_UNORM:
+      return AHARDWAREBUFFER_FORMAT_R8_UNORM;
    default:
       return 0;
    }

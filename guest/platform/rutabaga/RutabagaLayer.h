@@ -19,7 +19,18 @@
 #include <memory>
 #include <optional>
 
-#include "VirtGpu.h"
+// see protocol.rs in crosvm
+enum VirtioGpuFenceFlags : uint32_t {
+    kFlagNone = 0x0000,
+    kFlagFence = 0x0001,
+    kFlagRingIdx = 0x0002,
+    kFlagFenceShareable = 0x0004,
+};
+
+constexpr enum VirtioGpuFenceFlags operator|(const enum VirtioGpuFenceFlags self,
+                                             const enum VirtioGpuFenceFlags other) {
+    return (enum VirtioGpuFenceFlags)(uint32_t(self) | uint32_t(other));
+}
 
 namespace gfxstream {
 
@@ -28,47 +39,44 @@ namespace gfxstream {
 // host server via rutabaga.
 class EmulatedVirtioGpu {
   public:
-    static EmulatedVirtioGpu& Get();
-    static void Reset();
+   static std::shared_ptr<EmulatedVirtioGpu> Get();
+   static uint32_t GetNumActiveUsers();
 
-    bool Init(bool withGl, bool withVk, bool withVkSnapshots);
+   bool Init(bool withGl, bool withVk, bool withVkSnapshots);
 
-    VirtGpuCaps GetCaps(VirtGpuCapset capset);
+   bool GetCaps(uint32_t capsetId, uint32_t guestCapsSize, uint8_t* capset);
 
-    std::optional<uint32_t> CreateContext();
-    void DestroyContext(uint32_t contextId);
+   std::optional<uint32_t> CreateContext(uint32_t contextInit);
+   void DestroyContext(uint32_t contextId);
 
-    std::optional<uint32_t> CreateBlob(uint32_t contextId,
-                                       const struct VirtGpuCreateBlob& params);
-    std::optional<uint32_t> CreateVirglBlob(uint32_t contextId,
-                                            uint32_t width,
-                                            uint32_t height,
-                                            uint32_t virglFormat);
+   std::optional<uint32_t> CreateBlob(uint32_t contextId, uint32_t blobMem, uint32_t blobFlags,
+                                      uint64_t blobId, uint64_t blobSize);
+   std::optional<uint32_t> CreateVirglBlob(uint32_t contextId, uint32_t width, uint32_t height,
+                                           uint32_t virglFormat, uint32_t target, uint32_t bind,
+                                           uint32_t size);
 
-    void DestroyResource(uint32_t contextId,
-                         uint32_t resourceId);
+   void DestroyResource(uint32_t contextId, uint32_t resourceId);
 
-    uint8_t* Map(uint32_t resourceId);
-    void Unmap(uint32_t resourceId);
+   uint8_t* Map(uint32_t resourceId);
+   void Unmap(uint32_t resourceId);
 
-    int ExecBuffer(uint32_t contextId,
-                   struct VirtGpuExecBuffer& execbuffer,
-                   std::optional<uint32_t> blobResourceId);
+   int SubmitCmd(uint32_t contextId, uint32_t cmdSize, void* cmd, uint32_t ringIdx,
+                 VirtioGpuFenceFlags fenceFlags, uint32_t& fenceId,
+                 std::optional<uint32_t> blobResourceId);
 
-    int Wait(uint32_t resourceId);
+   int Wait(uint32_t resourceId);
 
-    int TransferFromHost(uint32_t contextId,
-                         uint32_t resourceId,
-                         uint32_t transferOffset,
-                         uint32_t transferSize);
-    int TransferToHost(uint32_t contextId,
-                       uint32_t resourceId,
-                       uint32_t transferOffset,
-                       uint32_t transferSize);
+   int TransferFromHost(uint32_t contextId, uint32_t resourceId, uint32_t transferOffset,
+                        uint32_t transferSize);
+   int TransferToHost(uint32_t contextId, uint32_t resourceId, uint32_t transferOffset,
+                      uint32_t transferSize);
 
-    void SignalEmulatedFence(int fenceId);
+   void SignalEmulatedFence(int fenceId);
 
-    int WaitOnEmulatedFence(int fenceAsFileDescriptor, int timeoutMilliseconds);
+   int WaitOnEmulatedFence(int fenceAsFileDescriptor, int timeoutMilliseconds);
+
+   void SnapshotSave(const std::string& directory);
+   void SnapshotRestore(const std::string& directory);
 
   private:
     EmulatedVirtioGpu();
