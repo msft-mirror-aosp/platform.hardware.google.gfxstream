@@ -20,38 +20,38 @@ package {
 }
 
 filegroup {
-    name: "libmesa_u_format_csv",
+    name: "libmesa_u_format_csv_gfxstream",
     srcs: ["u_format.csv"],
 }
 
 python_binary_host {
-    name: "u_format_table_gen",
+    name: "u_format_table_gen_gfxstream",
     main: "u_format_table.py",
     srcs: [
-           "u_format_table.py",
-           "u_format_pack.py",
-           "u_format_parse.py",
+        "u_format_table.py",
+        "u_format_pack.py",
+        "u_format_parse.py",
     ],
 }
 
 genrule {
-   name: "u_format_pack_header",
-   srcs: [":libmesa_u_format_csv"],
-   out: ["u_format_pack.h"],
-   tools: ["u_format_table_gen"],
-   cmd: "python3 $(location u_format_table_gen) " +
-        "$(location :libmesa_u_format_csv) --header" +
-        "&> $(location u_format_pack.h)"
+    name: "u_format_pack_header_gfxstream",
+    srcs: [":libmesa_u_format_csv_gfxstream"],
+    out: ["u_format_pack.h"],
+    tools: ["u_format_table_gen_gfxstream"],
+    cmd: "python3 $(location u_format_table_gen_gfxstream) " +
+        "$(location :libmesa_u_format_csv_gfxstream) --header" +
+        "&> $(location u_format_pack.h)",
 }
 
 genrule {
-   name: "u_format_table_impl",
-   srcs: [":libmesa_u_format_csv"],
-   out: ["u_format_table.c"],
-   tools: ["u_format_table_gen"],
-   cmd: "python3 $(location u_format_table_gen) " +
-        "$(location :libmesa_u_format_csv) " +
-        "&> $(location u_format_table.c)"
+    name: "u_format_table_impl_gfxstream",
+    srcs: [":libmesa_u_format_csv_gfxstream"],
+    out: ["u_format_table.c"],
+    tools: ["u_format_table_gen_gfxstream"],
+    cmd: "python3 $(location u_format_table_gen_gfxstream) " +
+        "$(location :libmesa_u_format_csv_gfxstream) " +
+        "&> $(location u_format_table.c)",
 }
 
 cc_library_static {
@@ -66,11 +66,11 @@ cc_library_static {
         "libmesa_util_headers_gfxstream",
     ],
     generated_headers: [
-         "u_format_pack_header",
+        "u_format_pack_header_gfxstream",
     ],
     generated_sources: [
-         "u_format_table_impl",
-         "format_srgb_impl",
+        "u_format_table_impl_gfxstream",
+        "format_srgb_impl_gfxstream",
     ],
     srcs: [
         "u_format.c",
