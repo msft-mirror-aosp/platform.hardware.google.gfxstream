@@ -33,7 +33,7 @@ cc_defaults {
         "vk_physical_device_properties_header_gfxstream",
     ],
     header_libs: [
-        "gfxstream_vulkan_headers",
+        "libgfxstream_vulkan_headers",
         "mesa_common_headers_gfxstream",
         "libnativewindow_headers",
         "vulkan_enc_headers",
@@ -50,7 +50,7 @@ cc_defaults {
         "libringbuffer",
         "libqemupipe.ranchu",
         "libarect",
-        "libandroidemu_static",
+        "libgfxstream_androidemu_static",
     ],
     shared_libs: [
         "liblog",
@@ -124,12 +124,12 @@ cc_library_shared {
         "libgfxstream_guest_vulkan_defaults",
     ],
     shared_libs: [
-        "libplatform_rutabaga_server",
+        "libgfxstream_platform_rutabaga_server",
     ],
     static_libs: [
         "libgfxstream_guest_android_with_host",
         "libgfxstream_guest_system_common_with_host",
-        "libplatform_rutabaga",
+        "libgfxstream_platform_rutabaga",
     ],
     cflags: [
         "-DEND2END_TESTS",
