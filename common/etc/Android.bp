@@ -29,4 +29,8 @@ cc_library_static {
     srcs: [
         "etc.cpp",
     ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.virt",
+    ],
 }
