@@ -8,7 +8,7 @@ package {
 }
 
 cc_library_headers {
-    name: "gfxstream_vulkan_cereal_common",
+    name: "libgfxstream_host_vulkan_cereal_common",
     vendor_available: true,
     host_supported: true,
     export_include_dirs: [

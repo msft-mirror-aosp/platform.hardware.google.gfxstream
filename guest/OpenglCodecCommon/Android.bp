@@ -53,11 +53,11 @@ cc_library_shared {
         "liblog",
     ],
     export_static_lib_headers: [
-        "libandroidemu_static",
+        "libgfxstream_androidemu_static",
     ],
     static_libs: [
         "libgfxstream_etc",
-        "libandroidemu_static",
+        "libgfxstream_androidemu_static",
         "libqemupipe.ranchu",
     ],
     cflags: [
