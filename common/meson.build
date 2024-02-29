@@ -2,3 +2,4 @@
 # SPDX-License-Identifier: MIT
 
 subdir('etc')
+subdir('utils')
