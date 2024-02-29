@@ -30,6 +30,6 @@ cc_library_headers {
     ],
     export_header_lib_headers: [
         "libcutils_headers",
-        "libqemupipe-types.ranchu"
+        "libqemupipe-types.ranchu",
     ],
 }
