@@ -61,7 +61,7 @@ cc_library_static {
 }
 
 cc_library_shared {
-    name: "libplatform_rutabaga_server",
+    name: "libgfxstream_platform_rutabaga_server",
     host_supported: true,
     vendor_available: true,
     srcs: [
@@ -93,7 +93,7 @@ cc_library_shared {
 }
 
 cc_library_static {
-    name: "libplatform_rutabaga",
+    name: "libgfxstream_platform_rutabaga",
     host_supported: true,
     vendor_available: true,
     srcs: [
@@ -106,7 +106,7 @@ cc_library_static {
     shared_libs: [
         "libcutils",
         "libdrm",
-        "libplatform_rutabaga_server",
+        "libgfxstream_platform_rutabaga_server",
         "liblog",
         "libutils",
     ],
@@ -138,7 +138,7 @@ cc_library_static {
 }
 
 cc_library_static {
-    name: "libplatform_stub",
+    name: "libgfxstream_platform_stub",
     host_supported: true,
     vendor: true,
     srcs: [

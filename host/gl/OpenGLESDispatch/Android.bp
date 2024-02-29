@@ -8,18 +8,18 @@ package {
 }
 
 cc_library_static {
-    name: "gfxstream_dispatch",
-    defaults: [ "gfxstream_defaults" ],
+    name: "libgfxstream_host_dispatch",
+    defaults: ["gfxstream_defaults"],
     header_libs: [
         "gfxstream_opengl_headers",
     ],
     static_libs: [
         "gfxstream_base",
-        "gfxstream_glm",
-        "gfxstream_gles1_dec",
-        "gfxstream_gles2_dec",
-        "gfxstream_apigen_codec_common",
-        "gfxstream_translator_egl",
+        "libgfxstream_thirdparty_glm",
+        "libgfxstream_host_gles1_dec",
+        "libgfxstream_host_gles2_dec",
+        "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_glestranslator_egl",
     ],
     cflags: [
         "-fvisibility=default",

@@ -129,6 +129,7 @@ add_library(
 target_link_libraries(
     gfxstream_backend
     PUBLIC
+    gfxstream_common_utils
     gfxstream_backend_static
     PRIVATE
     )

@@ -36,7 +36,7 @@ cc_library_static {
         "libplatform",
         "libgfxstream_guest_android",
         "libGoldfishAddressSpace",
-        "libandroidemu_static",
+        "libgfxstream_androidemu_static",
     ],
     srcs: [
         "magma.cpp",

@@ -15,13 +15,13 @@ license {
 }
 
 cc_library {
-    name: "libgfxstream_stb",
-    defaults: [ "gfxstream_defaults" ],
+    name: "libgfxstream_thirdparty_stb",
+    defaults: ["gfxstream_defaults"],
     srcs: [
         "src/stb_image.cpp",
         "src/stb_image_write.cpp",
     ],
     export_include_dirs: [
         "include",
-    ]
+    ],
 }

@@ -52,12 +52,12 @@ cc_library_headers {
     header_libs: [
         "aemu_common_headers",
         "gfxstream_magma_headers",
-        "gfxstream_vulkan_headers",
+        "libgfxstream_vulkan_headers",
     ],
     export_header_lib_headers: [
         "aemu_common_headers",
         "gfxstream_magma_headers",
-        "gfxstream_vulkan_headers",
+        "libgfxstream_vulkan_headers",
     ],
     apex_available: [
         "//apex_available:platform",
@@ -147,16 +147,16 @@ cc_defaults {
             cflags: [
                 "-U__ANDROID__",
                 "-UANDROID",
-            ]
+            ],
         },
         android: {
             compile_multilib: "64",
-            shared_libs: [ "libnativewindow", ],
+            shared_libs: ["libnativewindow"],
         },
         linux_bionic_arm64: {
             enabled: true,
-            cflags: [ "-Dandroidbionic", ],
-        }
+            cflags: ["-Dandroidbionic"],
+        },
     },
     host_supported: true,
     vendor_available: true,
