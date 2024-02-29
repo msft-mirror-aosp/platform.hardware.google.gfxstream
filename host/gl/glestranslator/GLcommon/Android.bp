@@ -8,8 +8,8 @@ package {
 }
 
 cc_library_static {
-    name: "gfxstream_translator_glcommon",
-    defaults: [ "gfxstream_defaults" ],
+    name: "libgfxstream_host_glestranslator_glcommon",
+    defaults: ["gfxstream_defaults"],
     cflags: [
         "-fvisibility=hidden",
         "-Wno-inconsistent-missing-override",
