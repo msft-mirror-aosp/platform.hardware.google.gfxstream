@@ -2416,6 +2416,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
         required_params.erase(param.key);
 
         switch (param.key) {
+            case STREAM_RENDERER_PARAM_NULL:
+                break;
             case STREAM_RENDERER_PARAM_USER_DATA: {
                 renderer_cookie = reinterpret_cast<void*>(static_cast<uintptr_t>(param.value));
                 globalUserData = renderer_cookie;
