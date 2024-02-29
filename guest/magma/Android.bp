@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,40 @@
  */
 
 package {
-    default_team: "trendy_team_android_developer_tools",
     // See: http://go/android-license-faq
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_test {
-    name: "CommandBufferStagingStreamTests",
+cc_library_static {
+    name: "libmagma_android",
     vendor: true,
-    defaults: [
-        "libgfxstream_guest_cc_defaults",
-    ],
-    srcs: [
-        "CommandBufferStagingStream_test.cpp",
-    ],
     header_libs: [
-        "libgfxstream_vulkan_headers",
+        "libmagma_enc_headers",
+        "libmagma_headers",
         "libgfxstream_guest_iostream",
     ],
     shared_libs: [
+        "libdrm",
         "liblog",
+        "libOpenglCodecCommon",
     ],
     static_libs: [
-        "libgmock",
-        "libvulkan_enc",
+        "libplatform",
+        "libgfxstream_guest_android",
+        "libGoldfishAddressSpace",
+        "libgfxstream_androidemu_static",
+    ],
+    srcs: [
+        "magma.cpp",
+        "magma_enc_util.cpp",
+        "magma_enc/magma_enc.cpp",
+        "magma_enc/magma_entry.cpp",
+        "magma_enc/magma_stubs.cpp",
+        "magma_enc/magma_client_context.cpp",
+    ],
+    cflags: [
+        "-Wno-misleading-indentation",
+        "-Wno-unused-function",
+        "-Wno-unused-parameter",
     ],
 }

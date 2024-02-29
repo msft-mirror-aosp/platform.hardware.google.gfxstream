@@ -47,7 +47,7 @@ cc_library_shared {
 }
 
 cc_library_static {
-    name: "libandroidemu_static",
+    name: "libgfxstream_androidemu_static",
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],

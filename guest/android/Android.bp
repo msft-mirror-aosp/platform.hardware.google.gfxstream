@@ -39,7 +39,7 @@ cc_defaults {
         "libdrm",
     ],
     export_include_dirs: [
-        "include"
+        "include",
     ],
     local_include_dirs: [
         ".",
@@ -88,7 +88,7 @@ cc_library_static {
         "libgfxstream_guest_android_defaults",
     ],
     static_libs: [
-        "libplatform_rutabaga",
+        "libgfxstream_platform_rutabaga",
     ],
     target: {
         host: {

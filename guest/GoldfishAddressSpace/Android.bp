@@ -19,7 +19,7 @@ cc_library_static {
         "liblog",
     ],
     static_libs: [
-        "libandroidemu_static",
+        "libgfxstream_androidemu_static",
         "libplatform",
     ],
     export_include_dirs: [
