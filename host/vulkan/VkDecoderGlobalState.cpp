@@ -1223,6 +1223,14 @@ class VkDecoderGlobalState::Impl {
                     pMemoryProperties->memoryTypes[i].propertyFlags &
                     ~(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
             }
+
+            // for AMD, zap the type that is is not on device
+            if (feature_is_enabled(kFeature_VulkanAllocateDeviceMemoryOnly)) {
+                auto memFlags = pMemoryProperties->memoryTypes[i].propertyFlags;
+                if (!(memFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+                    pMemoryProperties->memoryTypes[i].propertyFlags = 0;
+                }
+            }
         }
     }
 
@@ -1280,6 +1288,14 @@ class VkDecoderGlobalState::Impl {
                 pMemoryProperties->memoryProperties.memoryTypes[i].propertyFlags =
                     pMemoryProperties->memoryProperties.memoryTypes[i].propertyFlags &
                     ~(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            }
+
+            // for AMD, zap the type that is is not on device
+            if (feature_is_enabled(kFeature_VulkanAllocateDeviceMemoryOnly)) {
+                auto memFlags = pMemoryProperties->memoryProperties.memoryTypes[i].propertyFlags;
+                if (!(memFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+                    pMemoryProperties->memoryProperties.memoryTypes[i].propertyFlags = 0;
+                }
             }
         }
     }
@@ -2078,7 +2094,7 @@ class VkDecoderGlobalState::Impl {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         auto& samplerInfo = mSamplerInfo[*pSampler];
         samplerInfo.device = device;
-        deepcopy_VkSamplerCreateInfo(&samplerInfo.pool, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        deepcopy_VkSamplerCreateInfo(pool, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                                      pCreateInfo, &samplerInfo.createInfo);
         // We emulate RGB with RGBA for some compressed textures, which does not
         // handle translarent border correctly.
@@ -3852,6 +3868,7 @@ class VkDecoderGlobalState::Impl {
 
         VkImportMemoryHostPointerInfoEXT importHostInfo;
         std::optional<SharedMemory> sharedMemory = std::nullopt;
+        std::shared_ptr<PrivateMemory> privateMemory = {};
 
         // TODO(b/261222354): Make sure the feature exists when initializing sVkEmulation.
         if (hostVisible && feature_is_enabled(kFeature_SystemBlob)) {
@@ -3883,7 +3900,23 @@ class VkDecoderGlobalState::Impl {
                               .pNext = NULL,
                               .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
                               .pHostPointer = mappedPtr};
-            localAllocInfo.pNext = &importHostInfo;
+            vk_append_struct(&structChainIter, &importHostInfo);
+        }
+
+        VkImportMemoryHostPointerInfoEXT importHostInfoPrivate{};
+        if (hostVisible && feature_is_enabled(kFeature_VulkanAllocateHostMemory) &&
+            localAllocInfo.pNext == nullptr) {
+            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
+            localAllocInfo.allocationSize = alignedSize;
+            privateMemory =
+                std::make_shared<PrivateMemory>(kPageSizeforBlob, localAllocInfo.allocationSize);
+            mappedPtr = privateMemory->getAddr();
+            importHostInfoPrivate = {
+                .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+                .pNext = NULL,
+                .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+                .pHostPointer = mappedPtr};
+            vk_append_struct(&structChainIter, &importHostInfoPrivate);
         }
 
         VkResult result = vk->vkAllocateMemory(device, &localAllocInfo, pAllocator, pMemory);
@@ -3976,6 +4009,8 @@ class VkDecoderGlobalState::Impl {
             // Always assign the shared memory into memoryInfo. If it was used, then it will have
             // ownership transferred.
             memoryInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
+
+            memoryInfo.privateMemory = privateMemory;
         }
 
         *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);

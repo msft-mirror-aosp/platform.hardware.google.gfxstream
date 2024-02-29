@@ -19,15 +19,6 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_library_headers {
-    name: "libplatform_headers",
-    host_supported: true,
-    vendor_available: true,
-    export_include_dirs: [
-        "include"
-    ],
-}
-
 cc_library_static {
     name: "libplatform",
     host_supported: true,
@@ -49,7 +40,7 @@ cc_library_static {
         "libdrm",
     ],
     export_include_dirs: [
-        "include"
+        "include",
     ],
     cflags: [
         "-DLOG_TAG=\"platform\"",
@@ -70,17 +61,18 @@ cc_library_static {
 }
 
 cc_library_shared {
-    name: "libplatform_rutabaga_server",
+    name: "libgfxstream_platform_rutabaga_server",
     host_supported: true,
     vendor_available: true,
     srcs: [
         "rutabaga/RutabagaLayer.cpp",
     ],
     header_libs: [
-        "libplatform_headers",
+        "rutabaga_gfx_ffi_headers",
     ],
     shared_libs: [
         "libcutils",
+        "librutabaga_gfx_ffi",
         "libgfxstream_backend",
         "liblog",
         "libutils",
@@ -88,6 +80,7 @@ cc_library_shared {
     export_include_dirs: [
         // TODO: restrict to just RutabagaLayer.h
         "rutabaga/include",
+        "rutabaga",
     ],
     target: {
         host: {
@@ -100,7 +93,7 @@ cc_library_shared {
 }
 
 cc_library_static {
-    name: "libplatform_rutabaga",
+    name: "libgfxstream_platform_rutabaga",
     host_supported: true,
     vendor_available: true,
     srcs: [
@@ -113,7 +106,7 @@ cc_library_static {
     shared_libs: [
         "libcutils",
         "libdrm",
-        "libplatform_rutabaga_server",
+        "libgfxstream_platform_rutabaga_server",
         "liblog",
         "libutils",
     ],
@@ -145,7 +138,7 @@ cc_library_static {
 }
 
 cc_library_static {
-    name: "libplatform_stub",
+    name: "libgfxstream_platform_stub",
     host_supported: true,
     vendor: true,
     srcs: [
@@ -165,7 +158,7 @@ cc_library_static {
         "libdrm",
     ],
     export_include_dirs: [
-        "include"
+        "include",
     ],
     cflags: [
         "-DLOG_TAG=\"platform\"",

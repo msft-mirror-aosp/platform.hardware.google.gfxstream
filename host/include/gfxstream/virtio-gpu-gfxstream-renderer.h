@@ -86,21 +86,22 @@ struct stream_renderer_handle {
     uint32_t handle_type;
 };
 
-// Log level of gfxstream
-#ifndef STREAM_RENDERER_LOG_LEVEL
-#define STREAM_RENDERER_LOG_LEVEL 1
-#endif
-
 // @user_data: custom user data passed during `stream_renderer_init`
 // @type: one of STREAM_RENDERER_DEBUG_*
 // @string: null-terminated C-string
 #define STREAM_RENDERER_DEBUG_ERROR 0x1
 #define STREAM_RENDERER_DEBUG_WARN 0x2
 #define STREAM_RENDERER_DEBUG_INFO 0x3
+#define STREAM_RENDERER_DEBUG_DEBUG 0x4
 struct stream_renderer_debug {
     uint32_t debug_type;
     const char* message;
 };
+
+// Log level of gfxstream
+#ifndef STREAM_RENDERER_LOG_LEVEL
+#define STREAM_RENDERER_LOG_LEVEL STREAM_RENDERER_DEBUG_INFO
+#endif
 
 // Callback for writing a fence.
 typedef void (*stream_renderer_fence_callback)(void* user_data,
@@ -252,7 +253,6 @@ enum RendererFlags {
     STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB = 1 << 6,
     STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB = 1 << 7,
     STREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT = 1 << 8,
-    STREAM_RENDERER_FLAGS_VULKAN_SNAPSHOTS = 1 << 9,
 };
 
 #endif

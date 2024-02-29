@@ -20,6 +20,6 @@ package {
 }
 
 filegroup {
-    name: "libmesa_vulkan_xml",
+    name: "libmesa_vulkan_xml_gfxstream",
     srcs: ["vk.xml"],
 }

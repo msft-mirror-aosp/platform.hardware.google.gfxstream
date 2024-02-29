@@ -54,6 +54,10 @@ typedef void (*stream_renderer_param_metrics_callback_add_vulkan_out_of_memory_e
     int64_t result_code, uint32_t op_code, const char* function, uint32_t line,
     uint64_t allocation_size, bool is_host_side_result, bool is_allocation);
 
+// STREAM_RENDERER_PARAM_RENDERER_FEATURES: stream_renderer_param::value is a pointer to a null
+// terminated string of the form "<feature1 name>:[enabled|disabled],<feature 2 ...>".
+#define STREAM_RENDERER_PARAM_RENDERER_FEATURES 11
+
 #define STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION 1028
 typedef void (*stream_renderer_param_metrics_callback_set_annotation)(const char* key,
                                                                       const char* value);
@@ -101,6 +105,10 @@ struct stream_renderer_resource_info {
 
 VG_EXPORT int stream_renderer_resource_get_info(int res_handle,
                                                 struct stream_renderer_resource_info* info);
+
+VG_EXPORT int stream_renderer_snapshot(const char* dir);
+
+VG_EXPORT int stream_renderer_restore(const char* dir);
 
 #ifdef __cplusplus
 }  // extern "C"

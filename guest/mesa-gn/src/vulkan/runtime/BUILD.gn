@@ -55,8 +55,12 @@ mesa_source_set("runtime") {
   ]
 
   sources = [
+    "$runtime/rmv/vk_rmv_common.c",
+    "$runtime/rmv/vk_rmv_common.h",
     "$runtime/vk_buffer.c",
     "$runtime/vk_buffer.h",
+    "$runtime/vk_buffer_view.c",
+    "$runtime/vk_buffer_view.h",
     "$runtime/vk_cmd_copy.c",
     "$runtime/vk_cmd_enqueue.c",
     "$runtime/vk_command_buffer.c",
@@ -77,6 +81,8 @@ mesa_source_set("runtime") {
     "$runtime/vk_descriptors.h",
     "$runtime/vk_device.c",
     "$runtime/vk_device.h",
+    "$runtime/vk_device_memory.c",
+    "$runtime/vk_device_memory.h",
     "$runtime/vk_fence.c",
     "$runtime/vk_fence.h",
     "$runtime/vk_framebuffer.c",
@@ -93,6 +99,8 @@ mesa_source_set("runtime") {
     "$runtime/vk_object.h",
     "$runtime/vk_physical_device.c",
     "$runtime/vk_physical_device.h",
+    "$runtime/vk_query_pool.c",
+    "$runtime/vk_query_pool.h",
     "$runtime/vk_queue.c",
     "$runtime/vk_queue.h",
     "$runtime/vk_render_pass.c",

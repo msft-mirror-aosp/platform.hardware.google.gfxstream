@@ -25,6 +25,10 @@ config("common_config") {
     "PAGE_SIZE=4096",
   ]
 
+  if (is_debug) {
+    defines += [ "DEBUG=1" ]
+  }
+
   include_dirs = [
     "../common/opengl/include",
     "android-emu",
@@ -73,7 +77,7 @@ config("gfxstream_vk_entrypoints_config") {
   include_dirs = [ "$target_gen_dir" ]
 }
 
-python_action("gfxstream_vk_entrypoints_header") {
+python_action("gfxstream_vk_entrypoints") {
   public_configs = [ ":gfxstream_vk_entrypoints_config" ]
 
   binary_label = ":vk_entrypoints_gen_bin"
@@ -81,7 +85,7 @@ python_action("gfxstream_vk_entrypoints_header") {
   sources = [ mesa_vk_xml ]
 
   h_file = "$target_gen_dir/gfxstream_vk_entrypoints.h"
-  c_file = "$target_gen_dir/placeholder.c"
+  c_file = "$target_gen_dir/gfxstream_vk_entrypoints.c"
 
   outputs = [
     h_file,
@@ -130,7 +134,7 @@ source_set("goldfish_srcs") {
     "//zircon/system/ulib/zxio",
   ]
 
-  deps = [ ":gfxstream_vk_entrypoints_header" ]
+  deps = [ ":gfxstream_vk_entrypoints" ]
 
   defines = [
     "QEMU_PIPE_PATH=\"/loader-gpu-devices/class/goldfish-pipe/000\"",
@@ -142,11 +146,12 @@ loadable_module("libvulkan_gfxstream") {
   configs += [ ":common_config" ]
 
   deps = [
-    ":gfxstream_vk_entrypoints_header",
+    ":gfxstream_vk_entrypoints",
     "$mesa_build_root/src/vulkan/runtime",
   ]
 
   sources = [
+    "$target_gen_dir/gfxstream_vk_entrypoints.c",
     "GoldfishAddressSpace/AddressSpaceStream.cpp",
     "GoldfishAddressSpace/VirtioGpuAddressSpaceStream.cpp",
     "OpenglCodecCommon/ChecksumCalculator.cpp",
@@ -219,6 +224,8 @@ loadable_module("libvulkan_gfxstream") {
     "qemupipe/qemu_pipe_guest.cpp",
     "renderControl_enc/renderControl_enc.cpp",
     "renderControl_enc/renderControl_enc.h",
+    "vulkan/gfxstream_vk_device.cpp",
+    "vulkan/gfxstream_vk_wsi_stub.cpp",
     "vulkan_enc/CommandBufferStagingStream.cpp",
     "vulkan_enc/CommandBufferStagingStream.h",
     "vulkan_enc/DescriptorSetVirtualization.cpp",
@@ -237,6 +244,8 @@ loadable_module("libvulkan_gfxstream") {
     "vulkan_enc/VulkanStreamGuest.h",
     "vulkan_enc/func_table.cpp",
     "vulkan_enc/func_table.h",
+    "vulkan_enc/gfxstream_vk_private.cpp",
+    "vulkan_enc/gfxstream_vk_private.h",
     "vulkan_enc/goldfish_vk_counting_guest.cpp",
     "vulkan_enc/goldfish_vk_counting_guest.h",
     "vulkan_enc/goldfish_vk_deepcopy_guest.cpp",
