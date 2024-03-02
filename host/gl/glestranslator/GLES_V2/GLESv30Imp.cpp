@@ -1,8 +1,3 @@
-// Auto-generated with: android/scripts/gen-entries.py --mode=translator_passthrough android/android-emugl/host/libs/libOpenGLESDispatch/gles3_only.entries --output=android/android-emugl/host/libs/Translator/GLES_V2/GLESv30Imp.cpp
-// This file is best left unedited.
-// Try to make changes through gen_translator in gen-entries.py,
-// and/or parcel out custom functionality in separate code.
-
 EXTERN_PART GL_APICALL GLconstubyteptr GL_APIENTRY glGetStringi(GLenum name, GLint index) {
     GET_CTX_V2_RET(0);
     GLconstubyteptr glGetStringiRET = ctx->dispatcher().glGetStringi(name, index);
@@ -988,7 +983,36 @@ GL_APICALL void GL_APIENTRY glProgramBinary(GLuint program, GLenum binaryFormat,
     GET_CTX_V2();
     if (ctx->shareGroup().get()) {
         const GLuint globalProgramName = ctx->shareGroup()->getGlobalName(NamedObjectType::SHADER_OR_PROGRAM, program);
+        SET_ERROR_IF(globalProgramName == 0, GL_INVALID_VALUE);
+
+        auto objData =
+            ctx->shareGroup()->getObjectData(NamedObjectType::SHADER_OR_PROGRAM, program);
+        SET_ERROR_IF(!objData, GL_INVALID_OPERATION);
+        SET_ERROR_IF(objData->getDataType() != PROGRAM_DATA, GL_INVALID_OPERATION);
+
+        ProgramData* programData = (ProgramData*)objData;
+
         ctx->dispatcher().glProgramBinary(globalProgramName, binaryFormat, binary, length);
+
+        GLint linkStatus = GL_FALSE;
+        ctx->dispatcher().glGetProgramiv(globalProgramName, GL_LINK_STATUS, &linkStatus);
+
+        programData->setHostLinkStatus(linkStatus);
+        programData->setLinkStatus(linkStatus);
+
+        GLsizei infoLogLength = 0;
+        ctx->dispatcher().glGetProgramiv(globalProgramName, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+        if (infoLogLength > 0) {
+            std::vector<GLchar> infoLog(infoLogLength);
+            ctx->dispatcher().glGetProgramInfoLog(globalProgramName, infoLogLength, &infoLogLength,
+                                                  infoLog.data());
+
+            if (infoLogLength) {
+                infoLog.resize(infoLogLength);
+                programData->setInfoLog(infoLog.data());
+            }
+        }
     }
 }
 
