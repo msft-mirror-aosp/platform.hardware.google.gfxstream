@@ -99,7 +99,6 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
                 colorBuffer->mGlAndVkAreSharingExternalMemory = true;
             } else {
                 ERR("Failed to import memory to ColorBufferGl:%d", handle);
-                return nullptr;
             }
         }
     }
