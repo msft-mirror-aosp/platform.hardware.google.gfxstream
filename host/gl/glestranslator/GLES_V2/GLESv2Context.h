@@ -33,7 +33,7 @@ class TransformFeedbackData;
 
 class GLESv2Context : public GLEScontext{
 public:
-    virtual void init();
+    virtual void init(bool nativeTextureDecompressionEnabled) override;
     virtual const GLSupport* getCaps() const override {
         if (m_glesMajorVersion == 3 && m_glesMinorVersion == 1) {
             return &s_glSupportGles31;
