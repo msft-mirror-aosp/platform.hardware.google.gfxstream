@@ -1702,7 +1702,8 @@ static bool isFormatVulkanCompatible(GLenum internalFormat) {
     return false;
 }
 
-bool isColorBufferExportedToGl(uint32_t colorBufferHandle, bool* exported) {
+bool getColorBufferShareInfo(uint32_t colorBufferHandle, bool* glExported,
+                             bool* externalMemoryCompatible) {
     if (!sVkEmulation || !sVkEmulation->live) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Vulkan emulation not available.";
     }
@@ -1714,7 +1715,8 @@ bool isColorBufferExportedToGl(uint32_t colorBufferHandle, bool* exported) {
         return false;
     }
 
-    *exported = info->glExported;
+    *glExported = info->glExported;
+    *externalMemoryCompatible = info->externalMemoryCompatible;
     return true;
 }
 
@@ -2074,6 +2076,8 @@ bool initializeVkColorBufferLocked(
                             colorBufferHandle);
             return false;
         }
+
+        infoPtr->externalMemoryCompatible = true;
     } else {
         bool isHostVisible = infoPtr->memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         Optional<uint64_t> deviceAlignment =
@@ -2084,6 +2088,8 @@ bool initializeVkColorBufferLocked(
             // LOG(VERBOSE) << "Failed to allocate ColorBuffer with Vulkan backing.";
             return false;
         }
+
+        infoPtr->externalMemoryCompatible = sVkEmulation->deviceInfo.supportsExternalMemoryExport;
     }
 
     infoPtr->memory.pageOffset = reinterpret_cast<uint64_t>(infoPtr->memory.mappedPtr) % kPageSize;
