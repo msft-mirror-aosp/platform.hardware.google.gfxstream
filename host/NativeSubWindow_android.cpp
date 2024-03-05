@@ -41,7 +41,8 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
                   int x,
                   int y,
                   int width,
-                  int height) {
+                  int height,
+                  float dpr) {
     // moving windows not supported in Android; we can't create an actual sub window
     return true;
 }
