@@ -116,7 +116,7 @@ EGLNativeWindowType createSubWindow(FBNativeWindowType p_window, int x, int y, i
 void destroySubWindow(EGLNativeWindowType win) { screen_destroy_window(win); }
 
 int moveSubWindow(FBNativeWindowType p_parent_window, EGLNativeWindowType p_sub_window, int x,
-                  int y, int width, int height) {
+                  int y, int width, int height, float dpr) {
     int pos[2] = {x, y};
     if (screen_set_window_property_iv(p_sub_window, SCREEN_PROPERTY_POSITION, pos)) {
         return 0;
