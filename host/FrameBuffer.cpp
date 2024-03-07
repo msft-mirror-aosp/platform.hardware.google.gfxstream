@@ -2875,7 +2875,8 @@ void FrameBuffer::scheduleVsyncTask(VsyncThread::VsyncTask task) {
 void FrameBuffer::setDisplayConfigs(int configId, int w, int h, int dpiX, int dpiY) {
     AutoLock mutex(m_lock);
     mDisplayConfigs[configId] = {w, h, dpiX, dpiY};
-    INFO("setDisplayConfigs w %d h %d dpiX %d dpiY %d", w, h, dpiX, dpiY);
+    INFO("Setting display: %d configuration to: %dx%d, dpi: %dx%d ", configId,
+           w, h, dpiX, dpiY);
 }
 
 void FrameBuffer::setDisplayActiveConfig(int configId) {
