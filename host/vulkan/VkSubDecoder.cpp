@@ -2731,6 +2731,44 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+            case OP_vkCmdBeginDebugUtilsLabelEXT: {
+                android::base::beginTrace("vkCmdBeginDebugUtilsLabelEXT subdecode");
+                const VkDebugUtilsLabelEXT* pLabelInfo;
+                VkDebugUtilsLabelEXT stack_pLabelInfo[1];
+                pLabelInfo = (VkDebugUtilsLabelEXT*)stack_pLabelInfo;
+                reservedunmarshal_VkDebugUtilsLabelEXT(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkDebugUtilsLabelEXT*)(pLabelInfo),
+                                                       readStreamPtrPtr);
+                if (pLabelInfo) {
+                    transform_tohost_VkDebugUtilsLabelEXT(globalstate,
+                                                          (VkDebugUtilsLabelEXT*)(pLabelInfo));
+                }
+                vk->vkCmdBeginDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle, pLabelInfo);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdEndDebugUtilsLabelEXT: {
+                android::base::beginTrace("vkCmdEndDebugUtilsLabelEXT subdecode");
+                vk->vkCmdEndDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdInsertDebugUtilsLabelEXT: {
+                android::base::beginTrace("vkCmdInsertDebugUtilsLabelEXT subdecode");
+                const VkDebugUtilsLabelEXT* pLabelInfo;
+                VkDebugUtilsLabelEXT stack_pLabelInfo[1];
+                pLabelInfo = (VkDebugUtilsLabelEXT*)stack_pLabelInfo;
+                reservedunmarshal_VkDebugUtilsLabelEXT(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkDebugUtilsLabelEXT*)(pLabelInfo),
+                                                       readStreamPtrPtr);
+                if (pLabelInfo) {
+                    transform_tohost_VkDebugUtilsLabelEXT(globalstate,
+                                                          (VkDebugUtilsLabelEXT*)(pLabelInfo));
+                }
+                vk->vkCmdInsertDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle, pLabelInfo);
+                android::base::endTrace();
+                break;
+            }
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 #endif
