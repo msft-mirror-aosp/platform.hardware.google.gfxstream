@@ -245,6 +245,17 @@ class BoxedHandleManager {
         return res;
     }
 
+    void update(uint64_t handle, const T& item, BoxedHandleTypeTag tag) {
+        auto storedItem = store.get(handle);
+        uint64_t oldHandle = (uint64_t)storedItem->underlying;
+        *storedItem = item;
+        AutoLock l(lock);
+        if (oldHandle) {
+            reverseMap.erase(oldHandle);
+        }
+        reverseMap[(uint64_t)(item.underlying)] = handle;
+    }
+
     void remove(uint64_t h) {
         auto item = get(h);
         if (item) {
@@ -2286,7 +2297,6 @@ class VkDecoderGlobalState::Impl {
             {
                 std::lock_guard<std::recursive_mutex> lock(mLock);
                 auto boxed_fence = unboxed_to_boxed_non_dispatchable_VkFence(fence);
-                delete_VkFence(boxed_fence);
                 set_boxed_non_dispatchable_VkFence(boxed_fence, replacement);
 
                 auto& fenceInfo = mFenceInfo[replacement];
@@ -6000,7 +6010,7 @@ class VkDecoderGlobalState::Impl {
     void set_boxed_non_dispatchable_##type(type boxed, type underlying) {                         \
         DispatchableHandleInfo<uint64_t> item;                                                    \
         item.underlying = (uint64_t)underlying;                                                   \
-        sBoxedHandleManager.addFixed((uint64_t)boxed, item, Tag_##type);                          \
+        sBoxedHandleManager.update((uint64_t)boxed, item, Tag_##type);                          \
     }                                                                                             \
     type unboxed_to_boxed_non_dispatchable_##type(type unboxed) {                                 \
         AutoLock lock(sBoxedHandleManager.lock);                                                  \

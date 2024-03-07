@@ -64,10 +64,10 @@ void GLESv2Context::initGlobal(EGLiface* iface) {
     GLEScontext::initGlobal(iface);
 }
 
-void GLESv2Context::init() {
+void GLESv2Context::init(bool nativeTextureDecompressionEnabled) {
     android::base::AutoLock mutex(s_lock);
     if(!m_initialized) {
-        GLEScontext::init();
+        GLEScontext::init(nativeTextureDecompressionEnabled);
         addVertexArrayObject(0);
         setVertexArrayObject(0);
         setAttribute0value(0.0, 0.0, 0.0, 1.0);
@@ -800,13 +800,14 @@ void InitExtensionString(GLSupport& glSupport, std::string& ext) {
 void GLESv2Context::initExtensionString() {
     if (m_glesMajorVersion == 3 && m_glesMinorVersion == 1) {
         if (s_glExtensionsGles31Initialized) return;
-        initCapsLocked((const GLubyte*)getHostExtensionsString(&s_glDispatch).c_str(), s_glSupportGles31);
+        initCapsLocked((const GLubyte*)getHostExtensionsString(&s_glDispatch).c_str(),
+                       m_nativeTextureDecompressionEnabled, s_glSupportGles31);
         InitExtensionString(s_glSupportGles31, *s_glExtensionsGles31);
         s_glExtensionsGles31Initialized = true;
     } else {
         if (s_glExtensionsInitialized) return;
         initCapsLocked((const GLubyte*)getHostExtensionsString(&s_glDispatch).c_str(),
-                       s_glSupport);
+                       m_nativeTextureDecompressionEnabled, s_glSupport);
         InitExtensionString(s_glSupport, *s_glExtensions);
         s_glExtensionsInitialized = true;
     }
