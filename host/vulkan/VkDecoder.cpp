@@ -18275,6 +18275,532 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+            case OP_vkSetDebugUtilsObjectNameEXT: {
+                android::base::beginTrace("vkSetDebugUtilsObjectNameEXT decode");
+                VkDevice device;
+                const VkDebugUtilsObjectNameInfoEXT* pNameInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pNameInfo,
+                                    sizeof(const VkDebugUtilsObjectNameInfoEXT));
+                reservedunmarshal_VkDebugUtilsObjectNameInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDebugUtilsObjectNameInfoEXT*)(pNameInfo), readStreamPtrPtr);
+                if (pNameInfo) {
+                    transform_tohost_VkDebugUtilsObjectNameInfoEXT(
+                        m_state, (VkDebugUtilsObjectNameInfoEXT*)(pNameInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkSetDebugUtilsObjectNameEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pNameInfo);
+                }
+                VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
+                vkSetDebugUtilsObjectNameEXT_VkResult_return =
+                    vk->vkSetDebugUtilsObjectNameEXT(unboxed_device, pNameInfo);
+                if ((vkSetDebugUtilsObjectNameEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkSetDebugUtilsObjectNameEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkSetDebugUtilsObjectNameEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkSetDebugUtilsObjectNameEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkSetDebugUtilsObjectNameEXT_VkResult_return, device, pNameInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkSetDebugUtilsObjectTagEXT: {
+                android::base::beginTrace("vkSetDebugUtilsObjectTagEXT decode");
+                VkDevice device;
+                const VkDebugUtilsObjectTagInfoEXT* pTagInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pTagInfo, sizeof(const VkDebugUtilsObjectTagInfoEXT));
+                reservedunmarshal_VkDebugUtilsObjectTagInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDebugUtilsObjectTagInfoEXT*)(pTagInfo), readStreamPtrPtr);
+                if (pTagInfo) {
+                    transform_tohost_VkDebugUtilsObjectTagInfoEXT(
+                        m_state, (VkDebugUtilsObjectTagInfoEXT*)(pTagInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkSetDebugUtilsObjectTagEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pTagInfo);
+                }
+                VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
+                vkSetDebugUtilsObjectTagEXT_VkResult_return =
+                    vk->vkSetDebugUtilsObjectTagEXT(unboxed_device, pTagInfo);
+                if ((vkSetDebugUtilsObjectTagEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkSetDebugUtilsObjectTagEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkSetDebugUtilsObjectTagEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkSetDebugUtilsObjectTagEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkSetDebugUtilsObjectTagEXT_VkResult_return, device, pTagInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkQueueBeginDebugUtilsLabelEXT: {
+                android::base::beginTrace("vkQueueBeginDebugUtilsLabelEXT decode");
+                VkQueue queue;
+                const VkDebugUtilsLabelEXT* pLabelInfo;
+                // Begin non wrapped dispatchable handle unboxing for queue;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
+                auto unboxed_queue = unbox_VkQueue(queue);
+                auto vk = dispatch_VkQueue(queue);
+                // End manual dispatchable handle unboxing for queue;
+                vkReadStream->alloc((void**)&pLabelInfo, sizeof(const VkDebugUtilsLabelEXT));
+                reservedunmarshal_VkDebugUtilsLabelEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkDebugUtilsLabelEXT*)(pLabelInfo),
+                                                       readStreamPtrPtr);
+                if (pLabelInfo) {
+                    transform_tohost_VkDebugUtilsLabelEXT(m_state,
+                                                          (VkDebugUtilsLabelEXT*)(pLabelInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkQueueBeginDebugUtilsLabelEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)queue, (unsigned long long)pLabelInfo);
+                }
+                vk->vkQueueBeginDebugUtilsLabelEXT(unboxed_queue, pLabelInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkQueueBeginDebugUtilsLabelEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, pLabelInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkQueueEndDebugUtilsLabelEXT: {
+                android::base::beginTrace("vkQueueEndDebugUtilsLabelEXT decode");
+                VkQueue queue;
+                // Begin non wrapped dispatchable handle unboxing for queue;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
+                auto unboxed_queue = unbox_VkQueue(queue);
+                auto vk = dispatch_VkQueue(queue);
+                // End manual dispatchable handle unboxing for queue;
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkQueueEndDebugUtilsLabelEXT 0x%llx \n",
+                            ioStream, (unsigned long long)queue);
+                }
+                vk->vkQueueEndDebugUtilsLabelEXT(unboxed_queue);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkQueueEndDebugUtilsLabelEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkQueueInsertDebugUtilsLabelEXT: {
+                android::base::beginTrace("vkQueueInsertDebugUtilsLabelEXT decode");
+                VkQueue queue;
+                const VkDebugUtilsLabelEXT* pLabelInfo;
+                // Begin non wrapped dispatchable handle unboxing for queue;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
+                auto unboxed_queue = unbox_VkQueue(queue);
+                auto vk = dispatch_VkQueue(queue);
+                // End manual dispatchable handle unboxing for queue;
+                vkReadStream->alloc((void**)&pLabelInfo, sizeof(const VkDebugUtilsLabelEXT));
+                reservedunmarshal_VkDebugUtilsLabelEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkDebugUtilsLabelEXT*)(pLabelInfo),
+                                                       readStreamPtrPtr);
+                if (pLabelInfo) {
+                    transform_tohost_VkDebugUtilsLabelEXT(m_state,
+                                                          (VkDebugUtilsLabelEXT*)(pLabelInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkQueueInsertDebugUtilsLabelEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)queue, (unsigned long long)pLabelInfo);
+                }
+                vk->vkQueueInsertDebugUtilsLabelEXT(unboxed_queue, pLabelInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkQueueInsertDebugUtilsLabelEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, pLabelInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdBeginDebugUtilsLabelEXT: {
+                android::base::beginTrace("vkCmdBeginDebugUtilsLabelEXT decode");
+                VkCommandBuffer commandBuffer;
+                const VkDebugUtilsLabelEXT* pLabelInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pLabelInfo, sizeof(const VkDebugUtilsLabelEXT));
+                reservedunmarshal_VkDebugUtilsLabelEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkDebugUtilsLabelEXT*)(pLabelInfo),
+                                                       readStreamPtrPtr);
+                if (pLabelInfo) {
+                    transform_tohost_VkDebugUtilsLabelEXT(m_state,
+                                                          (VkDebugUtilsLabelEXT*)(pLabelInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdBeginDebugUtilsLabelEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pLabelInfo);
+                }
+                vk->vkCmdBeginDebugUtilsLabelEXT(unboxed_commandBuffer, pLabelInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdBeginDebugUtilsLabelEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, pLabelInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdEndDebugUtilsLabelEXT: {
+                android::base::beginTrace("vkCmdEndDebugUtilsLabelEXT decode");
+                VkCommandBuffer commandBuffer;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkCmdEndDebugUtilsLabelEXT 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer);
+                }
+                vk->vkCmdEndDebugUtilsLabelEXT(unboxed_commandBuffer);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdEndDebugUtilsLabelEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdInsertDebugUtilsLabelEXT: {
+                android::base::beginTrace("vkCmdInsertDebugUtilsLabelEXT decode");
+                VkCommandBuffer commandBuffer;
+                const VkDebugUtilsLabelEXT* pLabelInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pLabelInfo, sizeof(const VkDebugUtilsLabelEXT));
+                reservedunmarshal_VkDebugUtilsLabelEXT(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkDebugUtilsLabelEXT*)(pLabelInfo),
+                                                       readStreamPtrPtr);
+                if (pLabelInfo) {
+                    transform_tohost_VkDebugUtilsLabelEXT(m_state,
+                                                          (VkDebugUtilsLabelEXT*)(pLabelInfo));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdInsertDebugUtilsLabelEXT 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pLabelInfo);
+                }
+                vk->vkCmdInsertDebugUtilsLabelEXT(unboxed_commandBuffer, pLabelInfo);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdInsertDebugUtilsLabelEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, pLabelInfo);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCreateDebugUtilsMessengerEXT: {
+                android::base::beginTrace("vkCreateDebugUtilsMessengerEXT decode");
+                VkInstance instance;
+                const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo;
+                const VkAllocationCallbacks* pAllocator;
+                VkDebugUtilsMessengerEXT* pMessenger;
+                // Begin non wrapped dispatchable handle unboxing for instance;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkInstance*)&instance = (VkInstance)(VkInstance)((VkInstance)(*&cgen_var_0));
+                auto unboxed_instance = unbox_VkInstance(instance);
+                auto vk = dispatch_VkInstance(instance);
+                // End manual dispatchable handle unboxing for instance;
+                vkReadStream->alloc((void**)&pCreateInfo,
+                                    sizeof(const VkDebugUtilsMessengerCreateInfoEXT));
+                reservedunmarshal_VkDebugUtilsMessengerCreateInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDebugUtilsMessengerCreateInfoEXT*)(pCreateInfo), readStreamPtrPtr);
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                // Begin manual dispatchable handle unboxing for pMessenger;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pMessenger, sizeof(VkDebugUtilsMessengerEXT));
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
+                *(VkDebugUtilsMessengerEXT*)pMessenger =
+                    (VkDebugUtilsMessengerEXT)(VkDebugUtilsMessengerEXT)((
+                        VkDebugUtilsMessengerEXT)(*&cgen_var_2));
+                if (pCreateInfo) {
+                    transform_tohost_VkDebugUtilsMessengerCreateInfoEXT(
+                        m_state, (VkDebugUtilsMessengerCreateInfoEXT*)(pCreateInfo));
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCreateDebugUtilsMessengerEXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)instance, (unsigned long long)pCreateInfo,
+                            (unsigned long long)pAllocator, (unsigned long long)pMessenger);
+                }
+                VkResult vkCreateDebugUtilsMessengerEXT_VkResult_return = (VkResult)0;
+                vkCreateDebugUtilsMessengerEXT_VkResult_return = vk->vkCreateDebugUtilsMessengerEXT(
+                    unboxed_instance, pCreateInfo, pAllocator, pMessenger);
+                if ((vkCreateDebugUtilsMessengerEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCreateDebugUtilsMessengerEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                // Begin auto non dispatchable handle create for pMessenger;
+                if (vkCreateDebugUtilsMessengerEXT_VkResult_return == VK_SUCCESS)
+                    vkStream->setHandleMapping(&m_boxedHandleCreateMapping);
+                uint64_t cgen_var_3;
+                static_assert(
+                    8 == sizeof(VkDebugUtilsMessengerEXT),
+                    "handle map overwrite requires VkDebugUtilsMessengerEXT to be 8 bytes long");
+                vkStream->handleMapping()->mapHandles_VkDebugUtilsMessengerEXT(
+                    (VkDebugUtilsMessengerEXT*)pMessenger, 1);
+                vkStream->write((VkDebugUtilsMessengerEXT*)pMessenger, 8 * 1);
+                // Begin auto non dispatchable handle create for pMessenger;
+                vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
+                vkStream->write(&vkCreateDebugUtilsMessengerEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCreateDebugUtilsMessengerEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCreateDebugUtilsMessengerEXT_VkResult_return, instance, pCreateInfo,
+                        pAllocator, pMessenger);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkDestroyDebugUtilsMessengerEXT: {
+                android::base::beginTrace("vkDestroyDebugUtilsMessengerEXT decode");
+                VkInstance instance;
+                VkDebugUtilsMessengerEXT messenger;
+                const VkAllocationCallbacks* pAllocator;
+                // Begin non wrapped dispatchable handle unboxing for instance;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkInstance*)&instance = (VkInstance)(VkInstance)((VkInstance)(*&cgen_var_0));
+                auto unboxed_instance = unbox_VkInstance(instance);
+                auto vk = dispatch_VkInstance(instance);
+                // End manual dispatchable handle unboxing for instance;
+                // Begin manual non dispatchable handle destroy unboxing for messenger;
+                VkDebugUtilsMessengerEXT boxed_messenger_preserve;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDebugUtilsMessengerEXT*)&messenger =
+                    (VkDebugUtilsMessengerEXT)(VkDebugUtilsMessengerEXT)((
+                        VkDebugUtilsMessengerEXT)(*&cgen_var_1));
+                boxed_messenger_preserve = messenger;
+                messenger = unbox_VkDebugUtilsMessengerEXT(messenger);
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkDestroyDebugUtilsMessengerEXT 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)instance, (unsigned long long)messenger,
+                        (unsigned long long)pAllocator);
+                }
+                vk->vkDestroyDebugUtilsMessengerEXT(unboxed_instance, messenger, pAllocator);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkDestroyDebugUtilsMessengerEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, instance,
+                        boxed_messenger_preserve, pAllocator);
+                }
+                delete_VkDebugUtilsMessengerEXT(boxed_messenger_preserve);
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkSubmitDebugUtilsMessageEXT: {
+                android::base::beginTrace("vkSubmitDebugUtilsMessageEXT decode");
+                VkInstance instance;
+                VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity;
+                VkDebugUtilsMessageTypeFlagsEXT messageTypes;
+                const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData;
+                // Begin non wrapped dispatchable handle unboxing for instance;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkInstance*)&instance = (VkInstance)(VkInstance)((VkInstance)(*&cgen_var_0));
+                auto unboxed_instance = unbox_VkInstance(instance);
+                auto vk = dispatch_VkInstance(instance);
+                // End manual dispatchable handle unboxing for instance;
+                memcpy((VkDebugUtilsMessageSeverityFlagBitsEXT*)&messageSeverity, *readStreamPtrPtr,
+                       sizeof(VkDebugUtilsMessageSeverityFlagBitsEXT));
+                *readStreamPtrPtr += sizeof(VkDebugUtilsMessageSeverityFlagBitsEXT);
+                memcpy((VkDebugUtilsMessageTypeFlagsEXT*)&messageTypes, *readStreamPtrPtr,
+                       sizeof(VkDebugUtilsMessageTypeFlagsEXT));
+                *readStreamPtrPtr += sizeof(VkDebugUtilsMessageTypeFlagsEXT);
+                vkReadStream->alloc((void**)&pCallbackData,
+                                    sizeof(const VkDebugUtilsMessengerCallbackDataEXT));
+                reservedunmarshal_VkDebugUtilsMessengerCallbackDataEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDebugUtilsMessengerCallbackDataEXT*)(pCallbackData), readStreamPtrPtr);
+                if (pCallbackData) {
+                    transform_tohost_VkDebugUtilsMessengerCallbackDataEXT(
+                        m_state, (VkDebugUtilsMessengerCallbackDataEXT*)(pCallbackData));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkSubmitDebugUtilsMessageEXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)instance,
+                            (unsigned long long)messageSeverity, (unsigned long long)messageTypes,
+                            (unsigned long long)pCallbackData);
+                }
+                vk->vkSubmitDebugUtilsMessageEXT(unboxed_instance, messageSeverity, messageTypes,
+                                                 pCallbackData);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkSubmitDebugUtilsMessageEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, instance, messageSeverity,
+                        messageTypes, pCallbackData);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 #endif

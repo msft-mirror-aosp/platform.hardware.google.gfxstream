@@ -1689,6 +1689,27 @@ void reservedunmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+void reservedunmarshal_VkDebugUtilsLabelEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkDebugUtilsLabelEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream,
+                                                     VkStructureType rootType,
+                                                     VkDebugUtilsObjectNameInfoEXT* forUnmarshaling,
+                                                     uint8_t** ptr);
+
+void reservedunmarshal_VkDebugUtilsMessengerCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCallbackDataEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDebugUtilsMessengerCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream,
+                                                    VkStructureType rootType,
+                                                    VkDebugUtilsObjectTagInfoEXT* forUnmarshaling,
+                                                    uint8_t** ptr);
+
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 #endif
