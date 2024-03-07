@@ -18,6 +18,7 @@
 
 #include <inttypes.h>
 #include <log/log.h>
+#include <string.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -381,7 +382,7 @@ bool EmulatedVirtioGpu::EmulatedVirtioGpuImpl::GetCaps(uint32_t capsetId, uint32
 
     auto capsetData = mCapsets[capsetId];
     auto copySize = std::min(static_cast<size_t>(guestCapsSize), capsetData.size());
-    std::memcpy(capset, capsetData.data(), copySize);
+    memcpy(capset, capsetData.data(), copySize);
 
     return true;
 }
@@ -1009,7 +1010,7 @@ std::shared_ptr<EmulatedVirtioGpu> EmulatedVirtioGpu::Get() {
         {"GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK", &withVk},
         {"GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK_SNAPSHOTS", &withVkSnapshots},
     };
-    for (const Option option : options) {
+    for (const Option &option : options) {
         const char* val = std::getenv(option.env.c_str());
         if (val != nullptr && (val[0] == 'Y' || val[0] == 'y')) {
             *option.val = true;
