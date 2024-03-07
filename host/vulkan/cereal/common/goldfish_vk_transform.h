@@ -2803,6 +2803,36 @@ void transform_fromhost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+void transform_tohost_VkDebugUtilsLabelEXT(VkDecoderGlobalState* resourceTracker,
+                                           VkDebugUtilsLabelEXT* toTransform);
+
+void transform_fromhost_VkDebugUtilsLabelEXT(VkDecoderGlobalState* resourceTracker,
+                                             VkDebugUtilsLabelEXT* toTransform);
+
+void transform_tohost_VkDebugUtilsObjectNameInfoEXT(VkDecoderGlobalState* resourceTracker,
+                                                    VkDebugUtilsObjectNameInfoEXT* toTransform);
+
+void transform_fromhost_VkDebugUtilsObjectNameInfoEXT(VkDecoderGlobalState* resourceTracker,
+                                                      VkDebugUtilsObjectNameInfoEXT* toTransform);
+
+void transform_tohost_VkDebugUtilsMessengerCallbackDataEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugUtilsMessengerCallbackDataEXT* toTransform);
+
+void transform_fromhost_VkDebugUtilsMessengerCallbackDataEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugUtilsMessengerCallbackDataEXT* toTransform);
+
+void transform_tohost_VkDebugUtilsMessengerCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugUtilsMessengerCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkDebugUtilsMessengerCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugUtilsMessengerCreateInfoEXT* toTransform);
+
+void transform_tohost_VkDebugUtilsObjectTagInfoEXT(VkDecoderGlobalState* resourceTracker,
+                                                   VkDebugUtilsObjectTagInfoEXT* toTransform);
+
+void transform_fromhost_VkDebugUtilsObjectTagInfoEXT(VkDecoderGlobalState* resourceTracker,
+                                                     VkDebugUtilsObjectTagInfoEXT* toTransform);
+
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 #endif

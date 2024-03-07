@@ -3194,6 +3194,51 @@ void unmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+void marshal_VkDebugUtilsLabelEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkDebugUtilsLabelEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsLabelEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkDebugUtilsLabelEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkDebugUtilsObjectNameInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkDebugUtilsObjectNameInfoEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsMessengerCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugUtilsMessengerCallbackDataEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsMessengerCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCallbackDataEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsMessengerCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugUtilsMessengerCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsMessengerCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkDebugUtilsObjectTagInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkDebugUtilsObjectTagInfoEXT* forUnmarshaling);
+
+#define OP_vkSetDebugUtilsObjectNameEXT 20294
+#define OP_vkSetDebugUtilsObjectTagEXT 20295
+#define OP_vkQueueBeginDebugUtilsLabelEXT 20296
+#define OP_vkQueueEndDebugUtilsLabelEXT 20297
+#define OP_vkQueueInsertDebugUtilsLabelEXT 20298
+#define OP_vkCmdBeginDebugUtilsLabelEXT 20299
+#define OP_vkCmdEndDebugUtilsLabelEXT 20300
+#define OP_vkCmdInsertDebugUtilsLabelEXT 20301
+#define OP_vkCreateDebugUtilsMessengerEXT 20302
+#define OP_vkDestroyDebugUtilsMessengerEXT 20303
+#define OP_vkSubmitDebugUtilsMessageEXT 20304
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 #endif
