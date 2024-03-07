@@ -27,6 +27,6 @@ EGLNativeWindowType createSubWindow(FBNativeWindowType p_window, int x, int y, i
 void destroySubWindow(EGLNativeWindowType win) { return; }
 
 int moveSubWindow(FBNativeWindowType p_parent_window, EGLNativeWindowType p_sub_window, int x,
-                  int y, int width, int height) {
+                  int y, int width, int height, float dpr) {
     return 0;
 }
