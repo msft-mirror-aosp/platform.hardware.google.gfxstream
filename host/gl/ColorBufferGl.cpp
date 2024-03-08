@@ -979,6 +979,15 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(android::base::Stream* stre
     cb->m_frameworkFormat = frameworkFormat;
     cb->m_fastBlitSupported = fastBlitSupported;
     cb->m_needFormatCheck = needFormatCheck;
+
+    GLenum texFormat;
+    GLenum pixelType;
+    int bytesPerPixel = 1;
+    GLint sizedInternalFormat;
+    bool isBlob;
+    sGetFormatParameters(&cb->m_internalFormat, &texFormat, &pixelType, &bytesPerPixel,
+                         &sizedInternalFormat, &isBlob);
+    cb->m_numBytes = ((unsigned long)bytesPerPixel) * width * height;
     return cb;
 }
 
