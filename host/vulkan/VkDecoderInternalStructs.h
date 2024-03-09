@@ -337,6 +337,7 @@ struct RenderPassInfo {
 
 struct FramebufferInfo {
     VkDevice device;
+    std::vector<HandleType> attachedColorBuffers;
 };
 }  // namespace vk
 }  // namespace gfxstream

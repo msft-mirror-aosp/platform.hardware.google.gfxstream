@@ -2711,6 +2711,7 @@ class VkDecoderGlobalState::Impl {
                 }
                 if (imgViewInfo->boundColorBuffer) {
                     // TODO(igorc): Move this to vkQueueSubmit time.
+                    // Likely can be removed after b/323596143
                     auto fb = FrameBuffer::getFB();
                     if (fb) {
                         fb->invalidateColorBufferForVk(*imgViewInfo->boundColorBuffer);
@@ -3454,6 +3455,22 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo) return;
 
         // TODO: update image layout in ImageInfo
+        for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
+            const VkImageMemoryBarrier& barrier = pImageMemoryBarriers[i];
+            auto* imageInfo = android::base::find(mImageInfo, barrier.image);
+            if (!imageInfo || !imageInfo->boundColorBuffer.has_value()) {
+                continue;
+            }
+            HandleType cb = imageInfo->boundColorBuffer.value();
+            if (barrier.srcQueueFamilyIndex == VK_QUEUE_FAMILY_EXTERNAL) {
+                cmdBufferInfo->acquiredColorBuffers.insert(cb);
+            }
+            if (barrier.dstQueueFamilyIndex == VK_QUEUE_FAMILY_EXTERNAL) {
+                cmdBufferInfo->releasedColorBuffers.insert(cb);
+            }
+            cmdBufferInfo->cbLayouts[cb] = barrier.newLayout;
+        }
+
         if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
             vk->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags,
                                      memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
@@ -4548,6 +4565,22 @@ class VkDecoderGlobalState::Impl {
         return vk->vkQueueSubmit2(unboxed_queue, submitCount, pSubmits, fence);
     }
 
+    int getCommandBufferCount(const VkSubmitInfo& submitInfo) {
+        return submitInfo.commandBufferCount;
+    }
+
+    VkCommandBuffer getCommandBuffer(const VkSubmitInfo& submitInfo, int idx) {
+        return submitInfo.pCommandBuffers[idx];
+    }
+
+    int getCommandBufferCount(const VkSubmitInfo2& submitInfo) {
+        return submitInfo.commandBufferInfoCount;
+    }
+
+    VkCommandBuffer getCommandBuffer(const VkSubmitInfo2& submitInfo, int idx) {
+        return submitInfo.pCommandBufferInfos[idx].commandBuffer;
+    }
+
     template <typename VkSubmitInfoType>
     VkResult on_vkQueueSubmit(android::base::BumpPool* pool, VkQueue boxed_queue,
                               uint32_t submitCount, const VkSubmitInfoType* pSubmits,
@@ -4555,6 +4588,37 @@ class VkDecoderGlobalState::Impl {
         auto queue = unbox_VkQueue(boxed_queue);
         auto vk = dispatch_VkQueue(boxed_queue);
 
+        std::unordered_set<HandleType> acquiredColorBuffers;
+        std::unordered_set<HandleType> releasedColorBuffers;
+        bool vulkanOnly = mGuestUsesAngle;
+        if (!vulkanOnly) {
+            {
+                std::lock_guard<std::recursive_mutex> lock(mLock);
+                for (int i = 0; i < submitCount; i++) {
+                    for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
+                        VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
+                        CommandBufferInfo* cmdBufferInfo =
+                            android::base::find(mCmdBufferInfo, cmdBuffer);
+                        if (!cmdBufferInfo) {
+                            continue;
+                        }
+                        acquiredColorBuffers.merge(cmdBufferInfo->acquiredColorBuffers);
+                        releasedColorBuffers.merge(cmdBufferInfo->releasedColorBuffers);
+                        for (const auto& ite : cmdBufferInfo->cbLayouts) {
+                            setColorBufferCurrentLayout(ite.first, ite.second);
+                        }
+                    }
+                }
+            }
+            auto fb = FrameBuffer::getFB();
+            if (fb) {
+                for (HandleType cb : acquiredColorBuffers) {
+                    fb->invalidateColorBufferForVk(cb);
+                }
+            }
+        }
+
+        VkDevice device = VK_NULL_HANDLE;
         Lock* ql;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
@@ -4562,7 +4626,8 @@ class VkDecoderGlobalState::Impl {
             {
                 auto* queueInfo = android::base::find(mQueueInfo, queue);
                 if (queueInfo) {
-                    sBoxedHandleManager.processDelayedRemovesGlobalStateLocked(queueInfo->device);
+                    device = queueInfo->device;
+                    sBoxedHandleManager.processDelayedRemovesGlobalStateLocked(device);
                 }
             }
 
@@ -4575,8 +4640,18 @@ class VkDecoderGlobalState::Impl {
             ql = queueInfo->lock;
         }
 
+        VkFence localFence = VK_NULL_HANDLE;
+        if (!releasedColorBuffers.empty() && fence == VK_NULL_HANDLE) {
+            // Need to manually inject a fence so that we could update color buffer
+            // after queue submits..
+            // This should almost never happen.
+            VkFenceCreateInfo fenceCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            };
+            vk->vkCreateFence(device, &fenceCreateInfo, nullptr, &localFence);
+        }
         AutoLock qlock(*ql);
-        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, fence);
+        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, localFence ?: fence);
 
         // After vkQueueSubmit is called, we can signal the conditional variable
         // in FenceInfo, so that other threads (e.g. SyncThread) can call
@@ -4589,6 +4664,19 @@ class VkDecoderGlobalState::Impl {
                 fenceInfo->lock.lock();
                 fenceInfo->cv.signalAndUnlock(&fenceInfo->lock);
             }
+        }
+        if (!releasedColorBuffers.empty()) {
+            vk->vkWaitForFences(device, 1, localFence ? &localFence : &fence, VK_TRUE,
+                                /* 1 sec */ 1000000000L);
+            auto fb = FrameBuffer::getFB();
+            if (fb) {
+                for (HandleType cb : releasedColorBuffers) {
+                    fb->flushColorBufferFromVk(cb);
+                }
+            }
+        }
+        if (localFence) {
+            vk->vkDestroyFence(device, localFence, nullptr);
         }
 
         return result;
@@ -5117,6 +5205,41 @@ class VkDecoderGlobalState::Impl {
         destroyRenderPassLocked(device, deviceDispatch, renderPass, pAllocator);
     }
 
+    void registerRenderPassBeginInfo(VkCommandBuffer commandBuffer,
+                                     const VkRenderPassBeginInfo* pRenderPassBegin) {
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        FramebufferInfo* fbInfo =
+            android::base::find(mFramebufferInfo, pRenderPassBegin->framebuffer);
+        cmdBufferInfo->releasedColorBuffers.insert(fbInfo->attachedColorBuffers.begin(),
+                                                   fbInfo->attachedColorBuffers.end());
+    }
+
+    void on_vkCmdBeginRenderPass(android::base::BumpPool* pool, VkCommandBuffer boxed_commandBuffer,
+                                 const VkRenderPassBeginInfo* pRenderPassBegin,
+                                 VkSubpassContents contents) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+        registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin);
+        vk->vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
+    }
+
+    void on_vkCmdBeginRenderPass2(android::base::BumpPool* pool,
+                                  VkCommandBuffer boxed_commandBuffer,
+                                  const VkRenderPassBeginInfo* pRenderPassBegin,
+                                  const VkSubpassBeginInfo* pSubpassBeginInfo) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+        registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin);
+        vk->vkCmdBeginRenderPass2(commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
+    }
+
+    void on_vkCmdBeginRenderPass2KHR(android::base::BumpPool* pool,
+                                     VkCommandBuffer boxed_commandBuffer,
+                                     const VkRenderPassBeginInfo* pRenderPassBegin,
+                                     const VkSubpassBeginInfo* pSubpassBeginInfo) {
+        on_vkCmdBeginRenderPass2(pool, boxed_commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
+    }
+
     void on_vkCmdCopyQueryPoolResults(android::base::BumpPool* pool,
                                       VkCommandBuffer boxed_commandBuffer, VkQueryPool queryPool,
                                       uint32_t firstQuery, uint32_t queryCount, VkBuffer dstBuffer,
@@ -5151,6 +5274,18 @@ class VkDecoderGlobalState::Impl {
 
         auto& framebufferInfo = mFramebufferInfo[*pFramebuffer];
         framebufferInfo.device = device;
+
+        // b/327522469
+        // Track the Colorbuffers that would be written to.
+        // It might be better to check for VK_QUEUE_FAMILY_EXTERNAL in pipeline barrier.
+        // But the guest does not always add it to pipeline barrier.
+        for (int i = 0; i < pCreateInfo->attachmentCount; i++) {
+            auto* imageViewInfo = android::base::find(mImageViewInfo, pCreateInfo->pAttachments[i]);
+            if (imageViewInfo->boundColorBuffer.has_value()) {
+                framebufferInfo.attachedColorBuffers.push_back(
+                    imageViewInfo->boundColorBuffer.value());
+            }
+        }
 
         *pFramebuffer = new_boxed_non_dispatchable_VkFramebuffer(*pFramebuffer);
 
@@ -6545,6 +6680,9 @@ class VkDecoderGlobalState::Impl {
         VkPipelineLayout descriptorLayout = VK_NULL_HANDLE;
         std::vector<VkDescriptorSet> descriptorSets;
         std::vector<uint32_t> dynamicOffsets;
+        std::unordered_set<HandleType> acquiredColorBuffers;
+        std::unordered_set<HandleType> releasedColorBuffers;
+        std::unordered_map<HandleType, VkImageLayout> cbLayouts;
 
         void reset() {
             preprocessFuncs.clear();
@@ -6554,6 +6692,9 @@ class VkDecoderGlobalState::Impl {
             descriptorLayout = VK_NULL_HANDLE;
             descriptorSets.clear();
             dynamicOffsets.clear();
+            acquiredColorBuffers.clear();
+            releasedColorBuffers.clear();
+            cbLayouts.clear();
         }
     };
 
@@ -7816,6 +7957,28 @@ void VkDecoderGlobalState::on_vkDestroyRenderPass(android::base::BumpPool* pool,
                                                   VkDevice boxed_device, VkRenderPass renderPass,
                                                   const VkAllocationCallbacks* pAllocator) {
     mImpl->on_vkDestroyRenderPass(pool, boxed_device, renderPass, pAllocator);
+}
+
+void VkDecoderGlobalState::on_vkCmdBeginRenderPass(android::base::BumpPool* pool,
+                                                   VkCommandBuffer commandBuffer,
+                                                   const VkRenderPassBeginInfo* pRenderPassBegin,
+                                                   VkSubpassContents contents) {
+    return mImpl->on_vkCmdBeginRenderPass(pool, commandBuffer, pRenderPassBegin, contents);
+}
+
+void VkDecoderGlobalState::on_vkCmdBeginRenderPass2(android::base::BumpPool* pool,
+                                                    VkCommandBuffer commandBuffer,
+                                                    const VkRenderPassBeginInfo* pRenderPassBegin,
+                                                    const VkSubpassBeginInfo* pSubpassBeginInfo) {
+    return mImpl->on_vkCmdBeginRenderPass2(pool, commandBuffer, pRenderPassBegin,
+                                           pSubpassBeginInfo);
+}
+
+void VkDecoderGlobalState::on_vkCmdBeginRenderPass2KHR(
+    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    const VkRenderPassBeginInfo* pRenderPassBegin, const VkSubpassBeginInfo* pSubpassBeginInfo) {
+    return mImpl->on_vkCmdBeginRenderPass2(pool, commandBuffer, pRenderPassBegin,
+                                           pSubpassBeginInfo);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateFramebuffer(android::base::BumpPool* pool,
