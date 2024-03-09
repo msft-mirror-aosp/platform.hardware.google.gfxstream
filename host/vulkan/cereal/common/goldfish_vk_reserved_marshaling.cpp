@@ -11973,6 +11973,236 @@ void reservedunmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+void reservedunmarshal_VkDebugUtilsLabelEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkDebugUtilsLabelEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pLabelName, ptr);
+    memcpy((float*)forUnmarshaling->color, *ptr, 4 * sizeof(float));
+    *ptr += 4 * sizeof(float);
+}
+
+void reservedunmarshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream,
+                                                     VkStructureType rootType,
+                                                     VkDebugUtilsObjectNameInfoEXT* forUnmarshaling,
+                                                     uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkObjectType*)&forUnmarshaling->objectType, *ptr, sizeof(VkObjectType));
+    *ptr += sizeof(VkObjectType);
+    memcpy((uint64_t*)&forUnmarshaling->objectHandle, *ptr, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
+        // WARNING PTR CHECK
+        memcpy((char**)&forUnmarshaling->pObjectName, (*ptr), 8);
+        android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pObjectName);
+        *ptr += 8;
+        if (forUnmarshaling->pObjectName) {
+            vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pObjectName, ptr);
+        }
+    } else {
+        vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pObjectName, ptr);
+    }
+}
+
+void reservedunmarshal_VkDebugUtilsMessengerCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCallbackDataEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkDebugUtilsMessengerCallbackDataFlagsEXT*)&forUnmarshaling->flags, *ptr,
+           sizeof(VkDebugUtilsMessengerCallbackDataFlagsEXT));
+    *ptr += sizeof(VkDebugUtilsMessengerCallbackDataFlagsEXT);
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
+        // WARNING PTR CHECK
+        memcpy((char**)&forUnmarshaling->pMessageIdName, (*ptr), 8);
+        android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pMessageIdName);
+        *ptr += 8;
+        if (forUnmarshaling->pMessageIdName) {
+            vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pMessageIdName, ptr);
+        }
+    } else {
+        vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pMessageIdName, ptr);
+    }
+    memcpy((int32_t*)&forUnmarshaling->messageIdNumber, *ptr, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+    vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pMessage, ptr);
+    memcpy((uint32_t*)&forUnmarshaling->queueLabelCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pQueueLabels,
+                    forUnmarshaling->queueLabelCount * sizeof(const VkDebugUtilsLabelEXT));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->queueLabelCount; ++i) {
+        reservedunmarshal_VkDebugUtilsLabelEXT(
+            vkStream, rootType, (VkDebugUtilsLabelEXT*)(forUnmarshaling->pQueueLabels + i), ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->cmdBufLabelCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pCmdBufLabels,
+                    forUnmarshaling->cmdBufLabelCount * sizeof(const VkDebugUtilsLabelEXT));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->cmdBufLabelCount; ++i) {
+        reservedunmarshal_VkDebugUtilsLabelEXT(
+            vkStream, rootType, (VkDebugUtilsLabelEXT*)(forUnmarshaling->pCmdBufLabels + i), ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->objectCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pObjects,
+                    forUnmarshaling->objectCount * sizeof(const VkDebugUtilsObjectNameInfoEXT));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->objectCount; ++i) {
+        reservedunmarshal_VkDebugUtilsObjectNameInfoEXT(
+            vkStream, rootType, (VkDebugUtilsObjectNameInfoEXT*)(forUnmarshaling->pObjects + i),
+            ptr);
+    }
+}
+
+void reservedunmarshal_VkDebugUtilsMessengerCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkDebugUtilsMessengerCreateFlagsEXT*)&forUnmarshaling->flags, *ptr,
+           sizeof(VkDebugUtilsMessengerCreateFlagsEXT));
+    *ptr += sizeof(VkDebugUtilsMessengerCreateFlagsEXT);
+    memcpy((VkDebugUtilsMessageSeverityFlagsEXT*)&forUnmarshaling->messageSeverity, *ptr,
+           sizeof(VkDebugUtilsMessageSeverityFlagsEXT));
+    *ptr += sizeof(VkDebugUtilsMessageSeverityFlagsEXT);
+    memcpy((VkDebugUtilsMessageTypeFlagsEXT*)&forUnmarshaling->messageType, *ptr,
+           sizeof(VkDebugUtilsMessageTypeFlagsEXT));
+    *ptr += sizeof(VkDebugUtilsMessageTypeFlagsEXT);
+    memcpy((PFN_vkDebugUtilsMessengerCallbackEXT*)&forUnmarshaling->pfnUserCallback, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnUserCallback);
+    *ptr += 8;
+    // WARNING PTR CHECK
+    memcpy((void**)&forUnmarshaling->pUserData, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
+    *ptr += 8;
+    if (forUnmarshaling->pUserData) {
+        vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
+        memcpy((void*)forUnmarshaling->pUserData, *ptr, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+void reservedunmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream,
+                                                    VkStructureType rootType,
+                                                    VkDebugUtilsObjectTagInfoEXT* forUnmarshaling,
+                                                    uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkObjectType*)&forUnmarshaling->objectType, *ptr, sizeof(VkObjectType));
+    *ptr += sizeof(VkObjectType);
+    memcpy((uint64_t*)&forUnmarshaling->objectHandle, *ptr, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy((uint64_t*)&forUnmarshaling->tagName, *ptr, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy((size_t*)&forUnmarshaling->tagSize, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->tagSize);
+    *ptr += 8;
+    vkStream->alloc((void**)&forUnmarshaling->pTag,
+                    forUnmarshaling->tagSize * sizeof(const uint8_t));
+    memcpy((void*)forUnmarshaling->pTag, *ptr, forUnmarshaling->tagSize * sizeof(const uint8_t));
+    *ptr += forUnmarshaling->tagSize * sizeof(const uint8_t);
+}
+
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 #endif
@@ -14706,6 +14936,20 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
                 reinterpret_cast<VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
                     structExtension_out),
                 ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_debug_utils
+        case VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT: {
+            reservedunmarshal_VkDebugUtilsObjectNameInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkDebugUtilsObjectNameInfoEXT*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT: {
+            reservedunmarshal_VkDebugUtilsMessengerCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(structExtension_out), ptr);
             break;
         }
 #endif
