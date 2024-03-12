@@ -1694,6 +1694,25 @@ void deepcopy_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
+void deepcopy_VkDebugUtilsLabelEXT(Allocator* alloc, VkStructureType rootType,
+                                   const VkDebugUtilsLabelEXT* from, VkDebugUtilsLabelEXT* to);
+
+void deepcopy_VkDebugUtilsObjectNameInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                            const VkDebugUtilsObjectNameInfoEXT* from,
+                                            VkDebugUtilsObjectNameInfoEXT* to);
+
+void deepcopy_VkDebugUtilsMessengerCallbackDataEXT(Allocator* alloc, VkStructureType rootType,
+                                                   const VkDebugUtilsMessengerCallbackDataEXT* from,
+                                                   VkDebugUtilsMessengerCallbackDataEXT* to);
+
+void deepcopy_VkDebugUtilsMessengerCreateInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                                 const VkDebugUtilsMessengerCreateInfoEXT* from,
+                                                 VkDebugUtilsMessengerCreateInfoEXT* to);
+
+void deepcopy_VkDebugUtilsObjectTagInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                           const VkDebugUtilsObjectTagInfoEXT* from,
+                                           VkDebugUtilsObjectTagInfoEXT* to);
+
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 #endif

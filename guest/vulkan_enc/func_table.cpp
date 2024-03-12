@@ -34,6 +34,7 @@
 
 #include <cstring>
 
+#include "../OpenglSystemCommon/HostConnection.h"
 #include "ResourceTracker.h"
 #include "VkEncoder.h"
 #include "gfxstream_vk_entrypoints.h"

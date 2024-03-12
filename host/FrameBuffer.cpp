@@ -1964,6 +1964,9 @@ static void loadProcOwnedCollection(Stream* stream, Collection* c) {
 int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
                                uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
                                int desiredHeight, int desiredRotation, Rect rect) {
+    if (emugl::shouldSkipDraw()) {
+        return -1;
+    }
     AutoLock mutex(m_lock);
     uint32_t w, h, cb, screenWidth, screenHeight;
     if (!emugl::get_emugl_multi_display_operations().getMultiDisplay(
