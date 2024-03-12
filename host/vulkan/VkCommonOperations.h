@@ -312,6 +312,7 @@ struct VkEmulation {
         uint32_t currentQueueFamilyIndex = VK_QUEUE_FAMILY_EXTERNAL;
 
         bool glExported = false;
+        bool externalMemoryCompatible = false;
 
         VulkanMode vulkanMode = VulkanMode::Default;
 
@@ -438,7 +439,8 @@ bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevic
 
 // ColorBuffer operations
 
-bool isColorBufferExportedToGl(uint32_t colorBufferHandle, bool* exported);
+bool getColorBufferShareInfo(uint32_t colorBufferHandle, bool* glExported,
+                             bool* externalMemoryCompatible);
 
 bool getColorBufferAllocationInfo(uint32_t colorBufferHandle, VkDeviceSize* outSize,
                                   uint32_t* outMemoryTypeIndex, bool* outMemoryIsDedicatedAlloc,
