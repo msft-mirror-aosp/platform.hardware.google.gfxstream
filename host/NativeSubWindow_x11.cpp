@@ -59,10 +59,10 @@ EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
     wa.override_redirect = True;
     Window win = x11->XCreateWindow(s_display,
             p_window,
-            x,
-            y,
-            width,
-            height,
+            x * dpr,
+            y * dpr,
+            width * dpr,
+            height * dpr,
             0,
             CopyFromParent,
             CopyFromParent,
@@ -91,12 +91,18 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
                   int x,
                   int y,
                   int width,
-                  int height) {
+                  int height,
+                  float dpr) {
     // This value is set during create, so if it is still null, simply
     // return because the global state is corrupted
     if (!s_display) {
         return false;
     }
+
+    x *= dpr;
+    y *= dpr;
+    width *= dpr;
+    height *= dpr;
 
     auto x11 = getX11Api();
 

@@ -19,7 +19,6 @@
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/containers/Lookup.h"
 #include "aemu/base/files/StreamSerializing.h"
-#include "host-common/feature_control.h"
 #include "host-common/logging.h"
 
 #include <GLcommon/GLconversion_macros.h>
@@ -402,8 +401,10 @@ void GLEScontext::initGlobal(EGLiface* iface) {
     s_lock.unlock();
 }
 
-void GLEScontext::init() {
+void GLEScontext::init(bool nativeTextureDecompressionEnabled) {
     if (!m_initialized) {
+        m_nativeTextureDecompressionEnabled = nativeTextureDecompressionEnabled;
+
         initExtensionString();
 
         m_maxTexUnits = getMaxCombinedTexUnits();
@@ -1792,7 +1793,7 @@ void GLEScontext::releaseGlobalLock() {
     s_lock.unlock();
 }
 
-void GLEScontext::initCapsLocked(const GLubyte * extensionString, GLSupport& glSupport)
+void GLEScontext::initCapsLocked(const GLubyte * extensionString, bool nativeTextureDecompressionEnabled, GLSupport& glSupport)
 {
     const char* cstring = (const char*)extensionString;
 
@@ -1826,7 +1827,7 @@ void GLEScontext::initCapsLocked(const GLubyte * extensionString, GLSupport& glS
     s_glDispatch.glGetIntegerv(GL_MAX_VERTEX_ATTRIB_BINDINGS, &glSupport.maxVertexAttribBindings);
 
     // Compressed texture format query
-    if(feature_is_enabled(kFeature_NativeTextureDecompression)) {
+    if (nativeTextureDecompressionEnabled) {
         bool hasEtc2Support = false;
         bool hasAstcSupport = false;
         int numCompressedFormats = 0;

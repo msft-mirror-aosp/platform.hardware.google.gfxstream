@@ -37,7 +37,7 @@ class CoreProfileEngine;
 class GLEScmContext: public GLEScontext
 {
 public:
-    virtual void init() override;
+    virtual void init(bool nativeTextureDecompressionEnabled) override;
     virtual const GLSupport* getCaps() const override { return &(GLEScontext::s_glSupportGles1); }
     static void initGlobal(EGLiface* eglIface);
     GLEScmContext(int maj, int min, GlobalNameSpace* globalNameSpace,
