@@ -965,6 +965,13 @@ class VkDecoderGlobalState::Impl {
         if (ycbcrFeatures != nullptr) {
             ycbcrFeatures->samplerYcbcrConversion |= m_emu->enableYcbcrEmulation;
         }
+        VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures =
+            vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(pFeatures);
+        if (protectedMemoryFeatures != nullptr) {
+            // Protected memory is not supported on emulators. Override feature
+            // information to mark as unsupported (see b/329845987).
+            protectedMemoryFeatures->protectedMemory = VK_FALSE;
+        }
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties(
@@ -1586,7 +1593,7 @@ class VkDecoderGlobalState::Impl {
                               const VkDeviceQueueInfo2* pQueueInfo, VkQueue* pQueue) {
         // Protected memory is not supported on emulators. So we should
         // not return any queue if a client requests a protected device
-        // queue.
+        // queue. See b/328436383.
         if (pQueueInfo->flags & VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT) {
             *pQueue = VK_NULL_HANDLE;
             fprintf(stderr, "%s: Cannot get protected Vulkan device queue\n", __func__);
