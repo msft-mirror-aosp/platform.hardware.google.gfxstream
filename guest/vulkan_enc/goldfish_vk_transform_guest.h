@@ -2819,6 +2819,8 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceToolProperties,
                       transform_fromhost_VkPhysicalDeviceToolPropertiesEXT)
 
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 void transform_tohost_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     ResourceTracker* resourceTracker, VkPhysicalDeviceProvokingVertexFeaturesEXT* toTransform);

@@ -3383,6 +3383,14 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceToolProperties,
 
 #define OP_vkGetPhysicalDeviceToolPropertiesEXT 282247593
 #endif
+#ifdef VK_EXT_validation_features
+void marshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkValidationFeaturesEXT* forMarshaling);
+
+void unmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkValidationFeaturesEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_provoking_vertex
 void marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
