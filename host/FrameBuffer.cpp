@@ -937,11 +937,11 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
 
             if (m_displayVk) {
                 m_displaySurface =
-                    vk::createDisplaySurface(m_subWin, m_windowWidth, m_windowHeight);
+                    vk::createDisplaySurface(m_subWin, m_windowWidth * dpr, m_windowHeight * dpr);
             } else if (m_emulationGl) {
 #if GFXSTREAM_ENABLE_HOST_GLES
-                m_displaySurface = m_emulationGl->createWindowSurface(m_windowWidth,
-                                                                      m_windowHeight,
+                m_displaySurface = m_emulationGl->createWindowSurface(m_windowWidth * dpr,
+                                                                      m_windowHeight * dpr,
                                                                       m_subWin);
 #endif
             } else {
@@ -1004,9 +1004,9 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
             {
                 auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Moving subwindow").build();
                 success = moveSubWindow(m_nativeWindow, m_subWin, m_x, m_y, m_windowWidth,
-                                        m_windowHeight);
+                                        m_windowHeight, dpr);
             }
-            m_displaySurface->updateSize(m_windowWidth, m_windowHeight);
+            m_displaySurface->updateSize(m_windowWidth * dpr, m_windowHeight * dpr);
         }
         // We are safe to unblock the PostWorker thread now, because we have completed all the
         // operations that could modify the state of the m_subWin. We need to unblock the PostWorker
@@ -1964,6 +1964,9 @@ static void loadProcOwnedCollection(Stream* stream, Collection* c) {
 int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
                                uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
                                int desiredHeight, int desiredRotation, Rect rect) {
+    if (emugl::shouldSkipDraw()) {
+        return -1;
+    }
     AutoLock mutex(m_lock);
     uint32_t w, h, cb, screenWidth, screenHeight;
     if (!emugl::get_emugl_multi_display_operations().getMultiDisplay(
