@@ -7098,6 +7098,8 @@ void transform_fromhost_VkRenderPassFragmentDensityMapCreateInfoEXT(
 #endif
 #ifdef VK_EXT_tooling_info
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 void transform_tohost_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     ResourceTracker* resourceTracker, VkPhysicalDeviceProvokingVertexFeaturesEXT* toTransform) {

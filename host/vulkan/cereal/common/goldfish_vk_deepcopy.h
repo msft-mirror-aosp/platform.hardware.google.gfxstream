@@ -1803,6 +1803,12 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceToolProperties,
                       deepcopy_VkPhysicalDeviceToolPropertiesEXT)
 
 #endif
+#ifdef VK_EXT_validation_features
+void deepcopy_VkValidationFeaturesEXT(Allocator* alloc, VkStructureType rootType,
+                                      const VkValidationFeaturesEXT* from,
+                                      VkValidationFeaturesEXT* to);
+
+#endif
 #ifdef VK_EXT_provoking_vertex
 void deepcopy_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
