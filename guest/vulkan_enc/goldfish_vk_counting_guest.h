@@ -1609,6 +1609,8 @@ DEFINE_ALIAS_FUNCTION(count_VkPipelineShaderStageRequiredSubgroupSizeCreateInfo,
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceToolProperties, count_VkPhysicalDeviceToolPropertiesEXT)
 
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 void count_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     uint32_t featureBits, VkStructureType rootType,

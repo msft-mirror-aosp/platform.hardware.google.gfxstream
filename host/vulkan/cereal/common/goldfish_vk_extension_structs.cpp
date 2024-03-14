@@ -170,6 +170,8 @@ namespace vk {
 #endif
 #ifdef VK_EXT_tooling_info
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 #endif
 #ifdef VK_EXT_line_rasterization
@@ -712,6 +714,11 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
                     break;
                 }
             }
+        }
+#endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
+            return sizeof(VkValidationFeaturesEXT);
         }
 #endif
 #ifdef VK_EXT_provoking_vertex
@@ -1364,6 +1371,11 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
                     break;
                 }
             }
+        }
+#endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
+            return sizeof(VkValidationFeaturesEXT);
         }
 #endif
 #ifdef VK_EXT_provoking_vertex

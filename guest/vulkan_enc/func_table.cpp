@@ -5246,6 +5246,8 @@ VkResult gfxstream_vk_GetPhysicalDeviceToolPropertiesEXT(
     return vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return;
 }
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 #endif
 #ifdef VK_EXT_line_rasterization

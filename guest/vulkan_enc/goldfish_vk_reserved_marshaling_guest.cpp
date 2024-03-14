@@ -8271,6 +8271,8 @@ void reservedmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
 #endif
 #ifdef VK_EXT_tooling_info
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 void reservedmarshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,

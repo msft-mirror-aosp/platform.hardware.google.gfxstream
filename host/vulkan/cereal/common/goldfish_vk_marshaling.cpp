@@ -16127,6 +16127,63 @@ void unmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
 #endif
 #ifdef VK_EXT_tooling_info
 #endif
+#ifdef VK_EXT_validation_features
+void marshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkValidationFeaturesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((uint32_t*)&forMarshaling->enabledValidationFeatureCount, sizeof(uint32_t));
+    vkStream->write(
+        (const VkValidationFeatureEnableEXT*)forMarshaling->pEnabledValidationFeatures,
+        forMarshaling->enabledValidationFeatureCount * sizeof(const VkValidationFeatureEnableEXT));
+    vkStream->write((uint32_t*)&forMarshaling->disabledValidationFeatureCount, sizeof(uint32_t));
+    vkStream->write(
+        (const VkValidationFeatureDisableEXT*)forMarshaling->pDisabledValidationFeatures,
+        forMarshaling->disabledValidationFeatureCount *
+            sizeof(const VkValidationFeatureDisableEXT));
+}
+
+void unmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkValidationFeaturesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((uint32_t*)&forUnmarshaling->enabledValidationFeatureCount, sizeof(uint32_t));
+    vkStream->alloc((void**)&forUnmarshaling->pEnabledValidationFeatures,
+                    forUnmarshaling->enabledValidationFeatureCount *
+                        sizeof(const VkValidationFeatureEnableEXT));
+    vkStream->read((VkValidationFeatureEnableEXT*)forUnmarshaling->pEnabledValidationFeatures,
+                   forUnmarshaling->enabledValidationFeatureCount *
+                       sizeof(const VkValidationFeatureEnableEXT));
+    vkStream->read((uint32_t*)&forUnmarshaling->disabledValidationFeatureCount, sizeof(uint32_t));
+    vkStream->alloc((void**)&forUnmarshaling->pDisabledValidationFeatures,
+                    forUnmarshaling->disabledValidationFeatureCount *
+                        sizeof(const VkValidationFeatureDisableEXT));
+    vkStream->read((VkValidationFeatureDisableEXT*)forUnmarshaling->pDisabledValidationFeatures,
+                   forUnmarshaling->disabledValidationFeatureCount *
+                       sizeof(const VkValidationFeatureDisableEXT));
+}
+
+#endif
 #ifdef VK_EXT_provoking_vertex
 void marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -19093,6 +19150,14 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
+            marshal_VkValidationFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkValidationFeaturesEXT*>(structExtension));
+            break;
+        }
+#endif
 #ifdef VK_EXT_provoking_vertex
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: {
             marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -20348,6 +20413,14 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
                     break;
                 }
             }
+            break;
+        }
+#endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
+            unmarshal_VkValidationFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkValidationFeaturesEXT*>(structExtension_out));
             break;
         }
 #endif
