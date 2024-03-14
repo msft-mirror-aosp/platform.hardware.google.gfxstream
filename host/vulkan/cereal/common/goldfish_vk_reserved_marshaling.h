@@ -1794,6 +1794,12 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceToolProperties,
                       reservedunmarshal_VkPhysicalDeviceToolPropertiesEXT)
 
 #endif
+#ifdef VK_EXT_validation_features
+void reservedunmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkValidationFeaturesEXT* forUnmarshaling,
+                                               uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_provoking_vertex
 void reservedunmarshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
