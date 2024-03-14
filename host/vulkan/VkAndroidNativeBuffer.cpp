@@ -122,6 +122,9 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
                                          const VkAllocationCallbacks* pAllocator,
                                          const VkPhysicalDeviceMemoryProperties* memProps,
                                          AndroidNativeBufferInfo* out) {
+    bool colorBufferExportedToGl = false;
+    bool externalMemoryCompatible = false;
+
     out->vk = vk;
     out->device = device;
     out->vkFormat = pCreateInfo->format;
@@ -136,17 +139,10 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     out->stride = nativeBufferANDROID->stride;
     out->colorBufferHandle = *static_cast<const uint32_t*>(nativeBufferANDROID->handle);
 
-    bool externalMemoryCompatible = false;
-
     auto emu = getGlobalVkEmulation();
 
-    if (emu && emu->live) {
-        externalMemoryCompatible = emu->deviceInfo.supportsExternalMemoryImport &&
-                                   emu->deviceInfo.supportsExternalMemoryExport;
-    }
-
-    bool colorBufferExportedToGl = false;
-    if (!isColorBufferExportedToGl(out->colorBufferHandle, &colorBufferExportedToGl)) {
+    if (!getColorBufferShareInfo(out->colorBufferHandle, &colorBufferExportedToGl,
+                                 &externalMemoryCompatible)) {
         VK_ANB_ERR("Failed to query if ColorBuffer:%d exported to GL.", out->colorBufferHandle);
         return VK_ERROR_INITIALIZATION_FAILED;
     }
