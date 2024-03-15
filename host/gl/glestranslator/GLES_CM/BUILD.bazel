@@ -1,0 +1,22 @@
+cc_library(
+    name = "GLES_CM_translator_static",
+    srcs = [
+        "CoreProfileEngine.cpp",
+        "GLEScmContext.cpp",
+        "GLEScmImp.cpp",
+        "GLEScmUtils.cpp",
+        "GLEScmValidate.cpp",
+    ] + glob(["*.h"]),
+    copts = [
+        "-Wno-extern-c-compat",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//external/angle:angle-headers",
+        "//hardware/google/aemu/snapshot:aemu-snapshot",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//hardware/google/gfxstream/host/gl:gl_common",
+        "//hardware/google/gfxstream/third-party/glm",
+    ],
+)

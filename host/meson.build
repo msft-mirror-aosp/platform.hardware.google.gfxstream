@@ -222,7 +222,7 @@ endif
 if not use_gles
   files_lib_gfxstream_backend += files('NativeSubWindow_stub.cpp')
 elif host_machine.system() == 'darwin'
-  files_lib_gfxstream_backend += files('NativeSubWindow_cocoa.m')
+  files_lib_gfxstream_backend += files('NativeSubWindow_cocoa.mm')
 elif host_machine.system() == 'windows'
   files_lib_gfxstream_backend += files('NativeSubWindow_win32.cpp')
 elif host_machine.system() == 'linux' and use_gles
