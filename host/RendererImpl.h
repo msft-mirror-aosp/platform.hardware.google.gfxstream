@@ -24,6 +24,7 @@
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/threads/FunctorThread.h"
+#include "gfxstream/host/Features.h"
 #include "render-utils/Renderer.h"
 #include "snapshot/common.h"
 
@@ -38,7 +39,8 @@ public:
     RendererImpl();
     ~RendererImpl();
 
-    bool initialize(int width, int height, bool useSubWindow, bool egl2egl);
+    bool initialize(int width, int height, gfxstream::host::FeatureSet features, bool useSubWindow,
+                    bool egl2egl);
     void stop(bool wait) override;
     void finish() override;
 

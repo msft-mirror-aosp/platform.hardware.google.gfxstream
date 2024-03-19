@@ -86,7 +86,7 @@ protected:
 
             EXPECT_TRUE(
                 FrameBuffer::initialize(
-                    mWidth, mHeight,
+                    mWidth, mHeight, {},
                     mUseSubWindow,
                     !useHostGpu /* egl2egl */));
             mFb = FrameBuffer::getFB();
@@ -102,7 +102,7 @@ protected:
         } else {
             EXPECT_TRUE(
                 FrameBuffer::initialize(
-                    mWidth, mHeight,
+                    mWidth, mHeight, {},
                     mUseSubWindow,
                     !useHostGpu /* egl2egl */));
             mFb = FrameBuffer::getFB();

@@ -20,6 +20,7 @@
 #include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/threads/FunctorThread.h"
 #include "aemu/base/threads/Thread.h"
+#include "gfxstream/host/Features.h"
 
 namespace gfxstream {
 
@@ -61,8 +62,8 @@ public:
     //
     // Note that this call doesn't display anything, it just initializes
     // the library, use setupSubWindow() to display something.
-    RenderWindow(int width, int height, bool use_thread, bool use_sub_window,
-            bool egl2egl);
+    RenderWindow(int width, int height, gfxstream::host::FeatureSet features,
+                 bool use_thread, bool use_sub_window, bool egl2egl);
 
     // Destructor. This will automatically call removeSubWindow() is needed.
     ~RenderWindow();
