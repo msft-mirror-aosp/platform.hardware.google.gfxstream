@@ -124,7 +124,8 @@ RendererImpl::~RendererImpl() {
     mRenderWindow.reset();
 }
 
-bool RendererImpl::initialize(int width, int height, bool useSubWindow, bool egl2egl) {
+bool RendererImpl::initialize(int width, int height, gfxstream::host::FeatureSet features,
+                              bool useSubWindow, bool egl2egl) {
     if (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1") {
         // base_enable_verbose_logs();
     }
@@ -134,7 +135,7 @@ bool RendererImpl::initialize(int width, int height, bool useSubWindow, bool egl
     }
 
     std::unique_ptr<RenderWindow> renderWindow(new RenderWindow(
-            width, height, kUseSubwindowThread, useSubWindow, egl2egl));
+            width, height, features, kUseSubwindowThread, useSubWindow, egl2egl));
     if (!renderWindow) {
         ERR("Could not create rendering window class\n");
         GL_LOG("Could not create rendering window class");

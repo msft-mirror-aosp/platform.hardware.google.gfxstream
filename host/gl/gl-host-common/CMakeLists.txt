@@ -11,6 +11,7 @@ if (NOT TARGET gfxstream-gl-host-common)
         INTERFACE
         aemu-host-common.headers
         aemu-base.headers
+        gfxstream_features.headers
         gfxstream-snapshot.headers
         gfxstream_egl_headers)
 
@@ -50,6 +51,9 @@ if (NOT TARGET gfxstream-gl-host-common)
             opengl/OpenglEsPipe.cpp
             ${gl-host-common-opengles-platform-sources}
             )
-            target_link_libraries(gfxstream-gl-host-common PUBLIC gfxstream-gl-host-common.headers)
+        target_link_libraries(
+            gfxstream-gl-host-common
+            PUBLIC
+            gfxstream-gl-host-common.headers)
     endif()
 endif()
