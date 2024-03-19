@@ -39,6 +39,13 @@ VKAPI_ATTR VkBool32 VKAPI_CALL validationCallback(
     return VK_FALSE;
 }
 
+gfxstream::host::FeatureSet getGfxstreamFeatures() {
+    gfxstream::host::FeatureSet features;
+    // Enable so that we can have VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    features.GlDirectMem.enabled = true;
+    return features;
+}
+
 }  // namespace
 
 std::mutex VulkanTestHelper::mMutex;
@@ -49,15 +56,13 @@ VulkanTestHelper::VulkanTestHelper()
       mLogger(),
       mMetricsLogger(android::base::CreateMetricsLogger()),
       mHealthMonitor(*mMetricsLogger),
-      mVkEmu(createGlobalVkEmulation(mVk, false)),
+      mVkEmu(createGlobalVkEmulation(mVk, getGfxstreamFeatures())),
       mBp(std::make_unique<BumpPool>()),
       mDecoderContext(VkDecoderContext{.processName = "vulkan_test",
                                        .gfxApiLogger = &mLogger,
                                        .healthMonitor = &mHealthMonitor,
                                        .metricsLogger = mMetricsLogger.get()}),
       mTestDispatch(mVk, mBp.get(), &mDecoderContext) {
-    // Enable so that we can have VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    feature_set_enabled_override(kFeature_GLDirectMem, true);
 
     // This is used by VkDecoderGlobalState::on_vkCreateInstance()
     QAndroidVmOperations vmOps;
