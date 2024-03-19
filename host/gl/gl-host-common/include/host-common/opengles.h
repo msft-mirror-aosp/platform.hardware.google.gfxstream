@@ -56,6 +56,7 @@ AEMU_EXPORT int android_startOpenglesRenderer(int width, int height,
                                               const QAndroidVmOperations *vm_operations,
                                               const QAndroidEmulatorWindowAgent *window_agent,
                                               const QAndroidMultiDisplayAgent *multi_display_agent,
+                                              const void* gfxstreamFeatures,
                                               int* glesMajorVersion_out,
                                               int* glesMinorVersion_out);
 

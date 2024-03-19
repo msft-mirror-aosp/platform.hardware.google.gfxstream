@@ -43,6 +43,7 @@
 #include "ReadbackWorkerGl.h"
 #include "TextureDraw.h"
 #include "aemu/base/files/Stream.h"
+#include "gfxstream/host/Features.h"
 
 #define EGL_NO_CONFIG ((EGLConfig)0)
 
@@ -56,6 +57,7 @@ namespace gl {
 class EmulationGl {
    public:
     static std::unique_ptr<EmulationGl> create(uint32_t width, uint32_t height,
+                                               gfxstream::host::FeatureSet features,
                                                bool allowWindowSurface, bool egl2egl);
 
     ~EmulationGl();
@@ -148,6 +150,8 @@ class EmulationGl {
    EmulationGl() = default;
 
    ContextHelper* getColorBufferContextHelper();
+
+   gfxstream::host::FeatureSet mFeatures;
 
    EGLDisplay mEglDisplay = EGL_NO_DISPLAY;
    EGLint mEglVersionMajor = 0;
