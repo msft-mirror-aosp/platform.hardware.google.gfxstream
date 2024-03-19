@@ -25,6 +25,8 @@ lib_vulkan_cereal = static_library(
   cpp_args: cereal_cpp_args + gfxstream_host_args,
   include_directories: [inc_cereal, inc_cereal_common, inc_stream_servers,
                         inc_vulkan_server, inc_utils,
-                        inc_gfxstream_include, inc_include, inc_vulkan_headers],
-  dependencies: [aemu_base_dep, aemu_common_dep]
+                        inc_gfxstream_include, inc_include, inc_vulkan_headers,
+                        inc_host_features],
+  dependencies: [aemu_base_dep, aemu_common_dep],
+  link_with: [lib_host_features]
 )
