@@ -1907,6 +1907,16 @@ void reservedmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     const VkDeviceDeviceMemoryReportCreateInfoEXT* forMarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_robustness2
+void reservedmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* forMarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void reservedmarshal_VkSamplerCustomBorderColorCreateInfoEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,

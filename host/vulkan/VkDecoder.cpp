@@ -19844,6 +19844,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_EXT_device_memory_report
 #endif
+#ifdef VK_EXT_robustness2
+#endif
 #ifdef VK_EXT_custom_border_color
 #endif
 #ifdef VK_EXT_private_data
