@@ -1722,6 +1722,16 @@ void count_VkDeviceDeviceMemoryReportCreateInfoEXT(
     const VkDeviceDeviceMemoryReportCreateInfoEXT* toCount, size_t* count);
 
 #endif
+#ifdef VK_EXT_robustness2
+void count_VkPhysicalDeviceRobustness2FeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* toCount, size_t* count);
+
+void count_VkPhysicalDeviceRobustness2PropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* toCount, size_t* count);
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void count_VkSamplerCustomBorderColorCreateInfoEXT(
     uint32_t featureBits, VkStructureType rootType,

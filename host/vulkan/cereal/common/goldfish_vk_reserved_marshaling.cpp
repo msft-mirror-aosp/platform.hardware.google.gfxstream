@@ -13513,6 +13513,74 @@ void reservedunmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
 }
 
 #endif
+#ifdef VK_EXT_robustness2
+void reservedunmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2FeaturesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->robustBufferAccess2, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->robustImageAccess2, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->nullDescriptor, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2PropertiesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkDeviceSize*)&forUnmarshaling->robustStorageBufferAccessSizeAlignment, *ptr,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy((VkDeviceSize*)&forUnmarshaling->robustUniformBufferAccessSizeAlignment, *ptr,
+           sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void reservedunmarshal_VkSamplerCustomBorderColorCreateInfoEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -15292,6 +15360,22 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             reservedunmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension_out),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension_out),
                 ptr);
             break;
         }

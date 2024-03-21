@@ -1943,6 +1943,16 @@ void reservedunmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     VkDeviceDeviceMemoryReportCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_robustness2
+void reservedunmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2FeaturesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2PropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void reservedunmarshal_VkSamplerCustomBorderColorCreateInfoEXT(
     VulkanStream* vkStream, VkStructureType rootType,
