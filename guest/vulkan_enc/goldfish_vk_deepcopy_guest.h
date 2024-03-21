@@ -1891,6 +1891,17 @@ void deepcopy_VkDeviceDeviceMemoryReportCreateInfoEXT(
     VkDeviceDeviceMemoryReportCreateInfoEXT* to);
 
 #endif
+#ifdef VK_EXT_robustness2
+void deepcopy_VkPhysicalDeviceRobustness2FeaturesEXT(
+    Allocator* alloc, VkStructureType rootType, const VkPhysicalDeviceRobustness2FeaturesEXT* from,
+    VkPhysicalDeviceRobustness2FeaturesEXT* to);
+
+void deepcopy_VkPhysicalDeviceRobustness2PropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* from,
+    VkPhysicalDeviceRobustness2PropertiesEXT* to);
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void deepcopy_VkSamplerCustomBorderColorCreateInfoEXT(
     Allocator* alloc, VkStructureType rootType, const VkSamplerCustomBorderColorCreateInfoEXT* from,
