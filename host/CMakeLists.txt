@@ -48,7 +48,7 @@ set(stream-server-core-sources
     RendererImpl.cpp
     FrameBuffer.cpp)
 if (APPLE)
-    set(stream-server-core-platform-sources NativeSubWindow_cocoa.m)
+    set(stream-server-core-platform-sources NativeSubWindow_cocoa.mm)
 elseif (WIN32)
     set(stream-server-core-platform-sources NativeSubWindow_win32.cpp)
 elseif (QNX)

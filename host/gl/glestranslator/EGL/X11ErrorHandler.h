@@ -17,7 +17,7 @@
 
 #include "aemu/base/synchronization/Lock.h"
 
-#include "apigen-codec-common/X11Support.h"
+#include "X11Support.h"
 
 #include <EGL/egl.h>
 

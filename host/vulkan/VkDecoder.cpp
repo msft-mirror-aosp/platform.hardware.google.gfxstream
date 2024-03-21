@@ -36,6 +36,7 @@
 #include <optional>
 #include <unordered_map>
 
+#include "FrameBuffer.h"
 #include "VkDecoderGlobalState.h"
 #include "VkDecoderSnapshot.h"
 #include "VulkanDispatch.h"
@@ -51,7 +52,6 @@
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/feature_control.h"
 #include "host-common/logging.h"
-#include "host/FrameBuffer.h"
 #include "render-utils/IOStream.h"
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 
