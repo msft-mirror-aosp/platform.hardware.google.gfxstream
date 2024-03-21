@@ -77,6 +77,7 @@ using emugl::ABORT_REASON_OTHER;
 using emugl::CreateHealthMonitor;
 using emugl::FatalError;
 using emugl::GfxApiLogger;
+using gfxstream::host::FeatureSet;
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 using gl::DisplaySurfaceGl;
@@ -261,7 +262,8 @@ void MaybeIncreaseFileDescriptorSoftLimit() {
 #endif
 }
 
-bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2egl) {
+bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet features,
+                             bool useSubWindow, bool egl2egl) {
     GL_LOG("FrameBuffer::initialize");
 
     if (s_theFrameBuffer != NULL) {
@@ -275,7 +277,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     //
     // allocate space for the FrameBuffer object
     //
-    std::unique_ptr<FrameBuffer> fb(new FrameBuffer(width, height, useSubWindow));
+    std::unique_ptr<FrameBuffer> fb(new FrameBuffer(width, height, features, useSubWindow));
     if (!fb) {
         GL_LOG("Failed to create fb");
         ERR("Failed to create fb\n");
@@ -310,10 +312,9 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     // against those contexts.
     vk::VkEmulation* vkEmu = nullptr;
     vk::VulkanDispatch* vkDispatch = nullptr;
-    if (feature_is_enabled(kFeature_Vulkan)) {
+    if (fb->m_features.Vulkan.enabled) {
         vkDispatch = vk::vkDispatch(false /* not for testing */);
-        vkEmu = vk::createGlobalVkEmulation(vkDispatch,
-                                            feature_is_enabled(kFeature_VulkanNativeSwapchain));
+        vkEmu = vk::createGlobalVkEmulation(vkDispatch, fb->m_features);
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
         }
@@ -321,7 +322,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     }
     if (vkEmu) {
         fb->m_vulkanEnabled = true;
-        if (feature_is_enabled(kFeature_VulkanNativeSwapchain)) {
+        if (fb->m_features.VulkanNativeSwapchain.enabled) {
             fb->m_vkInstance = vkEmu->instance;
         }
         if (vkEmu->deviceInfo.supportsIdProperties) {
@@ -336,8 +337,8 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     // Do not initialize GL emulation if the guest is using ANGLE.
-    if (!feature_is_enabled(kFeature_GuestUsesAngle)) {
-        fb->m_emulationGl = EmulationGl::create(width, height, useSubWindow, egl2egl);
+    if (!fb->m_features.GuestUsesAngle.enabled) {
+        fb->m_emulationGl = EmulationGl::create(width, height, fb->m_features, useSubWindow, egl2egl);
         if (!fb->m_emulationGl) {
             ERR("Failed to initialize GL emulation.");
             return false;
@@ -345,12 +346,10 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     }
 #endif
 
-    fb->m_guestUsesAngle =
-        feature_is_enabled(
-            kFeature_GuestUsesAngle);
+    fb->m_guestUsesAngle = fb->m_features.GuestUsesAngle.enabled;
 
-    fb->m_useVulkanComposition = feature_is_enabled(kFeature_GuestUsesAngle) ||
-                                 feature_is_enabled(kFeature_VulkanNativeSwapchain);
+    fb->m_useVulkanComposition = fb->m_features.GuestUsesAngle.enabled ||
+                                 fb->m_features.VulkanNativeSwapchain.enabled;
 
     std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
         std::make_unique<VkEmulationFeatures>(VkEmulationFeatures{
@@ -363,7 +362,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
                     "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
                     .empty(),
             .useVulkanComposition = fb->m_useVulkanComposition,
-            .useVulkanNativeSwapchain = feature_is_enabled(kFeature_VulkanNativeSwapchain),
+            .useVulkanNativeSwapchain = fb->m_features.VulkanNativeSwapchain.enabled,
             .guestRenderDoc = std::move(renderDocMultipleVkInstances),
             .astcLdrEmulationMode = AstcEmulationMode::Gpu,
             .enableEtc2Emulation = true,
@@ -377,7 +376,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     // current-context when asked for them.
     //
     bool useVulkanGraphicsDiagInfo =
-        vkEmu && feature_is_enabled(kFeature_VulkanNativeSwapchain) && fb->m_guestUsesAngle;
+        vkEmu && fb->m_features.VulkanNativeSwapchain.enabled && fb->m_guestUsesAngle;
 
     if (useVulkanGraphicsDiagInfo) {
         fb->m_graphicsAdapterVendor = vkEmu->deviceInfo.driverVendor;
@@ -472,7 +471,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
 
     GL_LOG("glvk interop final: %d", fb->m_vulkanInteropSupported);
     vkEmulationFeatures->glInteropSupported = fb->m_vulkanInteropSupported;
-    if (feature_is_enabled(kFeature_Vulkan)) {
+    if (fb->m_features.Vulkan.enabled) {
         vk::initVkEmulationFeatures(std::move(vkEmulationFeatures));
         if (vkEmu && vkEmu->displayVk) {
             fb->m_displayVk = vkEmu->displayVk.get();
@@ -555,8 +554,9 @@ void FrameBuffer::finalize() {
     }
 }
 
-FrameBuffer::FrameBuffer(int p_width, int p_height, bool useSubWindow)
-    : m_framebufferWidth(p_width),
+FrameBuffer::FrameBuffer(int p_width, int p_height, gfxstream::host::FeatureSet features, bool useSubWindow)
+    : m_features(features),
+      m_framebufferWidth(p_width),
       m_framebufferHeight(p_height),
       m_windowWidth(p_width),
       m_windowHeight(p_height),
@@ -566,9 +566,9 @@ FrameBuffer::FrameBuffer(int p_width, int p_height, bool useSubWindow)
       m_perfThread(new PerfStatThread(&m_perfStats)),
       m_readbackThread(
           [this](FrameBuffer::Readback&& readback) { return sendReadbackWorkerCmd(readback); }),
-      m_refCountPipeEnabled(feature_is_enabled(kFeature_RefCountPipe)),
-      m_noDelayCloseColorBufferEnabled(feature_is_enabled(kFeature_NoDelayCloseColorBuffer) ||
-                                       feature_is_enabled(kFeature_Minigbm)),
+      m_refCountPipeEnabled(features.RefCountPipe.enabled),
+      m_noDelayCloseColorBufferEnabled(features.NoDelayCloseColorBuffer.enabled ||
+                                       features.Minigbm.enabled),
       m_postThread([this](Post&& post) { return postWorkerFunc(post); }),
       m_logger(CreateMetricsLogger()),
       m_healthMonitor(CreateHealthMonitor(*m_logger)) {
@@ -2286,7 +2286,7 @@ void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverP
 #endif
 
     // TODO(b/309858017): remove if when ready to bump snapshot version
-    if (feature_is_enabled(kFeature_VulkanSnapshots)) {
+    if (m_features.VulkanSnapshots.enabled) {
         stream->putBe64(m_procOwnedResources.size());
         for (const auto& element : m_procOwnedResources) {
             stream->putBe64(element.first);
@@ -2295,7 +2295,7 @@ void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverP
     }
 
     // Save Vulkan state
-    if (feature_is_enabled(kFeature_VulkanSnapshots) && vk::VkDecoderGlobalState::get()) {
+    if (m_features.VulkanSnapshots.enabled && vk::VkDecoderGlobalState::get()) {
         vk::VkDecoderGlobalState::get()->save(stream);
     }
 
@@ -2530,7 +2530,7 @@ bool FrameBuffer::onLoad(Stream* stream,
     loadProcOwnedCollection(stream, &m_procOwnedEmulatedEglContexts);
 #endif
     // TODO(b/309858017): remove if when ready to bump snapshot version
-    if (feature_is_enabled(kFeature_VulkanSnapshots)) {
+    if (m_features.VulkanSnapshots.enabled) {
         size_t resourceCount = stream->getBe64();
         for (size_t i = 0; i < resourceCount; i++) {
             uint64_t puid = stream->getBe64();
@@ -2572,7 +2572,7 @@ bool FrameBuffer::onLoad(Stream* stream,
     }
 
     // Restore Vulkan state
-    if (feature_is_enabled(kFeature_VulkanSnapshots) && vk::VkDecoderGlobalState::get()) {
+    if (m_features.VulkanSnapshots.enabled && vk::VkDecoderGlobalState::get()) {
         lock.unlock();
         GfxApiLogger gfxLogger;
         vk::VkDecoderGlobalState::get()->load(stream, gfxLogger, m_healthMonitor.get());
@@ -3712,16 +3712,16 @@ void FrameBuffer::createYUVTextures(uint32_t type, uint32_t count, int width, in
     RecursiveScopedContextBind bind(getPbufferSurfaceContextHelper());
     for (uint32_t i = 0; i < count; ++i) {
         if (format == FRAMEWORK_FORMAT_NV12) {
-            YUVConverter::createYUVGLTex(GL_TEXTURE0, width, height, format, YUVPlane::Y,
-                                         &output[2 * i]);
-            YUVConverter::createYUVGLTex(GL_TEXTURE1, width / 2, height / 2, format, YUVPlane::UV,
+            YUVConverter::createYUVGLTex(GL_TEXTURE0, width, height, format, m_features.Yuv420888ToNv21.enabled,
+                                         YUVPlane::Y, &output[2 * i]);
+            YUVConverter::createYUVGLTex(GL_TEXTURE1, width / 2, height / 2, format, m_features.Yuv420888ToNv21.enabled, YUVPlane::UV,
                                          &output[2 * i + 1]);
         } else if (format == FRAMEWORK_FORMAT_YUV_420_888) {
-            YUVConverter::createYUVGLTex(GL_TEXTURE0, width, height, format, YUVPlane::Y,
+            YUVConverter::createYUVGLTex(GL_TEXTURE0, width, height, format, m_features.Yuv420888ToNv21.enabled, YUVPlane::Y,
                                          &output[3 * i]);
-            YUVConverter::createYUVGLTex(GL_TEXTURE1, width / 2, height / 2, format, YUVPlane::U,
+            YUVConverter::createYUVGLTex(GL_TEXTURE1, width / 2, height / 2, format, m_features.Yuv420888ToNv21.enabled, YUVPlane::U,
                                          &output[3 * i + 1]);
-            YUVConverter::createYUVGLTex(GL_TEXTURE2, width / 2, height / 2, format, YUVPlane::V,
+            YUVConverter::createYUVGLTex(GL_TEXTURE2, width / 2, height / 2, format, m_features.Yuv420888ToNv21.enabled, YUVPlane::V,
                                          &output[3 * i + 2]);
         }
     }

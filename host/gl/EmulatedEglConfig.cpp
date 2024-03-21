@@ -15,8 +15,8 @@
 #include "EmulatedEglConfig.h"
 
 #include "OpenGLESDispatch/EGLDispatch.h"
+#include "gfxstream/host/Features.h"
 #include "host-common/opengl/emugl_config.h"
-#include "host-common/feature_control.h"
 #include "host-common/logging.h"
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
@@ -102,10 +102,12 @@ bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
 
 EmulatedEglConfig::EmulatedEglConfig(EGLint guestConfig,
                                      EGLConfig hostConfig,
-                                     EGLDisplay hostDisplay)
+                                     EGLDisplay hostDisplay,
+                                     bool glesDynamicVersion)
         : mGuestConfig(guestConfig),
           mHostConfig(hostConfig),
-          mAttribValues(kConfigAttributesLen) {
+          mAttribValues(kConfigAttributesLen),
+          mGlesDynamicVersion(glesDynamicVersion) {
     for (size_t i = 0; i < kConfigAttributesLen; ++i) {
         mAttribValues[i] = 0;
         s_egl.eglGetConfigAttrib(hostDisplay,
@@ -121,9 +123,7 @@ EmulatedEglConfig::EmulatedEglConfig(EGLint guestConfig,
 
         // Don't report ES3 renderable type if we don't support it.
         if (kConfigAttributes[i] == EGL_RENDERABLE_TYPE) {
-            if (!feature_is_enabled(
-                        kFeature_GLESDynamicVersion) &&
-                mAttribValues[i] & EGL_OPENGL_ES3_BIT) {
+            if (!mGlesDynamicVersion && mAttribValues[i] & EGL_OPENGL_ES3_BIT) {
                 mAttribValues[i] &= ~EGL_OPENGL_ES3_BIT;
             }
         }
@@ -131,8 +131,11 @@ EmulatedEglConfig::EmulatedEglConfig(EGLint guestConfig,
 }
 
 EmulatedEglConfigList::EmulatedEglConfigList(EGLDisplay display,
-                                             GLESDispatchMaxVersion version)
-        : mDisplay(display), mGlesDispatchMaxVersion(version) {
+                                             GLESDispatchMaxVersion version,
+                                             const gfxstream::host::FeatureSet& features)
+        : mDisplay(display),
+          mGlesDispatchMaxVersion(version),
+          mGlesDynamicVersion(features.GlesDynamicVersion.enabled) {
     if (display == EGL_NO_DISPLAY) {
         ERR("Invalid display value %p (EGL_NO_DISPLAY).", (void*)display);
         return;
@@ -153,7 +156,7 @@ EmulatedEglConfigList::EmulatedEglConfigList(EGLDisplay display,
         }
 
         const EGLint guestConfig = static_cast<EGLint>(mConfigs.size());
-        mConfigs.push_back(EmulatedEglConfig(guestConfig, hostConfig, display));
+        mConfigs.push_back(EmulatedEglConfig(guestConfig, hostConfig, display, mGlesDynamicVersion));
     }
 }
 
@@ -188,10 +191,7 @@ int EmulatedEglConfigList::chooseConfig(const EGLint* attribs,
         if (attribs[numAttribs] == EGL_RENDERABLE_TYPE) {
             if (attribs[numAttribs + 1] != EGL_DONT_CARE &&
                 attribs[numAttribs + 1] & EGL_OPENGL_ES3_BIT_KHR &&
-                (!feature_is_enabled(
-                         kFeature_GLESDynamicVersion) ||
-                 mGlesDispatchMaxVersion <
-                         GLES_DISPATCH_MAX_VERSION_3_0)) {
+                (!mGlesDynamicVersion || mGlesDispatchMaxVersion < GLES_DISPATCH_MAX_VERSION_3_0)) {
                 return 0;
             }
         }

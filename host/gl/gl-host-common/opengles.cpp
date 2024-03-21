@@ -128,10 +128,12 @@ int android_initOpenglesEmulation() {
 }
 
 int
-android_startOpenglesRenderer(int width, int height, bool guestPhoneApi, int guestApiLevel,
+android_startOpenglesRenderer(int width, int height,
+                              bool guestPhoneApi, int guestApiLevel,
                               const QAndroidVmOperations *vm_operations,
                               const QAndroidEmulatorWindowAgent *window_agent,
                               const QAndroidMultiDisplayAgent *multi_display_agent,
+                              const void* gfxstreamFeatures,
                               int* glesMajorVersion_out,
                               int* glesMinorVersion_out)
 {
@@ -175,7 +177,8 @@ android_startOpenglesRenderer(int width, int height, bool guestPhoneApi, int gue
     // sRenderLib->setUsageTracker(android::base::CpuUsage::get(),
     //                             android::base::MemoryTracker::get());
 
-    sRenderer = sRenderLib->initRenderer(width, height, sRendererUsesSubWindow, sEgl2egl);
+    const auto* features = reinterpret_cast<const gfxstream::host::FeatureSet*>(gfxstreamFeatures);
+    sRenderer = sRenderLib->initRenderer(width, height, *features, sRendererUsesSubWindow, sEgl2egl);
     android_setOpenglesRenderer(&sRenderer);
 
     // android::snapshot::Snapshotter::get().addOperationCallback(
