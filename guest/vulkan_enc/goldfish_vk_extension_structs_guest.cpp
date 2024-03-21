@@ -190,6 +190,8 @@ namespace vk {
 #endif
 #ifdef VK_EXT_device_memory_report
 #endif
+#ifdef VK_EXT_robustness2
+#endif
 #ifdef VK_EXT_custom_border_color
 #endif
 #ifdef VK_EXT_private_data
@@ -751,6 +753,14 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         }
         case VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT: {
             return sizeof(VkDeviceDeviceMemoryReportCreateInfoEXT);
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceRobustness2FeaturesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            return sizeof(VkPhysicalDeviceRobustness2PropertiesEXT);
         }
 #endif
 #ifdef VK_EXT_custom_border_color
@@ -1362,6 +1372,14 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT: {
             return sizeof(VkDeviceDeviceMemoryReportCreateInfoEXT);
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceRobustness2FeaturesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            return sizeof(VkPhysicalDeviceRobustness2PropertiesEXT);
         }
 #endif
 #ifdef VK_EXT_custom_border_color
