@@ -1,0 +1,79 @@
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_license//rules:license_kind.bzl", "license_kind")
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
+)
+
+license(
+    name = "license",
+    license_kinds = [
+        ":SPDX-license-identifier-Apache-2.0",
+        ":SPDX-license-identifier-BSD",
+        ":SPDX-license-identifier-CC-BY-4.0",
+        ":SPDX-license-identifier-ISC",
+        ":SPDX-license-identifier-MIT",
+        ":SPDX-license-identifier-BSL-1.0",
+    ],
+    visibility = [":__subpackages__"],
+)
+
+license_kind(
+    name = "SPDX-license-identifier-Apache-2.0",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/Apache-2.0.html",
+)
+
+license_kind(
+    name = "SPDX-license-identifier-BSD-3-Clause",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/BSD-3-Clause.html",
+)
+
+license_kind(
+    name = "SPDX-license-identifier-CC-BY-4.0",
+    conditions = [
+        "notice",
+        "attribution",
+    ],
+    url = "https://spdx.org/licenses/CC-BY-4.0.html",
+)
+
+license_kind(
+    name = "SPDX-license-identifier-ISC",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/ISC.html",
+)
+
+license_kind(
+    name = "SPDX-license-identifier-MIT",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/MIT.html",
+)
+
+license_kind(
+    name = "SPDX-license-identifier-BSL-1.0",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/BSL-1.0.html",
+)
+
+license_kind(
+    name = "SPDX-license-identifier-BSD",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/BSD-3-Clause.html",
+)
+
+cc_library(
+    name = "gfxstream-gl-host-common-headers",
+    hdrs = glob([
+        "include/**/*.h",
+        "include/**/*.hpp",
+    ]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//hardware/google/aemu/base:aemu-base-headers",
+        "//hardware/google/aemu/host-common:aemu-host-common-headers",
+    ],
+)

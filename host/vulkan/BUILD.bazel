@@ -1,0 +1,152 @@
+cc_library(
+    name = "gfxstream-vulkan-server",
+    srcs = [
+        "BorrowedImageVk.cpp",
+        "BufferVk.cpp",
+        "ColorBufferVk.cpp",
+        "CompositorVk.cpp",
+        "DebugUtilsHelper.cpp",
+        "DisplaySurfaceVk.cpp",
+        "DisplayVk.cpp",
+        "PostWorkerVk.cpp",
+        "RenderThreadInfoVk.cpp",
+        "SwapChainStateVk.cpp",
+        "VkAndroidNativeBuffer.cpp",
+        "VkCommonOperations.cpp",
+        "VkDecoder.cpp",
+        "VkDecoderGlobalState.cpp",
+        "VkDecoderSnapshot.cpp",
+        "VkDecoderSnapshotUtils.cpp",
+        "VkFormatUtils.cpp",
+        "VkReconstruction.cpp",
+        "VulkanDispatch.cpp",
+        "VulkanHandleMapping.cpp",
+        "VulkanStream.cpp",
+        "vk_util.cpp",
+    ] + glob([
+        "**/*.h",
+        "*.h",
+    ]),
+    hdrs = [
+        "VkDecoderGlobalState.cpp",
+        "VkSubDecoder.cpp",
+    ],
+    copts = [
+        "-Wno-return-type-c-linkage",
+        "-Wno-extern-c-compat",
+    ],
+    defines = [
+        "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
+        "EMUGL_BUILD",
+        "BUILDING_EMUGL_COMMON_SHARED",
+        "GFXSTREAM_ENABLE_HOST_GLES=1",
+    ] + select({
+        "@platforms//os:macos": [
+            "VK_USE_PLATFORM_METAL_EXT",
+            "VK_USE_PLATFORM_MACOS_MVK",
+        ],
+        "@platforms//os:windows": ["VK_USE_PLATFORM_WIN32_KHR"],
+        "@platforms//os:linux": [],
+        "//conditions:default": [],
+    }),
+    includes = [
+        ".",
+        "cereal",
+        "cereal/common",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        # "//external/angle:angle-headers",
+        "//hardware/google/aemu/snapshot:aemu-snapshot",
+        "//hardware/google/gfxstream/common/vulkan:gfxstream_vulkan_headers",
+        "//hardware/google/gfxstream/host:gfxstream-compressedTextures",
+        "//hardware/google/gfxstream/host:gfxstream_host_headers",
+        "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//hardware/google/gfxstream/host/gl:gfxstream-gl-host-common",
+        "//hardware/google/gfxstream/host/gl:gl_headers",
+        "//hardware/google/gfxstream/host/vulkan:OpenglRender_vulkan_cereal",
+        "//hardware/google/gfxstream/host/vulkan:emulated_textures",
+        "//hardware/google/gfxstream/third-party/glm",
+        "//hardware/google/gfxstream/third-party/renderdoc",
+        "//hardware/google/gfxstream/utils:gfxstream_utils",
+    ],
+)
+
+cc_library(
+    name = "OpenglRender_vulkan_cereal",
+    srcs = [
+        "cereal/common/goldfish_vk_deepcopy.cpp",
+        "cereal/common/goldfish_vk_dispatch.cpp",
+        "cereal/common/goldfish_vk_extension_structs.cpp",
+        "cereal/common/goldfish_vk_marshaling.cpp",
+        "cereal/common/goldfish_vk_reserved_marshaling.cpp",
+        "cereal/common/goldfish_vk_transform.cpp",
+    ] + glob([
+        "**/*.h",
+        "*.h",
+    ]),
+    defines = [
+        "EMUGL_BUILD",
+        "BUILDING_EMUGL_COMMON_SHARED",
+        "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
+        "VK_GOOGLE_gfxstream",
+    ] + select({
+        "@platforms//os:macos": [
+            "VK_USE_PLATFORM_METAL_EXT",
+            "VK_USE_PLATFORM_MACOS_MVK",
+        ],
+        "@platforms//os:windows": ["VK_USE_PLATFORM_WIN32_KHR"],
+        "@platforms//os:linux": [],
+        "//conditions:default": [],
+    }),
+    includes = [
+        ".",
+        "cereal/common",
+    ],
+    deps = [
+        "//hardware/google/aemu/base:aemu-base-headers",
+        "//hardware/google/aemu/host-common:aemu-host-common-headers",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/common/vulkan:gfxstream_vulkan_headers",
+        "//hardware/google/gfxstream/host:gfxstream_host_headers",
+        "//hardware/google/gfxstream/host/features:gfxstream_features",
+        "//hardware/google/gfxstream/utils:gfxstream_utils",
+    ],
+)
+
+cc_library(
+    name = "emulated_textures",
+    srcs = [
+        "emulated_textures/AstcTexture.cpp",
+        "emulated_textures/CompressedImageInfo.cpp",
+        "emulated_textures/GpuDecompressionPipeline.cpp",
+    ] + glob([
+        "**/*.h",
+        "**/*.inl",
+    ]),
+    defines = [
+        "EMUGL_BUILD",
+        "BUILDING_EMUGL_COMMON_SHARED",
+        "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
+        "VK_GOOGLE_gfxstream",
+    ] + select({
+        "@platforms//os:macos": [
+            "VK_USE_PLATFORM_METAL_EXT",
+            "VK_USE_PLATFORM_MACOS_MVK",
+        ],
+        "@platforms//os:windows": ["VK_USE_PLATFORM_WIN32_KHR"],
+        "@platforms//os:linux": [],
+        "//conditions:default": [],
+    }),
+    includes = [
+        ".",
+        "cereal/common",
+    ],
+    deps = [
+        "//hardware/google/aemu/host-common:aemu-host-common-headers",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/common/vulkan:gfxstream_vulkan_headers",
+        "//hardware/google/gfxstream/host:gfxstream_host_headers",
+        "//hardware/google/gfxstream/utils:gfxstream_utils",
+    ],
+)

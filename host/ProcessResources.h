@@ -18,6 +18,7 @@
 
 #include <atomic>
 #include <memory>
+#include "aemu/base/Compiler.h"
 
 namespace gfxstream {
 

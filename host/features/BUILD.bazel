@@ -1,0 +1,6 @@
+cc_library(
+    name = "gfxstream_features",
+    srcs = ["Features.cpp"] + glob(["include/**/*.h"]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
