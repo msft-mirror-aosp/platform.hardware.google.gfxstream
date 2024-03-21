@@ -204,6 +204,8 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
 #endif
 #ifdef VK_EXT_device_memory_report
 #endif
+#ifdef VK_EXT_robustness2
+#endif
 #ifdef VK_EXT_custom_border_color
 #endif
 #ifdef VK_EXT_private_data
