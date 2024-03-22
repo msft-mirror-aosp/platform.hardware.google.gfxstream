@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <log/log.h>
+
 #include "GfxstreamEnd2EndTests.h"
+#include "drm_fourcc.h"
 
 namespace gfxstream {
 namespace tests {
@@ -26,39 +29,106 @@ using testing::IsTrue;
 using testing::Le;
 using testing::Not;
 
-class GfxstreamEnd2EndGlTest : public GfxstreamEnd2EndTest {};
+struct PixelR8G8B8A8 {
+    PixelR8G8B8A8(uint8_t rr, uint8_t gg, uint8_t bb, uint8_t aa) : r(rr), g(gg), b(bb), a(aa) {}
+
+    PixelR8G8B8A8(int xx, int yy, uint8_t rr, uint8_t gg, uint8_t bb, uint8_t aa)
+        : x(xx), y(yy), r(rr), g(gg), b(bb), a(aa) {}
+
+    std::optional<int> x;
+    std::optional<int> y;
+
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+
+    std::string ToString() const {
+        std::string ret = std::string("Pixel");
+        if (x) {
+            ret += std::string(" x:") + std::to_string(*x);
+        }
+        if (y) {
+            ret += std::string(" y:") + std::to_string(*y);
+        }
+        ret += std::string(" {");
+        ret += std::string(" r:") + std::to_string(static_cast<int>(r));
+        ret += std::string(" g:") + std::to_string(static_cast<int>(g));
+        ret += std::string(" b:") + std::to_string(static_cast<int>(b));
+        ret += std::string(" a:") + std::to_string(static_cast<int>(a));
+        ret += std::string(" }");
+        return ret;
+    }
+
+    friend void PrintTo(const PixelR8G8B8A8& pixel, std::ostream* os) { *os << pixel.ToString(); }
+};
+
+MATCHER_P4(IsOkWithRGBA, r, g, b, a,
+           std::string(" equals ") + PixelR8G8B8A8(r, g, b, a).ToString()) {
+    const auto& actual = arg;
+
+    if (actual.ok() && actual.value().r == r && actual.value().g == g && actual.value().b == b &&
+        actual.value().a == a) {
+        return true;
+    }
+
+    if (actual.ok()) {
+        *result_listener << "actual: " << actual.value().ToString();
+    } else {
+        *result_listener << "actual: {" << " error: " << actual.error() << " };";
+    }
+    return false;
+}
+
+class GfxstreamEnd2EndGlTest : public GfxstreamEnd2EndTest {
+   protected:
+    GlExpected<PixelR8G8B8A8> GetPixelAt(GLint x, GLint y) {
+        if (!mGl) {
+            return android::base::unexpected("GL not available, running with `with_gl = false`?");
+        }
+
+        GLubyte rgba[4] = {0, 0, 0, 0};
+        mGl->glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+
+        if (GLenum error = mGl->glGetError(); error != GL_NO_ERROR) {
+            return android::base::unexpected("Failed to glReadPixels() with error " +
+                                             std::to_string(error));
+        }
+
+        return PixelR8G8B8A8(x, y, rgba[0], rgba[1], rgba[2], rgba[3]);
+    }
+
+    void SetUp() override {
+        GfxstreamEnd2EndTest::SetUp();
+
+        SetUpEglContextAndSurface(2, mSurfaceWidth, mSurfaceHeight, &mDisplay, &mContext,
+                                  &mSurface);
+    }
+
+    void TearDown() override {
+        TearDownEglContextAndSurface(mDisplay, mContext, mSurface);
+
+        GfxstreamEnd2EndTest::TearDown();
+    }
+
+    int mSurfaceWidth = 32;
+    int mSurfaceHeight = 32;
+    EGLDisplay mDisplay;
+    EGLContext mContext;
+    EGLSurface mSurface;
+};
 
 TEST_P(GfxstreamEnd2EndGlTest, BasicViewport) {
-    constexpr const int width = 32;
-    constexpr const int height = 32;
-
-    EGLDisplay display;
-    EGLContext context;
-    EGLSurface surface;
-    SetUpEglContextAndSurface(2, width, height, &display, &context, &surface);
-
     GLint viewport[4] = {};
     mGl->glGetIntegerv(GL_VIEWPORT, viewport);
 
     EXPECT_THAT(viewport[0], Eq(0));
     EXPECT_THAT(viewport[1], Eq(0));
-    EXPECT_THAT(viewport[2], Eq(width));
-    EXPECT_THAT(viewport[3], Eq(height));
-
-    TearDownEglContextAndSurface(display, context, surface);
+    EXPECT_THAT(viewport[2], Eq(mSurfaceWidth));
+    EXPECT_THAT(viewport[3], Eq(mSurfaceHeight));
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, CreateWindowSurface) {
-
-    EGLDisplay display = mGl->eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    ASSERT_THAT(display, Not(Eq(EGL_NO_DISPLAY)));
-
-    int versionMajor = 0;
-    int versionMinor = 0;
-    ASSERT_THAT(mGl->eglInitialize(display, &versionMajor, &versionMinor), IsTrue());
-
-    ASSERT_THAT(mGl->eglBindAPI(EGL_OPENGL_ES_API), IsTrue());
-
     // clang-format off
     static const EGLint configAttributes[] = {
         EGL_SURFACE_TYPE,    EGL_PBUFFER_BIT,
@@ -68,11 +138,13 @@ TEST_P(GfxstreamEnd2EndGlTest, CreateWindowSurface) {
     // clang-format on
 
     int numConfigs = 0;
-    ASSERT_THAT(mGl->eglChooseConfig(display, configAttributes, nullptr, 1, &numConfigs), IsTrue());
+    ASSERT_THAT(mGl->eglChooseConfig(mDisplay, configAttributes, nullptr, 1, &numConfigs),
+                IsTrue());
     ASSERT_THAT(numConfigs, Gt(0));
 
     EGLConfig config = nullptr;
-    ASSERT_THAT(mGl->eglChooseConfig(display, configAttributes, &config, 1, &numConfigs), IsTrue());
+    ASSERT_THAT(mGl->eglChooseConfig(mDisplay, configAttributes, &config, 1, &numConfigs),
+                IsTrue());
     ASSERT_THAT(config, Not(Eq(nullptr)));
 
     // clang-format off
@@ -82,7 +154,7 @@ TEST_P(GfxstreamEnd2EndGlTest, CreateWindowSurface) {
     };
     // clang-format on
 
-    EGLContext context = mGl->eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs);
+    EGLContext context = mGl->eglCreateContext(mDisplay, config, EGL_NO_CONTEXT, contextAttribs);
     ASSERT_THAT(context, Not(Eq(EGL_NO_CONTEXT)));
 
     constexpr const int width = 32;
@@ -90,10 +162,10 @@ TEST_P(GfxstreamEnd2EndGlTest, CreateWindowSurface) {
 
     auto anw = mAnwHelper->createNativeWindowForTesting(mGralloc.get(), width, height);
 
-    EGLSurface surface = mGl->eglCreateWindowSurface(display, config, anw, nullptr);
+    EGLSurface surface = mGl->eglCreateWindowSurface(mDisplay, config, anw, nullptr);
     ASSERT_THAT(surface, Not(Eq(EGL_NO_SURFACE)));
 
-    ASSERT_THAT(mGl->eglMakeCurrent(display, surface, surface, context), IsTrue());
+    ASSERT_THAT(mGl->eglMakeCurrent(mDisplay, surface, surface, context), IsTrue());
 
     constexpr const int iterations = 120;
     for (int i = 0; i < iterations; i++) {
@@ -101,48 +173,29 @@ TEST_P(GfxstreamEnd2EndGlTest, CreateWindowSurface) {
         mGl->glClearColor(1.0f, 0.0f, static_cast<float>(i) / static_cast<float>(iterations), 1.0f);
         mGl->glClear(GL_COLOR_BUFFER_BIT);
         mGl->glFinish();
-        mGl->eglSwapBuffers(display, surface);
+        mGl->eglSwapBuffers(mDisplay, surface);
     }
 
-    ASSERT_THAT(mGl->eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT), IsTrue());
-    ASSERT_THAT(mGl->eglDestroyContext(display, context), IsTrue());
-    ASSERT_THAT(mGl->eglDestroySurface(display, surface), IsTrue());
-    mAnwHelper->release(anw);
+    ASSERT_THAT(mGl->eglDestroyContext(mDisplay, context), IsTrue());
+    ASSERT_THAT(mGl->eglDestroySurface(mDisplay, surface), IsTrue());
 
-    TearDownGuest();
+    mAnwHelper->release(anw);
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, SwitchContext) {
-    constexpr const int width = 32;
-    constexpr const int height = 32;
-
-    EGLDisplay display;
-    EGLContext context;
-    EGLSurface surface;
-    SetUpEglContextAndSurface(2, width, height, &display, &context, &surface);
-
-    ASSERT_THAT(mGl->eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT), IsTrue());
+    ASSERT_THAT(mGl->eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT),
+                IsTrue());
     for (int i = 0; i < 100; i++) {
-        ASSERT_THAT(mGl->eglMakeCurrent(display, surface, surface, context), IsTrue());
-        ASSERT_THAT(mGl->eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT), IsTrue());
+        ASSERT_THAT(mGl->eglMakeCurrent(mDisplay, mSurface, mSurface, mContext), IsTrue());
+        ASSERT_THAT(mGl->eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT),
+                    IsTrue());
     }
-
-    TearDownEglContextAndSurface(display, context, surface);
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, MappedMemory) {
-    constexpr const int width = 32;
-    constexpr const int height = 32;
-
-    EGLDisplay display;
-    EGLContext context;
-    EGLSurface surface;
-    SetUpEglContextAndSurface(3, width, height, &display, &context, &surface);
-
     constexpr GLsizei kBufferSize = 64;
 
-    GLuint buffer;
-    mGl->glGenBuffers(1, &buffer);
+    ScopedGlBuffer buffer(*mGl);
     mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
     mGl->glBufferData(GL_ARRAY_BUFFER, kBufferSize, 0, GL_DYNAMIC_DRAW);
 
@@ -176,9 +229,6 @@ TEST_P(GfxstreamEnd2EndGlTest, MappedMemory) {
     }
 
     mGl->glBindBuffer(GL_ARRAY_BUFFER, 0);
-    mGl->glDeleteBuffers(1, &buffer);
-
-    TearDownEglContextAndSurface(display, context, surface);
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, ContextStrings) {
@@ -270,14 +320,6 @@ TEST_P(GfxstreamEnd2EndGlTest, ContextStrings) {
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, FramebufferFetchShader) {
-    constexpr const int width = 32;
-    constexpr const int height = 32;
-
-    EGLDisplay display;
-    EGLContext context;
-    EGLSurface surface;
-    SetUpEglContextAndSurface(3, width, height, &display, &context, &surface);
-
     const std::string extensionsString = (const char*)mGl->glGetString(GL_EXTENSIONS);
     ASSERT_THAT(extensionsString, Not(IsEmpty()));
 
@@ -297,23 +339,12 @@ void main() {
     auto result = SetUpShader(GL_FRAGMENT_SHADER, shaderSource);
     if (result.ok()) {
         ASSERT_THAT(supportsFramebufferFetch, Eq(GL_TRUE));
-        mGl->glDeleteShader(*result);
     } else {
         ASSERT_THAT(supportsFramebufferFetch, Eq(GL_FALSE));
     }
-
-    TearDownEglContextAndSurface(display, context, surface);
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, ConstantMatrixShader) {
-    constexpr const int width = 32;
-    constexpr const int height = 32;
-
-    EGLDisplay display;
-    EGLContext context;
-    EGLSurface surface;
-    SetUpEglContextAndSurface(2, width, height, &display, &context, &surface);
-
     const std::string shaderSource = R"(\
 #version 300 es
 precision mediump float;
@@ -334,20 +365,9 @@ void main() {
 
     auto result = SetUpShader(GL_VERTEX_SHADER, shaderSource);
     ASSERT_THAT(result, IsOk());
-    mGl->glDeleteShader(result.value());
-
-    TearDownEglContextAndSurface(display, context, surface);
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, Draw) {
-    constexpr const int width = 32;
-    constexpr const int height = 32;
-
-    EGLDisplay display;
-    EGLContext context;
-    EGLSurface surface;
-    SetUpEglContextAndSurface(2, width, height, &display, &context, &surface);
-
     const std::string vertSource = R"(\
 #version 300 es
 precision highp float;
@@ -378,9 +398,7 @@ void main() {
 }
     )";
 
-    auto programResult = SetUpProgram(vertSource, fragSource);
-    ASSERT_THAT(programResult, IsOk());
-    auto program = programResult.value();
+    ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
 
     GLint transformUniformLocation = mGl->glGetUniformLocation(program, "transform");
     mGl->glEnableVertexAttribArray(0);
@@ -398,8 +416,7 @@ void main() {
         // clang-format on
     };
 
-    GLuint buffer;
-    mGl->glGenBuffers(1, &buffer);
+    ScopedGlBuffer buffer(*mGl);
     mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
     mGl->glBufferData(GL_ARRAY_BUFFER, sizeof(vertexAttrs), vertexAttrs, GL_STATIC_DRAW);
 
@@ -430,14 +447,303 @@ void main() {
     }
 
     mGl->glFinish();
-
     mGl->glBindBuffer(GL_ARRAY_BUFFER, 0);
-    mGl->glDeleteBuffers(1, &buffer);
-
     mGl->glUseProgram(0);
-    mGl->glDeleteProgram(program);
+}
 
-    TearDownEglContextAndSurface(display, context, surface);
+TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
+    const uint32_t width = 2;
+    const uint32_t height = 2;
+    auto ahb =
+        GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, DRM_FORMAT_ABGR8888));
+
+    {
+        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        uint32_t pos = 0;
+        for (uint32_t h = 0; h < height; h++) {
+            for (uint32_t w = 0; w < width; w++) {
+                mapped[pos++] = 0;
+                mapped[pos++] = 0;
+                mapped[pos++] = 128;
+                mapped[pos++] = 255;
+            }
+        }
+        ahb.Unlock();
+    }
+
+    const EGLint ahbImageAttribs[] = {
+        // clang-format off
+        EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
+        EGL_NONE,
+        // clang-format on
+    };
+    EGLImageKHR ahbImage = mGl->eglCreateImageKHR(mDisplay, EGL_NO_CONTEXT,
+                                                  EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+    ASSERT_THAT(ahbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+    ScopedGlTexture ahbTexture(*mGl);
+    mGl->glBindTexture(GL_TEXTURE_EXTERNAL_OES, ahbTexture);
+    mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, ahbImage);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    GLenum programBinaryFormat = GL_NONE;
+    std::vector<uint8_t> programBinaryData;
+    {
+        const std::string vertSource = R"(\
+            #version 300 es
+
+            layout (location = 0) in vec2 pos;
+            layout (location = 1) in vec2 tex;
+
+            out vec2 vTex;
+
+            void main() {
+                gl_Position = vec4(pos, 0.0, 1.0);
+                vTex = tex;
+            })";
+
+        const std::string fragSource = R"(\
+            #version 300 es
+
+            precision highp float;
+
+            uniform float uMultiplier;
+            uniform sampler2D uTexture;
+
+            in vec2 vTex;
+
+            out vec4 oColor;
+
+            void main() {
+                oColor = texture(uTexture, vTex) * uMultiplier;
+            })";
+
+        ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
+
+        GLint programBinaryLength = 0;
+        mGl->glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &programBinaryLength);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        programBinaryData.resize(programBinaryLength);
+
+        GLint readProgramBinaryLength = 0;
+        mGl->glGetProgramBinary(program, programBinaryLength, &readProgramBinaryLength,
+                                &programBinaryFormat, programBinaryData.data());
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        ASSERT_THAT(programBinaryLength, Eq(readProgramBinaryLength));
+    }
+
+    ScopedGlProgram program = GL_ASSERT(SetUpProgram(programBinaryFormat, programBinaryData));
+    ASSERT_THAT(program, Not(Eq(0)));
+
+    GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+    ASSERT_THAT(textureUniformLoc, Not(Eq(-1)));
+
+    GLint multiplierUniformLoc = mGl->glGetUniformLocation(program, "uMultiplier");
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+    ASSERT_THAT(multiplierUniformLoc, Not(Eq(-1)));
+
+    const GLsizei kFramebufferWidth = 4;
+    const GLsizei kFramebufferHeight = 4;
+    ScopedGlFramebuffer framebuffer(*mGl);
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    ScopedGlTexture framebufferTexture(*mGl);
+    mGl->glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+    mGl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA,
+                      GL_UNSIGNED_BYTE, nullptr);
+    mGl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                framebufferTexture, 0);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+    ASSERT_THAT(mGl->glCheckFramebufferStatus(GL_FRAMEBUFFER), Eq(GL_FRAMEBUFFER_COMPLETE));
+    mGl->glBindTexture(GL_TEXTURE_2D, 0);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    struct VertexAttributes {
+        float pos[2];
+        float tex[2];
+    };
+    const VertexAttributes vertexAttrs[] = {
+        // clang-format off
+        { { -1.0f, -1.0f,}, { 0.0f, 0.0f }, },
+        { {  3.0f, -1.0f,}, { 2.0f, 0.0f }, },
+        { { -1.0f,  3.0f,}, { 0.0f, 2.0f }, },
+        // clang-format on
+    };
+    ScopedGlBuffer buffer(*mGl);
+    mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    mGl->glBufferData(GL_ARRAY_BUFFER, sizeof(vertexAttrs), vertexAttrs, GL_STATIC_DRAW);
+
+    mGl->glUseProgram(program);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    mGl->glEnableVertexAttribArray(0);
+    mGl->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                               (GLvoid*)offsetof(VertexAttributes, pos));
+    mGl->glEnableVertexAttribArray(1);
+    mGl->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                               (GLvoid*)offsetof(VertexAttributes, tex));
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    mGl->glActiveTexture(GL_TEXTURE0);
+    mGl->glBindTexture(GL_TEXTURE_2D, ahbTexture);
+    mGl->glUniform1i(textureUniformLoc, 0);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    mGl->glUniform1f(multiplierUniformLoc, 2.0f);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    mGl->glDrawArrays(GL_TRIANGLES, 0, 3);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    for (int x = 0; x < kFramebufferWidth; x++) {
+        for (int y = 0; y < kFramebufferHeight; y++) {
+            EXPECT_THAT(GetPixelAt(x, y), IsOkWithRGBA(0, 0, 255, 255));
+        }
+    }
+
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithTexture) {
+    const GLsizei kTextureWidth = 2;
+    const GLsizei kTextureHeight = 2;
+    const GLubyte kTextureData[16] = {
+        // clang-format off
+        0, 0, 128, 255,   0, 0, 128, 255,
+
+        0, 0, 128, 255,   0, 0, 128, 255,
+        // clang-format on
+    };
+    ScopedGlTexture texture(*mGl);
+    mGl->glBindTexture(GL_TEXTURE_2D, texture);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    mGl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kTextureWidth, kTextureHeight, 0, GL_RGBA,
+                      GL_UNSIGNED_BYTE, kTextureData);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    GLenum programBinaryFormat = GL_NONE;
+    std::vector<uint8_t> programBinaryData;
+    {
+        const std::string vertSource = R"(\
+            #version 300 es
+
+            layout (location = 0) in vec2 pos;
+            layout (location = 1) in vec2 tex;
+
+            out vec2 vTex;
+
+            void main() {
+                gl_Position = vec4(pos, 0.0, 1.0);
+                vTex = tex;
+            })";
+
+        const std::string fragSource = R"(\
+            #version 300 es
+
+            precision highp float;
+
+            uniform float uMultiplier;
+            uniform sampler2D uTexture;
+
+            in vec2 vTex;
+
+            out vec4 oColor;
+
+            void main() {
+                oColor = texture(uTexture, vTex) * uMultiplier;
+            })";
+
+        ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
+
+        GLint programBinaryLength = 0;
+        mGl->glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &programBinaryLength);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        programBinaryData.resize(programBinaryLength);
+
+        GLint readProgramBinaryLength = 0;
+        mGl->glGetProgramBinary(program, programBinaryLength, &readProgramBinaryLength,
+                                &programBinaryFormat, programBinaryData.data());
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        ASSERT_THAT(programBinaryLength, Eq(readProgramBinaryLength));
+    }
+
+    ScopedGlProgram program = GL_ASSERT(SetUpProgram(programBinaryFormat, programBinaryData));
+    ASSERT_THAT(program, Not(Eq(0)));
+
+    GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+    ASSERT_THAT(textureUniformLoc, Not(Eq(-1)));
+
+    GLint multiplierUniformLoc = mGl->glGetUniformLocation(program, "uMultiplier");
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+    ASSERT_THAT(multiplierUniformLoc, Not(Eq(-1)));
+
+    const GLsizei kFramebufferWidth = 4;
+    const GLsizei kFramebufferHeight = 4;
+    ScopedGlFramebuffer framebuffer(*mGl);
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    ScopedGlTexture framebufferTexture(*mGl);
+    mGl->glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+    mGl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA,
+                      GL_UNSIGNED_BYTE, nullptr);
+    mGl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                framebufferTexture, 0);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+    ASSERT_THAT(mGl->glCheckFramebufferStatus(GL_FRAMEBUFFER), Eq(GL_FRAMEBUFFER_COMPLETE));
+    mGl->glBindTexture(GL_TEXTURE_2D, 0);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    struct VertexAttributes {
+        float pos[2];
+        float tex[2];
+    };
+    const VertexAttributes vertexAttrs[] = {
+        // clang-format off
+        { { -1.0f, -1.0f,}, { 0.0f, 0.0f }, },
+        { {  3.0f, -1.0f,}, { 2.0f, 0.0f }, },
+        { { -1.0f,  3.0f,}, { 0.0f, 2.0f }, },
+        // clang-format on
+    };
+    ScopedGlBuffer buffer(*mGl);
+    mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    mGl->glBufferData(GL_ARRAY_BUFFER, sizeof(vertexAttrs), vertexAttrs, GL_STATIC_DRAW);
+
+    mGl->glUseProgram(program);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    mGl->glEnableVertexAttribArray(0);
+    mGl->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                               (GLvoid*)offsetof(VertexAttributes, pos));
+    mGl->glEnableVertexAttribArray(1);
+    mGl->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                               (GLvoid*)offsetof(VertexAttributes, tex));
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    mGl->glActiveTexture(GL_TEXTURE0);
+    mGl->glBindTexture(GL_TEXTURE_2D, texture);
+    mGl->glUniform1i(textureUniformLoc, 0);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    mGl->glUniform1f(multiplierUniformLoc, 2.0f);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    mGl->glDrawArrays(GL_TRIANGLES, 0, 3);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    for (int x = 0; x < kFramebufferWidth; x++) {
+        for (int y = 0; y < kFramebufferHeight; y++) {
+            EXPECT_THAT(GetPixelAt(x, y), IsOkWithRGBA(0, 0, 255, 255));
+        }
+    }
+
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndGlTest,

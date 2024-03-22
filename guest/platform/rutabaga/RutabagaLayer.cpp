@@ -101,8 +101,13 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
 
     int TransferFromHost(uint32_t contextId, uint32_t resourceId, uint32_t transferOffset,
                          uint32_t transferSize);
+    int TransferFromHost(uint32_t contextId, uint32_t resourceId, uint32_t x, uint32_t y,
+                         uint32_t w, uint32_t h);
+
     int TransferToHost(uint32_t contextId, uint32_t resourceId, uint32_t transferOffset,
                        uint32_t transferSize);
+    int TransferToHost(uint32_t contextId, uint32_t resourceId, uint32_t x, uint32_t y, uint32_t w,
+                       uint32_t h);
 
     std::optional<uint32_t> CreateBlob(uint32_t contextId, uint32_t blobMem, uint32_t blobFlags,
                                        uint64_t blobId, uint64_t blobSize);
@@ -159,14 +164,18 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
     struct VirtioGpuTaskTransferToHost {
         uint32_t contextId;
         uint32_t resourceId;
-        uint32_t transferOffset;
-        uint32_t transferSize;
+        uint32_t x;
+        uint32_t y;
+        uint32_t w;
+        uint32_t h;
     };
     struct VirtioGpuTaskTransferFromHost {
         uint32_t contextId;
         uint32_t resourceId;
-        uint32_t transferOffset;
-        uint32_t transferSize;
+        uint32_t x;
+        uint32_t y;
+        uint32_t w;
+        uint32_t h;
     };
     struct VirtioGpuTaskUnrefResource {
         uint32_t resourceId;
@@ -458,6 +467,12 @@ int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferFromHost(uint32_t contextI
                                                                uint32_t resourceId,
                                                                uint32_t transferOffset,
                                                                uint32_t transferSize) {
+    return TransferFromHost(contextId, resourceId, transferOffset, 0, transferSize, 1);
+}
+
+int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferFromHost(uint32_t contextId,
+                                                               uint32_t resourceId, uint32_t x,
+                                                               uint32_t y, uint32_t w, uint32_t h) {
     EmulatedResource* resource = GetResource(resourceId);
     if (resource == nullptr) {
         ALOGE("Failed to TransferFromHost() on resource %" PRIu32 ": not found.", resourceId);
@@ -467,8 +482,10 @@ int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferFromHost(uint32_t contextI
     VirtioGpuTaskTransferFromHost task = {
         .contextId = contextId,
         .resourceId = resourceId,
-        .transferOffset = transferOffset,
-        .transferSize = transferSize,
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h,
     };
     auto waitable = EnqueueVirtioGpuTask(contextId, std::move(task));
 
@@ -484,6 +501,12 @@ int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferToHost(uint32_t contextId,
                                                              uint32_t resourceId,
                                                              uint32_t transferOffset,
                                                              uint32_t transferSize) {
+    return TransferToHost(contextId, resourceId, transferOffset, 0, transferSize, 1);
+}
+
+int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferToHost(uint32_t contextId,
+                                                             uint32_t resourceId, uint32_t x,
+                                                             uint32_t y, uint32_t w, uint32_t h) {
     EmulatedResource* resource = GetResource(resourceId);
     if (resource == nullptr) {
         ALOGE("Failed to TransferFromHost() on resource %" PRIu32 ": not found.", resourceId);
@@ -493,8 +516,10 @@ int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::TransferToHost(uint32_t contextId,
     VirtioGpuTaskTransferToHost task = {
         .contextId = contextId,
         .resourceId = resourceId,
-        .transferOffset = transferOffset,
-        .transferSize = transferSize,
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h,
     };
     auto waitable = EnqueueVirtioGpuTask(contextId, std::move(task));
 
@@ -800,7 +825,7 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskCreateResourc
     }
 
     resource->iovec.iov_base = task.resourceBytes;
-    resource->iovec.iov_len = task.params.width;
+    resource->iovec.iov_len = task.params.width * task.params.height * 4;
 
     struct rutabaga_iovecs vecs = {0};
     vecs.iovecs = &resource->iovec;
@@ -864,9 +889,11 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskSubmitCmd tas
 
 void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskTransferFromHost task) {
     struct rutabaga_transfer transfer = {0};
-    transfer.x = task.transferOffset;
-    transfer.w = task.transferSize;
-    transfer.h = 1;
+    transfer.x = task.x;
+    transfer.y = task.y;
+    transfer.z = 0;
+    transfer.w = task.w;
+    transfer.h = task.h;
     transfer.d = 1;
 
     int ret = rutabaga_resource_transfer_read(mRutabaga, task.contextId, task.resourceId, &transfer,
@@ -878,9 +905,11 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskTransferFromH
 
 void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskTransferToHost task) {
     struct rutabaga_transfer transfer = {0};
-    transfer.x = task.transferOffset;
-    transfer.w = task.transferSize;
-    transfer.h = 1;
+    transfer.x = task.x;
+    transfer.y = task.y;
+    transfer.z = 0;
+    transfer.w = task.w;
+    transfer.h = task.h;
     transfer.d = 1;
 
     int ret =
@@ -998,7 +1027,7 @@ std::shared_ptr<EmulatedVirtioGpu> EmulatedVirtioGpu::Get() {
     instance = std::shared_ptr<EmulatedVirtioGpu>(new EmulatedVirtioGpu());
 
     bool withGl = false;
-    bool withVk = true;
+    bool withVk = false;
     bool withVkSnapshots = false;
 
     struct Option {
@@ -1065,9 +1094,19 @@ int EmulatedVirtioGpu::TransferFromHost(uint32_t contextId, uint32_t resourceId,
     return mImpl->TransferFromHost(contextId, resourceId, offset, size);
 }
 
+int EmulatedVirtioGpu::TransferFromHost(uint32_t contextId, uint32_t resourceId, uint32_t x,
+                                        uint32_t y, uint32_t w, uint32_t h) {
+    return mImpl->TransferFromHost(contextId, resourceId, x, y, w, h);
+}
+
 int EmulatedVirtioGpu::TransferToHost(uint32_t contextId, uint32_t resourceId, uint32_t offset,
                                       uint32_t size) {
     return mImpl->TransferToHost(contextId, resourceId, offset, size);
+}
+
+int EmulatedVirtioGpu::TransferToHost(uint32_t contextId, uint32_t resourceId, uint32_t x,
+                                      uint32_t y, uint32_t w, uint32_t h) {
+    return mImpl->TransferToHost(contextId, resourceId, x, y, w, h);
 }
 
 std::optional<uint32_t> EmulatedVirtioGpu::CreateBlob(uint32_t contextId, uint32_t blobMem,
