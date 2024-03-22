@@ -50,7 +50,8 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     static std::shared_ptr<ColorBuffer> create(gl::EmulationGl* emulationGl,
                                                vk::VkEmulation* emulationVk, uint32_t width,
                                                uint32_t height, GLenum format,
-                                               FrameworkFormat frameworkFormat, HandleType handle);
+                                               FrameworkFormat frameworkFormat, HandleType handle,
+                                               android::base::Stream* stream = nullptr);
 
     static std::shared_ptr<ColorBuffer> onLoad(gl::EmulationGl* emulationGl,
                                                vk::VkEmulation* emulationVk,
