@@ -6591,6 +6591,8 @@ void count_VkRenderPassFragmentDensityMapCreateInfoEXT(
 #endif
 #ifdef VK_EXT_tooling_info
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 void count_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     uint32_t featureBits, VkStructureType rootType,
@@ -7019,6 +7021,41 @@ void count_VkDeviceDeviceMemoryReportCreateInfoEXT(
     *count += sizeof(VkDeviceMemoryReportFlagsEXT);
     *count += 8;
     *count += sizeof(uint8_t);
+}
+
+#endif
+#ifdef VK_EXT_robustness2
+void count_VkPhysicalDeviceRobustness2FeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+}
+
+void count_VkPhysicalDeviceRobustness2PropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkDeviceSize);
+    *count += sizeof(VkDeviceSize);
 }
 
 #endif
@@ -8484,6 +8521,22 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
             count_VkDeviceDeviceMemoryReportCreateInfoEXT(
                 featureBits, rootType,
                 reinterpret_cast<const VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension),
+                count);
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            count_VkPhysicalDeviceRobustness2FeaturesEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            count_VkPhysicalDeviceRobustness2PropertiesEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension),
                 count);
             break;
         }

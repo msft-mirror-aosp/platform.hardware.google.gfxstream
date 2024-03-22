@@ -3383,6 +3383,14 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceToolProperties,
 
 #define OP_vkGetPhysicalDeviceToolPropertiesEXT 282247593
 #endif
+#ifdef VK_EXT_validation_features
+void marshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkValidationFeaturesEXT* forMarshaling);
+
+void unmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkValidationFeaturesEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_provoking_vertex
 void marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -3644,6 +3652,24 @@ void marshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
 void unmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkDeviceDeviceMemoryReportCreateInfoEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_robustness2
+void marshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2FeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2PropertiesEXT* forUnmarshaling);
 
 #endif
 #ifdef VK_EXT_custom_border_color

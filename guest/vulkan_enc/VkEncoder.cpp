@@ -33367,6 +33367,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
 }
 
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 #endif
 #ifdef VK_EXT_line_rasterization
@@ -35156,6 +35158,8 @@ void VkEncoder::vkGetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
 #ifdef VK_EXT_texel_buffer_alignment
 #endif
 #ifdef VK_EXT_device_memory_report
+#endif
+#ifdef VK_EXT_robustness2
 #endif
 #ifdef VK_EXT_custom_border_color
 #endif

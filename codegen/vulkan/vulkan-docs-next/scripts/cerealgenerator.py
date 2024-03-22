@@ -42,6 +42,7 @@ SUPPORTED_FEATURES = [
     "VK_KHR_external_memory_capabilities",
     "VK_KHR_external_fence_capabilities",
     "VK_EXT_debug_utils",
+    "VK_EXT_validation_features",
     # Device extensions
     "VK_KHR_storage_buffer_storage_class",
     "VK_KHR_vulkan_memory_model",
@@ -81,6 +82,7 @@ SUPPORTED_FEATURES = [
     "VK_KHR_imageless_framebuffer",
     "VK_KHR_descriptor_update_template",
     "VK_EXT_depth_clip_enable",
+    "VK_EXT_robustness2",
     # see aosp/2736079 + b/268351352
     "VK_EXT_swapchain_maintenance1",
     "VK_KHR_maintenance5",
@@ -147,6 +149,7 @@ HOST_MODULES = ["goldfish_vk_extension_structs", "goldfish_vk_marshaling",
 # shouldn't generate a function table entry since it's an internal interface.
 SUPPORTED_MODULES = {
     "VK_EXT_debug_utils": HOST_MODULES,
+    "VK_EXT_validation_features": HOST_MODULES,
     "VK_KHR_surface": ["goldfish_vk_dispatch"],
     "VK_KHR_xcb_surface": ["goldfish_vk_dispatch"],
     "VK_KHR_win32_surface": ["goldfish_vk_dispatch"],
@@ -493,7 +496,7 @@ using DlSymFunc = void* (void*, const char*);
 
         decoderHeaderIncludes = f"""
 #include "VkDecoderContext.h"
-#include "host/ProcessResources.h"
+#include "ProcessResources.h"
 
 #include <memory>
 
@@ -516,7 +519,7 @@ class BumpPool;
 #include "{self.baseLibDirPrefix}/Tracing.h"
 #include "{self.baseLibDirPrefix}/Metrics.h"
 #include "render-utils/IOStream.h"
-#include "host/FrameBuffer.h"
+#include "FrameBuffer.h"
 #include "host-common/feature_control.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"

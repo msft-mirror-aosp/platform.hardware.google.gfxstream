@@ -7452,6 +7452,26 @@ void transform_fromhost_VkRenderPassFragmentDensityMapCreateInfoEXT(
 #endif
 #ifdef VK_EXT_tooling_info
 #endif
+#ifdef VK_EXT_validation_features
+void transform_tohost_VkValidationFeaturesEXT(VkDecoderGlobalState* resourceTracker,
+                                              VkValidationFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkValidationFeaturesEXT(VkDecoderGlobalState* resourceTracker,
+                                                VkValidationFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_provoking_vertex
 void transform_tohost_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -8056,6 +8076,44 @@ void transform_tohost_VkDeviceDeviceMemoryReportCreateInfoEXT(
 
 void transform_fromhost_VkDeviceDeviceMemoryReportCreateInfoEXT(
     VkDecoderGlobalState* resourceTracker, VkDeviceDeviceMemoryReportCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_robustness2
+void transform_tohost_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2FeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2FeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2PropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2PropertiesEXT* toTransform) {
     (void)resourceTracker;
     (void)toTransform;
     if (toTransform->pNext) {
@@ -9291,6 +9349,13 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
+            transform_tohost_VkValidationFeaturesEXT(
+                resourceTracker, reinterpret_cast<VkValidationFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_provoking_vertex
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: {
             transform_tohost_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -9426,6 +9491,20 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
             transform_tohost_VkDeviceDeviceMemoryReportCreateInfoEXT(
                 resourceTracker,
                 reinterpret_cast<VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            transform_tohost_VkPhysicalDeviceRobustness2FeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            transform_tohost_VkPhysicalDeviceRobustness2PropertiesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension_out));
             break;
         }
 #endif
@@ -10430,6 +10509,13 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
+            transform_fromhost_VkValidationFeaturesEXT(
+                resourceTracker, reinterpret_cast<VkValidationFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_provoking_vertex
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: {
             transform_fromhost_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -10565,6 +10651,20 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
             transform_fromhost_VkDeviceDeviceMemoryReportCreateInfoEXT(
                 resourceTracker,
                 reinterpret_cast<VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            transform_fromhost_VkPhysicalDeviceRobustness2FeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            transform_fromhost_VkPhysicalDeviceRobustness2PropertiesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension_out));
             break;
         }
 #endif

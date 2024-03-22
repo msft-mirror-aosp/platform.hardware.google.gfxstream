@@ -216,7 +216,8 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
                                                      FrameworkFormat p_frameworkFormat,
                                                      HandleType hndl, ContextHelper* helper,
                                                      TextureDraw* textureDraw,
-                                                     bool fastBlitSupported) {
+                                                     bool fastBlitSupported,
+                                                     const gfxstream::host::FeatureSet& features) {
     GLenum texFormat = 0;
     GLenum pixelType = GL_UNSIGNED_BYTE;
     int bytesPerPixel = 4;
@@ -240,6 +241,7 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
     cb->m_format = texFormat;
     cb->m_type = pixelType;
     cb->m_frameworkFormat = p_frameworkFormat;
+    cb->m_yuv420888ToNv21 = features.Yuv420888ToNv21.enabled;
     cb->m_fastBlitSupported = fastBlitSupported;
     cb->m_numBytes = (size_t)bufsize;
 
@@ -305,7 +307,7 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
             break;
         default: // Any YUV format
             cb->m_yuv_converter.reset(
-                    new YUVConverter(p_width, p_height, cb->m_frameworkFormat));
+                    new YUVConverter(p_width, p_height, cb->m_frameworkFormat, cb->m_yuv420888ToNv21));
             break;
     }
 
@@ -955,7 +957,8 @@ void ColorBufferGl::onSave(android::base::Stream* stream) {
 std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(android::base::Stream* stream,
                                                      EGLDisplay p_display, ContextHelper* helper,
                                                      TextureDraw* textureDraw,
-                                                     bool fastBlitSupported) {
+                                                     bool fastBlitSupported,
+                                                     const gfxstream::host::FeatureSet& features) {
     HandleType hndl = static_cast<HandleType>(stream->getBe32());
     GLuint width = static_cast<GLuint>(stream->getBe32());
     GLuint height = static_cast<GLuint>(stream->getBe32());
@@ -968,7 +971,7 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(android::base::Stream* stre
 
     if (!eglImage) {
         return create(p_display, width, height, internalFormat, frameworkFormat,
-                      hndl, helper, textureDraw, fastBlitSupported);
+                      hndl, helper, textureDraw, fastBlitSupported, features);
     }
     std::unique_ptr<ColorBufferGl> cb(
         new ColorBufferGl(p_display, hndl, width, height, helper, textureDraw));
@@ -998,7 +1001,7 @@ void ColorBufferGl::restore() {
             break;
         default: // any YUV format
             m_yuv_converter.reset(
-                    new YUVConverter(m_width, m_height, m_frameworkFormat));
+                    new YUVConverter(m_width, m_height, m_frameworkFormat, m_yuv420888ToNv21));
             break;
     }
 }

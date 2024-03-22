@@ -25,7 +25,7 @@
 
 #include "goldfish_vk_private_defs.h"
 #include "host-common/GfxstreamFatalError.h"
-#include "host/FrameBuffer.h"
+#include "FrameBuffer.h"
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {

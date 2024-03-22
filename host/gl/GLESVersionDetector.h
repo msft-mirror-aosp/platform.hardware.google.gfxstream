@@ -22,16 +22,20 @@
 
 #include <string>
 
+#include "gfxstream/host/Features.h"
+
 namespace gfxstream {
 namespace gl {
 
 // Used to determine maximum supported GLES version.
-GLESDispatchMaxVersion calcMaxVersionFromDispatch(EGLDisplay dpy);
+GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::FeatureSet& features,
+                                                  EGLDisplay dpy);
 
 // For determining whether or not to use core profile OpenGL.
 bool shouldEnableCoreProfile();
 
-std::string filterExtensionsBasedOnMaxVersion(GLESDispatchMaxVersion ver, const std::string& exts);
+std::string filterExtensionsBasedOnMaxVersion(const gfxstream::host::FeatureSet& features,
+                                              GLESDispatchMaxVersion ver, const std::string& exts);
 
 }  // namespace gl
 }  // namespace gfxstream

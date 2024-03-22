@@ -16127,6 +16127,63 @@ void unmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
 #endif
 #ifdef VK_EXT_tooling_info
 #endif
+#ifdef VK_EXT_validation_features
+void marshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkValidationFeaturesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((uint32_t*)&forMarshaling->enabledValidationFeatureCount, sizeof(uint32_t));
+    vkStream->write(
+        (const VkValidationFeatureEnableEXT*)forMarshaling->pEnabledValidationFeatures,
+        forMarshaling->enabledValidationFeatureCount * sizeof(const VkValidationFeatureEnableEXT));
+    vkStream->write((uint32_t*)&forMarshaling->disabledValidationFeatureCount, sizeof(uint32_t));
+    vkStream->write(
+        (const VkValidationFeatureDisableEXT*)forMarshaling->pDisabledValidationFeatures,
+        forMarshaling->disabledValidationFeatureCount *
+            sizeof(const VkValidationFeatureDisableEXT));
+}
+
+void unmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkValidationFeaturesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((uint32_t*)&forUnmarshaling->enabledValidationFeatureCount, sizeof(uint32_t));
+    vkStream->alloc((void**)&forUnmarshaling->pEnabledValidationFeatures,
+                    forUnmarshaling->enabledValidationFeatureCount *
+                        sizeof(const VkValidationFeatureEnableEXT));
+    vkStream->read((VkValidationFeatureEnableEXT*)forUnmarshaling->pEnabledValidationFeatures,
+                   forUnmarshaling->enabledValidationFeatureCount *
+                       sizeof(const VkValidationFeatureEnableEXT));
+    vkStream->read((uint32_t*)&forUnmarshaling->disabledValidationFeatureCount, sizeof(uint32_t));
+    vkStream->alloc((void**)&forUnmarshaling->pDisabledValidationFeatures,
+                    forUnmarshaling->disabledValidationFeatureCount *
+                        sizeof(const VkValidationFeatureDisableEXT));
+    vkStream->read((VkValidationFeatureDisableEXT*)forUnmarshaling->pDisabledValidationFeatures,
+                   forUnmarshaling->disabledValidationFeatureCount *
+                       sizeof(const VkValidationFeatureDisableEXT));
+}
+
+#endif
 #ifdef VK_EXT_provoking_vertex
 void marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -17406,6 +17463,90 @@ void unmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     forUnmarshaling->pfnUserCallback = (PFN_vkDeviceMemoryReportCallbackEXT)vkStream->getBe64();
     vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
     vkStream->read((void*)forUnmarshaling->pUserData, sizeof(uint8_t));
+}
+
+#endif
+#ifdef VK_EXT_robustness2
+void marshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkBool32*)&forMarshaling->robustBufferAccess2, sizeof(VkBool32));
+    vkStream->write((VkBool32*)&forMarshaling->robustImageAccess2, sizeof(VkBool32));
+    vkStream->write((VkBool32*)&forMarshaling->nullDescriptor, sizeof(VkBool32));
+}
+
+void unmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2FeaturesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((VkBool32*)&forUnmarshaling->robustBufferAccess2, sizeof(VkBool32));
+    vkStream->read((VkBool32*)&forUnmarshaling->robustImageAccess2, sizeof(VkBool32));
+    vkStream->read((VkBool32*)&forUnmarshaling->nullDescriptor, sizeof(VkBool32));
+}
+
+void marshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkDeviceSize*)&forMarshaling->robustStorageBufferAccessSizeAlignment,
+                    sizeof(VkDeviceSize));
+    vkStream->write((VkDeviceSize*)&forMarshaling->robustUniformBufferAccessSizeAlignment,
+                    sizeof(VkDeviceSize));
+}
+
+void unmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2PropertiesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((VkDeviceSize*)&forUnmarshaling->robustStorageBufferAccessSizeAlignment,
+                   sizeof(VkDeviceSize));
+    vkStream->read((VkDeviceSize*)&forUnmarshaling->robustUniformBufferAccessSizeAlignment,
+                   sizeof(VkDeviceSize));
 }
 
 #endif
@@ -19093,6 +19234,14 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
+            marshal_VkValidationFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkValidationFeaturesEXT*>(structExtension));
+            break;
+        }
+#endif
 #ifdef VK_EXT_provoking_vertex
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: {
             marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -19238,6 +19387,20 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
             marshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<const VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension));
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            marshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            marshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension));
             break;
         }
 #endif
@@ -20351,6 +20514,14 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
             break;
         }
 #endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
+            unmarshal_VkValidationFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkValidationFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_provoking_vertex
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: {
             unmarshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -20493,6 +20664,20 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
             unmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            unmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            unmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension_out));
             break;
         }
 #endif

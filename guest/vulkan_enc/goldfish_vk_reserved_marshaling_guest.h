@@ -1784,6 +1784,8 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceToolProperties,
                       reservedmarshal_VkPhysicalDeviceToolPropertiesEXT)
 
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 void reservedmarshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -1903,6 +1905,16 @@ void reservedmarshal_VkDeviceMemoryReportCallbackDataEXT(
 void reservedmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
     const VkDeviceDeviceMemoryReportCreateInfoEXT* forMarshaling, uint8_t** ptr);
+
+#endif
+#ifdef VK_EXT_robustness2
+void reservedmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* forMarshaling, uint8_t** ptr);
 
 #endif
 #ifdef VK_EXT_custom_border_color

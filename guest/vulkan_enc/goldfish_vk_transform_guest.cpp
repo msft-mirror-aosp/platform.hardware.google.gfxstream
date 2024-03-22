@@ -7098,6 +7098,8 @@ void transform_fromhost_VkRenderPassFragmentDensityMapCreateInfoEXT(
 #endif
 #ifdef VK_EXT_tooling_info
 #endif
+#ifdef VK_EXT_validation_features
+#endif
 #ifdef VK_EXT_provoking_vertex
 void transform_tohost_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     ResourceTracker* resourceTracker, VkPhysicalDeviceProvokingVertexFeaturesEXT* toTransform) {
@@ -7578,6 +7580,44 @@ void transform_tohost_VkDeviceDeviceMemoryReportCreateInfoEXT(
 
 void transform_fromhost_VkDeviceDeviceMemoryReportCreateInfoEXT(
     ResourceTracker* resourceTracker, VkDeviceDeviceMemoryReportCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_robustness2
+void transform_tohost_VkPhysicalDeviceRobustness2FeaturesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceRobustness2FeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRobustness2FeaturesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceRobustness2FeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceRobustness2PropertiesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceRobustness2PropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRobustness2PropertiesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceRobustness2PropertiesEXT* toTransform) {
     (void)resourceTracker;
     (void)toTransform;
     if (toTransform->pNext) {
@@ -8874,6 +8914,20 @@ void transform_tohost_extension_struct(ResourceTracker* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            transform_tohost_VkPhysicalDeviceRobustness2FeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            transform_tohost_VkPhysicalDeviceRobustness2PropertiesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_custom_border_color
         case VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT: {
             transform_tohost_VkSamplerCustomBorderColorCreateInfoEXT(
@@ -9937,6 +9991,20 @@ void transform_fromhost_extension_struct(ResourceTracker* resourceTracker,
             transform_fromhost_VkDeviceDeviceMemoryReportCreateInfoEXT(
                 resourceTracker,
                 reinterpret_cast<VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT: {
+            transform_fromhost_VkPhysicalDeviceRobustness2FeaturesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT: {
+            transform_fromhost_VkPhysicalDeviceRobustness2PropertiesEXT(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension_out));
             break;
         }
 #endif

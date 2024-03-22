@@ -14,6 +14,9 @@
 
 #include <log/log.h>
 
+#include <atomic>
+#include <thread>
+
 #include "GfxstreamEnd2EndTests.h"
 #include "drm_fourcc.h"
 
@@ -444,6 +447,108 @@ TEST_P(GfxstreamEnd2EndVkTest, DISABLED_DescriptorSetAllocFreeDestroy) {
     // The double free should also work
     auto descriptorSetHandles = AsHandles(bundle.descriptorSets);
     EXPECT_THAT(device->freeDescriptorSets(*bundle.descriptorPool, kNumSets, descriptorSetHandles.data()), IsVkSuccess());
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
+    constexpr const int kNumIterations = 20;
+    for (int i = 0; i < kNumIterations; i++) {
+        auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+                VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+        const vkhpp::BufferCreateInfo bufferCreateInfo = {
+            .size = 1024,
+            .usage = vkhpp::BufferUsageFlagBits::eTransferSrc,
+        };
+
+        // TODO: switch to std::barrier with arrive_and_wait().
+        std::atomic_int threadsReady{0};
+        std::vector<std::thread> threads;
+
+        constexpr const int kNumThreads = 5;
+        for (int t = 0; t < kNumThreads; t++) {
+            threads.emplace_back([&, this](){
+                // Perform some work to ensure host RenderThread started.
+                auto buffer1 = device->createBufferUnique(bufferCreateInfo).value;
+
+                ++threadsReady;
+                while (threadsReady.load() != kNumThreads) {}
+
+                // Sleep a little which is hopefully enough time to potentially get
+                // the corresponding host ASG RenderThreads to go sleep waiting for
+                // a WAKEUP via a GFXSTREAM_CONTEXT_PING.
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+                auto buffer2 = device->createBufferUnique(bufferCreateInfo).value;
+
+                // 2 vkDestroyBuffer() calls happen here with the destruction of `buffer1`
+                // and `buffer2`. vkDestroy*() calls are async (return `void`) and the
+                // guest thread continues execution without waiting for the command to
+                // complete on the host.
+                //
+                // The guest ASG and corresponding virtio gpu resource will also be
+                // destructed here as a part of the thread_local HostConnection being
+                // destructed.
+                //
+                // Note: Vulkan commands are given a sequence number in order to ensure that
+                // commands from multi-threaded guest Vulkan apps are executed in order on the
+                // host. Gfxstream's host Vulkan decoders will spin loop waiting for their turn to
+                // process their next command.
+                //
+                // With all of the above, a deadlock would previouly occur with the following
+                // sequence:
+                //
+                // T1: Host-RenderThread-1: <sleeping waiting for wakeup>
+                //
+                // T2: Host-RenderThread-2: <sleeping waiting for wakeup>
+                //
+                // T3: Guest-Thread-1: vkDestroyBuffer() called,
+                //                     VkEncoder grabs sequence-number-10,
+                //                     writes sequence-number-10 into ASG-1 via resource-1
+                //
+                // T4: Guest-Thread-2: vkDestroyBuffer() called,
+                //                     VkEncoder grabs sequence-number-11,
+                //                     writes into ASG-2 via resource-2
+                //
+                // T5: Guest-Thread-2: ASG-2 sends a VIRTIO_GPU_CMD_SUBMIT_3D with
+                //                     GFXSTREAM_CONTEXT_PING on ASG-resource-2
+                //
+                // T6: Guest-Thread-2: guest thread finishes,
+                //                     ASG-2 destructor destroys the virtio-gpu resource used,
+                //                     destruction sends VIRTIO_GPU_CMD_RESOURCE_UNREF on
+                //                     resource-2
+                //
+                // T7: Guest-Thread-1: ASG-1 sends VIRTIO_GPU_CMD_SUBMIT_3D with
+                //                     GFXSTREAM_CONTEXT_PING on ASG-resource-1
+                //
+                // T8: Host-Virtio-Gpu-Thread: performs VIRTIO_GPU_CMD_SUBMIT_3D from T5,
+                //                             pings ASG-2 which wakes up Host-RenderThread-2
+                //
+                // T9: Host-RenderThread-2: woken from T8,
+                //                          reads sequence-number-11 from ASG-2,
+                //                          spin looping waiting for sequence-number-10 to execute
+                //
+                // T10: Host-Virtio-Gpu-Thread: performs VIRTIO_GPU_CMD_RESOURCE_UNREF for
+                //                              resource-2 from T6,
+                //                              resource-2 is used by ASG-2 / Host-RenderThread-2
+                //                              waits for Host-RenderThread-2 to finish
+                //
+                // DEADLOCKED HERE:
+                //
+                //   *  Host-Virtio-GpuThread is waiting for Host-RenderThread-2 to finish before
+                //      it can finish destroying resource-2
+                //
+                //   *  Host-RenderThread-2 is waiting for Host-RenderThread-1 to execute
+                //      sequence-number-10
+                //
+                //   *  Host-RenderThread-1 is asleep waiting for a GFXSTREAM_CONTEXT_PING
+                //      from Host-Virtio-GpuThread
+            });
+        }
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+    }
 }
 
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkTest,

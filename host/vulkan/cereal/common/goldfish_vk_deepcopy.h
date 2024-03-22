@@ -1803,6 +1803,12 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceToolProperties,
                       deepcopy_VkPhysicalDeviceToolPropertiesEXT)
 
 #endif
+#ifdef VK_EXT_validation_features
+void deepcopy_VkValidationFeaturesEXT(Allocator* alloc, VkStructureType rootType,
+                                      const VkValidationFeaturesEXT* from,
+                                      VkValidationFeaturesEXT* to);
+
+#endif
 #ifdef VK_EXT_provoking_vertex
 void deepcopy_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -1955,6 +1961,17 @@ void deepcopy_VkDeviceMemoryReportCallbackDataEXT(Allocator* alloc, VkStructureT
 void deepcopy_VkDeviceDeviceMemoryReportCreateInfoEXT(
     Allocator* alloc, VkStructureType rootType, const VkDeviceDeviceMemoryReportCreateInfoEXT* from,
     VkDeviceDeviceMemoryReportCreateInfoEXT* to);
+
+#endif
+#ifdef VK_EXT_robustness2
+void deepcopy_VkPhysicalDeviceRobustness2FeaturesEXT(
+    Allocator* alloc, VkStructureType rootType, const VkPhysicalDeviceRobustness2FeaturesEXT* from,
+    VkPhysicalDeviceRobustness2FeaturesEXT* to);
+
+void deepcopy_VkPhysicalDeviceRobustness2PropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* from,
+    VkPhysicalDeviceRobustness2PropertiesEXT* to);
 
 #endif
 #ifdef VK_EXT_custom_border_color
