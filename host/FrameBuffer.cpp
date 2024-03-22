@@ -593,6 +593,25 @@ FrameBuffer::~FrameBuffer() {
     m_postThread.join();
     m_postWorker.reset();
 
+    // Run other cleanup callbacks
+    // Avoid deadlock by first storing a separate list of callbacks
+    std::vector<std::function<void()>> callbacks;
+    for (auto procIte : m_procOwnedCleanupCallbacks)
+    {
+        for (auto it : procIte.second) {
+            callbacks.push_back(it.second);
+        }
+    }
+    m_procOwnedCleanupCallbacks.clear();
+
+    fbLock.unlock();
+
+    for (auto cb : callbacks) {
+        cb();
+    }
+
+    fbLock.lock();
+
     if (m_useSubWindow) {
         removeSubWindow_locked();
     }
