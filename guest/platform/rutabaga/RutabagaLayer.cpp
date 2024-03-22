@@ -610,7 +610,7 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::SnapshotSave(const std::string& d
     VirtioGpuTaskSnapshotSave saveTask{
         .directory = directory,
     };
-    EnqueueVirtioGpuTask(contextId, std::move(saveTask));
+    EnqueueVirtioGpuTask(contextId, std::move(saveTask)).wait();
 }
 
 void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::SnapshotRestore(const std::string& directory) {
@@ -620,7 +620,7 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::SnapshotRestore(const std::string
         .directory = directory,
     };
 
-    EnqueueVirtioGpuTask(contextId, std::move(restoreTask));
+    EnqueueVirtioGpuTask(contextId, std::move(restoreTask)).wait();
 }
 
 int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::SubmitCmd(uint32_t contextId, uint32_t cmdSize,
