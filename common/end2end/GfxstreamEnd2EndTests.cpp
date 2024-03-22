@@ -83,7 +83,7 @@ std::string GetTestName(const ::testing::TestParamInfo<TestParams>& info) {
     return info.param.ToString();
 }
 
-std::unique_ptr<GfxstreamEnd2EndTest::GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
+std::unique_ptr<GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
     const std::filesystem::path testDirectory = gfxstream::guest::getProgramDirectory();
     const std::string eglLibPath = (testDirectory / "libEGL_emulation_with_host.so").string();
     const std::string gles2LibPath = (testDirectory / "libGLESv2_emulation_with_host.so").string();
@@ -117,11 +117,13 @@ std::unique_ptr<GfxstreamEnd2EndTest::GuestGlDispatchTable> GfxstreamEnd2EndTest
     LIST_RENDER_EGL_FUNCTIONS(LOAD_EGL_FUNCTION)
     LIST_RENDER_EGL_EXTENSIONS_FUNCTIONS(LOAD_EGL_FUNCTION)
 
-    #define LOAD_GLES2_FUNCTION(return_type, function_name, signature, callargs)    \
-        gl-> function_name = reinterpret_cast< return_type (*) signature >(eglGetAddr( #function_name )); \
-        if (!gl-> function_name) { \
-            gl-> function_name = reinterpret_cast< return_type (*) signature >(dlsym(gles2Lib, #function_name)); \
-        }
+#define LOAD_GLES2_FUNCTION(return_type, function_name, signature, callargs)         \
+    gl->function_name =                                                              \
+        reinterpret_cast<return_type(*) signature>(dlsym(gles2Lib, #function_name)); \
+    if (!gl->function_name) {                                                        \
+        gl->function_name =                                                          \
+            reinterpret_cast<return_type(*) signature>(eglGetAddr(#function_name));  \
+    }
 
     LIST_GLES_FUNCTIONS(LOAD_GLES2_FUNCTION, LOAD_GLES2_FUNCTION)
 
@@ -290,91 +292,144 @@ void GfxstreamEnd2EndTest::TearDownEglContextAndSurface(
     ASSERT_THAT(mGl->eglDestroySurface(display, surface), IsTrue());
 }
 
-GlExpected<GLuint> GfxstreamEnd2EndTest::SetUpShader(GLenum type, const std::string& source) {
-    if (!mGl) {
-        return android::base::unexpected("Gl not enabled for this test.");
-    }
-
-    GLuint shader = mGl->glCreateShader(type);
+GlExpected<ScopedGlShader> ScopedGlShader::MakeShader(GlDispatch& dispatch, GLenum type,
+                                                      const std::string& source) {
+    GLuint shader = dispatch.glCreateShader(type);
     if (!shader) {
         return android::base::unexpected("Failed to create shader.");
     }
 
     const GLchar* sourceTyped = (const GLchar*)source.c_str();
     const GLint sourceLength = source.size();
-    mGl->glShaderSource(shader, 1, &sourceTyped, &sourceLength);
-    mGl->glCompileShader(shader);
-
-    GLenum err = mGl->glGetError();
-    if (err != GL_NO_ERROR) {
-        return android::base::unexpected("Failed to compile shader.");
-    }
+    dispatch.glShaderSource(shader, 1, &sourceTyped, &sourceLength);
+    dispatch.glCompileShader(shader);
 
     GLint compileStatus;
-    mGl->glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+    dispatch.glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
 
-    if (compileStatus == GL_TRUE) {
-        return shader;
-    } else {
+    if (compileStatus != GL_TRUE) {
         GLint errorLogLength = 0;
-        mGl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &errorLogLength);
+        dispatch.glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &errorLogLength);
         if (!errorLogLength) {
             errorLogLength = 512;
         }
 
         std::vector<GLchar> errorLog(errorLogLength);
-        mGl->glGetShaderInfoLog(shader, errorLogLength, &errorLogLength, errorLog.data());
+        dispatch.glGetShaderInfoLog(shader, errorLogLength, &errorLogLength, errorLog.data());
 
         const std::string errorString = errorLogLength == 0 ? "" : errorLog.data();
         ALOGE("Shader compilation failed with: \"%s\"", errorString.c_str());
 
-        mGl->glDeleteShader(shader);
+        dispatch.glDeleteShader(shader);
         return android::base::unexpected(errorString);
     }
+
+    return ScopedGlShader(dispatch, shader);
 }
 
-GlExpected<GLuint> GfxstreamEnd2EndTest::SetUpProgram(
-        const std::string& vertSource,
-        const std::string& fragSource) {
-    auto vertResult = SetUpShader(GL_VERTEX_SHADER, vertSource);
-    if (!vertResult.ok()) {
-        return vertResult;
-    }
-    auto vertShader = vertResult.value();
+GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(GlDispatch& dispatch,
+                                                         const std::string& vertSource,
+                                                         const std::string& fragSource) {
+    auto vertShader = GL_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_VERTEX_SHADER, vertSource));
+    auto fragShader =
+        GL_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_FRAGMENT_SHADER, fragSource));
 
-    auto fragResult = SetUpShader(GL_FRAGMENT_SHADER, fragSource);
-    if (!fragResult.ok()) {
-        return fragResult;
-    }
-    auto fragShader = fragResult.value();
-
-    GLuint program = mGl->glCreateProgram();
-    mGl->glAttachShader(program, vertShader);
-    mGl->glAttachShader(program, fragShader);
-    mGl->glLinkProgram(program);
-    mGl->glDeleteShader(vertShader);
-    mGl->glDeleteShader(fragShader);
+    GLuint program = dispatch.glCreateProgram();
+    dispatch.glAttachShader(program, vertShader);
+    dispatch.glAttachShader(program, fragShader);
+    dispatch.glLinkProgram(program);
 
     GLint linkStatus;
-    mGl->glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
-    if (linkStatus == GL_TRUE) {
-        return program;
-    } else {
+    dispatch.glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+    if (linkStatus != GL_TRUE) {
         GLint errorLogLength = 0;
-        mGl->glGetProgramiv(program, GL_INFO_LOG_LENGTH, &errorLogLength);
+        dispatch.glGetProgramiv(program, GL_INFO_LOG_LENGTH, &errorLogLength);
         if (!errorLogLength) {
             errorLogLength = 512;
         }
 
         std::vector<char> errorLog(errorLogLength, 0);
-        mGl->glGetProgramInfoLog(program, errorLogLength, nullptr, errorLog.data());
+        dispatch.glGetProgramInfoLog(program, errorLogLength, nullptr, errorLog.data());
 
         const std::string errorString = errorLogLength == 0 ? "" : errorLog.data();
         ALOGE("Program link failed with: \"%s\"", errorString.c_str());
 
-        mGl->glDeleteProgram(program);
+        dispatch.glDeleteProgram(program);
         return android::base::unexpected(errorString);
     }
+
+    return ScopedGlProgram(dispatch, program);
+}
+
+GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(
+    GlDispatch& dispatch, GLenum programBinaryFormat,
+    const std::vector<uint8_t>& programBinaryData) {
+    GLuint program = dispatch.glCreateProgram();
+    dispatch.glProgramBinary(program, programBinaryFormat, programBinaryData.data(),
+                             programBinaryData.size());
+
+    GLint linkStatus;
+    dispatch.glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+    if (linkStatus != GL_TRUE) {
+        GLint errorLogLength = 0;
+        dispatch.glGetProgramiv(program, GL_INFO_LOG_LENGTH, &errorLogLength);
+        if (!errorLogLength) {
+            errorLogLength = 512;
+        }
+
+        std::vector<char> errorLog(errorLogLength, 0);
+        dispatch.glGetProgramInfoLog(program, errorLogLength, nullptr, errorLog.data());
+
+        const std::string errorString = errorLogLength == 0 ? "" : errorLog.data();
+        ALOGE("Program link failed with: \"%s\"", errorString.c_str());
+
+        dispatch.glDeleteProgram(program);
+        return android::base::unexpected(errorString);
+    }
+
+    return ScopedGlProgram(dispatch, program);
+}
+
+GlExpected<ScopedAHardwareBuffer> ScopedAHardwareBuffer::Allocate(Gralloc& gralloc, uint32_t width,
+                                                                  uint32_t height,
+                                                                  uint32_t format) {
+    AHardwareBuffer* ahb = nullptr;
+    int status = gralloc.allocate(width, height, format, -1, &ahb);
+    if (status != 0) {
+        return android::base::unexpected(std::string("Failed to allocate AHB with width:") +
+                                         std::to_string(width) + std::string(" height:") +
+                                         std::to_string(height) + std::string(" format:") +
+                                         std::to_string(format));
+    }
+
+    return ScopedAHardwareBuffer(gralloc, ahb);
+}
+
+GlExpected<ScopedGlShader> GfxstreamEnd2EndTest::SetUpShader(GLenum type,
+                                                             const std::string& source) {
+    if (!mGl) {
+        return android::base::unexpected("Gl not enabled for this test.");
+    }
+
+    return ScopedGlShader::MakeShader(*mGl, type, source);
+}
+
+GlExpected<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(const std::string& vertSource,
+                                                               const std::string& fragSource) {
+    if (!mGl) {
+        return android::base::unexpected("Gl not enabled for this test.");
+    }
+
+    return ScopedGlProgram::MakeProgram(*mGl, vertSource, fragSource);
+}
+
+GlExpected<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(
+    GLenum programBinaryFormat, const std::vector<uint8_t>& programBinaryData) {
+    if (!mGl) {
+        return android::base::unexpected("Gl not enabled for this test.");
+    }
+
+    return ScopedGlProgram::MakeProgram(*mGl, programBinaryFormat, programBinaryData);
 }
 
 VkExpected<GfxstreamEnd2EndTest::TypicalVkTestEnvironment>
