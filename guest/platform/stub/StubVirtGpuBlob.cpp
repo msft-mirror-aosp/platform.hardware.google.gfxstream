@@ -37,10 +37,6 @@ int StubVirtGpuBlob::wait() {
     return -1;
 }
 
-int StubVirtGpuBlob::transferFromHost(uint32_t, uint32_t) {
-    return -1;
-}
+int StubVirtGpuBlob::transferFromHost(uint32_t, uint32_t, uint32_t, uint32_t) { return -1; }
 
-int StubVirtGpuBlob::transferToHost(uint32_t, uint32_t) {
-    return -1;
-}
+int StubVirtGpuBlob::transferToHost(uint32_t, uint32_t, uint32_t, uint32_t) { return -1; }
