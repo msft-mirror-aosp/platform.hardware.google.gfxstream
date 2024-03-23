@@ -61,6 +61,9 @@ class Gralloc {
         return 0;
     }
 
+    virtual uint32_t getWidth(const AHardwareBuffer* ahb) = 0;
+    virtual uint32_t getHeight(const AHardwareBuffer* ahb) = 0;
+
     virtual size_t getAllocatedSize(const native_handle_t* handle) = 0;
     virtual size_t getAllocatedSize(const AHardwareBuffer* handle) = 0;
 

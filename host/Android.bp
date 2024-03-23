@@ -151,20 +151,6 @@ cc_test_library {
     export_include_dirs: ["tests"],
 }
 
-cc_library {
-    name: "libgfxstream_test_image_utils",
-    defaults: ["gfxstream_defaults"],
-    shared_libs: [
-        "libbase",
-    ],
-    static_libs: [
-        "libgfxstream_thirdparty_stb",
-    ],
-    srcs: [
-        "tests/ImageUtils.cpp",
-    ],
-}
-
 // Run with `atest --host gfxstream_compositorvk_test`
 cc_test_host {
     name: "gfxstream_compositorvk_test",
@@ -207,7 +193,7 @@ cc_test_host {
     shared_libs: [
         "libbase",
         "libgfxstream_backend",
-        "libgfxstream_test_image_utils",
+        "libgfxstream_common_image",
     ],
     static_libs: [
         "libgfxstream_host_vulkan_server",
@@ -236,17 +222,17 @@ cc_test_host {
     shared_libs: [
         "libbase",
         "libgfxstream_backend",
-        "libgfxstream_test_image_utils",
     ],
     static_libs: [
         "gfxstream_backend_test_support",
-        "gfxstream_base",
         "gfxstream_base_test_support",
-        "libgfxstream_thirdparty_glm",
+        "gfxstream_base",
         "gfxstream_host_common_test_support",
-        "libgfxstream_oswindow_test_support",
         "gfxstream_snapshot",
+        "libgfxstream_common_image",
         "libgfxstream_host_vulkan_server",
+        "libgfxstream_oswindow_test_support",
+        "libgfxstream_thirdparty_glm",
         "libgmock",
         "liblz4",
     ],
