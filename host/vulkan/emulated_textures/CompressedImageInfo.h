@@ -19,8 +19,8 @@
 #include <string>
 #include <vector>
 
-#include "host/vulkan/emulated_textures/AstcTexture.h"
-#include "host/vulkan/emulated_textures/GpuDecompressionPipeline.h"
+#include "vulkan/emulated_textures/AstcTexture.h"
+#include "vulkan/emulated_textures/GpuDecompressionPipeline.h"
 #include "goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 

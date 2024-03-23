@@ -23,7 +23,7 @@
 #include "GLcommon/GLLibrary.h"
 #include "X11ErrorHandler.h"
 
-#include "apigen-codec-common/X11Support.h"
+#include "X11Support.h"
 
 #include <string.h>
 #include <X11/Xlib.h>
