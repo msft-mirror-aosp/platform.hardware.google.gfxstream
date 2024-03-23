@@ -36,7 +36,7 @@
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
 #include "host-common/sync_device.h"
-#include "host/compressedTextureFormats/AstcCpuDecompressor.h"
+#include "compressedTextureFormats/AstcCpuDecompressor.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderGlobalState.h"
 

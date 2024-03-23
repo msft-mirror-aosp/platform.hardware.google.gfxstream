@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "host/vulkan/VkDecoderGlobalState.h"
+#include "vulkan/VkDecoderGlobalState.h"
 #include "goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 
