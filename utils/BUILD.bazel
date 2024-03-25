@@ -30,9 +30,6 @@ cc_test(
     ],
     deps = [
         ":gfxstream_utils",
-        "//:gfxstream_base_lib",
-        "//:gfxstream_host_common_lib",
-        "//external:gmock_main",
-        "//external:gtest_main",  # Replace with actual Bazel targets for dependencies
+        "@com_google_googletest//:gtest_main",
     ],
 )

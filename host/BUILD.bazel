@@ -52,6 +52,11 @@ objc_library(
         "EMUGL_BUILD",
         "GFXSTREAM_ENABLE_HOST_GLES=1",
     ],
+    sdk_frameworks = [
+        "AppKit",
+        "QuartzCore",
+        "IOSurface",
+    ],
     deps = [
         ":gfxstream_backend_headers",
         "//external/angle:angle-headers",
@@ -112,12 +117,14 @@ cc_library(
         ".",
         "gl",
     ],
+    linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_backend_headers",
         "//hardware/google/aemu/base:aemu-base",
         "//hardware/google/aemu/base:aemu-base-metrics",
         "//hardware/google/aemu/host-common:aemu-host-common",
+        "//hardware/google/aemu/host-common:logging",
         "//hardware/google/aemu/snapshot:aemu-snapshot",
         "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
         "//hardware/google/gfxstream/host/apigen-codec-common",
@@ -135,7 +142,12 @@ cc_library(
         "//hardware/google/gfxstream/host/magma:magma-headers",
         "//hardware/google/gfxstream/host/renderControl_dec",
         "//hardware/google/gfxstream/host/vulkan:gfxstream-vulkan-server",
-    ],
+    ] + select({
+        "@platforms//os:macos": [
+            ":gfxstream_backend_static-darwin",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 cc_library(
@@ -153,16 +165,40 @@ cc_library(
         "BUILDING_EMUGL_COMMON_SHARED",
         "WIN32_LEAN_AND_MEAN",
     ],
+    linkstatic = True,
     deps = [
         ":gfxstream_backend_static",
+        "//hardware/google/aemu/base:aemu-base",
+        "//hardware/google/aemu/base:aemu-base-metrics",
         "//hardware/google/aemu/host-common:aemu-host-common-product-feature-override",
         "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
         "//hardware/google/gfxstream/common/utils:gfxstream_common_utils",
+        "//hardware/google/gfxstream/host/gl:gfxstream-gl-host-common",
     ],
 )
 
-cc_shared_library(
+cc_binary(
     name = "gfxstream_backend",
-    visibility = ["//visibility:public"],
-    deps = [":gfxstream_backend_shared"],
+    srcs = [
+        "render_api.cpp",
+        "virtio-gpu-gfxstream-renderer.cpp",
+    ],
+    linkshared = True,
+    deps = [
+        ":gfxstream_backend_static",
+        "//hardware/google/aemu/base:aemu-base",
+        "//hardware/google/aemu/base:aemu-base-metrics",
+        "//hardware/google/aemu/host-common:aemu-host-common-product-feature-override",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/common/utils:gfxstream_common_utils",
+        "//hardware/google/gfxstream/host/gl:gfxstream-gl-host-common",
+    ],
 )
+
+# Note: It looks like cc_shared_library refuses to include objc_library
+# b/331235218
+# cc_shared_library(
+#     name = "gfxstream_backend",
+#     visibility = ["//visibility:public"],
+#     deps = [":gfxstream_backend_shared"],
+# )
