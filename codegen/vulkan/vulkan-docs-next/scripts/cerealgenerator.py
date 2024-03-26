@@ -82,6 +82,7 @@ SUPPORTED_FEATURES = [
     "VK_KHR_imageless_framebuffer",
     "VK_KHR_descriptor_update_template",
     "VK_EXT_depth_clip_enable",
+    "VK_EXT_robustness2",
     # see aosp/2736079 + b/268351352
     "VK_EXT_swapchain_maintenance1",
     "VK_KHR_maintenance5",
@@ -495,7 +496,7 @@ using DlSymFunc = void* (void*, const char*);
 
         decoderHeaderIncludes = f"""
 #include "VkDecoderContext.h"
-#include "host/ProcessResources.h"
+#include "ProcessResources.h"
 
 #include <memory>
 
@@ -518,7 +519,7 @@ class BumpPool;
 #include "{self.baseLibDirPrefix}/Tracing.h"
 #include "{self.baseLibDirPrefix}/Metrics.h"
 #include "render-utils/IOStream.h"
-#include "host/FrameBuffer.h"
+#include "FrameBuffer.h"
 #include "host-common/feature_control.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"

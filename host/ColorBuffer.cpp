@@ -53,15 +53,22 @@ ColorBuffer::ColorBuffer(HandleType handle, uint32_t width, uint32_t height, GLe
 std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
                                                  vk::VkEmulation* emulationVk, uint32_t width,
                                                  uint32_t height, GLenum format,
-                                                 FrameworkFormat frameworkFormat,
-                                                 HandleType handle) {
+                                                 FrameworkFormat frameworkFormat, HandleType handle,
+                                                 android::base::Stream* stream) {
     std::shared_ptr<ColorBuffer> colorBuffer(
         new ColorBuffer(handle, width, height, format, frameworkFormat));
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (emulationGl) {
-        colorBuffer->mColorBufferGl =
-            emulationGl->createColorBuffer(width, height, format, frameworkFormat, handle);
+        if (stream) {
+            colorBuffer->mColorBufferGl = emulationGl->loadColorBuffer(stream);
+            assert(width == colorBuffer->mColorBufferGl->getWidth());
+            assert(height == colorBuffer->mColorBufferGl->getHeight());
+            assert(frameworkFormat == colorBuffer->mColorBufferGl->getFrameworkFormat());
+        } else {
+            colorBuffer->mColorBufferGl =
+                emulationGl->createColorBuffer(width, height, format, frameworkFormat, handle);
+        }
         if (!colorBuffer->mColorBufferGl) {
             ERR("Failed to initialize ColorBufferGl.");
             return nullptr;
@@ -89,7 +96,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
 #if GFXSTREAM_ENABLE_HOST_GLES
     bool b271028352Workaround = emulationGl && strstr(emulationGl->getGlesRenderer().c_str(), "Intel");
 
-    if (colorBuffer->mColorBufferGl && colorBuffer->mColorBufferVk &&
+    if (!stream && colorBuffer->mColorBufferGl && colorBuffer->mColorBufferVk &&
         !b271028352Workaround && shouldAttemptExternalMemorySharing(frameworkFormat)) {
         auto memoryExport = vk::exportColorBufferMemory(handle);
         if (memoryExport) {
@@ -108,7 +115,8 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
 }
 
 /*static*/
-std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl, vk::VkEmulation*,
+std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl,
+                                                 vk::VkEmulation* emulationVk,
                                                  android::base::Stream* stream) {
     const auto handle = static_cast<HandleType>(stream->getBe32());
     const auto width = static_cast<uint32_t>(stream->getBe32());
@@ -116,18 +124,8 @@ std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl, v
     const auto format = static_cast<GLenum>(stream->getBe32());
     const auto frameworkFormat = static_cast<FrameworkFormat>(stream->getBe32());
 
-    std::shared_ptr<ColorBuffer> colorBuffer(
-        new ColorBuffer(handle, width, height, format, frameworkFormat));
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-    if (emulationGl) {
-        colorBuffer->mColorBufferGl = emulationGl->loadColorBuffer(stream);
-        if (!colorBuffer->mColorBufferGl) {
-            ERR("Failed to load ColorBufferGl.");
-            return nullptr;
-        }
-    }
-#endif
+    std::shared_ptr<ColorBuffer> colorBuffer = ColorBuffer::create(
+        emulationGl, emulationVk, width, height, format, frameworkFormat, handle, stream);
 
     colorBuffer->mNeedRestore = true;
 

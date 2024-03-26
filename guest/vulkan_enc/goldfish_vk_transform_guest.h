@@ -2997,6 +2997,20 @@ void transform_fromhost_VkDeviceDeviceMemoryReportCreateInfoEXT(
     ResourceTracker* resourceTracker, VkDeviceDeviceMemoryReportCreateInfoEXT* toTransform);
 
 #endif
+#ifdef VK_EXT_robustness2
+void transform_tohost_VkPhysicalDeviceRobustness2FeaturesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceRobustness2FeaturesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceRobustness2FeaturesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceRobustness2FeaturesEXT* toTransform);
+
+void transform_tohost_VkPhysicalDeviceRobustness2PropertiesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceRobustness2PropertiesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceRobustness2PropertiesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceRobustness2PropertiesEXT* toTransform);
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void transform_tohost_VkSamplerCustomBorderColorCreateInfoEXT(
     ResourceTracker* resourceTracker, VkSamplerCustomBorderColorCreateInfoEXT* toTransform);

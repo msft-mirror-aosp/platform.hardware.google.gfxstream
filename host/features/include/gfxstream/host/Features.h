@@ -57,27 +57,33 @@ struct FeatureSet {
 
     FeatureInfo AsyncComposeSupport = {
         "AsyncComposeSupport",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, allows the guest to use asynchronous render control commands "
+        "to compose and post frame buffers.",
         &map,
     };
     FeatureInfo ExternalBlob = {
         "ExternalBlob",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, virtio gpu blob resources will be allocated with external "
+        "memory and will be exportable via file descriptors.",
         &map,
     };
     FeatureInfo SystemBlob = {
         "SystemBlob",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, virtio gpu blob resources will be allocated with shmem and "
+        "will be exportable via file descriptors.",
         &map,
     };
     FeatureInfo GlAsyncSwap = {
         "GlAsyncSwap",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, uses the host GL driver's fence commands and fence file "
+        "descriptors in the guest to have explicit signals of buffer swap "
+        "completion.",
         &map,
     };
     FeatureInfo GlDirectMem = {
         "GlDirectMem",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, allows mapping the host address from glMapBufferRange() into "
+        "the guest.",
         &map,
     };
     FeatureInfo GlDma = {
@@ -92,137 +98,159 @@ struct FeatureSet {
     };
     FeatureInfo GlPipeChecksum = {
         "GlPipeChecksum",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the guest and host will use checksums to ensure consistency "
+        "for GL calls between the guest and host.",
         &map,
     };
     FeatureInfo GlesDynamicVersion = {
         "GlesDynamicVersion",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, attempts to detect and use the maximum supported GLES version "
+        "from the host.",
         &map,
     };
     FeatureInfo GrallocSync = {
         "GrallocSync",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, adds additional synchronization on the host for cases where "
+        "a guest app may directly writing to gralloc buffers and posting.",
         &map,
     };
     FeatureInfo GuestUsesAngle = {
         "GuestUsesAngle",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, indicates that the guest will not use GL and the host will not "
+        "enable the GL backend.",
         &map,
     };
     FeatureInfo HasSharedSlotsHostMemoryAllocator = {
         "HasSharedSlotsHostMemoryAllocator",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the host supports "
+        "AddressSpaceSharedSlotsHostMemoryAllocatorContext.",
         &map,
     };
     FeatureInfo HostComposition = {
         "HostComposition",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the host supports composition via render control commands.",
         &map,
     };
     FeatureInfo HwcMultiConfigs = {
         "HwcMultiConfigs",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the host supports multiple HWComposer configs per display.",
         &map,
     };
     FeatureInfo Minigbm = {
         "Minigbm",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the guest is known to be using Minigbm as its Gralloc "
+        "implementation.",
         &map,
     };
     FeatureInfo NativeTextureDecompression = {
         "NativeTextureDecompression",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, allows the host to use ASTC and ETC2 formats when supported by "
+        " the host GL driver.",
         &map,
     };
     FeatureInfo NoDelayCloseColorBuffer = {
         "NoDelayCloseColorBuffer",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, indicates that the guest properly associates resources with "
+        "guest OS handles and that the host resources can be immediately cleaned "
+        "upon receiving resource clean up commands.",
         &map,
     };
     FeatureInfo PlayStoreImage = {
         "PlayStoreImage",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the guest image is using the play store image which has "
+        "additional requirements.",
         &map,
     };
     FeatureInfo RefCountPipe = {
         "RefCountPipe",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, resources are referenced counted via a specific pipe "
+        "implementation.",
         &map,
     };
     FeatureInfo VirtioGpuFenceContexts = {
         "VirtioGpuFenceContexts",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the host will support multiple virtio gpu fence timelines.",
         &map,
     };
     FeatureInfo VirtioGpuNativeSync = {
         "VirtioGpuNativeSync",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, use virtio gpu instead of goldfish sync for sync fd support.",
         &map,
     };
     FeatureInfo VirtioGpuNext = {
         "VirtioGpuNext",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, virtio gpu supports blob resources (this was historically "
+        "called on a virtio-gpu-next branch in upstream kernel?).",
         &map,
     };
     FeatureInfo VulkanAllocateDeviceMemoryOnly = {
         "VulkanAllocateDeviceMemoryOnly",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, prevents the guest from allocating Vulkan memory that does "
+        "not have VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT.",
         &map,
     };
     FeatureInfo VulkanAllocateHostMemory = {
         "VulkanAllocateHostMemory",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, allocates host private memory and uses "
+        "VK_EXT_external_memory_host to handle Vulkan "
+        "VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT allocations.",
         &map,
     };
     FeatureInfo VulkanBatchedDescriptorSetUpdate = {
         "VulkanBatchedDescriptorSetUpdate",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, Vulkan descriptor set updates via vkUpdateDescriptorSets() are "
+        "not immediately sent to the host and are instead deferred until needed "
+        "in vkQueueSubmit() commands.",
         &map,
     };
     FeatureInfo VulkanIgnoredHandles = {
         "VulkanIgnoredHandles",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the guest to host Vulkan protocol will ignore handles in some "
+        "cases such as VkWriteDescriptorSet().",
         &map,
     };
     FeatureInfo VulkanNativeSwapchain = {
         "VulkanNativeSwapchain",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the host display implementation uses a native Vulkan swapchain.",
         &map,
     };
     FeatureInfo VulkanNullOptionalStrings = {
         "VulkanNullOptionalStrings",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the guest to host Vulkan protocol will encode null optional "
+        "strings as actual null values instead of as empty strings.",
         &map,
     };
     FeatureInfo VulkanQueueSubmitWithCommands = {
         "VulkanQueueSubmitWithCommands",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, uses deferred command submission with global sequence number "
+        "synchronization for Vulkan queue submits.",
         &map,
     };
     FeatureInfo VulkanShaderFloat16Int8 = {
         "VulkanShaderFloat16Int8",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, enables the VK_KHR_shader_float16_int8 extension.",
         &map,
     };
     FeatureInfo VulkanSnapshots = {
         "VulkanSnapshots",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, supports snapshotting the guest and host Vulkan state.",
         &map,
     };
     FeatureInfo Vulkan = {
         "Vulkan",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, allows the guest to use Vulkan and enables the Vulkan backend "
+        "on the host.",
         &map,
     };
     FeatureInfo Yuv420888ToNv21 = {
         "Yuv420888ToNv21",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, Androids HAL_PIXEL_FORMAT_YCbCr_420_888 format is treated as "
+        "NV21.",
         &map,
     };
     FeatureInfo YuvCache = {
         "YuvCache",
-        "Default description: consider contributing a description if you see this!",
+        "If enabled, the host will cache YUV frames.",
         &map,
     };
 };

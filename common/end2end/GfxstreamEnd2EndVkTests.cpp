@@ -449,8 +449,8 @@ TEST_P(GfxstreamEnd2EndVkTest, DISABLED_DescriptorSetAllocFreeDestroy) {
     EXPECT_THAT(device->freeDescriptorSets(*bundle.descriptorPool, kNumSets, descriptorSetHandles.data()), IsVkSuccess());
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_MultiThreadedShutdown) {
-    constexpr const int kNumIterations = 100;
+TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
+    constexpr const int kNumIterations = 20;
     for (int i = 0; i < kNumIterations; i++) {
         auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
                 VK_ASSERT(SetUpTypicalVkTestEnvironment());
@@ -494,7 +494,8 @@ TEST_P(GfxstreamEnd2EndVkTest, DISABLED_MultiThreadedShutdown) {
                 // host. Gfxstream's host Vulkan decoders will spin loop waiting for their turn to
                 // process their next command.
                 //
-                // With all of the above, a deadlock could occur with the following sequence:
+                // With all of the above, a deadlock would previouly occur with the following
+                // sequence:
                 //
                 // T1: Host-RenderThread-1: <sleeping waiting for wakeup>
                 //

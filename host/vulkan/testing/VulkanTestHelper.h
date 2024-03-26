@@ -19,9 +19,9 @@
 #include "aemu/base/BumpPool.h"
 #include "base/include/aemu/base/HealthMonitor.h"
 #include "base/include/aemu/base/Metrics.h"
-#include "host/vulkan/VkCommonOperations.h"
-#include "host/vulkan/VkDecoderContext.h"
-#include "host/vulkan/testing/VkDecoderTestDispatch.h"
+#include "vulkan/VkCommonOperations.h"
+#include "vulkan/VkDecoderContext.h"
+#include "vulkan/testing/VkDecoderTestDispatch.h"
 #include "utils/include/utils/GfxApiLogger.h"
 
 namespace gfxstream {

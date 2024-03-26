@@ -28,7 +28,7 @@
 #endif
 
 #ifdef __linux__
-#include "apigen-codec-common/X11Support.h"
+#include "X11Support.h"
 #include "X11ErrorHandler.h"
 #endif
 

@@ -48,7 +48,7 @@ set(stream-server-core-sources
     RendererImpl.cpp
     FrameBuffer.cpp)
 if (APPLE)
-    set(stream-server-core-platform-sources NativeSubWindow_cocoa.m)
+    set(stream-server-core-platform-sources NativeSubWindow_cocoa.mm)
 elseif (WIN32)
     set(stream-server-core-platform-sources NativeSubWindow_win32.cpp)
 elseif (QNX)
@@ -204,8 +204,7 @@ endfunction()
         tests/ShaderUtils.cpp
         tests/GLSnapshotTestDispatch.cpp
         tests/GLSnapshotTestStateUtils.cpp
-        tests/HelloTriangleImp.cpp
-        tests/ImageUtils.cpp)
+        tests/HelloTriangleImp.cpp)
     target_include_directories(
         stream-server-testing-support
         PUBLIC
@@ -221,6 +220,7 @@ endfunction()
         PUBLIC
         aemu-host-common-testing-support
         aemu-base-testing-support
+        gfxstream_common_image
         gfxstream_backend_static
         gfxstream_stb
         OSWindow

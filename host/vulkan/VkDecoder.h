@@ -34,8 +34,8 @@
 
 #include <memory>
 
+#include "ProcessResources.h"
 #include "VkDecoderContext.h"
-#include "host/ProcessResources.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan_gfxstream.h"
 
@@ -223,6 +223,8 @@ class VkDecoder {
 #ifdef VK_EXT_texel_buffer_alignment
 #endif
 #ifdef VK_EXT_device_memory_report
+#endif
+#ifdef VK_EXT_robustness2
 #endif
 #ifdef VK_EXT_custom_border_color
 #endif
