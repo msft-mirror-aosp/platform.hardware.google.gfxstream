@@ -204,8 +204,7 @@ endfunction()
         tests/ShaderUtils.cpp
         tests/GLSnapshotTestDispatch.cpp
         tests/GLSnapshotTestStateUtils.cpp
-        tests/HelloTriangleImp.cpp
-        tests/ImageUtils.cpp)
+        tests/HelloTriangleImp.cpp)
     target_include_directories(
         stream-server-testing-support
         PUBLIC
@@ -221,6 +220,7 @@ endfunction()
         PUBLIC
         aemu-host-common-testing-support
         aemu-base-testing-support
+        gfxstream_common_image
         gfxstream_backend_static
         gfxstream_stb
         OSWindow
