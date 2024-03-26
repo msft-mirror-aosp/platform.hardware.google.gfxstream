@@ -11,7 +11,7 @@
 
 #include "BorrowedImageVk.h"
 #include "aemu/base/synchronization/Lock.h"
-#include "tests/ImageUtils.h"
+#include "gfxstream/ImageUtils.h"
 #include "tests/VkTestUtils.h"
 #include "vulkan/VulkanDispatch.h"
 #include "vulkan/vk_util.h"

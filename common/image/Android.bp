@@ -1,0 +1,20 @@
+package {
+    // See: http://go/android-license-faq
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library {
+    name: "libgfxstream_common_image",
+    defaults: [
+        "gfxstream_defaults",
+    ],
+    static_libs: [
+        "libgfxstream_thirdparty_stb",
+    ],
+    srcs: [
+        "ImageUtils.cpp",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+}
