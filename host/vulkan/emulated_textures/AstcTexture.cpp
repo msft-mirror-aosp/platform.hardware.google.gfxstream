@@ -22,7 +22,7 @@
 
 #include "aemu/base/HealthMonitor.h"
 #include "host-common/logging.h"
-#include "host/vulkan/vk_util.h"
+#include "vulkan/vk_util.h"
 
 namespace gfxstream {
 namespace vk {

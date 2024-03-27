@@ -43,8 +43,22 @@ void GoldfishGralloc::acquire(AHardwareBuffer* ahb) { AHardwareBuffer_acquire(ah
 
 void GoldfishGralloc::release(AHardwareBuffer* ahb) { AHardwareBuffer_release(ahb); }
 
+int GoldfishGralloc::lock(AHardwareBuffer* ahb, uint8_t** ptr) {
+    return AHardwareBuffer_lock(ahb, AHARDWAREBUFFER_USAGE_CPU_READ_RARELY, -1, nullptr,
+                                reinterpret_cast<void**>(ptr));
+}
+
+int GoldfishGralloc::unlock(AHardwareBuffer* ahb) { return AHardwareBuffer_unlock(ahb, nullptr); }
+
 uint32_t GoldfishGralloc::getHostHandle(native_handle_t const* handle) {
-    return cb_handle_t::from(handle)->hostHandle;
+    const uint32_t INVALID_HOST_HANDLE = 0;
+
+    const cb_handle_t* cb = cb_handle_t::from(handle);
+    if (cb) {
+        return cb->hostHandle;
+    } else {
+        return INVALID_HOST_HANDLE;
+    }
 }
 
 uint32_t GoldfishGralloc::getHostHandle(const AHardwareBuffer* ahb) {

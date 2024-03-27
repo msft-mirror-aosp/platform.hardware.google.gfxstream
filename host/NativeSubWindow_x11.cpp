@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 #include "NativeSubWindow.h"
-#include "apigen-codec-common/X11Support.h"
+#include "X11Support.h"
 
 #include <stdio.h>
 

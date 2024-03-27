@@ -89,6 +89,24 @@ MATCHER(IsValidHandle, "a non-null handle") {
 template <typename GlType>
 using GlExpected = android::base::expected<GlType, std::string>;
 
+#define GL_ASSERT(x)                        \
+    ({                                      \
+        auto gl_result = (x);               \
+        if (!gl_result.ok()) {              \
+            ASSERT_THAT(gl_result, IsOk()); \
+        }                                   \
+        std::move(gl_result.value());       \
+    })
+
+#define GL_EXPECT(x)                                             \
+    ({                                                           \
+        auto gl_result = (x);                                    \
+        if (!gl_result.ok()) {                                   \
+            return android::base::unexpected(gl_result.error()); \
+        }                                                        \
+        std::move(gl_result.value());                            \
+    })
+
 template <typename VkType>
 using VkExpected = android::base::expected<VkType, vkhpp::Result>;
 
@@ -142,6 +160,219 @@ using VkExpected = android::base::expected<VkType, vkhpp::Result>;
     std::move(vkhpp_result_value.value);                                      \
   })
 
+struct GuestGlDispatchTable {
+#define DECLARE_EGL_FUNCTION(return_type, function_name, signature) \
+    return_type(*function_name) signature = nullptr;
+
+#define DECLARE_GLES_FUNCTION(return_type, function_name, signature, args) \
+    return_type(*function_name) signature = nullptr;
+
+    LIST_RENDER_EGL_FUNCTIONS(DECLARE_EGL_FUNCTION)
+    LIST_RENDER_EGL_EXTENSIONS_FUNCTIONS(DECLARE_EGL_FUNCTION)
+    LIST_GLES_FUNCTIONS(DECLARE_GLES_FUNCTION, DECLARE_GLES_FUNCTION)
+};
+
+class ScopedGlType {
+   public:
+    using GlDispatch = GuestGlDispatchTable;
+    using GlDispatchGenFunc = void (*GuestGlDispatchTable::*)(GLsizei, GLuint*);
+    using GlDispatchDelFunc = void (*GuestGlDispatchTable::*)(GLsizei, const GLuint*);
+
+    ScopedGlType() {}
+
+    ScopedGlType(GlDispatch& glDispatch, GlDispatchGenFunc glGenFunc, GlDispatchDelFunc glDelFunc)
+        : mGlDispatch(&glDispatch), mGlGenFunc(glGenFunc), mGlDelFunc(glDelFunc) {
+        (mGlDispatch->*mGlGenFunc)(1, &mHandle);
+    }
+
+    ScopedGlType(const ScopedGlType& rhs) = delete;
+    ScopedGlType& operator=(const ScopedGlType& rhs) = delete;
+
+    ScopedGlType(ScopedGlType&& rhs)
+        : mGlDispatch(rhs.mGlDispatch),
+          mGlGenFunc(rhs.mGlGenFunc),
+          mGlDelFunc(rhs.mGlDelFunc),
+          mHandle(rhs.mHandle) {
+        rhs.mHandle = 0;
+    }
+
+    ScopedGlType& operator=(ScopedGlType&& rhs) {
+        mGlDispatch = rhs.mGlDispatch;
+        mGlGenFunc = rhs.mGlGenFunc;
+        mGlDelFunc = rhs.mGlDelFunc;
+        std::swap(mHandle, rhs.mHandle);
+        return *this;
+    }
+
+    ~ScopedGlType() {
+        if (mHandle != 0) {
+            (mGlDispatch->*mGlDelFunc)(1, &mHandle);
+            mHandle = 0;
+        }
+    }
+
+    operator GLuint() { return mHandle; }
+    operator GLuint() const { return mHandle; }
+
+   private:
+    GlDispatch* mGlDispatch = nullptr;
+    GlDispatchGenFunc mGlGenFunc = nullptr;
+    GlDispatchDelFunc mGlDelFunc = nullptr;
+    GLuint mHandle = 0;
+};
+
+class ScopedGlBuffer : public ScopedGlType {
+   public:
+    ScopedGlBuffer(GlDispatch& dispatch)
+        : ScopedGlType(dispatch, &GlDispatch::glGenBuffers, &GlDispatch::glDeleteBuffers) {}
+};
+
+class ScopedGlTexture : public ScopedGlType {
+   public:
+    ScopedGlTexture(GlDispatch& dispatch)
+        : ScopedGlType(dispatch, &GlDispatch::glGenTextures, &GlDispatch::glDeleteTextures) {}
+};
+
+class ScopedGlFramebuffer : public ScopedGlType {
+   public:
+    ScopedGlFramebuffer(GlDispatch& dispatch)
+        : ScopedGlType(dispatch, &GlDispatch::glGenFramebuffers,
+                       &GlDispatch::glDeleteFramebuffers) {}
+};
+
+class ScopedGlShader {
+   public:
+    using GlDispatch = GuestGlDispatchTable;
+
+    ScopedGlShader() = default;
+
+    ScopedGlShader(const ScopedGlShader& rhs) = delete;
+    ScopedGlShader& operator=(const ScopedGlShader& rhs) = delete;
+
+    static GlExpected<ScopedGlShader> MakeShader(GlDispatch& dispatch, GLenum type,
+                                                 const std::string& source);
+
+    ScopedGlShader(ScopedGlShader&& rhs) : mGlDispatch(rhs.mGlDispatch), mHandle(rhs.mHandle) {
+        rhs.mHandle = 0;
+    }
+
+    ScopedGlShader& operator=(ScopedGlShader&& rhs) {
+        mGlDispatch = rhs.mGlDispatch;
+        std::swap(mHandle, rhs.mHandle);
+        return *this;
+    }
+
+    ~ScopedGlShader() {
+        if (mHandle != 0) {
+            mGlDispatch->glDeleteShader(mHandle);
+            mHandle = 0;
+        }
+    }
+
+    operator GLuint() { return mHandle; }
+    operator GLuint() const { return mHandle; }
+
+   private:
+    ScopedGlShader(GlDispatch& dispatch, GLuint handle) : mGlDispatch(&dispatch), mHandle(handle) {}
+
+    GlDispatch* mGlDispatch = nullptr;
+    GLuint mHandle = 0;
+};
+
+class ScopedGlProgram {
+   public:
+    using GlDispatch = GuestGlDispatchTable;
+
+    ScopedGlProgram() = default;
+
+    ScopedGlProgram(const ScopedGlProgram& rhs) = delete;
+    ScopedGlProgram& operator=(const ScopedGlProgram& rhs) = delete;
+
+    static GlExpected<ScopedGlProgram> MakeProgram(GlDispatch& dispatch,
+                                                   const std::string& vertShader,
+                                                   const std::string& fragShader);
+
+    static GlExpected<ScopedGlProgram> MakeProgram(GlDispatch& dispatch, GLenum programBinaryFormat,
+                                                   const std::vector<uint8_t>& programBinaryData);
+
+    ScopedGlProgram(ScopedGlProgram&& rhs) : mGlDispatch(rhs.mGlDispatch), mHandle(rhs.mHandle) {
+        rhs.mHandle = 0;
+    }
+
+    ScopedGlProgram& operator=(ScopedGlProgram&& rhs) {
+        mGlDispatch = rhs.mGlDispatch;
+        std::swap(mHandle, rhs.mHandle);
+        return *this;
+    }
+
+    ~ScopedGlProgram() {
+        if (mHandle != 0) {
+            mGlDispatch->glDeleteProgram(mHandle);
+            mHandle = 0;
+        }
+    }
+
+    operator GLuint() { return mHandle; }
+    operator GLuint() const { return mHandle; }
+
+   private:
+    ScopedGlProgram(GlDispatch& dispatch, GLuint handle)
+        : mGlDispatch(&dispatch), mHandle(handle) {}
+
+    GlDispatch* mGlDispatch = nullptr;
+    GLuint mHandle = 0;
+};
+
+class ScopedAHardwareBuffer {
+   public:
+    ScopedAHardwareBuffer() = default;
+
+    static GlExpected<ScopedAHardwareBuffer> Allocate(Gralloc& gralloc, uint32_t width,
+                                                      uint32_t height, uint32_t format);
+
+    ScopedAHardwareBuffer(const ScopedAHardwareBuffer& rhs) = delete;
+    ScopedAHardwareBuffer& operator=(const ScopedAHardwareBuffer& rhs) = delete;
+
+    ScopedAHardwareBuffer(ScopedAHardwareBuffer&& rhs)
+        : mGralloc(rhs.mGralloc), mHandle(rhs.mHandle) {
+        rhs.mHandle = nullptr;
+    }
+
+    ScopedAHardwareBuffer& operator=(ScopedAHardwareBuffer&& rhs) {
+        mGralloc = rhs.mGralloc;
+        std::swap(mHandle, rhs.mHandle);
+        return *this;
+    }
+
+    ~ScopedAHardwareBuffer() {
+        if (mHandle != nullptr) {
+            mGralloc->release(mHandle);
+            mHandle = 0;
+        }
+    }
+
+    GlExpected<uint8_t*> Lock() {
+        uint8_t* mapped = nullptr;
+        int status = mGralloc->lock(mHandle, &mapped);
+        if (status != 0) {
+            return android::base::unexpected("Failed to lock AHB");
+        }
+        return mapped;
+    }
+
+    void Unlock() { mGralloc->unlock(mHandle); }
+
+    operator AHardwareBuffer*() { return mHandle; }
+    operator AHardwareBuffer*() const { return mHandle; }
+
+   private:
+    ScopedAHardwareBuffer(Gralloc& gralloc, AHardwareBuffer* handle)
+        : mGralloc(&gralloc), mHandle(handle) {}
+
+    Gralloc* mGralloc = nullptr;
+    AHardwareBuffer* mHandle = nullptr;
+};
+
 enum class GfxstreamTransport {
   kVirtioGpuAsg,
   kVirtioGpuPipe,
@@ -160,19 +391,7 @@ struct TestParams {
 std::string GetTestName(const ::testing::TestParamInfo<TestParams>& info);
 
 class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
-  protected:
-    struct GuestGlDispatchTable {
-        #define DECLARE_EGL_FUNCTION(return_type, function_name, signature) \
-            return_type (*function_name) signature = nullptr;
-
-        #define DECLARE_GLES_FUNCTION(return_type, function_name, signature, args) \
-            return_type (*function_name) signature = nullptr;
-
-        LIST_RENDER_EGL_FUNCTIONS(DECLARE_EGL_FUNCTION)
-        LIST_RENDER_EGL_EXTENSIONS_FUNCTIONS(DECLARE_EGL_FUNCTION)
-        LIST_GLES_FUNCTIONS(DECLARE_GLES_FUNCTION, DECLARE_GLES_FUNCTION)
-    };
-
+   public:
     std::unique_ptr<GuestGlDispatchTable> SetupGuestGl();
     std::unique_ptr<vkhpp::DynamicLoader> SetupGuestVk();
 
@@ -193,10 +412,13 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
                                       EGLContext context,
                                       EGLSurface surface);
 
-    GlExpected<GLuint> SetUpShader(GLenum type, const std::string& source);
+    GlExpected<ScopedGlShader> SetUpShader(GLenum type, const std::string& source);
 
-    GlExpected<GLuint> SetUpProgram(const std::string& vertSource,
-                                    const std::string& fragSource);
+    GlExpected<ScopedGlProgram> SetUpProgram(const std::string& vertSource,
+                                             const std::string& fragSource);
+
+    GlExpected<ScopedGlProgram> SetUpProgram(GLenum programBinaryFormat,
+                                             const std::vector<uint8_t>& programBinaryData);
 
     struct TypicalVkTestEnvironment {
         vkhpp::UniqueInstance instance;
