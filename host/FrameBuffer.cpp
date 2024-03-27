@@ -1938,11 +1938,14 @@ Renderer::FlushReadPixelPipeline FrameBuffer::getFlushReadPixelPipeline() {
 bool FrameBuffer::repost(bool needLockAndBind) {
     GL_LOG("Reposting framebuffer.");
     if (m_displayVk) {
+        setGuestPostedAFrame();
         return true;
     }
     if (m_lastPostedColorBuffer && sInitialized.load(std::memory_order_relaxed)) {
         GL_LOG("Has last posted colorbuffer and is initialized; post.");
-        return postImplSync(m_lastPostedColorBuffer, needLockAndBind, true);
+        auto res = postImplSync(m_lastPostedColorBuffer, needLockAndBind, true);
+        if (res) setGuestPostedAFrame();
+        return res;
     } else {
         GL_LOG("No repost: no last posted color buffer");
         if (!sInitialized.load(std::memory_order_relaxed)) {
