@@ -106,9 +106,7 @@ cc_defaults {
 
     arch: {
         arm: {
-            neon: {
-                cflags: ["-DUSE_ARM_ASM"],
-            },
+            cflags: ["-DUSE_ARM_ASM"],
         },
         arm64: {
             cflags: ["-DUSE_AARCH64_ASM"],
