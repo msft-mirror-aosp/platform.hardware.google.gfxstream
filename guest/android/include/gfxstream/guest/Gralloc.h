@@ -41,6 +41,9 @@ class Gralloc {
     virtual int allocate(uint32_t width, uint32_t height, uint32_t format, uint64_t usage,
                          AHardwareBuffer** outputAhb) = 0;
 
+    virtual int lock(AHardwareBuffer* ahb, uint8_t** ptr) = 0;
+    virtual int unlock(AHardwareBuffer* ahb) = 0;
+
     virtual const native_handle_t* getNativeHandle(const AHardwareBuffer* ahb) = 0;
 
     virtual uint32_t getHostHandle(const native_handle_t* handle) = 0;
@@ -57,6 +60,9 @@ class Gralloc {
         // Equal to DRM_FORMAT_INVALID -- see <drm_fourcc.h>
         return 0;
     }
+
+    virtual uint32_t getWidth(const AHardwareBuffer* ahb) = 0;
+    virtual uint32_t getHeight(const AHardwareBuffer* ahb) = 0;
 
     virtual size_t getAllocatedSize(const native_handle_t* handle) = 0;
     virtual size_t getAllocatedSize(const AHardwareBuffer* handle) = 0;

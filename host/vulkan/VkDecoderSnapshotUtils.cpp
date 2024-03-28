@@ -121,12 +121,15 @@ VkExtent3D getMipmapExtent(VkExtent3D baseExtent, uint32_t mipLevel) {
 
 void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkImage image,
                       const ImageInfo* imageInfo) {
+    if (imageInfo->layout == VK_IMAGE_LAYOUT_UNDEFINED) {
+        return;
+    }
     VkEmulation* vkEmulation = getGlobalVkEmulation();
     VulkanDispatch* dispatch = vkEmulation->dvk;
     const VkImageCreateInfo& imageCreateInfo = imageInfo->imageCreateInfoShallow;
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .commandPool = vkEmulation->commandPool,
+        .commandPool = stateBlock->commandPool,
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
         .commandBufferCount = 1,
     };
@@ -139,6 +142,7 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     VkFence fence;
     _RUN_AND_CHECK(dispatch->vkCreateFence(stateBlock->device, &fenceCreateInfo, nullptr, &fence));
     VkBufferCreateInfo bufferCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = static_cast<VkDeviceSize>(
             imageCreateInfo.extent.width * imageCreateInfo.extent.height *
             imageCreateInfo.extent.depth * bytes_per_pixel(imageCreateInfo.format)),
@@ -160,6 +164,7 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     // Staging memory
     // TODO(b/323064243): reuse staging memory
     VkMemoryAllocateInfo readbackBufferMemoryAllocateInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .allocationSize = readbackBufferMemoryRequirements.size,
         .memoryTypeIndex = readbackBufferMemoryType,
     };
@@ -230,14 +235,16 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
                                              VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, readbackBuffer,
                                              1, &region);
 
-            imgMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            imgMemoryBarrier.newLayout = layoutBeforeSave;
-            imgMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            imgMemoryBarrier.dstAccessMask = ~VK_ACCESS_NONE_KHR;
-
-            dispatch->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                                           VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0,
-                                           nullptr, 1, &imgMemoryBarrier);
+            // Cannot really translate it back to VK_IMAGE_LAYOUT_PREINITIALIZED
+            if (layoutBeforeSave != VK_IMAGE_LAYOUT_PREINITIALIZED) {
+                imgMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                imgMemoryBarrier.newLayout = layoutBeforeSave;
+                imgMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                imgMemoryBarrier.dstAccessMask = ~VK_ACCESS_NONE_KHR;
+                dispatch->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0,
+                                               nullptr, 1, &imgMemoryBarrier);
+            }
             _RUN_AND_CHECK(dispatch->vkEndCommandBuffer(commandBuffer));
 
             // Execute the command to copy image
@@ -258,17 +265,21 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     }
     dispatch->vkDestroyFence(stateBlock->device, fence, nullptr);
     dispatch->vkUnmapMemory(stateBlock->device, readbackMemory);
+    dispatch->vkDestroyBuffer(stateBlock->device, readbackBuffer, nullptr);
     dispatch->vkFreeMemory(stateBlock->device, readbackMemory, nullptr);
 }
 
 void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkImage image,
                       const ImageInfo* imageInfo) {
+    if (imageInfo->layout == VK_IMAGE_LAYOUT_UNDEFINED) {
+        return;
+    }
     VkEmulation* vkEmulation = getGlobalVkEmulation();
     VulkanDispatch* dispatch = vkEmulation->dvk;
     const VkImageCreateInfo& imageCreateInfo = imageInfo->imageCreateInfoShallow;
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .commandPool = vkEmulation->commandPool,
+        .commandPool = stateBlock->commandPool,
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
         .commandBufferCount = 1,
     };
@@ -281,10 +292,11 @@ void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     VkFence fence;
     _RUN_AND_CHECK(dispatch->vkCreateFence(stateBlock->device, &fenceCreateInfo, nullptr, &fence));
     VkBufferCreateInfo bufferCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = static_cast<VkDeviceSize>(
             imageCreateInfo.extent.width * imageCreateInfo.extent.height *
             imageCreateInfo.extent.depth * bytes_per_pixel(imageCreateInfo.format)),
-        .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
     VkBuffer stagingBuffer;
@@ -302,6 +314,7 @@ void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     // Staging memory
     // TODO(b/323064243): reuse staging memory
     VkMemoryAllocateInfo stagingBufferMemoryAllocateInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .allocationSize = stagingBufferMemoryRequirements.size,
         .memoryTypeIndex = stagingBufferMemoryType,
     };
@@ -371,16 +384,18 @@ void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
                 .imageExtent = mipmapExtent,
             };
             dispatch->vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image,
-                                             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 1, &region);
+                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-            imgMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            imgMemoryBarrier.newLayout = imageInfo->layout;
-            imgMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            imgMemoryBarrier.dstAccessMask = ~VK_ACCESS_NONE_KHR;
-
-            dispatch->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                                           VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0,
-                                           nullptr, 1, &imgMemoryBarrier);
+            // Cannot really translate it back to VK_IMAGE_LAYOUT_PREINITIALIZED
+            if (imageInfo->layout != VK_IMAGE_LAYOUT_PREINITIALIZED) {
+                imgMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+                imgMemoryBarrier.newLayout = imageInfo->layout;
+                imgMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                imgMemoryBarrier.dstAccessMask = ~VK_ACCESS_NONE_KHR;
+                dispatch->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0,
+                                               nullptr, 1, &imgMemoryBarrier);
+            }
             _RUN_AND_CHECK(dispatch->vkEndCommandBuffer(commandBuffer));
 
             // Execute the command to copy image
@@ -397,6 +412,7 @@ void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     }
     dispatch->vkDestroyFence(stateBlock->device, fence, nullptr);
     dispatch->vkUnmapMemory(stateBlock->device, stagingMemory);
+    dispatch->vkDestroyBuffer(stateBlock->device, stagingBuffer, nullptr);
     dispatch->vkFreeMemory(stateBlock->device, stagingMemory, nullptr);
 }
 

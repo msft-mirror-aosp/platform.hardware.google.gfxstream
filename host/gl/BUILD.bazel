@@ -41,10 +41,17 @@ objc_library(
         "glestranslator/EGL/MacNative.m",
         "glestranslator/EGL/MacPixelFormatsAttribs.m",
     ] + glob(["glestranslator/EGL/*.h"]),
+    copts = ["-Wno-deprecated-declarations"],
     defines = ["EMUGL_BUILD"],
+    sdk_frameworks = [
+        "IOSurface",
+        "AppKit",
+    ],
+    visibility = ["//visibility:public"],
     deps = [
         "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
     ],
+    alwayslink = True,
 )
 
 cc_library(
@@ -104,6 +111,7 @@ cc_library(
             "@platforms//os:macos": [":egl_translator-darwin"],
             "//conditions:default": [],
         }),
+    alwayslink = True,
 )
 
 cc_library(
