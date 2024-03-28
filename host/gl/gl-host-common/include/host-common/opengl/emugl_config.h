@@ -112,6 +112,9 @@ SelectedRenderer emuglConfig_get_current_renderer();
 // the hw.gpu.mode hardware property.
 const char* emuglConfig_get_user_gpu_option();
 
+void emuglConfig_get_vulkan_hardware_gpu(char** vendor, int* major, int* minor,
+        int* patch);
+
 // Returns a string representation of the renderer enum. Return value is a
 // static constant string, it is NOT heap-allocated.
 const char* emuglConfig_renderer_to_string(SelectedRenderer renderer);
