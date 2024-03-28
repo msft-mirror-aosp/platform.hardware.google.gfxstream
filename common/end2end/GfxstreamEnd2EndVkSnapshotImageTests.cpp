@@ -118,6 +118,19 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependency) {
 
     ASSERT_THAT(device->bindImageMemory(*image, *imageMemory, 0), IsVkSuccess());
 
+    // b/331677615
+    // Create and delete a buffer handle right before creating image view.
+    // Gfxstream recycle handles. We trick the VkImageView handle to collide with
+    // a destroyed buffer handle and verify there is no bug snapshotting recycled
+    // handles.
+    const vkhpp::BufferCreateInfo bufferCreateInfo = {
+        .size = 1024,
+        .usage = vkhpp::BufferUsageFlagBits::eTransferSrc,
+    };
+    auto buffer = device->createBufferUnique(bufferCreateInfo).value;
+    ASSERT_THAT(buffer, IsValidHandle());
+    buffer.reset();
+
     const vkhpp::ImageViewCreateInfo imageViewCreateInfo = {
         .image = *image,
         .viewType = vkhpp::ImageViewType::e2D,
