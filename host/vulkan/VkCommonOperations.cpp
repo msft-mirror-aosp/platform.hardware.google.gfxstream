@@ -1905,7 +1905,7 @@ static bool updateExternalMemoryInfo(VK_EXT_MEMORY_HANDLE extMemHandle,
 }
 
 // TODO(liyl): Currently we can only specify required memoryProperty
-// for a color buffer.
+// and initial layout for a color buffer.
 //
 // Ideally we would like to specify a memory type index directly from
 // localAllocInfo.memoryTypeIndex when allocating color buffers in
@@ -1919,9 +1919,13 @@ static bool updateExternalMemoryInfo(VK_EXT_MEMORY_HANDLE extMemHandle,
 // We should make it so the guest can only allocate external images/
 // buffers of one type index for image and one type index for buffer
 // to begin with, via filtering from the host.
+//
+// initLayout was used for snapshot purpose, to recover image layout
+// after snapshot load.
 
 bool initializeVkColorBufferLocked(
-    uint32_t colorBufferHandle, VK_EXT_MEMORY_HANDLE extMemHandle = VK_EXT_MEMORY_HANDLE_INVALID) {
+    uint32_t colorBufferHandle, VkImageLayout initLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    VK_EXT_MEMORY_HANDLE extMemHandle = VK_EXT_MEMORY_HANDLE_INVALID) {
     auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
     // Not initialized
     if (!infoPtr) {
@@ -1981,7 +1985,7 @@ bool initializeVkColorBufferLocked(
     imageCi->sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageCi->queueFamilyIndexCount = 0;
     imageCi->pQueueFamilyIndices = nullptr;
-    imageCi->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageCi->initialLayout = initLayout;
 
     // Create the image. If external memory is supported, make it external.
     VkExternalMemoryImageCreateInfo extImageCi = {
@@ -2187,7 +2191,7 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
 
 bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
                          FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
-                         bool vulkanOnly, uint32_t memoryProperty) {
+                         bool vulkanOnly, uint32_t memoryProperty, VkImageLayout initLayout) {
     if (!sVkEmulation || !sVkEmulation->live) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "VkEmulation not available.";
     }
@@ -2208,7 +2212,7 @@ bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
         return true;
     }
 
-    return initializeVkColorBufferLocked(colorBufferHandle);
+    return initializeVkColorBufferLocked(colorBufferHandle, initLayout);
 }
 
 std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorBufferHandle) {
@@ -2299,7 +2303,8 @@ bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle, uint32_t t
     AutoLock lock(sVkEmulationLock);
     // Initialize the colorBuffer with the external memory handle
     // Note that this will fail if the colorBuffer memory was previously initialized.
-    return initializeVkColorBufferLocked(colorBufferHandle, extMemHandle);
+    return initializeVkColorBufferLocked(colorBufferHandle, VK_IMAGE_LAYOUT_UNDEFINED,
+                                         extMemHandle);
 }
 
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle) {
@@ -3324,6 +3329,17 @@ void setColorBufferCurrentLayout(uint32_t colorBufferHandle, VkImageLayout layou
         return;
     }
     infoPtr->currentLayout = layout;
+}
+
+VkImageLayout getColorBufferCurrentLayout(uint32_t colorBufferHandle) {
+    AutoLock lock(sVkEmulationLock);
+
+    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!infoPtr) {
+        VK_COMMON_ERROR("Invalid ColorBuffer handle %d.", static_cast<int>(colorBufferHandle));
+        return VK_IMAGE_LAYOUT_UNDEFINED;
+    }
+    return infoPtr->currentLayout;
 }
 
 // Allocate a ready to use VkCommandBuffer for queue transfer. The caller needs

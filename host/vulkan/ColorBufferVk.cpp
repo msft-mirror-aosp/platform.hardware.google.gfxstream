@@ -23,7 +23,12 @@ namespace vk {
 std::unique_ptr<ColorBufferVk> ColorBufferVk::create(uint32_t handle, uint32_t width,
                                                      uint32_t height, GLenum format,
                                                      FrameworkFormat frameworkFormat,
-                                                     bool vulkanOnly, uint32_t memoryProperty) {
+                                                     bool vulkanOnly, uint32_t memoryProperty,
+                                                     android::base::Stream* stream) {
+    VkImageLayout initLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    if (stream) {
+        initLayout = static_cast<VkImageLayout>(stream->getBe32());
+    }
     if (!createVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
                              memoryProperty)) {
         GL_LOG("Failed to create ColorBufferVk:%d", handle);
@@ -31,6 +36,10 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(uint32_t handle, uint32_t w
     }
 
     return std::unique_ptr<ColorBufferVk>(new ColorBufferVk(handle));
+}
+
+void ColorBufferVk::onSave(android::base::Stream* stream) {
+    stream->putBe32(static_cast<uint32_t>(getColorBufferCurrentLayout(mHandle)));
 }
 
 ColorBufferVk::ColorBufferVk(uint32_t handle) : mHandle(handle) {}
