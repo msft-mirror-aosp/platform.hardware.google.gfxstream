@@ -33,9 +33,9 @@ RutabagaVirtGpuResource::~RutabagaVirtGpuResource() {
     mEmulation->DestroyResource(mContextId, mResourceId);
 }
 
-VirtGpuBlobMappingPtr RutabagaVirtGpuResource::createMapping(void) {
+VirtGpuResourceMappingPtr RutabagaVirtGpuResource::createMapping(void) {
     uint8_t* mapped = mEmulation->Map(mResourceId);
-    return std::make_shared<RutabagaVirtGpuBlobMapping>(mEmulation, shared_from_this(), mapped);
+    return std::make_shared<RutabagaVirtGpuResourceMapping>(mEmulation, shared_from_this(), mapped);
 }
 
 uint32_t RutabagaVirtGpuResource::getResourceHandle() const { return mResourceId; }

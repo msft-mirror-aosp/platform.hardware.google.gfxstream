@@ -92,7 +92,7 @@ int64_t RutabagaVirtGpuDevice::getDeviceHandle() { return -1; }
 
 VirtGpuCaps RutabagaVirtGpuDevice::getCaps() { return mCaps; }
 
-VirtGpuBlobPtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
+VirtGpuResourcePtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
     const auto resourceIdOpt = mEmulation->CreateBlob(
         mContextId, static_cast<uint32_t>(blobCreate.blobMem),
         static_cast<uint32_t>(blobCreate.flags), blobCreate.blobId, blobCreate.size);
@@ -100,12 +100,12 @@ VirtGpuBlobPtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob&
         return nullptr;
     }
 
-    return VirtGpuBlobPtr(new RutabagaVirtGpuResource(
+    return VirtGpuResourcePtr(new RutabagaVirtGpuResource(
         mEmulation, *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kBlob, mContextId));
 }
 
-VirtGpuBlobPtr RutabagaVirtGpuDevice::createVirglBlob(uint32_t width, uint32_t height,
-                                                      uint32_t virglFormat) {
+VirtGpuResourcePtr RutabagaVirtGpuDevice::createResource(uint32_t width, uint32_t height,
+                                                         uint32_t virglFormat) {
     uint32_t target = 0;
     uint32_t bind = 0;
     uint32_t bpp = 0;
@@ -146,12 +146,12 @@ VirtGpuBlobPtr RutabagaVirtGpuDevice::createVirglBlob(uint32_t width, uint32_t h
         return nullptr;
     }
 
-    return VirtGpuBlobPtr(new RutabagaVirtGpuResource(
+    return VirtGpuResourcePtr(new RutabagaVirtGpuResource(
         mEmulation, *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kPipe, mContextId));
 }
 
 int RutabagaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
-                                      const VirtGpuBlob* blob) {
+                                      const VirtGpuResource* blob) {
     std::optional<uint32_t> blobResourceId;
     uint32_t fenceId = 0;
     VirtioGpuFenceFlags fenceFlags = kFlagNone;
@@ -175,7 +175,7 @@ int RutabagaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
     return ret;
 }
 
-VirtGpuBlobPtr RutabagaVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&) {
+VirtGpuResourcePtr RutabagaVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&) {
     ALOGE("Unimplemented %s", __FUNCTION__);
     return nullptr;
 }
