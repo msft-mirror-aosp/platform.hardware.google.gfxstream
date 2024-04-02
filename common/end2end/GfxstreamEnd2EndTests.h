@@ -41,12 +41,16 @@
 #include <vulkan/vk_android_native_buffer.h>
 // clang-format on
 
+#include "Sync.h"
+#include "drm_fourcc.h"
 #include "gfxstream/guest/ANativeWindow.h"
 #include "gfxstream/guest/Gralloc.h"
-#include "Sync.h"
+#include "gfxstream/guest/RenderControlApi.h"
 
 namespace gfxstream {
 namespace tests {
+
+constexpr const bool kSaveImagesIfComparisonFailed = false;
 
 MATCHER(IsOk, "an ok result") {
   auto& result = arg;
@@ -85,6 +89,8 @@ MATCHER(IsValidHandle, "a non-null handle") {
     }
     return true;
 }
+
+struct Ok {};
 
 template <typename GlType>
 using GlExpected = android::base::expected<GlType, std::string>;
@@ -170,6 +176,49 @@ struct GuestGlDispatchTable {
     LIST_RENDER_EGL_FUNCTIONS(DECLARE_EGL_FUNCTION)
     LIST_RENDER_EGL_EXTENSIONS_FUNCTIONS(DECLARE_EGL_FUNCTION)
     LIST_GLES_FUNCTIONS(DECLARE_GLES_FUNCTION, DECLARE_GLES_FUNCTION)
+};
+
+struct GuestRenderControlDispatchTable {
+    PFN_rcCreateDevice rcCreateDevice = nullptr;
+    PFN_rcDestroyDevice rcDestroyDevice = nullptr;
+    PFN_rcCompose rcCompose = nullptr;
+};
+
+class ScopedRenderControlDevice {
+   public:
+    ScopedRenderControlDevice() {}
+
+    ScopedRenderControlDevice(GuestRenderControlDispatchTable& dispatch) : mDispatch(&dispatch) {
+        mDevice = dispatch.rcCreateDevice();
+    }
+
+    ScopedRenderControlDevice(const ScopedRenderControlDevice& rhs) = delete;
+    ScopedRenderControlDevice& operator=(const ScopedRenderControlDevice& rhs) = delete;
+
+    ScopedRenderControlDevice(ScopedRenderControlDevice&& rhs)
+        : mDispatch(rhs.mDispatch), mDevice(rhs.mDevice) {
+        rhs.mDevice = nullptr;
+    }
+
+    ScopedRenderControlDevice& operator=(ScopedRenderControlDevice&& rhs) {
+        mDispatch = rhs.mDispatch;
+        std::swap(mDevice, rhs.mDevice);
+        return *this;
+    }
+
+    ~ScopedRenderControlDevice() {
+        if (mDevice != nullptr) {
+            mDispatch->rcDestroyDevice(mDevice);
+            mDevice = nullptr;
+        }
+    }
+
+    operator RenderControlDevice*() { return mDevice; }
+    operator RenderControlDevice*() const { return mDevice; }
+
+   private:
+    GuestRenderControlDispatchTable* mDispatch = nullptr;
+    RenderControlDevice* mDevice = nullptr;
 };
 
 class ScopedGlType {
@@ -351,6 +400,10 @@ class ScopedAHardwareBuffer {
         }
     }
 
+    uint32_t GetWidth() const { return mGralloc->getWidth(mHandle); }
+
+    uint32_t GetHeight() const { return mGralloc->getHeight(mHandle); }
+
     GlExpected<uint8_t*> Lock() {
         uint8_t* mapped = nullptr;
         int status = mGralloc->lock(mHandle, &mapped);
@@ -373,6 +426,12 @@ class ScopedAHardwareBuffer {
     AHardwareBuffer* mHandle = nullptr;
 };
 
+struct Image {
+    uint32_t width;
+    uint32_t height;
+    std::vector<uint32_t> pixels;
+};
+
 enum class GfxstreamTransport {
   kVirtioGpuAsg,
   kVirtioGpuPipe,
@@ -393,6 +452,7 @@ std::string GetTestName(const ::testing::TestParamInfo<TestParams>& info);
 class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
    public:
     std::unique_ptr<GuestGlDispatchTable> SetupGuestGl();
+    std::unique_ptr<GuestRenderControlDispatchTable> SetupGuestRc();
     std::unique_ptr<vkhpp::DynamicLoader> SetupGuestVk();
 
     void SetUp() override;
@@ -436,10 +496,24 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
 
     void SnapshotSaveAndLoad();
 
+    GlExpected<Image> LoadImage(const std::string& basename);
+
+    GlExpected<Image> AsImage(ScopedAHardwareBuffer& ahb);
+
+    GlExpected<ScopedAHardwareBuffer> CreateAHBFromImage(const std::string& basename);
+
+    bool ArePixelsSimilar(uint32_t expectedPixel, uint32_t actualPixel);
+
+    bool AreImagesSimilar(const Image& expected, const Image& actual);
+
+    GlExpected<Ok> CompareAHBWithGolden(ScopedAHardwareBuffer& ahb,
+                                        const std::string& goldenBasename);
+
     std::unique_ptr<ANativeWindowHelper> mAnwHelper;
     std::unique_ptr<Gralloc> mGralloc;
     std::unique_ptr<SyncHelper> mSync;
     std::unique_ptr<GuestGlDispatchTable> mGl;
+    std::unique_ptr<GuestRenderControlDispatchTable> mRc;
     std::unique_ptr<vkhpp::DynamicLoader> mVk;
 };
 

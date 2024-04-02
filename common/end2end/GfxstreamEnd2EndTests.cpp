@@ -25,12 +25,14 @@
 #include "ProcessPipe.h"
 #include "RutabagaLayer.h"
 #include "aemu/base/Path.h"
+#include "gfxstream/ImageUtils.h"
 #include "gfxstream/RutabagaLayerTestUtils.h"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace gfxstream {
 namespace tests {
+namespace {
 
 using testing::AnyOf;
 using testing::Eq;
@@ -39,6 +41,13 @@ using testing::IsFalse;
 using testing::IsTrue;
 using testing::Not;
 using testing::NotNull;
+
+std::string GetTestDataPath(const std::string& basename) {
+    const std::filesystem::path testBinaryDirectory = gfxstream::guest::getProgramDirectory();
+    return (testBinaryDirectory / "testdata" / basename).string();
+}
+
+}  // namespace
 
 std::string GfxstreamTransportToEnvVar(GfxstreamTransport transport) {
     switch (transport) {
@@ -130,6 +139,33 @@ std::unique_ptr<GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
     return gl;
 }
 
+std::unique_ptr<GuestRenderControlDispatchTable> GfxstreamEnd2EndTest::SetupGuestRc() {
+    const std::filesystem::path testDirectory = gfxstream::guest::getProgramDirectory();
+    const std::string rcLibPath =
+        (testDirectory / "libgfxstream_guest_rendercontrol_with_host.so").string();
+
+    void* rcLib = dlopen(rcLibPath.c_str(), RTLD_NOW | RTLD_LOCAL);
+    if (!rcLib) {
+        ALOGE("Failed to load Gfxstream RenderControl library from %s.", rcLibPath.c_str());
+        return nullptr;
+    }
+
+    auto rc = std::make_unique<GuestRenderControlDispatchTable>();
+
+#define LOAD_RENDERCONTROL_FUNCTION(name)                         \
+    rc->name = reinterpret_cast<PFN_##name>(dlsym(rcLib, #name)); \
+    if (rc->name == nullptr) {                                    \
+        ALOGE("Failed to load RenderControl function %s", #name); \
+        return nullptr;                                           \
+    }
+
+    LOAD_RENDERCONTROL_FUNCTION(rcCreateDevice);
+    LOAD_RENDERCONTROL_FUNCTION(rcDestroyDevice);
+    LOAD_RENDERCONTROL_FUNCTION(rcCompose);
+
+    return rc;
+}
+
 std::unique_ptr<vkhpp::DynamicLoader> GfxstreamEnd2EndTest::SetupGuestVk() {
     const std::filesystem::path testDirectory = gfxstream::guest::getProgramDirectory();
     const std::string vkLibPath = (testDirectory / "libgfxstream_guest_vulkan_with_host.so").string();
@@ -176,6 +212,9 @@ void GfxstreamEnd2EndTest::SetUp() {
         ASSERT_THAT(mVk, NotNull());
     }
 
+    mRc = SetupGuestRc();
+    ASSERT_THAT(mRc, NotNull());
+
     mAnwHelper.reset(createPlatformANativeWindowHelper());
     mGralloc.reset(createPlatformGralloc());
     mSync.reset(createPlatformSyncHelper());
@@ -192,6 +231,7 @@ void GfxstreamEnd2EndTest::TearDownGuest() {
         mGl.reset();
     }
     mVk.reset();
+    mRc.reset();
 
     mAnwHelper.reset();
     mGralloc.reset();
@@ -562,6 +602,161 @@ void GfxstreamEnd2EndTest::SnapshotSaveAndLoad() {
 
     emulation->SnapshotSave(directory);
     emulation->SnapshotRestore(directory);
+}
+
+GlExpected<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
+    const std::string filepath = GetTestDataPath(basename);
+    if (!std::filesystem::exists(filepath)) {
+        return android::base::unexpected("File " + filepath + " does not exist.");
+    }
+    if (!std::filesystem::is_regular_file(filepath)) {
+        return android::base::unexpected("File " + filepath + " is not a regular file.");
+    }
+
+    Image image;
+
+    uint32_t sourceWidth = 0;
+    uint32_t sourceHeight = 0;
+    std::vector<uint32_t> sourcePixels;
+    if (!LoadRGBAFromPng(filepath, &image.width, &image.height, &image.pixels)) {
+        return android::base::unexpected("Failed to load " + filepath + " as RGBA PNG.");
+    }
+
+    return image;
+}
+
+GlExpected<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
+    Image actual;
+    actual.width = ahb.GetWidth();
+    if (actual.width == 0) {
+        return android::base::unexpected("Failed to query AHB width.");
+    }
+    actual.height = ahb.GetHeight();
+    if (actual.height == 0) {
+        return android::base::unexpected("Failed to query AHB height.");
+    }
+    actual.pixels.resize(actual.width * actual.height);
+    {
+        uint8_t* ahbPixels = GL_EXPECT(ahb.Lock());
+        std::memcpy(actual.pixels.data(), ahbPixels, actual.pixels.size() * sizeof(uint32_t));
+        ahb.Unlock();
+    }
+    return actual;
+}
+
+GlExpected<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
+    const std::string& basename) {
+    auto image = GL_EXPECT(LoadImage(basename));
+
+    auto ahb = GL_EXPECT(
+        ScopedAHardwareBuffer::Allocate(*mGralloc, image.width, image.height, DRM_FORMAT_ABGR8888));
+
+    {
+        uint8_t* ahbPixels = GL_EXPECT(ahb.Lock());
+        std::memcpy(ahbPixels, image.pixels.data(), image.pixels.size() * sizeof(uint32_t));
+        ahb.Unlock();
+    }
+
+    return std::move(ahb);
+}
+
+bool GfxstreamEnd2EndTest::ArePixelsSimilar(uint32_t expectedPixel, uint32_t actualPixel) {
+    const uint8_t* actualRGBA = reinterpret_cast<const uint8_t*>(&actualPixel);
+    const uint8_t* expectedRGBA = reinterpret_cast<const uint8_t*>(&expectedPixel);
+
+    constexpr const uint32_t kRGBA8888Tolerance = 2;
+    for (uint32_t channel = 0; channel < 4; channel++) {
+        const uint8_t actualChannel = actualRGBA[channel];
+        const uint8_t expectedChannel = expectedRGBA[channel];
+
+        if ((std::max(actualChannel, expectedChannel) - std::min(actualChannel, expectedChannel)) >
+            kRGBA8888Tolerance) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool GfxstreamEnd2EndTest::AreImagesSimilar(const Image& expected, const Image& actual) {
+    if (actual.width != expected.width) {
+        ADD_FAILURE() << "Image comparison failed: " << "expected.width " << expected.width << "vs"
+                      << "actual.width " << actual.width;
+        return false;
+    }
+    if (actual.height != expected.height) {
+        ADD_FAILURE() << "Image comparison failed: " << "expected.height " << expected.height
+                      << "vs" << "actual.height " << actual.height;
+        return false;
+    }
+    const uint32_t width = actual.width;
+    const uint32_t height = actual.height;
+    const uint32_t* actualPixels = actual.pixels.data();
+    const uint32_t* expectedPixels = expected.pixels.data();
+
+    bool imagesSimilar = true;
+
+    uint32_t reportedIncorrectPixels = 0;
+    constexpr const uint32_t kMaxReportedIncorrectPixels = 5;
+
+    for (uint32_t y = 0; y < height; y++) {
+        for (uint32_t x = 0; x < width; x++) {
+            const uint32_t actualPixel = actualPixels[y * height + x];
+            const uint32_t expectedPixel = expectedPixels[y * width + x];
+            if (!ArePixelsSimilar(expectedPixel, actualPixel)) {
+                imagesSimilar = false;
+                if (reportedIncorrectPixels < kMaxReportedIncorrectPixels) {
+                    reportedIncorrectPixels++;
+                    const uint8_t* actualRGBA = reinterpret_cast<const uint8_t*>(&actualPixel);
+                    const uint8_t* expectedRGBA = reinterpret_cast<const uint8_t*>(&expectedPixel);
+                    // clang-format off
+                    ADD_FAILURE()
+                        << "Pixel comparison failed at (" << x << ", " << y << ") "
+                        << " with actual "
+                        << " r:" << static_cast<int>(actualRGBA[0])
+                        << " g:" << static_cast<int>(actualRGBA[1])
+                        << " b:" << static_cast<int>(actualRGBA[2])
+                        << " a:" << static_cast<int>(actualRGBA[3])
+                        << " but expected "
+                        << " r:" << static_cast<int>(expectedRGBA[0])
+                        << " g:" << static_cast<int>(expectedRGBA[1])
+                        << " b:" << static_cast<int>(expectedRGBA[2])
+                        << " a:" << static_cast<int>(expectedRGBA[3]);
+                    // clang-format on
+                }
+            }
+        }
+    }
+    return imagesSimilar;
+}
+
+GlExpected<Ok> GfxstreamEnd2EndTest::CompareAHBWithGolden(ScopedAHardwareBuffer& ahb,
+                                                          const std::string& goldenBasename) {
+    Image actual = GL_EXPECT(AsImage(ahb));
+    GlExpected<Image> expected = LoadImage(goldenBasename);
+
+    bool imagesAreSimilar = false;
+    if (expected.ok()) {
+        imagesAreSimilar = AreImagesSimilar(*expected, actual);
+    } else {
+        imagesAreSimilar = false;
+    }
+
+    if (!imagesAreSimilar && kSaveImagesIfComparisonFailed) {
+        static uint32_t sImageNumber{1};
+        const std::string outputBasename = std::to_string(sImageNumber++) + "_" + goldenBasename;
+        const std::string output =
+            (std::filesystem::temp_directory_path() / outputBasename).string();
+        SaveRGBAToPng(actual.width, actual.height, actual.pixels.data(), output);
+        ADD_FAILURE() << "Saved image comparison actual image to " << output;
+    }
+
+    if (!imagesAreSimilar) {
+        return android::base::unexpected(
+            "Image comparison failed (consider setting kSaveImagesIfComparisonFailed to true to "
+            "see the actual image generated).");
+    }
+
+    return {};
 }
 
 }  // namespace tests
