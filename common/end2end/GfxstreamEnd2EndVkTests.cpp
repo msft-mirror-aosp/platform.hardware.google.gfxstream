@@ -232,7 +232,12 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
 
 TEST_P(GfxstreamEnd2EndVkTest, BlobAHBIsNotMapable) {
     if (GetParam().with_gl) {
-        GTEST_SKIP() << "Data buffers are currently only supported in Vulkan only mode.";
+        GTEST_SKIP()
+            << "Skipping test, data buffers are currently only supported in Vulkan only mode.";
+    }
+    if (GetParam().with_features.count("VulkanUseDedicatedAhbMemoryType") == 0) {
+        GTEST_SKIP()
+            << "Skipping test, AHB test only makes sense with VulkanUseDedicatedAhbMemoryType.";
     }
 
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
@@ -625,30 +630,34 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
     }
 }
 
+std::vector<TestParams> GenerateTestCases() {
+    std::vector<TestParams> cases = {TestParams{
+                                         .with_gl = false,
+                                         .with_vk = true,
+                                         .with_transport = GfxstreamTransport::kVirtioGpuAsg,
+                                     },
+                                     TestParams{
+                                         .with_gl = true,
+                                         .with_vk = true,
+                                         .with_transport = GfxstreamTransport::kVirtioGpuAsg,
+                                     },
+                                     TestParams{
+                                         .with_gl = false,
+                                         .with_vk = true,
+                                         .with_transport = GfxstreamTransport::kVirtioGpuPipe,
+                                     },
+                                     TestParams{
+                                         .with_gl = true,
+                                         .with_vk = true,
+                                         .with_transport = GfxstreamTransport::kVirtioGpuPipe,
+                                     }};
+    cases = WithAndWithoutFeatures(cases, {"VulkanSnapshots"});
+    cases = WithAndWithoutFeatures(cases, {"VulkanUseDedicatedAhbMemoryType"});
+    return cases;
+}
+
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkTest,
-                        ::testing::ValuesIn({
-                            TestParams{
-                                .with_gl = false,
-                                .with_vk = true,
-                                .with_transport = GfxstreamTransport::kVirtioGpuAsg,
-                            },
-                            TestParams{
-                                .with_gl = true,
-                                .with_vk = true,
-                                .with_transport = GfxstreamTransport::kVirtioGpuAsg,
-                            },
-                            TestParams{
-                                .with_gl = false,
-                                .with_vk = true,
-                                .with_transport = GfxstreamTransport::kVirtioGpuPipe,
-                            },
-                            TestParams{
-                                .with_gl = true,
-                                .with_vk = true,
-                                .with_transport = GfxstreamTransport::kVirtioGpuPipe,
-                            },
-                        }),
-                        &GetTestName);
+                        ::testing::ValuesIn(GenerateTestCases()), &GetTestName);
 
 }  // namespace
 }  // namespace tests
