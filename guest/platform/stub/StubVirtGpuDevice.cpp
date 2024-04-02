@@ -27,10 +27,14 @@ int64_t StubVirtGpuDevice::getDeviceHandle(void) {
 }
 
 VirtGpuResourcePtr StubVirtGpuDevice::createResource(uint32_t width, uint32_t height,
-                                                     uint32_t virglFormat) {
+                                                     uint32_t virglFormat, uint32_t target,
+                                                     uint32_t bind, uint32_t bpp) {
     (void)width;
     (void)height;
     (void)virglFormat;
+    (void)target;
+    (void)bind;
+    (void)bpp;
     return nullptr;
 }
 
