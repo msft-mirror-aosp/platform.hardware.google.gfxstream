@@ -1117,11 +1117,11 @@ class PipeVirglRenderer {
     }
 
     void handleCreateResourceBuffer(struct stream_renderer_resource_create_args* args) {
+        stream_renderer_debug("w:%u h:%u handle:%u", args->handle, args->width, args->height);
         mVirtioGpuOps->create_buffer_with_handle(args->width * args->height, args->handle);
     }
 
     void handleCreateResourceColorBuffer(struct stream_renderer_resource_create_args* args) {
-        // corresponds to allocation of gralloc buffer in minigbm
         stream_renderer_debug("w h %u %u resid %u -> CreateColorBufferWithHandle", args->width,
                               args->height, args->handle);
 
