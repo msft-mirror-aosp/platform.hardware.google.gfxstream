@@ -649,7 +649,7 @@ GlExpected<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
     auto image = GL_EXPECT(LoadImage(basename));
 
     auto ahb = GL_EXPECT(
-        ScopedAHardwareBuffer::Allocate(*mGralloc, image.width, image.height, DRM_FORMAT_ABGR8888));
+        ScopedAHardwareBuffer::Allocate(*mGralloc, image.width, image.height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     {
         uint8_t* ahbPixels = GL_EXPECT(ahb.Lock());
