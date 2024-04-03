@@ -15,7 +15,6 @@
 #include <log/log.h>
 
 #include "GfxstreamEnd2EndTests.h"
-#include "drm_fourcc.h"
 
 namespace gfxstream {
 namespace tests {
@@ -455,7 +454,7 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
     const uint32_t width = 2;
     const uint32_t height = 2;
     auto ahb =
-        GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, DRM_FORMAT_ABGR8888));
+        GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     {
         uint8_t* mapped = GL_ASSERT(ahb.Lock());

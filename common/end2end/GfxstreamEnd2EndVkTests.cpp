@@ -18,7 +18,6 @@
 #include <thread>
 
 #include "GfxstreamEnd2EndTests.h"
-#include "drm_fourcc.h"
 
 namespace gfxstream {
 namespace tests {
@@ -51,7 +50,7 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     const uint32_t width = 32;
     const uint32_t height = 32;
     AHardwareBuffer* ahb = nullptr;
-    ASSERT_THAT(mGralloc->allocate(width, height, DRM_FORMAT_ABGR8888, -1, &ahb), Eq(0));
+    ASSERT_THAT(mGralloc->allocate(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, -1, &ahb), Eq(0));
 
     const VkNativeBufferANDROID imageNativeBufferInfo = {
         .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
@@ -179,7 +178,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     const uint32_t width = 32;
     const uint32_t height = 32;
     AHardwareBuffer* ahb = nullptr;
-    ASSERT_THAT(mGralloc->allocate(width, height, DRM_FORMAT_ABGR8888, -1, &ahb), Eq(0));
+    ASSERT_THAT(mGralloc->allocate(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, -1, &ahb), Eq(0));
 
     auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
         device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
