@@ -26,30 +26,27 @@ int64_t StubVirtGpuDevice::getDeviceHandle(void) {
     return mDeviceHandle;
 }
 
-VirtGpuBlobPtr StubVirtGpuDevice::createVirglBlob(uint32_t width, uint32_t height, uint32_t virglFormat) {
+VirtGpuResourcePtr StubVirtGpuDevice::createResource(uint32_t width, uint32_t height,
+                                                     uint32_t virglFormat) {
     (void)width;
     (void)height;
     (void)virglFormat;
     return nullptr;
 }
 
-VirtGpuBlobPtr StubVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob&) {
+VirtGpuResourcePtr StubVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob&) {
     return nullptr;
 }
 
-VirtGpuBlobPtr StubVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&) {
+VirtGpuResourcePtr StubVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&) {
     return nullptr;
 }
 
-int StubVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer&, const VirtGpuBlob*) { return -1; }
+int StubVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer&, const VirtGpuResource*) { return -1; }
 
-VirtGpuBlobPtr createColorBuffer(int, int, uint32_t) {
-    return nullptr;
-}
+VirtGpuResourcePtr createColorBuffer(int, int, uint32_t) { return nullptr; }
 
-VirtGpuBlobPtr createColorBuffer(int) {
-    return nullptr;
-}
+VirtGpuResourcePtr createColorBuffer(int) { return nullptr; }
 
 StubVirtGpuDevice::~StubVirtGpuDevice() {
     // Unimplemented stub

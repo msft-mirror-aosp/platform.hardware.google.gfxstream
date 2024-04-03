@@ -68,7 +68,7 @@ int VirtioGpuPipeStream::connect(const char* serviceName)
             return -1;
         }
 
-        m_resource = m_device->createVirglBlob(kTransferBufferSize, 1, VIRGL_FORMAT_R8_UNORM);
+        m_resource = m_device->createResource(kTransferBufferSize, 1, VIRGL_FORMAT_R8_UNORM);
         if (!m_resource) {
             ALOGE("Failed to create VirtioGpuPipeStream resource.");
             return -1;
