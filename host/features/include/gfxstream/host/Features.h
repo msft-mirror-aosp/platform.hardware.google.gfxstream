@@ -236,6 +236,13 @@ struct FeatureSet {
         "If enabled, supports snapshotting the guest and host Vulkan state.",
         &map,
     };
+    FeatureInfo VulkanUseDedicatedAhbMemoryType = {
+        "VulkanUseDedicatedAhbMemoryType",
+        "If enabled, emulates an additional memory type for AHardwareBuffer allocations "
+        "that only has VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT for the purposes of preventing "
+        "the guest from trying to map AHardwareBuffer memory.",
+        &map,
+    };
     FeatureInfo Vulkan = {
         "Vulkan",
         "If enabled, allows the guest to use Vulkan and enables the Vulkan backend "
