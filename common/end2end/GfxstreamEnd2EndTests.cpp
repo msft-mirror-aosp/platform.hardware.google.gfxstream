@@ -265,9 +265,6 @@ void GfxstreamEnd2EndTest::TearDownGuest() {
     mSync.reset();
 
     processPipeRestart();
-
-    // Figure out more reliable way for guest shutdown to complete...
-    std::this_thread::sleep_for(std::chrono::seconds(3));
 }
 
 void GfxstreamEnd2EndTest::TearDownHost() {
