@@ -76,7 +76,7 @@ class VkDecoderSnapshot::Impl {
                            const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // instance destroy
-        mReconstruction.removeHandles((const uint64_t*)(&instance), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&instance), 1, true);
     }
     void vkEnumeratePhysicalDevices(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                     android::base::BumpPool* pool, VkResult input_result,
@@ -157,7 +157,7 @@ class VkDecoderSnapshot::Impl {
                          const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // device destroy
-        mReconstruction.removeHandles((const uint64_t*)(&device), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&device), 1, true);
     }
     void vkEnumerateInstanceExtensionProperties(const uint8_t* snapshotTraceBegin,
                                                 size_t snapshotTraceBytes,
@@ -226,7 +226,7 @@ class VkDecoderSnapshot::Impl {
                       const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // memory destroy
-        mReconstruction.removeHandles((const uint64_t*)(&memory), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&memory), 1, true);
     }
     void vkMapMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                      android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -308,7 +308,7 @@ class VkDecoderSnapshot::Impl {
                         const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // fence destroy
-        mReconstruction.removeHandles((const uint64_t*)(&fence), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&fence), 1, true);
     }
     void vkResetFences(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                        android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -342,7 +342,7 @@ class VkDecoderSnapshot::Impl {
                             const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // semaphore destroy
-        mReconstruction.removeHandles((const uint64_t*)(&semaphore), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&semaphore), 1, true);
     }
     void vkCreateEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                        android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -366,7 +366,7 @@ class VkDecoderSnapshot::Impl {
                         const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // event destroy
-        mReconstruction.removeHandles((const uint64_t*)(&event), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&event), 1, true);
     }
     void vkGetEventStatus(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                           android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -399,7 +399,7 @@ class VkDecoderSnapshot::Impl {
                             const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // queryPool destroy
-        mReconstruction.removeHandles((const uint64_t*)(&queryPool), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&queryPool), 1, true);
     }
     void vkGetQueryPoolResults(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                android::base::BumpPool* pool, VkResult input_result,
@@ -428,7 +428,7 @@ class VkDecoderSnapshot::Impl {
                          const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // buffer destroy
-        mReconstruction.removeHandles((const uint64_t*)(&buffer), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&buffer), 1, true);
     }
     void vkCreateBufferView(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -451,7 +451,7 @@ class VkDecoderSnapshot::Impl {
                              VkBufferView bufferView, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // bufferView destroy
-        mReconstruction.removeHandles((const uint64_t*)(&bufferView), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&bufferView), 1, true);
     }
     void vkCreateImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                        android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -475,7 +475,7 @@ class VkDecoderSnapshot::Impl {
                         const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // image destroy
-        mReconstruction.removeHandles((const uint64_t*)(&image), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&image), 1, true);
     }
     void vkGetImageSubresourceLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                      android::base::BumpPool* pool, VkDevice device, VkImage image,
@@ -505,7 +505,7 @@ class VkDecoderSnapshot::Impl {
                             const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // imageView destroy
-        mReconstruction.removeHandles((const uint64_t*)(&imageView), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&imageView), 1, true);
     }
     void vkCreateShaderModule(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                               android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -531,7 +531,7 @@ class VkDecoderSnapshot::Impl {
                                const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // shaderModule destroy
-        mReconstruction.removeHandles((const uint64_t*)(&shaderModule), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&shaderModule), 1, false);
     }
     void vkCreatePipelineCache(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                android::base::BumpPool* pool, VkResult input_result,
@@ -557,7 +557,7 @@ class VkDecoderSnapshot::Impl {
                                 const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // pipelineCache destroy
-        mReconstruction.removeHandles((const uint64_t*)(&pipelineCache), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&pipelineCache), 1, true);
     }
     void vkGetPipelineCacheData(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                 android::base::BumpPool* pool, VkResult input_result,
@@ -623,7 +623,7 @@ class VkDecoderSnapshot::Impl {
                            const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // pipeline destroy
-        mReconstruction.removeHandles((const uint64_t*)(&pipeline), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&pipeline), 1, true);
     }
     void vkCreatePipelineLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                 android::base::BumpPool* pool, VkResult input_result,
@@ -649,7 +649,7 @@ class VkDecoderSnapshot::Impl {
                                  const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // pipelineLayout destroy
-        mReconstruction.removeHandles((const uint64_t*)(&pipelineLayout), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&pipelineLayout), 1, true);
     }
     void vkCreateSampler(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                          android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -673,7 +673,7 @@ class VkDecoderSnapshot::Impl {
                           const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // sampler destroy
-        mReconstruction.removeHandles((const uint64_t*)(&sampler), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&sampler), 1, true);
     }
     void vkCreateDescriptorSetLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                      android::base::BumpPool* pool, VkResult input_result,
@@ -700,7 +700,7 @@ class VkDecoderSnapshot::Impl {
                                       const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // descriptorSetLayout destroy
-        mReconstruction.removeHandles((const uint64_t*)(&descriptorSetLayout), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&descriptorSetLayout), 1, true);
     }
     void vkCreateDescriptorPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                 android::base::BumpPool* pool, VkResult input_result,
@@ -726,7 +726,7 @@ class VkDecoderSnapshot::Impl {
                                  const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // descriptorPool destroy
-        mReconstruction.removeHandles((const uint64_t*)(&descriptorPool), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&descriptorPool), 1, true);
     }
     void vkResetDescriptorPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                android::base::BumpPool* pool, VkResult input_result,
@@ -759,7 +759,8 @@ class VkDecoderSnapshot::Impl {
                               const VkDescriptorSet* pDescriptorSets) {
         android::base::AutoLock lock(mLock);
         // pDescriptorSets destroy
-        mReconstruction.removeHandles((const uint64_t*)pDescriptorSets, ((descriptorSetCount)));
+        mReconstruction.removeHandles((const uint64_t*)pDescriptorSets, ((descriptorSetCount)),
+                                      true);
     }
     void vkUpdateDescriptorSets(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                 android::base::BumpPool* pool, VkDevice device,
@@ -781,6 +782,12 @@ class VkDecoderSnapshot::Impl {
             (const uint64_t*)pFramebuffer, 1,
             (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkRenderPass(
                 pCreateInfo->renderPass));
+        for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
+            mReconstruction.addHandleDependency(
+                (const uint64_t*)pFramebuffer, 1,
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImageView(
+                    pCreateInfo->pAttachments[i]));
+        }
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateFramebuffer, snapshotTraceBegin,
@@ -793,7 +800,7 @@ class VkDecoderSnapshot::Impl {
                               VkFramebuffer framebuffer, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // framebuffer destroy
-        mReconstruction.removeHandles((const uint64_t*)(&framebuffer), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&framebuffer), 1, true);
     }
     void vkCreateRenderPass(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -817,7 +824,7 @@ class VkDecoderSnapshot::Impl {
                              VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // renderPass destroy
-        mReconstruction.removeHandles((const uint64_t*)(&renderPass), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&renderPass), 1, true);
     }
     void vkGetRenderAreaGranularity(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                     android::base::BumpPool* pool, VkDevice device,
@@ -844,7 +851,7 @@ class VkDecoderSnapshot::Impl {
                               VkCommandPool commandPool, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // commandPool destroy
-        mReconstruction.removeHandles((const uint64_t*)(&commandPool), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&commandPool), 1, true);
     }
     void vkResetCommandPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -877,7 +884,8 @@ class VkDecoderSnapshot::Impl {
                               const VkCommandBuffer* pCommandBuffers) {
         android::base::AutoLock lock(mLock);
         // pCommandBuffers destroy
-        mReconstruction.removeHandles((const uint64_t*)pCommandBuffers, ((commandBufferCount)));
+        mReconstruction.removeHandles((const uint64_t*)pCommandBuffers, ((commandBufferCount)),
+                                      true);
     }
     void vkBeginCommandBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                               android::base::BumpPool* pool, VkResult input_result,
@@ -1179,7 +1187,7 @@ class VkDecoderSnapshot::Impl {
                                          const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // ycbcrConversion destroy
-        mReconstruction.removeHandles((const uint64_t*)(&ycbcrConversion), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&ycbcrConversion), 1, true);
     }
     void vkCreateDescriptorUpdateTemplate(const uint8_t* snapshotTraceBegin,
                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -1209,7 +1217,7 @@ class VkDecoderSnapshot::Impl {
                                            const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // descriptorUpdateTemplate destroy
-        mReconstruction.removeHandles((const uint64_t*)(&descriptorUpdateTemplate), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&descriptorUpdateTemplate), 1, true);
     }
     void vkUpdateDescriptorSetWithTemplate(const uint8_t* snapshotTraceBegin,
                                            size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -1456,7 +1464,7 @@ class VkDecoderSnapshot::Impl {
                                VkSwapchainKHR swapchain, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // swapchain destroy
-        mReconstruction.removeHandles((const uint64_t*)(&swapchain), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&swapchain), 1, true);
     }
     void vkGetSwapchainImagesKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                  android::base::BumpPool* pool, VkResult input_result,
@@ -1603,7 +1611,7 @@ class VkDecoderSnapshot::Impl {
                                               const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // descriptorUpdateTemplate destroy
-        mReconstruction.removeHandles((const uint64_t*)(&descriptorUpdateTemplate), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&descriptorUpdateTemplate), 1, true);
     }
     void vkUpdateDescriptorSetWithTemplateKHR(const uint8_t* snapshotTraceBegin,
                                               size_t snapshotTraceBytes,
@@ -1714,7 +1722,7 @@ class VkDecoderSnapshot::Impl {
                                             const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // ycbcrConversion destroy
-        mReconstruction.removeHandles((const uint64_t*)(&ycbcrConversion), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&ycbcrConversion), 1, true);
     }
 #endif
 #ifdef VK_KHR_bind_memory2
@@ -1973,7 +1981,7 @@ class VkDecoderSnapshot::Impl {
                                          const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // messenger destroy
-        mReconstruction.removeHandles((const uint64_t*)(&messenger), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&messenger), 1, true);
     }
     void vkSubmitDebugUtilsMessageEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                       android::base::BumpPool* pool, VkInstance instance,
@@ -2240,7 +2248,7 @@ class VkDecoderSnapshot::Impl {
                                 const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // memory destroy
-        mReconstruction.removeHandles((const uint64_t*)(&memory), 1);
+        mReconstruction.removeHandles((const uint64_t*)(&memory), 1, true);
     }
     void vkQueueHostSyncGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                android::base::BumpPool* pool, VkQueue queue, uint32_t needHostSync,
