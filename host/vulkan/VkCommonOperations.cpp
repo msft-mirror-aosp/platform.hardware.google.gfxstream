@@ -26,6 +26,7 @@
 #include <unordered_set>
 
 #include "VkDecoderGlobalState.h"
+#include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VkFormatUtils.h"
 #include "VulkanDispatch.h"
 #include "aemu/base/Optional.h"
@@ -1275,7 +1276,8 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     return sVkEmulation;
 }
 
-std::optional<uint32_t> findRepresentativeColorBufferMemoryTypeIndexLocked();
+std::optional<VkEmulation::RepresentativeColorBufferMemoryTypeInfo>
+findRepresentativeColorBufferMemoryTypeIndexLocked();
 
 void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
     if (!sVkEmulation || !sVkEmulation->live) {
@@ -1327,11 +1329,14 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
             sVkEmulation->queueLock, sVkEmulation->queue, sVkEmulation->queueLock);
     }
 
-    sVkEmulation->representativeColorBufferMemoryTypeIndex =
+    sVkEmulation->representativeColorBufferMemoryTypeInfo =
         findRepresentativeColorBufferMemoryTypeIndexLocked();
-    if (sVkEmulation->representativeColorBufferMemoryTypeIndex) {
-        VK_COMMON_VERBOSE("Emulated ColorBuffer memory type is based on memory type index %d.",
-                          *sVkEmulation->representativeColorBufferMemoryTypeIndex);
+    if (sVkEmulation->representativeColorBufferMemoryTypeInfo) {
+        VK_COMMON_VERBOSE(
+            "Representative ColorBuffer memory type using host memory type index %d "
+            "and guest memory type index :%d",
+            sVkEmulation->representativeColorBufferMemoryTypeInfo->hostMemoryTypeIndex,
+            sVkEmulation->representativeColorBufferMemoryTypeInfo->guestMemoryTypeIndex);
     } else {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Failed to find memory type for ColorBuffers.";
@@ -3570,7 +3575,8 @@ std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForDisplay(uint32_t colorB
     return compositorInfo;
 }
 
-std::optional<uint32_t> findRepresentativeColorBufferMemoryTypeIndexLocked() {
+std::optional<VkEmulation::RepresentativeColorBufferMemoryTypeInfo>
+findRepresentativeColorBufferMemoryTypeIndexLocked() {
     constexpr const uint32_t kArbitraryWidth = 64;
     constexpr const uint32_t kArbitraryHeight = 64;
     constexpr const uint32_t kArbitraryHandle = std::numeric_limits<uint32_t>::max();
@@ -3585,9 +3591,9 @@ std::optional<uint32_t> findRepresentativeColorBufferMemoryTypeIndexLocked() {
         return std::nullopt;
     }
 
-    uint32_t memoryTypeIndex = 0;
-    if (!getColorBufferAllocationInfoLocked(kArbitraryHandle, nullptr, &memoryTypeIndex, nullptr,
-                                            nullptr)) {
+    uint32_t hostMemoryTypeIndex = 0;
+    if (!getColorBufferAllocationInfoLocked(kArbitraryHandle, nullptr, &hostMemoryTypeIndex,
+                                            nullptr, nullptr)) {
         ERR("Failed to lookup memory type index test ColorBuffer.");
         return std::nullopt;
     }
@@ -3597,7 +3603,14 @@ std::optional<uint32_t> findRepresentativeColorBufferMemoryTypeIndexLocked() {
         return std::nullopt;
     }
 
-    return memoryTypeIndex;
+    EmulatedPhysicalDeviceMemoryProperties helper(sVkEmulation->deviceInfo.memProps,
+                                                  hostMemoryTypeIndex, sVkEmulation->features);
+    uint32_t guestMemoryTypeIndex = helper.getGuestColorBufferMemoryTypeIndex();
+
+    return VkEmulation::RepresentativeColorBufferMemoryTypeInfo{
+        .hostMemoryTypeIndex = hostMemoryTypeIndex,
+        .guestMemoryTypeIndex = guestMemoryTypeIndex,
+    };
 }
 
 }  // namespace vk

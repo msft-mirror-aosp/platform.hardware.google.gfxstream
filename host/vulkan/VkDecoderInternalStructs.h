@@ -21,10 +21,12 @@
 #endif
 
 #include <stdlib.h>
+
 #include <set>
 #include <string>
 
 #include "Handle.h"
+#include "VkEmulatedPhysicalDeviceMemory.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
@@ -176,7 +178,7 @@ struct InstanceInfo {
 
 struct PhysicalDeviceInfo {
     VkPhysicalDeviceProperties props;
-    VkPhysicalDeviceMemoryProperties memoryProperties;
+    std::unique_ptr<EmulatedPhysicalDeviceMemoryProperties> memoryPropertiesHelper;
     std::vector<VkQueueFamilyProperties> queueFamilyProperties;
     VkPhysicalDevice boxed = nullptr;
 };
