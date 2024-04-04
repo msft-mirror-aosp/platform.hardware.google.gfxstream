@@ -42,7 +42,7 @@ class EmulatedVirtioGpu {
    static std::shared_ptr<EmulatedVirtioGpu> Get();
    static uint32_t GetNumActiveUsers();
 
-   bool Init(bool withGl, bool withVk, bool withVkSnapshots);
+   bool Init(bool withGl, bool withVk, const std::string& features);
 
    bool GetCaps(uint32_t capsetId, uint32_t guestCapsSize, uint8_t* capset);
 

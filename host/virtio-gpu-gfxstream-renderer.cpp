@@ -1117,11 +1117,11 @@ class PipeVirglRenderer {
     }
 
     void handleCreateResourceBuffer(struct stream_renderer_resource_create_args* args) {
+        stream_renderer_debug("w:%u h:%u handle:%u", args->handle, args->width, args->height);
         mVirtioGpuOps->create_buffer_with_handle(args->width * args->height, args->handle);
     }
 
     void handleCreateResourceColorBuffer(struct stream_renderer_resource_create_args* args) {
-        // corresponds to allocation of gralloc buffer in minigbm
         stream_renderer_debug("w h %u %u resid %u -> CreateColorBufferWithHandle", args->width,
                               args->height, args->handle);
 
@@ -1500,9 +1500,9 @@ class PipeVirglRenderer {
                 capset->bufferSize = 1048576;
 
                 auto vk_emu = gfxstream::vk::getGlobalVkEmulation();
-                if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeIndex) {
+                if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeInfo) {
                     capset->colorBufferMemoryIndex =
-                        *vk_emu->representativeColorBufferMemoryTypeIndex;
+                        vk_emu->representativeColorBufferMemoryTypeInfo->guestMemoryTypeIndex;
                 }
 
                 capset->noRenderControlEnc = 1;
@@ -2705,6 +2705,7 @@ VG_EXPORT void stream_renderer_teardown() {
     android_stopOpenglesRenderer(true);
 
     sRenderer()->teardown();
+    stream_renderer_info("Gfxstream shut down completed!");
 }
 
 VG_EXPORT void gfxstream_backend_set_screen_mask(int width, int height,
