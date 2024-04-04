@@ -235,7 +235,7 @@ INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotPipelin
                             TestParams{
                                 .with_gl = false,
                                 .with_vk = true,
-                                .with_vk_snapshot = true,
+                                .with_features = {"VulkanSnapshots"},
                             },
                         }),
                         &GetTestName);

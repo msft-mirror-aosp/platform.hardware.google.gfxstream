@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <unordered_set>
 #include <variant>
 
 // clang-format off
@@ -440,7 +441,7 @@ enum class GfxstreamTransport {
 struct TestParams {
     bool with_gl;
     bool with_vk;
-    bool with_vk_snapshot = false;
+    std::unordered_set<std::string> with_features;
     GfxstreamTransport with_transport = GfxstreamTransport::kVirtioGpuAsg;
 
     std::string ToString() const;
@@ -448,6 +449,10 @@ struct TestParams {
 };
 
 std::string GetTestName(const ::testing::TestParamInfo<TestParams>& info);
+
+// Generates the cartesian product of params with and without the given features.
+std::vector<TestParams> WithAndWithoutFeatures(const std::vector<TestParams>& params,
+                                               const std::vector<std::string>& features);
 
 class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
    public:
