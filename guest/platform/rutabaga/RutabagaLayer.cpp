@@ -157,6 +157,9 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
         uint32_t resourceId;
         std::promise<uint8_t*> resourceMappedPromise;
     };
+    struct VirtioGpuTaskUnmap {
+        uint32_t resourceId;
+    };
     struct VirtioGpuTaskSubmitCmd {
         uint32_t contextId;
         std::vector<std::byte> commandBuffer;
@@ -190,7 +193,7 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
         std::variant<VirtioGpuTaskContextAttachResource, VirtioGpuTaskContextDetachResource,
                      VirtioGpuTaskCreateBlob, VirtioGpuTaskCreateContext,
                      VirtioGpuTaskCreateResource, VirtioGpuTaskDestroyContext, VirtioGpuTaskMap,
-                     VirtioGpuTaskSubmitCmd, VirtioGpuTaskTransferFromHost,
+                     VirtioGpuTaskUnmap, VirtioGpuTaskSubmitCmd, VirtioGpuTaskTransferFromHost,
                      VirtioGpuTaskTransferToHost, VirtioGpuTaskUnrefResource,
                      VirtioGpuTaskSnapshotSave, VirtioGpuTaskSnapshotRestore>;
 
@@ -215,6 +218,7 @@ class EmulatedVirtioGpu::EmulatedVirtioGpuImpl {
     void DoTask(VirtioGpuTaskCreateResource task);
     void DoTask(VirtioGpuTaskDestroyContext task);
     void DoTask(VirtioGpuTaskMap task);
+    void DoTask(VirtioGpuTaskUnmap task);
     void DoTask(VirtioGpuTaskSubmitCmd task);
     void DoTask(VirtioGpuTaskTransferFromHost task);
     void DoTask(VirtioGpuTaskTransferToHost task);
@@ -437,7 +441,10 @@ uint8_t* EmulatedVirtioGpu::EmulatedVirtioGpuImpl::Map(uint32_t resourceId) {
 }
 
 void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::Unmap(uint32_t resourceId) {
-    rutabaga_resource_unmap(mRutabaga, resourceId);
+    VirtioGpuTaskUnmap task = {
+        .resourceId = resourceId,
+    };
+    EnqueueVirtioGpuTask(0, std::move(task));
 }
 
 int EmulatedVirtioGpu::EmulatedVirtioGpuImpl::Wait(uint32_t resourceId) {
@@ -860,6 +867,12 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskMap task) {
     ALOGV("Performing task to map resource resource:%d - done", task.resourceId);
 }
 
+void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskUnmap task) {
+    ALOGV("Performing task to unmap resource resource:%d", task.resourceId);
+    rutabaga_resource_unmap(mRutabaga, task.resourceId);
+    ALOGV("Performing task to unmap resource:%d - done", task.resourceId);
+}
+
 void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskSubmitCmd task) {
     ALOGV("Performing task to execbuffer");
 
@@ -951,6 +964,8 @@ void EmulatedVirtioGpu::EmulatedVirtioGpuImpl::DoTask(VirtioGpuTaskWithWaitable 
             } else if constexpr (std::is_same_v<T, VirtioGpuTaskDestroyContext>) {
                 DoTask(std::move(work));
             } else if constexpr (std::is_same_v<T, VirtioGpuTaskMap>) {
+                DoTask(std::move(work));
+            } else if constexpr (std::is_same_v<T, VirtioGpuTaskUnmap>) {
                 DoTask(std::move(work));
             } else if constexpr (std::is_same_v<T, VirtioGpuTaskSubmitCmd>) {
                 DoTask(std::move(work));
