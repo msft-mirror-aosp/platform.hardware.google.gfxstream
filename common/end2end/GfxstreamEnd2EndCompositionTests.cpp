@@ -30,7 +30,7 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BasicComposition) {
     auto layer1Ahb = GL_ASSERT(CreateAHBFromImage("256x256_android.png"));
     auto layer2Ahb = GL_ASSERT(CreateAHBFromImage("256x256_android_with_transparency.png"));
     auto resultAhb =
-        GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, DRM_FORMAT_ABGR8888));
+        GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const RenderControlComposition composition = {
         .displayId = 0,

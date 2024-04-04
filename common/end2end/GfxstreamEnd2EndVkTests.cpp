@@ -18,7 +18,6 @@
 #include <thread>
 
 #include "GfxstreamEnd2EndTests.h"
-#include "drm_fourcc.h"
 
 namespace gfxstream {
 namespace tests {
@@ -29,6 +28,7 @@ using testing::Eq;
 using testing::Ge;
 using testing::IsEmpty;
 using testing::IsNull;
+using testing::Ne;
 using testing::Not;
 using testing::NotNull;
 
@@ -51,7 +51,7 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     const uint32_t width = 32;
     const uint32_t height = 32;
     AHardwareBuffer* ahb = nullptr;
-    ASSERT_THAT(mGralloc->allocate(width, height, DRM_FORMAT_ABGR8888, -1, &ahb), Eq(0));
+    ASSERT_THAT(mGralloc->allocate(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, -1, &ahb), Eq(0));
 
     const VkNativeBufferANDROID imageNativeBufferInfo = {
         .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
@@ -179,7 +179,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     const uint32_t width = 32;
     const uint32_t height = 32;
     AHardwareBuffer* ahb = nullptr;
-    ASSERT_THAT(mGralloc->allocate(width, height, DRM_FORMAT_ABGR8888, -1, &ahb), Eq(0));
+    ASSERT_THAT(mGralloc->allocate(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, -1, &ahb), Eq(0));
 
     auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
         device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
@@ -228,6 +228,80 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     ASSERT_THAT(mSync->wait(fence, 3000), Eq(0));
 
     mGralloc->release(ahb);
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, BlobAHBIsNotMapable) {
+    if (GetParam().with_gl) {
+        GTEST_SKIP() << "Data buffers are currently only supported in Vulkan only mode.";
+    }
+
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const uint32_t width = 32;
+    const uint32_t height = 1;
+    auto ahb = GL_ASSERT(
+        ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, GFXSTREAM_AHB_FORMAT_BLOB));
+
+    const vkhpp::ExternalMemoryBufferCreateInfo externalMemoryBufferCreateInfo = {
+        .handleTypes = vkhpp::ExternalMemoryHandleTypeFlagBits::eAndroidHardwareBufferANDROID,
+    };
+    const vkhpp::BufferCreateInfo bufferCreateInfo = {
+        .pNext = &externalMemoryBufferCreateInfo,
+        .size = width,
+        .usage = vkhpp::BufferUsageFlagBits::eTransferDst |
+                 vkhpp::BufferUsageFlagBits::eTransferSrc |
+                 vkhpp::BufferUsageFlagBits::eVertexBuffer,
+        .sharingMode = vkhpp::SharingMode::eExclusive,
+    };
+    auto buffer = device->createBufferUnique(bufferCreateInfo).value;
+    ASSERT_THAT(buffer, IsValidHandle());
+
+    auto vkGetAndroidHardwareBufferPropertiesANDROID =
+        reinterpret_cast<PFN_vkGetAndroidHardwareBufferPropertiesANDROID>(
+            device->getProcAddr("vkGetAndroidHardwareBufferPropertiesANDROID"));
+    ASSERT_THAT(vkGetAndroidHardwareBufferPropertiesANDROID, NotNull());
+
+    VkAndroidHardwareBufferPropertiesANDROID bufferProperties = {
+        .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID,
+        .pNext = nullptr,
+    };
+    ASSERT_THAT(vkGetAndroidHardwareBufferPropertiesANDROID(*device, ahb, &bufferProperties),
+                Eq(VK_SUCCESS));
+
+    const vkhpp::MemoryRequirements bufferMemoryRequirements{
+        .size = bufferProperties.allocationSize,
+        .alignment = 0,
+        .memoryTypeBits = bufferProperties.memoryTypeBits,
+    };
+
+    const auto memoryProperties = physicalDevice.getMemoryProperties();
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
+        if (!(bufferMemoryRequirements.memoryTypeBits & (1 << i))) {
+            continue;
+        }
+
+        const auto memoryPropertyFlags = memoryProperties.memoryTypes[i].propertyFlags;
+        EXPECT_THAT(memoryPropertyFlags & vkhpp::MemoryPropertyFlagBits::eHostVisible,
+                    Ne(vkhpp::MemoryPropertyFlagBits::eHostVisible));
+    }
+
+    const auto bufferMemoryType = GetMemoryType(physicalDevice, bufferMemoryRequirements,
+                                                vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    ASSERT_THAT(bufferMemoryType, Ne(-1));
+
+    const vkhpp::ImportAndroidHardwareBufferInfoANDROID importHardwareBufferInfo = {
+        .buffer = ahb,
+    };
+    const vkhpp::MemoryAllocateInfo bufferMemoryAllocateInfo = {
+        .pNext = &importHardwareBufferInfo,
+        .allocationSize = bufferMemoryRequirements.size,
+        .memoryTypeIndex = bufferMemoryType,
+    };
+    auto bufferMemory = device->allocateMemoryUnique(bufferMemoryAllocateInfo).value;
+    ASSERT_THAT(bufferMemory, IsValidHandle());
+
+    ASSERT_THAT(device->bindBufferMemory(*buffer, *bufferMemory, 0), IsVkSuccess());
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, HostMemory) {

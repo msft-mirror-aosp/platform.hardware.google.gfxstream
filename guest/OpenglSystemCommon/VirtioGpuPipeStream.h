@@ -58,8 +58,8 @@ private:
 
     int m_fd = -1;
     std::unique_ptr<VirtGpuDevice> m_device;
-    VirtGpuBlobPtr m_resource;
-    VirtGpuBlobMappingPtr m_resourceMapping;
+    VirtGpuResourcePtr m_resource;
+    VirtGpuResourceMappingPtr m_resourceMapping;
     unsigned char* m_virtio_mapped; // user mapping of bo
 
     // intermediate buffer
