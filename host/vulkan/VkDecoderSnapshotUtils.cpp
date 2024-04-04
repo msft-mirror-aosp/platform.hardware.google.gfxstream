@@ -24,7 +24,7 @@ namespace {
 uint32_t GetMemoryType(const PhysicalDeviceInfo& physicalDevice,
                        const VkMemoryRequirements& memoryRequirements,
                        VkMemoryPropertyFlags memoryProperties) {
-    const auto& props = physicalDevice.memoryProperties;
+    const auto& props = physicalDevice.memoryPropertiesHelper->getHostMemoryProperties();
     for (uint32_t i = 0; i < props.memoryTypeCount; i++) {
         if (!(memoryRequirements.memoryTypeBits & (1 << i))) {
             continue;
