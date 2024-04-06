@@ -119,4 +119,7 @@ cc_test_host {
     test_options: {
         unit_test: true,
     },
+    test_suites: [
+        "general-tests",
+    ],
 }
