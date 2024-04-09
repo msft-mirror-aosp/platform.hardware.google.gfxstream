@@ -458,6 +458,8 @@ class VkDecoderGlobalState::Impl {
             if (imageInfo.memory == VK_NULL_HANDLE) {
                 continue;
             }
+            // Vulkan command playback doesn't recover image layout. We need to do it here.
+            stream->putBe32(imageInfo.layout);
             const auto& device = imageInfo.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             const auto physicalDevice = deviceInfo->physicalDevice;
@@ -540,10 +542,21 @@ class VkDecoderGlobalState::Impl {
         sort(sortedBoxedImages.begin(), sortedBoxedImages.end());
         for (const auto& boxedImage : sortedBoxedImages) {
             auto unboxedImage = unbox_VkImage(boxedImage);
-            const ImageInfo& imageInfo = mImageInfo[unboxedImage];
+            ImageInfo& imageInfo = mImageInfo[unboxedImage];
             if (imageInfo.memory == VK_NULL_HANDLE) {
                 continue;
             }
+            // Playback doesn't recover image layout. We need to do it here.
+            //
+            // Layout transform was done by vkCmdPipelineBarrier but we don't record such command
+            // directly. Instead, we memorize the current layout and add our own
+            // vkCmdPipelineBarrier after load.
+            //
+            // We do the layout transform in loadImageContent. There are still use cases where it
+            // should recover the layout but does not.
+            //
+            // TODO(b/323059453): fix corner cases when image contents cannot be properly loaded.
+            imageInfo.layout = static_cast<VkImageLayout>(stream->getBe32());
             const auto& device = imageInfo.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             const auto physicalDevice = deviceInfo->physicalDevice;

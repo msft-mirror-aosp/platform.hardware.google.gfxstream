@@ -81,7 +81,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
 
         colorBuffer->mColorBufferVk =
             vk::ColorBufferVk::create(handle, width, height, format, frameworkFormat, vulkanOnly,
-                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, stream);
         if (!colorBuffer->mColorBufferVk) {
             if (emulationGl) {
                 // Historically, ColorBufferVk setup was deferred until the first actual Vulkan
@@ -144,6 +144,9 @@ void ColorBuffer::onSave(android::base::Stream* stream) {
         mColorBufferGl->onSave(stream);
     }
 #endif
+    if (mColorBufferVk) {
+        mColorBufferVk->onSave(stream);
+    }
 }
 
 void ColorBuffer::restore() {
