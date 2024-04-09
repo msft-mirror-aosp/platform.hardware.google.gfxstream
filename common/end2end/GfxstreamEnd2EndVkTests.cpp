@@ -630,6 +630,30 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
     }
 }
 
+TEST_P(GfxstreamEnd2EndVkTest, PhysicalDeviceGroup) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const vkhpp::DeviceGroupDeviceCreateInfo deviceGroupDeviceCreateInfo = {
+        .physicalDeviceCount = 1,
+        .pPhysicalDevices = &physicalDevice,
+    };
+
+    const float queuePriority = 1.0f;
+    const vkhpp::DeviceQueueCreateInfo deviceQueueCreateInfo = {
+        .queueFamilyIndex = 0,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority,
+    };
+    const vkhpp::DeviceCreateInfo deviceCreateInfo = {
+        .pNext = &deviceGroupDeviceCreateInfo,
+        .pQueueCreateInfos = &deviceQueueCreateInfo,
+        .queueCreateInfoCount = 1,
+    };
+    auto device2 = VK_ASSERT_RV(physicalDevice.createDeviceUnique(deviceCreateInfo));
+    ASSERT_THAT(device2, IsValidHandle());
+}
+
 std::vector<TestParams> GenerateTestCases() {
     std::vector<TestParams> cases = {TestParams{
                                          .with_gl = false,
