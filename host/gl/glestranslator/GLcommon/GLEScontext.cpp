@@ -1958,7 +1958,10 @@ void GLEScontext::initCapsLocked(const GLubyte * extensionString, bool nativeTex
         glSupport.ext_GL_EXT_multiview_texture_multisample = true;
     }
 
-    if (strstr(cstring,"GL_EXT_shader_framebuffer_fetch")!=NULL) {
+    // b/203446380
+    // Does not really work on hardware GPUs
+    if (strstr(cstring,"GL_EXT_shader_framebuffer_fetch")!=NULL
+            && isGles2Gles()) {
         glSupport.ext_GL_EXT_shader_framebuffer_fetch = true;
     }
 
