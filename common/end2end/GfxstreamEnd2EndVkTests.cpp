@@ -50,8 +50,8 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
 
     const uint32_t width = 32;
     const uint32_t height = 32;
-    AHardwareBuffer* ahb = nullptr;
-    ASSERT_THAT(mGralloc->allocate(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, -1, &ahb), Eq(0));
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const VkNativeBufferANDROID imageNativeBufferInfo = {
         .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
@@ -168,8 +168,6 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     ASSERT_THAT(fence, Not(Eq(-1)));
 
     ASSERT_THAT(mSync->wait(fence, 3000), Eq(0));
-
-    mGralloc->release(ahb);
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
@@ -178,8 +176,8 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
 
     const uint32_t width = 32;
     const uint32_t height = 32;
-    AHardwareBuffer* ahb = nullptr;
-    ASSERT_THAT(mGralloc->allocate(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, -1, &ahb), Eq(0));
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
         device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
@@ -226,8 +224,6 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     ASSERT_THAT(fence, Not(Eq(-1)));
 
     ASSERT_THAT(mSync->wait(fence, 3000), Eq(0));
-
-    mGralloc->release(ahb);
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, BlobAHBIsNotMapable) {
