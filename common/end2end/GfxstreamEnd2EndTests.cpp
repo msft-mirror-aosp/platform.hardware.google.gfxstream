@@ -27,6 +27,7 @@
 #include "aemu/base/Path.h"
 #include "gfxstream/ImageUtils.h"
 #include "gfxstream/RutabagaLayerTestUtils.h"
+#include "gfxstream/Strings.h"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -77,8 +78,11 @@ std::string TestParams::ToString() const {
     ret += "Gl";
     ret += (with_vk ? "With" : "Without");
     ret += "Vk";
-    ret += (with_vk_snapshot ? "With" : "Without");
-    ret += "Snapshot";
+    if (!with_features.empty()) {
+        ret += "WithFeatures_";
+        ret += Join(with_features, "_");
+        ret += "_";
+    }
     ret += "Over";
     ret += GfxstreamTransportToString(with_transport);
     return ret;
@@ -90,6 +94,23 @@ std::ostream& operator<<(std::ostream& os, const TestParams& params) {
 
 std::string GetTestName(const ::testing::TestParamInfo<TestParams>& info) {
     return info.param.ToString();
+}
+
+std::vector<TestParams> WithAndWithoutFeatures(const std::vector<TestParams>& params,
+                                               const std::vector<std::string>& features) {
+    std::vector<TestParams> output;
+    output.reserve(params.size() * 2);
+
+    // Copy of all of the existing test params:
+    output.insert(output.end(), params.begin(), params.end());
+
+    // Copy of all of the existing test params with the new features:
+    for (TestParams copy : params) {
+        copy.with_features.insert(features.begin(), features.end());
+        output.push_back(copy);
+    }
+
+    return output;
 }
 
 std::unique_ptr<GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
@@ -198,10 +219,16 @@ void GfxstreamEnd2EndTest::SetUp() {
     ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK", params.with_vk ? "Y" : "N",
                        /*overwrite=*/1),
                 Eq(0));
-    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK_SNAPSHOTS",
-                       params.with_vk_snapshot ? "Y" : "N",
-                       /*overwrite=*/1),
+
+    std::vector<std::string> featureEnables;
+    for (const std::string& feature : params.with_features) {
+        featureEnables.push_back(feature + ":enabled");
+    }
+    const std::string features = Join(featureEnables, ",");
+    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_RENDERER_FEATURES", features.c_str(),
+                        /*overwrite=*/1),
                 Eq(0));
+
 
     if (params.with_gl) {
         mGl = SetupGuestGl();
@@ -238,9 +265,6 @@ void GfxstreamEnd2EndTest::TearDownGuest() {
     mSync.reset();
 
     processPipeRestart();
-
-    // Figure out more reliable way for guest shutdown to complete...
-    std::this_thread::sleep_for(std::chrono::seconds(3));
 }
 
 void GfxstreamEnd2EndTest::TearDownHost() {

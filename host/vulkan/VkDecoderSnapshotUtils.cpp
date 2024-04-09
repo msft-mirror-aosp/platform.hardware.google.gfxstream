@@ -24,7 +24,7 @@ namespace {
 uint32_t GetMemoryType(const PhysicalDeviceInfo& physicalDevice,
                        const VkMemoryRequirements& memoryRequirements,
                        VkMemoryPropertyFlags memoryProperties) {
-    const auto& props = physicalDevice.memoryProperties;
+    const auto& props = physicalDevice.memoryPropertiesHelper->getHostMemoryProperties();
     for (uint32_t i = 0; i < props.memoryTypeCount; i++) {
         if (!(memoryRequirements.memoryTypeBits & (1 << i))) {
             continue;
@@ -48,6 +48,7 @@ uint32_t bytes_per_pixel(VkFormat format) {
         case VK_FORMAT_R8_UINT:
         case VK_FORMAT_R8_SINT:
         case VK_FORMAT_R8_SRGB:
+        case VK_FORMAT_S8_UINT:
             return 1;
         case VK_FORMAT_R8G8_UNORM:
         case VK_FORMAT_R8G8_SNORM:
@@ -71,6 +72,7 @@ uint32_t bytes_per_pixel(VkFormat format) {
         case VK_FORMAT_B8G8R8_UINT:
         case VK_FORMAT_B8G8R8_SINT:
         case VK_FORMAT_B8G8R8_SRGB:
+        case VK_FORMAT_D16_UNORM_S8_UINT:
             return 3;
         case VK_FORMAT_R8G8B8A8_UNORM:
         case VK_FORMAT_R8G8B8A8_SNORM:
@@ -93,6 +95,7 @@ uint32_t bytes_per_pixel(VkFormat format) {
         case VK_FORMAT_A8B8G8R8_UINT_PACK32:
         case VK_FORMAT_A8B8G8R8_SINT_PACK32:
         case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+        case VK_FORMAT_D24_UNORM_S8_UINT:
             return 4;
         default:
             GFXSTREAM_ABORT(emugl::FatalError(emugl::ABORT_REASON_OTHER))
