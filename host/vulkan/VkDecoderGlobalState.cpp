@@ -458,6 +458,8 @@ class VkDecoderGlobalState::Impl {
             if (imageInfo.memory == VK_NULL_HANDLE) {
                 continue;
             }
+            // Vulkan command playback doesn't recover image layout. We need to do it here.
+            stream->putBe32(imageInfo.layout);
             const auto& device = imageInfo.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             const auto physicalDevice = deviceInfo->physicalDevice;
@@ -540,10 +542,21 @@ class VkDecoderGlobalState::Impl {
         sort(sortedBoxedImages.begin(), sortedBoxedImages.end());
         for (const auto& boxedImage : sortedBoxedImages) {
             auto unboxedImage = unbox_VkImage(boxedImage);
-            const ImageInfo& imageInfo = mImageInfo[unboxedImage];
+            ImageInfo& imageInfo = mImageInfo[unboxedImage];
             if (imageInfo.memory == VK_NULL_HANDLE) {
                 continue;
             }
+            // Playback doesn't recover image layout. We need to do it here.
+            //
+            // Layout transform was done by vkCmdPipelineBarrier but we don't record such command
+            // directly. Instead, we memorize the current layout and add our own
+            // vkCmdPipelineBarrier after load.
+            //
+            // We do the layout transform in loadImageContent. There are still use cases where it
+            // should recover the layout but does not.
+            //
+            // TODO(b/323059453): fix corner cases when image contents cannot be properly loaded.
+            imageInfo.layout = static_cast<VkImageLayout>(stream->getBe32());
             const auto& device = imageInfo.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             const auto physicalDevice = deviceInfo->physicalDevice;
@@ -1581,26 +1594,37 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroyDeviceLocked(VkDevice device, const VkAllocationCallbacks* pAllocator) {
-        auto* deviceInfo = android::base::find(mDeviceInfo, device);
-        if (!deviceInfo) return;
+        auto deviceInfoIt = mDeviceInfo.find(device);
+        if (deviceInfoIt == mDeviceInfo.end()) return;
+        auto& deviceInfo = deviceInfoIt->second;
 
-        deviceInfo->decompPipelines->clear();
+        VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo.boxed);
 
-        auto eraseIt = mQueueInfo.begin();
-        for (; eraseIt != mQueueInfo.end();) {
-            if (eraseIt->second.device == device) {
-                delete eraseIt->second.lock;
-                delete_VkQueue(eraseIt->second.boxed);
-                eraseIt = mQueueInfo.erase(eraseIt);
+        // Destroy corresponding queues:
+        auto queueIt = mQueueInfo.begin();
+        for (; queueIt != mQueueInfo.end();) {
+            VkQueue queue = queueIt->first;
+            QueueInfo& queueInfo = queueIt->second;
+            if (queueInfo.device == device) {
+                // Ensure all command submissions have completed including submissions generated
+                // by Gfxstream (e.g. wait for the submissions used to signal the VkFences and
+                // VkSemaphores used during vkAcquireImageANDROID() before destructing those sync
+                // objects below).
+                {
+                    AutoLock queueLock(*queueInfo.lock);
+                    deviceDispatch->vkQueueWaitIdle(queue);
+                }
+
+                delete queueInfo.lock;
+                delete_VkQueue(queueInfo.boxed);
+                queueIt = mQueueInfo.erase(queueIt);
             } else {
-                ++eraseIt;
+                ++queueIt;
             }
         }
 
-        VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo->boxed);
-
         // Destroy pooled external fences
-        auto deviceFences = deviceInfo->externalFencePool->popAll();
+        auto deviceFences = deviceInfo.externalFencePool->popAll();
         for (auto fence : deviceFences) {
             deviceDispatch->vkDestroyFence(device, fence, pAllocator);
             mFenceInfo.erase(fence);
@@ -1611,10 +1635,18 @@ class VkDecoderGlobalState::Impl {
             mFenceInfo.erase(fence);
         }
 
+        for (auto fence : deviceInfo.deferredDestructionFences) {
+            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
+        }
+
+        for (auto semaphore : deviceInfo.deferredDestructionSemaphores) {
+            deviceDispatch->vkDestroySemaphore(device, semaphore, pAllocator);
+        }
+
         // Run the underlying API call.
         m_vk->vkDestroyDevice(device, pAllocator);
 
-        delete_VkDevice(deviceInfo->boxed);
+        delete_VkDevice(deviceInfo.boxed);
     }
 
     void on_vkDestroyDevice(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -2391,16 +2423,27 @@ class VkDecoderGlobalState::Impl {
 
     void destroySemaphoreLocked(VkDevice device, VulkanDispatch* deviceDispatch,
                                 VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator) {
+        auto semaphoreInfoIt = mSemaphoreInfo.find(semaphore);
+        if (semaphoreInfoIt == mSemaphoreInfo.end()) return;
+        auto& semaphoreInfo = semaphoreInfoIt->second;
+
 #ifndef _WIN32
-        const auto& ite = mSemaphoreInfo.find(semaphore);
-        if (ite != mSemaphoreInfo.end() &&
-            (ite->second.externalHandle != VK_EXT_SYNC_HANDLE_INVALID)) {
-            close(ite->second.externalHandle);
+        if (semaphoreInfo.externalHandle != VK_EXT_SYNC_HANDLE_INVALID) {
+            close(semaphoreInfo.externalHandle);
         }
 #endif
-        deviceDispatch->vkDestroySemaphore(device, semaphore, pAllocator);
+        if (semaphoreInfo.usedForAcquireImage) {
+            // See comment near DeviceInfo::deferredDestructionSemaphores.
+            auto deviceInfoIt = mDeviceInfo.find(device);
+            if (deviceInfoIt != mDeviceInfo.end()) {
+                auto& deviceInfo = deviceInfoIt->second;
+                deviceInfo.deferredDestructionSemaphores.push_back(semaphore);
+            }
+        } else {
+            deviceDispatch->vkDestroySemaphore(device, semaphore, pAllocator);
+        }
 
-        mSemaphoreInfo.erase(semaphore);
+        mSemaphoreInfo.erase(semaphoreInfoIt);
     }
 
     void on_vkDestroySemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -2415,24 +2458,40 @@ class VkDecoderGlobalState::Impl {
     void on_vkDestroyFence(android::base::BumpPool* pool, VkDevice boxed_device, VkFence fence,
                            const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
-        auto vk = dispatch_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-            // External fences are just slated for recycling. This addresses known
-            // behavior where the guest might destroy the fence prematurely. b/228221208
-            if (mFenceInfo[fence].external) {
-                auto* deviceInfo = android::base::find(mDeviceInfo, device);
-                if (deviceInfo) {
-                    deviceInfo->externalFencePool->add(fence);
-                    mFenceInfo[fence].boxed = VK_NULL_HANDLE;
+
+            auto fenceInfoIt = mFenceInfo.find(fence);
+            if (fenceInfoIt != mFenceInfo.end()) return;
+            auto& fenceInfo = fenceInfoIt->second;
+
+            auto deviceInfoIt = mDeviceInfo.find(device);
+            if (deviceInfoIt != mDeviceInfo.end()) {
+                auto& deviceInfo = deviceInfoIt->second;
+
+                fenceInfo.boxed = VK_NULL_HANDLE;
+
+                // External fences are just slated for recycling. This addresses known
+                // behavior where the guest might destroy the fence prematurely. b/228221208
+                if (fenceInfo.external) {
+                    deviceInfo.externalFencePool->add(fence);
+                    return;
+                }
+
+                // Fences used for swapchains have their destruction deferred until device
+                // destruction. See comment near DeviceInfo::deferredDestructionFences.
+                if (fenceInfo.usedForAcquireImage) {
+                    deviceInfo.deferredDestructionFences.push_back(fence);
                     return;
                 }
             }
+
             mFenceInfo.erase(fence);
         }
 
-        vk->vkDestroyFence(device, fence, pAllocator);
+        deviceDispatch->vkDestroyFence(device, fence, pAllocator);
     }
 
     VkResult on_vkCreateDescriptorSetLayout(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -4296,6 +4355,21 @@ class VkDecoderGlobalState::Impl {
                                             &defaultQueueLock)) {
             fprintf(stderr, "%s: cant get the default q\n", __func__);
             return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        if (semaphore != VK_NULL_HANDLE) {
+            auto semaphoreInfo = android::base::find(mSemaphoreInfo, semaphore);
+            if (!semaphoreInfo) {
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            semaphoreInfo->usedForAcquireImage = true;
+        }
+        if (fence != VK_NULL_HANDLE) {
+            auto fenceInfo = android::base::find(mFenceInfo, fence);
+            if (!fenceInfo) {
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            fenceInfo->usedForAcquireImage = true;
         }
 
         AndroidNativeBufferInfo* anbInfo = imageInfo->anbInfo.get();
