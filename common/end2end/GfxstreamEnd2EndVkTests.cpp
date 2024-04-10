@@ -37,7 +37,88 @@ constexpr uint64_t AsVkTimeout(DurationType duration) {
     return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count());
 }
 
-class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {};
+class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
+   protected:
+    // Gfxstream uses a vkQueueSubmit() to signal the VkFence and VkSemaphore used
+    // in vkAcquireImageANDROID() calls. The guest is not aware of this and may try
+    // to vkDestroyFence() and vkDestroySemaphore() (because the VkImage, VkFence,
+    // and VkSemaphore may have been unused from the guest point of view) while the
+    // host's command buffer is running. Gfxstream needs to ensure that it performs
+    // the necessary tracking to not delete the VkFence and VkSemaphore while they
+    // are in use on the host.
+    void DoAcquireImageAndroidWithSync(bool withFence, bool withSemaphore) {
+        auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+            VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+        const uint32_t width = 32;
+        const uint32_t height = 32;
+        auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                             GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+        const VkNativeBufferANDROID imageNativeBufferInfo = {
+            .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
+            .handle = mGralloc->getNativeHandle(ahb),
+        };
+
+        auto vkAcquireImageANDROID =
+            PFN_vkAcquireImageANDROID(device->getProcAddr("vkAcquireImageANDROID"));
+        ASSERT_THAT(vkAcquireImageANDROID, NotNull());
+
+        const vkhpp::ImageCreateInfo imageCreateInfo = {
+            .pNext = &imageNativeBufferInfo,
+            .imageType = vkhpp::ImageType::e2D,
+            .extent.width = width,
+            .extent.height = height,
+            .extent.depth = 1,
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .format = vkhpp::Format::eR8G8B8A8Unorm,
+            .tiling = vkhpp::ImageTiling::eOptimal,
+            .initialLayout = vkhpp::ImageLayout::eUndefined,
+            .usage = vkhpp::ImageUsageFlagBits::eSampled | vkhpp::ImageUsageFlagBits::eTransferDst |
+                     vkhpp::ImageUsageFlagBits::eTransferSrc,
+            .sharingMode = vkhpp::SharingMode::eExclusive,
+            .samples = vkhpp::SampleCountFlagBits::e1,
+        };
+        auto image = device->createImageUnique(imageCreateInfo).value;
+
+        vkhpp::MemoryRequirements imageMemoryRequirements{};
+        device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
+
+        const uint32_t imageMemoryIndex = GetMemoryType(
+            physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+        ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
+
+        const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
+            .allocationSize = imageMemoryRequirements.size,
+            .memoryTypeIndex = imageMemoryIndex,
+        };
+
+        auto imageMemory = device->allocateMemoryUnique(imageMemoryAllocateInfo).value;
+        ASSERT_THAT(imageMemory, IsValidHandle());
+        ASSERT_THAT(device->bindImageMemory(*image, *imageMemory, 0), IsVkSuccess());
+
+        vkhpp::UniqueFence fence;
+        if (withFence) {
+            fence = device->createFenceUnique(vkhpp::FenceCreateInfo()).value;
+        }
+
+        vkhpp::UniqueSemaphore semaphore;
+        if (withSemaphore) {
+            semaphore = device->createSemaphoreUnique(vkhpp::SemaphoreCreateInfo()).value;
+        }
+
+        auto result = vkAcquireImageANDROID(*device, *image, -1, *semaphore, *fence);
+        ASSERT_THAT(result, Eq(VK_SUCCESS));
+
+        if (withFence) {
+            fence.reset();
+        }
+        if (withSemaphore) {
+            semaphore.reset();
+        }
+    }
+};
 
 TEST_P(GfxstreamEnd2EndVkTest, Basic) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
@@ -50,8 +131,8 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
 
     const uint32_t width = 32;
     const uint32_t height = 32;
-    AHardwareBuffer* ahb = nullptr;
-    ASSERT_THAT(mGralloc->allocate(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, -1, &ahb), Eq(0));
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const VkNativeBufferANDROID imageNativeBufferInfo = {
         .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
@@ -168,8 +249,6 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     ASSERT_THAT(fence, Not(Eq(-1)));
 
     ASSERT_THAT(mSync->wait(fence, 3000), Eq(0));
-
-    mGralloc->release(ahb);
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
@@ -178,8 +257,8 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
 
     const uint32_t width = 32;
     const uint32_t height = 32;
-    AHardwareBuffer* ahb = nullptr;
-    ASSERT_THAT(mGralloc->allocate(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, -1, &ahb), Eq(0));
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
         device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
@@ -226,8 +305,6 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     ASSERT_THAT(fence, Not(Eq(-1)));
 
     ASSERT_THAT(mSync->wait(fence, 3000), Eq(0));
-
-    mGralloc->release(ahb);
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, BlobAHBIsNotMapable) {
@@ -628,6 +705,42 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
             thread.join();
         }
     }
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, PhysicalDeviceGroup) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const vkhpp::DeviceGroupDeviceCreateInfo deviceGroupDeviceCreateInfo = {
+        .physicalDeviceCount = 1,
+        .pPhysicalDevices = &physicalDevice,
+    };
+
+    const float queuePriority = 1.0f;
+    const vkhpp::DeviceQueueCreateInfo deviceQueueCreateInfo = {
+        .queueFamilyIndex = 0,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority,
+    };
+    const vkhpp::DeviceCreateInfo deviceCreateInfo = {
+        .pNext = &deviceGroupDeviceCreateInfo,
+        .pQueueCreateInfos = &deviceQueueCreateInfo,
+        .queueCreateInfoCount = 1,
+    };
+    auto device2 = VK_ASSERT_RV(physicalDevice.createDeviceUnique(deviceCreateInfo));
+    ASSERT_THAT(device2, IsValidHandle());
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFence) {
+    DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/false);
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithSemaphore) {
+    DoAcquireImageAndroidWithSync(/*withFence=*/false, /*withSemaphore=*/true);
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFenceAndSemaphore) {
+    DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/true);
 }
 
 std::vector<TestParams> GenerateTestCases() {
