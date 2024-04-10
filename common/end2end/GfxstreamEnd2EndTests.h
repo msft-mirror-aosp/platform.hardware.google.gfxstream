@@ -150,22 +150,13 @@ using VkExpected = android::base::expected<VkType, vkhpp::Result>;
     std::move(vkhpp_result_value.value);                                      \
   })
 
-#define VK_TRY(x)                                                                   \
-    ({                                                                              \
-        auto vk_try_android_base_expected = (x);                                    \
-        if (!vk_try_android_base_expected.ok()) {                                   \
-            return android::base::unexpected(vk_try_android_base_expected.error()); \
-        }                                                                           \
-        std::move(vk_try_android_base_expected.value());                            \
-    })
-
-#define VK_TRY_RESULT(x)                               \
-    ({                                                 \
-        auto vkhpp_result = (x);                       \
-        if (vkhpp_result != vkhpp::Result::eSuccess) { \
-            return vkhpp_result;                       \
-        }                                              \
-    })
+#define VK_TRY(x)                                                             \
+  ({                                                                          \
+    auto vkhpp_result = (x);                                                  \
+    if (vkhpp_result != vkhpp::Result::eSuccess) {                            \
+        return vkhpp_result;                                                  \
+    }                                                                         \
+  })
 
 #define VK_TRY_RV(x)                                                          \
   ({                                                                          \
