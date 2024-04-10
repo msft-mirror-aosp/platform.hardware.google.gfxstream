@@ -14,11 +14,26 @@
 
 #pragma once
 
+#include <sstream>
 #include <string>
 #include <vector>
 
 namespace gfxstream {
 
 std::vector<std::string> Split(const std::string& s, const std::string& delimiters);
+
+template <typename ContainerT, typename SeparatorT>
+std::string Join(const ContainerT& things, SeparatorT separator) {
+    if (things.empty()) {
+        return "";
+    }
+
+    std::ostringstream result;
+    result << *things.begin();
+    for (auto it = std::next(things.begin()); it != things.end(); ++it) {
+        result << separator << *it;
+    }
+    return result.str();
+}
 
 }  // namespace gfxstream
