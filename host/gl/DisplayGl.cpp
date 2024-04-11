@@ -38,10 +38,6 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
     if (!surface) {
         return getCompletedFuture();
     }
-    if (post.layers.empty()) {
-        clear();
-        return getCompletedFuture();
-    }
     const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(surface->getImpl());
 
     bool hasDrawLayer = false;
