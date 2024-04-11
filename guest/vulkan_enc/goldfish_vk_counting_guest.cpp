@@ -32,7 +32,6 @@
 
 #include "goldfish_vk_counting_guest.h"
 
-#include <cstdlib>
 #include <cstring>
 
 #include "goldfish_vk_extension_structs_guest.h"
