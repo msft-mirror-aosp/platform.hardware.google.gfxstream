@@ -127,6 +127,10 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     if (imageInfo->layout == VK_IMAGE_LAYOUT_UNDEFINED) {
         return;
     }
+    // TODO(b/333936705): snapshot multi-sample images
+    if (imageInfo->imageCreateInfoShallow.samples != VK_SAMPLE_COUNT_1_BIT) {
+        return;
+    }
     VkEmulation* vkEmulation = getGlobalVkEmulation();
     VulkanDispatch* dispatch = vkEmulation->dvk;
     const VkImageCreateInfo& imageCreateInfo = imageInfo->imageCreateInfoShallow;
@@ -163,7 +167,6 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     const auto readbackBufferMemoryType =
         GetMemoryType(*stateBlock->physicalDeviceInfo, readbackBufferMemoryRequirements,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
     // Staging memory
     // TODO(b/323064243): reuse staging memory
     VkMemoryAllocateInfo readbackBufferMemoryAllocateInfo = {
@@ -217,7 +220,6 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
             dispatch->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0,
                                            nullptr, 1, &imgMemoryBarrier);
-
             VkBufferImageCopy region{
                 .bufferOffset = 0,
                 .bufferRowLength = 0,
@@ -275,6 +277,9 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
 void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkImage image,
                       const ImageInfo* imageInfo) {
     if (imageInfo->layout == VK_IMAGE_LAYOUT_UNDEFINED) {
+        return;
+    }
+    if (imageInfo->imageCreateInfoShallow.samples != VK_SAMPLE_COUNT_1_BIT) {
         return;
     }
     VkEmulation* vkEmulation = getGlobalVkEmulation();
