@@ -26,7 +26,7 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(uint32_t handle, uint32_t w
                                                      bool vulkanOnly, uint32_t memoryProperty,
                                                      android::base::Stream* stream) {
     VkImageLayout initLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    if (stream) {
+    if (getGlobalVkEmulation()->features.VulkanSnapshots.enabled && stream) {
         initLayout = static_cast<VkImageLayout>(stream->getBe32());
     }
     if (!createVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
@@ -39,6 +39,9 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(uint32_t handle, uint32_t w
 }
 
 void ColorBufferVk::onSave(android::base::Stream* stream) {
+    if (!getGlobalVkEmulation()->features.VulkanSnapshots.enabled) {
+        return;
+    }
     stream->putBe32(static_cast<uint32_t>(getColorBufferCurrentLayout(mHandle)));
 }
 
