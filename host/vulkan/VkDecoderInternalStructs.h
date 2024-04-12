@@ -195,18 +195,6 @@ struct DeviceInfo {
     std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
-    // The host needs to ensure that any additional vkQueueSubmitKHR() used to
-    // signal the semaphore and/or fence used in vkAcquireNextImageKHR() or
-    // vkAcquireImageANDROID() have completed before destroying those semaphores
-    // and fences as the guest is not aware of those additional submits. For simplicity,
-    // defer the destruction of those semaphores and fences until device destruction,
-    // with the assumption that the number of semaphores and fences used for
-    // vkAcquireNextImageKHR() or vkAcquireImageANDROID() will be small as swapchain
-    // implementations typically recycle and re-use semaphores and fences, instead of
-    // trying to create additional sync objects to track when the semaphores and fences
-    // can be safely destroyed.
-    std::vector<VkSemaphore> deferredDestructionSemaphores;
-    std::vector<VkFence> deferredDestructionFences;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)
@@ -295,21 +283,12 @@ struct FenceInfo {
     State state = State::kNotWaitable;
 
     bool external = false;
-
-    // If this fence was used for vkAcquireNextImageKHR() / vkAcquireImageANDROID(),
-    // then a vkDeviceWaitIdle() is needed before destruction to ensure any queue
-    // submits used to signal this semaphore have completed before destructing.
-    bool usedForAcquireImage = false;
 };
 
 struct SemaphoreInfo {
     VkDevice device;
     int externalHandleId = 0;
     VK_EXT_MEMORY_HANDLE externalHandle = VK_EXT_MEMORY_HANDLE_INVALID;
-    // If this semaphore was used for vkAcquireNextImageKHR() / vkAcquireImageANDROID(),
-    // then a vkDeviceWaitIdle() is needed before destruction to ensure any queue
-    // submits used to signal this semaphore have completed before destructing.
-    bool usedForAcquireImage = false;
 };
 
 struct DescriptorSetLayoutInfo {
