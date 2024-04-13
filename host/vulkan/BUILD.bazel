@@ -17,6 +17,7 @@ cc_library(
         "VkDecoderGlobalState.cpp",
         "VkDecoderSnapshot.cpp",
         "VkDecoderSnapshotUtils.cpp",
+        "VkEmulatedPhysicalDeviceMemory.cpp",
         "VkFormatUtils.cpp",
         "VkReconstruction.cpp",
         "VulkanDispatch.cpp",
