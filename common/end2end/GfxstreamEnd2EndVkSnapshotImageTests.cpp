@@ -150,6 +150,51 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependency) {
     SnapshotSaveAndLoad();
 }
 
+TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, MultiSampleImage) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const uint32_t width = 32;
+    const uint32_t height = 32;
+
+    const vkhpp::ImageCreateInfo imageCreateInfo = {
+        .pNext = nullptr,
+        .imageType = vkhpp::ImageType::e2D,
+        .extent.width = width,
+        .extent.height = height,
+        .extent.depth = 1,
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .tiling = vkhpp::ImageTiling::eOptimal,
+        .initialLayout = vkhpp::ImageLayout::eUndefined,
+        .usage = vkhpp::ImageUsageFlagBits::eColorAttachment |
+                 vkhpp::ImageUsageFlagBits::eTransferDst | vkhpp::ImageUsageFlagBits::eTransferSrc,
+        .sharingMode = vkhpp::SharingMode::eExclusive,
+        .samples = vkhpp::SampleCountFlagBits::e8,
+    };
+    auto image = device->createImageUnique(imageCreateInfo).value;
+    ASSERT_THAT(image, IsValidHandle());
+
+    vkhpp::MemoryRequirements imageMemoryRequirements{};
+    device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
+
+    const uint32_t imageMemoryIndex = GetMemoryType(physicalDevice, imageMemoryRequirements,
+                                                    vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
+
+    const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
+        .allocationSize = imageMemoryRequirements.size,
+        .memoryTypeIndex = imageMemoryIndex,
+    };
+
+    auto imageMemory = device->allocateMemoryUnique(imageMemoryAllocateInfo).value;
+    ASSERT_THAT(imageMemory, IsValidHandle());
+
+    // Make sure it doesn't crash on load
+    SnapshotSaveAndLoad();
+}
+
 TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageContent) {
     static constexpr int kWidth = 256;
     static constexpr int kHeight = 256;
