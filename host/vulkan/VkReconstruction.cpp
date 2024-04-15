@@ -39,15 +39,21 @@ namespace vk {
 
 VkReconstruction::VkReconstruction() = default;
 
-std::vector<uint64_t> typeTagSortedHandles(const std::vector<uint64_t>& handles) {
+std::vector<VkReconstruction::HandleWithState> typeTagSortedHandles(
+    const std::vector<VkReconstruction::HandleWithState>& handles) {
     using EntityManagerTypeForHandles = android::base::EntityManager<32, 16, 16, int>;
 
-    std::vector<uint64_t> res = handles;
+    std::vector<VkReconstruction::HandleWithState> res = handles;
 
-    std::sort(res.begin(), res.end(), [](uint64_t lhs, uint64_t rhs) {
-        return EntityManagerTypeForHandles::getHandleType(lhs) <
-               EntityManagerTypeForHandles::getHandleType(rhs);
-    });
+    std::sort(res.begin(), res.end(),
+              [](const VkReconstruction::HandleWithState& lhs,
+                 const VkReconstruction::HandleWithState& rhs) {
+                  if (lhs.second != rhs.second) {
+                      return lhs.second < rhs.second;
+                  }
+                  return EntityManagerTypeForHandles::getHandleType(lhs.first) <
+                         EntityManagerTypeForHandles::getHandleType(rhs.first);
+              });
 
     return res;
 }
@@ -59,27 +65,31 @@ void VkReconstruction::save(android::base::Stream* stream) {
     dump();
 #endif
 
-    std::unordered_map<uint64_t, int> totalParents;
-    std::vector<uint64_t> next;
+    std::unordered_map<HandleWithState, int, HandleWithStateHash> totalParents;
+    std::vector<HandleWithState> next;
 
     mHandleReconstructions.forEachLiveComponent_const(
         [&totalParents, &next](bool live, uint64_t componentHandle, uint64_t entityHandle,
-                               const HandleReconstruction& item) {
-            totalParents[entityHandle] = item.parentHandles.size();
-            if (item.parentHandles.empty()) {
-                next.push_back(entityHandle);
+                               const HandleWithStateReconstruction& item) {
+            for (int state = BEGIN; state < HANDLE_STATE_COUNT; state++) {
+                const auto& parents = item.states[state].parentHandles;
+                HandleWithState handleWithState = {entityHandle, static_cast<HandleState>(state)};
+                totalParents[handleWithState] = parents.size();
+                if (parents.empty()) {
+                    next.push_back(handleWithState);
+                }
             }
         });
 
-    std::vector<std::vector<uint64_t>> handlesByTopoOrder;
+    std::vector<std::vector<HandleWithState>> handlesByTopoOrder;
 
     while (!next.empty()) {
         next = typeTagSortedHandles(next);
         handlesByTopoOrder.push_back(std::move(next));
-        const std::vector<uint64_t>& current = handlesByTopoOrder.back();
-        for (uint64_t handle : current) {
-            auto item = mHandleReconstructions.get(handle);
-            for (auto childHandle : item->childHandles) {
+        const std::vector<HandleWithState>& current = handlesByTopoOrder.back();
+        for (const auto& handle : current) {
+            const auto& item = mHandleReconstructions.get(handle.first)->states[handle.second];
+            for (const auto& childHandle : item.childHandles) {
                 if (--totalParents[childHandle] == 0) {
                     next.push_back(childHandle);
                 }
@@ -91,12 +101,12 @@ void VkReconstruction::save(android::base::Stream* stream) {
     uniqApiRefsByTopoOrder.reserve(handlesByTopoOrder.size() + 1);
     for (const auto& handles : handlesByTopoOrder) {
         std::vector<uint64_t> nextApis;
-        for (uint64_t handle : handles) {
-            auto item = mHandleReconstructions.get(handle);
-            for (uint64_t apiRef : item->apiRefs) {
+        for (const auto& handle : handles) {
+            auto item = mHandleReconstructions.get(handle.first)->states[handle.second];
+            for (uint64_t apiRef : item.apiRefs) {
 #if DEBUG_RECONSTRUCTION
                 auto apiItem = mApiTrace.get(apiRef);
-                DEBUG_RECON("adding handle 0x%lx API 0x%lx op code %d\n", handle, apiRef,
+                DEBUG_RECON("adding handle 0x%lx API 0x%lx op code %d\n", handle.first, apiRef,
                             apiItem->opCode);
 #endif
                 nextApis.push_back(apiRef);
@@ -294,17 +304,20 @@ void VkReconstruction::dump() {
 
     mHandleReconstructions.forEachLiveComponent_const(
         [this](bool live, uint64_t componentHandle, uint64_t entityHandle,
-               const HandleReconstruction& reconstruction) {
+               const HandleWithStateReconstruction& reconstruction) {
             fprintf(stderr, "VkReconstruction::%s: %p handle 0x%llx api refs:\n", __func__, this,
                     (unsigned long long)entityHandle);
-            for (auto apiHandle : reconstruction.apiRefs) {
-                auto apiInfo = mApiTrace.get(apiHandle);
-                const char* apiName = apiInfo ? api_opcode_to_string(apiInfo->opCode) : "unalloced";
-                fprintf(stderr, "VkReconstruction::%s:     0x%llx: %s\n", __func__,
-                        (unsigned long long)apiHandle, apiName);
-                for (auto createdHandle : apiInfo->createdHandles) {
-                    fprintf(stderr, "VkReconstruction::%s:         created 0x%llx\n", __func__,
-                            (unsigned long long)createdHandle);
+            for (const auto& state : reconstruction.states) {
+                for (auto apiHandle : state.apiRefs) {
+                    auto apiInfo = mApiTrace.get(apiHandle);
+                    const char* apiName =
+                        apiInfo ? api_opcode_to_string(apiInfo->opCode) : "unalloced";
+                    fprintf(stderr, "VkReconstruction::%s:     0x%llx: %s\n", __func__,
+                            (unsigned long long)apiHandle, apiName);
+                    for (auto createdHandle : apiInfo->createdHandles) {
+                        fprintf(stderr, "VkReconstruction::%s:         created 0x%llx\n", __func__,
+                                (unsigned long long)createdHandle);
+                    }
                 }
             }
         });
@@ -330,7 +343,7 @@ void VkReconstruction::addHandles(const uint64_t* toAdd, uint32_t count) {
 
     for (uint32_t i = 0; i < count; ++i) {
         DEBUG_RECON("add 0x%llx", (unsigned long long)toAdd[i]);
-        mHandleReconstructions.add(toAdd[i], HandleReconstruction());
+        mHandleReconstructions.add(toAdd[i], HandleWithStateReconstruction());
     }
 }
 
@@ -344,41 +357,63 @@ void VkReconstruction::removeHandles(const uint64_t* toRemove, uint32_t count, b
         // It might delete the parents before children, which will automatically remove
         // the name.
         if (!item) continue;
-
-        if (!recursive && item->childHandles.size()) {
+        // Break circuler references
+        if (item->destroying) continue;
+        item->destroying = true;
+        if (!recursive) {
+            bool couldDestroy = true;
+            for (const auto& state : item->states) {
+                if (!state.childHandles.size()) {
+                    continue;
+                }
+                couldDestroy = false;
+                break;
+            }
             // TODO(b/330769702): perform delayed destroy when all children are destroyed.
-            DEBUG_RECON("delay destroy of 0x%lx, TODO: actually destroy it", toRemove[i]);
-            item->destroyed = true;
+            if (couldDestroy) {
+                forEachHandleDeleteApi(toRemove + i, 1);
+                mHandleReconstructions.remove(toRemove[i]);
+            } else {
+                DEBUG_RECON("delay destroy of 0x%lx, TODO: actually destroy it", toRemove[i]);
+                item->delayed_destroy = true;
+                item->destroying = false;
+            }
             continue;
         }
-        for (uint64_t parentHandle : item->parentHandles) {
-            auto parentItem = mHandleReconstructions.get(parentHandle);
-            if (!parentItem) {
-                continue;
+        for (size_t j = 0; j < item->states.size(); j++) {
+            for (const auto& parentHandle : item->states[j].parentHandles) {
+                auto parentItem = mHandleReconstructions.get(parentHandle.first);
+                if (!parentItem) {
+                    continue;
+                }
+                parentItem->states[parentHandle.second].childHandles.erase(
+                    {toRemove[i], static_cast<HandleState>(j)});
             }
-            parentItem->childHandles.erase(toRemove[i]);
+            item->states[j].parentHandles.clear();
+            std::vector<uint64_t> childHandles;
+            for (const auto& childHandle : item->states[j].childHandles) {
+                if (childHandle.second == CREATED) {
+                    childHandles.push_back(childHandle.first);
+                }
+            }
+            item->states[j].childHandles.clear();
+            removeHandles(childHandles.data(), childHandles.size());
         }
         forEachHandleDeleteApi(toRemove + i, 1);
-        // Keep a local copy because removeHandles will mess up
-        // item->childHandles iterators.
-        std::vector<uint64_t> childHandles(item->childHandles.begin(), item->childHandles.end());
-        removeHandles(childHandles.data(), childHandles.size());
-        item->childHandles.clear();
         mHandleReconstructions.remove(toRemove[i]);
     }
 }
 
 void VkReconstruction::forEachHandleAddApi(const uint64_t* toProcess, uint32_t count,
-                                           uint64_t apiHandle) {
+                                           uint64_t apiHandle, HandleState state) {
     if (!toProcess) return;
 
     for (uint32_t i = 0; i < count; ++i) {
         auto item = mHandleReconstructions.get(toProcess[i]);
-
         if (!item) continue;
 
-        item->apiRefs.push_back(apiHandle);
-        DEBUG_RECON("handle 0x%lx added api 0x%lx", toProcess[i], apiHandle);
+        item->states[state].apiRefs.push_back(apiHandle);
+        DEBUG_RECON("handle 0x%lx state %d added api 0x%lx", toProcess[i], state, apiHandle);
     }
 }
 
@@ -391,11 +426,12 @@ void VkReconstruction::forEachHandleDeleteApi(const uint64_t* toProcess, uint32_
 
         if (!item) continue;
 
-        for (auto handle : item->apiRefs) {
-            destroyApiInfo(handle);
+        for (auto& state : item->states) {
+            for (auto handle : state.apiRefs) {
+                destroyApiInfo(handle);
+            }
+            state.apiRefs.clear();
         }
-
-        item->apiRefs.clear();
 
         auto modifyItem = mHandleModifications.get(toProcess[i]);
 
@@ -406,7 +442,8 @@ void VkReconstruction::forEachHandleDeleteApi(const uint64_t* toProcess, uint32_
 }
 
 void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t count,
-                                           uint64_t parentHandle) {
+                                           uint64_t parentHandle, HandleState childState,
+                                           HandleState parentState) {
     if (!handles) return;
 
     auto parentItem = mHandleReconstructions.get(parentHandle);
@@ -415,14 +452,18 @@ void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t cou
         DEBUG_RECON("WARN: adding null parent item: 0x%lx\n", parentHandle);
         return;
     }
+    auto& parentItemState = parentItem->states[parentState];
 
     for (uint32_t i = 0; i < count; ++i) {
         auto childItem = mHandleReconstructions.get(handles[i]);
         if (!childItem) {
             continue;
         }
-        parentItem->childHandles.insert(handles[i]);
-        childItem->parentHandles.push_back(parentHandle);
+        parentItemState.childHandles.insert({handles[i], static_cast<HandleState>(childState)});
+        childItem->states[childState].parentHandles.push_back(
+            {parentHandle, static_cast<HandleState>(parentState)});
+        DEBUG_RECON("Child handle 0x%lx state %d depends on parent handle 0x%lx state %d",
+                    handles[i], childState, parentHandle, parentState);
     }
 }
 

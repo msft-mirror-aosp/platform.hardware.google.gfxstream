@@ -68,7 +68,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateInstance, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pInstance, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pInstance, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pInstance, 1);
     }
     void vkDestroyInstance(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -95,7 +96,8 @@ class VkDecoderSnapshot::Impl {
                                     snapshotTraceBytes);
         if (pPhysicalDeviceCount) {
             mReconstruction.forEachHandleAddApi((const uint64_t*)pPhysicalDevices,
-                                                (*(pPhysicalDeviceCount)), apiHandle);
+                                                (*(pPhysicalDeviceCount)), apiHandle,
+                                                VkReconstruction::CREATED);
             mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPhysicalDevices,
                                                     (*(pPhysicalDeviceCount)));
         }
@@ -149,7 +151,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateDevice, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pDevice, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pDevice, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDevice, 1);
     }
     void vkDestroyDevice(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -194,7 +197,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkGetDeviceQueue, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pQueue, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pQueue, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pQueue, 1);
     }
     void vkQueueSubmit(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -214,11 +218,28 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pMemory, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pMemory, 1,
                                             (uint64_t)(uintptr_t)device);
+        const VkMemoryDedicatedAllocateInfo* dedicatedAllocateInfo =
+            vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo);
+        if (dedicatedAllocateInfo) {
+            if (dedicatedAllocateInfo->image) {
+                mReconstruction.addHandleDependency(
+                    (const uint64_t*)pMemory, 1,
+                    (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImage(
+                        dedicatedAllocateInfo->image));
+            }
+            if (dedicatedAllocateInfo->buffer) {
+                mReconstruction.addHandleDependency(
+                    (const uint64_t*)pMemory, 1,
+                    (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(
+                        dedicatedAllocateInfo->buffer));
+            }
+        }
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkAllocateMemory, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pMemory, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pMemory, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pMemory, 1);
     }
     void vkFreeMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -259,12 +280,17 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandleDependency(
             (const uint64_t*)&boxed_VkImage, 1,
             (uint64_t)(uintptr_t)(uint64_t)(uintptr_t)
-                unboxed_to_boxed_non_dispatchable_VkDeviceMemory(memory));
+                unboxed_to_boxed_non_dispatchable_VkDeviceMemory(memory),
+            VkReconstruction::BOUND_MEMORY);
+        mReconstruction.addHandleDependency((const uint64_t*)&boxed_VkImage, 1,
+                                            (uint64_t)(uintptr_t)((&boxed_VkImage)[0]),
+                                            VkReconstruction::BOUND_MEMORY);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkBindImageMemory, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkImage, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkImage, 1, apiHandle,
+                                            VkReconstruction::BOUND_MEMORY);
     }
     void vkGetBufferMemoryRequirements(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                        android::base::BumpPool* pool, VkDevice device,
@@ -300,7 +326,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateFence, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pFence, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pFence, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pFence, 1);
     }
     void vkDestroyFence(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -334,7 +361,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateSemaphore, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pSemaphore, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pSemaphore, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSemaphore, 1);
     }
     void vkDestroySemaphore(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -358,7 +386,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateEvent, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pEvent, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pEvent, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pEvent, 1);
     }
     void vkDestroyEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -391,7 +420,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateQueryPool, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pQueryPool, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pQueryPool, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pQueryPool, 1);
     }
     void vkDestroyQueryPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -420,7 +450,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateBuffer, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pBuffer, 1);
     }
     void vkDestroyBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -443,7 +474,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateBufferView, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pView, 1);
     }
     void vkDestroyBufferView(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -467,7 +499,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateImage, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pImage, 1);
     }
     void vkDestroyImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -492,12 +525,14 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandleDependency((const uint64_t*)pView, 1, (uint64_t)(uintptr_t)device);
         mReconstruction.addHandleDependency(
             (const uint64_t*)pView, 1,
-            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImage(pCreateInfo->image));
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImage(pCreateInfo->image),
+            VkReconstruction::CREATED, VkReconstruction::BOUND_MEMORY);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateImageView, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pView, 1);
     }
     void vkDestroyImageView(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -522,7 +557,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateShaderModule, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pShaderModule, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pShaderModule, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pShaderModule, 1);
     }
     void vkDestroyShaderModule(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -548,7 +584,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreatePipelineCache, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineCache, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineCache, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelineCache, 1);
     }
     void vkDestroyPipelineCache(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -593,7 +630,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateGraphicsPipelines, snapshotTraceBegin,
                                     snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, ((createInfoCount)),
-                                            apiHandle);
+                                            apiHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelines,
                                                 ((createInfoCount)));
     }
@@ -614,7 +651,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateComputePipelines, snapshotTraceBegin,
                                     snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, ((createInfoCount)),
-                                            apiHandle);
+                                            apiHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelines,
                                                 ((createInfoCount)));
     }
@@ -640,7 +677,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreatePipelineLayout, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineLayout, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineLayout, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelineLayout, 1);
     }
     void vkDestroyPipelineLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -665,7 +703,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateSampler, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pSampler, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pSampler, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSampler, 1);
     }
     void vkDestroySampler(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -691,7 +730,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateDescriptorSetLayout, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pSetLayout, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pSetLayout, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSetLayout, 1);
     }
     void vkDestroyDescriptorSetLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -717,7 +757,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateDescriptorPool, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorPool, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorPool, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDescriptorPool, 1);
     }
     void vkDestroyDescriptorPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -749,7 +790,8 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.setApiTrace(apiInfo, OP_vkAllocateDescriptorSets, snapshotTraceBegin,
                                     snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorSets,
-                                            pAllocateInfo->descriptorSetCount, apiHandle);
+                                            pAllocateInfo->descriptorSetCount, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDescriptorSets,
                                                 pAllocateInfo->descriptorSetCount);
     }
@@ -792,7 +834,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateFramebuffer, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pFramebuffer, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pFramebuffer, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pFramebuffer, 1);
     }
     void vkDestroyFramebuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -816,7 +859,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateRenderPass, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pRenderPass, 1);
     }
     void vkDestroyRenderPass(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -843,7 +887,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateCommandPool, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pCommandPool, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pCommandPool, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pCommandPool, 1);
     }
     void vkDestroyCommandPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -874,7 +919,8 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.setApiTrace(apiInfo, OP_vkAllocateCommandBuffers, snapshotTraceBegin,
                                     snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pCommandBuffers,
-                                            pAllocateInfo->commandBufferCount, apiHandle);
+                                            pAllocateInfo->commandBufferCount, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pCommandBuffers,
                                                 pAllocateInfo->commandBufferCount);
     }
@@ -1159,7 +1205,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkGetDeviceQueue2, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pQueue, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pQueue, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pQueue, 1);
     }
     void vkCreateSamplerYcbcrConversion(const uint8_t* snapshotTraceBegin,
@@ -1178,7 +1225,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateSamplerYcbcrConversion, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pYcbcrConversion, 1);
     }
     void vkDestroySamplerYcbcrConversion(const uint8_t* snapshotTraceBegin,
@@ -1206,7 +1254,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateDescriptorUpdateTemplate,
                                     snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorUpdateTemplate, 1,
-                                            apiHandle);
+                                            apiHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle,
                                                 (const uint64_t*)pDescriptorUpdateTemplate, 1);
     }
@@ -1270,7 +1318,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateRenderPass2, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pRenderPass, 1);
     }
     void vkCmdBeginRenderPass2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -1456,7 +1505,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateSwapchainKHR, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pSwapchain, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pSwapchain, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSwapchain, 1);
     }
     void vkDestroySwapchainKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -1600,7 +1650,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateDescriptorUpdateTemplateKHR,
                                     snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorUpdateTemplate, 1,
-                                            apiHandle);
+                                            apiHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle,
                                                 (const uint64_t*)pDescriptorUpdateTemplate, 1);
     }
@@ -1638,7 +1688,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateRenderPass2KHR, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pRenderPass, 1);
     }
     void vkCmdBeginRenderPass2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -1712,7 +1763,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateSamplerYcbcrConversionKHR,
                                     snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pYcbcrConversion, 1);
     }
     void vkDestroySamplerYcbcrConversionKHR(const uint8_t* snapshotTraceBegin,
@@ -1972,7 +2024,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateDebugUtilsMessengerEXT, snapshotTraceBegin,
                                     snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pMessenger, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pMessenger, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pMessenger, 1);
     }
     void vkDestroyDebugUtilsMessengerEXT(const uint8_t* snapshotTraceBegin,
@@ -2216,7 +2269,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateImageWithRequirementsGOOGLE,
                                     snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pImage, 1);
     }
     void vkCreateBufferWithRequirementsGOOGLE(
@@ -2234,7 +2288,8 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCreateBufferWithRequirementsGOOGLE,
                                     snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiHandle);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiHandle,
+                                            VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pBuffer, 1);
     }
     void vkGetMemoryHostAddressInfoGOOGLE(const uint8_t* snapshotTraceBegin,
