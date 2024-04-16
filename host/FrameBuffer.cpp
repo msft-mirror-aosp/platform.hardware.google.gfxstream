@@ -257,7 +257,9 @@ void MaybeIncreaseFileDescriptorSoftLimit() {
             return;
         }
 
-        GL_LOG("Raised nofile soft limit to %d.", static_cast<int>(requestedSoftLimit));
+        INFO("Raised nofile soft limit to %d.", static_cast<int>(requestedSoftLimit));
+    } else {
+        INFO("Not raising nofile soft limit from %d.", static_cast<int>(softLimit));
     }
 #endif
 }
