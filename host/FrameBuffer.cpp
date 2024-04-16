@@ -1989,6 +1989,9 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
                                uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
                                int desiredHeight, int desiredRotation, Rect rect) {
     if (emugl::shouldSkipDraw()) {
+        *width = 0;
+        *height = 0;
+        *cPixels = 0;
         return -1;
     }
     AutoLock mutex(m_lock);
