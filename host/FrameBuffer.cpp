@@ -257,7 +257,9 @@ void MaybeIncreaseFileDescriptorSoftLimit() {
             return;
         }
 
-        GL_LOG("Raised nofile soft limit to %d.", static_cast<int>(requestedSoftLimit));
+        INFO("Raised nofile soft limit to %d.", static_cast<int>(requestedSoftLimit));
+    } else {
+        INFO("Not raising nofile soft limit from %d.", static_cast<int>(softLimit));
     }
 #endif
 }
@@ -1987,6 +1989,9 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
                                uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
                                int desiredHeight, int desiredRotation, Rect rect) {
     if (emugl::shouldSkipDraw()) {
+        *width = 0;
+        *height = 0;
+        *cPixels = 0;
         return -1;
     }
     AutoLock mutex(m_lock);
