@@ -174,9 +174,12 @@ struct InstanceInfo {
     uint32_t apiVersion = VK_MAKE_VERSION(1, 0, 0);
     VkInstance boxed = nullptr;
     bool isAngle = false;
+    std::string applicationName;
+    std::string engineName;
 };
 
 struct PhysicalDeviceInfo {
+    VkInstance instance = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties props;
     std::unique_ptr<EmulatedPhysicalDeviceMemoryProperties> memoryPropertiesHelper;
     std::vector<VkQueueFamilyProperties> queueFamilyProperties;
