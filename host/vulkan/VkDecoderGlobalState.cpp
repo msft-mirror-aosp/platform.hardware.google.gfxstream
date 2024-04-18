@@ -458,6 +458,8 @@ class VkDecoderGlobalState::Impl {
             if (imageInfo.memory == VK_NULL_HANDLE) {
                 continue;
             }
+            // Vulkan command playback doesn't recover image layout. We need to do it here.
+            stream->putBe32(imageInfo.layout);
             const auto& device = imageInfo.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             const auto physicalDevice = deviceInfo->physicalDevice;
@@ -540,10 +542,21 @@ class VkDecoderGlobalState::Impl {
         sort(sortedBoxedImages.begin(), sortedBoxedImages.end());
         for (const auto& boxedImage : sortedBoxedImages) {
             auto unboxedImage = unbox_VkImage(boxedImage);
-            const ImageInfo& imageInfo = mImageInfo[unboxedImage];
+            ImageInfo& imageInfo = mImageInfo[unboxedImage];
             if (imageInfo.memory == VK_NULL_HANDLE) {
                 continue;
             }
+            // Playback doesn't recover image layout. We need to do it here.
+            //
+            // Layout transform was done by vkCmdPipelineBarrier but we don't record such command
+            // directly. Instead, we memorize the current layout and add our own
+            // vkCmdPipelineBarrier after load.
+            //
+            // We do the layout transform in loadImageContent. There are still use cases where it
+            // should recover the layout but does not.
+            //
+            // TODO(b/323059453): fix corner cases when image contents cannot be properly loaded.
+            imageInfo.layout = static_cast<VkImageLayout>(stream->getBe32());
             const auto& device = imageInfo.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             const auto physicalDevice = deviceInfo->physicalDevice;
@@ -642,15 +655,6 @@ class VkDecoderGlobalState::Impl {
         std::vector<const char*> finalExts = filteredInstanceExtensionNames(
             pCreateInfo->enabledExtensionCount, pCreateInfo->ppEnabledExtensionNames);
 
-        if (pCreateInfo->pApplicationInfo) {
-            if (pCreateInfo->pApplicationInfo->pApplicationName)
-                INFO("Creating Vulkan instance for app: %s",
-                     pCreateInfo->pApplicationInfo->pApplicationName);
-            if (pCreateInfo->pApplicationInfo->pEngineName)
-                INFO("Creating Vulkan instance for engine: %s",
-                     pCreateInfo->pApplicationInfo->pEngineName);
-        }
-
         // Create higher version instance whenever it is possible.
         uint32_t apiVersion = VK_MAKE_VERSION(1, 0, 0);
         if (pCreateInfo->pApplicationInfo) {
@@ -717,9 +721,20 @@ class VkDecoderGlobalState::Impl {
 
         InstanceInfo info;
         info.apiVersion = apiVersion;
+        if (pCreateInfo->pApplicationInfo) {
+            if (pCreateInfo->pApplicationInfo->pApplicationName) {
+                info.applicationName = pCreateInfo->pApplicationInfo->pApplicationName;
+            }
+            if (pCreateInfo->pApplicationInfo->pEngineName) {
+                info.engineName = pCreateInfo->pApplicationInfo->pEngineName;
+            }
+        }
         for (uint32_t i = 0; i < createInfoFiltered.enabledExtensionCount; ++i) {
             info.enabledExtensionNames.push_back(createInfoFiltered.ppEnabledExtensionNames[i]);
         }
+
+        INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
+             info.applicationName.c_str(), info.engineName.c_str());
 
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
@@ -892,7 +907,7 @@ class VkDecoderGlobalState::Impl {
                 mPhysicalDeviceToInstance[validPhysicalDevices[i]] = instance;
 
                 auto& physdevInfo = mPhysdevInfo[validPhysicalDevices[i]];
-
+                physdevInfo.instance = instance;
                 physdevInfo.boxed = new_boxed_VkPhysicalDevice(validPhysicalDevices[i], vk,
                                                                false /* does not own dispatch */);
 
@@ -1451,6 +1466,14 @@ class VkDecoderGlobalState::Impl {
 
         mDeviceToPhysicalDevice[*pDevice] = physicalDevice;
 
+        auto physicalDeviceInfoIt = mPhysdevInfo.find(physicalDevice);
+        if (physicalDeviceInfoIt == mPhysdevInfo.end()) return VK_ERROR_INITIALIZATION_FAILED;
+        auto& physicalDeviceInfo = physicalDeviceInfoIt->second;
+
+        auto instanceInfoIt = mInstanceInfo.find(physicalDeviceInfo.instance);
+        if (instanceInfoIt == mInstanceInfo.end()) return VK_ERROR_INITIALIZATION_FAILED;
+        auto& instanceInfo = instanceInfoIt->second;
+
         // Fill out information about the logical device here.
         auto& deviceInfo = mDeviceInfo[*pDevice];
         deviceInfo.physicalDevice = physicalDevice;
@@ -1461,8 +1484,11 @@ class VkDecoderGlobalState::Impl {
             AstcCpuDecompressor::get().available();
         deviceInfo.decompPipelines =
             std::make_unique<GpuDecompressionPipelineManager>(m_vk, *pDevice);
-        INFO("Created new VkDevice. ASTC emulation? %d. CPU decoding? %d",
-             deviceInfo.emulateTextureAstc, deviceInfo.useAstcCpuDecompression);
+
+        INFO("Created VkDevice:%p for application:%s engine:%s ASTC emulation:%s CPU decoding:%s.",
+             *pDevice, instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
+             deviceInfo.emulateTextureAstc ? "on" : "off",
+             deviceInfo.useAstcCpuDecompression ? "on" : "off");
 
         for (uint32_t i = 0; i < createInfoFiltered.enabledExtensionCount; ++i) {
             deviceInfo.enabledExtensionNames.push_back(
