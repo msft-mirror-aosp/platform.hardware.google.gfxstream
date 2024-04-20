@@ -22,6 +22,7 @@ files_lib_vulkan_server = files(
   'VkAndroidNativeBuffer.cpp',
   'VkCommonOperations.cpp',
   'VkDecoder.cpp',
+  'VkEmulatedPhysicalDeviceMemory.cpp',
   'VkDecoderGlobalState.cpp',
   'VkDecoderSnapshot.cpp',
   'VkDecoderSnapshotUtils.cpp',
