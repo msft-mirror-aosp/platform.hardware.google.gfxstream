@@ -450,6 +450,7 @@ enum class GfxstreamTransport {
 struct TestParams {
     bool with_gl;
     bool with_vk;
+    int samples = 1;
     std::unordered_set<std::string> with_features;
     GfxstreamTransport with_transport = GfxstreamTransport::kVirtioGpuAsg;
 

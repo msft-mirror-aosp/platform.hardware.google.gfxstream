@@ -55,6 +55,9 @@ class GfxstreamEnd2EndVkSnapshotPipelineTest : public GfxstreamEnd2EndTest {
     static const uint32_t kFbHeight = 32;
 };
 
+class GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest
+    : public GfxstreamEnd2EndVkSnapshotPipelineTest {};
+
 template <typename DurationType>
 constexpr uint64_t AsVkTimeout(DurationType duration) {
     return static_cast<uint64_t>(
@@ -71,6 +74,7 @@ vkhpp::UniqueRenderPass GfxstreamEnd2EndVkSnapshotPipelineTest::createRenderPass
     vkhpp::Device device) {
     vkhpp::AttachmentDescription colorAttachmentDescription = {
         .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .samples = static_cast<vkhpp::SampleCountFlagBits>(GetParam().samples),
         .loadOp = vkhpp::AttachmentLoadOp::eLoad,
         .storeOp = vkhpp::AttachmentStoreOp::eStore,
         .initialLayout = vkhpp::ImageLayout::eColorAttachmentOptimal,
@@ -166,7 +170,7 @@ std::unique_ptr<PipelineInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createPipe
     };
 
     const vkhpp::PipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo = {
-        .rasterizationSamples = vkhpp::SampleCountFlagBits::e1,
+        .rasterizationSamples = static_cast<vkhpp::SampleCountFlagBits>(GetParam().samples),
     };
     const vkhpp::PipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo = {};
     const vkhpp::PipelineColorBlendAttachmentState pipelineColorBlendAttachmentState = {
@@ -225,7 +229,7 @@ std::unique_ptr<ImageInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createColorAt
         .usage = vkhpp::ImageUsageFlagBits::eColorAttachment | vkhpp::ImageUsageFlagBits::eSampled |
                  vkhpp::ImageUsageFlagBits::eTransferDst | vkhpp::ImageUsageFlagBits::eTransferSrc,
         .sharingMode = vkhpp::SharingMode::eExclusive,
-        .samples = vkhpp::SampleCountFlagBits::e1,
+        .samples = static_cast<vkhpp::SampleCountFlagBits>(GetParam().samples),
     };
     res->image = device.createImageUnique(imageCreateInfo).value;
 
@@ -354,7 +358,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotFramebuffer) {
     SnapshotSaveAndLoad();
 }
 
-TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSubmitQueue) {
+TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
         VK_ASSERT(SetUpTypicalVkTestEnvironment());
     auto pipelineInfo = createPipeline(device.get());
@@ -504,6 +508,25 @@ INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotPipelin
                             },
                         }),
                         &GetTestName);
+
+INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests,
+                        GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest,
+                        ::testing::ValuesIn({
+                            TestParams{
+                                .with_gl = false,
+                                .with_vk = true,
+                                .samples = 1,
+                                .with_features = {"VulkanSnapshots"},
+                            },
+                            TestParams{
+                                .with_gl = false,
+                                .with_vk = true,
+                                .samples = 4,
+                                .with_features = {"VulkanSnapshots"},
+                            },
+                        }),
+                        &GetTestName);
+
 }  // namespace
 }  // namespace tests
 }  // namespace gfxstream
