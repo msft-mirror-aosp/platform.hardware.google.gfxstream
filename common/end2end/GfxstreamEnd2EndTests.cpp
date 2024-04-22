@@ -78,6 +78,7 @@ std::string TestParams::ToString() const {
     ret += "Gl";
     ret += (with_vk ? "With" : "Without");
     ret += "Vk";
+    ret += "SampleCount" + std::to_string(samples);
     if (!with_features.empty()) {
         ret += "WithFeatures_";
         ret += Join(with_features, "_");

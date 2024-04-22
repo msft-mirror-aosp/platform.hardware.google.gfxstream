@@ -272,14 +272,12 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     dispatch->vkUnmapMemory(stateBlock->device, readbackMemory);
     dispatch->vkDestroyBuffer(stateBlock->device, readbackBuffer, nullptr);
     dispatch->vkFreeMemory(stateBlock->device, readbackMemory, nullptr);
+    dispatch->vkFreeCommandBuffers(stateBlock->device, stateBlock->commandPool, 1, &commandBuffer);
 }
 
 void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkImage image,
                       const ImageInfo* imageInfo) {
     if (imageInfo->layout == VK_IMAGE_LAYOUT_UNDEFINED) {
-        return;
-    }
-    if (imageInfo->imageCreateInfoShallow.samples != VK_SAMPLE_COUNT_1_BIT) {
         return;
     }
     VkEmulation* vkEmulation = getGlobalVkEmulation();
@@ -299,6 +297,51 @@ void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     };
     VkFence fence;
     _RUN_AND_CHECK(dispatch->vkCreateFence(stateBlock->device, &fenceCreateInfo, nullptr, &fence));
+    if (imageInfo->imageCreateInfoShallow.samples != VK_SAMPLE_COUNT_1_BIT) {
+        // Set the layout and quit
+        // TODO: resolve and save image content
+        // TODO: get the right aspect
+        VkImageAspectFlags aspects = VK_IMAGE_ASPECT_COLOR_BIT;
+        VkImageMemoryBarrier imgMemoryBarrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = static_cast<VkAccessFlags>(~VK_ACCESS_NONE_KHR),
+            .dstAccessMask = static_cast<VkAccessFlags>(~VK_ACCESS_NONE_KHR),
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = imageInfo->layout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange = VkImageSubresourceRange{.aspectMask = aspects,
+                                                        .baseMipLevel = 0,
+                                                        .levelCount = VK_REMAINING_MIP_LEVELS,
+                                                        .baseArrayLayer = 0,
+                                                        .layerCount = VK_REMAINING_ARRAY_LAYERS}};
+        VkCommandBufferBeginInfo beginInfo{
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        };
+        _RUN_AND_CHECK(dispatch->vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS);
+
+        dispatch->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                       VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0,
+                                       nullptr, 1, &imgMemoryBarrier);
+
+        _RUN_AND_CHECK(dispatch->vkEndCommandBuffer(commandBuffer));
+
+        // Execute the command to copy image
+        VkSubmitInfo submitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &commandBuffer,
+        };
+        _RUN_AND_CHECK(dispatch->vkQueueSubmit(stateBlock->queue, 1, &submitInfo, fence));
+        _RUN_AND_CHECK(
+            dispatch->vkWaitForFences(stateBlock->device, 1, &fence, VK_TRUE, 3000000000L));
+        dispatch->vkDestroyFence(stateBlock->device, fence, nullptr);
+        dispatch->vkFreeCommandBuffers(stateBlock->device, stateBlock->commandPool, 1,
+                                       &commandBuffer);
+        return;
+    }
     VkBufferCreateInfo bufferCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = static_cast<VkDeviceSize>(
@@ -422,6 +465,7 @@ void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     dispatch->vkUnmapMemory(stateBlock->device, stagingMemory);
     dispatch->vkDestroyBuffer(stateBlock->device, stagingBuffer, nullptr);
     dispatch->vkFreeMemory(stateBlock->device, stagingMemory, nullptr);
+    dispatch->vkFreeCommandBuffers(stateBlock->device, stateBlock->commandPool, 1, &commandBuffer);
 }
 
 }  // namespace vk
