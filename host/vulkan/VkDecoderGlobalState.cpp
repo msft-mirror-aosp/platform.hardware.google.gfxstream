@@ -6262,6 +6262,7 @@ class VkDecoderGlobalState::Impl {
     GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_IMPL)
 
     VkDecoderSnapshot* snapshot() { return &mSnapshot; }
+    SnapshotState getSnapshotState() { return mSnapshotState; }
 
    private:
     bool isEmulatedInstanceExtension(const char* name) const {
@@ -7161,11 +7162,6 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<LinearImageCreateInfo, LinearImageProperties, LinearImageCreateInfo::Hash>
         mLinearImageProperties;
 
-    enum SnapshotState {
-        Normal,
-        Saving,
-        Loading,
-    };
     SnapshotState mSnapshotState = SnapshotState::Normal;
 };
 
@@ -7190,6 +7186,10 @@ void VkDecoderGlobalState::reset() {
 
 // Snapshots
 bool VkDecoderGlobalState::snapshotsEnabled() const { return mImpl->snapshotsEnabled(); }
+
+VkDecoderGlobalState::SnapshotState VkDecoderGlobalState::getSnapshotState() const {
+    return mImpl->getSnapshotState();
+}
 
 const gfxstream::host::FeatureSet& VkDecoderGlobalState::getFeatures() const { return mImpl->getFeatures(); }
 
