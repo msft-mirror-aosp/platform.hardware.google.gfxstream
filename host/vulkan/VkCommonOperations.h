@@ -463,8 +463,7 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
 
 bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
                          FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
-                         bool vulkanOnly, uint32_t memoryProperty,
-                         VkImageLayout initLayout = VK_IMAGE_LAYOUT_UNDEFINED);
+                         bool vulkanOnly, uint32_t memoryProperty);
 
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 
