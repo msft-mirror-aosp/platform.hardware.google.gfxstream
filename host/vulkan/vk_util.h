@@ -277,6 +277,19 @@ void vk_struct_chain_remove(S* unwanted, T* vk_struct) {
     }
 }
 
+template <class TypeToFilter, class H>
+void vk_struct_chain_filter(H* head) {
+    (void)vk_get_vk_struct_id<H>::id;
+
+    auto* curr = reinterpret_cast<vk_struct_common*>(head);
+    while (curr != nullptr) {
+        if (curr->pNext != nullptr && curr->pNext->sType == vk_get_vk_struct_id<TypeToFilter>::id) {
+            curr->pNext = curr->pNext->pNext;
+        }
+        curr = curr->pNext;
+    }
+}
+
 #define VK_CHECK(x)                                                                             \
     do {                                                                                        \
         VkResult err = x;                                                                       \

@@ -162,6 +162,7 @@ static constexpr const char* const kEmulatedDeviceExtensions[] = {
     "VK_FUCHSIA_buffer_collection",
     "VK_FUCHSIA_external_memory",
     "VK_FUCHSIA_external_semaphore",
+    VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME,
     VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
     VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
     VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
@@ -1367,14 +1368,10 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkCreateDevice(android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
                                const VkDeviceCreateInfo* pCreateInfo,
                                const VkAllocationCallbacks* pAllocator, VkDevice* pDevice) {
-        if (mLogging) {
-            fprintf(stderr, "%s: begin\n", __func__);
-        }
-
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        std::vector<const char*> finalExts =
+        const std::vector<const char*> finalExts =
             filteredDeviceExtensionNames(vk, physicalDevice, pCreateInfo->enabledExtensionCount,
                                          pCreateInfo->ppEnabledExtensionNames);
 
@@ -1426,6 +1423,9 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        // Filter device memory report as callbacks can not be passed between guest and host.
+        vk_struct_chain_filter<VkDeviceDeviceMemoryReportCreateInfoEXT>(&createInfoFiltered);
+
         createInfoFiltered.enabledExtensionCount = (uint32_t)finalExts.size();
         createInfoFiltered.ppEnabledExtensionNames = finalExts.data();
 
@@ -1437,28 +1437,13 @@ class VkDecoderGlobalState::Impl {
         std::unique_ptr<std::lock_guard<std::recursive_mutex>> lock = nullptr;
 
         if (swiftshader) {
-            if (mLogging) {
-                fprintf(stderr, "%s: acquire lock\n", __func__);
-            }
             lock = std::make_unique<std::lock_guard<std::recursive_mutex>>(mLock);
-        }
-
-        if (mLogging) {
-            fprintf(stderr, "%s: got lock, calling host\n", __func__);
         }
 
         VkResult result =
             vk->vkCreateDevice(physicalDevice, &createInfoFiltered, pAllocator, pDevice);
 
-        if (mLogging) {
-            fprintf(stderr, "%s: host returned. result: %d\n", __func__, result);
-        }
-
         if (result != VK_SUCCESS) return result;
-
-        if (mLogging) {
-            fprintf(stderr, "%s: track the new device (begin)\n", __func__);
-        }
 
         if (!swiftshader) {
             lock = std::make_unique<std::lock_guard<std::recursive_mutex>>(mLock);
