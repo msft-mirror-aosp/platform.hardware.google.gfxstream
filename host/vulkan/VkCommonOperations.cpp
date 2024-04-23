@@ -26,6 +26,7 @@
 #include <unordered_set>
 
 #include "VkDecoderGlobalState.h"
+#include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VkFormatUtils.h"
 #include "VulkanDispatch.h"
 #include "aemu/base/Optional.h"
@@ -1275,7 +1276,8 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     return sVkEmulation;
 }
 
-std::optional<uint32_t> findRepresentativeColorBufferMemoryTypeIndexLocked();
+std::optional<VkEmulation::RepresentativeColorBufferMemoryTypeInfo>
+findRepresentativeColorBufferMemoryTypeIndexLocked();
 
 void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
     if (!sVkEmulation || !sVkEmulation->live) {
@@ -1327,11 +1329,14 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
             sVkEmulation->queueLock, sVkEmulation->queue, sVkEmulation->queueLock);
     }
 
-    sVkEmulation->representativeColorBufferMemoryTypeIndex =
+    sVkEmulation->representativeColorBufferMemoryTypeInfo =
         findRepresentativeColorBufferMemoryTypeIndexLocked();
-    if (sVkEmulation->representativeColorBufferMemoryTypeIndex) {
-        VK_COMMON_VERBOSE("Emulated ColorBuffer memory type is based on memory type index %d.",
-                          *sVkEmulation->representativeColorBufferMemoryTypeIndex);
+    if (sVkEmulation->representativeColorBufferMemoryTypeInfo) {
+        VK_COMMON_VERBOSE(
+            "Representative ColorBuffer memory type using host memory type index %d "
+            "and guest memory type index :%d",
+            sVkEmulation->representativeColorBufferMemoryTypeInfo->hostMemoryTypeIndex,
+            sVkEmulation->representativeColorBufferMemoryTypeInfo->guestMemoryTypeIndex);
     } else {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Failed to find memory type for ColorBuffers.";
@@ -1905,7 +1910,7 @@ static bool updateExternalMemoryInfo(VK_EXT_MEMORY_HANDLE extMemHandle,
 }
 
 // TODO(liyl): Currently we can only specify required memoryProperty
-// for a color buffer.
+// and initial layout for a color buffer.
 //
 // Ideally we would like to specify a memory type index directly from
 // localAllocInfo.memoryTypeIndex when allocating color buffers in
@@ -2012,7 +2017,6 @@ bool initializeVkColorBufferLocked(
     bool useDedicated = sVkEmulation->useDedicatedAllocations;
 
     infoPtr->imageCreateInfoShallow = vk_make_orphan_copy(*imageCi);
-    infoPtr->currentLayout = infoPtr->imageCreateInfoShallow.initialLayout;
     infoPtr->currentQueueFamilyIndex = sVkEmulation->queueFamilyIndex;
 
     if (!useDedicated && vk->vkGetImageMemoryRequirements2KHR) {
@@ -2673,12 +2677,18 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
     sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
         commandBuffer, "updateColorBufferFromBytes(ColorBuffer:%d)", colorBufferHandle);
 
+    bool isSnapshotLoad =
+        VkDecoderGlobalState::get()->getSnapshotState() == VkDecoderGlobalState::Loading;
+    VkImageLayout currentLayout = colorBufferInfo->currentLayout;
+    if (isSnapshotLoad) {
+        currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    }
     const VkImageMemoryBarrier toTransferDstImageBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = 0,
         .dstAccessMask = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
-        .oldLayout = colorBufferInfo->currentLayout,
+        .oldLayout = currentLayout,
         .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -2693,16 +2703,41 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
             },
     };
 
-    vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                             VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,
+    vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                             VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 0, nullptr, 1,
                              &toTransferDstImageBarrier);
-
-    colorBufferInfo->currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
     // Copy to staging buffer
     vk->vkCmdCopyBufferToImage(commandBuffer, sVkEmulation->staging.buffer, colorBufferInfo->image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, bufferImageCopies.size(),
                                bufferImageCopies.data());
+
+    if (isSnapshotLoad && colorBufferInfo->currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
+        const VkImageMemoryBarrier toCurrentLayoutImageBarrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_NONE_KHR,
+            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .newLayout = colorBufferInfo->currentLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = colorBufferInfo->image,
+            .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT,
+                                 VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
+                                 &toCurrentLayoutImageBarrier);
+    } else {
+        colorBufferInfo->currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    }
 
     sVkEmulation->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
 
@@ -3326,6 +3361,17 @@ void setColorBufferCurrentLayout(uint32_t colorBufferHandle, VkImageLayout layou
     infoPtr->currentLayout = layout;
 }
 
+VkImageLayout getColorBufferCurrentLayout(uint32_t colorBufferHandle) {
+    AutoLock lock(sVkEmulationLock);
+
+    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!infoPtr) {
+        VK_COMMON_ERROR("Invalid ColorBuffer handle %d.", static_cast<int>(colorBufferHandle));
+        return VK_IMAGE_LAYOUT_UNDEFINED;
+    }
+    return infoPtr->currentLayout;
+}
+
 // Allocate a ready to use VkCommandBuffer for queue transfer. The caller needs
 // to signal the returned VkFence when the VkCommandBuffer completes.
 static std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBuffer_locked() {
@@ -3570,7 +3616,8 @@ std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForDisplay(uint32_t colorB
     return compositorInfo;
 }
 
-std::optional<uint32_t> findRepresentativeColorBufferMemoryTypeIndexLocked() {
+std::optional<VkEmulation::RepresentativeColorBufferMemoryTypeInfo>
+findRepresentativeColorBufferMemoryTypeIndexLocked() {
     constexpr const uint32_t kArbitraryWidth = 64;
     constexpr const uint32_t kArbitraryHeight = 64;
     constexpr const uint32_t kArbitraryHandle = std::numeric_limits<uint32_t>::max();
@@ -3585,9 +3632,9 @@ std::optional<uint32_t> findRepresentativeColorBufferMemoryTypeIndexLocked() {
         return std::nullopt;
     }
 
-    uint32_t memoryTypeIndex = 0;
-    if (!getColorBufferAllocationInfoLocked(kArbitraryHandle, nullptr, &memoryTypeIndex, nullptr,
-                                            nullptr)) {
+    uint32_t hostMemoryTypeIndex = 0;
+    if (!getColorBufferAllocationInfoLocked(kArbitraryHandle, nullptr, &hostMemoryTypeIndex,
+                                            nullptr, nullptr)) {
         ERR("Failed to lookup memory type index test ColorBuffer.");
         return std::nullopt;
     }
@@ -3597,7 +3644,14 @@ std::optional<uint32_t> findRepresentativeColorBufferMemoryTypeIndexLocked() {
         return std::nullopt;
     }
 
-    return memoryTypeIndex;
+    EmulatedPhysicalDeviceMemoryProperties helper(sVkEmulation->deviceInfo.memProps,
+                                                  hostMemoryTypeIndex, sVkEmulation->features);
+    uint32_t guestMemoryTypeIndex = helper.getGuestColorBufferMemoryTypeIndex();
+
+    return VkEmulation::RepresentativeColorBufferMemoryTypeInfo{
+        .hostMemoryTypeIndex = hostMemoryTypeIndex,
+        .guestMemoryTypeIndex = guestMemoryTypeIndex,
+    };
 }
 
 }  // namespace vk

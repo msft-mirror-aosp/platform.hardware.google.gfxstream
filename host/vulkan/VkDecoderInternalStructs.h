@@ -21,10 +21,12 @@
 #endif
 
 #include <stdlib.h>
+
 #include <set>
 #include <string>
 
 #include "Handle.h"
+#include "VkEmulatedPhysicalDeviceMemory.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
@@ -172,11 +174,14 @@ struct InstanceInfo {
     uint32_t apiVersion = VK_MAKE_VERSION(1, 0, 0);
     VkInstance boxed = nullptr;
     bool isAngle = false;
+    std::string applicationName;
+    std::string engineName;
 };
 
 struct PhysicalDeviceInfo {
+    VkInstance instance = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties props;
-    VkPhysicalDeviceMemoryProperties memoryProperties;
+    std::unique_ptr<EmulatedPhysicalDeviceMemoryProperties> memoryPropertiesHelper;
     std::vector<VkQueueFamilyProperties> queueFamilyProperties;
     VkPhysicalDevice boxed = nullptr;
 };

@@ -45,23 +45,24 @@ cc_library_static {
         "ColorBufferVk.cpp",
         "CompositorVk.cpp",
         "DebugUtilsHelper.cpp",
-        "DisplayVk.cpp",
         "DisplaySurfaceVk.cpp",
+        "DisplayVk.cpp",
         "PostWorkerVk.cpp",
+        "RenderThreadInfoVk.cpp",
         "SwapChainStateVk.cpp",
+        "vk_util.cpp",
         "VkAndroidNativeBuffer.cpp",
         "VkCommonOperations.cpp",
         "VkDecoder.cpp",
         "VkDecoderGlobalState.cpp",
-        "RenderThreadInfoVk.cpp",
         "VkDecoderSnapshot.cpp",
         "VkDecoderSnapshotUtils.cpp",
+        "VkEmulatedPhysicalDeviceMemory.cpp",
         "VkFormatUtils.cpp",
         "VkReconstruction.cpp",
         "VulkanDispatch.cpp",
         "VulkanHandleMapping.cpp",
         "VulkanStream.cpp",
-        "vk_util.cpp",
     ],
     // http://b/178667698 - clang-tidy crashes with VulkanStream.cpp
     // https://android-review.googlesource.com/c/device/generic/vulkan-cereal/+/1560695/
@@ -94,4 +95,31 @@ cc_test_host {
     test_options: {
         unit_test: true,
     },
+}
+
+// Run with `atest --host gfxstream_vkguestmemoryutils_tests`
+cc_test_host {
+    name: "gfxstream_vkemulatedphysicaldevicememory_tests",
+    defaults: ["gfxstream_defaults"],
+    srcs: [
+        "VkEmulatedPhysicalDeviceMemoryTests.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "liblog",
+    ],
+    static_libs: [
+        "gfxstream_base",
+        "gfxstream_host_common",
+        "libgfxstream_host_features",
+        "libgfxstream_host_vulkan_server",
+        "libgtest",
+        "libgmock",
+    ],
+    test_options: {
+        unit_test: true,
+    },
+    test_suites: [
+        "general-tests",
+    ],
 }

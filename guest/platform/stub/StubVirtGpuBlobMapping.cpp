@@ -16,16 +16,15 @@
 
 #include "StubVirtGpu.h"
 
-StubVirtGpuBlobMapping::StubVirtGpuBlobMapping(VirtGpuBlobPtr blob, uint8_t* ptr, uint64_t size)
+StubVirtGpuResourceMapping::StubVirtGpuResourceMapping(VirtGpuResourcePtr blob, uint8_t* ptr,
+                                                       uint64_t size)
     : mBlob(blob), mPtr(ptr), mSize(size) {}
 
-StubVirtGpuBlobMapping::~StubVirtGpuBlobMapping(void) {
+StubVirtGpuResourceMapping::~StubVirtGpuResourceMapping(void) {
     // Unimplemented for now
    (void) mPtr;
    (void) mSize;
    (void) mBlob;
 }
 
-uint8_t* StubVirtGpuBlobMapping::asRawPtr(void) {
-    return nullptr;
-}
+uint8_t* StubVirtGpuResourceMapping::asRawPtr(void) { return nullptr; }

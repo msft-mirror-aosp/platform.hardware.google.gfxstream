@@ -92,7 +92,7 @@ int64_t RutabagaVirtGpuDevice::getDeviceHandle() { return -1; }
 
 VirtGpuCaps RutabagaVirtGpuDevice::getCaps() { return mCaps; }
 
-VirtGpuBlobPtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
+VirtGpuResourcePtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
     const auto resourceIdOpt = mEmulation->CreateBlob(
         mContextId, static_cast<uint32_t>(blobCreate.blobMem),
         static_cast<uint32_t>(blobCreate.flags), blobCreate.blobId, blobCreate.size);
@@ -100,45 +100,14 @@ VirtGpuBlobPtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob&
         return nullptr;
     }
 
-    return VirtGpuBlobPtr(new RutabagaVirtGpuResource(
+    return VirtGpuResourcePtr(new RutabagaVirtGpuResource(
         mEmulation, *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kBlob, mContextId));
 }
 
-VirtGpuBlobPtr RutabagaVirtGpuDevice::createVirglBlob(uint32_t width, uint32_t height,
-                                                      uint32_t virglFormat) {
-    uint32_t target = 0;
-    uint32_t bind = 0;
-    uint32_t bpp = 0;
-    uint32_t size;
-
-    switch (virglFormat) {
-        case VIRGL_FORMAT_R8G8B8A8_UNORM:
-        case VIRGL_FORMAT_B8G8R8A8_UNORM:
-            target = PIPE_TEXTURE_2D;
-            bind = VIRGL_BIND_RENDER_TARGET;
-            bpp = 4;
-            break;
-        case VIRGL_FORMAT_B5G6R5_UNORM:
-            target = PIPE_TEXTURE_2D;
-            bind = VIRGL_BIND_RENDER_TARGET;
-            bpp = 2;
-            break;
-        case VIRGL_FORMAT_R8G8B8_UNORM:
-            target = PIPE_TEXTURE_2D;
-            bind = VIRGL_BIND_RENDER_TARGET;
-            bpp = 3;
-            break;
-        case VIRGL_FORMAT_R8_UNORM:
-            target = PIPE_BUFFER;
-            bind = VIRGL_BIND_CUSTOM;
-            bpp = 1;
-            break;
-        default:
-            ALOGE("Unknown virgl format %u", virglFormat);
-            return {};
-    }
-
-    size = width * height * bpp;
+VirtGpuResourcePtr RutabagaVirtGpuDevice::createResource(uint32_t width, uint32_t height,
+                                                         uint32_t virglFormat, uint32_t target,
+                                                         uint32_t bind, uint32_t bpp) {
+    uint32_t size = width * height * bpp;
 
     const auto resourceIdOpt =
         mEmulation->CreateVirglBlob(mContextId, width, height, virglFormat, target, bind, size);
@@ -146,12 +115,12 @@ VirtGpuBlobPtr RutabagaVirtGpuDevice::createVirglBlob(uint32_t width, uint32_t h
         return nullptr;
     }
 
-    return VirtGpuBlobPtr(new RutabagaVirtGpuResource(
+    return VirtGpuResourcePtr(new RutabagaVirtGpuResource(
         mEmulation, *resourceIdOpt, RutabagaVirtGpuResource::ResourceType::kPipe, mContextId));
 }
 
 int RutabagaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
-                                      const VirtGpuBlob* blob) {
+                                      const VirtGpuResource* blob) {
     std::optional<uint32_t> blobResourceId;
     uint32_t fenceId = 0;
     VirtioGpuFenceFlags fenceFlags = kFlagNone;
@@ -175,7 +144,7 @@ int RutabagaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
     return ret;
 }
 
-VirtGpuBlobPtr RutabagaVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&) {
+VirtGpuResourcePtr RutabagaVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle&) {
     ALOGE("Unimplemented %s", __FUNCTION__);
     return nullptr;
 }

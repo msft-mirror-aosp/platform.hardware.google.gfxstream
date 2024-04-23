@@ -30,6 +30,7 @@
 #include "VkDecoderInternalStructs.h"
 #include "VkDecoderSnapshot.h"
 #include "VkDecoderSnapshotUtils.h"
+#include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
 #include "aemu/base/ManagedDescriptor.hpp"
@@ -457,6 +458,8 @@ class VkDecoderGlobalState::Impl {
             if (imageInfo.memory == VK_NULL_HANDLE) {
                 continue;
             }
+            // Vulkan command playback doesn't recover image layout. We need to do it here.
+            stream->putBe32(imageInfo.layout);
             const auto& device = imageInfo.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             const auto physicalDevice = deviceInfo->physicalDevice;
@@ -539,10 +542,21 @@ class VkDecoderGlobalState::Impl {
         sort(sortedBoxedImages.begin(), sortedBoxedImages.end());
         for (const auto& boxedImage : sortedBoxedImages) {
             auto unboxedImage = unbox_VkImage(boxedImage);
-            const ImageInfo& imageInfo = mImageInfo[unboxedImage];
+            ImageInfo& imageInfo = mImageInfo[unboxedImage];
             if (imageInfo.memory == VK_NULL_HANDLE) {
                 continue;
             }
+            // Playback doesn't recover image layout. We need to do it here.
+            //
+            // Layout transform was done by vkCmdPipelineBarrier but we don't record such command
+            // directly. Instead, we memorize the current layout and add our own
+            // vkCmdPipelineBarrier after load.
+            //
+            // We do the layout transform in loadImageContent. There are still use cases where it
+            // should recover the layout but does not.
+            //
+            // TODO(b/323059453): fix corner cases when image contents cannot be properly loaded.
+            imageInfo.layout = static_cast<VkImageLayout>(stream->getBe32());
             const auto& device = imageInfo.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             const auto physicalDevice = deviceInfo->physicalDevice;
@@ -641,15 +655,6 @@ class VkDecoderGlobalState::Impl {
         std::vector<const char*> finalExts = filteredInstanceExtensionNames(
             pCreateInfo->enabledExtensionCount, pCreateInfo->ppEnabledExtensionNames);
 
-        if (pCreateInfo->pApplicationInfo) {
-            if (pCreateInfo->pApplicationInfo->pApplicationName)
-                INFO("Creating Vulkan instance for app: %s",
-                     pCreateInfo->pApplicationInfo->pApplicationName);
-            if (pCreateInfo->pApplicationInfo->pEngineName)
-                INFO("Creating Vulkan instance for engine: %s",
-                     pCreateInfo->pApplicationInfo->pEngineName);
-        }
-
         // Create higher version instance whenever it is possible.
         uint32_t apiVersion = VK_MAKE_VERSION(1, 0, 0);
         if (pCreateInfo->pApplicationInfo) {
@@ -716,9 +721,20 @@ class VkDecoderGlobalState::Impl {
 
         InstanceInfo info;
         info.apiVersion = apiVersion;
+        if (pCreateInfo->pApplicationInfo) {
+            if (pCreateInfo->pApplicationInfo->pApplicationName) {
+                info.applicationName = pCreateInfo->pApplicationInfo->pApplicationName;
+            }
+            if (pCreateInfo->pApplicationInfo->pEngineName) {
+                info.engineName = pCreateInfo->pApplicationInfo->pEngineName;
+            }
+        }
         for (uint32_t i = 0; i < createInfoFiltered.enabledExtensionCount; ++i) {
             info.enabledExtensionNames.push_back(createInfoFiltered.ppEnabledExtensionNames[i]);
         }
+
+        INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
+             info.applicationName.c_str(), info.engineName.c_str());
 
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
@@ -891,7 +907,7 @@ class VkDecoderGlobalState::Impl {
                 mPhysicalDeviceToInstance[validPhysicalDevices[i]] = instance;
 
                 auto& physdevInfo = mPhysdevInfo[validPhysicalDevices[i]];
-
+                physdevInfo.instance = instance;
                 physdevInfo.boxed = new_boxed_VkPhysicalDevice(validPhysicalDevices[i], vk,
                                                                false /* does not own dispatch */);
 
@@ -901,8 +917,15 @@ class VkDecoderGlobalState::Impl {
                     physdevInfo.props.apiVersion = kMaxSafeVersion;
                 }
 
+                VkPhysicalDeviceMemoryProperties hostMemoryProperties;
                 vk->vkGetPhysicalDeviceMemoryProperties(validPhysicalDevices[i],
-                                                        &physdevInfo.memoryProperties);
+                                                        &hostMemoryProperties);
+
+                physdevInfo.memoryPropertiesHelper =
+                    std::make_unique<EmulatedPhysicalDeviceMemoryProperties>(
+                        hostMemoryProperties,
+                        m_emu->representativeColorBufferMemoryTypeInfo->hostMemoryTypeIndex,
+                        getFeatures());
 
                 uint32_t queueFamilyPropCount = 0;
 
@@ -1235,36 +1258,16 @@ class VkDecoderGlobalState::Impl {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        vk->vkGetPhysicalDeviceMemoryProperties(physicalDevice, pMemoryProperties);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        // Pick a max heap size that will work around
-        // drivers that give bad suggestions (such as 0xFFFFFFFFFFFFFFFF for the heap size)
-        // plus won't break the bank on 32-bit userspace.
-        static constexpr VkDeviceSize kMaxSafeHeapSize = 2ULL * 1024ULL * 1024ULL * 1024ULL;
-
-        for (uint32_t i = 0; i < pMemoryProperties->memoryTypeCount; ++i) {
-            uint32_t heapIndex = pMemoryProperties->memoryTypes[i].heapIndex;
-            auto& heap = pMemoryProperties->memoryHeaps[heapIndex];
-
-            if (heap.size > kMaxSafeHeapSize) {
-                heap.size = kMaxSafeHeapSize;
-            }
-
-            if (!m_emu->features.GlDirectMem.enabled &&
-                !m_emu->features.VirtioGpuNext.enabled) {
-                pMemoryProperties->memoryTypes[i].propertyFlags =
-                    pMemoryProperties->memoryTypes[i].propertyFlags &
-                    ~(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-            }
-
-            // for AMD, zap the type that is is not on device
-            if (m_emu->features.VulkanAllocateDeviceMemoryOnly.enabled) {
-                auto memFlags = pMemoryProperties->memoryTypes[i].propertyFlags;
-                if (!(memFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
-                    pMemoryProperties->memoryTypes[i].propertyFlags = 0;
-                }
-            }
+        auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, physicalDevice);
+        if (!physicalDeviceInfo) {
+            ERR("Failed to find physical device info.");
+            return;
         }
+
+        auto& physicalDeviceMemoryHelper = physicalDeviceInfo->memoryPropertiesHelper;
+        *pMemoryProperties = physicalDeviceMemoryHelper->getGuestMemoryProperties();
     }
 
     void on_vkGetPhysicalDeviceMemoryProperties2(
@@ -1273,15 +1276,15 @@ class VkDecoderGlobalState::Impl {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        auto* physdevInfo = android::base::find(mPhysdevInfo, physicalDevice);
-        if (!physdevInfo) return;
+        auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, physicalDevice);
+        if (!physicalDeviceInfo) return;
 
         auto instance = mPhysicalDeviceToInstance[physicalDevice];
         auto* instanceInfo = android::base::find(mInstanceInfo, instance);
         if (!instanceInfo) return;
 
         if (instanceInfo->apiVersion >= VK_MAKE_VERSION(1, 1, 0) &&
-            physdevInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) {
+            physicalDeviceInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) {
             vk->vkGetPhysicalDeviceMemoryProperties2(physicalDevice, pMemoryProperties);
         } else if (hasInstanceExtension(instance,
                                         VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
@@ -1299,38 +1302,11 @@ class VkDecoderGlobalState::Impl {
                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2,
                 0,
             };
-            vk->vkGetPhysicalDeviceMemoryProperties(physicalDevice,
-                                                    &pMemoryProperties->memoryProperties);
         }
 
-        // Pick a max heap size that will work around
-        // drivers that give bad suggestions (such as 0xFFFFFFFFFFFFFFFF for the heap size)
-        // plus won't break the bank on 32-bit userspace.
-        static constexpr VkDeviceSize kMaxSafeHeapSize = 2ULL * 1024ULL * 1024ULL * 1024ULL;
-
-        for (uint32_t i = 0; i < pMemoryProperties->memoryProperties.memoryTypeCount; ++i) {
-            uint32_t heapIndex = pMemoryProperties->memoryProperties.memoryTypes[i].heapIndex;
-            auto& heap = pMemoryProperties->memoryProperties.memoryHeaps[heapIndex];
-
-            if (heap.size > kMaxSafeHeapSize) {
-                heap.size = kMaxSafeHeapSize;
-            }
-
-            if (!m_emu->features.GlDirectMem.enabled &&
-                !m_emu->features.VirtioGpuNext.enabled) {
-                pMemoryProperties->memoryProperties.memoryTypes[i].propertyFlags =
-                    pMemoryProperties->memoryProperties.memoryTypes[i].propertyFlags &
-                    ~(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-            }
-
-            // for AMD, zap the type that is is not on device
-            if (m_emu->features.VulkanAllocateDeviceMemoryOnly.enabled) {
-                auto memFlags = pMemoryProperties->memoryProperties.memoryTypes[i].propertyFlags;
-                if (!(memFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
-                    pMemoryProperties->memoryProperties.memoryTypes[i].propertyFlags = 0;
-                }
-            }
-        }
+        auto& physicalDeviceMemoryHelper = physicalDeviceInfo->memoryPropertiesHelper;
+        pMemoryProperties->memoryProperties =
+            physicalDeviceMemoryHelper->getGuestMemoryProperties();
     }
 
     VkResult on_vkEnumerateDeviceExtensionProperties(android::base::BumpPool* pool,
@@ -1490,6 +1466,14 @@ class VkDecoderGlobalState::Impl {
 
         mDeviceToPhysicalDevice[*pDevice] = physicalDevice;
 
+        auto physicalDeviceInfoIt = mPhysdevInfo.find(physicalDevice);
+        if (physicalDeviceInfoIt == mPhysdevInfo.end()) return VK_ERROR_INITIALIZATION_FAILED;
+        auto& physicalDeviceInfo = physicalDeviceInfoIt->second;
+
+        auto instanceInfoIt = mInstanceInfo.find(physicalDeviceInfo.instance);
+        if (instanceInfoIt == mInstanceInfo.end()) return VK_ERROR_INITIALIZATION_FAILED;
+        auto& instanceInfo = instanceInfoIt->second;
+
         // Fill out information about the logical device here.
         auto& deviceInfo = mDeviceInfo[*pDevice];
         deviceInfo.physicalDevice = physicalDevice;
@@ -1500,8 +1484,11 @@ class VkDecoderGlobalState::Impl {
             AstcCpuDecompressor::get().available();
         deviceInfo.decompPipelines =
             std::make_unique<GpuDecompressionPipelineManager>(m_vk, *pDevice);
-        INFO("Created new VkDevice. ASTC emulation? %d. CPU decoding? %d",
-             deviceInfo.emulateTextureAstc, deviceInfo.useAstcCpuDecompression);
+
+        INFO("Created VkDevice:%p for application:%s engine:%s ASTC emulation:%s CPU decoding:%s.",
+             *pDevice, instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
+             deviceInfo.emulateTextureAstc ? "on" : "off",
+             deviceInfo.useAstcCpuDecompression ? "on" : "off");
 
         for (uint32_t i = 0; i < createInfoFiltered.enabledExtensionCount; ++i) {
             deviceInfo.enabledExtensionNames.push_back(
@@ -1812,11 +1799,22 @@ class VkDecoderGlobalState::Impl {
         VkResult createRes = VK_SUCCESS;
 
         if (nativeBufferANDROID) {
-            auto memProps = memPropsOfDeviceLocked(device);
+            auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
+            if (!physicalDevice) {
+                return VK_ERROR_DEVICE_LOST;
+            }
+
+            auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
+            if (!physicalDeviceInfo) {
+                return VK_ERROR_DEVICE_LOST;
+            }
+
+            const VkPhysicalDeviceMemoryProperties& memoryProperties =
+                physicalDeviceInfo->memoryPropertiesHelper->getHostMemoryProperties();
 
             createRes =
                 prepareAndroidNativeBufferImage(vk, device, *pool, pCreateInfo, nativeBufferANDROID,
-                                                pAllocator, memProps, anbInfo.get());
+                                                pAllocator, &memoryProperties, anbInfo.get());
             if (createRes == VK_SUCCESS) {
                 *pImage = anbInfo->image;
             }
@@ -3177,6 +3175,21 @@ class VkDecoderGlobalState::Impl {
         vk->vkGetImageMemoryRequirements(device, image, pMemoryRequirements);
         std::lock_guard<std::recursive_mutex> lock(mLock);
         updateImageMemorySizeLocked(device, image, pMemoryRequirements);
+
+        auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
+        if (!physicalDevice) {
+            ERR("Failed to find physical device for device:%p", device);
+            return;
+        }
+
+        auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
+        if (!physicalDeviceInfo) {
+            ERR("Failed to find physical device info for physical device:%p", *physicalDevice);
+            return;
+        }
+
+        auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
+        physicalDeviceMemHelper->transformToGuestMemoryRequirements(pMemoryRequirements);
     }
 
     void on_vkGetImageMemoryRequirements2(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -3184,17 +3197,22 @@ class VkDecoderGlobalState::Impl {
                                           VkMemoryRequirements2* pMemoryRequirements) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        auto physicalDevice = mDeviceToPhysicalDevice[device];
-        auto* physdevInfo = android::base::find(mPhysdevInfo, physicalDevice);
-        if (!physdevInfo) {
-            // If this fails, we crash, as we assume that the memory properties
-            // map should have the info.
-            // fprintf(stderr, "%s: Could not get image memory requirement for VkPhysicalDevice\n");
+        auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
+        if (!physicalDevice) {
+            ERR("Failed to find physical device for device:%p", device);
+            return;
         }
 
-        if ((physdevInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) &&
+        auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
+        if (!physicalDeviceInfo) {
+            ERR("Failed to find physical device info for physical device:%p", *physicalDevice);
+            return;
+        }
+
+        if ((physicalDeviceInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) &&
             vk->vkGetImageMemoryRequirements2) {
             vk->vkGetImageMemoryRequirements2(device, pInfo, pMemoryRequirements);
         } else if (hasDeviceExtension(device, VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)) {
@@ -3208,7 +3226,12 @@ class VkDecoderGlobalState::Impl {
             vk->vkGetImageMemoryRequirements(device, pInfo->image,
                                              &pMemoryRequirements->memoryRequirements);
         }
+
         updateImageMemorySizeLocked(device, pInfo->image, &pMemoryRequirements->memoryRequirements);
+
+        auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
+        physicalDeviceMemHelper->transformToGuestMemoryRequirements(
+            &pMemoryRequirements->memoryRequirements);
     }
 
     void on_vkGetBufferMemoryRequirements(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -3217,6 +3240,23 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
         vk->vkGetBufferMemoryRequirements(device, buffer, pMemoryRequirements);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
+        if (!physicalDevice) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "No physical device available for " << device;
+        }
+
+        auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
+        if (!physicalDeviceInfo) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "No physical device info available for " << *physicalDevice;
+        }
+
+        auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
+        physicalDeviceMemHelper->transformToGuestMemoryRequirements(pMemoryRequirements);
     }
 
     void on_vkGetBufferMemoryRequirements2(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -3253,6 +3293,10 @@ class VkDecoderGlobalState::Impl {
             vk->vkGetBufferMemoryRequirements(device, pInfo->buffer,
                                               &pMemoryRequirements->memoryRequirements);
         }
+
+        auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
+        physicalDeviceMemHelper->transformToGuestMemoryRequirements(
+            &pMemoryRequirements->memoryRequirements);
     }
 
     void on_vkCmdCopyBufferToImage(android::base::BumpPool* pool,
@@ -3830,35 +3874,33 @@ class VkDecoderGlobalState::Impl {
         }
 
         VkMemoryPropertyFlags memoryPropertyFlags;
+
+        // Map guest memory index to host memory index and lookup memory properties:
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
 
-            auto* physdev = android::base::find(mDeviceToPhysicalDevice, device);
-            if (!physdev) {
+            auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
+            if (!physicalDevice) {
                 // User app gave an invalid VkDevice, but we don't really want to crash here.
                 // We should allow invalid apps.
                 return VK_ERROR_DEVICE_LOST;
             }
-
-            auto* physdevInfo = android::base::find(mPhysdevInfo, *physdev);
-            if (!physdevInfo) {
-                // If this fails, we crash, as we assume that the memory properties map should have
-                // the info.
-                fprintf(stderr, "Error: Could not get memory properties for VkPhysicalDevice\n");
+            auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
+            if (!physicalDeviceInfo) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "No physical device info available for " << *physicalDevice;
             }
 
-            // If the memory was allocated with a type index that corresponds
-            // to a memory type that is host visible, let's also map the entire
-            // thing.
-
-            // First, check validity of the user's type index.
-            if (localAllocInfo.memoryTypeIndex >= physdevInfo->memoryProperties.memoryTypeCount) {
-                // Continue allowing invalid behavior.
+            const auto hostMemoryInfoOpt =
+                physicalDeviceInfo->memoryPropertiesHelper
+                    ->getHostMemoryInfoFromGuestMemoryTypeIndex(localAllocInfo.memoryTypeIndex);
+            if (!hostMemoryInfoOpt) {
                 return VK_ERROR_INCOMPATIBLE_DRIVER;
             }
-            memoryPropertyFlags =
-                physdevInfo->memoryProperties.memoryTypes[localAllocInfo.memoryTypeIndex]
-                    .propertyFlags;
+            const auto& hostMemoryInfo = *hostMemoryInfoOpt;
+
+            localAllocInfo.memoryTypeIndex = hostMemoryInfo.index;
+            memoryPropertyFlags = hostMemoryInfo.memoryType.propertyFlags;
         }
 
         if (shouldUseDedicatedAllocInfo) {
@@ -5064,10 +5106,8 @@ class VkDecoderGlobalState::Impl {
             return bufferCreateRes;
         }
 
-        auto device = unbox_VkDevice(boxed_device);
-        auto vk = dispatch_VkDevice(boxed_device);
-
-        vk->vkGetBufferMemoryRequirements(device, unbox_VkBuffer(*pBuffer), pMemoryRequirements);
+        on_vkGetBufferMemoryRequirements(pool, boxed_device, unbox_VkBuffer(*pBuffer),
+                                         pMemoryRequirements);
 
         return bufferCreateRes;
     }
@@ -6222,6 +6262,7 @@ class VkDecoderGlobalState::Impl {
     GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_IMPL)
 
     VkDecoderSnapshot* snapshot() { return &mSnapshot; }
+    SnapshotState getSnapshotState() { return mSnapshotState; }
 
    private:
     bool isEmulatedInstanceExtension(const char* name) const {
@@ -6352,16 +6393,6 @@ class VkDecoderGlobalState::Impl {
         }
 
         return res;
-    }
-
-    VkPhysicalDeviceMemoryProperties* memPropsOfDeviceLocked(VkDevice device) {
-        auto* physdev = android::base::find(mDeviceToPhysicalDevice, device);
-        if (!physdev) return nullptr;
-
-        auto* physdevInfo = android::base::find(mPhysdevInfo, *physdev);
-        if (!physdevInfo) return nullptr;
-
-        return &physdevInfo->memoryProperties;
     }
 
     bool getDefaultQueueForDeviceLocked(VkDevice device, VkQueue* queue, uint32_t* queueFamilyIndex,
@@ -7131,11 +7162,6 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<LinearImageCreateInfo, LinearImageProperties, LinearImageCreateInfo::Hash>
         mLinearImageProperties;
 
-    enum SnapshotState {
-        Normal,
-        Saving,
-        Loading,
-    };
     SnapshotState mSnapshotState = SnapshotState::Normal;
 };
 
@@ -7160,6 +7186,10 @@ void VkDecoderGlobalState::reset() {
 
 // Snapshots
 bool VkDecoderGlobalState::snapshotsEnabled() const { return mImpl->snapshotsEnabled(); }
+
+VkDecoderGlobalState::SnapshotState VkDecoderGlobalState::getSnapshotState() const {
+    return mImpl->getSnapshotState();
+}
 
 const gfxstream::host::FeatureSet& VkDecoderGlobalState::getFeatures() const { return mImpl->getFeatures(); }
 
