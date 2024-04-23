@@ -498,7 +498,7 @@ GlExpected<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(
 }
 
 VkExpected<GfxstreamEnd2EndTest::TypicalVkTestEnvironment>
-GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(uint32_t apiVersion) {
+GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironmentOptions& opts) {
     const auto availableInstanceLayers = vkhpp::enumerateInstanceLayerProperties().value;
     ALOGV("Available instance layers:");
     for (const vkhpp::LayerProperties& layer : availableInstanceLayers) {
@@ -518,9 +518,10 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(uint32_t apiVersion) {
         .applicationVersion = 1,
         .pEngineName = "Gfxstream Testing Engine",
         .engineVersion = 1,
-        .apiVersion = apiVersion,
+        .apiVersion = opts.apiVersion,
     };
     const vkhpp::InstanceCreateInfo instanceCreateInfo{
+        .pNext = opts.instanceCreateInfoPNext ? *opts.instanceCreateInfoPNext : nullptr,
         .pApplicationInfo = &applicationInfo,
         .enabledLayerCount = static_cast<uint32_t>(requestedInstanceLayers.size()),
         .ppEnabledLayerNames = requestedInstanceLayers.data(),
@@ -579,11 +580,17 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(uint32_t apiVersion) {
         .queueCount = 1,
         .pQueuePriorities = &queuePriority,
     };
-    const std::vector<const char*> deviceExtensions = {
+    std::vector<const char*> deviceExtensions = {
         VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME,
         VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
     };
+    if (opts.deviceExtensions) {
+        for (const std::string& ext : *opts.deviceExtensions) {
+            deviceExtensions.push_back(ext.c_str());
+        }
+    }
     const vkhpp::DeviceCreateInfo deviceCreateInfo = {
+        .pNext = opts.deviceCreateInfoPNext ? *opts.deviceCreateInfoPNext : nullptr,
         .pQueueCreateInfos = &deviceQueueCreateInfo,
         .queueCreateInfoCount = 1,
         .enabledLayerCount = 0,
