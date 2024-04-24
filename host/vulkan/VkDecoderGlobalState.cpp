@@ -129,17 +129,6 @@ void validateRequiredHandle(const char* api_name, const char* parameter_name, T 
     }
 }
 
-#if defined(_WIN32)
-// External sync objects are HANDLE on Windows
-typedef HANDLE VK_EXT_SYNC_HANDLE;
-// corresponds to INVALID_HANDLE_VALUE
-#define VK_EXT_SYNC_HANDLE_INVALID (VK_EXT_SYNC_HANDLE)(uintptr_t)(-1)
-#else
-// External sync objects are fd's on other POSIX systems
-typedef int VK_EXT_SYNC_HANDLE;
-#define VK_EXT_SYNC_HANDLE_INVALID (-1)
-#endif
-
 VK_EXT_SYNC_HANDLE dupExternalSync(VK_EXT_SYNC_HANDLE h) {
 #ifdef _WIN32
     auto myProcessHandle = GetCurrentProcess();
