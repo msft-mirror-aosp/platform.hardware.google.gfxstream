@@ -291,7 +291,7 @@ struct FenceInfo {
 struct SemaphoreInfo {
     VkDevice device;
     int externalHandleId = 0;
-    VK_EXT_MEMORY_HANDLE externalHandle = VK_EXT_MEMORY_HANDLE_INVALID;
+    VK_EXT_SYNC_HANDLE externalHandle = VK_EXT_SYNC_HANDLE_INVALID;
 };
 
 struct DescriptorSetLayoutInfo {
