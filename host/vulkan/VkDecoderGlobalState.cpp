@@ -5353,15 +5353,17 @@ class VkDecoderGlobalState::Impl {
         auto& framebufferInfo = mFramebufferInfo[*pFramebuffer];
         framebufferInfo.device = device;
 
-        // b/327522469
-        // Track the Colorbuffers that would be written to.
-        // It might be better to check for VK_QUEUE_FAMILY_EXTERNAL in pipeline barrier.
-        // But the guest does not always add it to pipeline barrier.
-        for (int i = 0; i < pCreateInfo->attachmentCount; i++) {
-            auto* imageViewInfo = android::base::find(mImageViewInfo, pCreateInfo->pAttachments[i]);
-            if (imageViewInfo->boundColorBuffer.has_value()) {
-                framebufferInfo.attachedColorBuffers.push_back(
-                    imageViewInfo->boundColorBuffer.value());
+        if ((pCreateInfo->flags & VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) == 0) {
+            // b/327522469
+            // Track the Colorbuffers that would be written to.
+            // It might be better to check for VK_QUEUE_FAMILY_EXTERNAL in pipeline barrier.
+            // But the guest does not always add it to pipeline barrier.
+            for (int i = 0; i < pCreateInfo->attachmentCount; i++) {
+                auto* imageViewInfo = android::base::find(mImageViewInfo, pCreateInfo->pAttachments[i]);
+                if (imageViewInfo->boundColorBuffer.has_value()) {
+                    framebufferInfo.attachedColorBuffers.push_back(
+                        imageViewInfo->boundColorBuffer.value());
+                }
             }
         }
 
