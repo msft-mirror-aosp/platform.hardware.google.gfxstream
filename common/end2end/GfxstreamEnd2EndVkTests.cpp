@@ -707,15 +707,15 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
     }
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_AcquireImageAndroidWithFence) {
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFence) {
     DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/false);
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_AcquireImageAndroidWithSemaphore) {
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithSemaphore) {
     DoAcquireImageAndroidWithSync(/*withFence=*/false, /*withSemaphore=*/true);
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_AcquireImageAndroidWithFenceAndSemaphore) {
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFenceAndSemaphore) {
     DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/true);
 }
 
