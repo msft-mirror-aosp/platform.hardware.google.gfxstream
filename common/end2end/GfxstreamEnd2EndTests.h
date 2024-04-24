@@ -20,6 +20,7 @@
 
 #include <future>
 #include <memory>
+#include <optional>
 #include <string>
 #include <thread>
 #include <unordered_set>
@@ -464,6 +465,13 @@ std::string GetTestName(const ::testing::TestParamInfo<TestParams>& info);
 std::vector<TestParams> WithAndWithoutFeatures(const std::vector<TestParams>& params,
                                                const std::vector<std::string>& features);
 
+struct TypicalVkTestEnvironmentOptions {
+    uint32_t apiVersion{VK_API_VERSION_1_2};
+    std::optional<const void*> instanceCreateInfoPNext;
+    std::optional<std::vector<std::string>> deviceExtensions;
+    std::optional<const void*> deviceCreateInfoPNext;
+};
+
 class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
    public:
     std::unique_ptr<GuestGlDispatchTable> SetupGuestGl();
@@ -503,7 +511,7 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
         uint32_t queueFamilyIndex;
     };
     VkExpected<TypicalVkTestEnvironment> SetUpTypicalVkTestEnvironment(
-        uint32_t apiVersion = VK_API_VERSION_1_2);
+        const TypicalVkTestEnvironmentOptions& opts = {});
 
     uint32_t GetMemoryType(const vkhpp::PhysicalDevice& physicalDevice,
                            const vkhpp::MemoryRequirements& memoryRequirements,
