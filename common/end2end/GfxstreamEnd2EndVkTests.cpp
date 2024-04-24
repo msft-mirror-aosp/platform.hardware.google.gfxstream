@@ -746,7 +746,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DeviceMemoryReport) {
     ASSERT_THAT(memory, IsValidHandle());
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_DescriptorUpdateTemplateWithWrapping) {
+TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
         VK_ASSERT(SetUpTypicalVkTestEnvironment());
 
