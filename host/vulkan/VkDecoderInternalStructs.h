@@ -25,6 +25,7 @@
 #include <set>
 #include <string>
 
+#include "DeviceOpTracker.h"
 #include "Handle.h"
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "aemu/base/files/Stream.h"
@@ -38,6 +39,7 @@
 
 namespace gfxstream {
 namespace vk {
+
 template <class TDispatch>
 class ExternalFencePool {
    public:
@@ -198,6 +200,7 @@ struct DeviceInfo {
     std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
+    std::optional<DeviceOpTracker> deviceOpTracker;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)
@@ -286,14 +289,22 @@ struct FenceInfo {
     State state = State::kNotWaitable;
 
     bool external = false;
+
+    // If this fence was used in an additional host operation that must be waited
+    // upon before destruction (e.g. as part of a vkAcquireImageANDROID() call),
+    // the waitable that tracking that host operation.
+    std::optional<DeviceOpWaitable> latestUse;
 };
 
 struct SemaphoreInfo {
     VkDevice device;
     int externalHandleId = 0;
-    VK_EXT_MEMORY_HANDLE externalHandle = VK_EXT_MEMORY_HANDLE_INVALID;
+    VK_EXT_SYNC_HANDLE externalHandle = VK_EXT_SYNC_HANDLE_INVALID;
+    // If this fence was used in an additional host operation that must be waited
+    // upon before destruction (e.g. as part of a vkAcquireImageANDROID() call),
+    // the waitable that tracking that host operation.
+    std::optional<DeviceOpWaitable> latestUse;
 };
-
 struct DescriptorSetLayoutInfo {
     VkDevice device = 0;
     VkDescriptorSetLayout boxed = 0;
