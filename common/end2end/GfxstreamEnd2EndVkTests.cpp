@@ -707,15 +707,15 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
     }
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_AcquireImageAndroidWithFence) {
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFence) {
     DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/false);
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_AcquireImageAndroidWithSemaphore) {
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithSemaphore) {
     DoAcquireImageAndroidWithSync(/*withFence=*/false, /*withSemaphore=*/true);
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_AcquireImageAndroidWithFenceAndSemaphore) {
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFenceAndSemaphore) {
     DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/true);
 }
 
@@ -744,6 +744,129 @@ TEST_P(GfxstreamEnd2EndVkTest, DeviceMemoryReport) {
     };
     auto memory = device->allocateMemoryUnique(memoryAllocateInfo).value;
     ASSERT_THAT(memory, IsValidHandle());
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const vkhpp::BufferCreateInfo bufferCreateInfo = {
+        .size = 1024,
+        .usage = vkhpp::BufferUsageFlagBits::eUniformBuffer,
+    };
+    auto buffer = VK_ASSERT_RV(device->createBufferUnique(bufferCreateInfo));
+
+    const std::vector<VkDescriptorBufferInfo> descriptorInfo = {
+        VkDescriptorBufferInfo{
+            .buffer = *buffer,
+            .offset = 0,
+            .range = 1024,
+        },
+        VkDescriptorBufferInfo{
+            .buffer = *buffer,
+            .offset = 0,
+            .range = 1024,
+        },
+        VkDescriptorBufferInfo{
+            .buffer = *buffer,
+            .offset = 0,
+            .range = 1024,
+        },
+        VkDescriptorBufferInfo{
+            .buffer = *buffer,
+            .offset = 0,
+            .range = 1024,
+        },
+    };
+
+    const std::vector<vkhpp::DescriptorPoolSize> descriptorPoolSizes = {
+        {
+            .type = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 4,
+        },
+    };
+    const vkhpp::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
+        .flags = vkhpp::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+        .maxSets = 1,
+        .poolSizeCount = static_cast<uint32_t>(descriptorPoolSizes.size()),
+        .pPoolSizes = descriptorPoolSizes.data(),
+    };
+    auto descriptorPool =
+        VK_ASSERT_RV(device->createDescriptorPoolUnique(descriptorPoolCreateInfo));
+
+    const std::vector<vkhpp::DescriptorSetLayoutBinding> descriptorSetBindings = {
+        {
+            .binding = 0,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 1,
+            .stageFlags = vkhpp::ShaderStageFlagBits::eVertex,
+        },
+        {
+            .binding = 1,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 1,
+            .stageFlags = vkhpp::ShaderStageFlagBits::eVertex,
+        },
+        {
+            .binding = 2,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 1,
+            .stageFlags = vkhpp::ShaderStageFlagBits::eVertex,
+        },
+        {
+            .binding = 3,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 1,
+            .stageFlags = vkhpp::ShaderStageFlagBits::eVertex,
+        },
+    };
+    const vkhpp::DescriptorSetLayoutCreateInfo descriptorSetLayoutInfo = {
+        .bindingCount = static_cast<uint32_t>(descriptorSetBindings.size()),
+        .pBindings = descriptorSetBindings.data(),
+    };
+    auto descriptorSetLayout =
+        VK_ASSERT_RV(device->createDescriptorSetLayoutUnique(descriptorSetLayoutInfo));
+
+    const std::vector<vkhpp::DescriptorSetLayout> descriptorSetLayouts = {*descriptorSetLayout};
+    const vkhpp::DescriptorSetAllocateInfo descriptorSetAllocateInfo = {
+        .descriptorPool = *descriptorPool,
+        .descriptorSetCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
+        .pSetLayouts = descriptorSetLayouts.data(),
+    };
+    auto descriptorSets =
+        VK_ASSERT_RV(device->allocateDescriptorSetsUnique(descriptorSetAllocateInfo));
+    auto descriptorSet = std::move(descriptorSets[0]);
+
+    const vkhpp::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
+        .setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
+        .pSetLayouts = descriptorSetLayouts.data(),
+    };
+    auto pipelineLayout =
+        VK_ASSERT_RV(device->createPipelineLayoutUnique(pipelineLayoutCreateInfo));
+
+    const std::vector<vkhpp::DescriptorUpdateTemplateEntry> descriptorUpdateEntries = {
+        {
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 4,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .offset = 0,
+            .stride = sizeof(VkDescriptorBufferInfo),
+        },
+    };
+    const vkhpp::DescriptorUpdateTemplateCreateInfo descriptorUpdateTemplateCreateInfo = {
+        .descriptorUpdateEntryCount = static_cast<uint32_t>(descriptorUpdateEntries.size()),
+        .pDescriptorUpdateEntries = descriptorUpdateEntries.data(),
+        .descriptorSetLayout = *descriptorSetLayout,
+        .pipelineBindPoint = vkhpp::PipelineBindPoint::eGraphics,
+        .pipelineLayout = *pipelineLayout,
+        .set = 0,
+    };
+    auto descriptorUpdateTemplate = VK_ASSERT_RV(
+        device->createDescriptorUpdateTemplateUnique(descriptorUpdateTemplateCreateInfo));
+
+    device->updateDescriptorSetWithTemplate(*descriptorSet, *descriptorUpdateTemplate,
+                                            descriptorInfo.data());
 }
 
 std::vector<TestParams> GenerateTestCases() {
