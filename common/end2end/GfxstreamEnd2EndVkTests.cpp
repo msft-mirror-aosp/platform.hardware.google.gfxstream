@@ -707,16 +707,43 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
     }
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_AcquireImageAndroidWithFence) {
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFence) {
     DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/false);
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_AcquireImageAndroidWithSemaphore) {
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithSemaphore) {
     DoAcquireImageAndroidWithSync(/*withFence=*/false, /*withSemaphore=*/true);
 }
 
-TEST_P(GfxstreamEnd2EndVkTest, DISABLED_AcquireImageAndroidWithFenceAndSemaphore) {
+TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFenceAndSemaphore) {
     DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/true);
+}
+
+VKAPI_ATTR void VKAPI_CALL MemoryReportCallback(const VkDeviceMemoryReportCallbackDataEXT*, void*) {
+    // Unused
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, DeviceMemoryReport) {
+    int userdata = 1;
+    vkhpp::DeviceDeviceMemoryReportCreateInfoEXT deviceDeviceMemoryReportInfo = {
+        .pfnUserCallback = &MemoryReportCallback,
+        .pUserData = &userdata,
+    };
+
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment({
+            .deviceExtensions = {{
+                VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME,
+            }},
+            .deviceCreateInfoPNext = &deviceDeviceMemoryReportInfo,
+        }));
+
+    const vkhpp::MemoryAllocateInfo memoryAllocateInfo = {
+        .allocationSize = 1024,
+        .memoryTypeIndex = 0,
+    };
+    auto memory = device->allocateMemoryUnique(memoryAllocateInfo).value;
+    ASSERT_THAT(memory, IsValidHandle());
 }
 
 std::vector<TestParams> GenerateTestCases() {

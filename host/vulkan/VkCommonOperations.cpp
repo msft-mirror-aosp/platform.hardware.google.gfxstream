@@ -1924,13 +1924,9 @@ static bool updateExternalMemoryInfo(VK_EXT_MEMORY_HANDLE extMemHandle,
 // We should make it so the guest can only allocate external images/
 // buffers of one type index for image and one type index for buffer
 // to begin with, via filtering from the host.
-//
-// initLayout was used for snapshot purpose, to recover image layout
-// after snapshot load.
 
 bool initializeVkColorBufferLocked(
-    uint32_t colorBufferHandle, VkImageLayout initLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    VK_EXT_MEMORY_HANDLE extMemHandle = VK_EXT_MEMORY_HANDLE_INVALID) {
+    uint32_t colorBufferHandle, VK_EXT_MEMORY_HANDLE extMemHandle = VK_EXT_MEMORY_HANDLE_INVALID) {
     auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
     // Not initialized
     if (!infoPtr) {
@@ -1947,8 +1943,8 @@ bool initializeVkColorBufferLocked(
         return false;
     }
 
-    if ((VK_EXT_MEMORY_HANDLE_INVALID != extMemHandle) &&
-        (!sVkEmulation->deviceInfo.supportsExternalMemoryImport)) {
+    const bool extMemImport = (VK_EXT_MEMORY_HANDLE_INVALID != extMemHandle);
+    if (extMemImport && !sVkEmulation->deviceInfo.supportsExternalMemoryImport) {
         VK_COMMON_ERROR(
             "Failed to initialize Vk ColorBuffer -- extMemHandle provided, but device does "
             "not support externalMemoryImport");
@@ -1990,7 +1986,7 @@ bool initializeVkColorBufferLocked(
     imageCi->sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageCi->queueFamilyIndexCount = 0;
     imageCi->pQueueFamilyIndices = nullptr;
-    imageCi->initialLayout = initLayout;
+    imageCi->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
     // Create the image. If external memory is supported, make it external.
     VkExternalMemoryImageCreateInfo extImageCi = {
@@ -2001,8 +1997,7 @@ bool initializeVkColorBufferLocked(
 
     VkExternalMemoryImageCreateInfo* extImageCiPtr = nullptr;
 
-    if (sVkEmulation->deviceInfo.supportsExternalMemoryImport ||
-        sVkEmulation->deviceInfo.supportsExternalMemoryExport) {
+    if (extMemImport || sVkEmulation->deviceInfo.supportsExternalMemoryExport) {
         extImageCiPtr = &extImageCi;
     }
 
@@ -2021,7 +2016,6 @@ bool initializeVkColorBufferLocked(
     bool useDedicated = sVkEmulation->useDedicatedAllocations;
 
     infoPtr->imageCreateInfoShallow = vk_make_orphan_copy(*imageCi);
-    infoPtr->currentLayout = infoPtr->imageCreateInfoShallow.initialLayout;
     infoPtr->currentQueueFamilyIndex = sVkEmulation->queueFamilyIndex;
 
     if (!useDedicated && vk->vkGetImageMemoryRequirements2KHR) {
@@ -2196,7 +2190,7 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
 
 bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
                          FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
-                         bool vulkanOnly, uint32_t memoryProperty, VkImageLayout initLayout) {
+                         bool vulkanOnly, uint32_t memoryProperty) {
     if (!sVkEmulation || !sVkEmulation->live) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "VkEmulation not available.";
     }
@@ -2217,7 +2211,7 @@ bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
         return true;
     }
 
-    return initializeVkColorBufferLocked(colorBufferHandle, initLayout);
+    return initializeVkColorBufferLocked(colorBufferHandle);
 }
 
 std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorBufferHandle) {
@@ -2308,8 +2302,7 @@ bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle, uint32_t t
     AutoLock lock(sVkEmulationLock);
     // Initialize the colorBuffer with the external memory handle
     // Note that this will fail if the colorBuffer memory was previously initialized.
-    return initializeVkColorBufferLocked(colorBufferHandle, VK_IMAGE_LAYOUT_UNDEFINED,
-                                         extMemHandle);
+    return initializeVkColorBufferLocked(colorBufferHandle, extMemHandle);
 }
 
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle) {
@@ -2683,12 +2676,18 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
     sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
         commandBuffer, "updateColorBufferFromBytes(ColorBuffer:%d)", colorBufferHandle);
 
+    bool isSnapshotLoad =
+        VkDecoderGlobalState::get()->getSnapshotState() == VkDecoderGlobalState::Loading;
+    VkImageLayout currentLayout = colorBufferInfo->currentLayout;
+    if (isSnapshotLoad) {
+        currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    }
     const VkImageMemoryBarrier toTransferDstImageBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = 0,
         .dstAccessMask = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
-        .oldLayout = colorBufferInfo->currentLayout,
+        .oldLayout = currentLayout,
         .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -2703,16 +2702,41 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
             },
     };
 
-    vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                             VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,
+    vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                             VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 0, nullptr, 1,
                              &toTransferDstImageBarrier);
-
-    colorBufferInfo->currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
     // Copy to staging buffer
     vk->vkCmdCopyBufferToImage(commandBuffer, sVkEmulation->staging.buffer, colorBufferInfo->image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, bufferImageCopies.size(),
                                bufferImageCopies.data());
+
+    if (isSnapshotLoad && colorBufferInfo->currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
+        const VkImageMemoryBarrier toCurrentLayoutImageBarrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_NONE_KHR,
+            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .newLayout = colorBufferInfo->currentLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = colorBufferInfo->image,
+            .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT,
+                                 VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
+                                 &toCurrentLayoutImageBarrier);
+    } else {
+        colorBufferInfo->currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    }
 
     sVkEmulation->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
 
