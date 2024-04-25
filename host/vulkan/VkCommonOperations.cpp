@@ -1943,8 +1943,8 @@ bool initializeVkColorBufferLocked(
         return false;
     }
 
-    if ((VK_EXT_MEMORY_HANDLE_INVALID != extMemHandle) &&
-        (!sVkEmulation->deviceInfo.supportsExternalMemoryImport)) {
+    const bool extMemImport = (VK_EXT_MEMORY_HANDLE_INVALID != extMemHandle);
+    if (extMemImport && !sVkEmulation->deviceInfo.supportsExternalMemoryImport) {
         VK_COMMON_ERROR(
             "Failed to initialize Vk ColorBuffer -- extMemHandle provided, but device does "
             "not support externalMemoryImport");
@@ -1997,8 +1997,7 @@ bool initializeVkColorBufferLocked(
 
     VkExternalMemoryImageCreateInfo* extImageCiPtr = nullptr;
 
-    if (sVkEmulation->deviceInfo.supportsExternalMemoryImport ||
-        sVkEmulation->deviceInfo.supportsExternalMemoryExport) {
+    if (extMemImport || sVkEmulation->deviceInfo.supportsExternalMemoryExport) {
         extImageCiPtr = &extImageCi;
     }
 

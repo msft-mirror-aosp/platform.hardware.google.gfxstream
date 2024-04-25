@@ -230,6 +230,11 @@ class VulkanDispatchImpl {
 
 #elif defined(_WIN32)
         return std::vector<std::string>{"vulkan-1.dll"};
+#elif defined(__QNX__)
+        return std::vector<std::string>{
+            "libvulkan.so",
+            "libvulkan.so.1",
+        };
 #else
 #error "Unhandled platform in VulkanDispatchImpl."
 #endif

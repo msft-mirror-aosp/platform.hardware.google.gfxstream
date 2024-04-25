@@ -129,17 +129,6 @@ void validateRequiredHandle(const char* api_name, const char* parameter_name, T 
     }
 }
 
-#if defined(_WIN32)
-// External sync objects are HANDLE on Windows
-typedef HANDLE VK_EXT_SYNC_HANDLE;
-// corresponds to INVALID_HANDLE_VALUE
-#define VK_EXT_SYNC_HANDLE_INVALID (VK_EXT_SYNC_HANDLE)(uintptr_t)(-1)
-#else
-// External sync objects are fd's on other POSIX systems
-typedef int VK_EXT_SYNC_HANDLE;
-#define VK_EXT_SYNC_HANDLE_INVALID (-1)
-#endif
-
 VK_EXT_SYNC_HANDLE dupExternalSync(VK_EXT_SYNC_HANDLE h) {
 #ifdef _WIN32
     auto myProcessHandle = GetCurrentProcess();
@@ -1496,6 +1485,8 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.externalFencePool =
             std::make_unique<ExternalFencePool<VulkanDispatch>>(dispatch, *pDevice);
 
+        deviceInfo.deviceOpTracker.emplace(*pDevice, dispatch);
+
         if (mLogging) {
             fprintf(stderr, "%s: init vulkan dispatch from device (end)\n", __func__);
         }
@@ -1621,6 +1612,8 @@ class VkDecoderGlobalState::Impl {
             deviceDispatch->vkDestroyFence(device, fence, pAllocator);
             mFenceInfo.erase(fence);
         }
+
+        deviceInfo->deviceOpTracker->OnDestroyDevice();
 
         // Run the underlying API call.
         m_vk->vkDestroyDevice(device, pAllocator);
@@ -2402,16 +2395,28 @@ class VkDecoderGlobalState::Impl {
 
     void destroySemaphoreLocked(VkDevice device, VulkanDispatch* deviceDispatch,
                                 VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator) {
+        auto semaphoreInfoIt = mSemaphoreInfo.find(semaphore);
+        if (semaphoreInfoIt == mSemaphoreInfo.end()) return;
+        auto& semaphoreInfo = semaphoreInfoIt->second;
+
 #ifndef _WIN32
-        const auto& ite = mSemaphoreInfo.find(semaphore);
-        if (ite != mSemaphoreInfo.end() &&
-            (ite->second.externalHandle != VK_EXT_SYNC_HANDLE_INVALID)) {
-            close(ite->second.externalHandle);
+        if (semaphoreInfo.externalHandle != VK_EXT_SYNC_HANDLE_INVALID) {
+            close(semaphoreInfo.externalHandle);
         }
 #endif
-        deviceDispatch->vkDestroySemaphore(device, semaphore, pAllocator);
 
-        mSemaphoreInfo.erase(semaphore);
+        if (semaphoreInfo.latestUse && !IsDone(*semaphoreInfo.latestUse)) {
+            auto deviceInfoIt = mDeviceInfo.find(device);
+            if (deviceInfoIt != mDeviceInfo.end()) {
+                auto& deviceInfo = deviceInfoIt->second;
+                deviceInfo.deviceOpTracker->AddPendingGarbage(*semaphoreInfo.latestUse, semaphore);
+                deviceInfo.deviceOpTracker->PollAndProcessGarbage();
+            }
+        } else {
+            deviceDispatch->vkDestroySemaphore(device, semaphore, pAllocator);
+        }
+
+        mSemaphoreInfo.erase(semaphoreInfoIt);
     }
 
     void on_vkDestroySemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -2426,24 +2431,48 @@ class VkDecoderGlobalState::Impl {
     void on_vkDestroyFence(android::base::BumpPool* pool, VkDevice boxed_device, VkFence fence,
                            const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
-        auto vk = dispatch_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
+        bool destructionDeferred = false;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
+
+            auto fenceInfoIt = mFenceInfo.find(fence);
+            if (fenceInfoIt == mFenceInfo.end()) {
+                ERR("Failed to find fence info for VkFence:%p. Leaking fence!", fence);
+                return;
+            }
+            auto& fenceInfo = fenceInfoIt->second;
+
+            auto deviceInfoIt = mDeviceInfo.find(device);
+            if (deviceInfoIt == mDeviceInfo.end()) {
+                ERR("Failed to find device info for VkDevice:%p for VkFence:%p. Leaking fence!",
+                    device, fence);
+                return;
+            }
+            auto& deviceInfo = deviceInfoIt->second;
+
+            fenceInfo.boxed = VK_NULL_HANDLE;
+
             // External fences are just slated for recycling. This addresses known
             // behavior where the guest might destroy the fence prematurely. b/228221208
-            if (mFenceInfo[fence].external) {
-                auto* deviceInfo = android::base::find(mDeviceInfo, device);
-                if (deviceInfo) {
-                    deviceInfo->externalFencePool->add(fence);
-                    mFenceInfo[fence].boxed = VK_NULL_HANDLE;
-                    return;
-                }
+            if (fenceInfo.external) {
+                deviceInfo.externalFencePool->add(fence);
+                return;
+            }
+
+            // Fences used for swapchains have their destruction deferred.
+            if (fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
+                deviceInfo.deviceOpTracker->AddPendingGarbage(*fenceInfo.latestUse, fence);
+                deviceInfo.deviceOpTracker->PollAndProcessGarbage();
+                destructionDeferred = true;
             }
             mFenceInfo.erase(fence);
         }
 
-        vk->vkDestroyFence(device, fence, pAllocator);
+        if (!destructionDeferred) {
+            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
+        }
     }
 
     VkResult on_vkCreateDescriptorSetLayout(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -4295,10 +4324,11 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
+
         auto* imageInfo = android::base::find(mImageInfo, image);
-        if (!imageInfo) {
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
+        if (!imageInfo) return VK_ERROR_INITIALIZATION_FAILED;
 
         VkQueue defaultQueue;
         uint32_t defaultQueueFamilyIndex;
@@ -4309,11 +4339,40 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
+        DeviceOpBuilder builder(*deviceInfo->deviceOpTracker);
+
+        VkFence usedFence = fence;
+        if (usedFence == VK_NULL_HANDLE) {
+            usedFence = builder.CreateFenceForOp();
+        }
+
         AndroidNativeBufferInfo* anbInfo = imageInfo->anbInfo.get();
 
-        return setAndroidNativeImageSemaphoreSignaled(vk, device, defaultQueue,
-                                                      defaultQueueFamilyIndex, defaultQueueLock,
-                                                      semaphore, fence, anbInfo);
+        VkResult result = setAndroidNativeImageSemaphoreSignaled(
+            vk, device, defaultQueue, defaultQueueFamilyIndex, defaultQueueLock, semaphore,
+            usedFence, anbInfo);
+        if (result != VK_SUCCESS) {
+            return result;
+        }
+
+        DeviceOpWaitable aniCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
+
+        if (semaphore != VK_NULL_HANDLE) {
+            auto semaphoreInfo = android::base::find(mSemaphoreInfo, semaphore);
+            if (semaphoreInfo != nullptr) {
+                semaphoreInfo->latestUse = aniCompletedWaitable;
+            }
+        }
+        if (fence != VK_NULL_HANDLE) {
+            auto fenceInfo = android::base::find(mFenceInfo, fence);
+            if (fenceInfo != nullptr) {
+                fenceInfo->latestUse = aniCompletedWaitable;
+            }
+        }
+
+        deviceInfo->deviceOpTracker->PollAndProcessGarbage();
+
+        return VK_SUCCESS;
     }
 
     VkResult on_vkQueueSignalReleaseImageANDROID(android::base::BumpPool* pool, VkQueue boxed_queue,
@@ -5353,15 +5412,17 @@ class VkDecoderGlobalState::Impl {
         auto& framebufferInfo = mFramebufferInfo[*pFramebuffer];
         framebufferInfo.device = device;
 
-        // b/327522469
-        // Track the Colorbuffers that would be written to.
-        // It might be better to check for VK_QUEUE_FAMILY_EXTERNAL in pipeline barrier.
-        // But the guest does not always add it to pipeline barrier.
-        for (int i = 0; i < pCreateInfo->attachmentCount; i++) {
-            auto* imageViewInfo = android::base::find(mImageViewInfo, pCreateInfo->pAttachments[i]);
-            if (imageViewInfo->boundColorBuffer.has_value()) {
-                framebufferInfo.attachedColorBuffers.push_back(
-                    imageViewInfo->boundColorBuffer.value());
+        if ((pCreateInfo->flags & VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) == 0) {
+            // b/327522469
+            // Track the Colorbuffers that would be written to.
+            // It might be better to check for VK_QUEUE_FAMILY_EXTERNAL in pipeline barrier.
+            // But the guest does not always add it to pipeline barrier.
+            for (int i = 0; i < pCreateInfo->attachmentCount; i++) {
+                auto* imageViewInfo = android::base::find(mImageViewInfo, pCreateInfo->pAttachments[i]);
+                if (imageViewInfo->boundColorBuffer.has_value()) {
+                    framebufferInfo.attachedColorBuffers.push_back(
+                        imageViewInfo->boundColorBuffer.value());
+                }
             }
         }
 

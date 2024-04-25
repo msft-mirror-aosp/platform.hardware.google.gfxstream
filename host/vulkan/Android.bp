@@ -45,6 +45,7 @@ cc_library_static {
         "ColorBufferVk.cpp",
         "CompositorVk.cpp",
         "DebugUtilsHelper.cpp",
+        "DeviceOpTracker.cpp",
         "DisplaySurfaceVk.cpp",
         "DisplayVk.cpp",
         "PostWorkerVk.cpp",
