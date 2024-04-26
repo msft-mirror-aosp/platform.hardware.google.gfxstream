@@ -3874,6 +3874,43 @@ void gfxstream_vk_GetPhysicalDeviceExternalBufferPropertiesKHR(
 #ifdef VK_KHR_external_memory_win32
 #endif
 #ifdef VK_KHR_external_memory_fd
+VkResult gfxstream_vk_GetMemoryFdKHR(VkDevice device, const VkMemoryGetFdInfoKHR* pGetFdInfo,
+                                     int* pFd) {
+    AEMU_SCOPED_TRACE("vkGetMemoryFdKHR");
+    VkResult vkGetMemoryFdKHR_VkResult_return = (VkResult)0;
+    VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
+        std::vector<VkMemoryGetFdInfoKHR> internal_pGetFdInfo(1);
+        for (uint32_t i = 0; i < 1; ++i) {
+            internal_pGetFdInfo[i] = pGetFdInfo[i];
+            /* VkMemoryGetFdInfoKHR::memory */
+            VK_FROM_HANDLE(gfxstream_vk_device_memory, gfxstream_memory,
+                           internal_pGetFdInfo[i].memory);
+            internal_pGetFdInfo[i].memory = gfxstream_memory->internal_object;
+        }
+        auto resources = gfxstream::vk::ResourceTracker::get();
+        vkGetMemoryFdKHR_VkResult_return = resources->on_vkGetMemoryFdKHR(
+            vkEnc, VK_SUCCESS, gfxstream_device->internal_object, internal_pGetFdInfo.data(), pFd);
+    }
+    return vkGetMemoryFdKHR_VkResult_return;
+}
+VkResult gfxstream_vk_GetMemoryFdPropertiesKHR(VkDevice device,
+                                               VkExternalMemoryHandleTypeFlagBits handleType,
+                                               int fd,
+                                               VkMemoryFdPropertiesKHR* pMemoryFdProperties) {
+    AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR");
+    VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
+    VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
+        auto resources = gfxstream::vk::ResourceTracker::get();
+        vkGetMemoryFdPropertiesKHR_VkResult_return = resources->on_vkGetMemoryFdPropertiesKHR(
+            vkEnc, VK_SUCCESS, gfxstream_device->internal_object, handleType, fd,
+            pMemoryFdProperties);
+    }
+    return vkGetMemoryFdPropertiesKHR_VkResult_return;
+}
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
 void gfxstream_vk_GetPhysicalDeviceExternalSemaphorePropertiesKHR(
