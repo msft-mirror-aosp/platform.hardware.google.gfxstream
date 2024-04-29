@@ -869,6 +869,71 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
                                             descriptorInfo.data());
 }
 
+TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedVkMapMemory) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    static constexpr const vkhpp::DeviceSize kSize = 1024;
+    const vkhpp::BufferCreateInfo bufferCreateInfo = {
+        .size = kSize,
+        .usage = vkhpp::BufferUsageFlagBits::eTransferSrc,
+    };
+    auto buffer = device->createBufferUnique(bufferCreateInfo).value;
+
+    vkhpp::MemoryRequirements bufferMemoryRequirements{};
+    device->getBufferMemoryRequirements(*buffer, &bufferMemoryRequirements);
+
+    const uint32_t bufferMemoryIndex = GetMemoryType(
+        physicalDevice, bufferMemoryRequirements,
+        vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
+    if (bufferMemoryIndex == -1) {
+        GTEST_SKIP() << "Skipping test due to no memory type with HOST_VISIBLE | HOST_COHERENT.";
+    }
+
+    std::vector<std::thread> threads;
+    std::atomic_int threadsReady{0};
+
+    constexpr const int kNumThreads = 2;
+    for (int t = 0; t < kNumThreads; t++) {
+        threads.emplace_back([&, this]() {
+            // Perform some work to ensure host RenderThread started.
+            auto buffer2 = device->createBufferUnique(bufferCreateInfo).value;
+            ASSERT_THAT(buffer2, IsValidHandle());
+
+            ++threadsReady;
+            while (threadsReady.load() != kNumThreads) {
+            }
+
+            constexpr const int kNumIterations = 100;
+            for (int i = 0; i < kNumIterations; i++) {
+                auto buffer3 = device->createBufferUnique(bufferCreateInfo).value;
+                ASSERT_THAT(buffer3, IsValidHandle());
+
+                const vkhpp::MemoryAllocateInfo buffer3MemoryAllocateInfo = {
+                    .allocationSize = bufferMemoryRequirements.size,
+                    .memoryTypeIndex = bufferMemoryIndex,
+                };
+                auto buffer3Memory = device->allocateMemoryUnique(buffer3MemoryAllocateInfo).value;
+                ASSERT_THAT(buffer3Memory, IsValidHandle());
+
+                ASSERT_THAT(device->bindBufferMemory(*buffer3, *buffer3Memory, 0), IsVkSuccess());
+
+                void* mapped = nullptr;
+                ASSERT_THAT(device->mapMemory(*buffer3Memory, 0, VK_WHOLE_SIZE,
+                                              vkhpp::MemoryMapFlags{}, &mapped),
+                            IsVkSuccess());
+                ASSERT_THAT(mapped, NotNull());
+
+                device->unmapMemory(*buffer3Memory);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+}
+
 std::vector<TestParams> GenerateTestCases() {
     std::vector<TestParams> cases = {TestParams{
                                          .with_gl = false,
