@@ -2892,6 +2892,24 @@ static uint32_t getVirglFormat(VkFormat vkFormat) {
     return virglFormat;
 }
 
+static bool getVirtGpuFormatParams(const VkFormat vkFormat, uint32_t* virglFormat, uint32_t* target,
+                                   uint32_t* bind, uint32_t* bpp) {
+    *virglFormat = getVirglFormat(vkFormat);
+    switch (*virglFormat) {
+        case VIRGL_FORMAT_R8G8B8A8_UNORM:
+        case VIRGL_FORMAT_B8G8R8A8_UNORM:
+            *target = PIPE_TEXTURE_2D;
+            *bind = VIRGL_BIND_RENDER_TARGET;
+            *bpp = 4;
+            break;
+        default:
+            /* Format not recognized */
+            return false;
+    }
+
+    return true;
+}
+
 CoherentMemoryPtr ResourceTracker::createCoherentMemory(
     VkDevice device, VkDeviceMemory mem, const VkMemoryAllocateInfo& hostAllocationInfo,
     VkEncoder* enc, VkResult& res) {
@@ -3770,14 +3788,20 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
 
                 imageCreateInfo = imageInfo.createInfo;
             }
-            uint32_t virglFormat = gfxstream::vk::getVirglFormat(imageCreateInfo.format);
-            if (virglFormat < 0) {
-                ALOGE("%s: Unsupported VK format for colorBuffer, vkFormat: 0x%x", __func__,
+
+            uint32_t virglFormat = 0;
+            uint32_t target = 0;
+            uint32_t bind = 0;
+            uint32_t bpp = 0;
+            if (!gfxstream::vk::getVirtGpuFormatParams(imageCreateInfo.format, &virglFormat,
+                                                       &target, &bind, &bpp)) {
+                ALOGE("%s: Unsupported VK format for VirtGpu resource, vkFormat: 0x%x", __func__,
                       imageCreateInfo.format);
                 return VK_ERROR_FORMAT_NOT_SUPPORTED;
             }
             colorBufferBlob = instance->createResource(imageCreateInfo.extent.width,
-                                                       imageCreateInfo.extent.height, virglFormat);
+                                                       imageCreateInfo.extent.height, virglFormat,
+                                                       target, bind, bpp);
             if (!colorBufferBlob) {
                 ALOGE("%s: Failed to create colorBuffer resource for Image memory\n", __func__);
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -3798,8 +3822,20 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
                 const auto& bufferInfo = it->second;
                 bufferCreateInfo = bufferInfo.createInfo;
             }
-            colorBufferBlob =
-                instance->createResource(bufferCreateInfo.size / 4, 1, VIRGL_FORMAT_R8G8B8A8_UNORM);
+            const VkFormat vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            uint32_t virglFormat = 0;
+            uint32_t target = 0;
+            uint32_t bind = 0;
+            uint32_t bpp = 0;
+            if (!gfxstream::vk::getVirtGpuFormatParams(vkFormat, &virglFormat, &target, &bind,
+                                                       &bpp)) {
+                ALOGE("%s: Unexpected error getting VirtGpu format params for vkFormat: 0x%x",
+                      __func__, vkFormat);
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+            }
+
+            colorBufferBlob = instance->createResource(bufferCreateInfo.size / bpp, 1, virglFormat,
+                                                       target, bind, bpp);
             if (!colorBufferBlob) {
                 ALOGE("%s: Failed to create colorBuffer resource for Buffer memory\n", __func__);
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -3936,68 +3972,73 @@ VkResult ResourceTracker::on_vkMapMemory(void* context, VkResult host_result, Vk
                                          VkDeviceMemory memory, VkDeviceSize offset,
                                          VkDeviceSize size, VkMemoryMapFlags, void** ppData) {
     if (host_result != VK_SUCCESS) {
-        ALOGE("%s: Host failed to map\n", __func__);
+        ALOGE("%s: Host failed to map", __func__);
         return host_result;
     }
 
     AutoLock<RecursiveLock> lock(mLock);
 
-    auto it = info_VkDeviceMemory.find(memory);
-    if (it == info_VkDeviceMemory.end()) {
-        ALOGE("%s: Could not find this device memory\n", __func__);
+    auto deviceMemoryInfoIt = info_VkDeviceMemory.find(memory);
+    if (deviceMemoryInfoIt == info_VkDeviceMemory.end()) {
+        ALOGE("%s: Failed to find VkDeviceMemory.", __func__);
         return VK_ERROR_MEMORY_MAP_FAILED;
     }
+    auto& deviceMemoryInfo = deviceMemoryInfoIt->second;
 
-    auto& info = it->second;
-
-    if (info.blobId && !info.coherentMemory && !mCaps.params[kParamCreateGuestHandle]) {
+    if (deviceMemoryInfo.blobId && !deviceMemoryInfo.coherentMemory &&
+        !mCaps.params[kParamCreateGuestHandle]) {
+        // NOTE: must not hold lock while calling into the encoder.
+        lock.unlock();
         VkEncoder* enc = (VkEncoder*)context;
-        VirtGpuResourceMappingPtr mapping;
-        VirtGpuDevice* instance = VirtGpuDevice::getInstance();
+        VkResult vkResult = enc->vkGetBlobGOOGLE(device, memory, /*doLock*/ false);
+        if (vkResult != VK_SUCCESS) {
+            ALOGE("%s: Failed to vkGetBlobGOOGLE().", __func__);
+            return vkResult;
+        }
+        lock.lock();
 
-        uint64_t offset;
-        uint8_t* ptr;
-
-        VkResult vkResult = enc->vkGetBlobGOOGLE(device, memory, false);
-        if (vkResult != VK_SUCCESS) return vkResult;
+        // NOTE: deviceMemoryInfoIt potentially invalidated but deviceMemoryInfo still okay.
 
         struct VirtGpuCreateBlob createBlob = {};
         createBlob.blobMem = kBlobMemHost3d;
         createBlob.flags = kBlobFlagMappable;
-        createBlob.blobId = info.blobId;
-        createBlob.size = info.coherentMemorySize;
+        createBlob.blobId = deviceMemoryInfo.blobId;
+        createBlob.size = deviceMemoryInfo.coherentMemorySize;
 
-        auto blob = instance->createBlob(createBlob);
+        auto blob = VirtGpuDevice::getInstance()->createBlob(createBlob);
         if (!blob) return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 
-        mapping = blob->createMapping();
+        VirtGpuResourceMappingPtr mapping = blob->createMapping();
         if (!mapping) return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 
         auto coherentMemory =
             std::make_shared<CoherentMemory>(mapping, createBlob.size, device, memory);
 
-        coherentMemory->subAllocate(info.allocationSize, &ptr, offset);
+        uint8_t* ptr;
+        uint64_t offset;
+        coherentMemory->subAllocate(deviceMemoryInfo.allocationSize, &ptr, offset);
 
-        info.coherentMemoryOffset = offset;
-        info.coherentMemory = coherentMemory;
-        info.ptr = ptr;
+        deviceMemoryInfo.coherentMemoryOffset = offset;
+        deviceMemoryInfo.coherentMemory = coherentMemory;
+        deviceMemoryInfo.ptr = ptr;
     }
 
-    if (!info.ptr) {
-        ALOGE("%s: ptr null\n", __func__);
+    if (!deviceMemoryInfo.ptr) {
+        ALOGE("%s: VkDeviceMemory has nullptr.", __func__);
         return VK_ERROR_MEMORY_MAP_FAILED;
     }
 
-    if (size != VK_WHOLE_SIZE && (info.ptr + offset + size > info.ptr + info.allocationSize)) {
+    if (size != VK_WHOLE_SIZE && (deviceMemoryInfo.ptr + offset + size >
+                                  deviceMemoryInfo.ptr + deviceMemoryInfo.allocationSize)) {
         ALOGE(
             "%s: size is too big. alloc size 0x%llx while we wanted offset 0x%llx size 0x%llx "
-            "total 0x%llx\n",
-            __func__, (unsigned long long)info.allocationSize, (unsigned long long)offset,
-            (unsigned long long)size, (unsigned long long)offset);
+            "total 0x%llx",
+            __func__, (unsigned long long)deviceMemoryInfo.allocationSize,
+            (unsigned long long)offset, (unsigned long long)size, (unsigned long long)offset);
         return VK_ERROR_MEMORY_MAP_FAILED;
     }
 
-    *ppData = info.ptr + offset;
+    *ppData = deviceMemoryInfo.ptr + offset;
 
     return host_result;
 }

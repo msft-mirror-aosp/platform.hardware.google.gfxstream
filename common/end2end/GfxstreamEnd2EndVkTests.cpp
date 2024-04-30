@@ -746,6 +746,194 @@ TEST_P(GfxstreamEnd2EndVkTest, DeviceMemoryReport) {
     ASSERT_THAT(memory, IsValidHandle());
 }
 
+TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const vkhpp::BufferCreateInfo bufferCreateInfo = {
+        .size = 1024,
+        .usage = vkhpp::BufferUsageFlagBits::eUniformBuffer,
+    };
+    auto buffer = VK_ASSERT_RV(device->createBufferUnique(bufferCreateInfo));
+
+    const std::vector<VkDescriptorBufferInfo> descriptorInfo = {
+        VkDescriptorBufferInfo{
+            .buffer = *buffer,
+            .offset = 0,
+            .range = 1024,
+        },
+        VkDescriptorBufferInfo{
+            .buffer = *buffer,
+            .offset = 0,
+            .range = 1024,
+        },
+        VkDescriptorBufferInfo{
+            .buffer = *buffer,
+            .offset = 0,
+            .range = 1024,
+        },
+        VkDescriptorBufferInfo{
+            .buffer = *buffer,
+            .offset = 0,
+            .range = 1024,
+        },
+    };
+
+    const std::vector<vkhpp::DescriptorPoolSize> descriptorPoolSizes = {
+        {
+            .type = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 4,
+        },
+    };
+    const vkhpp::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
+        .flags = vkhpp::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+        .maxSets = 1,
+        .poolSizeCount = static_cast<uint32_t>(descriptorPoolSizes.size()),
+        .pPoolSizes = descriptorPoolSizes.data(),
+    };
+    auto descriptorPool =
+        VK_ASSERT_RV(device->createDescriptorPoolUnique(descriptorPoolCreateInfo));
+
+    const std::vector<vkhpp::DescriptorSetLayoutBinding> descriptorSetBindings = {
+        {
+            .binding = 0,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 1,
+            .stageFlags = vkhpp::ShaderStageFlagBits::eVertex,
+        },
+        {
+            .binding = 1,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 1,
+            .stageFlags = vkhpp::ShaderStageFlagBits::eVertex,
+        },
+        {
+            .binding = 2,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 1,
+            .stageFlags = vkhpp::ShaderStageFlagBits::eVertex,
+        },
+        {
+            .binding = 3,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 1,
+            .stageFlags = vkhpp::ShaderStageFlagBits::eVertex,
+        },
+    };
+    const vkhpp::DescriptorSetLayoutCreateInfo descriptorSetLayoutInfo = {
+        .bindingCount = static_cast<uint32_t>(descriptorSetBindings.size()),
+        .pBindings = descriptorSetBindings.data(),
+    };
+    auto descriptorSetLayout =
+        VK_ASSERT_RV(device->createDescriptorSetLayoutUnique(descriptorSetLayoutInfo));
+
+    const std::vector<vkhpp::DescriptorSetLayout> descriptorSetLayouts = {*descriptorSetLayout};
+    const vkhpp::DescriptorSetAllocateInfo descriptorSetAllocateInfo = {
+        .descriptorPool = *descriptorPool,
+        .descriptorSetCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
+        .pSetLayouts = descriptorSetLayouts.data(),
+    };
+    auto descriptorSets =
+        VK_ASSERT_RV(device->allocateDescriptorSetsUnique(descriptorSetAllocateInfo));
+    auto descriptorSet = std::move(descriptorSets[0]);
+
+    const vkhpp::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
+        .setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
+        .pSetLayouts = descriptorSetLayouts.data(),
+    };
+    auto pipelineLayout =
+        VK_ASSERT_RV(device->createPipelineLayoutUnique(pipelineLayoutCreateInfo));
+
+    const std::vector<vkhpp::DescriptorUpdateTemplateEntry> descriptorUpdateEntries = {
+        {
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 4,
+            .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+            .offset = 0,
+            .stride = sizeof(VkDescriptorBufferInfo),
+        },
+    };
+    const vkhpp::DescriptorUpdateTemplateCreateInfo descriptorUpdateTemplateCreateInfo = {
+        .descriptorUpdateEntryCount = static_cast<uint32_t>(descriptorUpdateEntries.size()),
+        .pDescriptorUpdateEntries = descriptorUpdateEntries.data(),
+        .descriptorSetLayout = *descriptorSetLayout,
+        .pipelineBindPoint = vkhpp::PipelineBindPoint::eGraphics,
+        .pipelineLayout = *pipelineLayout,
+        .set = 0,
+    };
+    auto descriptorUpdateTemplate = VK_ASSERT_RV(
+        device->createDescriptorUpdateTemplateUnique(descriptorUpdateTemplateCreateInfo));
+
+    device->updateDescriptorSetWithTemplate(*descriptorSet, *descriptorUpdateTemplate,
+                                            descriptorInfo.data());
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedVkMapMemory) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    static constexpr const vkhpp::DeviceSize kSize = 1024;
+    const vkhpp::BufferCreateInfo bufferCreateInfo = {
+        .size = kSize,
+        .usage = vkhpp::BufferUsageFlagBits::eTransferSrc,
+    };
+    auto buffer = device->createBufferUnique(bufferCreateInfo).value;
+
+    vkhpp::MemoryRequirements bufferMemoryRequirements{};
+    device->getBufferMemoryRequirements(*buffer, &bufferMemoryRequirements);
+
+    const uint32_t bufferMemoryIndex = GetMemoryType(
+        physicalDevice, bufferMemoryRequirements,
+        vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
+    if (bufferMemoryIndex == -1) {
+        GTEST_SKIP() << "Skipping test due to no memory type with HOST_VISIBLE | HOST_COHERENT.";
+    }
+
+    std::vector<std::thread> threads;
+    std::atomic_int threadsReady{0};
+
+    constexpr const int kNumThreads = 2;
+    for (int t = 0; t < kNumThreads; t++) {
+        threads.emplace_back([&, this]() {
+            // Perform some work to ensure host RenderThread started.
+            auto buffer2 = device->createBufferUnique(bufferCreateInfo).value;
+            ASSERT_THAT(buffer2, IsValidHandle());
+
+            ++threadsReady;
+            while (threadsReady.load() != kNumThreads) {
+            }
+
+            constexpr const int kNumIterations = 100;
+            for (int i = 0; i < kNumIterations; i++) {
+                auto buffer3 = device->createBufferUnique(bufferCreateInfo).value;
+                ASSERT_THAT(buffer3, IsValidHandle());
+
+                const vkhpp::MemoryAllocateInfo buffer3MemoryAllocateInfo = {
+                    .allocationSize = bufferMemoryRequirements.size,
+                    .memoryTypeIndex = bufferMemoryIndex,
+                };
+                auto buffer3Memory = device->allocateMemoryUnique(buffer3MemoryAllocateInfo).value;
+                ASSERT_THAT(buffer3Memory, IsValidHandle());
+
+                ASSERT_THAT(device->bindBufferMemory(*buffer3, *buffer3Memory, 0), IsVkSuccess());
+
+                void* mapped = nullptr;
+                ASSERT_THAT(device->mapMemory(*buffer3Memory, 0, VK_WHOLE_SIZE,
+                                              vkhpp::MemoryMapFlags{}, &mapped),
+                            IsVkSuccess());
+                ASSERT_THAT(mapped, NotNull());
+
+                device->unmapMemory(*buffer3Memory);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+}
+
 std::vector<TestParams> GenerateTestCases() {
     std::vector<TestParams> cases = {TestParams{
                                          .with_gl = false,
