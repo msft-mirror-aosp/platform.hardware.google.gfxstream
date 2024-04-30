@@ -13,6 +13,7 @@ files_lib_vulkan_server = files(
   'BufferVk.cpp',
   'ColorBufferVk.cpp',
   'CompositorVk.cpp',
+  'DeviceOpTracker.cpp',
   'DisplayVk.cpp',
   'DisplaySurfaceVk.cpp',
   'PostWorkerVk.cpp',
