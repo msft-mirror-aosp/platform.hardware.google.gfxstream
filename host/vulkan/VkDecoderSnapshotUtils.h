@@ -22,6 +22,7 @@ struct StateBlock {
     VkPhysicalDevice physicalDevice;
     const PhysicalDeviceInfo* physicalDeviceInfo;
     VkDevice device;
+    VulkanDispatch* deviceDispatch;
     VkQueue queue;
     VkCommandPool commandPool;
 };
@@ -29,5 +30,9 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
                       const ImageInfo* imageInfo);
 void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkImage image,
                       const ImageInfo* imageInfo);
+void saveBufferContent(android::base::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
+                       const BufferInfo* bufferInfo);
+void loadBufferContent(android::base::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
+                       const BufferInfo* bufferInfo);
 }  // namespace vk
 }  // namespace gfxstream
