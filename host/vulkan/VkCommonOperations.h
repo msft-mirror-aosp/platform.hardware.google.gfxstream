@@ -36,21 +36,19 @@
 #include "utils/GfxApiLogger.h"
 #include "utils/RenderDoc.h"
 
-namespace gfxstream {
-namespace vk {
-
-struct VulkanDispatch;
-
-// Returns a consistent answer for which memory type index is best for staging
-// memory. This is not the simplest thing in the world because even if a memory
-// type index is host visible, that doesn't mean a VkBuffer is allowed to be
-// associated with it.
-bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
-                               const VkPhysicalDeviceMemoryProperties* memProps,
-                               uint32_t* typeIndex);
-
 #ifdef _WIN32
 typedef void* HANDLE;
+#endif
+
+#if defined(_WIN32)
+// External sync objects are HANDLE on Windows
+typedef HANDLE VK_EXT_SYNC_HANDLE;
+// corresponds to INVALID_HANDLE_VALUE
+#define VK_EXT_SYNC_HANDLE_INVALID (VK_EXT_SYNC_HANDLE)(uintptr_t)(-1)
+#else
+// External sync objects are fd's on other POSIX systems
+typedef int VK_EXT_SYNC_HANDLE;
+#define VK_EXT_SYNC_HANDLE_INVALID (-1)
 #endif
 
 #if defined(_WIN32)
@@ -71,6 +69,20 @@ typedef int VK_EXT_MEMORY_HANDLE;
 #define VK_EXT_MEMORY_HANDLE_INVALID (-1)
 #define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT
 #endif
+
+namespace gfxstream {
+namespace vk {
+
+struct VulkanDispatch;
+
+// Returns a consistent answer for which memory type index is best for staging
+// memory. This is not the simplest thing in the world because even if a memory
+// type index is host visible, that doesn't mean a VkBuffer is allowed to be
+// associated with it.
+bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
+                               const VkPhysicalDeviceMemoryProperties* memProps,
+                               uint32_t* typeIndex);
+
 
 VK_EXT_MEMORY_HANDLE dupExternalMemory(VK_EXT_MEMORY_HANDLE);
 

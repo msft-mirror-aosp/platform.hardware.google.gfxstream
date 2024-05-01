@@ -98,18 +98,12 @@ if use_auto
 endif
 
 gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=@0@'.format(use_gles ? '1' : '0')
-if use_magma
-  gfxstream_host_args += '-DUSE_MAGMA=1'
-  drm_dep = dependency('libdrm')
-else
-  gfxstream_host_args += '-DUSE_MAGMA=0'
-endif
 
 if use_magma
-  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=1'
+  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_MAGMA=1'
   drm_dep = dependency('libdrm', fallback: ['libdrm', 'libdrm_dep'])
 else
-  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=0'
+  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_MAGMA=0'
 endif
 
 #===============#
@@ -123,7 +117,13 @@ gfxstream_headers = files(
 inc_root = include_directories('../')
 inc_gfxstream_include = include_directories('../include')
 inc_include = include_directories('../guest/mesa/include')
+# Included by all host component builds. Leave empty for future build updates.
+inc_include = include_directories()
 inc_utils = include_directories('../utils/include')
+
+if host_machine.system() == 'qnx'
+  inc_gfxstream_include = [inc_qnx_headers, inc_gfxstream_include]
+endif
 
 if use_vulkan
   inc_vulkan_headers = include_directories('../common/vulkan/include')
