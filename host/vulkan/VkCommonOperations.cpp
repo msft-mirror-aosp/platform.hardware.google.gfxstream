@@ -1029,7 +1029,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     // We need to always enable swapchain extensions to be able to use this device
     // to do VK_IMAGE_LAYOUT_PRESENT_SRC_KHR transition operations done
     // in releaseColorBufferForGuestUse for the apps using Vulkan swapchain
-    enabledExtensions.emplace(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    selectedDeviceExtensionNames_.emplace(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     if (sVkEmulation->features.VulkanNativeSwapchain.enabled) {
         for (auto extension : SwapChainStateVk::getRequiredDeviceExtensions()) {
