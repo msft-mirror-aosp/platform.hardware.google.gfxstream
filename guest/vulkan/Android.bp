@@ -84,9 +84,9 @@ cc_defaults {
         "hardware/google/gfxstream/guest/GoldfishAddressSpace/include",
     ],
     srcs: [
-        //"gfxstream_vk_device.cpp",
-        //"gfxstream_vk_cmd.cpp",
-        //"gfxstream_vk_wsi.cpp",
+        "gfxstream_vk_device.cpp",
+        "gfxstream_vk_cmd.cpp",
+        "gfxstream_vk_wsi.cpp",
         ":vulkan_enc_impl",
     ],
     target: {
@@ -101,11 +101,6 @@ cc_defaults {
             ],
             srcs: [
                 "gfxstream_vk_android.cpp",
-            ],
-        },
-        host: {
-            srcs: [
-                "gfxstream_vk_host.cpp",
             ],
         },
     },
