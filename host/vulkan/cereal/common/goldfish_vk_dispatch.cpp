@@ -203,6 +203,8 @@ namespace vk {
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
 #endif
+#ifdef VK_EXT_metal_objects
+#endif
 #ifdef VK_EXT_graphics_pipeline_library
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
@@ -891,6 +893,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkDestroyPrivateDataSlotEXT)dlSymFunc(lib, "vkDestroyPrivateDataSlotEXT");
     out->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)dlSymFunc(lib, "vkSetPrivateDataEXT");
     out->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)dlSymFunc(lib, "vkGetPrivateDataEXT");
+#endif
+#ifdef VK_EXT_metal_objects
+    out->vkExportMetalObjectsEXT =
+        (PFN_vkExportMetalObjectsEXT)dlSymFunc(lib, "vkExportMetalObjectsEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
     out->vkCmdSetPatchControlPointsEXT =
@@ -1820,6 +1826,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetPrivateDataEXT =
         (PFN_vkGetPrivateDataEXT)vk->vkGetInstanceProcAddr(instance, "vkGetPrivateDataEXT");
 #endif
+#ifdef VK_EXT_metal_objects
+    out->vkExportMetalObjectsEXT =
+        (PFN_vkExportMetalObjectsEXT)vk->vkGetInstanceProcAddr(instance, "vkExportMetalObjectsEXT");
+#endif
 #ifdef VK_EXT_extended_dynamic_state2
     out->vkCmdSetPatchControlPointsEXT =
         (PFN_vkCmdSetPatchControlPointsEXT)vk->vkGetInstanceProcAddr(
@@ -2742,6 +2752,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkSetPrivateDataEXT)vk->vkGetDeviceProcAddr(device, "vkSetPrivateDataEXT");
     out->vkGetPrivateDataEXT =
         (PFN_vkGetPrivateDataEXT)vk->vkGetDeviceProcAddr(device, "vkGetPrivateDataEXT");
+#endif
+#ifdef VK_EXT_metal_objects
+    out->vkExportMetalObjectsEXT =
+        (PFN_vkExportMetalObjectsEXT)vk->vkGetDeviceProcAddr(device, "vkExportMetalObjectsEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
     out->vkCmdSetPatchControlPointsEXT = (PFN_vkCmdSetPatchControlPointsEXT)vk->vkGetDeviceProcAddr(

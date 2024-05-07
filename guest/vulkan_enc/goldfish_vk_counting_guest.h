@@ -1760,6 +1760,8 @@ DEFINE_ALIAS_FUNCTION(count_VkPhysicalDevicePipelineCreationCacheControlFeatures
                       count_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_metal_objects
+#endif
 #ifdef VK_EXT_graphics_pipeline_library
 void count_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
     uint32_t featureBits, VkStructureType rootType,
