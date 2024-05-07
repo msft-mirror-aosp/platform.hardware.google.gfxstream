@@ -2121,6 +2121,8 @@ class VkDecoderSnapshot::Impl {
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
 #endif
+#ifdef VK_EXT_metal_objects
+#endif
 #ifdef VK_EXT_graphics_pipeline_library
 #endif
 #ifdef VK_EXT_ycbcr_2plane_444_formats
