@@ -1824,6 +1824,20 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         filteredExts.push_back(anbExtProp);
     }
 
+    /*
+     * GfxstreamEnd2EndVkTest::DeviceMemoryReport always assumes the memory report
+     * extension is present.  It's is filtered out when sent host side, since for a
+     * virtual GPU this is quite difficult to implement.
+     *
+     * Mesa runtime checks physical device features.  So if the test tries to enable
+     * device level extension without it definitely existing, the test will fail.
+     *
+     * The test can also be modified to check VkPhysicalDeviceDeviceMemoryReportFeaturesEXT,
+     * but that's more involved.  Work around this by always advertising the extension.
+     * Tracking bug: b/338270042
+     */
+    filteredExts.push_back(VkExtensionProperties{"VK_EXT_device_memory_report", 1});
+
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
     bool hostSupportsExternalFenceFd =
         getHostDeviceExtensionIndex("VK_KHR_external_fence_fd") != -1;
@@ -5582,6 +5596,42 @@ VkResult ResourceTracker::on_vkImportSemaphoreFdKHR(
 #endif
 }
 
+VkResult ResourceTracker::on_vkGetMemoryFdPropertiesKHR(
+    void* context, VkResult, VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, int fd,
+    VkMemoryFdPropertiesKHR* pMemoryFdProperties) {
+#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+    if (!(handleType & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT)) {
+        ALOGE("%s: VK_KHR_external_memory_fd behavior not defined for handleType: 0x%x\n", __func__,
+              handleType);
+        return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+    }
+    // Sanity-check device
+    AutoLock<RecursiveLock> lock(mLock);
+    auto deviceIt = info_VkDevice.find(device);
+    if (deviceIt == info_VkDevice.end()) {
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+    // TODO: Verify FD valid ?
+    (void)fd;
+
+    if (mCaps.vulkanCapset.colorBufferMemoryIndex == 0xFFFFFFFF) {
+        mCaps.vulkanCapset.colorBufferMemoryIndex = getColorBufferMemoryIndex(context, device);
+    }
+
+    updateMemoryTypeBits(&pMemoryFdProperties->memoryTypeBits,
+                         mCaps.vulkanCapset.colorBufferMemoryIndex);
+
+    return VK_SUCCESS;
+#else
+    (void)context;
+    (void)device;
+    (void)handleType;
+    (void)fd;
+    (void)pMemoryFdProperties;
+    return VK_ERROR_INCOMPATIBLE_DRIVER;
+#endif
+}
+
 VkResult ResourceTracker::on_vkGetMemoryFdKHR(void* context, VkResult, VkDevice device,
                                               const VkMemoryGetFdInfoKHR* pGetFdInfo, int* pFd) {
 #if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
@@ -6314,14 +6364,6 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
 
                 memcpy(((uint8_t*)imageInfos) + currImageInfoOffset, user,
                        sizeof(VkDescriptorImageInfo));
-#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
-                // Convert mesa to internal for objects in the user buffer
-                VkDescriptorImageInfo* internalImageInfo =
-                    (VkDescriptorImageInfo*)(((uint8_t*)imageInfos) + currImageInfoOffset);
-                VK_FROM_HANDLE(gfxstream_vk_image_view, gfxstream_image_view,
-                               internalImageInfo->imageView);
-                internalImageInfo->imageView = gfxstream_image_view->internal_object;
-#endif
                 currImageInfoOffset += sizeof(VkDescriptorImageInfo);
             }
 
@@ -6366,15 +6408,6 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
                 const VkBufferView* user = (const VkBufferView*)(userBuffer + offset + j * stride);
 
                 memcpy(((uint8_t*)bufferViews) + currBufferViewOffset, user, sizeof(VkBufferView));
-#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
-                // Convert mesa to internal for objects in the user buffer
-                VkBufferView* internalBufferView =
-                    (VkBufferView*)(((uint8_t*)bufferViews) + currBufferViewOffset);
-                VK_FROM_HANDLE(gfxstream_vk_buffer_view, gfxstream_buffer_view,
-                               *internalBufferView);
-                *internalBufferView = gfxstream_buffer_view->internal_object;
-#endif
-
                 currBufferViewOffset += sizeof(VkBufferView);
             }
 
@@ -6779,17 +6812,19 @@ VkResult ResourceTracker::on_vkEndCommandBuffer(void* context, VkResult input_re
 VkResult ResourceTracker::on_vkResetCommandBuffer(void* context, VkResult input_result,
                                                   VkCommandBuffer commandBuffer,
                                                   VkCommandBufferResetFlags flags) {
-    resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */,
-                                  true /* also clear pending descriptor sets */);
-
     VkEncoder* enc = (VkEncoder*)context;
     (void)input_result;
 
     if (!supportsDeferredCommands()) {
-        return enc->vkResetCommandBuffer(commandBuffer, flags, true /* do lock */);
+        VkResult res = enc->vkResetCommandBuffer(commandBuffer, flags, true /* do lock */);
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */,
+                                    true /* also clear pending descriptor sets */);
+        return res;
     }
 
     enc->vkResetCommandBufferAsyncGOOGLE(commandBuffer, flags, true /* do lock */);
+    resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */,
+                                  true /* also clear pending descriptor sets */);
     return VK_SUCCESS;
 }
 

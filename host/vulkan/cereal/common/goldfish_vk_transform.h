@@ -3278,6 +3278,8 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDevicePipelineCreationCacheCo
                       transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_metal_objects
+#endif
 #ifdef VK_EXT_graphics_pipeline_library
 void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,

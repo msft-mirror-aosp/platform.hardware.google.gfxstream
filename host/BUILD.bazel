@@ -166,6 +166,7 @@ cc_library(
         "WIN32_LEAN_AND_MEAN",
     ],
     linkstatic = True,
+    visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_backend_static",
         "//hardware/google/aemu/base:aemu-base",

@@ -32,6 +32,7 @@
 
 #include "goldfish_vk_counting_guest.h"
 
+#include <cstdlib>
 #include <cstring>
 
 #include "goldfish_vk_extension_structs_guest.h"
@@ -7112,6 +7113,8 @@ void count_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 #ifdef VK_EXT_private_data
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_EXT_metal_objects
 #endif
 #ifdef VK_EXT_graphics_pipeline_library
 void count_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(

@@ -1947,6 +1947,8 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDevicePipelineCreationCacheContr
                       reservedmarshal_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_metal_objects
+#endif
 #ifdef VK_EXT_graphics_pipeline_library
 void reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
