@@ -149,6 +149,8 @@ namespace vk {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
+#ifdef VK_MVK_moltenvk
+#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -965,6 +967,14 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)dlSymFunc(lib, "vkGetScreenBufferPropertiesQNX");
+#endif
+#ifdef VK_MVK_moltenvk
+    out->vkGetMTLDeviceMVK = (PFN_vkGetMTLDeviceMVK)dlSymFunc(lib, "vkGetMTLDeviceMVK");
+    out->vkSetMTLTextureMVK = (PFN_vkSetMTLTextureMVK)dlSymFunc(lib, "vkSetMTLTextureMVK");
+    out->vkGetMTLTextureMVK = (PFN_vkGetMTLTextureMVK)dlSymFunc(lib, "vkGetMTLTextureMVK");
+    out->vkGetMTLBufferMVK = (PFN_vkGetMTLBufferMVK)dlSymFunc(lib, "vkGetMTLBufferMVK");
+    out->vkUseIOSurfaceMVK = (PFN_vkUseIOSurfaceMVK)dlSymFunc(lib, "vkUseIOSurfaceMVK");
+    out->vkGetIOSurfaceMVK = (PFN_vkGetIOSurfaceMVK)dlSymFunc(lib, "vkGetIOSurfaceMVK");
 #endif
 }
 
