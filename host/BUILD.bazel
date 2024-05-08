@@ -185,6 +185,7 @@ cc_binary(
         "virtio-gpu-gfxstream-renderer.cpp",
     ],
     linkshared = True,
+    visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_backend_static",
         "//hardware/google/aemu/base:aemu-base",
