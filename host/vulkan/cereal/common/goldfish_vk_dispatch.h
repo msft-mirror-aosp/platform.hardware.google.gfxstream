@@ -492,6 +492,14 @@ struct VulkanDispatch {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
+#ifdef VK_MVK_moltenvk
+    PFN_vkGetMTLDeviceMVK vkGetMTLDeviceMVK;
+    PFN_vkSetMTLTextureMVK vkSetMTLTextureMVK;
+    PFN_vkGetMTLTextureMVK vkGetMTLTextureMVK;
+    PFN_vkGetMTLBufferMVK vkGetMTLBufferMVK;
+    PFN_vkUseIOSurfaceMVK vkUseIOSurfaceMVK;
+    PFN_vkGetIOSurfaceMVK vkGetIOSurfaceMVK;
+#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
