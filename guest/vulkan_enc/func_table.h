@@ -144,8 +144,6 @@ namespace vk {
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 #endif
-#ifdef VK_EXT_depth_clip_enable
-#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_queue_family_foreign
@@ -166,15 +164,11 @@ namespace vk {
 #endif
 #ifdef VK_EXT_metal_surface
 #endif
-#ifdef VK_EXT_fragment_density_map
-#endif
 #ifdef VK_EXT_scalar_block_layout
 #endif
 #ifdef VK_EXT_subgroup_size_control
 #endif
 #ifdef VK_EXT_tooling_info
-#endif
-#ifdef VK_EXT_validation_features
 #endif
 #ifdef VK_EXT_provoking_vertex
 #endif
@@ -193,8 +187,6 @@ namespace vk {
 #ifdef VK_EXT_texel_buffer_alignment
 #endif
 #ifdef VK_EXT_device_memory_report
-#endif
-#ifdef VK_EXT_robustness2
 #endif
 #ifdef VK_EXT_custom_border_color
 #endif
@@ -221,8 +213,6 @@ namespace vk {
 #ifdef VK_EXT_load_store_op_none
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 void* goldfish_vulkan_get_proc_address(const char* name);
 void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char* name);

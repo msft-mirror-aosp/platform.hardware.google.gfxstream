@@ -1691,6 +1691,8 @@ void deepcopy_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
+#ifdef VK_MVK_moltenvk
+#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -2004,6 +2006,8 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPrivateDataSlotCreateInfo, deepcopy_VkPrivateDa
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDevicePipelineCreationCacheControlFeatures,
                       deepcopy_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
+#endif
+#ifdef VK_EXT_metal_objects
 #endif
 #ifdef VK_EXT_graphics_pipeline_library
 void deepcopy_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(

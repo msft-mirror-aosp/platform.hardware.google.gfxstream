@@ -1320,6 +1320,8 @@ class VkDecoderSnapshot {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
+#ifdef VK_MVK_moltenvk
+#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -1501,6 +1503,8 @@ class VkDecoderSnapshot {
                              VkPrivateDataSlot privateDataSlot, uint64_t* pData);
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_EXT_metal_objects
 #endif
 #ifdef VK_EXT_graphics_pipeline_library
 #endif
