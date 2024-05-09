@@ -17,6 +17,7 @@
 #include <atomic>
 #include <thread>
 
+#include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
 
 namespace gfxstream {
@@ -85,7 +86,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         vkhpp::MemoryRequirements imageMemoryRequirements{};
         device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
 
-        const uint32_t imageMemoryIndex = GetMemoryType(
+        const uint32_t imageMemoryIndex = utils::getMemoryType(
             physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
         ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
 
@@ -165,8 +166,8 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     vkhpp::MemoryRequirements imageMemoryRequirements{};
     device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
 
-    const uint32_t imageMemoryIndex =
-        GetMemoryType(physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    const uint32_t imageMemoryIndex = utils::getMemoryType(
+        physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
     ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
 
     const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
@@ -190,11 +191,9 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     vkhpp::MemoryRequirements stagingBufferMemoryRequirements{};
     device->getBufferMemoryRequirements(*stagingBuffer, &stagingBufferMemoryRequirements);
 
-    const auto stagingBufferMemoryType =
-         GetMemoryType(physicalDevice,
-                       stagingBufferMemoryRequirements,
-                       vkhpp::MemoryPropertyFlagBits::eHostVisible |
-                       vkhpp::MemoryPropertyFlagBits::eHostCoherent);
+    const auto stagingBufferMemoryType = utils::getMemoryType(
+        physicalDevice, stagingBufferMemoryRequirements,
+        vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
 
     const vkhpp::MemoryAllocateInfo stagingBufferMemoryAllocateInfo = {
         .allocationSize = stagingBufferMemoryRequirements.size,
@@ -368,8 +367,8 @@ TEST_P(GfxstreamEnd2EndVkTest, BlobAHBIsNotMapable) {
                     Ne(vkhpp::MemoryPropertyFlagBits::eHostVisible));
     }
 
-    const auto bufferMemoryType = GetMemoryType(physicalDevice, bufferMemoryRequirements,
-                                                vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    const auto bufferMemoryType = utils::getMemoryType(physicalDevice, bufferMemoryRequirements,
+                                                       vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
     ASSERT_THAT(bufferMemoryType, Ne(-1));
 
     const vkhpp::ImportAndroidHardwareBufferInfoANDROID importHardwareBufferInfo = {
@@ -883,7 +882,7 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedVkMapMemory) {
     vkhpp::MemoryRequirements bufferMemoryRequirements{};
     device->getBufferMemoryRequirements(*buffer, &bufferMemoryRequirements);
 
-    const uint32_t bufferMemoryIndex = GetMemoryType(
+    const uint32_t bufferMemoryIndex = utils::getMemoryType(
         physicalDevice, bufferMemoryRequirements,
         vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
     if (bufferMemoryIndex == -1) {
