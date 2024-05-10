@@ -735,8 +735,9 @@ void gfxstream_vk_GetImageSubresourceLayout(VkDevice device, VkImage image,
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
-        vkEnc->vkGetImageSubresourceLayout(gfxstream_device->internal_object, image, pSubresource,
-                                           pLayout, true /* do lock */);
+        auto resources = gfxstream::vk::ResourceTracker::get();
+        resources->on_vkGetImageSubresourceLayout(vkEnc, gfxstream_device->internal_object, image,
+                                                  pSubresource, pLayout);
     }
 }
 VkResult gfxstream_vk_CreateImageView(VkDevice device, const VkImageViewCreateInfo* pCreateInfo,
