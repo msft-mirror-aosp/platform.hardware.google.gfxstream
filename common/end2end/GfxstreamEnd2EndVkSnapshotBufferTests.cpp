@@ -14,6 +14,7 @@
 
 #include <string>
 
+#include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
 #include "gfxstream/RutabagaLayerTestUtils.h"
 
@@ -52,7 +53,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, BufferContent) {
     vkhpp::MemoryRequirements stagingBufferMemoryRequirements{};
     device->getBufferMemoryRequirements(*stagingBuffer, &stagingBufferMemoryRequirements);
 
-    const auto stagingBufferMemoryType = GetMemoryType(
+    const auto stagingBufferMemoryType = utils::getMemoryType(
         physicalDevice, stagingBufferMemoryRequirements,
         vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
 
@@ -94,7 +95,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, BufferContent) {
     vkhpp::MemoryRequirements vertexBufferMemoryRequirements{};
     device->getBufferMemoryRequirements(*vertexBuffer, &vertexBufferMemoryRequirements);
 
-    const auto vertexBufferMemoryType = GetMemoryType(
+    const auto vertexBufferMemoryType = utils::getMemoryType(
         physicalDevice, vertexBufferMemoryRequirements,
         vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
 
@@ -163,7 +164,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, BufferContent) {
     vkhpp::MemoryRequirements readbackBufferMemoryRequirements{};
     device->getBufferMemoryRequirements(*readbackBuffer, &readbackBufferMemoryRequirements);
 
-    const auto readbackBufferMemoryType = GetMemoryType(
+    const auto readbackBufferMemoryType = utils::getMemoryType(
         physicalDevice, readbackBufferMemoryRequirements,
         vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
 
