@@ -28,7 +28,7 @@
 namespace gfxstream {
 namespace gl {
 
-enum class YUVPlane {
+enum class YUVPlane : int {
     Y = 0,
     U = 1,
     V = 2,
