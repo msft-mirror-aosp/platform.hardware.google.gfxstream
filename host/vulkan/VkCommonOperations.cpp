@@ -1576,9 +1576,11 @@ void freeExternalMemoryLocked(VulkanDispatch* vk, VkEmulation::ExternalMemoryInf
             info->gpa = 0u;
         }
 
-        vk->vkUnmapMemory(sVkEmulation->device, info->memory);
-        info->mappedPtr = nullptr;
-        info->pageAlignedHva = nullptr;
+        if (info->mappedPtr != nullptr) {
+            vk->vkUnmapMemory(sVkEmulation->device, info->memory);
+            info->mappedPtr = nullptr;
+            info->pageAlignedHva = nullptr;
+        }
     }
 
     vk->vkFreeMemory(sVkEmulation->device, info->memory, nullptr);
