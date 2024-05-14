@@ -14,6 +14,7 @@
 
 #include <string>
 
+#include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
 #include "gfxstream/RutabagaLayerTestUtils.h"
 #include "simple_shader_frag.h"
@@ -236,8 +237,8 @@ std::unique_ptr<ImageInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createColorAt
     vkhpp::MemoryRequirements imageMemoryRequirements{};
     device.getImageMemoryRequirements(*(res->image), &imageMemoryRequirements);
 
-    const uint32_t imageMemoryIndex = GetMemoryType(physicalDevice, imageMemoryRequirements,
-                                                    vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    const uint32_t imageMemoryIndex = utils::getMemoryType(
+        physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
 
     const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
         .allocationSize = imageMemoryRequirements.size,
@@ -359,8 +360,13 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotFramebuffer) {
 }
 
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) {
-    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    auto& instance = testEnvironment.instance;
+    auto& physicalDevice = testEnvironment.physicalDevice;
+    auto& device = testEnvironment.device;
+    auto& queue = testEnvironment.queue;
+    auto queueFamilyIndex = testEnvironment.queueFamilyIndex;
+
     auto pipelineInfo = createPipeline(device.get());
 
     auto colorAttachmentInfo = createColorAttachment(physicalDevice, device.get());
@@ -402,7 +408,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) 
     auto commandBuffer = std::move(commandBuffers[0]);
     ASSERT_THAT(commandBuffer, IsValidHandle());
 
-    vkhpp::ClearColorValue clearColor(std::array<float, 4>{0.2f, 0.2f, 0.2f, 0.2f});
+    vkhpp::ClearColorValue clearColor(std::array<float, 4>{1.0f, 0.0f, 1.0f, 1.0f});
     vkhpp::ClearValue clearValue{
         .color = clearColor,
     };
@@ -461,21 +467,6 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) 
     // Try to draw something.
     // Color attachment layout must be snapshotted, otherwise validation layer will complain.
     commandBuffer->begin(commandBufferBeginInfo);
-    const vkhpp::ImageMemoryBarrier readSrcBarrier{
-        .oldLayout = vkhpp::ImageLayout::eColorAttachmentOptimal,
-        .newLayout = vkhpp::ImageLayout::eTransferSrcOptimal,
-        .srcAccessMask = vkhpp::AccessFlagBits::eColorAttachmentWrite,
-        .dstAccessMask = vkhpp::AccessFlagBits::eTransferRead,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = *colorAttachmentInfo->image,
-        .subresourceRange =
-            {
-                .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
-                .levelCount = 1,
-                .layerCount = 1,
-            },
-    };
     commandBuffer->beginRenderPass(renderPassBeginInfo, vkhpp::SubpassContents::eInline);
     commandBuffer->bindPipeline(vkhpp::PipelineBindPoint::eGraphics, *pipelineInfo->pipeline);
 
@@ -497,6 +488,14 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) 
 
     waitResult = device->waitForFences(*fence, VK_TRUE, 3000000000L);
     ASSERT_THAT(waitResult, IsVkSuccess());
+
+    std::vector<uint32_t> dst(kFbWidth * kFbHeight);
+    utils::readImageData(*colorAttachmentInfo->image, kFbWidth, kFbHeight,
+                         vkhpp::ImageLayout::eColorAttachmentOptimal, dst.data(),
+                         dst.size() * sizeof(uint32_t), testEnvironment);
+    for (int i = 0; i < dst.size(); i++) {
+        ASSERT_THAT(dst[i], Eq(0xffff00ff));
+    }
 }
 
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotPipelineTest,

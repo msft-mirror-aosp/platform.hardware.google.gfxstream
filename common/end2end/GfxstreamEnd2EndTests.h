@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -512,10 +514,6 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     };
     VkExpected<TypicalVkTestEnvironment> SetUpTypicalVkTestEnvironment(
         const TypicalVkTestEnvironmentOptions& opts = {});
-
-    uint32_t GetMemoryType(const vkhpp::PhysicalDevice& physicalDevice,
-                           const vkhpp::MemoryRequirements& memoryRequirements,
-                           vkhpp::MemoryPropertyFlags memoryProperties);
 
     void SnapshotSaveAndLoad();
 
