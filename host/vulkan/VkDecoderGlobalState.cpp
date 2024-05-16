@@ -68,6 +68,7 @@
 
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
+#include <vulkan/vulkan_beta.h> // for MoltenVK portability extensions
 #endif
 
 #include <climits>
@@ -704,6 +705,12 @@ class VkDecoderGlobalState::Impl {
             curr = curr->pNext;
         }
 
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+        if (m_emu->instanceSupportsMoltenVK) {
+            createInfoFiltered.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        }
+#endif
+
         // bug: 155795731
         bool swiftshader =
             (android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("swiftshader") ==
@@ -720,6 +727,7 @@ class VkDecoderGlobalState::Impl {
         VkResult res = m_vk->vkCreateInstance(&createInfoFiltered, pAllocator, pInstance);
 
         if (res != VK_SUCCESS) {
+            WARN("Failed to create Vulkan instance: %s.", string_VkResult(res));
             return res;
         }
 
@@ -6421,6 +6429,15 @@ class VkDecoderGlobalState::Impl {
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
             res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
         }
+#elif defined(__APPLE__)
+        if (m_emu->instanceSupportsMoltenVK) {
+            if (hasDeviceExtension(properties, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
+                res.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+            }
+            if (hasDeviceExtension(properties, VK_EXT_METAL_OBJECTS_EXTENSION_NAME)) {
+                res.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+            }
+        }
 #endif
 
 #ifdef __linux__
@@ -6458,6 +6475,13 @@ class VkDecoderGlobalState::Impl {
         if (m_emu->instanceSupportsSurface) {
             res.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
         }
+
+#if defined(__APPLE__)
+        if (m_emu->instanceSupportsMoltenVK) {
+            res.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+            res.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+        }
+#endif
 
         return res;
     }
