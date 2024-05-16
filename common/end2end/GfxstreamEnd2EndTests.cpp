@@ -611,22 +611,6 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
     };
 }
 
-uint32_t GfxstreamEnd2EndTest::GetMemoryType(const vkhpp::PhysicalDevice& physicalDevice,
-                                             const vkhpp::MemoryRequirements& memoryRequirements,
-                                             vkhpp::MemoryPropertyFlags memoryProperties) {
-    const auto props = physicalDevice.getMemoryProperties();
-    for (uint32_t i = 0; i < props.memoryTypeCount; i++) {
-        if (!(memoryRequirements.memoryTypeBits & (1 << i))) {
-            continue;
-        }
-        if ((props.memoryTypes[i].propertyFlags & memoryProperties) != memoryProperties) {
-            continue;
-        }
-        return i;
-    }
-    return -1;
-}
-
 void GfxstreamEnd2EndTest::SnapshotSaveAndLoad() {
     auto directory = testing::TempDir();
 

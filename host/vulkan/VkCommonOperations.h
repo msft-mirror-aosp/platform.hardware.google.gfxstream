@@ -153,6 +153,8 @@ struct VkEmulation {
     bool instanceSupportsMoltenVK = false;
     PFN_vkSetMTLTextureMVK setMTLTextureFunc = nullptr;
     PFN_vkGetMTLTextureMVK getMTLTextureFunc = nullptr;
+#else
+    static const bool instanceSupportsMoltenVK = false;
 #endif
 
     bool debugUtilsAvailableAndRequested = false;
