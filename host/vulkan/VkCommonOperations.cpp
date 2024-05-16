@@ -49,6 +49,7 @@
 
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
+#include <vulkan/vulkan_beta.h> // for MoltenVK portability extensions
 #endif
 
 namespace gfxstream {
@@ -565,6 +566,11 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
     std::vector<const char*> moltenVkInstanceExtNames = {
         VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
+        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+    };
+    std::vector<const char*> moltenVkDeviceExtNames = {
+        VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+        VK_EXT_METAL_OBJECTS_EXTENSION_NAME,
     };
 #endif
 
@@ -624,6 +630,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
 
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
     if (moltenVKSupported) {
+        instCi.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         for (auto extension : moltenVkInstanceExtNames) {
             selectedInstanceExtensionNames.emplace(extension);
         }
@@ -780,6 +787,14 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         deviceInfos[i].supportsExternalMemoryImport = false;
         deviceInfos[i].supportsExternalMemoryExport = false;
         deviceInfos[i].glInteropSupported = 0;  // set later
+
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+        if (moltenVKSupported && !extensionsSupported(deviceExts, moltenVkDeviceExtNames)) {
+            VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(
+                ABORT_REASON_OTHER,
+                "MoltenVK enabled but necessary device extensions are not supported.");
+        }
+#endif
 
         if (sVkEmulation->instanceSupportsExternalMemoryCapabilities) {
             deviceInfos[i].supportsExternalMemoryExport =
@@ -1049,6 +1064,15 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     if (sVkEmulation->deviceInfo.hasSamplerYcbcrConversionExtension) {
         selectedDeviceExtensionNames_.emplace(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
     }
+
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+    if (moltenVKSupported) {
+        for (auto extension : moltenVkDeviceExtNames) {
+            selectedDeviceExtensionNames_.emplace(extension);
+        }
+    }
+#endif
+
     std::vector<const char*> selectedDeviceExtensionNames(selectedDeviceExtensionNames_.begin(),
                                                           selectedDeviceExtensionNames_.end());
 
