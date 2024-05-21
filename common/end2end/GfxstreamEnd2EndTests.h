@@ -417,6 +417,8 @@ class ScopedAHardwareBuffer {
 
     uint32_t GetHeight() const { return mGralloc->getHeight(mHandle); }
 
+    uint32_t GetAHBFormat() const { return mGralloc->getFormat(mHandle); }
+
     GlExpected<uint8_t*> Lock() {
         uint8_t* mapped = nullptr;
         int status = mGralloc->lock(mHandle, &mapped);
