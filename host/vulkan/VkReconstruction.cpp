@@ -500,6 +500,20 @@ void VkReconstruction::forEachHandleAddModifyApi(const uint64_t* toProcess, uint
     }
 }
 
+void VkReconstruction::forEachHandleClearModifyApi(const uint64_t* toProcess, uint32_t count) {
+    if (!toProcess) return;
+
+    for (uint32_t i = 0; i < count; ++i) {
+        mHandleModifications.add(toProcess[i], HandleModification());
+
+        auto item = mHandleModifications.get(toProcess[i]);
+
+        if (!item) continue;
+
+        item->apiRefs.clear();
+    }
+}
+
 std::vector<uint64_t> VkReconstruction::getOrderedUniqueModifyApis() const {
     std::vector<HandleModification> orderedModifies;
 
