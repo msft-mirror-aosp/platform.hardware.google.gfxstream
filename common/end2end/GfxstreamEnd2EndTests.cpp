@@ -652,11 +652,26 @@ GlExpected<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
         return android::base::unexpected("Failed to query AHB height.");
     }
     actual.pixels.resize(actual.width * actual.height);
+
+    const uint32_t ahbFormat = ahb.GetAHBFormat();
+    if (ahbFormat != GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM &&
+        ahbFormat != GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM) {
+        return android::base::unexpected("Unhandled AHB format " + std::to_string(ahbFormat));
+    }
+
     {
         uint8_t* ahbPixels = GL_EXPECT(ahb.Lock());
         std::memcpy(actual.pixels.data(), ahbPixels, actual.pixels.size() * sizeof(uint32_t));
         ahb.Unlock();
     }
+
+    if (ahbFormat == GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM) {
+        for (uint32_t& pixel : actual.pixels) {
+            uint8_t* pixelComponents = reinterpret_cast<uint8_t*>(&pixel);
+            std::swap(pixelComponents[0], pixelComponents[2]);
+        }
+    }
+
     return actual;
 }
 
