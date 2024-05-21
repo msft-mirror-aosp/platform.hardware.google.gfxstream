@@ -584,7 +584,7 @@ void loadBufferContent(android::base::Stream* stream, StateBlock* stateBlock, Vk
     VkBufferCreateInfo bufferCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = static_cast<VkDeviceSize>(bufferInfo->size),
-        .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
     VkBuffer stagingBuffer;
