@@ -14,11 +14,15 @@
 
 #version 450
 
+layout (binding = 0) uniform UniformBuffer {
+  vec4 color1;
+};
+
 layout (location = 0) in vec4 color;
 
 layout (location = 0) out vec4 outColor;
 
 void main()
 {
-  outColor = color;
+  outColor = color + color1;
 }
