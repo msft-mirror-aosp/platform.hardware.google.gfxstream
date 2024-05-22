@@ -46,8 +46,11 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     std::shared_ptr<android::base::Lock> m_vkQueueLock;
     VkDescriptorSetLayout m_vkDescriptorSetLayout;
     VkPipelineLayout m_vkPipelineLayout;
-    VkRenderPass m_vkRenderPass;
-    VkPipeline m_graphicsVkPipeline;
+    struct PerFormatResources {
+        VkRenderPass m_vkRenderPass = VK_NULL_HANDLE;
+        VkPipeline m_graphicsVkPipeline = VK_NULL_HANDLE;
+    };
+    std::unordered_map<VkFormat, PerFormatResources> m_formatResources;
     VkBuffer m_vertexVkBuffer;
     VkDeviceMemory m_vertexVkDeviceMemory;
     VkBuffer m_indexVkBuffer;
@@ -130,8 +133,6 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
           m_vkQueueLock(queueLock),
           m_vkDescriptorSetLayout(VK_NULL_HANDLE),
           m_vkPipelineLayout(VK_NULL_HANDLE),
-          m_vkRenderPass(VK_NULL_HANDLE),
-          m_graphicsVkPipeline(VK_NULL_HANDLE),
           m_vertexVkBuffer(VK_NULL_HANDLE),
           m_vertexVkDeviceMemory(VK_NULL_HANDLE),
           m_indexVkBuffer(VK_NULL_HANDLE),
@@ -205,7 +206,9 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     // the Vulkan components needed for command recording and submission.
     struct CompositionVk {
         const BorrowedImageInfoVk* targetImage = nullptr;
+        VkRenderPass targetRenderPass = VK_NULL_HANDLE;
         VkFramebuffer targetFramebuffer = VK_NULL_HANDLE;
+        VkPipeline pipeline = VK_NULL_HANDLE;
         std::vector<const BorrowedImageInfoVk*> layersSourceImages;
         FrameDescriptorSetsContents layersDescriptorSets;
     };

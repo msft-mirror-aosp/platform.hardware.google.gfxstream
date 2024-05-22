@@ -1686,6 +1686,8 @@ void reservedunmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
+#ifdef VK_MVK_moltenvk
+#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -1982,6 +1984,8 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPrivateDataSlotCreateInfo,
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDevicePipelineCreationCacheControlFeatures,
                       reservedunmarshal_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
+#endif
+#ifdef VK_EXT_metal_objects
 #endif
 #ifdef VK_EXT_graphics_pipeline_library
 void reservedunmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
