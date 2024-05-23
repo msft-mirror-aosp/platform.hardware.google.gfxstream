@@ -990,6 +990,10 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(android::base::Stream* stre
     bool isBlob;
     sGetFormatParameters(&cb->m_internalFormat, &texFormat, &pixelType, &bytesPerPixel,
                          &sizedInternalFormat, &isBlob);
+    cb->m_type = pixelType;
+    cb->m_format = texFormat;
+    cb->m_sizedInternalFormat = sizedInternalFormat;
+    // TODO: set m_BRSwizzle properly
     cb->m_numBytes = ((unsigned long)bytesPerPixel) * width * height;
     return cb;
 }
