@@ -568,6 +568,131 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) 
     }
 }
 
+TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotCommandBuffer) {
+    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = testEnvironment;
+
+    auto pipelineInfo = createPipeline(device.get());
+
+    auto colorAttachmentInfo = createColorAttachment(physicalDevice, device.get());
+    ASSERT_THAT(colorAttachmentInfo->image, IsValidHandle());
+    ASSERT_THAT(colorAttachmentInfo->memory, IsValidHandle());
+    ASSERT_THAT(colorAttachmentInfo->imageView, IsValidHandle());
+
+    const std::vector<vkhpp::ImageView> attachments(1, *colorAttachmentInfo->imageView);
+    vkhpp::FramebufferCreateInfo framebufferCreateInfo = {
+        .renderPass = *pipelineInfo->renderPass,
+        .attachmentCount = 1,
+        .pAttachments = attachments.data(),
+        .width = kFbWidth,
+        .height = kFbHeight,
+        .layers = 1,
+    };
+    auto framebuffer = device->createFramebufferUnique(framebufferCreateInfo).value;
+    ASSERT_THAT(framebuffer, IsValidHandle());
+
+    auto fence = device->createFenceUnique(vkhpp::FenceCreateInfo()).value;
+    ASSERT_THAT(fence, IsValidHandle());
+
+    const vkhpp::CommandPoolCreateInfo commandPoolCreateInfo = {
+        .flags = vkhpp::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        .queueFamilyIndex = queueFamilyIndex,
+    };
+
+    auto commandPool = device->createCommandPoolUnique(commandPoolCreateInfo).value;
+    ASSERT_THAT(commandPool, IsValidHandle());
+
+    const vkhpp::CommandBufferAllocateInfo commandBufferAllocateInfo = {
+        .level = vkhpp::CommandBufferLevel::ePrimary,
+        .commandPool = *commandPool,
+        .commandBufferCount = 1,
+    };
+
+    auto commandBuffers = device->allocateCommandBuffersUnique(commandBufferAllocateInfo).value;
+    ASSERT_THAT(commandBuffers, Not(IsEmpty()));
+    auto commandBuffer = std::move(commandBuffers[0]);
+    ASSERT_THAT(commandBuffer, IsValidHandle());
+
+    vkhpp::ClearColorValue clearColor(std::array<float, 4>{1.0f, 0.0f, 1.0f, 1.0f});
+    vkhpp::ClearValue clearValue{
+        .color = clearColor,
+    };
+    vkhpp::RenderPassBeginInfo renderPassBeginInfo{
+        .renderPass = *pipelineInfo->renderPass,
+        .framebuffer = *framebuffer,
+        .renderArea = vkhpp::Rect2D(vkhpp::Offset2D(0, 0), vkhpp::Extent2D(kFbWidth, kFbHeight)),
+        .clearValueCount = 1,
+        .pClearValues = &clearValue,
+    };
+
+    const vkhpp::CommandBufferBeginInfo commandBufferBeginInfo = {
+        .flags = vkhpp::CommandBufferUsageFlagBits::eOneTimeSubmit,
+    };
+
+    commandBuffer->begin(commandBufferBeginInfo);
+    const vkhpp::ImageMemoryBarrier colorAttachmentBarrier{
+        .oldLayout = vkhpp::ImageLayout::eUndefined,
+        .newLayout = vkhpp::ImageLayout::eColorAttachmentOptimal,
+        .dstAccessMask = vkhpp::AccessFlagBits::eColorAttachmentRead |
+                         vkhpp::AccessFlagBits::eColorAttachmentWrite,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = *colorAttachmentInfo->image,
+        .subresourceRange =
+            {
+                .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                .levelCount = 1,
+                .layerCount = 1,
+            },
+    };
+
+    commandBuffer->pipelineBarrier(
+        vkhpp::PipelineStageFlagBits::eTopOfPipe | vkhpp::PipelineStageFlagBits::eTransfer,
+        vkhpp::PipelineStageFlagBits::eColorAttachmentOutput, vkhpp::DependencyFlags(), nullptr,
+        nullptr, colorAttachmentBarrier);
+
+    commandBuffer->beginRenderPass(renderPassBeginInfo, vkhpp::SubpassContents::eInline);
+    commandBuffer->bindPipeline(vkhpp::PipelineBindPoint::eGraphics, *pipelineInfo->pipeline);
+
+    vkhpp::ClearAttachment clearAttachment{
+        .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+        .colorAttachment = 0,
+        .clearValue = clearValue,
+    };
+    vkhpp::ClearRect clearRect{
+        .rect = vkhpp::Rect2D(vkhpp::Offset2D(0, 0), vkhpp::Extent2D(kFbWidth, kFbHeight)),
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+    };
+
+    commandBuffer->clearAttachments(1, &clearAttachment, 1, &clearRect);
+    commandBuffer->endRenderPass();
+    commandBuffer->end();
+
+    std::vector<vkhpp::CommandBuffer> commandBufferHandles;
+    commandBufferHandles.push_back(*commandBuffer);
+    const vkhpp::SubmitInfo submitInfo = {
+        .commandBufferCount = static_cast<uint32_t>(commandBufferHandles.size()),
+        .pCommandBuffers = commandBufferHandles.data(),
+    };
+
+    SnapshotSaveAndLoad();
+    // Command buffer should still work after snapshot.
+
+    queue.submit(submitInfo, *fence);
+
+    auto waitResult = device->waitForFences(*fence, VK_TRUE, 3000000000L);
+    ASSERT_THAT(waitResult, IsVkSuccess());
+
+    std::vector<uint32_t> dst(kFbWidth * kFbHeight);
+    utils::readImageData(*colorAttachmentInfo->image, kFbWidth, kFbHeight,
+                         vkhpp::ImageLayout::eColorAttachmentOptimal, dst.data(),
+                         dst.size() * sizeof(uint32_t), testEnvironment);
+    for (int i = 0; i < dst.size(); i++) {
+        ASSERT_THAT(dst[i], Eq(0xffff00ff));
+    }
+}
+
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotDescriptors) {
     TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
     auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = testEnvironment;
