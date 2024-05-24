@@ -1906,8 +1906,19 @@ class VkDecoderGlobalState::Impl {
         VkBufferCreateInfo localCreateInfo;
         if (snapshotsEnabled()) {
             localCreateInfo = *pCreateInfo;
-            localCreateInfo.usage |=
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+            // Add transfer src bit for potential device local memories.
+            //
+            // There are 3 ways to populate buffer content:
+            //   a) use host coherent memory and memory mapping;
+            //   b) use transfer_dst and vkcmdcopy* (for device local memories);
+            //   c) use storage and compute shaders.
+            //
+            // (a) is covered by memory snapshot. (b) requires an extra vkCmdCopyBuffer
+            // command on snapshot, thuse we need to add transfer_src for (b) so that
+            // they could be loaded back on snapshot save. (c) is still future work.
+            if (localCreateInfo.usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
+                localCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            }
             pCreateInfo = &localCreateInfo;
         }
 
@@ -1917,6 +1928,7 @@ class VkDecoderGlobalState::Impl {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto& bufInfo = mBufferInfo[*pBuffer];
             bufInfo.device = device;
+            bufInfo.usage = pCreateInfo->usage;
             bufInfo.size = pCreateInfo->size;
             *pBuffer = new_boxed_non_dispatchable_VkBuffer(*pBuffer);
         }
