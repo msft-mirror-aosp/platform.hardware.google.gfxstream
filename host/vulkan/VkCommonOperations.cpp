@@ -49,6 +49,7 @@
 
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
+#include <vulkan/vulkan_beta.h> // for MoltenVK portability extensions
 #endif
 
 namespace gfxstream {
@@ -247,7 +248,7 @@ static bool extensionsSupported(const std::vector<VkExtensionProperties>& curren
 
 // For a given ImageSupportInfo, populates usageWithExternalHandles and
 // requiresDedicatedAllocation. memoryTypeBits are populated later once the
-// device is created, beacuse that needs a test image to be created.
+// device is created, because that needs a test image to be created.
 // If we don't support external memory, it's assumed dedicated allocations are
 // not needed.
 // Precondition: sVkEmulation instance has been created and ext memory caps known.
@@ -562,66 +563,83 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         VK_KHR_SURFACE_EXTENSION_NAME,
     };
 
-    uint32_t extCount = 0;
-    gvk->vkEnumerateInstanceExtensionProperties(nullptr, &extCount, nullptr);
-    std::vector<VkExtensionProperties>& exts = sVkEmulation->instanceExtensions;
-    exts.resize(extCount);
-    gvk->vkEnumerateInstanceExtensionProperties(nullptr, &extCount, exts.data());
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+    std::vector<const char*> moltenVkInstanceExtNames = {
+        VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
+        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+    };
+    std::vector<const char*> moltenVkDeviceExtNames = {
+        VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+        VK_EXT_METAL_OBJECTS_EXTENSION_NAME,
+    };
+#endif
+
+    uint32_t instanceExtCount = 0;
+    gvk->vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtCount, nullptr);
+    std::vector<VkExtensionProperties>& instanceExts = sVkEmulation->instanceExtensions;
+    instanceExts.resize(instanceExtCount);
+    gvk->vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtCount, instanceExts.data());
 
     bool externalMemoryCapabilitiesSupported =
-        extensionsSupported(exts, externalMemoryInstanceExtNames);
+        extensionsSupported(instanceExts, externalMemoryInstanceExtNames);
     bool externalSemaphoreCapabilitiesSupported =
-        extensionsSupported(exts, externalSemaphoreInstanceExtNames);
+        extensionsSupported(instanceExts, externalSemaphoreInstanceExtNames);
     bool surfaceSupported =
-        extensionsSupported(exts, surfaceInstanceExtNames);
+        extensionsSupported(instanceExts, surfaceInstanceExtNames);
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
-    bool moltenVKSupported =
-        (vk->vkGetMTLTextureMVK != nullptr) && (vk->vkSetMTLTextureMVK != nullptr);
+    bool moltenVKSupported = (vk->vkGetMTLTextureMVK != nullptr) &&
+                             (vk->vkSetMTLTextureMVK != nullptr) &&
+                             extensionsSupported(instanceExts, moltenVkInstanceExtNames);
+    if (moltenVKSupported) {
+        // We don't need both moltenVK and external memory. Disable
+        // external memory if moltenVK is supported.
+        externalMemoryCapabilitiesSupported = false;
+    }
 #endif
 
     VkInstanceCreateInfo instCi = {
         VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, 0, 0, nullptr, 0, nullptr, 0, nullptr,
     };
 
-    std::unordered_set<const char*> enabledExtensions;
+    std::unordered_set<const char*> selectedInstanceExtensionNames;
 
-    const bool debugUtilsSupported = extensionsSupported(exts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
+    const bool debugUtilsSupported = extensionsSupported(instanceExts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
     const bool debugUtilsRequested = false; // TODO: enable via a feature or env var?
     const bool debugUtilsAvailableAndRequested = debugUtilsSupported && debugUtilsRequested;
     if (debugUtilsAvailableAndRequested) {
-        enabledExtensions.emplace(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        selectedInstanceExtensionNames.emplace(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
     if (externalMemoryCapabilitiesSupported) {
         for (auto extension : externalMemoryInstanceExtNames) {
-            enabledExtensions.emplace(extension);
+            selectedInstanceExtensionNames.emplace(extension);
         }
     }
 
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
-    if (moltenVKSupported) {
-        // We don't need both moltenVK and external memory. Disable
-        // external memory if moltenVK is supported.
-        externalMemoryCapabilitiesSupported = false;
-        enabledExtensions.clear();
+    if (surfaceSupported) {
+        for (auto extension : surfaceInstanceExtNames) {
+            selectedInstanceExtensionNames.emplace(extension);
+        }
     }
-#endif
 
     if (sVkEmulation->features.VulkanNativeSwapchain.enabled) {
         for (auto extension : SwapChainStateVk::getRequiredInstanceExtensions()) {
-            enabledExtensions.emplace(extension);
+            selectedInstanceExtensionNames.emplace(extension);
         }
     }
 
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
     if (moltenVKSupported) {
-        enabledExtensions.emplace(VK_MVK_MOLTENVK_EXTENSION_NAME);
+        instCi.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        for (auto extension : moltenVkInstanceExtNames) {
+            selectedInstanceExtensionNames.emplace(extension);
+        }
     }
 #endif
 
-    std::vector<const char*> enabledExtensions_(enabledExtensions.begin(), enabledExtensions.end());
-    instCi.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions_.size());
-    instCi.ppEnabledExtensionNames = enabledExtensions_.data();
+    std::vector<const char*> selectedInstanceExtensionNames_(selectedInstanceExtensionNames.begin(), selectedInstanceExtensionNames.end());
+    instCi.enabledExtensionCount = static_cast<uint32_t>(selectedInstanceExtensionNames_.size());
+    instCi.ppEnabledExtensionNames = selectedInstanceExtensionNames_.data();
 
     VkApplicationInfo appInfo = {
         VK_STRUCTURE_TYPE_APPLICATION_INFO, 0, "AEMU", 1, "AEMU", 1, VK_MAKE_VERSION(1, 0, 0),
@@ -643,9 +661,8 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     }
 
     VK_COMMON_VERBOSE("Creating instance, asking for version %d.%d.%d ...",
-    VK_VERSION_MAJOR(appInfo.apiVersion),
-    VK_VERSION_MINOR(appInfo.apiVersion),
-    VK_VERSION_PATCH(appInfo.apiVersion));
+                      VK_VERSION_MAJOR(appInfo.apiVersion), VK_VERSION_MINOR(appInfo.apiVersion),
+                      VK_VERSION_PATCH(appInfo.apiVersion));
 
     VkResult res = gvk->vkCreateInstance(&instCi, nullptr, &sVkEmulation->instance);
 
@@ -721,20 +738,19 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
 
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
     if (sVkEmulation->instanceSupportsMoltenVK) {
-        sVkEmulation->setMTLTextureFunc = reinterpret_cast<PFN_vkSetMTLTextureMVK>(
-            vk->vkGetInstanceProcAddr(sVkEmulation->instance, "vkSetMTLTextureMVK"));
-
+        // These functions are directly loaded from the shared molten library
+        // and are not available via vkGetInstanceProcAddr
+        sVkEmulation->setMTLTextureFunc = gvk->vkSetMTLTextureMVK;
         if (!sVkEmulation->setMTLTextureFunc) {
             VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(ABORT_REASON_OTHER,
                                                  "Cannot find vkSetMTLTextureMVK.");
         }
-        sVkEmulation->getMTLTextureFunc = reinterpret_cast<PFN_vkGetMTLTextureMVK>(
-            vk->vkGetInstanceProcAddr(sVkEmulation->instance, "vkGetMTLTextureMVK"));
+        sVkEmulation->getMTLTextureFunc = gvk->vkGetMTLTextureMVK;
         if (!sVkEmulation->getMTLTextureFunc) {
             VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(ABORT_REASON_OTHER,
                                                  "Cannot find vkGetMTLTextureMVK.");
         }
-        VK_COMMON_VERBOSE("Instance supports VK_MVK_moltenvk.");
+        VK_COMMON_LOG("Instance supports VK_MVK_moltenvk.");
     }
 #endif
 
@@ -771,6 +787,14 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         deviceInfos[i].supportsExternalMemoryImport = false;
         deviceInfos[i].supportsExternalMemoryExport = false;
         deviceInfos[i].glInteropSupported = 0;  // set later
+
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+        if (moltenVKSupported && !extensionsSupported(deviceExts, moltenVkDeviceExtNames)) {
+            VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(
+                ABORT_REASON_OTHER,
+                "MoltenVK enabled but necessary device extensions are not supported.");
+        }
+#endif
 
         if (sVkEmulation->instanceSupportsExternalMemoryCapabilities) {
             deviceInfos[i].supportsExternalMemoryExport =
@@ -1040,6 +1064,15 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     if (sVkEmulation->deviceInfo.hasSamplerYcbcrConversionExtension) {
         selectedDeviceExtensionNames_.emplace(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
     }
+
+#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+    if (moltenVKSupported) {
+        for (auto extension : moltenVkDeviceExtNames) {
+            selectedDeviceExtensionNames_.emplace(extension);
+        }
+    }
+#endif
+
     std::vector<const char*> selectedDeviceExtensionNames(selectedDeviceExtensionNames_.begin(),
                                                           selectedDeviceExtensionNames_.end());
 
@@ -2132,7 +2165,7 @@ bool initializeVkColorBufferLocked(
     if (sVkEmulation->instanceSupportsMoltenVK) {
         sVkEmulation->getMTLTextureFunc(infoPtr->image, &infoPtr->mtlTexture);
         if (!infoPtr->mtlTexture) {
-            VK_COMMON_ERROR("Failed to get MTLTexture.\n");
+            VK_COMMON_ERROR("Failed to get MTLTexture for Vulkan image %p.", infoPtr->image);
         }
 
         CFRetain(infoPtr->mtlTexture);

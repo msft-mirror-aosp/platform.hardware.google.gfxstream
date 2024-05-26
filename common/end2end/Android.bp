@@ -9,6 +9,7 @@ cc_test_host {
     defaults: ["gfxstream_cc_defaults"],
     srcs: [
         "GfxstreamEnd2EndTests.cpp",
+        "GfxstreamEnd2EndTestUtils.cpp",
         "GfxstreamEnd2EndCompositionTests.cpp",
         "GfxstreamEnd2EndGlTests.cpp",
         "GfxstreamEnd2EndVkTests.cpp",

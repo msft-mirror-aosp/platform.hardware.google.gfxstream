@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -415,6 +417,8 @@ class ScopedAHardwareBuffer {
 
     uint32_t GetHeight() const { return mGralloc->getHeight(mHandle); }
 
+    uint32_t GetAHBFormat() const { return mGralloc->getFormat(mHandle); }
+
     GlExpected<uint8_t*> Lock() {
         uint8_t* mapped = nullptr;
         int status = mGralloc->lock(mHandle, &mapped);
@@ -512,10 +516,6 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     };
     VkExpected<TypicalVkTestEnvironment> SetUpTypicalVkTestEnvironment(
         const TypicalVkTestEnvironmentOptions& opts = {});
-
-    uint32_t GetMemoryType(const vkhpp::PhysicalDevice& physicalDevice,
-                           const vkhpp::MemoryRequirements& memoryRequirements,
-                           vkhpp::MemoryPropertyFlags memoryProperties);
 
     void SnapshotSaveAndLoad();
 
