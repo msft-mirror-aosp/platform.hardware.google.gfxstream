@@ -1127,8 +1127,9 @@ class PipeVirglRenderer {
 
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const uint32_t fwkformat = virgl_format_to_fwk_format(args->format);
+        const bool linear = !!(args->bind & VIRGL_BIND_LINEAR);
         mVirtioGpuOps->create_color_buffer_with_handle(args->width, args->height, glformat,
-                                                       fwkformat, args->handle);
+                                                       fwkformat, args->handle, linear);
         mVirtioGpuOps->set_guest_managed_color_buffer_lifetime(true /* guest manages lifetime */);
         mVirtioGpuOps->open_color_buffer(args->handle);
     }
