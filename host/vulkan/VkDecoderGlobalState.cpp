@@ -3047,12 +3047,16 @@ class VkDecoderGlobalState::Impl {
                         if (descriptorTypeContainsImage(descType)) {
                             auto* imageViewInfo =
                                 android::base::find(mImageViewInfo, entry.imageInfo.imageView);
-                            entry.alives.push_back(imageViewInfo->alive);
+                            if (imageViewInfo) {
+                                entry.alives.push_back(imageViewInfo->alive);
+                            }
                         }
                         if (descriptorTypeContainsSampler(descType)) {
                             auto* samplerInfo =
                                 android::base::find(mSamplerInfo, entry.imageInfo.sampler);
-                            entry.alives.push_back(samplerInfo->alive);
+                            if (samplerInfo) {
+                                entry.alives.push_back(samplerInfo->alive);
+                            }
                         }
                     }
                 } else if (isDescriptorTypeBufferInfo(descType)) {
@@ -3069,7 +3073,9 @@ class VkDecoderGlobalState::Impl {
                         entry.alives.clear();
                         auto* bufferInfo =
                             android::base::find(mBufferInfo, entry.bufferInfo.buffer);
-                        entry.alives.push_back(bufferInfo->alive);
+                        if (bufferInfo) {
+                            entry.alives.push_back(bufferInfo->alive);
+                        }
                     }
                 } else if (isDescriptorTypeBufferView(descType)) {
                     for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
