@@ -104,6 +104,8 @@ class VkReconstruction {
 
     void forEachHandleAddModifyApi(const uint64_t* toProcess, uint32_t count, uint64_t apiHandle);
 
+    void forEachHandleClearModifyApi(const uint64_t* toProcess, uint32_t count);
+
     void setModifiedHandlesForApi(uint64_t apiHandle, const uint64_t* modified, uint32_t count);
 
     // Used by on_vkCreateDescriptorPool.
