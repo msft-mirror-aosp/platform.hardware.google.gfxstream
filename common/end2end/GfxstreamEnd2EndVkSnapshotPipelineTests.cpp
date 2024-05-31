@@ -914,6 +914,178 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotDescriptors) {
     }
 }
 
+TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, DeleteBufferBeforeCommit) {
+    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = testEnvironment;
+
+    auto pipelineInfo = createPipeline(device.get());
+    auto vertexBufferInfo = createAndPopulateBuffer(
+        physicalDevice, device.get(), vkhpp::BufferUsageFlagBits::eVertexBuffer,
+        kFullscreenBlueRectangleVertexData, sizeof(kFullscreenBlueRectangleVertexData));
+
+    auto colorAttachmentInfo = createColorAttachment(physicalDevice, device.get());
+    ASSERT_THAT(colorAttachmentInfo->image, IsValidHandle());
+    ASSERT_THAT(colorAttachmentInfo->memory, IsValidHandle());
+    ASSERT_THAT(colorAttachmentInfo->imageView, IsValidHandle());
+
+    // Descriptor
+    std::vector<vkhpp::DescriptorPoolSize> sizes = {
+        {
+            .type = vkhpp::DescriptorType::eUniformBuffer,
+            .descriptorCount = 10,
+        },
+    };
+    vkhpp::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
+        .maxSets = 10,
+        .poolSizeCount = static_cast<uint32_t>(sizes.size()),
+        .pPoolSizes = sizes.data(),
+    };
+    auto descriptorPool = device->createDescriptorPoolUnique(descriptorPoolCreateInfo).value;
+    ASSERT_THAT(descriptorPool, IsValidHandle());
+
+    const std::vector<vkhpp::DescriptorSetLayout> descriptorSetLayouts(
+        1, *pipelineInfo->descriptorSetLayout);
+
+    vkhpp::DescriptorSetAllocateInfo descriptorSetAllocateInfo = {
+        .descriptorPool = *descriptorPool,
+        .descriptorSetCount = 1,
+        .pSetLayouts = descriptorSetLayouts.data(),
+    };
+    auto descriptorSets = device->allocateDescriptorSetsUnique(descriptorSetAllocateInfo);
+    EXPECT_THAT(descriptorSets.result, Eq(vkhpp::Result::eSuccess));
+    auto descriptorSet = *descriptorSets.value[0];
+
+    // A uniform for red color
+    float kColor1[] = {1.0f, 0.0f, 0.0f, 0.0f};
+    auto uniformBufferInfo = createAndPopulateBuffer(physicalDevice, device.get(),
+                                                     vkhpp::BufferUsageFlagBits::eUniformBuffer,
+                                                     kColor1, sizeof(kColor1));
+
+    std::vector<vkhpp::WriteDescriptorSet> writeDescriptorSets;
+    std::vector<vkhpp::DescriptorBufferInfo> bufferInfos;
+    bufferInfos.emplace_back(vkhpp::DescriptorBufferInfo{
+        .buffer = *uniformBufferInfo->buffer,
+        .offset = 0,
+        .range = VK_WHOLE_SIZE,
+    });
+    writeDescriptorSets.emplace_back(vkhpp::WriteDescriptorSet{
+        .dstSet = descriptorSet,
+        .dstBinding = 0,
+        .descriptorCount = 1,
+        .descriptorType = vkhpp::DescriptorType::eUniformBuffer,
+        .pBufferInfo = bufferInfos.data(),
+    });
+    device->updateDescriptorSets(writeDescriptorSets, nullptr);
+
+    // Delete the underlying buffer, should not crash.
+    uniformBufferInfo->buffer.reset();
+
+    const std::vector<vkhpp::ImageView> attachments(1, *colorAttachmentInfo->imageView);
+    vkhpp::FramebufferCreateInfo framebufferCreateInfo = {
+        .renderPass = *pipelineInfo->renderPass,
+        .attachmentCount = 1,
+        .pAttachments = attachments.data(),
+        .width = kFbWidth,
+        .height = kFbHeight,
+        .layers = 1,
+    };
+    auto framebuffer = device->createFramebufferUnique(framebufferCreateInfo).value;
+    ASSERT_THAT(framebuffer, IsValidHandle());
+
+    auto fence = device->createFenceUnique(vkhpp::FenceCreateInfo()).value;
+    ASSERT_THAT(fence, IsValidHandle());
+
+    const vkhpp::CommandPoolCreateInfo commandPoolCreateInfo = {
+        .flags = vkhpp::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        .queueFamilyIndex = queueFamilyIndex,
+    };
+
+    auto commandPool = device->createCommandPoolUnique(commandPoolCreateInfo).value;
+    ASSERT_THAT(commandPool, IsValidHandle());
+
+    const vkhpp::CommandBufferAllocateInfo commandBufferAllocateInfo = {
+        .level = vkhpp::CommandBufferLevel::ePrimary,
+        .commandPool = *commandPool,
+        .commandBufferCount = 1,
+    };
+
+    auto commandBuffers = device->allocateCommandBuffersUnique(commandBufferAllocateInfo).value;
+    ASSERT_THAT(commandBuffers, Not(IsEmpty()));
+    auto commandBuffer = std::move(commandBuffers[0]);
+    ASSERT_THAT(commandBuffer, IsValidHandle());
+
+    vkhpp::ClearColorValue clearColor(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f});
+    vkhpp::ClearValue clearValue{
+        .color = clearColor,
+    };
+
+    // Descriptor updates are cached on the guest, for testing purpose we need to submit a queue to
+    // commit descriptor updates.
+
+    const vkhpp::CommandBufferBeginInfo commandBufferBeginInfo = {
+        .flags = vkhpp::CommandBufferUsageFlagBits::eOneTimeSubmit,
+    };
+
+    commandBuffer->begin(commandBufferBeginInfo);
+    const vkhpp::ImageMemoryBarrier colorAttachmentBarrier{
+        .oldLayout = vkhpp::ImageLayout::eUndefined,
+        .newLayout = vkhpp::ImageLayout::eColorAttachmentOptimal,
+        .dstAccessMask = vkhpp::AccessFlagBits::eColorAttachmentRead |
+                         vkhpp::AccessFlagBits::eColorAttachmentWrite,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = *colorAttachmentInfo->image,
+        .subresourceRange =
+            {
+                .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                .levelCount = 1,
+                .layerCount = 1,
+            },
+    };
+
+    commandBuffer->pipelineBarrier(
+        vkhpp::PipelineStageFlagBits::eTopOfPipe | vkhpp::PipelineStageFlagBits::eTransfer,
+        vkhpp::PipelineStageFlagBits::eColorAttachmentOutput, vkhpp::DependencyFlags(), nullptr,
+        nullptr, colorAttachmentBarrier);
+
+    vkhpp::RenderPassBeginInfo renderPassBeginInfo{
+        .renderPass = *pipelineInfo->renderPass,
+        .framebuffer = *framebuffer,
+        .renderArea = vkhpp::Rect2D(vkhpp::Offset2D(0, 0), vkhpp::Extent2D(kFbWidth, kFbHeight)),
+        .clearValueCount = 1,
+        .pClearValues = &clearValue,
+    };
+    commandBuffer->beginRenderPass(renderPassBeginInfo, vkhpp::SubpassContents::eInline);
+    vkhpp::ClearAttachment clearAttachment{
+        .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+        .colorAttachment = 0,
+        .clearValue = clearValue,
+    };
+    vkhpp::ClearRect clearRect{
+        .rect = vkhpp::Rect2D(vkhpp::Offset2D(0, 0), vkhpp::Extent2D(kFbWidth, kFbHeight)),
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+    };
+    commandBuffer->clearAttachments(1, &clearAttachment, 1, &clearRect);
+    commandBuffer->endRenderPass();
+    commandBuffer->end();
+
+    std::vector<vkhpp::CommandBuffer> commandBufferHandles;
+    commandBufferHandles.push_back(*commandBuffer);
+
+    const vkhpp::SubmitInfo submitInfo = {
+        .commandBufferCount = static_cast<uint32_t>(commandBufferHandles.size()),
+        .pCommandBuffers = commandBufferHandles.data(),
+    };
+    // Submit will update the stale descriptor. Should not crash.
+    queue.submit(submitInfo, *fence);
+    auto waitResult = device->waitForFences(*fence, VK_TRUE, 3000000000L);
+    ASSERT_THAT(waitResult, IsVkSuccess());
+    commandBuffer->reset();
+    // Snapshot should not crash.
+    SnapshotSaveAndLoad();
+}
+
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, DeleteBufferAfterWriteDescriptor) {
     TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
     auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = testEnvironment;
