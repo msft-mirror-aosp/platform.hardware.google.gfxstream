@@ -1676,6 +1676,64 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+#ifdef __APPLE__
+#ifndef VK_ENABLE_BETA_EXTENSIONS
+        // TODO: Update Vulkan headers, stringhelpers and compilation parameters to use
+        // this directly from beta extensions and use regular chain append commands
+        const VkStructureType VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR =
+            (VkStructureType)1000163000;
+#endif
+        // Enable all portability features supported on the device
+        VkPhysicalDevicePortabilitySubsetFeaturesKHR supportedPortabilityFeatures = {
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR, nullptr};
+        if (m_emu->instanceSupportsMoltenVK) {
+            VkPhysicalDeviceFeatures2 features2 = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+                .pNext = &supportedPortabilityFeatures,
+            };
+            vk->vkGetPhysicalDeviceFeatures2(physicalDevice, &features2);
+
+            if (mVerbosePrints) {
+                fprintf(stderr,
+                        "VERBOSE:%s: MoltenVK supportedPortabilityFeatures\n"
+                        "constantAlphaColorBlendFactors = %d\n"
+                        "events = %d\n"
+                        "imageViewFormatReinterpretation = %d\n"
+                        "imageViewFormatSwizzle = %d\n"
+                        "imageView2DOn3DImage = %d\n"
+                        "multisampleArrayImage = %d\n"
+                        "mutableComparisonSamplers = %d\n"
+                        "pointPolygons = %d\n"
+                        "samplerMipLodBias = %d\n"
+                        "separateStencilMaskRef = %d\n"
+                        "shaderSampleRateInterpolationFunctions = %d\n"
+                        "tessellationIsolines = %d\n"
+                        "tessellationPointMode = %d\n"
+                        "triangleFans = %d\n"
+                        "vertexAttributeAccessBeyondStride = %d\n",
+                        __func__, supportedPortabilityFeatures.constantAlphaColorBlendFactors,
+                        supportedPortabilityFeatures.events,
+                        supportedPortabilityFeatures.imageViewFormatReinterpretation,
+                        supportedPortabilityFeatures.imageViewFormatSwizzle,
+                        supportedPortabilityFeatures.imageView2DOn3DImage,
+                        supportedPortabilityFeatures.multisampleArrayImage,
+                        supportedPortabilityFeatures.mutableComparisonSamplers,
+                        supportedPortabilityFeatures.pointPolygons,
+                        supportedPortabilityFeatures.samplerMipLodBias,
+                        supportedPortabilityFeatures.separateStencilMaskRef,
+                        supportedPortabilityFeatures.shaderSampleRateInterpolationFunctions,
+                        supportedPortabilityFeatures.tessellationIsolines,
+                        supportedPortabilityFeatures.tessellationPointMode,
+                        supportedPortabilityFeatures.triangleFans,
+                        supportedPortabilityFeatures.vertexAttributeAccessBeyondStride);
+            }
+
+            // Insert into device create info chain
+            supportedPortabilityFeatures.pNext = const_cast<void*>(createInfoFiltered.pNext);
+            createInfoFiltered.pNext = &supportedPortabilityFeatures;
+        }
+#endif
+
         // Filter device memory report as callbacks can not be passed between guest and host.
         vk_struct_chain_filter<VkDeviceDeviceMemoryReportCreateInfoEXT>(&createInfoFiltered);
 
@@ -3047,12 +3105,16 @@ class VkDecoderGlobalState::Impl {
                         if (descriptorTypeContainsImage(descType)) {
                             auto* imageViewInfo =
                                 android::base::find(mImageViewInfo, entry.imageInfo.imageView);
-                            entry.alives.push_back(imageViewInfo->alive);
+                            if (imageViewInfo) {
+                                entry.alives.push_back(imageViewInfo->alive);
+                            }
                         }
                         if (descriptorTypeContainsSampler(descType)) {
                             auto* samplerInfo =
                                 android::base::find(mSamplerInfo, entry.imageInfo.sampler);
-                            entry.alives.push_back(samplerInfo->alive);
+                            if (samplerInfo) {
+                                entry.alives.push_back(samplerInfo->alive);
+                            }
                         }
                     }
                 } else if (isDescriptorTypeBufferInfo(descType)) {
@@ -3069,7 +3131,9 @@ class VkDecoderGlobalState::Impl {
                         entry.alives.clear();
                         auto* bufferInfo =
                             android::base::find(mBufferInfo, entry.bufferInfo.buffer);
-                        entry.alives.push_back(bufferInfo->alive);
+                        if (bufferInfo) {
+                            entry.alives.push_back(bufferInfo->alive);
+                        }
                     }
                 } else if (isDescriptorTypeBufferView(descType)) {
                     for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
