@@ -257,7 +257,9 @@ void MaybeIncreaseFileDescriptorSoftLimit() {
             return;
         }
 
-        GL_LOG("Raised nofile soft limit to %d.", static_cast<int>(requestedSoftLimit));
+        INFO("Raised nofile soft limit to %d.", static_cast<int>(requestedSoftLimit));
+    } else {
+        INFO("Not raising nofile soft limit from %d.", static_cast<int>(softLimit));
     }
 #endif
 }
@@ -592,6 +594,25 @@ FrameBuffer::~FrameBuffer() {
     m_postThread.enqueue({PostCmd::Exit});
     m_postThread.join();
     m_postWorker.reset();
+
+    // Run other cleanup callbacks
+    // Avoid deadlock by first storing a separate list of callbacks
+    std::vector<std::function<void()>> callbacks;
+    for (auto procIte : m_procOwnedCleanupCallbacks)
+    {
+        for (auto it : procIte.second) {
+            callbacks.push_back(it.second);
+        }
+    }
+    m_procOwnedCleanupCallbacks.clear();
+
+    fbLock.unlock();
+
+    for (auto cb : callbacks) {
+        cb();
+    }
+
+    fbLock.lock();
 
     if (m_useSubWindow) {
         removeSubWindow_locked();
@@ -1919,11 +1940,14 @@ Renderer::FlushReadPixelPipeline FrameBuffer::getFlushReadPixelPipeline() {
 bool FrameBuffer::repost(bool needLockAndBind) {
     GL_LOG("Reposting framebuffer.");
     if (m_displayVk) {
+        setGuestPostedAFrame();
         return true;
     }
     if (m_lastPostedColorBuffer && sInitialized.load(std::memory_order_relaxed)) {
         GL_LOG("Has last posted colorbuffer and is initialized; post.");
-        return postImplSync(m_lastPostedColorBuffer, needLockAndBind, true);
+        auto res = postImplSync(m_lastPostedColorBuffer, needLockAndBind, true);
+        if (res) setGuestPostedAFrame();
+        return res;
     } else {
         GL_LOG("No repost: no last posted color buffer");
         if (!sInitialized.load(std::memory_order_relaxed)) {
@@ -1964,9 +1988,15 @@ static void loadProcOwnedCollection(Stream* stream, Collection* c) {
 int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
                                uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
                                int desiredHeight, int desiredRotation, Rect rect) {
-    if (emugl::shouldSkipDraw()) {
+#ifdef CONFIG_AEMU
+   if (emugl::shouldSkipDraw()) {
+        *width = 0;
+        *height = 0;
+        *cPixels = 0;
         return -1;
     }
+#endif
+
     AutoLock mutex(m_lock);
     uint32_t w, h, cb, screenWidth, screenHeight;
     if (!emugl::get_emugl_multi_display_operations().getMultiDisplay(
@@ -2853,7 +2883,8 @@ void FrameBuffer::scheduleVsyncTask(VsyncThread::VsyncTask task) {
 void FrameBuffer::setDisplayConfigs(int configId, int w, int h, int dpiX, int dpiY) {
     AutoLock mutex(m_lock);
     mDisplayConfigs[configId] = {w, h, dpiX, dpiY};
-    INFO("setDisplayConfigs w %d h %d dpiX %d dpiY %d", w, h, dpiX, dpiY);
+    INFO("Setting display: %d configuration to: %dx%d, dpi: %dx%d ", configId,
+           w, h, dpiX, dpiY);
 }
 
 void FrameBuffer::setDisplayActiveConfig(int configId) {

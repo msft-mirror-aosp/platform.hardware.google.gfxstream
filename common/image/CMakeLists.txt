@@ -1,0 +1,15 @@
+add_library(
+    gfxstream_common_image.headers
+    INTERFACE)
+target_include_directories(
+    gfxstream_common_image.headers
+    INTERFACE
+    include)
+add_library(
+    gfxstream_common_image
+    ImageUtils.cpp)
+target_link_libraries(
+    gfxstream_common_image
+    PUBLIC
+    gfxstream_stb
+    gfxstream_common_image.headers)

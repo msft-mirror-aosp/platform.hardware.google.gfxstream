@@ -3191,6 +3191,8 @@ void unmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
+#ifdef VK_MVK_moltenvk
+#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -3728,6 +3730,8 @@ DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevicePipelineCreationCacheControlFeatur
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevicePipelineCreationCacheControlFeatures,
                       unmarshal_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
+#endif
+#ifdef VK_EXT_metal_objects
 #endif
 #ifdef VK_EXT_graphics_pipeline_library
 void marshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(

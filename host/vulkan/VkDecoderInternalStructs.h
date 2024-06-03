@@ -21,10 +21,13 @@
 #endif
 
 #include <stdlib.h>
+
 #include <set>
 #include <string>
 
+#include "DeviceOpTracker.h"
 #include "Handle.h"
+#include "VkEmulatedPhysicalDeviceMemory.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
@@ -36,6 +39,7 @@
 
 namespace gfxstream {
 namespace vk {
+
 template <class TDispatch>
 class ExternalFencePool {
    public:
@@ -172,11 +176,14 @@ struct InstanceInfo {
     uint32_t apiVersion = VK_MAKE_VERSION(1, 0, 0);
     VkInstance boxed = nullptr;
     bool isAngle = false;
+    std::string applicationName;
+    std::string engineName;
 };
 
 struct PhysicalDeviceInfo {
+    VkInstance instance = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties props;
-    VkPhysicalDeviceMemoryProperties memoryProperties;
+    std::unique_ptr<EmulatedPhysicalDeviceMemoryProperties> memoryPropertiesHelper;
     std::vector<VkQueueFamilyProperties> queueFamilyProperties;
     VkPhysicalDevice boxed = nullptr;
 };
@@ -193,6 +200,7 @@ struct DeviceInfo {
     std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
+    std::optional<DeviceOpTracker> deviceOpTracker;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)
@@ -223,6 +231,7 @@ struct BufferInfo {
     VkDeviceMemory memory = 0;
     VkDeviceSize memoryOffset = 0;
     VkDeviceSize size;
+    std::shared_ptr<bool> alive{new bool(true)};
 };
 
 struct ImageInfo {
@@ -243,6 +252,7 @@ struct ImageViewInfo {
 
     // Color buffer, provided via vkAllocateMemory().
     std::optional<HandleType> boundColorBuffer;
+    std::shared_ptr<bool> alive{new bool(true)};
 };
 
 struct SamplerInfo {
@@ -263,6 +273,7 @@ struct SamplerInfo {
     SamplerInfo(const SamplerInfo& other) { *this = other; }
     SamplerInfo(SamplerInfo&& other) = delete;
     SamplerInfo& operator=(SamplerInfo&& other) = delete;
+    std::shared_ptr<bool> alive{new bool(true)};
 };
 
 struct FenceInfo {
@@ -281,14 +292,22 @@ struct FenceInfo {
     State state = State::kNotWaitable;
 
     bool external = false;
+
+    // If this fence was used in an additional host operation that must be waited
+    // upon before destruction (e.g. as part of a vkAcquireImageANDROID() call),
+    // the waitable that tracking that host operation.
+    std::optional<DeviceOpWaitable> latestUse;
 };
 
 struct SemaphoreInfo {
     VkDevice device;
     int externalHandleId = 0;
-    VK_EXT_MEMORY_HANDLE externalHandle = VK_EXT_MEMORY_HANDLE_INVALID;
+    VK_EXT_SYNC_HANDLE externalHandle = VK_EXT_SYNC_HANDLE_INVALID;
+    // If this fence was used in an additional host operation that must be waited
+    // upon before destruction (e.g. as part of a vkAcquireImageANDROID() call),
+    // the waitable that tracking that host operation.
+    std::optional<DeviceOpWaitable> latestUse;
 };
-
 struct DescriptorSetLayoutInfo {
     VkDevice device = 0;
     VkDescriptorSetLayout boxed = 0;
@@ -315,7 +334,36 @@ struct DescriptorPoolInfo {
 };
 
 struct DescriptorSetInfo {
+    enum DescriptorWriteType {
+        Empty = 0,
+        ImageInfo = 1,
+        BufferInfo = 2,
+        BufferView = 3,
+        InlineUniformBlock = 4,
+        AccelerationStructure = 5,
+    };
+
+    struct DescriptorWrite {
+        VkDescriptorType descriptorType;
+        DescriptorWriteType writeType = DescriptorWriteType::Empty;
+        uint32_t dstArrayElement;  // Only used for inlineUniformBlock and accelerationStructure.
+
+        union {
+            VkDescriptorImageInfo imageInfo;
+            VkDescriptorBufferInfo bufferInfo;
+            VkBufferView bufferView;
+            VkWriteDescriptorSetInlineUniformBlockEXT inlineUniformBlock;
+            VkWriteDescriptorSetAccelerationStructureKHR accelerationStructure;
+        };
+
+        std::vector<uint8_t> inlineUniformBlockBuffer;
+        // Weak pointer(s) to detect if all objects on dependency chain are alive.
+        std::vector<std::weak_ptr<bool>> alives;
+    };
+
     VkDescriptorPool pool;
+    VkDescriptorSetLayout unboxedLayout = 0;
+    std::vector<std::vector<DescriptorWrite>> allWrites;
     std::vector<VkDescriptorSetLayoutBinding> bindings;
 };
 

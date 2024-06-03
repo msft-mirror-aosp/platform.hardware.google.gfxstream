@@ -9,20 +9,31 @@ cc_test_host {
     defaults: ["gfxstream_cc_defaults"],
     srcs: [
         "GfxstreamEnd2EndTests.cpp",
+        "GfxstreamEnd2EndTestUtils.cpp",
+        "GfxstreamEnd2EndCompositionTests.cpp",
         "GfxstreamEnd2EndGlTests.cpp",
         "GfxstreamEnd2EndVkTests.cpp",
         "GfxstreamEnd2EndVkSnapshotBasicTests.cpp",
+        "GfxstreamEnd2EndVkSnapshotBufferTests.cpp",
         "GfxstreamEnd2EndVkSnapshotImageTests.cpp",
+        "GfxstreamEnd2EndVkSnapshotPipelineTests.cpp",
     ],
     header_libs: [
         "gfxstream_headers",
+        "libgfxstream_guest_rendercontrol_headers",
+    ],
+    data: [
+        "testdata/256x256_android.png",
+        "testdata/256x256_android_with_transparency.png",
+        "testdata/256x256_golden_basic_composition.png",
     ],
     data_libs: [
-        "libGLESv1_CM_emulation_with_host",
-        "libGLESv2_emulation_with_host",
         "libEGL_emulation_with_host",
+        "libgfxstream_guest_rendercontrol_with_host",
         "libgfxstream_guest_vulkan_with_host",
         "libgfxstream_platform_rutabaga_server",
+        "libGLESv1_CM_emulation_with_host",
+        "libGLESv2_emulation_with_host",
     ],
     shared_libs: [
         "libandroidemu",
@@ -33,9 +44,12 @@ cc_test_host {
     ],
     static_libs: [
         "libc++fs",
+        "libgfxstream_common_image",
+        "libgfxstream_common_utils",
         "libgfxstream_guest_android_with_host",
-        "libgmock",
         "libgfxstream_platform_rutabaga",
+        "libgfxstream_thirdparty_stb",
+        "libgmock",
     ],
     cflags: [
         // TODO: remove

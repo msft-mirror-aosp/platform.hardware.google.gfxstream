@@ -14,9 +14,9 @@
 
 #include "VulkanDispatch.h"
 
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/files/PathUtils.h"
 #include "aemu/base/SharedLibrary.h"
+#include "aemu/base/files/PathUtils.h"
+#include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/system/System.h"
 #include "host-common/misc.h"
 
@@ -27,15 +27,6 @@ using android::base::pj;
 namespace gfxstream {
 namespace vk {
 
-static void setIcdPath(const std::string& path) {
-    if (android::base::pathExists(path.c_str())) {
-        // LOG(VERBOSE) << "setIcdPath: path exists: " << path;
-    } else {
-        // LOG(VERBOSE) << "setIcdPath: path doesn't exist: " << path;
-    }
-    android::base::setEnvironmentVariable("VK_ICD_FILENAMES", path);
-}
-
 static std::string icdJsonNameToProgramAndLauncherPaths(const std::string& icdFilename) {
     std::string suffix = pj({"lib64", "vulkan", icdFilename});
 #if defined(_WIN32)
@@ -45,6 +36,12 @@ static std::string icdJsonNameToProgramAndLauncherPaths(const std::string& icdFi
 #endif
     return pj({android::base::getProgramDirectory(), suffix}) + sep +
            pj({android::base::getLauncherDirectory(), suffix});
+}
+
+static void setIcdPaths(const std::string& icdFilename) {
+    const std::string paths = icdJsonNameToProgramAndLauncherPaths(icdFilename);
+    INFO("Setting ICD filenames for the loader = %s", paths.c_str());
+    android::base::setEnvironmentVariable("VK_ICD_FILENAMES", paths);
 }
 
 static const char* getTestIcdFilename() {
@@ -64,54 +61,49 @@ static void initIcdPaths(bool forTesting) {
     if (androidIcd == "") {
         // Rely on user to set VK_ICD_FILENAMES
         return;
+    }
+
+    if (forTesting) {
+        const char* testingICD = "swiftshader";
+        INFO("%s: In test environment, enforcing %s ICD.", __func__, testingICD);
+        android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", testingICD);
+        androidIcd = testingICD;
+    }
+
+    if (androidIcd == "swiftshader") {
+        INFO("%s: ICD set to 'swiftshader', using Swiftshader ICD", __func__);
+        setIcdPaths("vk_swiftshader_icd.json");
     } else {
-        if (forTesting || androidIcd == "swiftshader") {
-            auto res = pj({android::base::getProgramDirectory(), "lib64", "vulkan"});
-            // LOG(VERBOSE) << "In test environment or ICD set to swiftshader, using "
-            // "Swiftshader ICD";
-            auto libPath = pj(
-                {android::base::getProgramDirectory(), "lib64", "vulkan", getTestIcdFilename()});
-            ;
-            if (android::base::pathExists(libPath.c_str())) {
-                // LOG(VERBOSE) << "Swiftshader library exists";
-            } else {
-                // LOG(VERBOSE) << "Swiftshader library doesn't exist, trying launcher path";
-                libPath = pj({android::base::getLauncherDirectory(), "lib64", "vulkan",
-                              getTestIcdFilename()});
-                ;
-                if (android::base::pathExists(libPath.c_str())) {
-                    // LOG(VERBOSE) << "Swiftshader library found in launcher path";
-                } else {
-                    // LOG(VERBOSE) << "Swiftshader library not found in program nor launcher path";
-                }
-            }
-            setIcdPath(icdJsonNameToProgramAndLauncherPaths("vk_swiftshader_icd.json"));
-            android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "swiftshader");
-        } else {
-            // LOG(VERBOSE) << "Not in test environment. ICD (blank for default): ["
-            // << androidIcd << "]";
-            // Mac: Use MoltenVK by default unless GPU mode is set to swiftshader,
-            // and switch between that and gfx-rs libportability-icd depending on
-            // the environment variable setting.
 #ifdef __APPLE__
-            if (androidIcd == "portability") {
-                setIcdPath(icdJsonNameToProgramAndLauncherPaths("portability-macos.json"));
-            } else if (androidIcd == "portability-debug") {
-                setIcdPath(icdJsonNameToProgramAndLauncherPaths("portability-macos-debug.json"));
-            } else {
-                if (androidIcd == "swiftshader") {
-                    setIcdPath(icdJsonNameToProgramAndLauncherPaths("vk_swiftshader_icd.json"));
-                    android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "swiftshader");
-                } else {
-                    setIcdPath(icdJsonNameToProgramAndLauncherPaths("MoltenVK_icd.json"));
-                    android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "moltenvk");
-                }
-            }
-#else
-            // By default, on other platforms, just use whatever the system
-            // is packing.
-#endif
+        // Mac: Use MoltenVK by default unless GPU mode is set to swiftshader
+        if (androidIcd != "moltenvk") {
+            WARN("%s: Unknown ICD, resetting to MoltenVK", __func__);
+            android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "moltenvk");
         }
+        setIcdPaths("MoltenVK_icd.json");
+
+        // Configure MoltenVK library with environment variables
+        // 0: No logging.
+        // 1: Log errors only.
+        // 2: Log errors and warning messages.
+        // 3: Log errors, warnings and informational messages.
+        // 4: Log errors, warnings, infos and debug messages.
+        const bool verboseLogs =
+            (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
+        const char* logLevelValue = verboseLogs ? "4" : "2";
+        android::base::setEnvironmentVariable("MVK_CONFIG_LOG_LEVEL", logLevelValue);
+
+        //  Limit MoltenVK to use single queue, as some older ANGLE versions
+        //  expect this for -guest-angle to work.
+        //  0: Limit Vulkan to a single queue, with no explicit semaphore
+        //  synchronization, and use Metal's implicit guarantees that all operations
+        //  submitted to a queue will give the same result as if they had been run in
+        //  submission order.
+        android::base::setEnvironmentVariable("MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE", "0");
+#else
+        // By default, on other platforms, just use whatever the system
+        // is packing.
+#endif
     }
 }
 
@@ -230,6 +222,11 @@ class VulkanDispatchImpl {
 
 #elif defined(_WIN32)
         return std::vector<std::string>{"vulkan-1.dll"};
+#elif defined(__QNX__)
+        return std::vector<std::string>{
+            "libvulkan.so",
+            "libvulkan.so.1",
+        };
 #else
 #error "Unhandled platform in VulkanDispatchImpl."
 #endif
@@ -244,11 +241,9 @@ class VulkanDispatchImpl {
             };
         }
 
-        const std::vector<std::string> possibleBasenames =
-            getPossibleLoaderPathBasenames();
+        const std::vector<std::string> possibleBasenames = getPossibleLoaderPathBasenames();
 
-        const std::string explicitIcd =
-            android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
+        const std::string explicitIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
 
 #ifdef _WIN32
         constexpr const bool isWindows = true;

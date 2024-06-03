@@ -55,6 +55,7 @@ class VkDecoderSnapshot {
     void save(android::base::Stream* stream);
     void load(android::base::Stream* stream, emugl::GfxApiLogger& gfx_logger,
               emugl::HealthMonitor<>* healthMonitor);
+    void createExtraHandlesForNextApi(const uint64_t* created, uint32_t count);
 #ifdef VK_VERSION_1_0
     void vkCreateInstance(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                           android::base::BumpPool* pool, VkResult input_result,
@@ -1319,6 +1320,8 @@ class VkDecoderSnapshot {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
+#ifdef VK_MVK_moltenvk
+#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -1500,6 +1503,8 @@ class VkDecoderSnapshot {
                              VkPrivateDataSlot privateDataSlot, uint64_t* pData);
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_EXT_metal_objects
 #endif
 #ifdef VK_EXT_graphics_pipeline_library
 #endif

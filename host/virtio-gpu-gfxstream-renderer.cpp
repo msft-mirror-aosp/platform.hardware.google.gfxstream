@@ -18,6 +18,7 @@
 #include <deque>
 #include <type_traits>
 #include <unordered_map>
+#include <variant>
 
 #include "BlobManager.h"
 #include "FrameBuffer.h"
@@ -30,6 +31,7 @@
 #include "aemu/base/Tracing.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "aemu/base/threads/WorkerThread.h"
 #include "gfxstream/Strings.h"
 #include "gfxstream/host/Features.h"
 #include "host-common/AddressSpaceService.h"
@@ -252,6 +254,47 @@ enum class ResType {
     COLOR_BUFFER,
 };
 
+struct AlignedMemory {
+    void* addr = nullptr;
+
+    AlignedMemory(size_t align, size_t size)
+        : addr(android::aligned_buf_alloc(align, size)) {}
+
+    ~AlignedMemory() {
+        if (addr != nullptr) {
+            android::aligned_buf_free(addr);
+        }
+    }
+
+    // AlignedMemory is neither copyable nor movable.
+    AlignedMemory(const AlignedMemory& other) = delete;
+    AlignedMemory& operator=(const AlignedMemory& other) = delete;
+    AlignedMemory(AlignedMemory&& other) = delete;
+    AlignedMemory& operator=(AlignedMemory&& other) = delete;
+};
+
+// Memory used as a ring buffer for communication between the guest and host.
+class RingBlob : public std::variant<std::unique_ptr<AlignedMemory>,
+                                     std::unique_ptr<SharedMemory>> {
+  public:
+    using BaseType = std::variant<std::unique_ptr<AlignedMemory>,
+                                  std::unique_ptr<SharedMemory>>;
+    // Inherit constructors.
+    using BaseType::BaseType;
+
+    bool isExportable() const {
+        return std::holds_alternative<std::unique_ptr<SharedMemory>>(*this);
+    }
+
+    SharedMemory::handle_type releaseHandle() {
+        if (!isExportable()) {
+            return SharedMemory::invalidHandle();
+        }
+        return std::get<std::unique_ptr<SharedMemory>>(*this)->releaseHandle();
+    }
+};
+
+
 struct PipeResEntry {
     stream_renderer_resource_create_args args;
     iovec* iov;
@@ -267,7 +310,7 @@ struct PipeResEntry {
     uint32_t blobFlags;
     uint32_t caching;
     ResType type;
-    std::shared_ptr<SharedMemory> ringBlob = nullptr;
+    std::shared_ptr<RingBlob> ringBlob;
     bool externalAddr = false;
     std::shared_ptr<ManagedDescriptorInfo> descriptorInfo = nullptr;
 };
@@ -592,6 +635,47 @@ static uint64_t convert32to64(uint32_t lo, uint32_t hi) {
     return ((uint64_t)lo) | (((uint64_t)hi) << 32);
 }
 
+class CleanupThread {
+  public:
+    using GenericCleanup = std::function<void()>;
+
+    CleanupThread() : mWorker([](CleanupTask task) {
+            return std::visit([](auto&& work) {
+                using T = std::decay_t<decltype(work)>;
+                if constexpr (std::is_same_v<T, GenericCleanup>) {
+                    work();
+                    return android::base::WorkerProcessingResult::Continue;
+                } else if constexpr (std::is_same_v<T, Exit>) {
+                    return android::base::WorkerProcessingResult::Stop;
+                }
+            }, std::move(task));
+          }) {
+        mWorker.start();
+    }
+
+    ~CleanupThread() { stop(); }
+
+    // CleanupThread is neither copyable nor movable.
+    CleanupThread(const CleanupThread& other) = delete;
+    CleanupThread& operator=(const CleanupThread& other) = delete;
+    CleanupThread(CleanupThread&& other) = delete;
+    CleanupThread& operator=(CleanupThread&& other) = delete;
+
+    void enqueueCleanup(GenericCleanup command) {
+        mWorker.enqueue(std::move(command));
+    }
+
+    void stop() {
+        mWorker.enqueue(Exit{});
+        mWorker.join();
+    }
+
+  private:
+    struct Exit {};
+    using CleanupTask = std::variant<GenericCleanup, Exit>;
+    android::base::WorkerThread<CleanupTask> mWorker;
+};
+
 class PipeVirglRenderer {
    public:
     PipeVirglRenderer() = default;
@@ -618,7 +702,13 @@ class PipeVirglRenderer {
         mPageSize = getpagesize();
 #endif
 
+        mCleanupThread.reset(new CleanupThread());
+
         return 0;
+    }
+
+    void teardown() {
+        mCleanupThread.reset();
     }
 
     int resetPipe(GoldfishHwPipe* hwPipe, GoldfishHostPipe* hostPipe) {
@@ -701,6 +791,8 @@ class PipeVirglRenderer {
 
         if (it->second.hasAddressSpaceHandle) {
             for (auto const& [resourceId, handle] : it->second.addressSpaceHandles) {
+                // Note: this can hang as is but this has only been observed to
+                // happen during shutdown. See b/329287602#comment8.
                 mAddressSpaceDeviceControlOps->destroy_handle(handle);
             }
         }
@@ -779,6 +871,9 @@ class PipeVirglRenderer {
                 auto& resEntry = resEntryIt->second;
 
                 std::string name = ctxEntry.name + "-" + std::to_string(contextCreate.resourceId);
+
+                // Note: resource ids can not be used as ASG handles because ASGs may outlive the
+                // containing resource due asynchronous ASG destruction.
                 uint32_t handle = mAddressSpaceDeviceControlOps->gen_handle();
 
                 struct AddressSpaceCreateInfo createInfo = {
@@ -1022,11 +1117,11 @@ class PipeVirglRenderer {
     }
 
     void handleCreateResourceBuffer(struct stream_renderer_resource_create_args* args) {
+        stream_renderer_debug("w:%u h:%u handle:%u", args->handle, args->width, args->height);
         mVirtioGpuOps->create_buffer_with_handle(args->width * args->height, args->handle);
     }
 
     void handleCreateResourceColorBuffer(struct stream_renderer_resource_create_args* args) {
-        // corresponds to allocation of gralloc buffer in minigbm
         stream_renderer_debug("w h %u %u resid %u -> CreateColorBufferWithHandle", args->width,
                               args->height, args->handle);
 
@@ -1105,10 +1200,6 @@ class PipeVirglRenderer {
             free(entry.iov);
             entry.iov = nullptr;
             entry.numIovs = 0;
-        }
-
-        if (entry.externalAddr && !entry.ringBlob) {
-            android::aligned_buf_free(entry.hva);
         }
 
         entry.hva = nullptr;
@@ -1409,9 +1500,9 @@ class PipeVirglRenderer {
                 capset->bufferSize = 1048576;
 
                 auto vk_emu = gfxstream::vk::getGlobalVkEmulation();
-                if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeIndex) {
+                if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeInfo) {
                     capset->colorBufferMemoryIndex =
-                        *vk_emu->representativeColorBufferMemoryTypeIndex;
+                        vk_emu->representativeColorBufferMemoryTypeInfo->guestMemoryTypeIndex;
                 }
 
                 capset->noRenderControlEnc = 1;
@@ -1558,24 +1649,25 @@ class PipeVirglRenderer {
                        const struct stream_renderer_handle* handle) {
         if (mFeatures.ExternalBlob.enabled) {
             std::string name = "shared-memory-" + std::to_string(res_handle);
-            auto ringBlob = std::make_shared<SharedMemory>(name, create_blob->size);
-            int ret = ringBlob->create(0600);
+            auto shmem = std::make_unique<SharedMemory>(name, create_blob->size);
+            int ret = shmem->create(0600);
             if (ret) {
                 stream_renderer_error("Failed to create shared memory blob");
                 return ret;
             }
 
-            entry.ringBlob = ringBlob;
-            entry.hva = ringBlob->get();
+            entry.hva = shmem->get();
+            entry.ringBlob = std::make_shared<RingBlob>(std::move(shmem));
+
         } else {
-            void* addr =
-                android::aligned_buf_alloc(mPageSize, create_blob->size);
-            if (addr == nullptr) {
+            auto mem = std::make_unique<AlignedMemory>(mPageSize, create_blob->size);
+            if (mem->addr == nullptr) {
                 stream_renderer_error("Failed to allocate ring blob");
                 return -ENOMEM;
             }
 
-            entry.hva = addr;
+            entry.hva = mem->addr;
+            entry.ringBlob = std::make_shared<RingBlob>(std::move(mem));
         }
 
         entry.hvaSize = create_blob->size;
@@ -1717,7 +1809,7 @@ class PipeVirglRenderer {
         }
 
         auto& entry = it->second;
-        if (entry.ringBlob) {
+        if (entry.ringBlob && entry.ringBlob->isExportable()) {
             // Handle ownership transferred to VMM, gfxstream keeps the mapping.
 #ifdef _WIN32
             handle->os_handle =
@@ -1822,18 +1914,23 @@ class PipeVirglRenderer {
         }
         mContextResources[ctxId] = withoutRes;
 
-        auto resIt = mResources.find(toUnrefId);
-        if (resIt == mResources.end()) return;
+        auto resourceIt = mResources.find(toUnrefId);
+        if (resourceIt == mResources.end()) return;
+        auto& resource = resourceIt->second;
 
-        resIt->second.hostPipe = 0;
-        resIt->second.ctxId = 0;
+        resource.hostPipe = 0;
+        resource.ctxId = 0;
 
         auto ctxIt = mContexts.find(ctxId);
         if (ctxIt != mContexts.end()) {
             auto& ctxEntry = ctxIt->second;
             if (ctxEntry.addressSpaceHandles.count(toUnrefId)) {
-                uint32_t handle = ctxEntry.addressSpaceHandles[toUnrefId];
-                mAddressSpaceDeviceControlOps->destroy_handle(handle);
+                uint32_t asgHandle = ctxEntry.addressSpaceHandles[toUnrefId];
+
+                mCleanupThread->enqueueCleanup([this, asgBlob = resource.ringBlob, asgHandle](){
+                    mAddressSpaceDeviceControlOps->destroy_handle(asgHandle);
+                });
+
                 ctxEntry.addressSpaceHandles.erase(toUnrefId);
             }
         }
@@ -1863,6 +1960,8 @@ class PipeVirglRenderer {
     // fences created for that context should not be signaled immediately.
     // Rather, they should get in line.
     std::unique_ptr<VirtioGpuTimelines> mVirtioGpuTimelines = nullptr;
+
+    std::unique_ptr<CleanupThread> mCleanupThread;
 };
 
 static PipeVirglRenderer* sRenderer() {
@@ -2604,6 +2703,9 @@ VG_EXPORT void stream_renderer_teardown() {
     android_finishOpenglesRenderer();
     android_hideOpenglesWindow();
     android_stopOpenglesRenderer(true);
+
+    sRenderer()->teardown();
+    stream_renderer_info("Gfxstream shut down completed!");
 }
 
 VG_EXPORT void gfxstream_backend_set_screen_mask(int width, int height,

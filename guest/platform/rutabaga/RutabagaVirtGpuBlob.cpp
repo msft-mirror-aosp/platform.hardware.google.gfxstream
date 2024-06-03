@@ -33,9 +33,9 @@ RutabagaVirtGpuResource::~RutabagaVirtGpuResource() {
     mEmulation->DestroyResource(mContextId, mResourceId);
 }
 
-VirtGpuBlobMappingPtr RutabagaVirtGpuResource::createMapping(void) {
+VirtGpuResourceMappingPtr RutabagaVirtGpuResource::createMapping(void) {
     uint8_t* mapped = mEmulation->Map(mResourceId);
-    return std::make_shared<RutabagaVirtGpuBlobMapping>(mEmulation, shared_from_this(), mapped);
+    return std::make_shared<RutabagaVirtGpuResourceMapping>(mEmulation, shared_from_this(), mapped);
 }
 
 uint32_t RutabagaVirtGpuResource::getResourceHandle() const { return mResourceId; }
@@ -71,6 +71,15 @@ int RutabagaVirtGpuResource::transferFromHost(uint32_t offset, uint32_t size) {
     return mEmulation->TransferFromHost(mContextId, mResourceId, offset, size);
 }
 
+int RutabagaVirtGpuResource::transferFromHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
+    if (mResourceType != ResourceType::kPipe) {
+        ALOGE("Unexpected transferFromHost() called on non-pipe resource.");
+        return -1;
+    }
+
+    return mEmulation->TransferFromHost(mContextId, mResourceId, x, y, w, h);
+}
+
 int RutabagaVirtGpuResource::transferToHost(uint32_t offset, uint32_t size) {
     if (mResourceType != ResourceType::kPipe) {
         ALOGE("Unexpected transferToHost() called on non-pipe resource.");
@@ -78,6 +87,15 @@ int RutabagaVirtGpuResource::transferToHost(uint32_t offset, uint32_t size) {
     }
 
     return mEmulation->TransferToHost(mContextId, mResourceId, offset, size);
+}
+
+int RutabagaVirtGpuResource::transferToHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
+    if (mResourceType != ResourceType::kPipe) {
+        ALOGE("Unexpected transferToHost() called on non-pipe resource.");
+        return -1;
+    }
+
+    return mEmulation->TransferToHost(mContextId, mResourceId, x, y, w, h);
 }
 
 }  // namespace gfxstream

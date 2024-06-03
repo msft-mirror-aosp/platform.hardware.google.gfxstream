@@ -1,0 +1,301 @@
+cc_library(
+    name = "gles1_dec",
+    srcs = [
+        "gles1_dec/GLESv1Decoder.cpp",
+        "gles1_dec/gles1_dec.cpp",
+        "gles1_dec/gles1_server_context.cpp",
+    ] + glob(["gles1_dec/*.h"]),
+    defines = ["EMUGL_BUILD"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":GLSnapshot",
+        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
+        "//hardware/google/gfxstream/host/apigen-codec-common",
+    ],
+)
+
+objc_library(
+    name = "gfxstream-gl-host-common-darwin",
+    srcs = [
+        "gl-host-common/opengl/macTouchOpenGL.m",
+    ],
+    hdrs = ["gl-host-common/include/host-common/opengl/macTouchOpenGL.h"],
+    defines = ["EMUGL_BUILD"],
+    includes = ["gl-host-common/include"],
+    deps = [
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+    ],
+)
+
+cc_library(
+    name = "gl-common-headers",
+    hdrs = glob(["glestranslator/include/**/*.h"]),
+    includes = ["glestranslator/include"],
+    visibility = ["//visibility:public"],
+    deps = ["//hardware/google/gfxstream/host/apigen-codec-common"],
+)
+
+objc_library(
+    name = "egl_translator-darwin",
+    srcs = [
+        "glestranslator/EGL/MacNative.m",
+        "glestranslator/EGL/MacPixelFormatsAttribs.m",
+    ] + glob(["glestranslator/EGL/*.h"]),
+    copts = ["-Wno-deprecated-declarations"],
+    defines = ["EMUGL_BUILD"],
+    sdk_frameworks = [
+        "IOSurface",
+        "AppKit",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+    ],
+    alwayslink = True,
+)
+
+cc_library(
+    name = "EGL_translator_static",
+    srcs = [
+        "glestranslator/EGL/ClientAPIExts.cpp",
+        "glestranslator/EGL/EglConfig.cpp",
+        "glestranslator/EGL/EglContext.cpp",
+        "glestranslator/EGL/EglDisplay.cpp",
+        "glestranslator/EGL/EglGlobalInfo.cpp",
+        "glestranslator/EGL/EglImp.cpp",
+        "glestranslator/EGL/EglOsApi_egl.cpp",
+        "glestranslator/EGL/EglPbufferSurface.cpp",
+        "glestranslator/EGL/EglSurface.cpp",
+        "glestranslator/EGL/EglThreadInfo.cpp",
+        "glestranslator/EGL/EglValidate.cpp",
+        "glestranslator/EGL/EglWindowSurface.cpp",
+        "glestranslator/EGL/ShaderCache.cpp",
+        "glestranslator/EGL/ThreadInfo.cpp",
+    ] + glob([
+        "glestranslator/EGL/*.h",
+    ]) + select({
+        "@platforms//os:macos": ["glestranslator/EGL/EglOsApi_darwin.cpp"],
+        "@platforms//os:windows": [
+            "glestranslator/EGL/CoreProfileConfigs_windows.cpp",
+            "glestranslator/EGL/EglOsApi_wgl.cpp",
+        ],
+        "@platforms//os:linux": [
+            "glestranslator/EGL/CoreProfileConfigs_linux.cpp",
+            "glestranslator/EGL/EglOsApi_glx.cpp",
+            "glestranslator/EGL/X11ErrorHandler.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    hdrs =
+        ["glestranslator/EGL/ClientAPIExts.in"],
+    copts = [
+        "-Wno-extern-c-compat",
+        "-Wno-inconsistent-missing-override",
+        "-Wno-return-type-c-linkage",
+    ],
+    defines = ["EMUGL_BUILD"],
+    visibility = ["//visibility:public"],
+    deps =
+        [
+            ":gl-common-headers",
+            "//hardware/google/aemu/host-common:aemu-host-common-headers",
+            "//hardware/google/aemu/snapshot:aemu-snapshot",
+            "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+            "//hardware/google/gfxstream/common/etc:gfxstream_etc",
+            "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
+            "//hardware/google/gfxstream/host/apigen-codec-common",
+            "//hardware/google/gfxstream/host/gl:gfxstream-gl-host-common",
+            "//hardware/google/gfxstream/host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
+            "//hardware/google/gfxstream/host/gl/glestranslator/GLES_V2:GLES_V2_translator_static",
+        ] + select({
+            "@platforms//os:macos": [":egl_translator-darwin"],
+            "//conditions:default": [],
+        }),
+    alwayslink = True,
+)
+
+cc_library(
+    name = "gl_common",
+    srcs = [
+        "glestranslator/GLcommon/FramebufferData.cpp",
+        "glestranslator/GLcommon/GLBackgroundLoader.cpp",
+        "glestranslator/GLcommon/GLDispatch.cpp",
+        "glestranslator/GLcommon/GLESbuffer.cpp",
+        "glestranslator/GLcommon/GLEScontext.cpp",
+        "glestranslator/GLcommon/GLESpointer.cpp",
+        "glestranslator/GLcommon/GLESvalidate.cpp",
+        "glestranslator/GLcommon/GLutils.cpp",
+        "glestranslator/GLcommon/NamedObject.cpp",
+        "glestranslator/GLcommon/ObjectData.cpp",
+        "glestranslator/GLcommon/ObjectNameSpace.cpp",
+        "glestranslator/GLcommon/PaletteTexture.cpp",
+        "glestranslator/GLcommon/RangeManip.cpp",
+        "glestranslator/GLcommon/SaveableTexture.cpp",
+        "glestranslator/GLcommon/ScopedGLState.cpp",
+        "glestranslator/GLcommon/ShareGroup.cpp",
+        "glestranslator/GLcommon/TextureData.cpp",
+        "glestranslator/GLcommon/TextureUtils.cpp",
+        "glestranslator/GLcommon/rgtc.cpp",
+    ],
+    copts = ["-Wno-extern-c-compat"],
+    defines = [
+        "EMUGL_BUILD",
+        "BUILDING_EMUGL_COMMON_SHARED",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gl-common-headers",
+        # "//external/angle:angle-headers",
+        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
+        "//hardware/google/aemu/snapshot:aemu-snapshot",
+        "//hardware/google/gfxstream/common/etc:gfxstream_etc",
+        "//hardware/google/gfxstream/host:gfxstream-compressedTextures",
+    ],
+)
+
+cc_library(
+    name = "gfxstream-gl-host-common",
+    srcs = [
+        "gl-host-common/opengl/EmuglBackendList.cpp",
+        "gl-host-common/opengl/GLProcessPipe.cpp",
+        "gl-host-common/opengl/GpuFrameBridge.cpp",
+        "gl-host-common/opengl/OpenglEsPipe.cpp",
+        "gl-host-common/opengl/emugl_config.cpp",
+        "gl-host-common/opengl/gpuinfo.cpp",
+        "gl-host-common/opengl/logger.cpp",
+        "gl-host-common/opengl/misc.cpp",
+        "gl-host-common/opengles.cpp",
+    ] + select({
+        "@platforms//os:macos": [
+            "gl-host-common/opengl/NativeGpuInfo_darwin.cpp",
+        ],
+        "@platforms//os:windows": ["gl-host-common/opengl/NativeGpuInfo_windows.cpp"],
+        "@platforms//os:linux": ["gl-host-common/opengl/NativeGpuInfo_linux.cpp"],
+        "//conditions:default": [],
+    }) + glob(["gl-host-common/include/**/*.h"]),
+    copts = [
+        "-Wno-return-type-c-linkage",
+        "-Wno-extern-c-compat",
+    ],
+    defines = ["EMUGL_BUILD"],
+    includes = ["gl-host-common/include"],
+    linkopts = select({
+        "@platforms//os:windows": [
+            "-DEFAULTLIB:D3d9.lib",
+            "-DEFAULTLIB:Advapi32.lib",
+        ],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//hardware/google/aemu/snapshot:aemu-snapshot",
+        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
+        "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//hardware/google/gfxstream/host/features:gfxstream_features",
+    ] + select({
+        "@platforms//os:macos": ["gfxstream-gl-host-common-darwin"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_library(
+    name = "gles2_dec",
+    srcs = [
+        "gles2_dec/GLESv2Decoder.cpp",
+        "gles2_dec/gles2_dec.cpp",
+        "gles2_dec/gles2_server_context.cpp",
+    ] + glob(["gles2_dec/*.h"]),
+    defines = ["EMUGL_BUILD"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":GLSnapshot",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
+        "//hardware/google/gfxstream/host/apigen-codec-common",
+    ],
+)
+
+cc_library(
+    name = "GLSnapshot",
+    srcs = ["glsnapshot/GLSnapshot.cpp"],
+    hdrs = ["glsnapshot/GLSnapshot.h"],
+    copts = ["-Wno-extern-c-compat"],
+    defines = ["EMUGL_BUILD"],
+    includes = ["glsnapshot"],
+    visibility = ["//visibility:public"],
+    deps = ["//hardware/google/gfxstream/host/apigen-codec-common"],
+)
+
+cc_library(
+    name = "OpenGLESDispatch",
+    srcs = [
+        "OpenGLESDispatch/EGLDispatch.cpp",
+        "OpenGLESDispatch/GLESv1Dispatch.cpp",
+        "OpenGLESDispatch/GLESv2Dispatch.cpp",
+        "OpenGLESDispatch/OpenGLDispatchLoader.cpp",
+        "OpenGLESDispatch/StaticDispatch.cpp",
+        "OpenGLESDispatch/gles1_stubbed_in_translator_namespace.cpp",
+        "OpenGLESDispatch/gles2_stubbed_in_translator_namespace.cpp",
+    ] + glob(["OpenGLESDispatch/*.h"]),
+    copts = ["-Wno-extern-c-compat"],
+    defines = ["EMUGL_BUILD"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":EGL_translator_static",
+        ":gles1_dec",
+        ":gles2_dec",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
+        "//hardware/google/gfxstream/host/apigen-codec-common",
+    ],
+)
+
+cc_library(
+    name = "gfxstream-gl-server",
+    srcs = [
+        "BufferGl.cpp",
+        "ColorBufferGl.cpp",
+        "CompositorGl.cpp",
+        "DebugGl.cpp",
+        "DisplayGl.cpp",
+        "DisplaySurfaceGl.cpp",
+        "EmulatedEglConfig.cpp",
+        "EmulatedEglContext.cpp",
+        "EmulatedEglFenceSync.cpp",
+        "EmulatedEglImage.cpp",
+        "EmulatedEglWindowSurface.cpp",
+        "EmulationGl.cpp",
+        "GLESVersionDetector.cpp",
+        "ReadbackWorkerGl.cpp",
+        "TextureDraw.cpp",
+        "TextureResize.cpp",
+        "YUVConverter.cpp",
+    ] + glob([
+        "*.h",
+        "glestranslator/include/**/*.h",
+    ]),
+    hdrs = [],
+    copts = ["-Wno-extern-c-compat"],
+    defines = [
+        "GFXSTREAM_ENABLE_HOST_GLES=1",
+        "EMUGL_BUILD",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":OpenGLESDispatch",
+        ":gfxstream-gl-host-common",
+        ":gles1_dec",
+        ":gles2_dec",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/host:gfxstream_host_headers",
+        "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//hardware/google/gfxstream/host/gl:GLSnapshot",
+    ],
+)
+
+cc_library(
+    name = "gl_headers",
+    hdrs = glob(["*.h"]),
+    visibility = ["//visibility:public"],
+    # visibility = ["//a:__pkg__"],
+)

@@ -42,7 +42,7 @@ class EmulatedVirtioGpu {
    static std::shared_ptr<EmulatedVirtioGpu> Get();
    static uint32_t GetNumActiveUsers();
 
-   bool Init(bool withGl, bool withVk, bool withVkSnapshots);
+   bool Init(bool withGl, bool withVk, const std::string& features);
 
    bool GetCaps(uint32_t capsetId, uint32_t guestCapsSize, uint8_t* capset);
 
@@ -68,8 +68,13 @@ class EmulatedVirtioGpu {
 
    int TransferFromHost(uint32_t contextId, uint32_t resourceId, uint32_t transferOffset,
                         uint32_t transferSize);
+   int TransferFromHost(uint32_t contextId, uint32_t resourceId, uint32_t x, uint32_t y, uint32_t w,
+                        uint32_t h);
+
    int TransferToHost(uint32_t contextId, uint32_t resourceId, uint32_t transferOffset,
                       uint32_t transferSize);
+   int TransferToHost(uint32_t contextId, uint32_t resourceId, uint32_t x, uint32_t y, uint32_t w,
+                      uint32_t h);
 
    void SignalEmulatedFence(int fenceId);
 

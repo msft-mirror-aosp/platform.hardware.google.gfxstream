@@ -224,7 +224,7 @@ magma_status_t MagmaClientContext::magma_device_query(void* self, magma_device_t
     VirtGpuExternalHandle handle{};
     int result = blob->exportBlob(handle);
     if (result != 0 || handle.osHandle < 0) {
-        ALOGE("VirtGpuBlob::exportBlob failed\n");
+        ALOGE("VirtGpuResource::exportBlob failed\n");
         return MAGMA_STATUS_INTERNAL_ERROR;
     }
 

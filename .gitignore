@@ -293,3 +293,4 @@ TestResults.qpa
 .idea/
 .cache/
 compile_commands.json
+.gdb_history

@@ -1,0 +1,206 @@
+cc_library(
+    name = "gfxstream_backend_headers",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "gfxstream_host_headers",
+    hdrs = [
+        "compressedTextureFormats/AstcCpuDecompressor.h",
+    ] + glob([
+        "*.h",
+        "gl/*.h",
+    ]),
+    includes = ["."],
+    visibility = [":__subpackages__"],
+)
+
+cc_library(
+    name = "gfxstream-compressedTextures",
+    srcs = ["compressedTextureFormats/AstcCpuDecompressorNoOp.cpp"] + glob(["compressedTextureFormats/*.h"]),
+    hdrs = [
+        "compressedTextureFormats/AstcCpuDecompressor.h",
+    ],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//hardware/google/gfxstream/common/etc:gfxstream_etc",
+    ],
+)
+
+cc_test(
+    name = "gfxstream-compressedTextures_unittests",
+    srcs = ["compressedTextureFormats/AstcCpuDecompressor_unittest.cpp"],
+    deps = [
+        ":gfxstream-compressedTextures",
+        "//hardware/google/aemu/base:aemu-base",
+        "//hardware/google/aemu/host-common:logging",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+objc_library(
+    name = "gfxstream_backend_static-darwin",
+    srcs = [
+        "GlesCompat.h",
+        "NativeSubWindow.h",
+        "NativeSubWindow_cocoa.mm",
+    ],
+    defines = [
+        "EMUGL_BUILD",
+        "GFXSTREAM_ENABLE_HOST_GLES=1",
+    ],
+    sdk_frameworks = [
+        "AppKit",
+        "QuartzCore",
+        "IOSurface",
+    ],
+    deps = [
+        ":gfxstream_backend_headers",
+        "//external/angle:angle-headers",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_backend_static",
+    srcs = [
+        "BlobManager.cpp",
+        "Buffer.cpp",
+        "ChannelStream.cpp",
+        "ColorBuffer.cpp",
+        "DisplaySurface.cpp",
+        "DisplaySurfaceUser.cpp",
+        "FrameBuffer.cpp",
+        "GfxStreamAgents.cpp",
+        "Hwc2.cpp",
+        "PostWorker.cpp",
+        "PostWorkerGl.cpp",
+        "ReadBuffer.cpp",
+        "RenderChannelImpl.cpp",
+        "RenderControl.cpp",
+        "RenderLibImpl.cpp",
+        "RenderThread.cpp",
+        "RenderThreadInfo.cpp",
+        "RenderThreadInfoGl.cpp",
+        "RenderThreadInfoMagma.cpp",
+        "RenderWindow.cpp",
+        "RendererImpl.cpp",
+        "RingStream.cpp",
+        "SyncThread.cpp",
+        "VirtioGpuTimelines.cpp",
+        "VsyncThread.cpp",
+    ] + select({
+        "@platforms//os:macos": [],
+        "@platforms//os:windows": ["NativeSubWindow_win32.cpp"],
+        "@platforms//os:linux": ["NativeSubWindow_x11.cpp"],
+        "//conditions:default": [],
+    }) + glob([
+        "*.h",
+    ]),
+    copts = [
+        "-Wno-return-type-c-linkage",
+        "-Wno-extern-c-compat",
+    ],
+    defines = [
+        "EMUGL_BUILD",
+        "GFXSTREAM_ENABLE_HOST_GLES=1",
+    ] + select({
+        "@platforms//os:windows": [
+            "WIN32_LEAN_AND_MEAN",
+        ],
+        "//conditions:default": [],
+    }),
+    includes = [
+        ".",
+        "gl",
+    ],
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gfxstream_backend_headers",
+        "//hardware/google/aemu/base:aemu-base",
+        "//hardware/google/aemu/base:aemu-base-metrics",
+        "//hardware/google/aemu/host-common:aemu-host-common",
+        "//hardware/google/aemu/host-common:logging",
+        "//hardware/google/aemu/snapshot:aemu-snapshot",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//hardware/google/gfxstream/host/features:gfxstream_features",
+        "//hardware/google/gfxstream/host/gl:EGL_translator_static",
+        "//hardware/google/gfxstream/host/gl:OpenGLESDispatch",
+        "//hardware/google/gfxstream/host/gl:gfxstream-gl-host-common",
+        "//hardware/google/gfxstream/host/gl:gfxstream-gl-server",
+        "//hardware/google/gfxstream/host/gl:gl-common-headers",
+        "//hardware/google/gfxstream/host/gl:gl_headers",
+        "//hardware/google/gfxstream/host/gl:gles1_dec",
+        "//hardware/google/gfxstream/host/gl:gles2_dec",
+        "//hardware/google/gfxstream/host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
+        "//hardware/google/gfxstream/host/magma:gfxstream-magma-server",
+        "//hardware/google/gfxstream/host/magma:magma-headers",
+        "//hardware/google/gfxstream/host/renderControl_dec",
+        "//hardware/google/gfxstream/host/vulkan:gfxstream-vulkan-server",
+    ] + select({
+        "@platforms//os:macos": [
+            ":gfxstream_backend_static-darwin",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+cc_library(
+    name = "gfxstream_backend_shared",
+    srcs = [
+        "render_api.cpp",
+        "virtio-gpu-gfxstream-renderer.cpp",
+    ],
+    copts = [
+        "-Wno-extern-c-compat",
+        "-Wno-return-type-c-linkage",
+    ],
+    defines = [
+        "EMUGL_BUILD",
+        "BUILDING_EMUGL_COMMON_SHARED",
+        "WIN32_LEAN_AND_MEAN",
+    ],
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gfxstream_backend_static",
+        "//hardware/google/aemu/base:aemu-base",
+        "//hardware/google/aemu/base:aemu-base-metrics",
+        "//hardware/google/aemu/host-common:aemu-host-common-product-feature-override",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/common/utils:gfxstream_common_utils",
+        "//hardware/google/gfxstream/host/gl:gfxstream-gl-host-common",
+    ],
+)
+
+cc_binary(
+    name = "gfxstream_backend",
+    srcs = [
+        "render_api.cpp",
+        "virtio-gpu-gfxstream-renderer.cpp",
+    ],
+    linkshared = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gfxstream_backend_static",
+        "//hardware/google/aemu/base:aemu-base",
+        "//hardware/google/aemu/base:aemu-base-metrics",
+        "//hardware/google/aemu/host-common:aemu-host-common-product-feature-override",
+        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//hardware/google/gfxstream/common/utils:gfxstream_common_utils",
+        "//hardware/google/gfxstream/host/gl:gfxstream-gl-host-common",
+    ],
+)
+
+# Note: It looks like cc_shared_library refuses to include objc_library
+# b/331235218
+# cc_shared_library(
+#     name = "gfxstream_backend",
+#     visibility = ["//visibility:public"],
+#     deps = [":gfxstream_backend_shared"],
+# )

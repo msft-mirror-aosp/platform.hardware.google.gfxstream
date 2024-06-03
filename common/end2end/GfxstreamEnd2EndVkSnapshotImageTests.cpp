@@ -14,6 +14,7 @@
 
 #include <string>
 
+#include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
 #include "gfxstream/RutabagaLayerTestUtils.h"
 
@@ -58,8 +59,8 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, PreserveImageHandle) {
     vkhpp::MemoryRequirements imageMemoryRequirements{};
     device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
 
-    const uint32_t imageMemoryIndex = GetMemoryType(physicalDevice, imageMemoryRequirements,
-                                                    vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    const uint32_t imageMemoryIndex = utils::getMemoryType(
+        physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
     ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
 
     const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
@@ -75,6 +76,193 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, PreserveImageHandle) {
     ASSERT_THAT(device->bindImageMemory(*image, *imageMemory, 0), IsVkSuccess());
 }
 
+TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependency) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const uint32_t width = 32;
+    const uint32_t height = 32;
+
+    const vkhpp::ImageCreateInfo imageCreateInfo = {
+        .pNext = nullptr,
+        .imageType = vkhpp::ImageType::e2D,
+        .extent.width = width,
+        .extent.height = height,
+        .extent.depth = 1,
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .tiling = vkhpp::ImageTiling::eOptimal,
+        .initialLayout = vkhpp::ImageLayout::eUndefined,
+        .usage = vkhpp::ImageUsageFlagBits::eSampled | vkhpp::ImageUsageFlagBits::eTransferDst |
+                 vkhpp::ImageUsageFlagBits::eTransferSrc,
+        .sharingMode = vkhpp::SharingMode::eExclusive,
+        .samples = vkhpp::SampleCountFlagBits::e1,
+    };
+    auto image = device->createImageUnique(imageCreateInfo).value;
+    ASSERT_THAT(image, IsValidHandle());
+
+    vkhpp::MemoryRequirements imageMemoryRequirements{};
+    device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
+
+    const uint32_t imageMemoryIndex = utils::getMemoryType(
+        physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
+
+    const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
+        .allocationSize = imageMemoryRequirements.size,
+        .memoryTypeIndex = imageMemoryIndex,
+    };
+
+    auto imageMemory = device->allocateMemoryUnique(imageMemoryAllocateInfo).value;
+    ASSERT_THAT(imageMemory, IsValidHandle());
+
+    ASSERT_THAT(device->bindImageMemory(*image, *imageMemory, 0), IsVkSuccess());
+
+    // b/331677615
+    // Create and delete a buffer handle right before creating image view.
+    // Gfxstream recycle handles. We trick the VkImageView handle to collide with
+    // a destroyed buffer handle and verify there is no bug snapshotting recycled
+    // handles.
+    const vkhpp::BufferCreateInfo bufferCreateInfo = {
+        .size = 1024,
+        .usage = vkhpp::BufferUsageFlagBits::eTransferSrc,
+    };
+    auto buffer = device->createBufferUnique(bufferCreateInfo).value;
+    ASSERT_THAT(buffer, IsValidHandle());
+    buffer.reset();
+
+    const vkhpp::ImageViewCreateInfo imageViewCreateInfo = {
+        .image = *image,
+        .viewType = vkhpp::ImageViewType::e2D,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .subresourceRange =
+            {
+                .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+    };
+    auto imageView = device->createImageViewUnique(imageViewCreateInfo).value;
+    ASSERT_THAT(imageView, IsValidHandle());
+    // Make sure it doesn't crash on load
+    SnapshotSaveAndLoad();
+}
+
+TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, MultiSampleImage) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const uint32_t width = 32;
+    const uint32_t height = 32;
+
+    const vkhpp::ImageCreateInfo imageCreateInfo = {
+        .pNext = nullptr,
+        .imageType = vkhpp::ImageType::e2D,
+        .extent.width = width,
+        .extent.height = height,
+        .extent.depth = 1,
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .tiling = vkhpp::ImageTiling::eOptimal,
+        .initialLayout = vkhpp::ImageLayout::eUndefined,
+        .usage = vkhpp::ImageUsageFlagBits::eColorAttachment |
+                 vkhpp::ImageUsageFlagBits::eTransferDst | vkhpp::ImageUsageFlagBits::eTransferSrc,
+        .sharingMode = vkhpp::SharingMode::eExclusive,
+        .samples = vkhpp::SampleCountFlagBits::e8,
+    };
+    auto image = device->createImageUnique(imageCreateInfo).value;
+    ASSERT_THAT(image, IsValidHandle());
+
+    vkhpp::MemoryRequirements imageMemoryRequirements{};
+    device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
+
+    const uint32_t imageMemoryIndex = utils::getMemoryType(
+        physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
+
+    const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
+        .allocationSize = imageMemoryRequirements.size,
+        .memoryTypeIndex = imageMemoryIndex,
+    };
+
+    auto imageMemory = device->allocateMemoryUnique(imageMemoryAllocateInfo).value;
+    ASSERT_THAT(imageMemory, IsValidHandle());
+
+    // Make sure it doesn't crash on load
+    SnapshotSaveAndLoad();
+}
+
+TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependencyWithDedicatedMemory) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const uint32_t width = 32;
+    const uint32_t height = 32;
+
+    const vkhpp::ImageCreateInfo imageCreateInfo = {
+        .pNext = nullptr,
+        .imageType = vkhpp::ImageType::e2D,
+        .extent.width = width,
+        .extent.height = height,
+        .extent.depth = 1,
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .tiling = vkhpp::ImageTiling::eOptimal,
+        .initialLayout = vkhpp::ImageLayout::eUndefined,
+        .usage = vkhpp::ImageUsageFlagBits::eSampled | vkhpp::ImageUsageFlagBits::eTransferDst |
+                 vkhpp::ImageUsageFlagBits::eTransferSrc,
+        .sharingMode = vkhpp::SharingMode::eExclusive,
+        .samples = vkhpp::SampleCountFlagBits::e1,
+    };
+    auto image = device->createImageUnique(imageCreateInfo).value;
+    ASSERT_THAT(image, IsValidHandle());
+
+    vkhpp::MemoryRequirements imageMemoryRequirements{};
+    device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
+
+    const uint32_t imageMemoryIndex = utils::getMemoryType(
+        physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
+
+    const vkhpp::MemoryDedicatedAllocateInfo dedicatedAllocateInfo = {
+        .image = *image,
+    };
+
+    const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
+        .pNext = &dedicatedAllocateInfo,
+        .allocationSize = imageMemoryRequirements.size,
+        .memoryTypeIndex = imageMemoryIndex,
+    };
+
+    auto imageMemory = device->allocateMemoryUnique(imageMemoryAllocateInfo).value;
+    ASSERT_THAT(imageMemory, IsValidHandle());
+
+    ASSERT_THAT(device->bindImageMemory(*image, *imageMemory, 0), IsVkSuccess());
+
+    const vkhpp::ImageViewCreateInfo imageViewCreateInfo = {
+        .image = *image,
+        .viewType = vkhpp::ImageViewType::e2D,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .subresourceRange =
+            {
+                .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+    };
+    auto imageView = device->createImageViewUnique(imageViewCreateInfo).value;
+    ASSERT_THAT(imageView, IsValidHandle());
+    // Make sure it doesn't crash on load
+    SnapshotSaveAndLoad();
+}
+
 TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageContent) {
     static constexpr int kWidth = 256;
     static constexpr int kHeight = 256;
@@ -84,8 +272,12 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageContent) {
     for (size_t i = 0; i < kSize; i++) {
         srcBufferContent[i] = static_cast<uint8_t>(i & 0xff);
     }
-    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    auto& instance = testEnvironment.instance;
+    auto& physicalDevice = testEnvironment.physicalDevice;
+    auto& device = testEnvironment.device;
+    auto& queue = testEnvironment.queue;
+    auto queueFamilyIndex = testEnvironment.queueFamilyIndex;
 
     // Staging buffer
     const vkhpp::BufferCreateInfo bufferCreateInfo = {
@@ -99,7 +291,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageContent) {
     vkhpp::MemoryRequirements stagingBufferMemoryRequirements{};
     device->getBufferMemoryRequirements(*stagingBuffer, &stagingBufferMemoryRequirements);
 
-    const auto stagingBufferMemoryType = GetMemoryType(
+    const auto stagingBufferMemoryType = utils::getMemoryType(
         physicalDevice, stagingBufferMemoryRequirements,
         vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
 
@@ -140,18 +332,19 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageContent) {
         .arrayLayers = 1,
         .format = vkhpp::Format::eR8G8B8A8Unorm,
         .tiling = vkhpp::ImageTiling::eOptimal,
-        .initialLayout = vkhpp::ImageLayout::eUndefined,
+        .initialLayout = vkhpp::ImageLayout::ePreinitialized,
         .usage = vkhpp::ImageUsageFlagBits::eTransferDst | vkhpp::ImageUsageFlagBits::eTransferSrc,
         .sharingMode = vkhpp::SharingMode::eExclusive,
         .samples = vkhpp::SampleCountFlagBits::e1,
     };
     auto image = device->createImageUnique(imageCreateInfo).value;
+    ASSERT_THAT(image, IsValidHandle());
 
     vkhpp::MemoryRequirements imageMemoryRequirements{};
     device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
 
-    const uint32_t imageMemoryIndex = GetMemoryType(physicalDevice, imageMemoryRequirements,
-                                                    vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    const uint32_t imageMemoryIndex = utils::getMemoryType(
+        physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
     ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
 
     const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
@@ -239,85 +432,13 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageContent) {
     // Snapshot
     SnapshotSaveAndLoad();
 
-    // Read-back buffer
-    const vkhpp::BufferCreateInfo readbackBufferCreateInfo = {
-        .size = static_cast<VkDeviceSize>(kSize),
-        .usage = vkhpp::BufferUsageFlagBits::eTransferDst,
-        .sharingMode = vkhpp::SharingMode::eExclusive,
-    };
-    auto readbackBuffer = device->createBufferUnique(readbackBufferCreateInfo).value;
-    ASSERT_THAT(readbackBuffer, IsValidHandle());
-
-    vkhpp::MemoryRequirements readbackBufferMemoryRequirements{};
-    device->getBufferMemoryRequirements(*readbackBuffer, &readbackBufferMemoryRequirements);
-
-    const auto readbackBufferMemoryType = GetMemoryType(
-        physicalDevice, readbackBufferMemoryRequirements,
-        vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
-
-    // Read-back memory
-    const vkhpp::MemoryAllocateInfo readbackBufferMemoryAllocateInfo = {
-        .allocationSize = readbackBufferMemoryRequirements.size,
-        .memoryTypeIndex = readbackBufferMemoryType,
-    };
-    auto readbackBufferMemory =
-        device->allocateMemoryUnique(readbackBufferMemoryAllocateInfo).value;
-    ASSERT_THAT(readbackBufferMemory, IsValidHandle());
-    ASSERT_THAT(device->bindBufferMemory(*readbackBuffer, *readbackBufferMemory, 0), IsVkSuccess());
-
-    auto readbackCommandBuffers =
-        device->allocateCommandBuffersUnique(commandBufferAllocateInfo).value;
-    ASSERT_THAT(readbackCommandBuffers, Not(IsEmpty()));
-    auto readbackCommandBuffer = std::move(readbackCommandBuffers[0]);
-    ASSERT_THAT(readbackCommandBuffer, IsValidHandle());
-
-    readbackCommandBuffer->begin(commandBufferBeginInfo);
-    const vkhpp::ImageMemoryBarrier readbackBarrier{
-        .oldLayout = vkhpp::ImageLayout::eTransferDstOptimal,
-        .newLayout = vkhpp::ImageLayout::eTransferSrcOptimal,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = *image,
-        .subresourceRange =
-            {
-                .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
-                .levelCount = 1,
-                .layerCount = 1,
-            },
-    };
-
-    readbackCommandBuffer->pipelineBarrier(
-        vkhpp::PipelineStageFlagBits::eAllCommands, vkhpp::PipelineStageFlagBits::eAllCommands,
-        vkhpp::DependencyFlags(), nullptr, nullptr, readbackBarrier);
-
-    readbackCommandBuffer->copyImageToBuffer(*image, vkhpp::ImageLayout::eTransferSrcOptimal,
-                                             *readbackBuffer, 1, &bufferImageCopy);
-    readbackCommandBuffer->end();
-
-    auto readbackFence = device->createFenceUnique(vkhpp::FenceCreateInfo()).value;
-    ASSERT_THAT(readbackCommandBuffer, IsValidHandle());
-
-    // Execute the command to copy image back to buffer
-    const vkhpp::SubmitInfo readbackSubmitInfo = {
-        .commandBufferCount = 1,
-        .pCommandBuffers = &readbackCommandBuffer.get(),
-    };
-    queue.submit(readbackSubmitInfo, *readbackFence);
-
-    auto readbackWaitResult = device->waitForFences(*readbackFence, VK_TRUE, 3000000000L);
-    ASSERT_THAT(readbackWaitResult, IsVkSuccess());
-
-    // Verify content
-    mapResult = device->mapMemory(*readbackBufferMemory, 0, VK_WHOLE_SIZE, vkhpp::MemoryMapFlags{},
-                                  &mapped);
-    ASSERT_THAT(mapResult, IsVkSuccess());
-    ASSERT_THAT(mapped, NotNull());
-    bytes = reinterpret_cast<uint8_t*>(mapped);
+    std::vector<uint8_t> dst(kSize);
+    utils::readImageData(*image, kWidth, kHeight, vkhpp::ImageLayout::eTransferDstOptimal,
+                         dst.data(), kSize, testEnvironment);
 
     for (uint32_t i = 0; i < kSize; ++i) {
-        ASSERT_THAT(bytes[i], Eq(srcBufferContent[i]));
+        ASSERT_THAT(dst[i], Eq(srcBufferContent[i]));
     }
-    device->unmapMemory(*readbackBufferMemory);
 }
 
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotImageTest,
@@ -325,7 +446,7 @@ INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotImageTe
                             TestParams{
                                 .with_gl = false,
                                 .with_vk = true,
-                                .with_vk_snapshot = true,
+                                .with_features = {"VulkanSnapshots"},
                             },
                         }),
                         &GetTestName);

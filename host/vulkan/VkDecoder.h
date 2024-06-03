@@ -34,8 +34,8 @@
 
 #include <memory>
 
+#include "ProcessResources.h"
 #include "VkDecoderContext.h"
-#include "host/ProcessResources.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan_gfxstream.h"
 
@@ -178,6 +178,8 @@ class VkDecoder {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
+#ifdef VK_MVK_moltenvk
+#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -231,6 +233,8 @@ class VkDecoder {
 #ifdef VK_EXT_private_data
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_EXT_metal_objects
 #endif
 #ifdef VK_EXT_graphics_pipeline_library
 #endif

@@ -36,6 +36,7 @@
 #include <optional>
 #include <unordered_map>
 
+#include "FrameBuffer.h"
 #include "VkDecoderGlobalState.h"
 #include "VkDecoderSnapshot.h"
 #include "VulkanDispatch.h"
@@ -51,7 +52,6 @@
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/feature_control.h"
 #include "host-common/logging.h"
-#include "host/FrameBuffer.h"
 #include "render-utils/IOStream.h"
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 
@@ -4172,11 +4172,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkDevice device;
                 VkShaderModule shaderModule;
                 const VkAllocationCallbacks* pAllocator;
-                // Begin global wrapped dispatchable handle unboxing for device;
+                // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
                 // Begin manual non dispatchable handle destroy unboxing for shaderModule;
                 VkShaderModule boxed_shaderModule_preserve;
                 uint64_t cgen_var_1;
@@ -4215,7 +4218,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
                         boxed_shaderModule_preserve, pAllocator);
                 }
-                delete_VkShaderModule(boxed_shaderModule_preserve);
+                delayed_delete_VkShaderModule(boxed_shaderModule_preserve, unboxed_device, nullptr);
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
@@ -18267,6 +18270,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
+#ifdef VK_MVK_moltenvk
+#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -20093,6 +20098,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             }
 #endif
 #ifdef VK_EXT_pipeline_creation_cache_control
+#endif
+#ifdef VK_EXT_metal_objects
 #endif
 #ifdef VK_EXT_graphics_pipeline_library
 #endif
