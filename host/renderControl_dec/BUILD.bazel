@@ -1,0 +1,13 @@
+cc_library(
+    name = "renderControl_dec",
+    srcs = [
+        "renderControl_dec.cpp",
+        "renderControl_server_context.cpp",
+    ] + glob(["*.h"]),
+    hdrs = [],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
+        "//hardware/google/gfxstream/host/apigen-codec-common",
+    ],
+)

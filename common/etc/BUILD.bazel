@@ -1,0 +1,18 @@
+# Header Library
+cc_library(
+    name = "gfxstream_etc_headers",
+    hdrs = glob([
+        "include/**/*.h",
+        "include/**/*.hpp",
+    ]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+
+# Static Library
+cc_library(
+    name = "gfxstream_etc",
+    srcs = ["etc.cpp"],
+    visibility = ["//visibility:public"],  # Control visibility
+    deps = [":gfxstream_etc_headers"],
+)
