@@ -61,7 +61,7 @@ std::vector<VkReconstruction::HandleWithState> typeTagSortedHandles(
 void VkReconstruction::save(android::base::Stream* stream) {
     DEBUG_RECON("start")
 
-#if DEBUG_RECON
+#if DEBUG_RECONSTRUCTION
     dump();
 #endif
 
