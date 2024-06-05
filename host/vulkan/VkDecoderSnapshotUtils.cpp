@@ -475,6 +475,11 @@ void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
 
 void saveBufferContent(android::base::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
                        const BufferInfo* bufferInfo) {
+    VkBufferUsageFlags requiredUsages =
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    if ((bufferInfo->usage & requiredUsages) != requiredUsages) {
+        return;
+    }
     VulkanDispatch* dispatch = stateBlock->deviceDispatch;
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -573,6 +578,11 @@ void saveBufferContent(android::base::Stream* stream, StateBlock* stateBlock, Vk
 
 void loadBufferContent(android::base::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
                        const BufferInfo* bufferInfo) {
+    VkBufferUsageFlags requiredUsages =
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    if ((bufferInfo->usage & requiredUsages) != requiredUsages) {
+        return;
+    }
     VulkanDispatch* dispatch = stateBlock->deviceDispatch;
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
