@@ -1483,7 +1483,7 @@ class PipeVirglRenderer {
                 *max_size = sizeof(struct gfxstream::composerCapset);
                 break;
             default:
-                stream_renderer_error("Incorrect capability set specified");
+                stream_renderer_error("Incorrect capability set specified (%u)", set);
         }
     }
 
@@ -1893,9 +1893,11 @@ class PipeVirglRenderer {
 
         if (linearSize) linear = malloc(linearSize);
 
-        entry.iov = (iovec*)malloc(sizeof(*iov) * num_iovs);
         entry.numIovs = num_iovs;
-        memcpy(entry.iov, iov, num_iovs * sizeof(*iov));
+        entry.iov = (iovec*)malloc(sizeof(*iov) * num_iovs);
+        if (entry.numIovs > 0) {
+            memcpy(entry.iov, iov, num_iovs * sizeof(*iov));
+        }
         entry.linear = linear;
         entry.linearSize = linearSize;
     }
