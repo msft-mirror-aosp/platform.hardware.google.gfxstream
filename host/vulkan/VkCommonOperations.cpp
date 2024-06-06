@@ -550,6 +550,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
 #elif defined(__QNX__)
         VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME,
+        VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
 #else
         VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
 #endif
@@ -1575,9 +1576,11 @@ void freeExternalMemoryLocked(VulkanDispatch* vk, VkEmulation::ExternalMemoryInf
             info->gpa = 0u;
         }
 
-        vk->vkUnmapMemory(sVkEmulation->device, info->memory);
-        info->mappedPtr = nullptr;
-        info->pageAlignedHva = nullptr;
+        if (info->mappedPtr != nullptr) {
+            vk->vkUnmapMemory(sVkEmulation->device, info->memory);
+            info->mappedPtr = nullptr;
+            info->pageAlignedHva = nullptr;
+        }
     }
 
     vk->vkFreeMemory(sVkEmulation->device, info->memory, nullptr);
@@ -3309,11 +3312,6 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_tohost(
 
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
-        res |= VK_EXT_MEMORY_HANDLE_TYPE_BIT;
-    }
-
-    if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
-        res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
         res |= VK_EXT_MEMORY_HANDLE_TYPE_BIT;
     }
 
