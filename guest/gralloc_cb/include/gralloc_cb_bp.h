@@ -32,12 +32,14 @@ struct cb_handle_t : public native_handle_t {
     cb_handle_t(uint32_t p_magic,
                 uint32_t p_hostHandle,
                 int32_t p_format,
+                uint32_t p_drmformat,
                 uint32_t p_stride,
                 uint32_t p_bufSize,
                 uint64_t p_mmapedOffset)
         : magic(p_magic),
           hostHandle(p_hostHandle),
           format(p_format),
+          drmformat(p_drmformat),
           bufferSize(p_bufSize),
           stride(p_stride),
           mmapedOffsetLo(static_cast<uint32_t>(p_mmapedOffset)),
@@ -78,6 +80,7 @@ struct cb_handle_t : public native_handle_t {
     uint32_t magic;         // magic number in order to validate a pointer
     uint32_t hostHandle;    // the host reference to this buffer
     uint32_t format;        // real internal pixel format format
+    uint32_t drmformat;     // drm format
     uint32_t bufferSize;
     uint32_t stride;
     uint32_t mmapedOffsetLo;
