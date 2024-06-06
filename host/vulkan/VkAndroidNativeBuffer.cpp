@@ -273,34 +273,6 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     // TODO: Make this shared as well if we can get that to
     // work on Windows with NVIDIA.
     {
-        bool stagingIndexRes =
-            getStagingMemoryTypeIndex(vk, device, memProps, &out->stagingMemoryTypeIndex);
-
-        if (!stagingIndexRes) {
-            VK_ANB_ERR(
-                "VK_ANDROID_native_buffer: could not obtain "
-                "staging memory type index");
-            teardownAndroidNativeBufferImage(vk, out);
-            return VK_ERROR_OUT_OF_HOST_MEMORY;
-        }
-
-        VkMemoryAllocateInfo allocInfo = {
-            VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            0,
-            out->memReqs.size,
-            out->stagingMemoryTypeIndex,
-        };
-
-        VkResult res = vk->vkAllocateMemory(device, &allocInfo, nullptr, &out->stagingMemory);
-        if (VK_SUCCESS != res) {
-            VK_ANB_ERR(
-                "VK_ANDROID_native_buffer: could not allocate staging memory. "
-                "res = %d. requested size: %zu",
-                (int)res, (size_t)(out->memReqs.size));
-            teardownAndroidNativeBufferImage(vk, out);
-            return VK_ERROR_OUT_OF_HOST_MEMORY;
-        }
-
         VkBufferCreateInfo stagingBufferCreateInfo = {
             VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             0,
@@ -323,6 +295,43 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
             VK_ANB_ERR(
                 "VK_ANDROID_native_buffer: could not create "
                 "staging buffer.");
+            teardownAndroidNativeBufferImage(vk, out);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        VkMemoryRequirements stagingMemReqs;
+        vk->vkGetBufferMemoryRequirements(device, out->stagingBuffer, &stagingMemReqs);
+        if (stagingMemReqs.size < out->memReqs.size) {
+            VK_ANB_ERR(
+                "VK_ANDROID_native_buffer: unexpected staging buffer size");
+            teardownAndroidNativeBufferImage(vk, out);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        bool stagingIndexRes =
+            getStagingMemoryTypeIndex(vk, device, memProps, &out->stagingMemoryTypeIndex);
+
+        if (!stagingIndexRes) {
+            VK_ANB_ERR(
+                "VK_ANDROID_native_buffer: could not obtain "
+                "staging memory type index");
+            teardownAndroidNativeBufferImage(vk, out);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        VkMemoryAllocateInfo allocInfo = {
+            VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            0,
+            stagingMemReqs.size,
+            out->stagingMemoryTypeIndex,
+        };
+
+        VkResult res = vk->vkAllocateMemory(device, &allocInfo, nullptr, &out->stagingMemory);
+        if (VK_SUCCESS != res) {
+            VK_ANB_ERR(
+                "VK_ANDROID_native_buffer: could not allocate staging memory. "
+                "res = %d. requested size: %zu",
+                (int)res, (size_t)(out->memReqs.size));
             teardownAndroidNativeBufferImage(vk, out);
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
