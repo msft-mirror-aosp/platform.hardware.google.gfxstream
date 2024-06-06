@@ -35,9 +35,11 @@ cc_test {
     ],
     shared_libs: [
         "liblog",
+        "libcutils",
     ],
     static_libs: [
         "libgmock",
         "libvulkan_enc",
+        "libmesa_util_gfxstream",
     ],
 }

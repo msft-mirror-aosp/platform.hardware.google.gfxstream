@@ -465,13 +465,11 @@ intptr_t RenderThread::main() {
                                 .setAnnotations(std::move(renderThreadData))
                                 .build();
 
-#ifndef AEMU_BUILD
             if (!tInfo.m_puid) {
                 tInfo.m_puid = mContextId;
             }
-#endif
 
-            if (!processResources && tInfo.m_puid) {
+            if (!processResources && tInfo.m_puid && tInfo.m_puid != INVALID_CONTEXT_ID) {
                 processResources = FrameBuffer::getFB()->getProcessResources(tInfo.m_puid);
             }
 

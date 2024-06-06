@@ -1676,6 +1676,64 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+#ifdef __APPLE__
+#ifndef VK_ENABLE_BETA_EXTENSIONS
+        // TODO: Update Vulkan headers, stringhelpers and compilation parameters to use
+        // this directly from beta extensions and use regular chain append commands
+        const VkStructureType VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR =
+            (VkStructureType)1000163000;
+#endif
+        // Enable all portability features supported on the device
+        VkPhysicalDevicePortabilitySubsetFeaturesKHR supportedPortabilityFeatures = {
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR, nullptr};
+        if (m_emu->instanceSupportsMoltenVK) {
+            VkPhysicalDeviceFeatures2 features2 = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+                .pNext = &supportedPortabilityFeatures,
+            };
+            vk->vkGetPhysicalDeviceFeatures2(physicalDevice, &features2);
+
+            if (mVerbosePrints) {
+                fprintf(stderr,
+                        "VERBOSE:%s: MoltenVK supportedPortabilityFeatures\n"
+                        "constantAlphaColorBlendFactors = %d\n"
+                        "events = %d\n"
+                        "imageViewFormatReinterpretation = %d\n"
+                        "imageViewFormatSwizzle = %d\n"
+                        "imageView2DOn3DImage = %d\n"
+                        "multisampleArrayImage = %d\n"
+                        "mutableComparisonSamplers = %d\n"
+                        "pointPolygons = %d\n"
+                        "samplerMipLodBias = %d\n"
+                        "separateStencilMaskRef = %d\n"
+                        "shaderSampleRateInterpolationFunctions = %d\n"
+                        "tessellationIsolines = %d\n"
+                        "tessellationPointMode = %d\n"
+                        "triangleFans = %d\n"
+                        "vertexAttributeAccessBeyondStride = %d\n",
+                        __func__, supportedPortabilityFeatures.constantAlphaColorBlendFactors,
+                        supportedPortabilityFeatures.events,
+                        supportedPortabilityFeatures.imageViewFormatReinterpretation,
+                        supportedPortabilityFeatures.imageViewFormatSwizzle,
+                        supportedPortabilityFeatures.imageView2DOn3DImage,
+                        supportedPortabilityFeatures.multisampleArrayImage,
+                        supportedPortabilityFeatures.mutableComparisonSamplers,
+                        supportedPortabilityFeatures.pointPolygons,
+                        supportedPortabilityFeatures.samplerMipLodBias,
+                        supportedPortabilityFeatures.separateStencilMaskRef,
+                        supportedPortabilityFeatures.shaderSampleRateInterpolationFunctions,
+                        supportedPortabilityFeatures.tessellationIsolines,
+                        supportedPortabilityFeatures.tessellationPointMode,
+                        supportedPortabilityFeatures.triangleFans,
+                        supportedPortabilityFeatures.vertexAttributeAccessBeyondStride);
+            }
+
+            // Insert into device create info chain
+            supportedPortabilityFeatures.pNext = const_cast<void*>(createInfoFiltered.pNext);
+            createInfoFiltered.pNext = &supportedPortabilityFeatures;
+        }
+#endif
+
         // Filter device memory report as callbacks can not be passed between guest and host.
         vk_struct_chain_filter<VkDeviceDeviceMemoryReportCreateInfoEXT>(&createInfoFiltered);
 
@@ -1906,8 +1964,19 @@ class VkDecoderGlobalState::Impl {
         VkBufferCreateInfo localCreateInfo;
         if (snapshotsEnabled()) {
             localCreateInfo = *pCreateInfo;
-            localCreateInfo.usage |=
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+            // Add transfer src bit for potential device local memories.
+            //
+            // There are 3 ways to populate buffer content:
+            //   a) use host coherent memory and memory mapping;
+            //   b) use transfer_dst and vkcmdcopy* (for device local memories);
+            //   c) use storage and compute shaders.
+            //
+            // (a) is covered by memory snapshot. (b) requires an extra vkCmdCopyBuffer
+            // command on snapshot, thuse we need to add transfer_src for (b) so that
+            // they could be loaded back on snapshot save. (c) is still future work.
+            if (localCreateInfo.usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
+                localCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            }
             pCreateInfo = &localCreateInfo;
         }
 
@@ -1917,6 +1986,7 @@ class VkDecoderGlobalState::Impl {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto& bufInfo = mBufferInfo[*pBuffer];
             bufInfo.device = device;
+            bufInfo.usage = pCreateInfo->usage;
             bufInfo.size = pCreateInfo->size;
             *pBuffer = new_boxed_non_dispatchable_VkBuffer(*pBuffer);
         }
@@ -6800,6 +6870,10 @@ class VkDecoderGlobalState::Impl {
         // decoding, etc. However, push name to indicate external memory support to guest
         if (hasDeviceExtension(properties, VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME)) {
             res.push_back(VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME);
+            // EXT_queue_family_foreign is a pre-requisite for QNX_external_memory_screen_buffer
+            if (hasDeviceExtension(properties, VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME)) {
+                res.push_back(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
+            }
         }
 
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
