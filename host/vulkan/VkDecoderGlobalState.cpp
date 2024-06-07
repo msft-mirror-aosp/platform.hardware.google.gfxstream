@@ -5167,6 +5167,32 @@ class VkDecoderGlobalState::Impl {
         return submitInfo.pCommandBufferInfos[idx].commandBuffer;
     }
 
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.waitSemaphoreCount;
+    }
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.waitSemaphoreInfoCount;
+    }
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pWaitSemaphores[i];
+    }
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pWaitSemaphoreInfos[i].semaphore;
+    }
+
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.signalSemaphoreCount;
+    }
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.signalSemaphoreInfoCount;
+    }
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pSignalSemaphores[i];
+    }
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pSignalSemaphoreInfos[i].semaphore;
+    }
+
     template <typename VkSubmitInfoType>
     VkResult on_vkQueueSubmit(android::base::BumpPool* pool, VkQueue boxed_queue,
                               uint32_t submitCount, const VkSubmitInfoType* pSubmits,
@@ -5230,18 +5256,24 @@ class VkDecoderGlobalState::Impl {
             ql = queueInfo->lock;
         }
 
-        VkFence localFence = VK_NULL_HANDLE;
-        if (!releasedColorBuffers.empty() && fence == VK_NULL_HANDLE) {
-            // Need to manually inject a fence so that we could update color buffer
-            // after queue submits..
-            // This should almost never happen.
-            VkFenceCreateInfo fenceCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-            };
-            vk->vkCreateFence(device, &fenceCreateInfo, nullptr, &localFence);
+        VkFence usedFence = fence;
+        DeviceOpWaitable queueCompletedWaitable;
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
+            DeviceOpBuilder builder(*deviceInfo->deviceOpTracker);
+            if (VK_NULL_HANDLE == usedFence) {
+                // Note: This fence will be managed by the DeviceOpTracker after the
+                // OnQueueSubmittedWithFence call, so it does not need to be destroyed in the scope
+                // of this queueSubmit
+                usedFence = builder.CreateFenceForOp();
+            }
+            queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
         }
+
         AutoLock qlock(*ql);
-        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, localFence ?: fence);
+        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
 
         if (result != VK_SUCCESS) {
             return result;
@@ -5266,6 +5298,26 @@ class VkDecoderGlobalState::Impl {
                     }
                 }
             }
+            // Update latestUse for all wait/signal semaphores, to ensure that they
+            // are never asynchronously destroyed before the queue submissions referencing
+            // them have completed
+            for (int i = 0; i < submitCount; i++) {
+                for (int j = 0; j < getWaitSemaphoreCount(pSubmits[i]); j++) {
+                    SemaphoreInfo* semaphoreInfo =
+                        android::base::find(mSemaphoreInfo, getWaitSemaphore(pSubmits[i], j));
+                    if (semaphoreInfo) {
+                        semaphoreInfo->latestUse = queueCompletedWaitable;
+                    }
+                }
+                for (int j = 0; j < getSignalSemaphoreCount(pSubmits[i]); j++) {
+                    SemaphoreInfo* semaphoreInfo =
+                        android::base::find(mSemaphoreInfo, getSignalSemaphore(pSubmits[i], j));
+                    if (semaphoreInfo) {
+                        semaphoreInfo->latestUse = queueCompletedWaitable;
+                    }
+                }
+            }
+
             // After vkQueueSubmit is called, we can signal the conditional variable
             // in FenceInfo, so that other threads (e.g. SyncThread) can call
             // waitForFence() on this fence.
@@ -5274,10 +5326,14 @@ class VkDecoderGlobalState::Impl {
                 fenceInfo->state = FenceInfo::State::kWaitable;
                 fenceInfo->lock.lock();
                 fenceInfo->cv.signalAndUnlock(&fenceInfo->lock);
+                // Also update the latestUse waitable for this fence, to ensure
+                // it is not asynchronously destroyed before all the waitables
+                // referencing it
+                fenceInfo->latestUse = queueCompletedWaitable;
             }
         }
         if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, localFence ? &localFence : &fence, VK_TRUE,
+            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE,
                                 /* 1 sec */ 1000000000L);
             auto fb = FrameBuffer::getFB();
             if (fb) {
@@ -5285,9 +5341,6 @@ class VkDecoderGlobalState::Impl {
                     fb->flushColorBufferFromVk(cb);
                 }
             }
-        }
-        if (localFence) {
-            vk->vkDestroyFence(device, localFence, nullptr);
         }
 
         return result;
