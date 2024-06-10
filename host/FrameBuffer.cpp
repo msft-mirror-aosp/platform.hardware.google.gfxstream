@@ -1143,8 +1143,8 @@ HandleType FrameBuffer::createColorBuffer(int p_width,
 }
 
 void FrameBuffer::createColorBufferWithHandle(int p_width, int p_height, GLenum p_internalFormat,
-                                              FrameworkFormat p_frameworkFormat,
-                                              HandleType handle) {
+                                              FrameworkFormat p_frameworkFormat, HandleType handle,
+                                              bool p_linear) {
     {
         AutoLock mutex(m_lock);
         sweepColorBuffersLocked();
@@ -1160,18 +1160,17 @@ void FrameBuffer::createColorBufferWithHandle(int p_width, int p_height, GLenum 
         }
 
         createColorBufferWithHandleLocked(p_width, p_height, p_internalFormat, p_frameworkFormat,
-                                          handle);
+                                          handle, p_linear);
     }
 }
 
-HandleType FrameBuffer::createColorBufferWithHandleLocked(
-        int p_width,
-        int p_height,
-        GLenum p_internalFormat,
-        FrameworkFormat p_frameworkFormat,
-        HandleType handle) {
-    ColorBufferPtr cb = ColorBuffer::create(m_emulationGl.get(), m_emulationVk, p_width, p_height,
-                                            p_internalFormat, p_frameworkFormat, handle);
+HandleType FrameBuffer::createColorBufferWithHandleLocked(int p_width, int p_height,
+                                                          GLenum p_internalFormat,
+                                                          FrameworkFormat p_frameworkFormat,
+                                                          HandleType handle, bool p_linear) {
+    ColorBufferPtr cb =
+        ColorBuffer::create(m_emulationGl.get(), m_emulationVk, p_width, p_height, p_internalFormat,
+                            p_frameworkFormat, handle, nullptr /*stream*/, p_linear);
     if (cb.get() == nullptr) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Failed to create ColorBuffer:" << handle << " format:" << p_internalFormat
