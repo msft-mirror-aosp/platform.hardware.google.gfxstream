@@ -1676,6 +1676,64 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+#ifdef __APPLE__
+#ifndef VK_ENABLE_BETA_EXTENSIONS
+        // TODO: Update Vulkan headers, stringhelpers and compilation parameters to use
+        // this directly from beta extensions and use regular chain append commands
+        const VkStructureType VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR =
+            (VkStructureType)1000163000;
+#endif
+        // Enable all portability features supported on the device
+        VkPhysicalDevicePortabilitySubsetFeaturesKHR supportedPortabilityFeatures = {
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR, nullptr};
+        if (m_emu->instanceSupportsMoltenVK) {
+            VkPhysicalDeviceFeatures2 features2 = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+                .pNext = &supportedPortabilityFeatures,
+            };
+            vk->vkGetPhysicalDeviceFeatures2(physicalDevice, &features2);
+
+            if (mVerbosePrints) {
+                fprintf(stderr,
+                        "VERBOSE:%s: MoltenVK supportedPortabilityFeatures\n"
+                        "constantAlphaColorBlendFactors = %d\n"
+                        "events = %d\n"
+                        "imageViewFormatReinterpretation = %d\n"
+                        "imageViewFormatSwizzle = %d\n"
+                        "imageView2DOn3DImage = %d\n"
+                        "multisampleArrayImage = %d\n"
+                        "mutableComparisonSamplers = %d\n"
+                        "pointPolygons = %d\n"
+                        "samplerMipLodBias = %d\n"
+                        "separateStencilMaskRef = %d\n"
+                        "shaderSampleRateInterpolationFunctions = %d\n"
+                        "tessellationIsolines = %d\n"
+                        "tessellationPointMode = %d\n"
+                        "triangleFans = %d\n"
+                        "vertexAttributeAccessBeyondStride = %d\n",
+                        __func__, supportedPortabilityFeatures.constantAlphaColorBlendFactors,
+                        supportedPortabilityFeatures.events,
+                        supportedPortabilityFeatures.imageViewFormatReinterpretation,
+                        supportedPortabilityFeatures.imageViewFormatSwizzle,
+                        supportedPortabilityFeatures.imageView2DOn3DImage,
+                        supportedPortabilityFeatures.multisampleArrayImage,
+                        supportedPortabilityFeatures.mutableComparisonSamplers,
+                        supportedPortabilityFeatures.pointPolygons,
+                        supportedPortabilityFeatures.samplerMipLodBias,
+                        supportedPortabilityFeatures.separateStencilMaskRef,
+                        supportedPortabilityFeatures.shaderSampleRateInterpolationFunctions,
+                        supportedPortabilityFeatures.tessellationIsolines,
+                        supportedPortabilityFeatures.tessellationPointMode,
+                        supportedPortabilityFeatures.triangleFans,
+                        supportedPortabilityFeatures.vertexAttributeAccessBeyondStride);
+            }
+
+            // Insert into device create info chain
+            supportedPortabilityFeatures.pNext = const_cast<void*>(createInfoFiltered.pNext);
+            createInfoFiltered.pNext = &supportedPortabilityFeatures;
+        }
+#endif
+
         // Filter device memory report as callbacks can not be passed between guest and host.
         vk_struct_chain_filter<VkDeviceDeviceMemoryReportCreateInfoEXT>(&createInfoFiltered);
 
@@ -1865,14 +1923,13 @@ class VkDecoderGlobalState::Impl {
 
         VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo->boxed);
 
+        for (auto fence : findDeviceObjects(device, mFenceInfo)) {
+            destroyFenceLocked(device, deviceDispatch, fence, nullptr);
+        }
+
         // Destroy pooled external fences
         auto deviceFences = deviceInfo->externalFencePool->popAll();
         for (auto fence : deviceFences) {
-            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
-            mFenceInfo.erase(fence);
-        }
-
-        for (auto fence : findDeviceObjects(device, mFenceInfo)) {
             deviceDispatch->vkDestroyFence(device, fence, pAllocator);
             mFenceInfo.erase(fence);
         }
@@ -1906,8 +1963,19 @@ class VkDecoderGlobalState::Impl {
         VkBufferCreateInfo localCreateInfo;
         if (snapshotsEnabled()) {
             localCreateInfo = *pCreateInfo;
-            localCreateInfo.usage |=
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+            // Add transfer src bit for potential device local memories.
+            //
+            // There are 3 ways to populate buffer content:
+            //   a) use host coherent memory and memory mapping;
+            //   b) use transfer_dst and vkcmdcopy* (for device local memories);
+            //   c) use storage and compute shaders.
+            //
+            // (a) is covered by memory snapshot. (b) requires an extra vkCmdCopyBuffer
+            // command on snapshot, thuse we need to add transfer_src for (b) so that
+            // they could be loaded back on snapshot save. (c) is still future work.
+            if (localCreateInfo.usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
+                localCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            }
             pCreateInfo = &localCreateInfo;
         }
 
@@ -1917,6 +1985,7 @@ class VkDecoderGlobalState::Impl {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto& bufInfo = mBufferInfo[*pBuffer];
             bufInfo.device = device;
+            bufInfo.usage = pCreateInfo->usage;
             bufInfo.size = pCreateInfo->size;
             *pBuffer = new_boxed_non_dispatchable_VkBuffer(*pBuffer);
         }
@@ -2699,51 +2768,53 @@ class VkDecoderGlobalState::Impl {
         destroySemaphoreLocked(device, deviceDispatch, semaphore, pAllocator);
     }
 
+    void destroyFenceLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkFence fence,
+                            const VkAllocationCallbacks* pAllocator) {
+        if (VK_NULL_HANDLE == fence) {
+            return;
+        }
+
+        auto fenceInfoIt = mFenceInfo.find(fence);
+        if (fenceInfoIt == mFenceInfo.end()) {
+            ERR("Failed to find fence info for VkFence:%p. Leaking fence!", fence);
+            return;
+        }
+        auto& fenceInfo = fenceInfoIt->second;
+
+        auto deviceInfoIt = mDeviceInfo.find(device);
+        if (deviceInfoIt == mDeviceInfo.end()) {
+            ERR("Failed to find device info for VkDevice:%p for VkFence:%p. Leaking fence!", device,
+                fence);
+            return;
+        }
+        auto& deviceInfo = deviceInfoIt->second;
+
+        fenceInfo.boxed = VK_NULL_HANDLE;
+
+        // External fences are just slated for recycling. This addresses known
+        // behavior where the guest might destroy the fence prematurely. b/228221208
+        if (fenceInfo.external) {
+            deviceInfo.externalFencePool->add(fence);
+            return;
+        }
+
+        if (fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
+            deviceInfo.deviceOpTracker->AddPendingGarbage(*fenceInfo.latestUse, fence);
+            deviceInfo.deviceOpTracker->PollAndProcessGarbage();
+        } else {
+            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
+        }
+
+        mFenceInfo.erase(fenceInfoIt);
+    }
+
     void on_vkDestroyFence(android::base::BumpPool* pool, VkDevice boxed_device, VkFence fence,
                            const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
-        bool destructionDeferred = false;
-        {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            auto fenceInfoIt = mFenceInfo.find(fence);
-            if (fenceInfoIt == mFenceInfo.end()) {
-                ERR("Failed to find fence info for VkFence:%p. Leaking fence!", fence);
-                return;
-            }
-            auto& fenceInfo = fenceInfoIt->second;
-
-            auto deviceInfoIt = mDeviceInfo.find(device);
-            if (deviceInfoIt == mDeviceInfo.end()) {
-                ERR("Failed to find device info for VkDevice:%p for VkFence:%p. Leaking fence!",
-                    device, fence);
-                return;
-            }
-            auto& deviceInfo = deviceInfoIt->second;
-
-            fenceInfo.boxed = VK_NULL_HANDLE;
-
-            // External fences are just slated for recycling. This addresses known
-            // behavior where the guest might destroy the fence prematurely. b/228221208
-            if (fenceInfo.external) {
-                deviceInfo.externalFencePool->add(fence);
-                return;
-            }
-
-            // Fences used for swapchains have their destruction deferred.
-            if (fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
-                deviceInfo.deviceOpTracker->AddPendingGarbage(*fenceInfo.latestUse, fence);
-                deviceInfo.deviceOpTracker->PollAndProcessGarbage();
-                destructionDeferred = true;
-            }
-            mFenceInfo.erase(fence);
-        }
-
-        if (!destructionDeferred) {
-            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
-        }
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        destroyFenceLocked(device, deviceDispatch, fence, pAllocator);
     }
 
     VkResult on_vkCreateDescriptorSetLayout(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -5096,6 +5167,32 @@ class VkDecoderGlobalState::Impl {
         return submitInfo.pCommandBufferInfos[idx].commandBuffer;
     }
 
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.waitSemaphoreCount;
+    }
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.waitSemaphoreInfoCount;
+    }
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pWaitSemaphores[i];
+    }
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pWaitSemaphoreInfos[i].semaphore;
+    }
+
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.signalSemaphoreCount;
+    }
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.signalSemaphoreInfoCount;
+    }
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pSignalSemaphores[i];
+    }
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pSignalSemaphoreInfos[i].semaphore;
+    }
+
     template <typename VkSubmitInfoType>
     VkResult on_vkQueueSubmit(android::base::BumpPool* pool, VkQueue boxed_queue,
                               uint32_t submitCount, const VkSubmitInfoType* pSubmits,
@@ -5159,18 +5256,24 @@ class VkDecoderGlobalState::Impl {
             ql = queueInfo->lock;
         }
 
-        VkFence localFence = VK_NULL_HANDLE;
-        if (!releasedColorBuffers.empty() && fence == VK_NULL_HANDLE) {
-            // Need to manually inject a fence so that we could update color buffer
-            // after queue submits..
-            // This should almost never happen.
-            VkFenceCreateInfo fenceCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-            };
-            vk->vkCreateFence(device, &fenceCreateInfo, nullptr, &localFence);
+        VkFence usedFence = fence;
+        DeviceOpWaitable queueCompletedWaitable;
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
+            DeviceOpBuilder builder(*deviceInfo->deviceOpTracker);
+            if (VK_NULL_HANDLE == usedFence) {
+                // Note: This fence will be managed by the DeviceOpTracker after the
+                // OnQueueSubmittedWithFence call, so it does not need to be destroyed in the scope
+                // of this queueSubmit
+                usedFence = builder.CreateFenceForOp();
+            }
+            queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
         }
+
         AutoLock qlock(*ql);
-        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, localFence ?: fence);
+        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
 
         if (result != VK_SUCCESS) {
             return result;
@@ -5195,6 +5298,26 @@ class VkDecoderGlobalState::Impl {
                     }
                 }
             }
+            // Update latestUse for all wait/signal semaphores, to ensure that they
+            // are never asynchronously destroyed before the queue submissions referencing
+            // them have completed
+            for (int i = 0; i < submitCount; i++) {
+                for (int j = 0; j < getWaitSemaphoreCount(pSubmits[i]); j++) {
+                    SemaphoreInfo* semaphoreInfo =
+                        android::base::find(mSemaphoreInfo, getWaitSemaphore(pSubmits[i], j));
+                    if (semaphoreInfo) {
+                        semaphoreInfo->latestUse = queueCompletedWaitable;
+                    }
+                }
+                for (int j = 0; j < getSignalSemaphoreCount(pSubmits[i]); j++) {
+                    SemaphoreInfo* semaphoreInfo =
+                        android::base::find(mSemaphoreInfo, getSignalSemaphore(pSubmits[i], j));
+                    if (semaphoreInfo) {
+                        semaphoreInfo->latestUse = queueCompletedWaitable;
+                    }
+                }
+            }
+
             // After vkQueueSubmit is called, we can signal the conditional variable
             // in FenceInfo, so that other threads (e.g. SyncThread) can call
             // waitForFence() on this fence.
@@ -5203,10 +5326,14 @@ class VkDecoderGlobalState::Impl {
                 fenceInfo->state = FenceInfo::State::kWaitable;
                 fenceInfo->lock.lock();
                 fenceInfo->cv.signalAndUnlock(&fenceInfo->lock);
+                // Also update the latestUse waitable for this fence, to ensure
+                // it is not asynchronously destroyed before all the waitables
+                // referencing it
+                fenceInfo->latestUse = queueCompletedWaitable;
             }
         }
         if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, localFence ? &localFence : &fence, VK_TRUE,
+            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE,
                                 /* 1 sec */ 1000000000L);
             auto fb = FrameBuffer::getFB();
             if (fb) {
@@ -5214,9 +5341,6 @@ class VkDecoderGlobalState::Impl {
                     fb->flushColorBufferFromVk(cb);
                 }
             }
-        }
-        if (localFence) {
-            vk->vkDestroyFence(device, localFence, nullptr);
         }
 
         return result;
@@ -6800,6 +6924,10 @@ class VkDecoderGlobalState::Impl {
         // decoding, etc. However, push name to indicate external memory support to guest
         if (hasDeviceExtension(properties, VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME)) {
             res.push_back(VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME);
+            // EXT_queue_family_foreign is a pre-requisite for QNX_external_memory_screen_buffer
+            if (hasDeviceExtension(properties, VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME)) {
+                res.push_back(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
+            }
         }
 
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
