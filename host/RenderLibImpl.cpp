@@ -86,6 +86,7 @@ void RenderLibImpl::setDmaOps(emugl_dma_ops ops) {
 
 void RenderLibImpl::setVmOps(const QAndroidVmOperations &vm_operations) {
     set_emugl_vm_operations(vm_operations);
+    address_space_set_vm_operations(&get_emugl_vm_operations());
 }
 
 void RenderLibImpl::setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) {
