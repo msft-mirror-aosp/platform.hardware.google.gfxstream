@@ -1127,8 +1127,9 @@ class PipeVirglRenderer {
 
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const uint32_t fwkformat = virgl_format_to_fwk_format(args->format);
+        const bool linear = !!(args->bind & VIRGL_BIND_LINEAR);
         mVirtioGpuOps->create_color_buffer_with_handle(args->width, args->height, glformat,
-                                                       fwkformat, args->handle);
+                                                       fwkformat, args->handle, linear);
         mVirtioGpuOps->set_guest_managed_color_buffer_lifetime(true /* guest manages lifetime */);
         mVirtioGpuOps->open_color_buffer(args->handle);
     }
@@ -1483,7 +1484,7 @@ class PipeVirglRenderer {
                 *max_size = sizeof(struct gfxstream::composerCapset);
                 break;
             default:
-                stream_renderer_error("Incorrect capability set specified");
+                stream_renderer_error("Incorrect capability set specified (%u)", set);
         }
     }
 
@@ -1893,9 +1894,11 @@ class PipeVirglRenderer {
 
         if (linearSize) linear = malloc(linearSize);
 
-        entry.iov = (iovec*)malloc(sizeof(*iov) * num_iovs);
         entry.numIovs = num_iovs;
-        memcpy(entry.iov, iov, num_iovs * sizeof(*iov));
+        entry.iov = (iovec*)malloc(sizeof(*iov) * num_iovs);
+        if (entry.numIovs > 0) {
+            memcpy(entry.iov, iov, num_iovs * sizeof(*iov));
+        }
         entry.linear = linear;
         entry.linearSize = linearSize;
     }
