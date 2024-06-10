@@ -76,6 +76,89 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, PreserveImageHandle) {
     ASSERT_THAT(device->bindImageMemory(*image, *imageMemory, 0), IsVkSuccess());
 }
 
+// b/346415931
+// We used to have an issue that the handles mismatch when running more device
+// create calls. The first device always work but the second might break.
+TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, MultipleDevicesPreserveHandles) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    uint32_t graphicsQueueFamilyIndex = -1;
+    {
+        const auto props = physicalDevice.getQueueFamilyProperties();
+        for (uint32_t i = 0; i < props.size(); i++) {
+            const auto& prop = props[i];
+            if (prop.queueFlags & vkhpp::QueueFlagBits::eGraphics) {
+                graphicsQueueFamilyIndex = i;
+                break;
+            }
+        }
+    }
+    ASSERT_THAT(graphicsQueueFamilyIndex, Not(Eq(-1)));
+    const float queuePriority = 1.0f;
+    const vkhpp::DeviceQueueCreateInfo deviceQueueCreateInfo = {
+        .queueFamilyIndex = graphicsQueueFamilyIndex,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority,
+    };
+    std::vector<const char*> deviceExtensions = {
+        VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME,
+        VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
+    };
+    const vkhpp::DeviceCreateInfo deviceCreateInfo = {
+        .pNext = nullptr,
+        .pQueueCreateInfos = &deviceQueueCreateInfo,
+        .queueCreateInfoCount = 1,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
+        .ppEnabledExtensionNames = deviceExtensions.data(),
+    };
+    auto device2 = physicalDevice.createDeviceUnique(deviceCreateInfo).value;
+    ASSERT_THAT(device2, IsValidHandle());
+
+    const uint32_t width = 32;
+    const uint32_t height = 32;
+
+    const vkhpp::ImageCreateInfo imageCreateInfo = {
+        .pNext = nullptr,
+        .imageType = vkhpp::ImageType::e2D,
+        .extent.width = width,
+        .extent.height = height,
+        .extent.depth = 1,
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .tiling = vkhpp::ImageTiling::eOptimal,
+        .initialLayout = vkhpp::ImageLayout::eUndefined,
+        .usage = vkhpp::ImageUsageFlagBits::eSampled | vkhpp::ImageUsageFlagBits::eTransferDst |
+                 vkhpp::ImageUsageFlagBits::eTransferSrc,
+        .sharingMode = vkhpp::SharingMode::eExclusive,
+        .samples = vkhpp::SampleCountFlagBits::e1,
+    };
+    auto image = device->createImageUnique(imageCreateInfo).value;
+
+    vkhpp::MemoryRequirements imageMemoryRequirements{};
+    device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
+
+    const uint32_t imageMemoryIndex = utils::getMemoryType(
+        physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
+
+    const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
+        .allocationSize = imageMemoryRequirements.size,
+        .memoryTypeIndex = imageMemoryIndex,
+    };
+
+    auto imageMemory = device->allocateMemoryUnique(imageMemoryAllocateInfo).value;
+    ASSERT_THAT(imageMemory, IsValidHandle());
+
+    ASSERT_THAT(device->bindImageMemory(*image, *imageMemory, 0), IsVkSuccess());
+
+    // No device lost on snapshot load.
+    SnapshotSaveAndLoad();
+}
+
 TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependency) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
         VK_ASSERT(SetUpTypicalVkTestEnvironment());

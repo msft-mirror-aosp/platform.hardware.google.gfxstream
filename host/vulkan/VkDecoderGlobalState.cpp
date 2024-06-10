@@ -1827,6 +1827,7 @@ class VkDecoderGlobalState::Impl {
             queueFamilyIndexCounts[queueFamilyIndex] = queueCount;
         }
 
+        std::vector<uint64_t> extraHandles;
         for (auto it : queueFamilyIndexCounts) {
             auto index = it.first;
             auto count = it.second;
@@ -1849,9 +1850,13 @@ class VkDecoderGlobalState::Impl {
 
                 auto boxed = new_boxed_VkQueue(queueOut, dispatch_VkDevice(deviceInfo.boxed),
                                                false /* does not own dispatch */);
+                extraHandles.push_back((uint64_t)boxed);
                 mQueueInfo[queueOut].boxed = boxed;
                 mQueueInfo[queueOut].lock = new Lock;
             }
+        }
+        if (snapshotsEnabled()) {
+            snapshot()->createExtraHandlesForNextApi(extraHandles.data(), extraHandles.size());
         }
 
         // Box the device.
