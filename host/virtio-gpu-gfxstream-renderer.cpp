@@ -1797,6 +1797,21 @@ class PipeVirglRenderer {
         return success ? 0 : -1;
     }
 
+    int waitSyncResource(uint32_t res_handle) {
+        auto it = mResources.find(res_handle);
+        if (it == mResources.end()) {
+            stream_renderer_error("waitSyncResource could not find resource: %d", res_handle);
+            return -EINVAL;
+        }
+        auto& entry = it->second;
+        if (ResType::COLOR_BUFFER != entry.type) {
+            stream_renderer_error("waitSyncResource is undefined for non-ColorBuffer resource.");
+            return -EINVAL;
+        }
+
+        return mVirtioGpuOps->wait_sync_color_buffer(res_handle);
+    }
+
     int resourceMapInfo(uint32_t res_handle, uint32_t* map_info) {
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -EINVAL;
@@ -2099,6 +2114,10 @@ VG_EXPORT void* stream_renderer_platform_create_shared_egl_context() {
 
 VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void* context) {
     return sRenderer()->platformDestroySharedEglContext(context);
+}
+
+VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle) {
+    return sRenderer()->waitSyncResource(res_handle);
 }
 
 VG_EXPORT int stream_renderer_resource_map_info(uint32_t res_handle, uint32_t* map_info) {
