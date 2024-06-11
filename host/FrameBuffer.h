@@ -497,8 +497,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
                                      size_t bytesSize);
     bool invalidateColorBufferForVk(HandleType colorBufferHandle);
 
-    int waitSyncColorBuffer(HandleType colorBufferHandle);
-
 #if GFXSTREAM_ENABLE_HOST_GLES
     // Retrieves the color buffer handle associated with |p_surface|.
     // Returns 0 if there is no such handle.
