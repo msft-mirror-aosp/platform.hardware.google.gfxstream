@@ -1127,8 +1127,9 @@ class PipeVirglRenderer {
 
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const uint32_t fwkformat = virgl_format_to_fwk_format(args->format);
+        const bool linear = !!(args->bind & VIRGL_BIND_LINEAR);
         mVirtioGpuOps->create_color_buffer_with_handle(args->width, args->height, glformat,
-                                                       fwkformat, args->handle);
+                                                       fwkformat, args->handle, linear);
         mVirtioGpuOps->set_guest_managed_color_buffer_lifetime(true /* guest manages lifetime */);
         mVirtioGpuOps->open_color_buffer(args->handle);
     }
@@ -1483,7 +1484,7 @@ class PipeVirglRenderer {
                 *max_size = sizeof(struct gfxstream::composerCapset);
                 break;
             default:
-                stream_renderer_error("Incorrect capability set specified");
+                stream_renderer_error("Incorrect capability set specified (%u)", set);
         }
     }
 
@@ -1605,6 +1606,9 @@ class PipeVirglRenderer {
         switch (entry.args.format) {
             case VIRGL_FORMAT_B8G8R8A8_UNORM:
                 info->drm_fourcc = DRM_FORMAT_ARGB8888;
+                break;
+            case VIRGL_FORMAT_B8G8R8X8_UNORM:
+                info->drm_fourcc = DRM_FORMAT_XRGB8888;
                 break;
             case VIRGL_FORMAT_B5G6R5_UNORM:
                 info->drm_fourcc = DRM_FORMAT_RGB565;
@@ -1793,6 +1797,21 @@ class PipeVirglRenderer {
         return success ? 0 : -1;
     }
 
+    int waitSyncResource(uint32_t res_handle) {
+        auto it = mResources.find(res_handle);
+        if (it == mResources.end()) {
+            stream_renderer_error("waitSyncResource could not find resource: %d", res_handle);
+            return -EINVAL;
+        }
+        auto& entry = it->second;
+        if (ResType::COLOR_BUFFER != entry.type) {
+            stream_renderer_error("waitSyncResource is undefined for non-ColorBuffer resource.");
+            return -EINVAL;
+        }
+
+        return mVirtioGpuOps->wait_sync_color_buffer(res_handle);
+    }
+
     int resourceMapInfo(uint32_t res_handle, uint32_t* map_info) {
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -EINVAL;
@@ -1893,9 +1912,11 @@ class PipeVirglRenderer {
 
         if (linearSize) linear = malloc(linearSize);
 
-        entry.iov = (iovec*)malloc(sizeof(*iov) * num_iovs);
         entry.numIovs = num_iovs;
-        memcpy(entry.iov, iov, num_iovs * sizeof(*iov));
+        entry.iov = (iovec*)malloc(sizeof(*iov) * num_iovs);
+        if (entry.numIovs > 0) {
+            memcpy(entry.iov, iov, num_iovs * sizeof(*iov));
+        }
         entry.linear = linear;
         entry.linearSize = linearSize;
     }
@@ -2093,6 +2114,10 @@ VG_EXPORT void* stream_renderer_platform_create_shared_egl_context() {
 
 VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void* context) {
     return sRenderer()->platformDestroySharedEglContext(context);
+}
+
+VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle) {
+    return sRenderer()->waitSyncResource(res_handle);
 }
 
 VG_EXPORT int stream_renderer_resource_map_info(uint32_t res_handle, uint32_t* map_info) {
