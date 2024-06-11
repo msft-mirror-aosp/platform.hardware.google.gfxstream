@@ -43,7 +43,6 @@ cc_test_host {
         "libgfxstream_platform_rutabaga_server",
     ],
     static_libs: [
-        "libc++fs",
         "libgfxstream_common_image",
         "libgfxstream_common_utils",
         "libgfxstream_guest_android_with_host",
