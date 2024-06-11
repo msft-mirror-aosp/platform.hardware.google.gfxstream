@@ -209,6 +209,9 @@ class ResourceTracker {
     void on_vkGetImageMemoryRequirements2KHR(void* context, VkDevice device,
                                              const VkImageMemoryRequirementsInfo2* pInfo,
                                              VkMemoryRequirements2* pMemoryRequirements);
+    void on_vkGetImageSubresourceLayout(void* context, VkDevice device, VkImage image,
+                                        const VkImageSubresource* pSubresource,
+                                        VkSubresourceLayout* pLayout);
 
     VkResult on_vkBindImageMemory(void* context, VkResult input_result, VkDevice device,
                                   VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset);
@@ -775,13 +778,16 @@ class ResourceTracker {
         VkMemoryRequirements baseRequirements;
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         bool hasExternalFormat = false;
-        unsigned androidFormat = 0;
+        unsigned externalFourccFormat = 0;
         std::vector<int> pendingQsriSyncFds;
 #endif
 #ifdef VK_USE_PLATFORM_FUCHSIA
         bool isSysmemBackedMemory = false;
 #endif
-        bool isWsiImage = false;
+#ifdef LINUX_GUEST_BUILD
+        bool isDmaBufImage = false;
+        VkImage linearPeerImage = VK_NULL_HANDLE;
+#endif
     };
 
     struct VkBuffer_Info {
