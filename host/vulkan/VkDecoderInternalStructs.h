@@ -200,7 +200,7 @@ struct DeviceInfo {
     std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
-    std::optional<DeviceOpTracker> deviceOpTracker;
+    DeviceOpTrackerPtr deviceOpTracker = nullptr;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)
@@ -228,6 +228,7 @@ struct QueueInfo {
 
 struct BufferInfo {
     VkDevice device;
+    VkBufferUsageFlags usage;
     VkDeviceMemory memory = 0;
     VkDeviceSize memoryOffset = 0;
     VkDeviceSize size;
