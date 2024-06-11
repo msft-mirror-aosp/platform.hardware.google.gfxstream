@@ -1807,7 +1807,7 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.externalFencePool =
             std::make_unique<ExternalFencePool<VulkanDispatch>>(dispatch, *pDevice);
 
-        deviceInfo.deviceOpTracker.emplace(*pDevice, dispatch);
+        deviceInfo.deviceOpTracker = std::make_shared<DeviceOpTracker>(*pDevice, dispatch);
 
         if (mLogging) {
             fprintf(stderr, "%s: init vulkan dispatch from device (end)\n", __func__);
@@ -3972,6 +3972,57 @@ class VkDecoderGlobalState::Impl {
         convertQueueFamilyForeignToExternal(&barrier->dstQueueFamilyIndex);
     }
 
+    inline VkImage getIMBImage(const VkImageMemoryBarrier& imb) { return imb.image; }
+    inline VkImage getIMBImage(const VkImageMemoryBarrier2& imb) { return imb.image; }
+
+    inline VkImageLayout getIMBNewLayout(const VkImageMemoryBarrier& imb) { return imb.newLayout; }
+    inline VkImageLayout getIMBNewLayout(const VkImageMemoryBarrier2& imb) { return imb.newLayout; }
+
+    inline uint32_t getIMBSrcQueueFamilyIndex(const VkImageMemoryBarrier& imb) {
+        return imb.srcQueueFamilyIndex;
+    }
+    inline uint32_t getIMBSrcQueueFamilyIndex(const VkImageMemoryBarrier2& imb) {
+        return imb.srcQueueFamilyIndex;
+    }
+    inline uint32_t getIMBDstQueueFamilyIndex(const VkImageMemoryBarrier& imb) {
+        return imb.dstQueueFamilyIndex;
+    }
+    inline uint32_t getIMBDstQueueFamilyIndex(const VkImageMemoryBarrier2& imb) {
+        return imb.dstQueueFamilyIndex;
+    }
+
+    template <typename VkImageMemoryBarrierType>
+    void processImageMemoryBarrier(VkCommandBuffer commandBuffer, uint32_t imageMemoryBarrierCount,
+                                   const VkImageMemoryBarrierType* pImageMemoryBarriers) {
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) return;
+
+        // TODO: update image layout in ImageInfo
+        for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
+            auto* imageInfo = android::base::find(mImageInfo, getIMBImage(pImageMemoryBarriers[i]));
+            if (!imageInfo) {
+                continue;
+            }
+            cmdBufferInfo->imageLayouts[getIMBImage(pImageMemoryBarriers[i])] =
+                getIMBNewLayout(pImageMemoryBarriers[i]);
+            if (!imageInfo->boundColorBuffer.has_value()) {
+                continue;
+            }
+            HandleType cb = imageInfo->boundColorBuffer.value();
+            if (getIMBSrcQueueFamilyIndex(pImageMemoryBarriers[i]) == VK_QUEUE_FAMILY_EXTERNAL) {
+                cmdBufferInfo->acquiredColorBuffers.insert(cb);
+            }
+            if (getIMBDstQueueFamilyIndex(pImageMemoryBarriers[i]) == VK_QUEUE_FAMILY_EXTERNAL) {
+                cmdBufferInfo->releasedColorBuffers.insert(cb);
+            }
+            cmdBufferInfo->cbLayouts[cb] = getIMBNewLayout(pImageMemoryBarriers[i]);
+            // Insert unconditionally to this list, regardless of whether or not
+            // there is a queue family ownership transfer
+            cmdBufferInfo->imageBarrierColorBuffers.insert(cb);
+        }
+    }
+
     void on_vkCmdPipelineBarrier(android::base::BumpPool* pool, VkCommandBuffer boxed_commandBuffer,
                                  VkPipelineStageFlags srcStageMask,
                                  VkPipelineStageFlags dstStageMask,
@@ -4008,26 +4059,7 @@ class VkDecoderGlobalState::Impl {
         DeviceInfo* deviceInfo = android::base::find(mDeviceInfo, cmdBufferInfo->device);
         if (!deviceInfo) return;
 
-        // TODO: update image layout in ImageInfo
-        for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
-            const VkImageMemoryBarrier& barrier = pImageMemoryBarriers[i];
-            auto* imageInfo = android::base::find(mImageInfo, barrier.image);
-            if (!imageInfo) {
-                continue;
-            }
-            cmdBufferInfo->imageLayouts[barrier.image] = barrier.newLayout;
-            if (!imageInfo->boundColorBuffer.has_value()) {
-                continue;
-            }
-            HandleType cb = imageInfo->boundColorBuffer.value();
-            if (barrier.srcQueueFamilyIndex == VK_QUEUE_FAMILY_EXTERNAL) {
-                cmdBufferInfo->acquiredColorBuffers.insert(cb);
-            }
-            if (barrier.dstQueueFamilyIndex == VK_QUEUE_FAMILY_EXTERNAL) {
-                cmdBufferInfo->releasedColorBuffers.insert(cb);
-            }
-            cmdBufferInfo->cbLayouts[cb] = barrier.newLayout;
-        }
+        processImageMemoryBarrier(commandBuffer, imageMemoryBarrierCount, pImageMemoryBarriers);
 
         if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
             vk->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags,
@@ -4079,6 +4111,37 @@ class VkDecoderGlobalState::Impl {
                                      pBufferMemoryBarriers, imageBarriers.size(),
                                      imageBarriers.data());
         }
+    }
+
+    void on_vkCmdPipelineBarrier2(android::base::BumpPool* pool,
+                                  VkCommandBuffer boxed_commandBuffer,
+                                  const VkDependencyInfo* pDependencyInfo) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        for (uint32_t i = 0; i < pDependencyInfo->bufferMemoryBarrierCount; ++i) {
+            convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier(
+                ((VkBufferMemoryBarrier*)pDependencyInfo->pBufferMemoryBarriers) + i);
+        }
+
+        for (uint32_t i = 0; i < pDependencyInfo->imageMemoryBarrierCount; ++i) {
+            convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(
+                ((VkImageMemoryBarrier*)pDependencyInfo->pImageMemoryBarriers) + i);
+        }
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) return;
+
+        DeviceInfo* deviceInfo = android::base::find(mDeviceInfo, cmdBufferInfo->device);
+        if (!deviceInfo) return;
+
+        processImageMemoryBarrier(commandBuffer, pDependencyInfo->imageMemoryBarrierCount,
+                                  pDependencyInfo->pImageMemoryBarriers);
+
+        // TODO: If this is a decompressed image, handle decompression before calling
+        // VkCmdvkCmdPipelineBarrier2 i.e. match on_vkCmdPipelineBarrier implementation
+        vk->vkCmdPipelineBarrier2(commandBuffer, pDependencyInfo);
     }
 
     bool mapHostVisibleMemoryToGuestPhysicalAddressLocked(VulkanDispatch* vk, VkDevice device,
@@ -4538,7 +4601,7 @@ class VkDecoderGlobalState::Impl {
         }
 #endif
 
-        if (importCbInfoPtr && !mGuestUsesAngle) {
+        if (importCbInfoPtr) {
             memoryInfo.boundColorBuffer = importCbInfoPtr->colorBuffer;
         }
 
@@ -5270,6 +5333,27 @@ class VkDecoderGlobalState::Impl {
                 usedFence = builder.CreateFenceForOp();
             }
             queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
+        }
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            std::unordered_set<HandleType> imageBarrierColorBuffers;
+            for (int i = 0; i < submitCount; i++) {
+                for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
+                    VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
+                    CommandBufferInfo* cmdBufferInfo =
+                        android::base::find(mCmdBufferInfo, cmdBuffer);
+                    if (cmdBufferInfo) {
+                        imageBarrierColorBuffers.merge(cmdBufferInfo->imageBarrierColorBuffers);
+                    }
+                }
+            }
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
+            for (const auto& colorBuffer : imageBarrierColorBuffers) {
+                setColorBufferLatestUse(colorBuffer, queueCompletedWaitable,
+                                        deviceInfo->deviceOpTracker);
+            }
         }
 
         AutoLock qlock(*ql);
@@ -7373,6 +7457,7 @@ class VkDecoderGlobalState::Impl {
         std::unordered_set<HandleType> releasedColorBuffers;
         std::unordered_map<HandleType, VkImageLayout> cbLayouts;
         std::unordered_map<VkImage, VkImageLayout> imageLayouts;
+        std::unordered_set<HandleType> imageBarrierColorBuffers;
 
         void reset() {
             preprocessFuncs.clear();
@@ -8351,6 +8436,12 @@ void VkDecoderGlobalState::on_vkCmdPipelineBarrier(
                                    memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
                                    pBufferMemoryBarriers, imageMemoryBarrierCount,
                                    pImageMemoryBarriers);
+}
+
+void VkDecoderGlobalState::on_vkCmdPipelineBarrier2(android::base::BumpPool* pool,
+                                                    VkCommandBuffer commandBuffer,
+                                                    const VkDependencyInfo* pDependencyInfo) {
+    mImpl->on_vkCmdPipelineBarrier2(pool, commandBuffer, pDependencyInfo);
 }
 
 VkResult VkDecoderGlobalState::on_vkAllocateMemory(android::base::BumpPool* pool, VkDevice device,
