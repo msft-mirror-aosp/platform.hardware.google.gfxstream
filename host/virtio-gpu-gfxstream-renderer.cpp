@@ -1607,9 +1607,6 @@ class PipeVirglRenderer {
             case VIRGL_FORMAT_B8G8R8A8_UNORM:
                 info->drm_fourcc = DRM_FORMAT_ARGB8888;
                 break;
-            case VIRGL_FORMAT_B8G8R8X8_UNORM:
-                info->drm_fourcc = DRM_FORMAT_XRGB8888;
-                break;
             case VIRGL_FORMAT_B5G6R5_UNORM:
                 info->drm_fourcc = DRM_FORMAT_RGB565;
                 bpp = 2U;
