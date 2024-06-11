@@ -226,7 +226,6 @@ cc_test_host {
     static_libs: [
         "libgfxstream_host_vulkan_server",
         "libgfxstream_thirdparty_glm",
-        "libc++fs",
     ],
     test_options: {
         // Disabled by default as requires Vulkan.
