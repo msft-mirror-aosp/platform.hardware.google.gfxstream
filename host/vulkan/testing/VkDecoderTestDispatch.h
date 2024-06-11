@@ -101,11 +101,6 @@ class VkDecoderTestDispatch {
                                       imageMemoryBarrierCount, pImageMemoryBarriers);
     }
 
-    void vkCmdPipelineBarrier2(VkCommandBuffer commandBuffer,
-                               const VkDependencyInfo* pDependencyInfo) {
-        mDgs->on_vkCmdPipelineBarrier2(mBp, commandBuffer, pDependencyInfo);
-    }
-
     void vkCmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage srcImage,
                                 VkImageLayout srcImageLayout, VkBuffer dstBuffer,
                                 uint32_t regionCount, const VkBufferImageCopy* pRegions) {

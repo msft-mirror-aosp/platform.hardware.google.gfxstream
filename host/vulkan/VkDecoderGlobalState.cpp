@@ -4086,14 +4086,6 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdPipelineBarrier2(android::base::BumpPool* pool,
-                                  VkCommandBuffer boxed_commandBuffer,
-                                  const VkDependencyInfo* pDependencyInfo) {
-        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
-        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
-        vk->vkCmdPipelineBarrier2(commandBuffer, pDependencyInfo);
-    }
-
     bool mapHostVisibleMemoryToGuestPhysicalAddressLocked(VulkanDispatch* vk, VkDevice device,
                                                           VkDeviceMemory memory,
                                                           uint64_t physAddr) {
@@ -8364,12 +8356,6 @@ void VkDecoderGlobalState::on_vkCmdPipelineBarrier(
                                    memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
                                    pBufferMemoryBarriers, imageMemoryBarrierCount,
                                    pImageMemoryBarriers);
-}
-
-void VkDecoderGlobalState::on_vkCmdPipelineBarrier2(android::base::BumpPool* pool,
-                                                    VkCommandBuffer commandBuffer,
-                                                    const VkDependencyInfo* pDependencyInfo) {
-    mImpl->on_vkCmdPipelineBarrier2(pool, commandBuffer, pDependencyInfo);
 }
 
 VkResult VkDecoderGlobalState::on_vkAllocateMemory(android::base::BumpPool* pool, VkDevice device,
