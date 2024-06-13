@@ -1827,6 +1827,7 @@ class VkDecoderGlobalState::Impl {
             queueFamilyIndexCounts[queueFamilyIndex] = queueCount;
         }
 
+        std::vector<uint64_t> extraHandles;
         for (auto it : queueFamilyIndexCounts) {
             auto index = it.first;
             auto count = it.second;
@@ -1849,9 +1850,13 @@ class VkDecoderGlobalState::Impl {
 
                 auto boxed = new_boxed_VkQueue(queueOut, dispatch_VkDevice(deviceInfo.boxed),
                                                false /* does not own dispatch */);
+                extraHandles.push_back((uint64_t)boxed);
                 mQueueInfo[queueOut].boxed = boxed;
                 mQueueInfo[queueOut].lock = new Lock;
             }
+        }
+        if (snapshotsEnabled()) {
+            snapshot()->createExtraHandlesForNextApi(extraHandles.data(), extraHandles.size());
         }
 
         // Box the device.
@@ -1924,7 +1929,7 @@ class VkDecoderGlobalState::Impl {
         VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo->boxed);
 
         for (auto fence : findDeviceObjects(device, mFenceInfo)) {
-            destroyFenceLocked(device, deviceDispatch, fence, nullptr);
+            destroyFenceLocked(device, deviceDispatch, fence, nullptr, false);
         }
 
         // Destroy pooled external fences
@@ -2769,7 +2774,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroyFenceLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkFence fence,
-                            const VkAllocationCallbacks* pAllocator) {
+                            const VkAllocationCallbacks* pAllocator,
+                            bool allowExternalFenceRecycling) {
         if (VK_NULL_HANDLE == fence) {
             return;
         }
@@ -2793,9 +2799,11 @@ class VkDecoderGlobalState::Impl {
 
         // External fences are just slated for recycling. This addresses known
         // behavior where the guest might destroy the fence prematurely. b/228221208
-        if (fenceInfo.external) {
-            deviceInfo.externalFencePool->add(fence);
-            return;
+        if (allowExternalFenceRecycling) {
+            if (fenceInfo.external) {
+                deviceInfo.externalFencePool->add(fence);
+                return;
+            }
         }
 
         if (fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
@@ -2814,7 +2822,7 @@ class VkDecoderGlobalState::Impl {
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        destroyFenceLocked(device, deviceDispatch, fence, pAllocator);
+        destroyFenceLocked(device, deviceDispatch, fence, pAllocator, true);
     }
 
     VkResult on_vkCreateDescriptorSetLayout(android::base::BumpPool* pool, VkDevice boxed_device,
