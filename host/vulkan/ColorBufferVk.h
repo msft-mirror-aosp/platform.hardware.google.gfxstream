@@ -42,8 +42,6 @@ class ColorBufferVk {
 
     void onSave(android::base::Stream* stream);
 
-    int waitSync();
-
    private:
     ColorBufferVk(uint32_t handle);
 
