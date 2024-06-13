@@ -238,8 +238,6 @@ struct stream_renderer_vulkan_info {
 VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
                                           struct stream_renderer_vulkan_info* vulkan_info);
 
-VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle);
-
 #ifdef __cplusplus
 }  // extern "C"
 #endif
