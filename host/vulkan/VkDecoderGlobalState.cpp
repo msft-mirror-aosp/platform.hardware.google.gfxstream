@@ -1928,14 +1928,13 @@ class VkDecoderGlobalState::Impl {
 
         VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo->boxed);
 
+        for (auto fence : findDeviceObjects(device, mFenceInfo)) {
+            destroyFenceLocked(device, deviceDispatch, fence, nullptr);
+        }
+
         // Destroy pooled external fences
         auto deviceFences = deviceInfo->externalFencePool->popAll();
         for (auto fence : deviceFences) {
-            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
-            mFenceInfo.erase(fence);
-        }
-
-        for (auto fence : findDeviceObjects(device, mFenceInfo)) {
             deviceDispatch->vkDestroyFence(device, fence, pAllocator);
             mFenceInfo.erase(fence);
         }
@@ -2774,51 +2773,53 @@ class VkDecoderGlobalState::Impl {
         destroySemaphoreLocked(device, deviceDispatch, semaphore, pAllocator);
     }
 
+    void destroyFenceLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkFence fence,
+                            const VkAllocationCallbacks* pAllocator) {
+        if (VK_NULL_HANDLE == fence) {
+            return;
+        }
+
+        auto fenceInfoIt = mFenceInfo.find(fence);
+        if (fenceInfoIt == mFenceInfo.end()) {
+            ERR("Failed to find fence info for VkFence:%p. Leaking fence!", fence);
+            return;
+        }
+        auto& fenceInfo = fenceInfoIt->second;
+
+        auto deviceInfoIt = mDeviceInfo.find(device);
+        if (deviceInfoIt == mDeviceInfo.end()) {
+            ERR("Failed to find device info for VkDevice:%p for VkFence:%p. Leaking fence!", device,
+                fence);
+            return;
+        }
+        auto& deviceInfo = deviceInfoIt->second;
+
+        fenceInfo.boxed = VK_NULL_HANDLE;
+
+        // External fences are just slated for recycling. This addresses known
+        // behavior where the guest might destroy the fence prematurely. b/228221208
+        if (fenceInfo.external) {
+            deviceInfo.externalFencePool->add(fence);
+            return;
+        }
+
+        if (fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
+            deviceInfo.deviceOpTracker->AddPendingGarbage(*fenceInfo.latestUse, fence);
+            deviceInfo.deviceOpTracker->PollAndProcessGarbage();
+        } else {
+            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
+        }
+
+        mFenceInfo.erase(fenceInfoIt);
+    }
+
     void on_vkDestroyFence(android::base::BumpPool* pool, VkDevice boxed_device, VkFence fence,
                            const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
-        bool destructionDeferred = false;
-        {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            auto fenceInfoIt = mFenceInfo.find(fence);
-            if (fenceInfoIt == mFenceInfo.end()) {
-                ERR("Failed to find fence info for VkFence:%p. Leaking fence!", fence);
-                return;
-            }
-            auto& fenceInfo = fenceInfoIt->second;
-
-            auto deviceInfoIt = mDeviceInfo.find(device);
-            if (deviceInfoIt == mDeviceInfo.end()) {
-                ERR("Failed to find device info for VkDevice:%p for VkFence:%p. Leaking fence!",
-                    device, fence);
-                return;
-            }
-            auto& deviceInfo = deviceInfoIt->second;
-
-            fenceInfo.boxed = VK_NULL_HANDLE;
-
-            // External fences are just slated for recycling. This addresses known
-            // behavior where the guest might destroy the fence prematurely. b/228221208
-            if (fenceInfo.external) {
-                deviceInfo.externalFencePool->add(fence);
-                return;
-            }
-
-            // Fences used for swapchains have their destruction deferred.
-            if (fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
-                deviceInfo.deviceOpTracker->AddPendingGarbage(*fenceInfo.latestUse, fence);
-                deviceInfo.deviceOpTracker->PollAndProcessGarbage();
-                destructionDeferred = true;
-            }
-            mFenceInfo.erase(fence);
-        }
-
-        if (!destructionDeferred) {
-            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
-        }
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        destroyFenceLocked(device, deviceDispatch, fence, pAllocator);
     }
 
     VkResult on_vkCreateDescriptorSetLayout(android::base::BumpPool* pool, VkDevice boxed_device,
