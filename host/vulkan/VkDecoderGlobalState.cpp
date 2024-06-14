@@ -188,6 +188,8 @@ static uint64_t hostBlobId = 0;
 // snapshot with virtio.
 static uint32_t kTemporaryContextIdForSnapshotLoading = 1;
 
+static std::unordered_set<std::string> kSnapshotAppAllowList = {"Chromium"};
+
 #define DEFINE_BOXED_HANDLE_TYPE_TAG(type) Tag_##type,
 
 enum BoxedHandleTypeTag {
@@ -463,6 +465,9 @@ class VkDecoderGlobalState::Impl {
 
     void save(android::base::Stream* stream) {
         mSnapshotState = SnapshotState::Saving;
+        if (!mInstanceInfo.empty()) {
+            get_emugl_vm_operations().setStatSnapshotUseVulkan();
+        }
         snapshot()->save(stream);
         // Save mapped memory
         uint32_t memoryCount = 0;
@@ -844,6 +849,9 @@ class VkDecoderGlobalState::Impl {
                 poolIds.data(), whichPool.data(), pendingAlloc.data(), writeStartingIndices.data(),
                 writeDescriptorSets.size(), writeDescriptorSets.data());
         }
+        if (!mInstanceInfo.empty()) {
+            get_emugl_vm_operations().setStatSnapshotUseVulkan();
+        }
         mSnapshotState = SnapshotState::Normal;
     }
 
@@ -970,9 +978,6 @@ class VkDecoderGlobalState::Impl {
             lock = std::make_unique<std::lock_guard<std::recursive_mutex>>(mLock);
         }
 
-        // TODO: bug 129484301
-        get_emugl_vm_operations().setSkipSnapshotSave(!m_emu->features.VulkanSnapshots.enabled);
-
         InstanceInfo info;
         info.apiVersion = apiVersion;
         if (pCreateInfo->pApplicationInfo) {
@@ -989,6 +994,14 @@ class VkDecoderGlobalState::Impl {
 
         INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
              info.applicationName.c_str(), info.engineName.c_str());
+
+        // TODO: bug 129484301
+        if (!m_emu->features.VulkanSnapshots.enabled
+                || kSnapshotAppAllowList.find(info.applicationName)
+                        == kSnapshotAppAllowList.end()) {
+            get_emugl_vm_operations().setSkipSnapshotSave(true);
+            get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_APP);
+        }
 
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
