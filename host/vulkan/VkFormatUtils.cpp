@@ -78,7 +78,7 @@ const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap
              }},
             {VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM,
              {
-                 .horizontalAlignmentPixels = 32,
+                 .horizontalAlignmentPixels = 1,
                  .planeLayouts =
                      {
                          {
