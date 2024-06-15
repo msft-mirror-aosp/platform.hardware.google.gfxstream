@@ -387,9 +387,6 @@ class VkDecoderGlobalState {
                                  uint32_t imageMemoryBarrierCount,
                                  const VkImageMemoryBarrier* pImageMemoryBarriers);
 
-    void on_vkCmdPipelineBarrier2(android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                  const VkDependencyInfo* pDependencyInfo);
-
     // Do we need to wrap vk(Create|Destroy)Instance to
     // update our maps of VkDevices? Spec suggests no:
     // https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/vkDestroyInstance.html
