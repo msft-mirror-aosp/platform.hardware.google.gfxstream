@@ -17869,6 +17869,219 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_EXT_debug_report
+            case OP_vkCreateDebugReportCallbackEXT: {
+                android::base::beginTrace("vkCreateDebugReportCallbackEXT decode");
+                VkInstance instance;
+                const VkDebugReportCallbackCreateInfoEXT* pCreateInfo;
+                const VkAllocationCallbacks* pAllocator;
+                VkDebugReportCallbackEXT* pCallback;
+                // Begin non wrapped dispatchable handle unboxing for instance;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkInstance*)&instance = (VkInstance)(VkInstance)((VkInstance)(*&cgen_var_0));
+                auto unboxed_instance = unbox_VkInstance(instance);
+                auto vk = dispatch_VkInstance(instance);
+                // End manual dispatchable handle unboxing for instance;
+                vkReadStream->alloc((void**)&pCreateInfo,
+                                    sizeof(const VkDebugReportCallbackCreateInfoEXT));
+                reservedunmarshal_VkDebugReportCallbackCreateInfoEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDebugReportCallbackCreateInfoEXT*)(pCreateInfo), readStreamPtrPtr);
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                // Begin manual dispatchable handle unboxing for pCallback;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pCallback, sizeof(VkDebugReportCallbackEXT));
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
+                *(VkDebugReportCallbackEXT*)pCallback =
+                    (VkDebugReportCallbackEXT)(VkDebugReportCallbackEXT)((
+                        VkDebugReportCallbackEXT)(*&cgen_var_2));
+                if (pCreateInfo) {
+                    transform_tohost_VkDebugReportCallbackCreateInfoEXT(
+                        m_state, (VkDebugReportCallbackCreateInfoEXT*)(pCreateInfo));
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCreateDebugReportCallbackEXT 0x%llx 0x%llx 0x%llx "
+                            "0x%llx \n",
+                            ioStream, (unsigned long long)instance, (unsigned long long)pCreateInfo,
+                            (unsigned long long)pAllocator, (unsigned long long)pCallback);
+                }
+                VkResult vkCreateDebugReportCallbackEXT_VkResult_return = (VkResult)0;
+                vkCreateDebugReportCallbackEXT_VkResult_return = vk->vkCreateDebugReportCallbackEXT(
+                    unboxed_instance, pCreateInfo, pAllocator, pCallback);
+                if ((vkCreateDebugReportCallbackEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCreateDebugReportCallbackEXT_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                // Begin auto non dispatchable handle create for pCallback;
+                if (vkCreateDebugReportCallbackEXT_VkResult_return == VK_SUCCESS)
+                    vkStream->setHandleMapping(&m_boxedHandleCreateMapping);
+                uint64_t cgen_var_3;
+                static_assert(
+                    8 == sizeof(VkDebugReportCallbackEXT),
+                    "handle map overwrite requires VkDebugReportCallbackEXT to be 8 bytes long");
+                vkStream->handleMapping()->mapHandles_VkDebugReportCallbackEXT(
+                    (VkDebugReportCallbackEXT*)pCallback, 1);
+                vkStream->write((VkDebugReportCallbackEXT*)pCallback, 8 * 1);
+                // Begin auto non dispatchable handle create for pCallback;
+                vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
+                vkStream->write(&vkCreateDebugReportCallbackEXT_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCreateDebugReportCallbackEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCreateDebugReportCallbackEXT_VkResult_return, instance, pCreateInfo,
+                        pAllocator, pCallback);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkDestroyDebugReportCallbackEXT: {
+                android::base::beginTrace("vkDestroyDebugReportCallbackEXT decode");
+                VkInstance instance;
+                VkDebugReportCallbackEXT callback;
+                const VkAllocationCallbacks* pAllocator;
+                // Begin non wrapped dispatchable handle unboxing for instance;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkInstance*)&instance = (VkInstance)(VkInstance)((VkInstance)(*&cgen_var_0));
+                auto unboxed_instance = unbox_VkInstance(instance);
+                auto vk = dispatch_VkInstance(instance);
+                // End manual dispatchable handle unboxing for instance;
+                // Begin manual non dispatchable handle destroy unboxing for callback;
+                VkDebugReportCallbackEXT boxed_callback_preserve;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDebugReportCallbackEXT*)&callback =
+                    (VkDebugReportCallbackEXT)(VkDebugReportCallbackEXT)((
+                        VkDebugReportCallbackEXT)(*&cgen_var_1));
+                boxed_callback_preserve = callback;
+                callback = unbox_VkDebugReportCallbackEXT(callback);
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkDestroyDebugReportCallbackEXT 0x%llx 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)instance, (unsigned long long)callback,
+                        (unsigned long long)pAllocator);
+                }
+                vk->vkDestroyDebugReportCallbackEXT(unboxed_instance, callback, pAllocator);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkDestroyDebugReportCallbackEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, instance,
+                        boxed_callback_preserve, pAllocator);
+                }
+                delete_VkDebugReportCallbackEXT(boxed_callback_preserve);
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkDebugReportMessageEXT: {
+                android::base::beginTrace("vkDebugReportMessageEXT decode");
+                VkInstance instance;
+                VkDebugReportFlagsEXT flags;
+                VkDebugReportObjectTypeEXT objectType;
+                uint64_t object;
+                size_t location;
+                int32_t messageCode;
+                const char* pLayerPrefix;
+                const char* pMessage;
+                // Begin non wrapped dispatchable handle unboxing for instance;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkInstance*)&instance = (VkInstance)(VkInstance)((VkInstance)(*&cgen_var_0));
+                auto unboxed_instance = unbox_VkInstance(instance);
+                auto vk = dispatch_VkInstance(instance);
+                // End manual dispatchable handle unboxing for instance;
+                memcpy((VkDebugReportFlagsEXT*)&flags, *readStreamPtrPtr,
+                       sizeof(VkDebugReportFlagsEXT));
+                *readStreamPtrPtr += sizeof(VkDebugReportFlagsEXT);
+                memcpy((VkDebugReportObjectTypeEXT*)&objectType, *readStreamPtrPtr,
+                       sizeof(VkDebugReportObjectTypeEXT));
+                *readStreamPtrPtr += sizeof(VkDebugReportObjectTypeEXT);
+                memcpy((uint64_t*)&object, *readStreamPtrPtr, sizeof(uint64_t));
+                *readStreamPtrPtr += sizeof(uint64_t);
+                memcpy((size_t*)&location, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&location);
+                *readStreamPtrPtr += 8;
+                memcpy((int32_t*)&messageCode, *readStreamPtrPtr, sizeof(int32_t));
+                *readStreamPtrPtr += sizeof(int32_t);
+                vkReadStream->loadStringInPlaceWithStreamPtr((char**)&pLayerPrefix,
+                                                             readStreamPtrPtr);
+                vkReadStream->loadStringInPlaceWithStreamPtr((char**)&pMessage, readStreamPtrPtr);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkDebugReportMessageEXT 0x%llx 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)instance, (unsigned long long)flags,
+                            (unsigned long long)objectType, (unsigned long long)object,
+                            (unsigned long long)location, (unsigned long long)messageCode,
+                            (unsigned long long)pLayerPrefix, (unsigned long long)pMessage);
+                }
+                vk->vkDebugReportMessageEXT(unboxed_instance, flags, objectType, object, location,
+                                            messageCode, pLayerPrefix, pMessage);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkDebugReportMessageEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, instance, flags,
+                        objectType, object, location, messageCode, pLayerPrefix, pMessage);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
 #ifdef VK_EXT_transform_feedback
             case OP_vkCmdBindTransformFeedbackBuffersEXT: {
                 android::base::beginTrace("vkCmdBindTransformFeedbackBuffersEXT decode");

@@ -32181,6 +32181,8 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsage2ANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void VkEncoder::vkCmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuffer,
                                                      uint32_t firstBinding, uint32_t bindingCount,
