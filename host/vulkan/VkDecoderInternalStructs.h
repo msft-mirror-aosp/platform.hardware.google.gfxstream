@@ -200,7 +200,7 @@ struct DeviceInfo {
     std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
-    DeviceOpTrackerPtr deviceOpTracker = nullptr;
+    std::optional<DeviceOpTracker> deviceOpTracker;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)
