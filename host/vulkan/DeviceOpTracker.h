@@ -29,9 +29,6 @@
 namespace gfxstream {
 namespace vk {
 
-class DeviceOpTracker;
-using DeviceOpTrackerPtr = std::shared_ptr<DeviceOpTracker>;
-
 using DeviceOpWaitable = std::shared_future<void>;
 
 inline bool IsDone(const DeviceOpWaitable& waitable) {
@@ -59,11 +56,8 @@ class DeviceOpTracker {
     // semaphore can be destroyed once the waitable has finished.
     void AddPendingGarbage(DeviceOpWaitable waitable, VkSemaphore semaphore);
 
-    // Checks for completion of previously submitted waitables and sets their state accordingly .
-    // This function is thread-safe
-    void Poll();
-
-    // Calls Poll(), and also destroys dependent objects accordingly
+    // Checks for completion of previously submitted waitables and destroys dependent
+    // objects.
     void PollAndProcessGarbage();
 
     void OnDestroyDevice();
