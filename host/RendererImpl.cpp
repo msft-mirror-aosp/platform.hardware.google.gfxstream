@@ -672,8 +672,6 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
             return FrameBuffer::getFB()->platformDestroySharedEglContext(context);
         },
 #endif
-    .wait_sync_color_buffer =
-        [](uint32_t handle) { return FrameBuffer::getFB()->waitSyncColorBuffer(handle); },
 };
 
 struct AndroidVirtioGpuOps* RendererImpl::getVirtioGpuOps() {

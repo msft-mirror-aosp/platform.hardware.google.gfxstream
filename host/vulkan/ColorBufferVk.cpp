@@ -78,7 +78,5 @@ bool ColorBufferVk::importExtMemoryHandle(void* nativeResource, uint32_t type,
     return importExtMemoryHandleToVkColorBuffer(mHandle, type, extMemoryHandle);
 }
 
-int ColorBufferVk::waitSync() { return waitSyncVkColorBuffer(mHandle); }
-
 }  // namespace vk
 }  // namespace gfxstream
