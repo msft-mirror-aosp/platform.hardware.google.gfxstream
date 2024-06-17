@@ -1629,7 +1629,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkDependencyInfo(globalstate,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
-                vk->vkCmdPipelineBarrier2((VkCommandBuffer)dispatchHandle, pDependencyInfo);
+                this->on_vkCmdPipelineBarrier2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                               pDependencyInfo);
                 android::base::endTrace();
                 break;
             }
@@ -2478,6 +2479,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
             }
 #endif
 #ifdef VK_ANDROID_native_buffer
+#endif
+#ifdef VK_EXT_debug_report
 #endif
 #ifdef VK_EXT_transform_feedback
             case OP_vkCmdBindTransformFeedbackBuffersEXT: {

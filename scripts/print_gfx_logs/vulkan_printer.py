@@ -136,6 +136,10 @@ def OP_vkCmdPipelineBarrier(printer, indent: int):
     printer.write_struct("pImageMemoryBarriers", struct_VkImageMemoryBarrier, False, imageMemoryBarrierCount, indent)
     return
 
+def OP_vkCmdPipelineBarrier2(printer, indent: int):
+    printer.write_struct("pDependencyInfo", struct_VkDependencyInfo, False, None, indent)
+    return
+
 def OP_vkCmdSetScissor(printer, indent: int):
     firstScissor = printer.write_int("firstScissor", 4, indent, signed=False, big_endian=False)
     scissorCount = printer.write_int("scissorCount", 4, indent, signed=False, big_endian=False)
@@ -559,6 +563,18 @@ def struct_VkBufferMemoryBarrier(printer, indent: int):
     offset = printer.write_int("offset", 8, indent, signed=False, big_endian=False)
     size = printer.write_int("size", 8, indent, signed=False, big_endian=False)
 
+def struct_VkBufferMemoryBarrier2(printer, indent: int):
+    printer.write_stype_and_pnext("VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2", indent)
+    srcStageMask = printer.write_int("srcStageMask", 4, indent, signed=False, big_endian=False)
+    srcAccessMask = printer.write_int("srcAccessMask", 4, indent, signed=False, big_endian=False)
+    dstStageMask = printer.write_int("dstStageMask", 4, indent, signed=False, big_endian=False)
+    dstAccessMask = printer.write_int("dstAccessMask", 4, indent, signed=False, big_endian=False)
+    srcQueueFamilyIndex = printer.write_int("srcQueueFamilyIndex", 4, indent, signed=False, big_endian=False)
+    dstQueueFamilyIndex = printer.write_int("dstQueueFamilyIndex", 4, indent, signed=False, big_endian=False)
+    buffer = printer.write_int("buffer", 8, indent, signed=False, big_endian=False)
+    offset = printer.write_int("offset", 8, indent, signed=False, big_endian=False)
+    size = printer.write_int("size", 8, indent, signed=False, big_endian=False)
+
 def struct_VkClearAttachment(printer, indent: int):
     aspectMask = printer.write_int("aspectMask", 4, indent, signed=False, big_endian=False)
     colorAttachment = printer.write_int("colorAttachment", 4, indent, signed=False, big_endian=False)
@@ -594,6 +610,16 @@ def struct_VkComponentMapping(printer, indent: int):
     printer.write_enum("g", VkComponentSwizzle, indent)
     printer.write_enum("b", VkComponentSwizzle, indent)
     printer.write_enum("a", VkComponentSwizzle, indent)
+
+def struct_VkDependencyInfo(printer, indent: int):
+    printer.write_stype_and_pnext("VK_STRUCTURE_TYPE_DEPENDENCY_INFO", indent)
+    dependencyFlags = printer.write_int("dependencyFlags", 4, indent, signed=False, big_endian=False)
+    memoryBarrierCount = printer.write_int("memoryBarrierCount", 4, indent, signed=False, big_endian=False)
+    printer.write_struct("pMemoryBarriers", struct_VkMemoryBarrier2, False, memoryBarrierCount, indent)
+    bufferMemoryBarrierCount = printer.write_int("bufferMemoryBarrierCount", 4, indent, signed=False, big_endian=False)
+    printer.write_struct("pBufferMemoryBarriers", struct_VkBufferMemoryBarrier2, False, bufferMemoryBarrierCount, indent)
+    imageMemoryBarrierCount = printer.write_int("imageMemoryBarrierCount", 4, indent, signed=False, big_endian=False)
+    printer.write_struct("pImageMemoryBarriers", struct_VkImageMemoryBarrier2, False, imageMemoryBarrierCount, indent)
 
 def struct_VkDescriptorBufferInfo(printer, indent: int):
     buffer = printer.write_int("buffer", 8, indent, signed=False, big_endian=False)
@@ -704,6 +730,19 @@ def struct_VkImageMemoryBarrier(printer, indent: int):
     image = printer.write_int("image", 8, indent, signed=False, big_endian=False)
     printer.write_struct("subresourceRange", struct_VkImageSubresourceRange, False, None, indent)
 
+def struct_VkImageMemoryBarrier2(printer, indent: int):
+    printer.write_stype_and_pnext("VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2", indent)
+    srcStageMask = printer.write_int("srcStageMask", 4, indent, signed=False, big_endian=False)
+    srcAccessMask = printer.write_int("srcAccessMask", 4, indent, signed=False, big_endian=False)
+    dstStageMask = printer.write_int("dstStageMask", 4, indent, signed=False, big_endian=False)
+    dstAccessMask = printer.write_int("dstAccessMask", 4, indent, signed=False, big_endian=False)
+    printer.write_enum("oldLayout", VkImageLayout, indent)
+    printer.write_enum("newLayout", VkImageLayout, indent)
+    srcQueueFamilyIndex = printer.write_int("srcQueueFamilyIndex", 4, indent, signed=False, big_endian=False)
+    dstQueueFamilyIndex = printer.write_int("dstQueueFamilyIndex", 4, indent, signed=False, big_endian=False)
+    image = printer.write_int("image", 8, indent, signed=False, big_endian=False)
+    printer.write_struct("subresourceRange", struct_VkImageSubresourceRange, False, None, indent)
+
 def struct_VkImageSubresourceLayers(printer, indent: int):
     aspectMask = printer.write_int("aspectMask", 4, indent, signed=False, big_endian=False)
     mipLevel = printer.write_int("mipLevel", 4, indent, signed=False, big_endian=False)
@@ -734,6 +773,13 @@ def struct_VkMemoryAllocateInfo(printer, indent: int):
 def struct_VkMemoryBarrier(printer, indent: int):
     printer.write_stype_and_pnext("VK_STRUCTURE_TYPE_MEMORY_BARRIER", indent)
     srcAccessMask = printer.write_int("srcAccessMask", 4, indent, signed=False, big_endian=False)
+    dstAccessMask = printer.write_int("dstAccessMask", 4, indent, signed=False, big_endian=False)
+
+def struct_VkMemoryBarrier2(printer, indent: int):
+    printer.write_stype_and_pnext("VK_STRUCTURE_TYPE_MEMORY_BARRIER_2", indent)
+    srcStageMask = printer.write_int("srcStageMask", 4, indent, signed=False, big_endian=False)
+    srcAccessMask = printer.write_int("srcAccessMask", 4, indent, signed=False, big_endian=False)
+    dstStageMask = printer.write_int("dstStageMask", 4, indent, signed=False, big_endian=False)
     dstAccessMask = printer.write_int("dstAccessMask", 4, indent, signed=False, big_endian=False)
 
 def struct_VkMemoryRequirements(printer, indent: int):

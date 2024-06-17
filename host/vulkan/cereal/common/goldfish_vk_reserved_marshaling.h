@@ -1653,6 +1653,12 @@ void reservedunmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
     VkPhysicalDevicePresentationPropertiesANDROID* forUnmarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_debug_report
+void reservedunmarshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugReportCallbackCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void reservedunmarshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,

@@ -3391,6 +3391,36 @@ VkImageLayout getColorBufferCurrentLayout(uint32_t colorBufferHandle) {
     return infoPtr->currentLayout;
 }
 
+void setColorBufferLatestUse(uint32_t colorBufferHandle, DeviceOpWaitable waitable,
+                             DeviceOpTrackerPtr tracker) {
+    AutoLock lock(sVkEmulationLock);
+    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!infoPtr) {
+        VK_COMMON_ERROR("Invalid ColorBuffer handle %d.", static_cast<int>(colorBufferHandle));
+        return;
+    }
+
+    infoPtr->latestUse = waitable;
+    infoPtr->latestUseTracker = tracker;
+}
+
+int waitSyncVkColorBuffer(uint32_t colorBufferHandle) {
+    AutoLock lock(sVkEmulationLock);
+    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!infoPtr) {
+        VK_COMMON_ERROR("Invalid ColorBuffer handle %d.", static_cast<int>(colorBufferHandle));
+        return -1;
+    }
+
+    if (infoPtr->latestUse && infoPtr->latestUseTracker) {
+        while (!IsDone(*infoPtr->latestUse)) {
+            infoPtr->latestUseTracker->Poll();
+        }
+    }
+
+    return 0;
+}
+
 // Allocate a ready to use VkCommandBuffer for queue transfer. The caller needs
 // to signal the returned VkFence when the VkCommandBuffer completes.
 static std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBuffer_locked() {

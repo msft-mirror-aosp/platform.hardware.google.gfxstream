@@ -2746,6 +2746,14 @@ void transform_fromhost_VkPhysicalDevicePresentationPropertiesANDROID(
     VkPhysicalDevicePresentationPropertiesANDROID* toTransform);
 
 #endif
+#ifdef VK_EXT_debug_report
+void transform_tohost_VkDebugReportCallbackCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugReportCallbackCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkDebugReportCallbackCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugReportCallbackCreateInfoEXT* toTransform);
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void transform_tohost_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
