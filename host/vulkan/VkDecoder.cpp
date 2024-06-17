@@ -11816,15 +11816,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkCmdPipelineBarrier2 decode");
                 VkCommandBuffer commandBuffer;
                 const VkDependencyInfo* pDependencyInfo;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
-                auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pDependencyInfo, sizeof(const VkDependencyInfo));
                 reservedunmarshal_VkDependencyInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                    (VkDependencyInfo*)(pDependencyInfo),
@@ -11838,7 +11835,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             ioStream, (unsigned long long)commandBuffer,
                             (unsigned long long)pDependencyInfo);
                 }
-                vk->vkCmdPipelineBarrier2(unboxed_commandBuffer, pDependencyInfo);
+                m_state->on_vkCmdPipelineBarrier2(&m_pool, commandBuffer, pDependencyInfo);
                 vkStream->unsetHandleMapping();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
                                          (uintptr_t)snapshotTraceBegin);
