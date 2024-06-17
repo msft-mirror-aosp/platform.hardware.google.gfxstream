@@ -3014,6 +3014,39 @@ class VkDecoderSnapshot::Impl {
         VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
         uint64_t* grallocProducerUsage) {}
 #endif
+#ifdef VK_EXT_debug_report
+    void vkCreateDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
+                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                        VkResult input_result, VkInstance instance,
+                                        const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkDebugReportCallbackEXT* pCallback) {
+        if (!pCallback) return;
+        android::base::AutoLock lock(mLock);
+        // pCallback create
+        mReconstruction.addHandles((const uint64_t*)pCallback, 1);
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCreateDebugReportCallbackEXT, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pCallback, 1, apiHandle,
+                                            VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pCallback, 1);
+    }
+    void vkDestroyDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
+                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                         VkInstance instance, VkDebugReportCallbackEXT callback,
+                                         const VkAllocationCallbacks* pAllocator) {
+        android::base::AutoLock lock(mLock);
+        // callback destroy
+        mReconstruction.removeHandles((const uint64_t*)(&callback), 1, true);
+    }
+    void vkDebugReportMessageEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                 android::base::BumpPool* pool, VkInstance instance,
+                                 VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+                                 uint64_t object, size_t location, int32_t messageCode,
+                                 const char* pLayerPrefix, const char* pMessage) {}
+#endif
 #ifdef VK_EXT_transform_feedback
     void vkCmdBindTransformFeedbackBuffersEXT(
         const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -6545,6 +6578,39 @@ void VkDecoderSnapshot::vkGetSwapchainGrallocUsage2ANDROID(
     mImpl->vkGetSwapchainGrallocUsage2ANDROID(
         snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device, format, imageUsage,
         swapchainImageUsage, grallocConsumerUsage, grallocProducerUsage);
+}
+#endif
+#ifdef VK_EXT_debug_report
+void VkDecoderSnapshot::vkCreateDebugReportCallbackEXT(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkResult input_result, VkInstance instance,
+    const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkDebugReportCallbackEXT* pCallback) {
+    mImpl->vkCreateDebugReportCallbackEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+                                          input_result, instance, pCreateInfo, pAllocator,
+                                          pCallback);
+}
+#endif
+#ifdef VK_EXT_debug_report
+void VkDecoderSnapshot::vkDestroyDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
+                                                        size_t snapshotTraceBytes,
+                                                        android::base::BumpPool* pool,
+                                                        VkInstance instance,
+                                                        VkDebugReportCallbackEXT callback,
+                                                        const VkAllocationCallbacks* pAllocator) {
+    mImpl->vkDestroyDebugReportCallbackEXT(snapshotTraceBegin, snapshotTraceBytes, pool, instance,
+                                           callback, pAllocator);
+}
+#endif
+#ifdef VK_EXT_debug_report
+void VkDecoderSnapshot::vkDebugReportMessageEXT(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkInstance instance, VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+    uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix,
+    const char* pMessage) {
+    mImpl->vkDebugReportMessageEXT(snapshotTraceBegin, snapshotTraceBytes, pool, instance, flags,
+                                   objectType, object, location, messageCode, pLayerPrefix,
+                                   pMessage);
 }
 #endif
 #ifdef VK_EXT_transform_feedback

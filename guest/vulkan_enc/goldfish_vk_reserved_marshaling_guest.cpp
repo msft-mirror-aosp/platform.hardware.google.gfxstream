@@ -8009,6 +8009,8 @@ void reservedmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void reservedmarshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,

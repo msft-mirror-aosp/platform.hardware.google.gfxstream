@@ -6808,6 +6808,8 @@ void transform_fromhost_VkPhysicalDevicePresentationPropertiesANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void transform_tohost_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     ResourceTracker* resourceTracker, VkPhysicalDeviceTransformFeedbackFeaturesEXT* toTransform) {
