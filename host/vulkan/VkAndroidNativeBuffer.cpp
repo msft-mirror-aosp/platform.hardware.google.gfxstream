@@ -349,7 +349,7 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-        if (VK_SUCCESS != vk->vkMapMemory(device, out->stagingMemory, 0, out->memReqs.size, 0,
+        if (VK_SUCCESS != vk->vkMapMemory(device, out->stagingMemory, 0, VK_WHOLE_SIZE, 0,
                                           (void**)&out->mappedStagingPtr)) {
             VK_ANB_ERR(
                 "VK_ANDROID_native_buffer: could not map "
