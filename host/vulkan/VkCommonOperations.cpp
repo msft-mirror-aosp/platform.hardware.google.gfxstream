@@ -604,11 +604,15 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
 
     std::unordered_set<const char*> selectedInstanceExtensionNames;
 
-    const bool debugUtilsSupported = extensionsSupported(instanceExts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
-    const bool debugUtilsRequested = false; // TODO: enable via a feature or env var?
+    const bool debugUtilsSupported =
+        extensionsSupported(instanceExts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
+    const bool debugUtilsRequested = sVkEmulation->features.VulkanDebugUtils.enabled;
     const bool debugUtilsAvailableAndRequested = debugUtilsSupported && debugUtilsRequested;
     if (debugUtilsAvailableAndRequested) {
         selectedInstanceExtensionNames.emplace(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    } else if (debugUtilsRequested) {
+        WARN("VulkanDebugUtils requested, but '%' extension is not supported.",
+             VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
     if (externalMemoryCapabilitiesSupported) {
@@ -1300,6 +1304,13 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     if (sVkEmulation->debugUtilsAvailableAndRequested) {
         sVkEmulation->debugUtilsHelper =
             DebugUtilsHelper::withUtilsEnabled(sVkEmulation->device, sVkEmulation->ivk);
+
+        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->instance, "AEMU_Instance");
+        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->device, "AEMU_Device");
+        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->staging.buffer,
+                                                     "AEMU_StagingBuffer");
+        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->commandBuffer,
+                                                     "AEMU_CommandBuffer");
     }
 
     VK_COMMON_VERBOSE("Vulkan global emulation state successfully initialized.");
@@ -3465,12 +3476,16 @@ static std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBuffer_l
     };
     VK_CHECK(vk->vkCreateFence(sVkEmulation->device, &fenceCi, nullptr, &fence));
 
+    const int cbIndex = static_cast<int>(sVkEmulation->transferQueueCommandBufferPool.size());
     sVkEmulation->transferQueueCommandBufferPool.emplace_back(commandBuffer, fence);
 
     VK_COMMON_VERBOSE(
         "Create a new command buffer for queue transfer for a total of %d "
         "transfer command buffers",
-        static_cast<int>(sVkEmulation->transferQueueCommandBufferPool.size()));
+        (cbIndex + 1));
+
+    sVkEmulation->debugUtilsHelper.addDebugLabel(commandBuffer, "QueueTransferCommandBuffer:%d",
+                                                 cbIndex);
 
     return std::make_tuple(commandBuffer, fence);
 }
