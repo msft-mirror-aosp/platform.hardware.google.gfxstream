@@ -476,6 +476,11 @@ struct VulkanDispatch {
     PFN_vkQueueSignalReleaseImageANDROID vkQueueSignalReleaseImageANDROID;
     PFN_vkGetSwapchainGrallocUsage2ANDROID vkGetSwapchainGrallocUsage2ANDROID;
 #endif
+#ifdef VK_EXT_debug_report
+    PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
+    PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
+    PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
+#endif
 #ifdef VK_EXT_transform_feedback
     PFN_vkCmdBindTransformFeedbackBuffersEXT vkCmdBindTransformFeedbackBuffersEXT;
     PFN_vkCmdBeginTransformFeedbackEXT vkCmdBeginTransformFeedbackEXT;
