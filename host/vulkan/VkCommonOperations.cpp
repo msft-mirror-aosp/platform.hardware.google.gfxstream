@@ -550,6 +550,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
 #elif defined(__QNX__)
         VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME,
+        VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
 #else
         VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
 #endif
@@ -603,11 +604,15 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
 
     std::unordered_set<const char*> selectedInstanceExtensionNames;
 
-    const bool debugUtilsSupported = extensionsSupported(instanceExts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
-    const bool debugUtilsRequested = false; // TODO: enable via a feature or env var?
+    const bool debugUtilsSupported =
+        extensionsSupported(instanceExts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
+    const bool debugUtilsRequested = sVkEmulation->features.VulkanDebugUtils.enabled;
     const bool debugUtilsAvailableAndRequested = debugUtilsSupported && debugUtilsRequested;
     if (debugUtilsAvailableAndRequested) {
         selectedInstanceExtensionNames.emplace(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    } else if (debugUtilsRequested) {
+        WARN("VulkanDebugUtils requested, but '%' extension is not supported.",
+             VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
     if (externalMemoryCapabilitiesSupported) {
@@ -1299,6 +1304,13 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     if (sVkEmulation->debugUtilsAvailableAndRequested) {
         sVkEmulation->debugUtilsHelper =
             DebugUtilsHelper::withUtilsEnabled(sVkEmulation->device, sVkEmulation->ivk);
+
+        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->instance, "AEMU_Instance");
+        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->device, "AEMU_Device");
+        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->staging.buffer,
+                                                     "AEMU_StagingBuffer");
+        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->commandBuffer,
+                                                     "AEMU_CommandBuffer");
     }
 
     VK_COMMON_VERBOSE("Vulkan global emulation state successfully initialized.");
@@ -1575,9 +1587,11 @@ void freeExternalMemoryLocked(VulkanDispatch* vk, VkEmulation::ExternalMemoryInf
             info->gpa = 0u;
         }
 
-        vk->vkUnmapMemory(sVkEmulation->device, info->memory);
-        info->mappedPtr = nullptr;
-        info->pageAlignedHva = nullptr;
+        if (info->mappedPtr != nullptr) {
+            vk->vkUnmapMemory(sVkEmulation->device, info->memory);
+            info->mappedPtr = nullptr;
+            info->pageAlignedHva = nullptr;
+        }
     }
 
     vk->vkFreeMemory(sVkEmulation->device, info->memory, nullptr);
@@ -3317,11 +3331,6 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_tohost(
         res |= VK_EXT_MEMORY_HANDLE_TYPE_BIT;
     }
 
-    if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
-        res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
-        res |= VK_EXT_MEMORY_HANDLE_TYPE_BIT;
-    }
-
 #if defined(__QNX__)
     // QNX only: Replace DMA_BUF_BIT_EXT with SCREEN_BUFFER_BIT_QNX for host calls
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT) {
@@ -3393,6 +3402,36 @@ VkImageLayout getColorBufferCurrentLayout(uint32_t colorBufferHandle) {
     return infoPtr->currentLayout;
 }
 
+void setColorBufferLatestUse(uint32_t colorBufferHandle, DeviceOpWaitable waitable,
+                             DeviceOpTrackerPtr tracker) {
+    AutoLock lock(sVkEmulationLock);
+    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!infoPtr) {
+        VK_COMMON_ERROR("Invalid ColorBuffer handle %d.", static_cast<int>(colorBufferHandle));
+        return;
+    }
+
+    infoPtr->latestUse = waitable;
+    infoPtr->latestUseTracker = tracker;
+}
+
+int waitSyncVkColorBuffer(uint32_t colorBufferHandle) {
+    AutoLock lock(sVkEmulationLock);
+    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!infoPtr) {
+        VK_COMMON_ERROR("Invalid ColorBuffer handle %d.", static_cast<int>(colorBufferHandle));
+        return -1;
+    }
+
+    if (infoPtr->latestUse && infoPtr->latestUseTracker) {
+        while (!IsDone(*infoPtr->latestUse)) {
+            infoPtr->latestUseTracker->Poll();
+        }
+    }
+
+    return 0;
+}
+
 // Allocate a ready to use VkCommandBuffer for queue transfer. The caller needs
 // to signal the returned VkFence when the VkCommandBuffer completes.
 static std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBuffer_locked() {
@@ -3437,12 +3476,16 @@ static std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBuffer_l
     };
     VK_CHECK(vk->vkCreateFence(sVkEmulation->device, &fenceCi, nullptr, &fence));
 
+    const int cbIndex = static_cast<int>(sVkEmulation->transferQueueCommandBufferPool.size());
     sVkEmulation->transferQueueCommandBufferPool.emplace_back(commandBuffer, fence);
 
     VK_COMMON_VERBOSE(
         "Create a new command buffer for queue transfer for a total of %d "
         "transfer command buffers",
-        static_cast<int>(sVkEmulation->transferQueueCommandBufferPool.size()));
+        (cbIndex + 1));
+
+    sVkEmulation->debugUtilsHelper.addDebugLabel(commandBuffer, "QueueTransferCommandBuffer:%d",
+                                                 cbIndex);
 
     return std::make_tuple(commandBuffer, fence);
 }

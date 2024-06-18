@@ -26,6 +26,7 @@
 #include "BorrowedImageVk.h"
 #include "CompositorVk.h"
 #include "DebugUtilsHelper.h"
+#include "DeviceOpTracker.h"
 #include "DisplayVk.h"
 #include "FrameworkFormats.h"
 #include "aemu/base/ManagedDescriptor.hpp"
@@ -334,6 +335,9 @@ struct VkEmulation {
         VulkanMode vulkanMode = VulkanMode::Default;
 
         MTLTextureRef mtlTexture = nullptr;
+
+        std::optional<DeviceOpWaitable> latestUse;
+        DeviceOpTrackerPtr latestUseTracker = nullptr;
     };
 
     struct BufferInfo {
@@ -540,6 +544,11 @@ VkExternalMemoryProperties transformExternalMemoryProperties_fromhost(
 void setColorBufferCurrentLayout(uint32_t colorBufferHandle, VkImageLayout);
 
 VkImageLayout getColorBufferCurrentLayout(uint32_t colorBufferHandle);
+
+void setColorBufferLatestUse(uint32_t colorBufferHandle, DeviceOpWaitable waitable,
+                             DeviceOpTrackerPtr tracker);
+
+int waitSyncVkColorBuffer(uint32_t colorBufferHandle);
 
 void releaseColorBufferForGuestUse(uint32_t colorBufferHandle);
 

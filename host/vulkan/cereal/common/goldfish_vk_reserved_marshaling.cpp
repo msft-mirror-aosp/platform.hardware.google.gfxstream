@@ -11785,6 +11785,49 @@ void reservedunmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+void reservedunmarshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugReportCallbackCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkDebugReportFlagsEXT*)&forUnmarshaling->flags, *ptr, sizeof(VkDebugReportFlagsEXT));
+    *ptr += sizeof(VkDebugReportFlagsEXT);
+    memcpy((PFN_vkDebugReportCallbackEXT*)&forUnmarshaling->pfnCallback, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnCallback);
+    *ptr += 8;
+    // WARNING PTR CHECK
+    memcpy((void**)&forUnmarshaling->pUserData, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
+    *ptr += 8;
+    if (forUnmarshaling->pUserData) {
+        vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
+        memcpy((void*)forUnmarshaling->pUserData, *ptr, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void reservedunmarshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -15014,6 +15057,14 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             reservedunmarshal_VkNativeBufferANDROID(
                 vkStream, rootType, reinterpret_cast<VkNativeBufferANDROID*>(structExtension_out),
                 ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            reservedunmarshal_VkDebugReportCallbackCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkDebugReportCallbackCreateInfoEXT*>(structExtension_out), ptr);
             break;
         }
 #endif
