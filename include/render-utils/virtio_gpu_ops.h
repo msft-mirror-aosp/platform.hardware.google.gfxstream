@@ -24,12 +24,8 @@ typedef void (*create_buffer_with_handle_t)(uint64_t size, uint32_t handle);
 
 /* virtio-gpu interface for color buffers
  * (triggered by minigbm/egl calling virtio-gpu ioctls) */
-typedef void (*create_color_buffer_with_handle_t)(
-    uint32_t width,
-    uint32_t height,
-    uint32_t format,
-    uint32_t fwkFormat,
-    uint32_t handle);
+typedef void (*create_color_buffer_with_handle_t)(uint32_t width, uint32_t height, uint32_t format,
+                                                  uint32_t fwkFormat, uint32_t handle, bool linear);
 
 /* create YUV textures with given width and height
    type: FRAMEWORK_FORMAT_NV12 or FRAMEWORK_FORMAT_YUV_420_888
@@ -140,6 +136,7 @@ typedef bool (*platform_import_resource_t)(uint32_t handle, uint32_t info, void*
 typedef bool (*platform_resource_info_t)(uint32_t handle, int32_t* width, int32_t* height, int32_t* internal_format);
 typedef void* (*platform_create_shared_egl_context_t)(void);
 typedef bool (*platform_destroy_shared_egl_context_t)(void* context);
+typedef int (*wait_sync_color_buffer_t)(uint32_t handle);
 
 struct AndroidVirtioGpuOps {
     create_buffer_with_handle_t create_buffer_with_handle;
@@ -180,4 +177,6 @@ struct AndroidVirtioGpuOps {
     platform_resource_info_t platform_resource_info;
     platform_create_shared_egl_context_t platform_create_shared_egl_context;
     platform_destroy_shared_egl_context_t platform_destroy_shared_egl_context;
+
+    wait_sync_color_buffer_t wait_sync_color_buffer;
 };
