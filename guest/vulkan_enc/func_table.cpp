@@ -4003,6 +4003,8 @@ VkResult gfxstream_vk_GetSwapchainGrallocUsage2ANDROID(
     return vkGetSwapchainGrallocUsage2ANDROID_VkResult_return;
 }
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void gfxstream_vk_CmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuffer,
                                                      uint32_t firstBinding, uint32_t bindingCount,
