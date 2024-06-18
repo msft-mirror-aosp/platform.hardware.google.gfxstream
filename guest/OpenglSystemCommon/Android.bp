@@ -121,6 +121,8 @@ cc_library_shared {
     ],
     static_libs: [
         "libgfxstream_guest_android",
+        "libmesa_util_gfxstream",
+        "libmesa_util_c11_gfxstream",
         "libvulkan_enc",
         "libplatform",
     ],
@@ -150,6 +152,8 @@ cc_library_shared {
     static_libs: [
         "libgfxstream_guest_android_with_host",
         "libgfxstream_guest_vulkan_encoder_with_host",
+        "libmesa_util_gfxstream",
+        "libmesa_util_c11_gfxstream",
         "libgfxstream_platform_rutabaga",
     ],
     export_static_lib_headers: [
