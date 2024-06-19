@@ -604,15 +604,11 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
 
     std::unordered_set<const char*> selectedInstanceExtensionNames;
 
-    const bool debugUtilsSupported =
-        extensionsSupported(instanceExts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
-    const bool debugUtilsRequested = sVkEmulation->features.VulkanDebugUtils.enabled;
+    const bool debugUtilsSupported = extensionsSupported(instanceExts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
+    const bool debugUtilsRequested = false; // TODO: enable via a feature or env var?
     const bool debugUtilsAvailableAndRequested = debugUtilsSupported && debugUtilsRequested;
     if (debugUtilsAvailableAndRequested) {
         selectedInstanceExtensionNames.emplace(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    } else if (debugUtilsRequested) {
-        WARN("VulkanDebugUtils requested, but '%' extension is not supported.",
-             VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
     if (externalMemoryCapabilitiesSupported) {
@@ -1304,13 +1300,6 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     if (sVkEmulation->debugUtilsAvailableAndRequested) {
         sVkEmulation->debugUtilsHelper =
             DebugUtilsHelper::withUtilsEnabled(sVkEmulation->device, sVkEmulation->ivk);
-
-        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->instance, "AEMU_Instance");
-        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->device, "AEMU_Device");
-        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->staging.buffer,
-                                                     "AEMU_StagingBuffer");
-        sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->commandBuffer,
-                                                     "AEMU_CommandBuffer");
     }
 
     VK_COMMON_VERBOSE("Vulkan global emulation state successfully initialized.");
@@ -3402,36 +3391,6 @@ VkImageLayout getColorBufferCurrentLayout(uint32_t colorBufferHandle) {
     return infoPtr->currentLayout;
 }
 
-void setColorBufferLatestUse(uint32_t colorBufferHandle, DeviceOpWaitable waitable,
-                             DeviceOpTrackerPtr tracker) {
-    AutoLock lock(sVkEmulationLock);
-    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
-    if (!infoPtr) {
-        VK_COMMON_ERROR("Invalid ColorBuffer handle %d.", static_cast<int>(colorBufferHandle));
-        return;
-    }
-
-    infoPtr->latestUse = waitable;
-    infoPtr->latestUseTracker = tracker;
-}
-
-int waitSyncVkColorBuffer(uint32_t colorBufferHandle) {
-    AutoLock lock(sVkEmulationLock);
-    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
-    if (!infoPtr) {
-        VK_COMMON_ERROR("Invalid ColorBuffer handle %d.", static_cast<int>(colorBufferHandle));
-        return -1;
-    }
-
-    if (infoPtr->latestUse && infoPtr->latestUseTracker) {
-        while (!IsDone(*infoPtr->latestUse)) {
-            infoPtr->latestUseTracker->Poll();
-        }
-    }
-
-    return 0;
-}
-
 // Allocate a ready to use VkCommandBuffer for queue transfer. The caller needs
 // to signal the returned VkFence when the VkCommandBuffer completes.
 static std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBuffer_locked() {
@@ -3476,16 +3435,12 @@ static std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBuffer_l
     };
     VK_CHECK(vk->vkCreateFence(sVkEmulation->device, &fenceCi, nullptr, &fence));
 
-    const int cbIndex = static_cast<int>(sVkEmulation->transferQueueCommandBufferPool.size());
     sVkEmulation->transferQueueCommandBufferPool.emplace_back(commandBuffer, fence);
 
     VK_COMMON_VERBOSE(
         "Create a new command buffer for queue transfer for a total of %d "
         "transfer command buffers",
-        (cbIndex + 1));
-
-    sVkEmulation->debugUtilsHelper.addDebugLabel(commandBuffer, "QueueTransferCommandBuffer:%d",
-                                                 cbIndex);
+        static_cast<int>(sVkEmulation->transferQueueCommandBufferPool.size()));
 
     return std::make_tuple(commandBuffer, fence);
 }

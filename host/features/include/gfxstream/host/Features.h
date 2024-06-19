@@ -260,12 +260,6 @@ struct FeatureSet {
         "If enabled, the host will cache YUV frames.",
         &map,
     };
-    FeatureInfo VulkanDebugUtils = {
-        "VulkanDebugUtils",
-        "If enabled, the host will enable VK_EXT_debug_utils extension when available to use "
-        "labels on Vulkan resources and operation",
-        &map,
-    };
 };
 
 #define GFXSTREAM_SET_FEATURE_ON_CONDITION(set, feature, condition) \

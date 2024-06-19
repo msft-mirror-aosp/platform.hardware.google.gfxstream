@@ -44,8 +44,6 @@ class DebugUtilsHelper {
             objectType = VK_OBJECT_TYPE_COMMAND_POOL;
         } else if constexpr (std::is_same_v<VkObjectT, VkDescriptorSet>) {
             objectType = VK_OBJECT_TYPE_DESCRIPTOR_SET;
-        } else if constexpr (std::is_same_v<VkObjectT, VkDevice>) {
-            objectType = VK_OBJECT_TYPE_DEVICE;
         } else if constexpr (std::is_same_v<VkObjectT, VkDeviceMemory>) {
             objectType = VK_OBJECT_TYPE_DEVICE_MEMORY;
         } else if constexpr (std::is_same_v<VkObjectT, VkFence>) {
@@ -56,8 +54,6 @@ class DebugUtilsHelper {
             objectType = VK_OBJECT_TYPE_IMAGE;
         } else if constexpr (std::is_same_v<VkObjectT, VkImageView>) {
             objectType = VK_OBJECT_TYPE_IMAGE_VIEW;
-        } else if constexpr (std::is_same_v<VkObjectT, VkInstance>) {
-            objectType = VK_OBJECT_TYPE_INSTANCE;
         } else if constexpr (std::is_same_v<VkObjectT, VkPipeline>) {
             objectType = VK_OBJECT_TYPE_PIPELINE;
         } else if constexpr (std::is_same_v<VkObjectT, VkSampler>) {
