@@ -337,6 +337,11 @@ const uint32_t kGlLuminance = 0x1909;
 const uint32_t kGlLuminanceAlpha = 0x190a;
 const uint32_t kGlUnsignedByte = 0x1401;
 const uint32_t kGlUnsignedShort565 = 0x8363;
+const uint32_t kGlDepth16 = 0x81A5;
+const uint32_t kGlDepth24 = 0x81A6;
+const uint32_t kGlDepth24Stencil8 = 0x88F0;
+const uint32_t kGlDepth32f = 0x8CAC;
+const uint32_t kGlDepth32fStencil78 = 0x8CAD;
 
 constexpr uint32_t kFwkFormatGlCompat = 0;
 constexpr uint32_t kFwkFormatYV12 = 1;
@@ -356,6 +361,11 @@ static inline bool virgl_format_is_yuv(uint32_t format) {
         case VIRGL_FORMAT_R16G16B16A16_FLOAT:
         case VIRGL_FORMAT_R8G8_UNORM:
         case VIRGL_FORMAT_R10G10B10A2_UNORM:
+        case VIRGL_FORMAT_Z16_UNORM:
+        case VIRGL_FORMAT_Z24X8_UNORM:
+        case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+        case VIRGL_FORMAT_Z32_FLOAT:
+        case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
             return false;
         case VIRGL_FORMAT_NV12:
         case VIRGL_FORMAT_P010:
@@ -392,6 +402,16 @@ static inline uint32_t virgl_format_to_gl(uint32_t virgl_format) {
             return kGlRgba;
         case VIRGL_FORMAT_R10G10B10A2_UNORM:
             return kGlRgba1010102;
+        case VIRGL_FORMAT_Z16_UNORM:
+            return kGlDepth16;
+        case VIRGL_FORMAT_Z24X8_UNORM:
+            return kGlDepth24;
+        case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+            return kGlDepth24Stencil8;
+        case VIRGL_FORMAT_Z32_FLOAT:
+            return kGlDepth32f;
+        case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
+            return  kGlDepth32fStencil78;
         default:
             return kGlRgba;
     }
@@ -415,6 +435,11 @@ static inline uint32_t virgl_format_to_fwk_format(uint32_t virgl_format) {
         case VIRGL_FORMAT_R8G8B8A8_UNORM:
         case VIRGL_FORMAT_B5G6R5_UNORM:
         case VIRGL_FORMAT_R10G10B10A2_UNORM:
+        case VIRGL_FORMAT_Z16_UNORM:
+        case VIRGL_FORMAT_Z24X8_UNORM:
+        case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+        case VIRGL_FORMAT_Z32_FLOAT:
+        case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
         default:  // kFwkFormatGlCompat: No extra conversions needed
             return kFwkFormatGlCompat;
     }
