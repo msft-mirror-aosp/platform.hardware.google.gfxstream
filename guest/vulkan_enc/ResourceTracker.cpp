@@ -1759,6 +1759,7 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         "VK_KHR_storage_buffer_storage_class",
         "VK_EXT_depth_clip_enable",
         "VK_KHR_create_renderpass2",
+        "VK_EXT_vertex_attribute_divisor",
         "VK_EXT_host_query_reset",
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         "VK_KHR_external_semaphore",
@@ -3785,7 +3786,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
                 on_vkGetImageSubresourceLayout(context, device, dedicatedAllocInfoPtr->image,
                                                &imageSubresource, &subResourceLayout);
                 if (!subResourceLayout.rowPitch) {
-                    mesa_loge("%s: Failed to query stride for VirtGpu resource creation.");
+                    mesa_loge("Failed to query stride for VirtGpu resource creation.");
                     return VK_ERROR_INITIALIZATION_FAILED;
                 }
 

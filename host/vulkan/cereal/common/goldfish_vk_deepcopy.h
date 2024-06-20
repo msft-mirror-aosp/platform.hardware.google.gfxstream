@@ -1653,6 +1653,12 @@ void deepcopy_VkPhysicalDevicePresentationPropertiesANDROID(
     VkPhysicalDevicePresentationPropertiesANDROID* to);
 
 #endif
+#ifdef VK_EXT_debug_report
+void deepcopy_VkDebugReportCallbackCreateInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                                 const VkDebugReportCallbackCreateInfoEXT* from,
+                                                 VkDebugReportCallbackCreateInfoEXT* to);
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void deepcopy_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,

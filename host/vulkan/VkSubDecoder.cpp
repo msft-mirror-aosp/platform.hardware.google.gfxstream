@@ -2480,6 +2480,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
 #endif
 #ifdef VK_ANDROID_native_buffer
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
             case OP_vkCmdBindTransformFeedbackBuffersEXT: {
                 android::base::beginTrace("vkCmdBindTransformFeedbackBuffersEXT subdecode");
