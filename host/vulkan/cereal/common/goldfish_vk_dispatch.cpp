@@ -139,6 +139,8 @@ namespace vk {
 #endif
 #ifdef VK_ANDROID_native_buffer
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 #endif
 #ifdef VK_AMD_gpu_shader_half_float
@@ -326,6 +328,14 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetPhysicalDeviceWin32PresentationSupportKHR =
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)dlSymFunc(
             lib, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
+#endif
+#ifdef VK_EXT_debug_report
+    out->vkCreateDebugReportCallbackEXT =
+        (PFN_vkCreateDebugReportCallbackEXT)dlSymFunc(lib, "vkCreateDebugReportCallbackEXT");
+    out->vkDestroyDebugReportCallbackEXT =
+        (PFN_vkDestroyDebugReportCallbackEXT)dlSymFunc(lib, "vkDestroyDebugReportCallbackEXT");
+    out->vkDebugReportMessageEXT =
+        (PFN_vkDebugReportMessageEXT)dlSymFunc(lib, "vkDebugReportMessageEXT");
 #endif
 #ifdef VK_EXT_debug_utils
     out->vkCreateDebugUtilsMessengerEXT =
@@ -1093,6 +1103,16 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetPhysicalDeviceWin32PresentationSupportKHR =
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
+#endif
+#ifdef VK_EXT_debug_report
+    out->vkCreateDebugReportCallbackEXT =
+        (PFN_vkCreateDebugReportCallbackEXT)vk->vkGetInstanceProcAddr(
+            instance, "vkCreateDebugReportCallbackEXT");
+    out->vkDestroyDebugReportCallbackEXT =
+        (PFN_vkDestroyDebugReportCallbackEXT)vk->vkGetInstanceProcAddr(
+            instance, "vkDestroyDebugReportCallbackEXT");
+    out->vkDebugReportMessageEXT =
+        (PFN_vkDebugReportMessageEXT)vk->vkGetInstanceProcAddr(instance, "vkDebugReportMessageEXT");
 #endif
 #ifdef VK_EXT_debug_utils
     out->vkCreateDebugUtilsMessengerEXT =
@@ -2039,6 +2059,16 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetPhysicalDeviceWin32PresentationSupportKHR =
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)vk->vkGetDeviceProcAddr(
             device, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
+#endif
+#ifdef VK_EXT_debug_report
+    out->vkCreateDebugReportCallbackEXT =
+        (PFN_vkCreateDebugReportCallbackEXT)vk->vkGetDeviceProcAddr(
+            device, "vkCreateDebugReportCallbackEXT");
+    out->vkDestroyDebugReportCallbackEXT =
+        (PFN_vkDestroyDebugReportCallbackEXT)vk->vkGetDeviceProcAddr(
+            device, "vkDestroyDebugReportCallbackEXT");
+    out->vkDebugReportMessageEXT =
+        (PFN_vkDebugReportMessageEXT)vk->vkGetDeviceProcAddr(device, "vkDebugReportMessageEXT");
 #endif
 #ifdef VK_EXT_debug_utils
     out->vkCreateDebugUtilsMessengerEXT =

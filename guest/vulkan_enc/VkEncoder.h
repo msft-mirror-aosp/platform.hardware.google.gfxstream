@@ -893,6 +893,8 @@ class VkEncoder {
         VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
         uint64_t* grallocProducerUsage, uint32_t doLock);
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
     void vkCmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuffer, uint32_t firstBinding,
                                               uint32_t bindingCount, const VkBuffer* pBuffers,
