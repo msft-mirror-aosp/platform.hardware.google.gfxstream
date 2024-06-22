@@ -7012,6 +7012,26 @@ void transform_fromhost_VkPhysicalDevicePresentationPropertiesANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+void transform_tohost_VkDebugReportCallbackCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugReportCallbackCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDebugReportCallbackCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugReportCallbackCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void transform_tohost_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -9262,6 +9282,14 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            transform_tohost_VkDebugReportCallbackCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkDebugReportCallbackCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_transform_feedback
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT: {
             transform_tohost_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
@@ -10419,6 +10447,14 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
         case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID: {
             transform_fromhost_VkNativeBufferANDROID(
                 resourceTracker, reinterpret_cast<VkNativeBufferANDROID*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            transform_fromhost_VkDebugReportCallbackCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkDebugReportCallbackCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif
