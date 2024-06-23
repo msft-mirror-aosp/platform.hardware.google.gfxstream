@@ -93,6 +93,8 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool invalidateForVk();
     bool importNativeResource(void* nativeResource, uint32_t type, bool preserveContent);
 
+    int waitSync();
+
 #if GFXSTREAM_ENABLE_HOST_GLES
     GLuint glOpGetTexture();
     bool glOpBlitFromCurrentReadBuffer();
