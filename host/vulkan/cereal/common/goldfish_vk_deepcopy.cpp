@@ -7527,6 +7527,34 @@ void deepcopy_VkPhysicalDevicePresentationPropertiesANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+void deepcopy_VkDebugReportCallbackCreateInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                                 const VkDebugReportCallbackCreateInfoEXT* from,
+                                                 VkDebugReportCallbackCreateInfoEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    to->pUserData = nullptr;
+    if (from->pUserData) {
+        to->pUserData = (void*)alloc->dupArray(from->pUserData, sizeof(uint8_t));
+    }
+}
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void deepcopy_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -10205,6 +10233,15 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
             deepcopy_VkNativeBufferANDROID(
                 alloc, rootType, reinterpret_cast<const VkNativeBufferANDROID*>(structExtension),
                 reinterpret_cast<VkNativeBufferANDROID*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            deepcopy_VkDebugReportCallbackCreateInfoEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkDebugReportCallbackCreateInfoEXT*>(structExtension),
+                reinterpret_cast<VkDebugReportCallbackCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif
