@@ -1491,6 +1491,8 @@ void count_VkPhysicalDevicePresentationPropertiesANDROID(
     const VkPhysicalDevicePresentationPropertiesANDROID* toCount, size_t* count);
 
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void count_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     uint32_t featureBits, VkStructureType rootType,

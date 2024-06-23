@@ -3106,6 +3106,8 @@ void unmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
 #define OP_vkQueueSignalReleaseImageANDROID 20253
 #define OP_vkGetSwapchainGrallocUsage2ANDROID 287960452
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void marshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
