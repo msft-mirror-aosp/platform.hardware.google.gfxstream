@@ -1664,6 +1664,8 @@ void reservedmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
     const VkPhysicalDevicePresentationPropertiesANDROID* forMarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void reservedmarshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
