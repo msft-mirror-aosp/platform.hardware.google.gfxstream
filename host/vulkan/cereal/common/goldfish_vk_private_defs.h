@@ -37,6 +37,13 @@ typedef void(VKAPI_PTR* PFN_vkGetIOSurfaceMVK)(VkImage image, void** pIOSurface)
 
 #endif  // VK_MVK_moltenvk
 
+// These are internally defined MoltenVK flags for external memory usage
+// TODO(b/349066492): They should be removed after being ratified and put under the headers
+static const VkExternalMemoryHandleTypeFlagBits VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR =
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_FLAG_BITS_MAX_ENUM;
+static const VkExternalMemoryHandleTypeFlagBits VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_KHR =
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_FLAG_BITS_MAX_ENUM;
+
 // VulkanStream features
 #define VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT (1 << 0)
 #define VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT (1 << 1)
