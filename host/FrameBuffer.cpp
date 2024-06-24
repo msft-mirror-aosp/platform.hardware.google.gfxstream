@@ -2935,6 +2935,7 @@ const int FrameBuffer::getDisplayActiveConfig() {
 }
 
 bool FrameBuffer::flushColorBufferFromVk(HandleType colorBufferHandle) {
+    AutoLock mutex(m_lock);
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
