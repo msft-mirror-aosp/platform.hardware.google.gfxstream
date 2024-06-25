@@ -16,6 +16,7 @@
 
 #include <memory>
 
+#include "BlobManager.h"
 #include "BorrowedImage.h"
 #include "FrameworkFormats.h"
 #include "Handle.h"
@@ -94,6 +95,7 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool importNativeResource(void* nativeResource, uint32_t type, bool preserveContent);
 
     int waitSync();
+    std::optional<ManagedDescriptorInfo> exportBlob();
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     GLuint glOpGetTexture();
