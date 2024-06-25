@@ -3137,6 +3137,29 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 break;
             }
 #endif
+#ifdef VK_EXT_color_write_enable
+            case OP_vkCmdSetColorWriteEnableEXT: {
+                android::base::beginTrace("vkCmdSetColorWriteEnableEXT subdecode");
+                uint32_t attachmentCount;
+                const VkBool32* pColorWriteEnables;
+                VkBool32 stack_pColorWriteEnables[MAX_STACK_ITEMS];
+                memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (((attachmentCount)) <= MAX_STACK_ITEMS) {
+                    pColorWriteEnables = (VkBool32*)stack_pColorWriteEnables;
+                } else {
+                    readStream->alloc((void**)&pColorWriteEnables,
+                                      ((attachmentCount)) * sizeof(const VkBool32));
+                }
+                memcpy((VkBool32*)pColorWriteEnables, *readStreamPtrPtr,
+                       ((attachmentCount)) * sizeof(const VkBool32));
+                *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkBool32);
+                vk->vkCmdSetColorWriteEnableEXT((VkCommandBuffer)dispatchHandle, attachmentCount,
+                                                pColorWriteEnables);
+                android::base::endTrace();
+                break;
+            }
+#endif
 #ifdef VK_GOOGLE_gfxstream
             case OP_vkBeginCommandBufferAsyncGOOGLE: {
                 android::base::beginTrace("vkBeginCommandBufferAsyncGOOGLE subdecode");

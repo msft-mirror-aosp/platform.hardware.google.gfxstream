@@ -1064,6 +1064,10 @@ class VkEncoder {
     void vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
                                            VkBool32 primitiveRestartEnable, uint32_t doLock);
 #endif
+#ifdef VK_EXT_color_write_enable
+    void vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                     const VkBool32* pColorWriteEnables, uint32_t doLock);
+#endif
 #ifdef VK_GOOGLE_gfxstream
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceMemory memory,
                                                uint64_t* pAddress, uint32_t doLock);
