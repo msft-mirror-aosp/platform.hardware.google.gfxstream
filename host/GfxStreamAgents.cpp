@@ -455,6 +455,32 @@ static const QAndroidVmOperations sQAndroidVmOperations = {
         .hostmemRegister = android_emulation_hostmem_register,
         .hostmemUnregister = android_emulation_hostmem_unregister,
         .hostmemGetInfo = android_emulation_hostmem_get_info,
+        .setSkipSnapshotSaveReason =
+            [](SnapshotSkipReason reason) {
+                DEBUG_LOG(stderr,
+                        "goldfish-opengl vm ops: set skip snapshot save reason"
+                        "skipped\n");
+            },
+        .getSkipSnapshotSaveReason =
+            []() {
+                DEBUG_LOG(stderr,
+                        "goldfish-opengl vm ops: get skip snapshot save "
+                        "reason\n");
+                return SNAPSHOT_SKIP_UNKNOWN;
+            },
+        .setStatSnapshotUseVulkan =
+            []() {
+                DEBUG_LOG(stderr,
+                        "goldfish-opengl vm ops: set stat snapshot use Vulkan"
+                        "skipped\n");
+            },
+        .snapshotUseVulkan =
+            []() {
+                DEBUG_LOG(stderr,
+                        "goldfish-opengl vm ops: get stat snapshot use Vulkan"
+                        "skipped\n");
+                return false;
+            },
 };
 
 namespace android {

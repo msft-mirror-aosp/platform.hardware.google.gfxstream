@@ -1814,25 +1814,47 @@ bool getColorBufferAllocationInfo(uint32_t colorBufferHandle, VkDeviceSize* outS
                                               outMemoryIsDedicatedAlloc, outMappedPtr);
 }
 
-static uint32_t lastGoodTypeIndex(uint32_t indices) {
-    for (int32_t i = 31; i >= 0; --i) {
-        if (indices & (1 << i)) {
-            return i;
+// This function will return the first memory type that exactly matches the
+// requested properties, if there is any. Otherwise it'll return the last
+// index that supports all the requested memory property flags.
+// Eg. this avoids returning a host coherent memory type when only device local
+// memory flag is requested, which may be slow or not support some other features,
+// such as association with optimal-tiling images on some implementations.
+static uint32_t getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,
+                                        VkMemoryPropertyFlags memoryProperty = 0) {
+    uint32_t secondBest = ~0;
+    bool found = false;
+    for (int32_t i = 0; i <= 31; i++) {
+        if ((requiredMemoryTypeBits & (1u << i)) == 0) {
+            // Not a suitable memory index
+            continue;
         }
-    }
-    return 0;
-}
 
-static uint32_t lastGoodTypeIndexWithMemoryProperties(uint32_t indices,
-                                                      VkMemoryPropertyFlags memoryProperty) {
-    for (int32_t i = 31; i >= 0; --i) {
-        if ((indices & (1u << i)) &&
-            (!memoryProperty ||
-             (sVkEmulation->deviceInfo.memProps.memoryTypes[i].propertyFlags & memoryProperty))) {
+        const VkMemoryPropertyFlags memPropertyFlags =
+            sVkEmulation->deviceInfo.memProps.memoryTypes[i].propertyFlags;
+
+        // Exact match, return immediately
+        if (memPropertyFlags == memoryProperty) {
             return i;
         }
+
+        // Valid memory index, but keep  looking for an exact match
+        // TODO: this should compare against memoryProperty, but some existing tests
+        // are depending on this behavior.
+        const bool propertyValid = !memoryProperty || ((memPropertyFlags & memoryProperty) != 0);
+        if (propertyValid) {
+            secondBest = i;
+            found = true;
+        }
     }
-    return 0;
+
+    if (!found) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            << "Could not find a valid memory index with memoryProperty: "
+            << string_VkMemoryPropertyFlags(memoryProperty)
+            << ", and requiredMemoryTypeBits: " << requiredMemoryTypeBits;
+    }
+    return secondBest;
 }
 
 // pNext, sharingMode, queueFamilyIndexCount, pQueueFamilyIndices, and initialLayout won't be
@@ -2079,12 +2101,8 @@ bool initializeVkColorBufferLocked(
     infoPtr->memory.size = infoPtr->memReqs.size;
 
     // Determine memory type.
-    if (infoPtr->memoryProperty) {
-        infoPtr->memory.typeIndex = lastGoodTypeIndexWithMemoryProperties(
-            infoPtr->memReqs.memoryTypeBits, infoPtr->memoryProperty);
-    } else {
-        infoPtr->memory.typeIndex = lastGoodTypeIndex(infoPtr->memReqs.memoryTypeBits);
-    }
+    infoPtr->memory.typeIndex =
+        getValidMemoryTypeIndex(infoPtr->memReqs.memoryTypeBits, infoPtr->memoryProperty);
 
     VK_COMMON_VERBOSE("ColorBuffer %d, "
                         "allocation size and type index: %lu, %d, "
@@ -2126,7 +2144,7 @@ bool initializeVkColorBufferLocked(
         bool allocRes = allocExternalMemory(vk, &infoPtr->memory, true /*actuallyExternal*/,
                                             deviceAlignment, kNullopt, dedicatedImage);
         if (!allocRes) {
-            VK_COMMON_VERBOSE("Failed to allocate ColorBuffer with Vulkan backing.");
+            VK_COMMON_ERROR("Failed to allocate ColorBuffer with Vulkan backing.");
             return false;
         }
 
@@ -2171,7 +2189,8 @@ bool initializeVkColorBufferLocked(
     createRes =
         vk->vkCreateImageView(sVkEmulation->device, &imageViewCi, nullptr, &infoPtr->imageView);
     if (createRes != VK_SUCCESS) {
-        VK_COMMON_VERBOSE("Failed to create Vulkan image for ColorBuffer %d, Error: %s", colorBufferHandle, string_VkResult(createRes));
+        VK_COMMON_VERBOSE("Failed to create Vulkan image view for ColorBuffer %d, Error: %s",
+                          colorBufferHandle, string_VkResult(createRes));
         return false;
     }
 
@@ -2503,13 +2522,16 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
     sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
         commandBuffer, "readColorBufferToBytes(ColorBuffer:%d)", colorBufferHandle);
 
+    VkImageLayout currentLayout = colorBufferInfo->currentLayout;
+    VkImageLayout transferSrcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
     const VkImageMemoryBarrier toTransferSrcImageBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = 0,
         .dstAccessMask = VK_ACCESS_HOST_READ_BIT,
-        .oldLayout = colorBufferInfo->currentLayout,
-        .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        .oldLayout = currentLayout,
+        .newLayout = transferSrcLayout,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .image = colorBufferInfo->image,
@@ -2527,11 +2549,38 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
                              VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,
                              &toTransferSrcImageBarrier);
 
-    colorBufferInfo->currentLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-
     vk->vkCmdCopyImageToBuffer(commandBuffer, colorBufferInfo->image,
                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, sVkEmulation->staging.buffer,
                                bufferImageCopies.size(), bufferImageCopies.data());
+
+    // Change back to original layout
+    if (currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
+        // Transfer back to original layout.
+        const VkImageMemoryBarrier toCurrentLayoutImageBarrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_NONE_KHR,
+            .oldLayout = transferSrcLayout,
+            .newLayout = colorBufferInfo->currentLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = colorBufferInfo->image,
+            .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,
+                                 &toCurrentLayoutImageBarrier);
+    } else {
+        colorBufferInfo->currentLayout = transferSrcLayout;
+    }
 
     sVkEmulation->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
 
@@ -2743,12 +2792,12 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
                              VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 0, nullptr, 1,
                              &toTransferDstImageBarrier);
 
-    // Copy to staging buffer
+    // Copy from staging buffer to color buffer image
     vk->vkCmdCopyBufferToImage(commandBuffer, sVkEmulation->staging.buffer, colorBufferInfo->image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, bufferImageCopies.size(),
                                bufferImageCopies.data());
 
-    if (isSnapshotLoad && colorBufferInfo->currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
+    if (colorBufferInfo->currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
         const VkImageMemoryBarrier toCurrentLayoutImageBarrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -2976,7 +3025,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
 
     res.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    // Create the image. If external memory is supported, make it external.
+    // Create the buffer. If external memory is supported, make it external.
     VkExternalMemoryBufferCreateInfo extBufferCi = {
         VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO,
         0,
@@ -3030,12 +3079,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
     res.memory.size = res.memReqs.size;
 
     // Determine memory type.
-    if (memoryProperty) {
-        res.memory.typeIndex =
-            lastGoodTypeIndexWithMemoryProperties(res.memReqs.memoryTypeBits, memoryProperty);
-    } else {
-        res.memory.typeIndex = lastGoodTypeIndex(res.memReqs.memoryTypeBits);
-    }
+    res.memory.typeIndex = getValidMemoryTypeIndex(res.memReqs.memoryTypeBits, memoryProperty);
 
     VK_COMMON_VERBOSE("Buffer %d "
                         "allocation size and type index: %lu, %d, "
