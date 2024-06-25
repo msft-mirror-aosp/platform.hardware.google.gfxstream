@@ -3847,6 +3847,25 @@ void unmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
 #define OP_vkCmdSetLogicOpEXT 267481927
 #define OP_vkCmdSetPrimitiveRestartEnableEXT 299567883
 #endif
+#ifdef VK_EXT_color_write_enable
+void marshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineColorWriteCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCmdSetColorWriteEnableEXT 202223297
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void marshal_VkImportColorBufferGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                        const VkImportColorBufferGOOGLE* forMarshaling);
