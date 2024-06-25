@@ -2522,13 +2522,16 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
     sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
         commandBuffer, "readColorBufferToBytes(ColorBuffer:%d)", colorBufferHandle);
 
+    VkImageLayout currentLayout = colorBufferInfo->currentLayout;
+    VkImageLayout transferSrcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
     const VkImageMemoryBarrier toTransferSrcImageBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = 0,
         .dstAccessMask = VK_ACCESS_HOST_READ_BIT,
-        .oldLayout = colorBufferInfo->currentLayout,
-        .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        .oldLayout = currentLayout,
+        .newLayout = transferSrcLayout,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .image = colorBufferInfo->image,
@@ -2546,11 +2549,38 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
                              VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,
                              &toTransferSrcImageBarrier);
 
-    colorBufferInfo->currentLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-
     vk->vkCmdCopyImageToBuffer(commandBuffer, colorBufferInfo->image,
                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, sVkEmulation->staging.buffer,
                                bufferImageCopies.size(), bufferImageCopies.data());
+
+    // Change back to original layout
+    if (currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
+        // Transfer back to original layout.
+        const VkImageMemoryBarrier toCurrentLayoutImageBarrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_NONE_KHR,
+            .oldLayout = transferSrcLayout,
+            .newLayout = colorBufferInfo->currentLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = colorBufferInfo->image,
+            .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,
+                                 &toCurrentLayoutImageBarrier);
+    } else {
+        colorBufferInfo->currentLayout = transferSrcLayout;
+    }
 
     sVkEmulation->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
 
@@ -2767,7 +2797,7 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, bufferImageCopies.size(),
                                bufferImageCopies.data());
 
-    if (isSnapshotLoad && colorBufferInfo->currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
+    if (colorBufferInfo->currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
         const VkImageMemoryBarrier toCurrentLayoutImageBarrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
