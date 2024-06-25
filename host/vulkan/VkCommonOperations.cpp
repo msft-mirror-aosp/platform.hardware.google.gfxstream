@@ -2126,7 +2126,7 @@ bool initializeVkColorBufferLocked(
         bool allocRes = allocExternalMemory(vk, &infoPtr->memory, true /*actuallyExternal*/,
                                             deviceAlignment, kNullopt, dedicatedImage);
         if (!allocRes) {
-            VK_COMMON_VERBOSE("Failed to allocate ColorBuffer with Vulkan backing.");
+            VK_COMMON_ERROR("Failed to allocate ColorBuffer with Vulkan backing.");
             return false;
         }
 
@@ -2171,7 +2171,8 @@ bool initializeVkColorBufferLocked(
     createRes =
         vk->vkCreateImageView(sVkEmulation->device, &imageViewCi, nullptr, &infoPtr->imageView);
     if (createRes != VK_SUCCESS) {
-        VK_COMMON_VERBOSE("Failed to create Vulkan image for ColorBuffer %d, Error: %s", colorBufferHandle, string_VkResult(createRes));
+        VK_COMMON_VERBOSE("Failed to create Vulkan image view for ColorBuffer %d, Error: %s",
+                          colorBufferHandle, string_VkResult(createRes));
         return false;
     }
 
@@ -2743,7 +2744,7 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
                              VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 0, nullptr, 1,
                              &toTransferDstImageBarrier);
 
-    // Copy to staging buffer
+    // Copy from staging buffer to color buffer image
     vk->vkCmdCopyBufferToImage(commandBuffer, sVkEmulation->staging.buffer, colorBufferInfo->image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, bufferImageCopies.size(),
                                bufferImageCopies.data());
@@ -2976,7 +2977,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
 
     res.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    // Create the image. If external memory is supported, make it external.
+    // Create the buffer. If external memory is supported, make it external.
     VkExternalMemoryBufferCreateInfo extBufferCi = {
         VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO,
         0,
