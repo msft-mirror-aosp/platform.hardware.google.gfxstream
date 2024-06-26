@@ -1581,6 +1581,10 @@ class PipeVirglRenderer {
                 if (vk_emu && vk_emu->live) {
                     capset->deferredMapping = 1;
                 }
+
+#if SUPPORT_DMABUF
+                capset->alwaysBlob = 1;
+#endif
                 break;
             }
             case VIRTGPU_CAPSET_GFXSTREAM_MAGMA: {
