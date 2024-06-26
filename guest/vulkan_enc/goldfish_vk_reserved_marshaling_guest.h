@@ -2011,6 +2011,16 @@ void reservedmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* forMarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_color_write_enable
+void reservedmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* forMarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void reservedmarshal_VkImportColorBufferGOOGLE(VulkanStreamGuest* vkStream,
                                                VkStructureType rootType,
