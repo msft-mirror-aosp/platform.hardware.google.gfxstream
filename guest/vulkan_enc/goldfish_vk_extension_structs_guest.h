@@ -238,6 +238,8 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
 #endif
+#ifdef VK_EXT_color_write_enable
+#endif
 #ifdef VK_GOOGLE_gfxstream
 #endif
 #ifdef VK_EXT_load_store_op_none
