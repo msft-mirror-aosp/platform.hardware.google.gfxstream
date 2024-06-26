@@ -266,15 +266,17 @@ class ScopedGlType {
         return *this;
     }
 
-    ~ScopedGlType() {
+    ~ScopedGlType() { Reset(); }
+
+    operator GLuint() { return mHandle; }
+    operator GLuint() const { return mHandle; }
+
+    void Reset() {
         if (mHandle != 0) {
             (mGlDispatch->*mGlDelFunc)(1, &mHandle);
             mHandle = 0;
         }
     }
-
-    operator GLuint() { return mHandle; }
-    operator GLuint() const { return mHandle; }
 
    private:
     GlDispatch* mGlDispatch = nullptr;
