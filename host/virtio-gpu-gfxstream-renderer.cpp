@@ -1969,22 +1969,12 @@ class PipeVirglRenderer {
         }
 
         if (entry.descriptorInfo) {
-            bool shareable = entry.blobFlags &
-                             (STREAM_BLOB_FLAG_USE_SHAREABLE | STREAM_BLOB_FLAG_USE_CROSS_DEVICE);
-
-            DescriptorType rawDescriptor;
-            if (shareable) {
-                // TODO: Add ManagedDescriptor::{clone, dup} method and use it;
-                // This should have no affect since gfxstream allocates mappable-only buffers
-                // currently
+	    DescriptorType rawDescriptor;
+            auto rawDescriptorOpt = entry.descriptorInfo->descriptor.release();
+            if (rawDescriptorOpt)
+                rawDescriptor = *rawDescriptorOpt;
+            else
                 return -EINVAL;
-            } else {
-                auto rawDescriptorOpt = entry.descriptorInfo->descriptor.release();
-                if (rawDescriptorOpt)
-                    rawDescriptor = *rawDescriptorOpt;
-                else
-                    return -EINVAL;
-            }
 
             handle->handle_type = entry.descriptorInfo->handleType;
 
