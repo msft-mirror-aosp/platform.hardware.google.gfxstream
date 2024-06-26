@@ -710,11 +710,6 @@ class PipeVirglRenderer {
         mCookie = cookie;
         mFeatures = features;
         mFenceCallback = fence_callback;
-        mVirtioGpuOps = android_getVirtioGpuOps();
-        if (!mVirtioGpuOps) {
-            stream_renderer_error("Could not get virtio gpu ops!");
-            return -EINVAL;
-        }
         mAddressSpaceDeviceControlOps = get_address_space_device_control_ops();
         if (!mAddressSpaceDeviceControlOps) {
             stream_renderer_error("Could not get address space device control ops!");
@@ -972,9 +967,11 @@ class PipeVirglRenderer {
 
                 stream_renderer_debug("wait for gpu ring %s", to_string(ring).c_str());
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
-                mVirtioGpuOps->async_wait_for_gpu_with_cb(sync_handle, [this, taskId] {
+#if GFXSTREAM_ENABLE_HOST_GLES
+                gfxstream::FrameBuffer::getFB()->asyncWaitForGpuWithCb(sync_handle, [this, taskId] {
                     mVirtioGpuTimelines->notifyTaskCompletion(taskId);
                 });
+#endif
                 break;
             }
             case GFXSTREAM_CREATE_EXPORT_SYNC_VK:
@@ -998,7 +995,7 @@ class PipeVirglRenderer {
 
                 stream_renderer_debug("wait for gpu ring %s", to_string(ring).c_str());
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
-                mVirtioGpuOps->async_wait_for_gpu_vulkan_with_cb(
+                gfxstream::FrameBuffer::getFB()->asyncWaitForGpuVulkanWithCb(
                     device_handle, fence_handle,
                     [this, taskId] { mVirtioGpuTimelines->notifyTaskCompletion(taskId); });
                 break;
@@ -1021,9 +1018,9 @@ class PipeVirglRenderer {
                 stream_renderer_debug("wait for gpu vk qsri ring %u image 0x%llx",
                                       to_string(ring).c_str(), (unsigned long long)image_handle);
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
-                mVirtioGpuOps->async_wait_for_gpu_vulkan_qsri_with_cb(image_handle, [this, taskId] {
-                    mVirtioGpuTimelines->notifyTaskCompletion(taskId);
-                });
+                gfxstream::FrameBuffer::getFB()->asyncWaitForGpuVulkanQsriWithCb(
+                    image_handle,
+                    [this, taskId] { mVirtioGpuTimelines->notifyTaskCompletion(taskId); });
                 break;
             }
             case GFXSTREAM_PLACEHOLDER_COMMAND_VK: {
@@ -1143,7 +1140,8 @@ class PipeVirglRenderer {
 
     void handleCreateResourceBuffer(struct stream_renderer_resource_create_args* args) {
         stream_renderer_debug("w:%u h:%u handle:%u", args->handle, args->width, args->height);
-        mVirtioGpuOps->create_buffer_with_handle(args->width * args->height, args->handle);
+        gfxstream::FrameBuffer::getFB()->createBufferWithHandle(args->width * args->height,
+                                                                args->handle);
     }
 
     void handleCreateResourceColorBuffer(struct stream_renderer_resource_create_args* args) {
@@ -1153,10 +1151,12 @@ class PipeVirglRenderer {
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const uint32_t fwkformat = virgl_format_to_fwk_format(args->format);
         const bool linear = !!(args->bind & VIRGL_BIND_LINEAR);
-        mVirtioGpuOps->create_color_buffer_with_handle(args->width, args->height, glformat,
-                                                       fwkformat, args->handle, linear);
-        mVirtioGpuOps->set_guest_managed_color_buffer_lifetime(true /* guest manages lifetime */);
-        mVirtioGpuOps->open_color_buffer(args->handle);
+        gfxstream::FrameBuffer::getFB()->createColorBufferWithHandle(
+            args->width, args->height, glformat, (gfxstream::FrameworkFormat)fwkformat,
+            args->handle, linear);
+        gfxstream::FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(
+            true /* guest manages lifetime */);
+        gfxstream::FrameBuffer::getFB()->openColorBuffer(args->handle);
     }
 
     int createResource(struct stream_renderer_resource_create_args* args, struct iovec* iov,
@@ -1210,10 +1210,10 @@ class PipeVirglRenderer {
             case ResType::PIPE:
                 break;
             case ResType::BUFFER:
-                mVirtioGpuOps->close_buffer(toUnrefId);
+                gfxstream::FrameBuffer::getFB()->closeBuffer(toUnrefId);
                 break;
             case ResType::COLOR_BUFFER:
-                mVirtioGpuOps->close_color_buffer(toUnrefId);
+                gfxstream::FrameBuffer::getFB()->closeColorBuffer(toUnrefId);
                 break;
         }
 
@@ -1366,8 +1366,8 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
 
-        mVirtioGpuOps->read_buffer(res->args.handle, 0, res->args.width * res->args.height,
-                                   res->linear);
+        gfxstream::FrameBuffer::getFB()->readBuffer(
+            res->args.handle, 0, res->args.width * res->args.height, res->linear);
         return 0;
     }
 
@@ -1377,8 +1377,8 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
 
-        mVirtioGpuOps->update_buffer(res->args.handle, 0, res->args.width * res->args.height,
-                                     res->linear);
+        gfxstream::FrameBuffer::getFB()->updateBuffer(
+            res->args.handle, 0, res->args.width * res->args.height, res->linear);
         return 0;
     }
 
@@ -1395,11 +1395,13 @@ class PipeVirglRenderer {
         // We always xfer the whole thing again from GL
         // since it's fiddly to calc / copy-out subregions
         if (virgl_format_is_yuv(res->args.format)) {
-            mVirtioGpuOps->read_color_buffer_yuv(res->args.handle, 0, 0, res->args.width,
-                                                 res->args.height, res->linear, res->linearSize);
+            gfxstream::FrameBuffer::getFB()->readColorBufferYUV(res->args.handle, 0, 0,
+                                                                res->args.width, res->args.height,
+                                                                res->linear, res->linearSize);
         } else {
-            mVirtioGpuOps->read_color_buffer(res->args.handle, 0, 0, res->args.width,
-                                             res->args.height, glformat, gltype, res->linear);
+            gfxstream::FrameBuffer::getFB()->readColorBuffer(res->args.handle, 0, 0,
+                                                             res->args.width, res->args.height,
+                                                             glformat, gltype, res->linear);
         }
 
         return 0;
@@ -1417,8 +1419,9 @@ class PipeVirglRenderer {
 
         // We always xfer the whole thing again to GL
         // since it's fiddly to calc / copy-out subregions
-        mVirtioGpuOps->update_color_buffer(res->args.handle, 0, 0, res->args.width,
-                                           res->args.height, glformat, gltype, res->linear);
+        gfxstream::FrameBuffer::getFB()->updateColorBuffer(res->args.handle, 0, 0, res->args.width,
+                                                           res->args.height, glformat, gltype,
+                                                           res->linear);
         return 0;
     }
 
@@ -1666,7 +1669,7 @@ class PipeVirglRenderer {
 
     void flushResource(uint32_t res_handle) {
         auto taskId = mVirtioGpuTimelines->enqueueTask(VirtioGpuRingGlobal{});
-        mVirtioGpuOps->async_post_color_buffer(
+        gfxstream::FrameBuffer::getFB()->postWithCallback(
             res_handle, [this, taskId](std::shared_future<void> waitForGpu) {
                 waitForGpu.wait();
                 mVirtioGpuTimelines->notifyTaskCompletion(taskId);
@@ -1801,24 +1804,35 @@ class PipeVirglRenderer {
     int platformImportResource(int res_handle, int res_info, void* resource) {
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -EINVAL;
-        bool success = mVirtioGpuOps->platform_import_resource(res_handle, res_info, resource);
+        bool success =
+            gfxstream::FrameBuffer::getFB()->platformImportResource(res_handle, res_info, resource);
         return success ? 0 : -1;
     }
 
     int platformResourceInfo(int res_handle, int* width, int* height, int* internal_format) {
+        bool success = false;
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -EINVAL;
-        bool success =
-            mVirtioGpuOps->platform_resource_info(res_handle, width, height, internal_format);
+#if GFXSTREAM_ENABLE_HOST_GLES
+        success = gfxstream::FrameBuffer::getFB()->getColorBufferInfo(res_handle, width, height,
+                                                                      internal_format);
+#endif
         return success ? 0 : -1;
     }
 
     void* platformCreateSharedEglContext() {
-        return mVirtioGpuOps->platform_create_shared_egl_context();
+        void* ptr = nullptr;
+#if GFXSTREAM_ENABLE_HOST_GLES
+        ptr = gfxstream::FrameBuffer::getFB()->platformCreateSharedEglContext();
+#endif
+        return ptr;
     }
 
     int platformDestroySharedEglContext(void* context) {
-        bool success = mVirtioGpuOps->platform_destroy_shared_egl_context(context);
+        bool success = false;
+#if GFXSTREAM_ENABLE_HOST_GLES
+        success = gfxstream::FrameBuffer::getFB()->platformDestroySharedEglContext(context);
+#endif
         return success ? 0 : -1;
     }
 
@@ -1834,7 +1848,7 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
 
-        return mVirtioGpuOps->wait_sync_color_buffer(res_handle);
+        return gfxstream::FrameBuffer::getFB()->waitSyncColorBuffer(res_handle);
     }
 
     int resourceMapInfo(uint32_t res_handle, uint32_t* map_info) {
@@ -1991,7 +2005,6 @@ class PipeVirglRenderer {
     void* mCookie = nullptr;
     gfxstream::host::FeatureSet mFeatures;
     stream_renderer_fence_callback mFenceCallback;
-    AndroidVirtioGpuOps* mVirtioGpuOps = nullptr;
     uint32_t mPageSize = 4096;
     struct address_space_device_control_ops* mAddressSpaceDeviceControlOps = nullptr;
 
