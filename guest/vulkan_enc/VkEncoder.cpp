@@ -32902,8 +32902,6 @@ void VkEncoder::vkCmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
