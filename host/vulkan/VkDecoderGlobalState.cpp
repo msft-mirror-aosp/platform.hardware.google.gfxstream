@@ -2109,7 +2109,8 @@ class VkDecoderGlobalState::Impl {
 
     VkResult on_vkCreateImage(android::base::BumpPool* pool, VkDevice boxed_device,
                               const VkImageCreateInfo* pCreateInfo,
-                              const VkAllocationCallbacks* pAllocator, VkImage* pImage) {
+                              const VkAllocationCallbacks* pAllocator, VkImage* pImage,
+                              bool boxImage = true) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -2205,7 +2206,9 @@ class VkDecoderGlobalState::Impl {
         imageInfo.layout = pCreateInfo->initialLayout;
         if (nativeBufferANDROID) imageInfo.anbInfo = std::move(anbInfo);
 
-        *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
+        if (boxImage) {
+            *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
+        }
         return createRes;
     }
 
@@ -2260,8 +2263,9 @@ class VkDecoderGlobalState::Impl {
                 << "Missing VkNativeBufferANDROID for deferred AHB bind.";
         }
 
-        VkImage boxed_replacement_image = VK_NULL_HANDLE;
-        VkResult result = on_vkCreateImage(pool, boxed_device, &ici, nullptr, &boxed_replacement_image);
+        VkImage underlying_replacement_image = VK_NULL_HANDLE;
+        VkResult result = on_vkCreateImage(pool, boxed_device, &ici, nullptr,
+                                           &underlying_replacement_image, false);
         if (result != VK_SUCCESS) {
             ERR("Failed to create image for deferred AHB bind.");
             return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -2272,9 +2276,9 @@ class VkDecoderGlobalState::Impl {
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
 
-            auto underlying_replacement_image = unbox_VkImage(boxed_replacement_image);
-            delete_VkImage(boxed_replacement_image);
             set_boxed_non_dispatchable_VkImage(original_boxed_image, underlying_replacement_image);
+            const_cast<VkBindImageMemoryInfo*>(bimi)->image = underlying_replacement_image;
+            const_cast<VkBindImageMemoryInfo*>(bimi)->memory = nullptr;
         }
 
         return VK_SUCCESS;
@@ -9215,6 +9219,9 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HAN
         return (type)elt->underlying;                                                             \
     }                                                                                             \
     type unboxed_to_boxed_non_dispatchable_##type(type unboxed) {                                 \
+        if (!unboxed) {                                                                           \
+            return nullptr;                                                                       \
+        }                                                                                         \
         AutoLock lock(sBoxedHandleManager.lock);                                                  \
         return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
     }

@@ -59,6 +59,7 @@ public:
     }
 
     void createExtraHandlesForNextApi(const uint64_t* created, uint32_t count) {
+        mLock.lock();
         mReconstruction.createExtraHandlesForNextApi(created, count);
     }
 """
@@ -169,6 +170,11 @@ specialCaseDependencyExtractors = {
 apiSequences = {
     "vkAllocateMemory" : ["vkAllocateMemory", "vkMapMemoryIntoAddressSpaceGOOGLE"]
 }
+
+apiCrreateExtraHandles = [
+    "vkCreateDevice",
+    "vkCreateDescriptorPool",
+]
 
 @dataclass(frozen=True)
 class VkObjectState:
@@ -293,7 +299,9 @@ def emit_impl(typeInfo, api, cgen):
                 boxed_access = "&boxed_%s" % p.typeName
             if p.pointerIndirectionLevels > 0:
                 cgen.stmt("if (!%s) return" % access)
-            cgen.stmt("android::base::AutoLock lock(mLock)")
+            isCreateExtraHandleApi = api.name in apiCrreateExtraHandles
+            if not isCreateExtraHandleApi:
+                cgen.stmt("android::base::AutoLock lock(mLock)")
             cgen.line("// %s create" % p.paramName)
             if p.isCreatedBy(api):
                 cgen.stmt("mReconstruction.addHandles((const uint64_t*)%s, %s)" % (boxed_access, lenExpr));
@@ -316,6 +324,8 @@ def emit_impl(typeInfo, api, cgen):
                 cgen.stmt("mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)%s, %s)" % (boxed_access, lenExpr))
             if lenAccessGuard is not None:
                 cgen.endIf()
+            if isCreateExtraHandleApi:
+                cgen.stmt("mLock.unlock()")
 
         if p.isDestroyedBy(api):
             cgen.stmt("android::base::AutoLock lock(mLock)")
