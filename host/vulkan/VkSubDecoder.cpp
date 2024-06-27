@@ -1629,7 +1629,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkDependencyInfo(globalstate,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
-                vk->vkCmdPipelineBarrier2((VkCommandBuffer)dispatchHandle, pDependencyInfo);
+                this->on_vkCmdPipelineBarrier2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                                               pDependencyInfo);
                 android::base::endTrace();
                 break;
             }
@@ -2479,6 +2480,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
 #endif
 #ifdef VK_ANDROID_native_buffer
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
             case OP_vkCmdBindTransformFeedbackBuffersEXT: {
                 android::base::beginTrace("vkCmdBindTransformFeedbackBuffersEXT subdecode");
@@ -3130,6 +3133,29 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkBool32);
                 vk->vkCmdSetPrimitiveRestartEnableEXT((VkCommandBuffer)dispatchHandle,
                                                       primitiveRestartEnable);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_EXT_color_write_enable
+            case OP_vkCmdSetColorWriteEnableEXT: {
+                android::base::beginTrace("vkCmdSetColorWriteEnableEXT subdecode");
+                uint32_t attachmentCount;
+                const VkBool32* pColorWriteEnables;
+                VkBool32 stack_pColorWriteEnables[MAX_STACK_ITEMS];
+                memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (((attachmentCount)) <= MAX_STACK_ITEMS) {
+                    pColorWriteEnables = (VkBool32*)stack_pColorWriteEnables;
+                } else {
+                    readStream->alloc((void**)&pColorWriteEnables,
+                                      ((attachmentCount)) * sizeof(const VkBool32));
+                }
+                memcpy((VkBool32*)pColorWriteEnables, *readStreamPtrPtr,
+                       ((attachmentCount)) * sizeof(const VkBool32));
+                *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkBool32);
+                vk->vkCmdSetColorWriteEnableEXT((VkCommandBuffer)dispatchHandle, attachmentCount,
+                                                pColorWriteEnables);
                 android::base::endTrace();
                 break;
             }
