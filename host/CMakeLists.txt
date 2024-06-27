@@ -17,6 +17,7 @@ add_subdirectory(renderControl_dec)
 add_subdirectory(magma)
 
 if(CONFIG_AEMU)
+    add_compile_definitions(GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT)
     add_compile_definitions(CONFIG_AEMU)
 endif()
 
