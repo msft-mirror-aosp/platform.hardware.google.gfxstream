@@ -31,7 +31,7 @@
     HostConnection* hostCon = HostConnection::getOrCreate(kCapsetGfxStreamVulkan); \
     gfxstream::vk::VkEncoder* vkEnc = hostCon->vkEncoder();                        \
     if (!vkEnc) {                                                                  \
-        ALOGE("vulkan: Failed to get Vulkan encoder\n");                           \
+        mesa_loge("vulkan: Failed to get Vulkan encoder\n");                       \
         return ret;                                                                \
     }
 
@@ -43,8 +43,11 @@ static struct vk_instance_extension_table gfxstream_vk_instance_extensions_suppo
 // Provided by Mesa components only; never encoded/decoded through gfxstream
 static const char* const kMesaOnlyInstanceExtension[] = {
     VK_KHR_SURFACE_EXTENSION_NAME,
-#if defined(LINUX_GUEST_BUILD)
+#if defined(GFXSTREAM_VK_WAYLAND)
     VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME,
+#endif
+#if defined(GFXSTREAM_VK_X11)
+    VK_KHR_XCB_SURFACE_EXTENSION_NAME,
 #endif
     VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
 };
@@ -64,7 +67,7 @@ static VkResult SetupInstanceForProcess(void) {
     uint32_t noRenderControlEnc = 0;
     HostConnection* hostCon = getConnection();
     if (!hostCon) {
-        ALOGE("vulkan: Failed to get host connection\n");
+        mesa_loge("vulkan: Failed to get host connection\n");
         return VK_ERROR_DEVICE_LOST;
     }
 
@@ -74,7 +77,7 @@ static VkResult SetupInstanceForProcess(void) {
         // Implicitly sets up sequence number
         ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();
         if (!rcEnc) {
-            ALOGE("vulkan: Failed to get renderControl encoder context\n");
+            mesa_loge("vulkan: Failed to get renderControl encoder context\n");
             return VK_ERROR_DEVICE_LOST;
         }
 
@@ -88,7 +91,7 @@ static VkResult SetupInstanceForProcess(void) {
     gfxstream::vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess());
     gfxstream::vk::VkEncoder* vkEnc = getVkEncoder(hostCon);
     if (!vkEnc) {
-        ALOGE("vulkan: Failed to get Vulkan encoder\n");
+        mesa_loge("vulkan: Failed to get Vulkan encoder\n");
         return VK_ERROR_DEVICE_LOST;
     }
 
@@ -653,10 +656,6 @@ VkResult gfxstream_vk_AllocateMemory(VkDevice device, const VkMemoryAllocateInfo
         if (dedicatedAllocInfoPtr->buffer) {
             VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, dedicatedAllocInfoPtr->buffer);
             dedicatedAllocInfoPtr->buffer = gfxstream_buffer->internal_object;
-        }
-        if (dedicatedAllocInfoPtr->image) {
-            VK_FROM_HANDLE(gfxstream_vk_image, gfxstream_image, dedicatedAllocInfoPtr->image);
-            dedicatedAllocInfoPtr->image = gfxstream_image->internal_object;
         }
     }
     {

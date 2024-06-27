@@ -156,7 +156,6 @@ struct MemoryInfo {
     uint64_t sizeToPage = 0;
     uint64_t hostmemId = 0;
     VkDevice device = VK_NULL_HANDLE;
-    MTLTextureRef mtlTexture = nullptr;
     uint32_t memoryIndex = 0;
     // Set if the memory is backed by shared memory.
     std::optional<android::base::SharedMemory> sharedMemory;
@@ -200,7 +199,7 @@ struct DeviceInfo {
     std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
-    std::optional<DeviceOpTracker> deviceOpTracker;
+    DeviceOpTrackerPtr deviceOpTracker = nullptr;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)

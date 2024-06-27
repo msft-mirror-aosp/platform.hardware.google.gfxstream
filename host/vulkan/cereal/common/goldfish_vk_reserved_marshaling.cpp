@@ -11785,6 +11785,49 @@ void reservedunmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+void reservedunmarshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugReportCallbackCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkDebugReportFlagsEXT*)&forUnmarshaling->flags, *ptr, sizeof(VkDebugReportFlagsEXT));
+    *ptr += sizeof(VkDebugReportFlagsEXT);
+    memcpy((PFN_vkDebugReportCallbackEXT*)&forUnmarshaling->pfnCallback, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnCallback);
+    *ptr += 8;
+    // WARNING PTR CHECK
+    memcpy((void**)&forUnmarshaling->pUserData, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
+    *ptr += 8;
+    if (forUnmarshaling->pUserData) {
+        vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
+        memcpy((void*)forUnmarshaling->pUserData, *ptr, sizeof(uint8_t));
+        *ptr += sizeof(uint8_t);
+    }
+}
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void reservedunmarshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -14021,6 +14064,71 @@ void reservedunmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
 }
 
 #endif
+#ifdef VK_EXT_color_write_enable
+void reservedunmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->colorWriteEnable, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineColorWriteCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->attachmentCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pColorWriteEnables,
+                    forUnmarshaling->attachmentCount * sizeof(const VkBool32));
+    memcpy((VkBool32*)forUnmarshaling->pColorWriteEnables, *ptr,
+           forUnmarshaling->attachmentCount * sizeof(const VkBool32));
+    *ptr += forUnmarshaling->attachmentCount * sizeof(const VkBool32);
+}
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void reservedunmarshal_VkImportColorBufferGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                                  VkImportColorBufferGOOGLE* forUnmarshaling,
@@ -15017,6 +15125,14 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             break;
         }
 #endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            reservedunmarshal_VkDebugReportCallbackCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkDebugReportCallbackCreateInfoEXT*>(structExtension_out), ptr);
+            break;
+        }
+#endif
 #ifdef VK_EXT_transform_feedback
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT: {
             reservedunmarshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
@@ -15492,6 +15608,21 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
                 reinterpret_cast<VkPhysicalDeviceExtendedDynamicState2FeaturesEXT*>(
                     structExtension_out),
                 ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            reservedunmarshal_VkPipelineColorWriteCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineColorWriteCreateInfoEXT*>(structExtension_out), ptr);
             break;
         }
 #endif

@@ -7320,6 +7320,8 @@ void deepcopy_VkPhysicalDevicePresentationPropertiesANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void deepcopy_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -8594,6 +8596,58 @@ void deepcopy_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     if (pNext_size) {
         to->pNext = (void*)alloc->alloc(pNext_size);
         deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void deepcopy_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* from,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkPipelineColorWriteCreateInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                                const VkPipelineColorWriteCreateInfoEXT* from,
+                                                VkPipelineColorWriteCreateInfoEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    to->pColorWriteEnables = nullptr;
+    if (from->pColorWriteEnables) {
+        to->pColorWriteEnables = (VkBool32*)alloc->dupArray(
+            from->pColorWriteEnables, from->attachmentCount * sizeof(const VkBool32));
     }
 }
 
@@ -10071,6 +10125,24 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                     structExtension),
                 reinterpret_cast<VkPhysicalDeviceExtendedDynamicState2FeaturesEXT*>(
                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            deepcopy_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            deepcopy_VkPipelineColorWriteCreateInfoEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPipelineColorWriteCreateInfoEXT*>(structExtension),
+                reinterpret_cast<VkPipelineColorWriteCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif
