@@ -2746,6 +2746,14 @@ void transform_fromhost_VkPhysicalDevicePresentationPropertiesANDROID(
     VkPhysicalDevicePresentationPropertiesANDROID* toTransform);
 
 #endif
+#ifdef VK_EXT_debug_report
+void transform_tohost_VkDebugReportCallbackCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugReportCallbackCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkDebugReportCallbackCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkDebugReportCallbackCreateInfoEXT* toTransform);
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void transform_tohost_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -3372,6 +3380,22 @@ void transform_tohost_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
 void transform_fromhost_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
     VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* toTransform);
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void transform_tohost_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* toTransform);
+
+void transform_tohost_VkPipelineColorWriteCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkPipelineColorWriteCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkPipelineColorWriteCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkPipelineColorWriteCreateInfoEXT* toTransform);
 
 #endif
 #ifdef VK_GOOGLE_gfxstream

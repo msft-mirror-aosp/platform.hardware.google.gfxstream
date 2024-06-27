@@ -32181,6 +32181,8 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsage2ANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void VkEncoder::vkCmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuffer,
                                                      uint32_t firstBinding, uint32_t bindingCount,
@@ -35750,6 +35752,97 @@ void VkEncoder::vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
             static_cast<size_t>(packetSize_vkCmdSetPrimitiveRestartEnableEXT), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    ++encodeCount;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void VkEncoder::vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                            const VkBool32* pColorWriteEnables, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkCmdSetColorWriteEnableEXT in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG(
+        "vkCmdSetColorWriteEnableEXT(commandBuffer:%p, attachmentCount:%d, pColorWriteEnables:%p)",
+        commandBuffer, attachmentCount, pColorWriteEnables);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkCommandBuffer local_commandBuffer;
+    uint32_t local_attachmentCount;
+    VkBool32* local_pColorWriteEnables;
+    local_commandBuffer = commandBuffer;
+    local_attachmentCount = attachmentCount;
+    // Avoiding deepcopy for pColorWriteEnables
+    local_pColorWriteEnables = (VkBool32*)pColorWriteEnables;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+        *countPtr += ((attachmentCount)) * sizeof(VkBool32);
+    }
+    uint32_t packetSize_vkCmdSetColorWriteEnableEXT = 4 + 4 + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkCmdSetColorWriteEnableEXT);
+    if (queueSubmitWithCommandsEnabled) packetSize_vkCmdSetColorWriteEnableEXT -= 8;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetColorWriteEnableEXT);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkCmdSetColorWriteEnableEXT = OP_vkCmdSetColorWriteEnableEXT;
+    memcpy(streamPtr, &opcode_vkCmdSetColorWriteEnableEXT, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkCmdSetColorWriteEnableEXT, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (!queueSubmitWithCommandsEnabled) {
+        uint64_t cgen_var_0;
+        *&cgen_var_0 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
+        memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+        *streamPtrPtr += 1 * 8;
+    }
+    memcpy(*streamPtrPtr, (uint32_t*)&local_attachmentCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (VkBool32*)local_pColorWriteEnables,
+           ((attachmentCount)) * sizeof(VkBool32));
+    *streamPtrPtr += ((attachmentCount)) * sizeof(VkBool32);
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkCmdSetColorWriteEnableEXT), kWatchdogBufferMax);
         healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }

@@ -476,6 +476,11 @@ struct VulkanDispatch {
     PFN_vkQueueSignalReleaseImageANDROID vkQueueSignalReleaseImageANDROID;
     PFN_vkGetSwapchainGrallocUsage2ANDROID vkGetSwapchainGrallocUsage2ANDROID;
 #endif
+#ifdef VK_EXT_debug_report
+    PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
+    PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
+    PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
+#endif
 #ifdef VK_EXT_transform_feedback
     PFN_vkCmdBindTransformFeedbackBuffersEXT vkCmdBindTransformFeedbackBuffersEXT;
     PFN_vkCmdBeginTransformFeedbackEXT vkCmdBeginTransformFeedbackEXT;
@@ -611,6 +616,9 @@ struct VulkanDispatch {
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT;
     PFN_vkCmdSetLogicOpEXT vkCmdSetLogicOpEXT;
     PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT;
+#endif
+#ifdef VK_EXT_color_write_enable
+    PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT;
 #endif
 #ifdef VK_GOOGLE_gfxstream
     PFN_vkMapMemoryIntoAddressSpaceGOOGLE vkMapMemoryIntoAddressSpaceGOOGLE;
