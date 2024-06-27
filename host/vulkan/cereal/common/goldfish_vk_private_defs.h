@@ -20,21 +20,13 @@
 #include <algorithm>
 #endif
 
+// TODO(b/349066492): this is used as a placeholder extension to inform guest side
+// that host is using MoltenVK, it should be removed after external_memory_metal
+// extension is implemented.
 #ifndef VK_MVK_moltenvk
 #define VK_MVK_moltenvk 1
 #define VK_MVK_MOLTENVK_SPEC_VERSION 3
 #define VK_MVK_MOLTENVK_EXTENSION_NAME "VK_MVK_moltenvk"
-
-typedef void* MTLTextureRef;
-typedef void* MTLBufferRef;
-
-typedef void(VKAPI_PTR* PFN_vkGetMTLDeviceMVK)(VkPhysicalDevice physicalDevice, void** pMTLDevice);
-typedef VkResult(VKAPI_PTR* PFN_vkSetMTLTextureMVK)(VkImage image, MTLTextureRef mtlTexture);
-typedef void(VKAPI_PTR* PFN_vkGetMTLTextureMVK)(VkImage image, MTLTextureRef* pMTLTexture);
-typedef void(VKAPI_PTR* PFN_vkGetMTLBufferMVK)(VkBuffer buffer, void** pMTLBuffer);
-typedef VkResult(VKAPI_PTR* PFN_vkUseIOSurfaceMVK)(VkImage image, void* ioSurface);
-typedef void(VKAPI_PTR* PFN_vkGetIOSurfaceMVK)(VkImage image, void** pIOSurface);
-
 #endif  // VK_MVK_moltenvk
 
 // These are internally defined MoltenVK flags for external memory usage
