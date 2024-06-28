@@ -1776,6 +1776,7 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         // Vulkan 1.3
         "VK_KHR_synchronization2",
         "VK_EXT_private_data",
+        "VK_EXT_color_write_enable",
     };
 
     VkEncoder* enc = (VkEncoder*)context;
@@ -1854,6 +1855,7 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
 
     bool win32ExtMemAvailable = getHostDeviceExtensionIndex("VK_KHR_external_memory_win32") != -1;
     bool posixExtMemAvailable = getHostDeviceExtensionIndex("VK_KHR_external_memory_fd") != -1;
+    //TODO(b/349066492): this should check external_memory_metal extension when it's ready
     bool moltenVkExtAvailable = getHostDeviceExtensionIndex("VK_MVK_moltenvk") != -1;
     bool qnxExtMemAvailable =
         getHostDeviceExtensionIndex("VK_QNX_external_memory_screen_buffer") != -1;
