@@ -3193,7 +3193,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
     }
 
     VkBufferCreateInfo bufferCi = {
-        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         extBufferCiPtr,
         res.createFlags,
         res.size,
