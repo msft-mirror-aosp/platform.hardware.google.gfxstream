@@ -82,4 +82,31 @@ std::optional<BlobDescriptorInfo> ExternalObjectManager::removeBlobDescriptorInf
     return std::nullopt;
 }
 
+void ExternalObjectManager::addSyncDescriptorInfo(uint32_t ctxId, uint64_t syncId,
+                                                  ManagedDescriptor descriptor,
+                                                  uint32_t handleType) {
+    struct SyncDescriptorInfo info = {
+        .descriptor = std::move(descriptor),
+        .handleType = handleType,
+    };
+
+    auto key = std::make_pair(ctxId, syncId);
+    std::lock_guard<std::mutex> lock(mLock);
+    mSyncDescriptorInfos.insert(std::make_pair(key, std::move(info)));
+}
+
+std::optional<SyncDescriptorInfo> ExternalObjectManager::removeSyncDescriptorInfo(uint32_t ctxId,
+                                                                                  uint64_t syncId) {
+    auto key = std::make_pair(ctxId, syncId);
+    std::lock_guard<std::mutex> lock(mLock);
+    auto found = mSyncDescriptorInfos.find(key);
+    if (found != mSyncDescriptorInfos.end()) {
+        std::optional<SyncDescriptorInfo> ret = std::move(found->second);
+        mSyncDescriptorInfos.erase(found);
+        return ret;
+    }
+
+    return std::nullopt;
+}
+
 }  // namespace gfxstream

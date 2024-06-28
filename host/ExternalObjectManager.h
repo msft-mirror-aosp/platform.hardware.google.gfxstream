@@ -75,6 +75,11 @@ struct BlobDescriptorInfo {
     std::optional<VulkanInfo> vulkanInfoOpt;
 };
 
+struct SyncDescriptorInfo {
+    ManagedDescriptor descriptor;
+    uint32_t handleType;
+};
+
 class ExternalObjectManager {
    public:
     ExternalObjectManager() = default;
@@ -88,6 +93,10 @@ class ExternalObjectManager {
                                uint32_t handleType, uint32_t caching,
                                std::optional<VulkanInfo> vulkanInfoOpt);
     std::optional<BlobDescriptorInfo> removeBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId);
+
+    void addSyncDescriptorInfo(uint32_t ctx_id, uint64_t syncId, ManagedDescriptor descriptor,
+                               uint32_t handleType);
+    std::optional<SyncDescriptorInfo> removeSyncDescriptorInfo(uint32_t ctx_id, uint64_t syncId);
 
    private:
     // Only for pairs of std::hash-able types for simplicity.
@@ -108,6 +117,8 @@ class ExternalObjectManager {
     std::unordered_map<std::pair<uint32_t, uint64_t>, HostMemInfo, pair_hash> mHostMemInfos;
     std::unordered_map<std::pair<uint32_t, uint64_t>, BlobDescriptorInfo, pair_hash>
         mBlobDescriptorInfos;
+    std::unordered_map<std::pair<uint32_t, uint64_t>, SyncDescriptorInfo, pair_hash>
+        mSyncDescriptorInfos;
     DISALLOW_COPY_ASSIGN_AND_MOVE(ExternalObjectManager);
 };
 
