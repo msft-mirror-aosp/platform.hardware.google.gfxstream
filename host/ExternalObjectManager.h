@@ -68,26 +68,26 @@ struct VulkanInfo {
     uint8_t driverUUID[16];
 };
 
-struct ManagedDescriptorInfo {
+struct BlobDescriptorInfo {
     ManagedDescriptor descriptor;
     uint32_t handleType;
     uint32_t caching;
     std::optional<VulkanInfo> vulkanInfoOpt;
 };
 
-class BlobManager {
+class ExternalObjectManager {
    public:
-    BlobManager() = default;
+    ExternalObjectManager() = default;
 
-    static BlobManager* get();
+    static ExternalObjectManager* get();
 
     void addMapping(uint32_t ctx_id, uint64_t blobId, void* addr, uint32_t caching);
     std::optional<HostMemInfo> removeMapping(uint32_t ctx_id, uint64_t blobId);
 
-    void addDescriptorInfo(uint32_t ctx_id, uint64_t blobId, ManagedDescriptor descriptor,
-                           uint32_t handleType, uint32_t caching,
-                           std::optional<VulkanInfo> vulkanInfoOpt);
-    std::optional<ManagedDescriptorInfo> removeDescriptorInfo(uint32_t ctx_id, uint64_t blobId);
+    void addBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId, ManagedDescriptor descriptor,
+                               uint32_t handleType, uint32_t caching,
+                               std::optional<VulkanInfo> vulkanInfoOpt);
+    std::optional<BlobDescriptorInfo> removeBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId);
 
    private:
     // Only for pairs of std::hash-able types for simplicity.
@@ -106,9 +106,9 @@ class BlobManager {
 
     std::mutex mLock;
     std::unordered_map<std::pair<uint32_t, uint64_t>, HostMemInfo, pair_hash> mHostMemInfos;
-    std::unordered_map<std::pair<uint32_t, uint64_t>, ManagedDescriptorInfo, pair_hash>
-        mDescriptorInfos;
-    DISALLOW_COPY_ASSIGN_AND_MOVE(BlobManager);
+    std::unordered_map<std::pair<uint32_t, uint64_t>, BlobDescriptorInfo, pair_hash>
+        mBlobDescriptorInfos;
+    DISALLOW_COPY_ASSIGN_AND_MOVE(ExternalObjectManager);
 };
 
 }  // namespace gfxstream

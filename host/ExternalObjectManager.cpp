@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "BlobManager.h"
+#include "ExternalObjectManager.h"
 
 #include <utility>
 
@@ -19,15 +19,16 @@ using android::base::ManagedDescriptor;
 
 namespace gfxstream {
 
-static BlobManager* sMapping() {
-    static BlobManager* s = new BlobManager;
+static ExternalObjectManager* sMapping() {
+    static ExternalObjectManager* s = new ExternalObjectManager;
     return s;
 }
 
 // static
-BlobManager* BlobManager::get() { return sMapping(); }
+ExternalObjectManager* ExternalObjectManager::get() { return sMapping(); }
 
-void BlobManager::addMapping(uint32_t ctxId, uint64_t blobId, void* addr, uint32_t caching) {
+void ExternalObjectManager::addMapping(uint32_t ctxId, uint64_t blobId, void* addr,
+                                       uint32_t caching) {
     struct HostMemInfo info = {
         .addr = addr,
         .caching = caching,
@@ -38,7 +39,7 @@ void BlobManager::addMapping(uint32_t ctxId, uint64_t blobId, void* addr, uint32
     mHostMemInfos.insert(std::make_pair(key, info));
 }
 
-std::optional<HostMemInfo> BlobManager::removeMapping(uint32_t ctxId, uint64_t blobId) {
+std::optional<HostMemInfo> ExternalObjectManager::removeMapping(uint32_t ctxId, uint64_t blobId) {
     auto key = std::make_pair(ctxId, blobId);
     std::lock_guard<std::mutex> lock(mLock);
     auto found = mHostMemInfos.find(key);
@@ -51,10 +52,11 @@ std::optional<HostMemInfo> BlobManager::removeMapping(uint32_t ctxId, uint64_t b
     return std::nullopt;
 }
 
-void BlobManager::addDescriptorInfo(uint32_t ctxId, uint64_t blobId, ManagedDescriptor descriptor,
-                                    uint32_t handleType, uint32_t caching,
-                                    std::optional<VulkanInfo> vulkanInfoOpt) {
-    struct ManagedDescriptorInfo info = {
+void ExternalObjectManager::addBlobDescriptorInfo(uint32_t ctxId, uint64_t blobId,
+                                                  ManagedDescriptor descriptor, uint32_t handleType,
+                                                  uint32_t caching,
+                                                  std::optional<VulkanInfo> vulkanInfoOpt) {
+    struct BlobDescriptorInfo info = {
         .descriptor = std::move(descriptor),
         .handleType = handleType,
         .caching = caching,
@@ -63,17 +65,17 @@ void BlobManager::addDescriptorInfo(uint32_t ctxId, uint64_t blobId, ManagedDesc
 
     auto key = std::make_pair(ctxId, blobId);
     std::lock_guard<std::mutex> lock(mLock);
-    mDescriptorInfos.insert(std::make_pair(key, std::move(info)));
+    mBlobDescriptorInfos.insert(std::make_pair(key, std::move(info)));
 }
 
-std::optional<ManagedDescriptorInfo> BlobManager::removeDescriptorInfo(uint32_t ctxId,
-                                                                       uint64_t blobId) {
+std::optional<BlobDescriptorInfo> ExternalObjectManager::removeBlobDescriptorInfo(uint32_t ctxId,
+                                                                                  uint64_t blobId) {
     auto key = std::make_pair(ctxId, blobId);
     std::lock_guard<std::mutex> lock(mLock);
-    auto found = mDescriptorInfos.find(key);
-    if (found != mDescriptorInfos.end()) {
-        std::optional<ManagedDescriptorInfo> ret = std::move(found->second);
-        mDescriptorInfos.erase(found);
+    auto found = mBlobDescriptorInfos.find(key);
+    if (found != mBlobDescriptorInfos.end()) {
+        std::optional<BlobDescriptorInfo> ret = std::move(found->second);
+        mBlobDescriptorInfos.erase(found);
         return ret;
     }
 
