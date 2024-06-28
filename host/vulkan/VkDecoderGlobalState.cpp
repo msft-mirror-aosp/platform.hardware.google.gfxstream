@@ -2327,6 +2327,7 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkBindImageMemory2(android::base::BumpPool* pool, VkDevice boxed_device,
                                    uint32_t bindInfoCount,
                                    const VkBindImageMemoryInfo* pBindInfos) {
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
         if (bindInfoCount > 1 && snapshotsEnabled()) {
             if (mVerbosePrints) {
                 fprintf(stderr,
@@ -2335,6 +2336,7 @@ class VkDecoderGlobalState::Impl {
             get_emugl_vm_operations().setSkipSnapshotSave(true);
             get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_API);
         }
+#endif
 
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
