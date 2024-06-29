@@ -65,6 +65,12 @@ using android::base::StaticMap;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
+#ifndef VERBOSE
+#define VERBOSE(fmt, ...)        \
+    if (android::base::isVerboseLogging()) \
+        fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#endif
+
 constexpr size_t kPageBits = 12;
 constexpr size_t kPageSize = 1u << kPageBits;
 
@@ -3187,7 +3193,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
     }
 
     VkBufferCreateInfo bufferCi = {
-        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         extBufferCiPtr,
         res.createFlags,
         res.size,
