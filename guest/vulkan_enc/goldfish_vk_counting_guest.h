@@ -1526,8 +1526,6 @@ void count_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -1820,6 +1818,16 @@ void count_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
 void count_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     uint32_t featureBits, VkStructureType rootType,
     const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* toCount, size_t* count);
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void count_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* toCount, size_t* count);
+
+void count_VkPipelineColorWriteCreateInfoEXT(uint32_t featureBits, VkStructureType rootType,
+                                             const VkPipelineColorWriteCreateInfoEXT* toCount,
+                                             size_t* count);
 
 #endif
 #ifdef VK_GOOGLE_gfxstream

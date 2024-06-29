@@ -4118,8 +4118,6 @@ void gfxstream_vk_CmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -4547,6 +4545,19 @@ void gfxstream_vk_CmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
             gfxstream_commandBuffer->internal_object);
         vkEnc->vkCmdSetPrimitiveRestartEnableEXT(gfxstream_commandBuffer->internal_object,
                                                  primitiveRestartEnable, true /* do lock */);
+    }
+}
+#endif
+#ifdef VK_EXT_color_write_enable
+void gfxstream_vk_CmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                            const VkBool32* pColorWriteEnables) {
+    AEMU_SCOPED_TRACE("vkCmdSetColorWriteEnableEXT");
+    VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
+            gfxstream_commandBuffer->internal_object);
+        vkEnc->vkCmdSetColorWriteEnableEXT(gfxstream_commandBuffer->internal_object,
+                                           attachmentCount, pColorWriteEnables, true /* do lock */);
     }
 }
 #endif

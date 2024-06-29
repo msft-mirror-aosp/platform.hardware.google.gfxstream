@@ -1699,8 +1699,6 @@ void reservedmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -2009,6 +2007,16 @@ void reservedmarshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
 void reservedmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
     const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* forMarshaling, uint8_t** ptr);
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void reservedmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* forMarshaling, uint8_t** ptr);
 
 #endif
 #ifdef VK_GOOGLE_gfxstream

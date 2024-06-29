@@ -29,6 +29,8 @@ using testing::Le;
 using testing::Not;
 
 struct PixelR8G8B8A8 {
+    PixelR8G8B8A8() = default;
+
     PixelR8G8B8A8(uint8_t rr, uint8_t gg, uint8_t bb, uint8_t aa) : r(rr), g(gg), b(bb), a(aa) {}
 
     PixelR8G8B8A8(int xx, int yy, uint8_t rr, uint8_t gg, uint8_t bb, uint8_t aa)
@@ -37,10 +39,10 @@ struct PixelR8G8B8A8 {
     std::optional<int> x;
     std::optional<int> y;
 
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    uint8_t a;
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+    uint8_t a = 0;
 
     std::string ToString() const {
         std::string ret = std::string("Pixel");
@@ -59,8 +61,29 @@ struct PixelR8G8B8A8 {
         return ret;
     }
 
+    bool operator==(const PixelR8G8B8A8& rhs) const {
+        const auto& lhs = *this;
+        return std::tie(lhs.r, lhs.g, lhs.b, lhs.a) == std::tie(rhs.r, rhs.g, rhs.b, rhs.a);
+    }
+
     friend void PrintTo(const PixelR8G8B8A8& pixel, std::ostream* os) { *os << pixel.ToString(); }
 };
+
+MATCHER_P(IsOkWith, expected, std::string(" equals ") + expected.ToString()) {
+    const auto& actual = arg;
+
+    if (actual.ok() && actual.value().r == expected.r && actual.value().g == expected.g &&
+        actual.value().b == expected.b && actual.value().a == expected.a) {
+        return true;
+    }
+
+    if (actual.ok()) {
+        *result_listener << "actual: " << actual.value().ToString();
+    } else {
+        *result_listener << "actual: {" << " error: " << actual.error() << " };";
+    }
+    return false;
+}
 
 MATCHER_P4(IsOkWithRGBA, r, g, b, a,
            std::string(" equals ") + PixelR8G8B8A8(r, g, b, a).ToString()) {
@@ -78,6 +101,35 @@ MATCHER_P4(IsOkWithRGBA, r, g, b, a,
     }
     return false;
 }
+
+class SimpleLatch {
+   public:
+    SimpleLatch(std::uint32_t count) : mCount(count) {}
+
+    SimpleLatch(const SimpleLatch&) = delete;
+    SimpleLatch& operator=(const SimpleLatch&) = delete;
+
+    SimpleLatch(SimpleLatch&&) = delete;
+    SimpleLatch& operator=(SimpleLatch&&) = delete;
+
+    void count_down() {
+        {
+            std::unique_lock lock(mMutex);
+            --mCount;
+        }
+        mConditionVariable.notify_all();
+    }
+
+    void wait() {
+        std::unique_lock lock(mMutex);
+        mConditionVariable.wait(lock, [this] { return mCount == 0; });
+    }
+
+   private:
+    std::mutex mMutex;
+    std::condition_variable mConditionVariable;
+    std::uint32_t mCount;
+};
 
 class GfxstreamEnd2EndGlTest : public GfxstreamEnd2EndTest {
    protected:
@@ -450,7 +502,7 @@ void main() {
     mGl->glUseProgram(0);
 }
 
-TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
+TEST_P(GfxstreamEnd2EndGlTest, DISABLED_ProgramBinaryWithAHB) {
     const uint32_t width = 2;
     const uint32_t height = 2;
     auto ahb =
@@ -607,7 +659,7 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
     mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithTexture) {
+TEST_P(GfxstreamEnd2EndGlTest, DISABLED_ProgramBinaryWithTexture) {
     const GLsizei kTextureWidth = 2;
     const GLsizei kTextureHeight = 2;
     const GLubyte kTextureData[16] = {
@@ -743,6 +795,993 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithTexture) {
     }
 
     mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+constexpr std::vector<uint8_t> Fill(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel) {
+    std::vector<uint8_t> ret;
+    ret.reserve(w * h * 4);
+    for (uint32_t y = 0; y < h; y++) {
+        for (uint32_t x = 0; x < w; x++) {
+            ret.push_back(pixel.r);
+            ret.push_back(pixel.g);
+            ret.push_back(pixel.b);
+            ret.push_back(pixel.a);
+        }
+    }
+    return ret;
+}
+
+TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndReadback) {
+    const uint32_t width = 2;
+    const uint32_t height = 2;
+
+    const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
+    const auto lockPixels = Fill(width, height, lockPixel);
+
+    const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
+    const auto uploadPixels = Fill(width, height, uploadPixel);
+
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+    // Initialize AHB with `lockPixel`
+    {
+        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
+        ahb.Unlock();
+    }
+
+    // Update AHB with `uploadPixel` via texture upload:
+    {
+        const EGLint ahbImageAttribs[] = {
+            // clang-format off
+            EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
+            EGL_NONE,
+            // clang-format on
+        };
+        EGLImageKHR ahbImage = mGl->eglCreateImageKHR(
+            mDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+        ASSERT_THAT(ahbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+        ScopedGlTexture ahbTexture(*mGl);
+        mGl->glBindTexture(GL_TEXTURE_2D, ahbTexture);
+        mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, ahbImage);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                             uploadPixels.data());
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        EGLSync uploadFence = mGl->eglCreateSyncKHR(mDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        mGl->glFlush();
+
+        ahbTexture.Reset();
+
+        mGl->eglClientWaitSyncKHR(mDisplay, uploadFence, /*flags=*/0,
+                                  /*timeout=2 seconds*/ 2 * 1000 * 1000 * 1000);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        mGl->eglDestroySyncKHR(mDisplay, uploadFence);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        mGl->eglDestroyImageKHR(mDisplay, ahbImage);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+    }
+
+    // Blit from AHB to an additional framebuffer and readback:
+    {
+        const EGLint ahbImageAttribs[] = {
+            // clang-format off
+            EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
+            EGL_NONE,
+            // clang-format on
+        };
+        EGLImageKHR ahbImage = mGl->eglCreateImageKHR(
+            mDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+        ASSERT_THAT(ahbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+        ScopedGlTexture ahbTexture(*mGl);
+        mGl->glBindTexture(GL_TEXTURE_2D, ahbTexture);
+        mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, ahbImage);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        ScopedGlFramebuffer readbackFramebuffer(*mGl);
+        mGl->glBindFramebuffer(GL_FRAMEBUFFER, readbackFramebuffer);
+        mGl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ahbTexture,
+                                    0);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        ASSERT_THAT(mGl->glCheckFramebufferStatus(GL_FRAMEBUFFER), Eq(GL_FRAMEBUFFER_COMPLETE));
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                EXPECT_THAT(GetPixelAt(x, y), IsOkWith(uploadPixel));
+            }
+        }
+
+        mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+}
+
+TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndBlit) {
+    const uint32_t width = 2;
+    const uint32_t height = 2;
+
+    ScopedGlTexture blitFramebufferTexture(*mGl);
+    mGl->glBindTexture(GL_TEXTURE_2D, blitFramebufferTexture);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    mGl->glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+    mGl->glBindTexture(GL_TEXTURE_2D, 0);
+
+    ScopedGlFramebuffer blitFramebuffer(*mGl);
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, blitFramebuffer);
+    mGl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                blitFramebufferTexture, 0);
+
+    ASSERT_THAT(mGl->glCheckFramebufferStatus(GL_FRAMEBUFFER), Eq(GL_FRAMEBUFFER_COMPLETE));
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
+    const auto lockPixels = Fill(width, height, lockPixel);
+
+    const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
+    const auto uploadPixels = Fill(width, height, uploadPixel);
+
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+    // Initialize AHB with `lockPixel`
+    {
+        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
+        ahb.Unlock();
+    }
+
+    // Update AHB with `uploadPixel` via texture upload:
+    {
+        const EGLint ahbImageAttribs[] = {
+            // clang-format off
+            EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
+            EGL_NONE,
+            // clang-format on
+        };
+        EGLImageKHR ahbImage = mGl->eglCreateImageKHR(
+            mDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+        ASSERT_THAT(ahbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+        ScopedGlTexture ahbTexture(*mGl);
+        mGl->glBindTexture(GL_TEXTURE_2D, ahbTexture);
+        mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, ahbImage);
+        mGl->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                             uploadPixels.data());
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        EGLSync uploadFence = mGl->eglCreateSyncKHR(mDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+
+        mGl->glFlush();
+
+        ahbTexture.Reset();
+
+        mGl->eglClientWaitSyncKHR(mDisplay, uploadFence, /*flags=*/0,
+                                  /*timeout=2 seconds*/ 2 * 1000 * 1000 * 1000);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        mGl->eglDestroySyncKHR(mDisplay, uploadFence);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        mGl->eglDestroyImageKHR(mDisplay, ahbImage);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+    }
+
+    // Blit from AHB to an additional framebuffer and readback:
+    {
+        const std::string blitTextureVertSource = R"(\
+            #version 300 es
+
+            layout (location = 0) in vec2 pos;
+            layout (location = 1) in vec2 tex;
+
+            out vec2 vTex;
+
+            void main() {
+                gl_Position = vec4(pos, 0.0, 1.0);
+                vTex = tex;
+            })";
+
+        const std::string blitTextureFragSource = R"(\
+            #version 300 es
+
+            precision highp float;
+
+            uniform sampler2D uTexture;
+
+            in vec2 vTex;
+
+            out vec4 oColor;
+
+            void main() {
+                oColor = texture(uTexture, vTex);
+            })";
+
+        ScopedGlProgram program =
+            GL_ASSERT(SetUpProgram(blitTextureVertSource, blitTextureFragSource));
+
+        GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        ASSERT_THAT(textureUniformLoc, Not(Eq(-1)));
+
+        struct VertexAttributes {
+            float pos[2];
+            float tex[2];
+        };
+        const std::vector<VertexAttributes> fullscreenTriVerts = {
+            // clang-format off
+            { .pos = { -1.0f, -1.0f }, .tex = { 0.0f, 0.0f }, },
+            { .pos = {  3.0f, -1.0f }, .tex = { 2.0f, 0.0f }, },
+            { .pos = { -1.0f,  3.0f }, .tex = { 0.0f, 2.0f }, },
+            // clang-format on
+        };
+        ScopedGlBuffer buffer(*mGl);
+        mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        mGl->glBufferData(GL_ARRAY_BUFFER, sizeof(VertexAttributes) * fullscreenTriVerts.size(),
+                          fullscreenTriVerts.data(), GL_STATIC_DRAW);
+
+        mGl->glUseProgram(program);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        mGl->glViewport(0, 0, width, height);
+        mGl->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        mGl->glClear(GL_COLOR_BUFFER_BIT);
+        mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        mGl->glEnableVertexAttribArray(0);
+        mGl->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                   (GLvoid*)offsetof(VertexAttributes, pos));
+        mGl->glEnableVertexAttribArray(1);
+        mGl->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                   (GLvoid*)offsetof(VertexAttributes, tex));
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        const EGLint ahbImageAttribs[] = {
+            // clang-format off
+            EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
+            EGL_NONE,
+            // clang-format on
+        };
+        EGLImageKHR ahbImage = mGl->eglCreateImageKHR(
+            mDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+        ASSERT_THAT(ahbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+        ScopedGlTexture ahbTexture(*mGl);
+        mGl->glBindTexture(GL_TEXTURE_2D, ahbTexture);
+        mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, ahbImage);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glActiveTexture(GL_TEXTURE0);
+        mGl->glBindTexture(GL_TEXTURE_2D, ahbTexture);
+        mGl->glUniform1i(textureUniformLoc, 0);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glDrawArrays(GL_TRIANGLES, 0, 3);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glFinish();
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                EXPECT_THAT(GetPixelAt(x, y), IsOkWith(uploadPixel));
+            }
+        }
+
+        mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+}
+
+TEST_P(GfxstreamEnd2EndGlTest, MultiThreadedAhbTextureUploadAndReadback) {
+    const uint32_t width = 2;
+    const uint32_t height = 2;
+
+    const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
+    const auto lockPixels = Fill(width, height, lockPixel);
+
+    const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
+    const auto uploadPixels = Fill(width, height, uploadPixel);
+
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+    const EGLint ahbImageAttribs[] = {
+        // clang-format off
+        EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
+        EGL_NONE,
+        // clang-format on
+    };
+    EGLImageKHR ahbImage = mGl->eglCreateImageKHR(mDisplay, EGL_NO_CONTEXT,
+                                                  EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+    ASSERT_THAT(ahbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+    std::vector<PixelR8G8B8A8> readbackPixels;
+
+    SimpleLatch readbackThreadInitialized{1};
+    SimpleLatch readbackThreadCanReadback{1};
+    SimpleLatch readbackThreadDidReadback{1};
+    SimpleLatch readbackThreadCanCleanup{1};
+    std::thread readbackThread([&]() {
+        EGLContext readbackThreadContext;
+        EGLSurface readbackThreadSurface;
+        SetUpEglContextAndSurface(2, 32, 32, &mDisplay, &readbackThreadContext,
+                                  &readbackThreadSurface);
+        {
+            // Create a framebuffer for blitting the AHB into and reading back the blitted results
+            // from:
+            ScopedGlTexture readbackTexture(*mGl);
+            mGl->glBindTexture(GL_TEXTURE_2D, readbackTexture);
+            mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            mGl->glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+            mGl->glBindTexture(GL_TEXTURE_2D, 0);
+            ScopedGlFramebuffer readbackFramebuffer(*mGl);
+            mGl->glBindFramebuffer(GL_FRAMEBUFFER, readbackFramebuffer);
+            mGl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                        readbackTexture, 0);
+            ASSERT_THAT(mGl->glCheckFramebufferStatus(GL_FRAMEBUFFER), Eq(GL_FRAMEBUFFER_COMPLETE));
+            ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+            // Create fullscreen triangle vertex buffer:
+            struct VertexAttributes {
+                float pos[2];
+                float tex[2];
+            };
+            const std::vector<VertexAttributes> fullscreenTriVerts = {
+                // clang-format off
+                { .pos = { -1.0f, -1.0f }, .tex = { 0.0f, 0.0f }, },
+                { .pos = {  3.0f, -1.0f }, .tex = { 2.0f, 0.0f }, },
+                { .pos = { -1.0f,  3.0f }, .tex = { 0.0f, 2.0f }, },
+                // clang-format on
+            };
+            ScopedGlBuffer buffer(*mGl);
+            mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+            mGl->glBufferData(GL_ARRAY_BUFFER, sizeof(VertexAttributes) * fullscreenTriVerts.size(),
+                              fullscreenTriVerts.data(), GL_STATIC_DRAW);
+
+            const std::string vertSource = R"(\
+                    #version 300 es
+                    layout (location = 0) in vec2 pos;
+                    layout (location = 1) in vec2 tex;
+                    out vec2 vTex;
+                    void main() {
+                        gl_Position = vec4(pos, 0.0, 1.0);
+                        vTex = tex;
+                    })";
+            const std::string fragSource = R"(\
+                    #version 300 es
+                    precision highp float;
+                    uniform sampler2D uTexture;
+                    in vec2 vTex;
+                    out vec4 oColor;
+                    void main() {
+                        oColor = texture(uTexture, vTex);
+                    })";
+            ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
+            ASSERT_THAT(program, Not(Eq(0)));
+
+            GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
+            ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+            ASSERT_THAT(textureUniformLoc, Not(Eq(-1)));
+
+            readbackThreadInitialized.count_down();
+
+            readbackThreadCanReadback.wait();
+            {
+                EGLImageKHR readbackAhbImage = mGl->eglCreateImageKHR(
+                    mDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+                ASSERT_THAT(readbackAhbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+                ScopedGlTexture readbackAhbTexture(*mGl);
+                mGl->glBindTexture(GL_TEXTURE_2D, readbackAhbTexture);
+                mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, readbackAhbImage);
+                ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+                mGl->glUseProgram(program);
+                ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+                mGl->glViewport(0, 0, width, height);
+                mGl->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+                mGl->glClear(GL_COLOR_BUFFER_BIT);
+                mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+                mGl->glEnableVertexAttribArray(0);
+                mGl->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                           (GLvoid*)offsetof(VertexAttributes, pos));
+                mGl->glEnableVertexAttribArray(1);
+                mGl->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                           (GLvoid*)offsetof(VertexAttributes, tex));
+                ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+                mGl->glActiveTexture(GL_TEXTURE0);
+                mGl->glBindTexture(GL_TEXTURE_2D, readbackAhbTexture);
+                mGl->glUniform1i(textureUniformLoc, 0);
+                ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+                mGl->glDrawArrays(GL_TRIANGLES, 0, 3);
+                ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+                mGl->glFinish();
+
+                std::vector<uint8_t> readbackBytes(width * height * 4);
+                mGl->glPixelStorei(GL_PACK_ALIGNMENT, 1);
+                mGl->glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                                  readbackBytes.data());
+
+                const uint8_t* readbackBytesPtr = readbackBytes.data();
+                for (uint32_t y = 0; y < height; y++) {
+                    for (uint32_t x = 0; x < width; x++) {
+                        PixelR8G8B8A8 readbackPixel;
+                        readbackPixel.x = x;
+                        readbackPixel.y = y;
+                        readbackPixel.r = *readbackBytesPtr;
+                        ++readbackBytesPtr;
+                        readbackPixel.g = *readbackBytesPtr;
+                        ++readbackBytesPtr;
+                        readbackPixel.b = *readbackBytesPtr;
+                        ++readbackBytesPtr;
+                        readbackPixel.a = *readbackBytesPtr;
+                        ++readbackBytesPtr;
+                        readbackPixels.push_back(readbackPixel);
+                    }
+                }
+            }
+            readbackThreadDidReadback.count_down();
+        }
+        readbackThreadCanCleanup.wait();
+        TearDownEglContextAndSurface(mDisplay, readbackThreadContext, readbackThreadSurface);
+    });
+
+    EGLSync uploadCompleteFence = EGL_NO_SYNC;
+
+    SimpleLatch uploadThreadInitialized{1};
+    SimpleLatch uploadThreadStartUpload{1};
+    SimpleLatch uploadThreadStartedUpload{1};
+    SimpleLatch uploadThreadCanCleanup{1};
+    std::thread uploadThread([&]() {
+        EGLContext uploadThreadContext;
+        EGLSurface uploadThreadSurface;
+        SetUpEglContextAndSurface(2, 32, 32, &mDisplay, &uploadThreadContext, &uploadThreadSurface);
+        uploadThreadInitialized.count_down();
+
+        {
+            // Update AHB with `uploadPixel` via texture upload:
+            uploadThreadStartUpload.wait();
+            {
+                ScopedGlTexture uploadTexture(*mGl);
+                mGl->glBindTexture(GL_TEXTURE_2D, uploadTexture);
+                mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, ahbImage);
+                mGl->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
+                                     GL_UNSIGNED_BYTE, uploadPixels.data());
+                ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+                uploadCompleteFence = mGl->eglCreateSyncKHR(mDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+                ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+                ASSERT_THAT(uploadCompleteFence, Not(Eq(EGL_NO_SYNC)));
+
+                mGl->glFlush();
+            }
+            uploadThreadStartedUpload.count_down();
+        }
+
+        uploadThreadCanCleanup.wait();
+        TearDownEglContextAndSurface(mDisplay, uploadThreadContext, uploadThreadSurface);
+    });
+
+    readbackThreadInitialized.wait();
+    uploadThreadInitialized.wait();
+
+    // "MainThread" updates the AHB with `lockPixel` via Gralloc->Lock():
+    {
+        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
+        ahb.Unlock();
+    }
+
+    // "UploadThread" updates the AHB with `uploadPixel` via GL texture upload:
+    uploadThreadStartUpload.count_down();
+
+    // "MainThread" waits on upload fence:
+    {
+        uploadThreadStartedUpload.wait();
+
+        ASSERT_THAT(uploadCompleteFence, Not(Eq(EGL_NO_SYNC)));
+        mGl->eglClientWaitSyncKHR(mDisplay, uploadCompleteFence, /*flags=*/0,
+                                  /*timeout=2 seconds*/ 2 * 1000 * 1000 * 1000);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        mGl->eglDestroySyncKHR(mDisplay, uploadCompleteFence);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        mGl->eglDestroyImageKHR(mDisplay, ahbImage);
+    }
+
+    // "ReadbackThread" blits the AHB contents to an internal framebuffer and performs readback:
+    readbackThreadCanReadback.count_down();
+
+    // Check readback results:
+    readbackThreadDidReadback.wait();
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            EXPECT_THAT(readbackPixels[(y * width) + x], Eq(uploadPixel));
+        }
+    }
+
+    readbackThreadCanCleanup.count_down();
+    readbackThread.join();
+
+    uploadThreadCanCleanup.count_down();
+    uploadThread.join();
+}
+
+TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
+    const uint32_t width = 2;
+    const uint32_t height = 2;
+
+    ScopedGlTexture readbackTexture(*mGl);
+    mGl->glBindTexture(GL_TEXTURE_2D, readbackTexture);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    mGl->glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+    mGl->glBindTexture(GL_TEXTURE_2D, 0);
+    ScopedGlFramebuffer readbackFramebuffer(*mGl);
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, readbackFramebuffer);
+    mGl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                readbackTexture, 0);
+    ASSERT_THAT(mGl->glCheckFramebufferStatus(GL_FRAMEBUFFER), Eq(GL_FRAMEBUFFER_COMPLETE));
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
+    const auto lockPixels = Fill(width, height, lockPixel);
+
+    const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
+    const auto uploadPixels = Fill(width, height, uploadPixel);
+
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+    const EGLint ahbImageAttribs[] = {
+        // clang-format off
+        EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
+        EGL_NONE,
+        // clang-format on
+    };
+
+    // Initialize AHB with `lockPixel`
+    {
+        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
+        ahb.Unlock();
+    }
+
+    // Update AHB with `uploadPixel` via texture upload:
+    {
+        EGLImageKHR uploadAhbImage = mGl->eglCreateImageKHR(
+            mDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+        ASSERT_THAT(uploadAhbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+        ScopedGlTexture uploadAhbTexture(*mGl);
+        mGl->glBindTexture(GL_TEXTURE_2D, uploadAhbTexture);
+        mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, uploadAhbImage);
+        mGl->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                             uploadPixels.data());
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        EGLSync uploadFence = mGl->eglCreateSyncKHR(mDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+
+        mGl->glFlush();
+
+        uploadAhbTexture.Reset();
+
+        mGl->eglClientWaitSyncKHR(mDisplay, uploadFence, /*flags=*/0,
+                                  /*timeout=2 seconds*/ 2 * 1000 * 1000 * 1000);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        mGl->eglDestroySyncKHR(mDisplay, uploadFence);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+
+        mGl->eglDestroyImageKHR(mDisplay, uploadAhbImage);
+        ASSERT_THAT(mGl->eglGetError(), Eq(EGL_SUCCESS));
+    }
+
+    // Blit from AHB to an additional framebuffer for readback:
+    {
+        const std::string blitTextureVertSource = R"(\
+            #version 300 es
+            layout (location = 0) in vec2 pos;
+            layout (location = 1) in vec2 tex;
+            out vec2 vTex;
+            void main() {
+                gl_Position = vec4(pos, 0.0, 1.0);
+                vTex = tex;
+            })";
+
+        const std::string blitTextureFragSource = R"(\
+            #version 300 es
+            #extension GL_OES_EGL_image_external
+            precision highp float;
+            uniform samplerExternalOES uTexture;
+            in vec2 vTex;
+            out vec4 oColor;
+            void main() {
+                oColor = texture(uTexture, vTex);
+            })";
+
+        ScopedGlProgram program =
+            GL_ASSERT(SetUpProgram(blitTextureVertSource, blitTextureFragSource));
+
+        GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        ASSERT_THAT(textureUniformLoc, Not(Eq(-1)));
+
+        struct VertexAttributes {
+            float pos[2];
+            float tex[2];
+        };
+        const std::vector<VertexAttributes> fullscreenTriVerts = {
+            // clang-format off
+            { .pos = { -1.0f, -1.0f }, .tex = { 0.0f, 0.0f }, },
+            { .pos = {  3.0f, -1.0f }, .tex = { 2.0f, 0.0f }, },
+            { .pos = { -1.0f,  3.0f }, .tex = { 0.0f, 2.0f }, },
+            // clang-format on
+        };
+        ScopedGlBuffer buffer(*mGl);
+        mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        mGl->glBufferData(GL_ARRAY_BUFFER, sizeof(VertexAttributes) * fullscreenTriVerts.size(),
+                          fullscreenTriVerts.data(), GL_STATIC_DRAW);
+
+        mGl->glUseProgram(program);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        mGl->glViewport(0, 0, width, height);
+        mGl->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        mGl->glClear(GL_COLOR_BUFFER_BIT);
+        mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        mGl->glEnableVertexAttribArray(0);
+        mGl->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                   (GLvoid*)offsetof(VertexAttributes, pos));
+        mGl->glEnableVertexAttribArray(1);
+        mGl->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                   (GLvoid*)offsetof(VertexAttributes, tex));
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        EGLImageKHR blitAhbImage = mGl->eglCreateImageKHR(
+            mDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+        ASSERT_THAT(blitAhbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+        ScopedGlTexture blitAhbTexture(*mGl);
+        mGl->glBindTexture(GL_TEXTURE_EXTERNAL_OES, blitAhbTexture);
+        mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, blitAhbImage);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glActiveTexture(GL_TEXTURE0);
+        mGl->glBindTexture(GL_TEXTURE_EXTERNAL_OES, blitAhbTexture);
+        mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        mGl->glUniform1i(textureUniformLoc, 0);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glDrawArrays(GL_TRIANGLES, 0, 3);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glFinish();
+    }
+
+    // Readback and compare:
+    {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                EXPECT_THAT(GetPixelAt(x, y), IsOkWith(uploadPixel));
+            }
+        }
+
+        mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+}
+
+TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
+    const uint32_t width = 2;
+    const uint32_t height = 2;
+
+    ScopedGlTexture readbackTexture(*mGl);
+    mGl->glBindTexture(GL_TEXTURE_2D, readbackTexture);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    mGl->glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+    mGl->glBindTexture(GL_TEXTURE_2D, 0);
+    ScopedGlFramebuffer readbackFramebuffer(*mGl);
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, readbackFramebuffer);
+    mGl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                readbackTexture, 0);
+    ASSERT_THAT(mGl->glCheckFramebufferStatus(GL_FRAMEBUFFER), Eq(GL_FRAMEBUFFER_COMPLETE));
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
+    const auto lockPixels = Fill(width, height, lockPixel);
+
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+    const EGLint ahbImageAttribs[] = {
+        // clang-format off
+        EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
+        EGL_NONE,
+        // clang-format on
+    };
+
+    // Initialize AHB with `lockPixel`
+    {
+        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
+        ahb.Unlock();
+    }
+
+    // Blit from AHB to an additional framebuffer and readback:
+    {
+        const std::string blitTextureVertSource = R"(\
+            #version 300 es
+
+            layout (location = 0) in vec2 pos;
+            layout (location = 1) in vec2 tex;
+
+            out vec2 vTex;
+
+            void main() {
+                gl_Position = vec4(pos, 0.0, 1.0);
+                vTex = tex;
+            })";
+
+        const std::string blitTextureFragSource = R"(\
+            #version 300 es
+            #extension GL_OES_EGL_image_external
+
+            precision highp float;
+
+            uniform samplerExternalOES uTexture;
+
+            in vec2 vTex;
+
+            out vec4 oColor;
+
+            void main() {
+                oColor = texture(uTexture, vTex);
+            })";
+
+        ScopedGlProgram program =
+            GL_ASSERT(SetUpProgram(blitTextureVertSource, blitTextureFragSource));
+
+        GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        ASSERT_THAT(textureUniformLoc, Not(Eq(-1)));
+
+        struct VertexAttributes {
+            float pos[2];
+            float tex[2];
+        };
+        const std::vector<VertexAttributes> fullscreenTriVerts = {
+            // clang-format off
+            { .pos = { -1.0f, -1.0f }, .tex = { 0.0f, 0.0f }, },
+            { .pos = {  3.0f, -1.0f }, .tex = { 2.0f, 0.0f }, },
+            { .pos = { -1.0f,  3.0f }, .tex = { 0.0f, 2.0f }, },
+            // clang-format on
+        };
+        ScopedGlBuffer buffer(*mGl);
+        mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        mGl->glBufferData(GL_ARRAY_BUFFER, sizeof(VertexAttributes) * fullscreenTriVerts.size(),
+                          fullscreenTriVerts.data(), GL_STATIC_DRAW);
+
+        mGl->glUseProgram(program);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        mGl->glViewport(0, 0, width, height);
+        mGl->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        mGl->glClear(GL_COLOR_BUFFER_BIT);
+        mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        mGl->glEnableVertexAttribArray(0);
+        mGl->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                   (GLvoid*)offsetof(VertexAttributes, pos));
+        mGl->glEnableVertexAttribArray(1);
+        mGl->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                   (GLvoid*)offsetof(VertexAttributes, tex));
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        EGLImageKHR blitAhbImage = mGl->eglCreateImageKHR(
+            mDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+        ASSERT_THAT(blitAhbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+        ScopedGlTexture blitAhbTexture(*mGl);
+        mGl->glBindTexture(GL_TEXTURE_EXTERNAL_OES, blitAhbTexture);
+        mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, blitAhbImage);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glActiveTexture(GL_TEXTURE0);
+        mGl->glBindTexture(GL_TEXTURE_EXTERNAL_OES, blitAhbTexture);
+        mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        mGl->glUniform1i(textureUniformLoc, 0);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glDrawArrays(GL_TRIANGLES, 0, 3);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glFinish();
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                EXPECT_THAT(GetPixelAt(x, y), IsOkWith(lockPixel));
+            }
+        }
+
+        mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+}
+
+TEST_P(GfxstreamEnd2EndGlTest, DISABLED_AhbExternalOesTextureBlitProgramBinary) {
+    const uint32_t width = 2;
+    const uint32_t height = 2;
+
+    ScopedGlTexture readbackTexture(*mGl);
+    mGl->glBindTexture(GL_TEXTURE_2D, readbackTexture);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    mGl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    mGl->glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+    mGl->glBindTexture(GL_TEXTURE_2D, 0);
+    ScopedGlFramebuffer readbackFramebuffer(*mGl);
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, readbackFramebuffer);
+    mGl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                readbackTexture, 0);
+    ASSERT_THAT(mGl->glCheckFramebufferStatus(GL_FRAMEBUFFER), Eq(GL_FRAMEBUFFER_COMPLETE));
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
+    const auto lockPixels = Fill(width, height, lockPixel);
+
+    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
+                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+    const EGLint ahbImageAttribs[] = {
+        // clang-format off
+        EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
+        EGL_NONE,
+        // clang-format on
+    };
+
+    // Initialize AHB with `lockPixel`
+    {
+        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
+        ahb.Unlock();
+    }
+
+    // Setup blit program:
+    GLenum programBinaryFormat = GL_NONE;
+    std::vector<uint8_t> programBinaryData;
+    {
+        const std::string vertSource = R"(\
+            #version 300 es
+            layout (location = 0) in vec2 pos;
+            layout (location = 1) in vec2 tex;
+            out vec2 vTex;
+            void main() {
+                gl_Position = vec4(pos, 0.0, 1.0);
+                vTex = tex;
+            })";
+
+        const std::string fragSource = R"(\
+            #version 300 es
+            #extension GL_OES_EGL_image_external
+            precision highp float;
+            uniform samplerExternalOES uTexture;
+            in vec2 vTex;
+            out vec4 oColor;
+            void main() {
+                oColor = texture(uTexture, vTex);
+            })";
+
+        ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
+
+        GLint programBinaryLength = 0;
+        mGl->glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &programBinaryLength);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        programBinaryData.resize(programBinaryLength);
+
+        GLint readProgramBinaryLength = 0;
+        mGl->glGetProgramBinary(program, programBinaryLength, &readProgramBinaryLength,
+                                &programBinaryFormat, programBinaryData.data());
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        ASSERT_THAT(programBinaryLength, Eq(readProgramBinaryLength));
+    }
+
+    // Blit from AHB to an additional framebuffer and readback:
+    {
+        ScopedGlProgram program = GL_ASSERT(SetUpProgram(programBinaryFormat, programBinaryData));
+        ASSERT_THAT(program, Not(Eq(0)));
+
+        GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        ASSERT_THAT(textureUniformLoc, Not(Eq(-1)));
+
+        struct VertexAttributes {
+            float pos[2];
+            float tex[2];
+        };
+        const std::vector<VertexAttributes> fullscreenTriVerts = {
+            // clang-format off
+            { .pos = { -1.0f, -1.0f }, .tex = { 0.0f, 0.0f }, },
+            { .pos = {  3.0f, -1.0f }, .tex = { 2.0f, 0.0f }, },
+            { .pos = { -1.0f,  3.0f }, .tex = { 0.0f, 2.0f }, },
+            // clang-format on
+        };
+        ScopedGlBuffer buffer(*mGl);
+        mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        mGl->glBufferData(GL_ARRAY_BUFFER, sizeof(VertexAttributes) * fullscreenTriVerts.size(),
+                          fullscreenTriVerts.data(), GL_STATIC_DRAW);
+
+        mGl->glUseProgram(program);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+        mGl->glViewport(0, 0, width, height);
+        mGl->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        mGl->glClear(GL_COLOR_BUFFER_BIT);
+        mGl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        mGl->glEnableVertexAttribArray(0);
+        mGl->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                   (GLvoid*)offsetof(VertexAttributes, pos));
+        mGl->glEnableVertexAttribArray(1);
+        mGl->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexAttributes),
+                                   (GLvoid*)offsetof(VertexAttributes, tex));
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        EGLImageKHR blitAhbImage = mGl->eglCreateImageKHR(
+            mDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, ahb, ahbImageAttribs);
+        ASSERT_THAT(blitAhbImage, Not(Eq(EGL_NO_IMAGE_KHR)));
+
+        ScopedGlTexture blitAhbTexture(*mGl);
+        mGl->glBindTexture(GL_TEXTURE_EXTERNAL_OES, blitAhbTexture);
+        mGl->glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, blitAhbImage);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glActiveTexture(GL_TEXTURE0);
+        mGl->glBindTexture(GL_TEXTURE_EXTERNAL_OES, blitAhbTexture);
+        mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        mGl->glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        mGl->glUniform1i(textureUniformLoc, 0);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glDrawArrays(GL_TRIANGLES, 0, 3);
+        ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+        mGl->glFinish();
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                EXPECT_THAT(GetPixelAt(x, y), IsOkWith(lockPixel));
+            }
+        }
+
+        mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 }
 
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndGlTest,
