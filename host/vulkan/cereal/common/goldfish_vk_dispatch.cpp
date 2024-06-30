@@ -151,8 +151,6 @@ namespace vk {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -222,6 +220,8 @@ namespace vk {
 #ifdef VK_EXT_primitive_topology_list_restart
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
+#endif
+#ifdef VK_EXT_color_write_enable
 #endif
 #ifdef VK_GOOGLE_gfxstream
 #endif
@@ -921,6 +921,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdSetPrimitiveRestartEnableEXT =
         (PFN_vkCmdSetPrimitiveRestartEnableEXT)dlSymFunc(lib, "vkCmdSetPrimitiveRestartEnableEXT");
 #endif
+#ifdef VK_EXT_color_write_enable
+    out->vkCmdSetColorWriteEnableEXT =
+        (PFN_vkCmdSetColorWriteEnableEXT)dlSymFunc(lib, "vkCmdSetColorWriteEnableEXT");
+#endif
 #ifdef VK_GOOGLE_gfxstream
     out->vkMapMemoryIntoAddressSpaceGOOGLE =
         (PFN_vkMapMemoryIntoAddressSpaceGOOGLE)dlSymFunc(lib, "vkMapMemoryIntoAddressSpaceGOOGLE");
@@ -977,14 +981,6 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)dlSymFunc(lib, "vkGetScreenBufferPropertiesQNX");
-#endif
-#ifdef VK_MVK_moltenvk
-    out->vkGetMTLDeviceMVK = (PFN_vkGetMTLDeviceMVK)dlSymFunc(lib, "vkGetMTLDeviceMVK");
-    out->vkSetMTLTextureMVK = (PFN_vkSetMTLTextureMVK)dlSymFunc(lib, "vkSetMTLTextureMVK");
-    out->vkGetMTLTextureMVK = (PFN_vkGetMTLTextureMVK)dlSymFunc(lib, "vkGetMTLTextureMVK");
-    out->vkGetMTLBufferMVK = (PFN_vkGetMTLBufferMVK)dlSymFunc(lib, "vkGetMTLBufferMVK");
-    out->vkUseIOSurfaceMVK = (PFN_vkUseIOSurfaceMVK)dlSymFunc(lib, "vkUseIOSurfaceMVK");
-    out->vkGetIOSurfaceMVK = (PFN_vkGetIOSurfaceMVK)dlSymFunc(lib, "vkGetIOSurfaceMVK");
 #endif
 }
 
@@ -1874,6 +1870,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkCmdSetPrimitiveRestartEnableEXT =
         (PFN_vkCmdSetPrimitiveRestartEnableEXT)vk->vkGetInstanceProcAddr(
             instance, "vkCmdSetPrimitiveRestartEnableEXT");
+#endif
+#ifdef VK_EXT_color_write_enable
+    out->vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdSetColorWriteEnableEXT");
 #endif
 #ifdef VK_GOOGLE_gfxstream
     out->vkMapMemoryIntoAddressSpaceGOOGLE =
@@ -2810,6 +2810,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkCmdSetPrimitiveRestartEnableEXT =
         (PFN_vkCmdSetPrimitiveRestartEnableEXT)vk->vkGetDeviceProcAddr(
             device, "vkCmdSetPrimitiveRestartEnableEXT");
+#endif
+#ifdef VK_EXT_color_write_enable
+    out->vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)vk->vkGetDeviceProcAddr(
+        device, "vkCmdSetColorWriteEnableEXT");
 #endif
 #ifdef VK_GOOGLE_gfxstream
     out->vkMapMemoryIntoAddressSpaceGOOGLE =

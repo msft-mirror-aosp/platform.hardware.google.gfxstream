@@ -157,15 +157,7 @@ class SharedLibraries {
 };
 
 static constexpr size_t getVulkanLibraryNumLimits() {
-    // macOS may have both Vulkan loader (for non MoltenVK-specific functions) and
-    // MoltenVK library (only for MoltenVK-specific vk...MVK functions) loaded at
-    // the same time. So there could be at most 2 libraries loaded. On other systems
-    // only one Vulkan loader is allowed.
-#ifdef __APPLE__
-    return 2;
-#else
     return 1;
-#endif
 }
 
 class VulkanDispatchImpl {
@@ -277,41 +269,9 @@ class VulkanDispatchImpl {
         return possiblePaths;
     }
 
-#ifdef __APPLE__
-    std::vector<std::string> getPossibleMoltenVkPaths() {
-        const std::string explicitPath =
-            android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH");
-        if (!explicitPath.empty()) {
-            return {
-                explicitPath,
-            };
-        }
-
-        const std::string& customIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
-
-        // Skip loader when using MoltenVK as this gives us access to
-        // VK_MVK_moltenvk, which is required for external memory support.
-        if (!mForTesting && customIcd == "moltenvk") {
-            return {
-                pj({android::base::getProgramDirectory(), "lib64", "vulkan", "libMoltenVK.dylib"}),
-                pj({android::base::getLauncherDirectory(), "lib64", "vulkan", "libMoltenVK.dylib"}),
-            };
-        }
-
-        return {};
-    }
-#endif
-
     void* dlopen() {
         if (mVulkanLibs.size() == 0) {
             mVulkanLibs.addFirstAvailableLibrary(getPossibleLoaderPaths());
-
-#ifdef __APPLE__
-            // On macOS it is possible that we are using MoltenVK as the
-            // ICD. In that case we need to add MoltenVK libraries to
-            // mSharedLibs to use MoltenVK-specific functions.
-            mVulkanLibs.addFirstAvailableLibrary(getPossibleMoltenVkPaths());
-#endif
         }
         return static_cast<void*>(&mVulkanLibs);
     }
