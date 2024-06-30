@@ -925,8 +925,6 @@ class VkEncoder {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -1063,6 +1061,10 @@ class VkEncoder {
     void vkCmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logicOp, uint32_t doLock);
     void vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
                                            VkBool32 primitiveRestartEnable, uint32_t doLock);
+#endif
+#ifdef VK_EXT_color_write_enable
+    void vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                     const VkBool32* pColorWriteEnables, uint32_t doLock);
 #endif
 #ifdef VK_GOOGLE_gfxstream
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceMemory memory,

@@ -1939,11 +1939,21 @@ void GL2Encoder::s_glFinish(void *self)
     ctx->glFinishRoundTrip(self);
 }
 
-void GL2Encoder::updateProgramInfoAfterLink(GLuint program) {
-    GL2Encoder* ctx = this;
+void GL2Encoder::s_glLinkProgram(void* self, GLuint program) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    bool isProgram = ctx->m_shared->isProgram(program);
+    SET_ERROR_IF(!isProgram && !ctx->m_shared->isShader(program), GL_INVALID_VALUE);
+    SET_ERROR_IF(!isProgram, GL_INVALID_OPERATION);
+
+    if (program == ctx->m_state->currentProgram() ||
+        (!ctx->m_state->currentProgram() && (program == ctx->m_state->currentShaderProgram()))) {
+        SET_ERROR_IF(ctx->m_state->getTransformFeedbackActive(), GL_INVALID_OPERATION);
+    }
+
+    ctx->m_glLinkProgram_enc(self, program);
 
     GLint linkStatus = 0;
-    ctx->m_glGetProgramiv_enc(ctx, program, GL_LINK_STATUS, &linkStatus);
+    ctx->m_glGetProgramiv_enc(self, program, GL_LINK_STATUS, &linkStatus);
     ctx->m_shared->setProgramLinkStatus(program, linkStatus);
     if (!linkStatus) {
         return;
@@ -1952,15 +1962,15 @@ void GL2Encoder::updateProgramInfoAfterLink(GLuint program) {
     // get number of active uniforms and attributes in the program
     GLint numUniforms=0;
     GLint numAttributes=0;
-    ctx->m_glGetProgramiv_enc(ctx, program, GL_ACTIVE_UNIFORMS, &numUniforms);
-    ctx->m_glGetProgramiv_enc(ctx, program, GL_ACTIVE_ATTRIBUTES, &numAttributes);
+    ctx->m_glGetProgramiv_enc(self, program, GL_ACTIVE_UNIFORMS, &numUniforms);
+    ctx->m_glGetProgramiv_enc(self, program, GL_ACTIVE_ATTRIBUTES, &numAttributes);
     ctx->m_shared->initProgramData(program,numUniforms,numAttributes);
 
     //get the length of the longest uniform name
     GLint maxLength=0;
     GLint maxAttribLength=0;
-    ctx->m_glGetProgramiv_enc(ctx, program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
-    ctx->m_glGetProgramiv_enc(ctx, program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttribLength);
+    ctx->m_glGetProgramiv_enc(self, program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
+    ctx->m_glGetProgramiv_enc(self, program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttribLength);
 
     GLint size;
     GLenum type;
@@ -1970,14 +1980,14 @@ void GL2Encoder::updateProgramInfoAfterLink(GLuint program) {
     //for each active uniform, get its size and starting location.
     for (GLint i=0 ; i<numUniforms ; ++i)
     {
-        ctx->m_glGetActiveUniform_enc(ctx, program, i, maxLength, NULL, &size, &type, name);
-        location = ctx->m_glGetUniformLocation_enc(ctx, program, name);
+        ctx->m_glGetActiveUniform_enc(self, program, i, maxLength, NULL, &size, &type, name);
+        location = ctx->m_glGetUniformLocation_enc(self, program, name);
         ctx->m_shared->setProgramIndexInfo(program, i, location, size, type, name);
     }
 
     for (GLint i = 0; i < numAttributes; ++i) {
-        ctx->m_glGetActiveAttrib_enc(ctx, program, i, maxAttribLength, NULL, &size, &type, name);
-        location = ctx->m_glGetAttribLocation_enc(ctx, program, name);
+        ctx->m_glGetActiveAttrib_enc(self, program, i, maxAttribLength, NULL, &size, &type, name);
+        location = ctx->m_glGetAttribLocation_enc(self, program, name);
         ctx->m_shared->setProgramAttribInfo(program, i, location, size, type, name);
     }
 
@@ -1992,22 +2002,6 @@ void GL2Encoder::updateProgramInfoAfterLink(GLuint program) {
     }
 
     delete[] name;
-}
-
-void GL2Encoder::s_glLinkProgram(void* self, GLuint program) {
-    GL2Encoder* ctx = (GL2Encoder*)self;
-    bool isProgram = ctx->m_shared->isProgram(program);
-    SET_ERROR_IF(!isProgram && !ctx->m_shared->isShader(program), GL_INVALID_VALUE);
-    SET_ERROR_IF(!isProgram, GL_INVALID_OPERATION);
-
-    if (program == ctx->m_state->currentProgram() ||
-        (!ctx->m_state->currentProgram() && (program == ctx->m_state->currentShaderProgram()))) {
-        SET_ERROR_IF(ctx->m_state->getTransformFeedbackActive(), GL_INVALID_OPERATION);
-    }
-
-    ctx->m_glLinkProgram_enc(self, program);
-
-    ctx->updateProgramInfoAfterLink(program);
 }
 
 #define VALIDATE_PROGRAM_NAME(program) \
@@ -6359,8 +6353,6 @@ void GL2Encoder::s_glProgramBinary(void *self , GLuint program, GLenum binaryFor
     SET_ERROR_IF(~0 == binaryFormat, GL_INVALID_ENUM);
 
     ctx->m_glProgramBinary_enc(self, program, binaryFormat, binary, length);
-
-    ctx->updateProgramInfoAfterLink(program);
 }
 
 void GL2Encoder::s_glGetSamplerParameterfv(void *self, GLuint sampler, GLenum pname, GLfloat* params) {
