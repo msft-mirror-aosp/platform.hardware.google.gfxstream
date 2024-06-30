@@ -3382,6 +3382,22 @@ void transform_fromhost_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* toTransform);
 
 #endif
+#ifdef VK_EXT_color_write_enable
+void transform_tohost_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* toTransform);
+
+void transform_tohost_VkPipelineColorWriteCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkPipelineColorWriteCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkPipelineColorWriteCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkPipelineColorWriteCreateInfoEXT* toTransform);
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void transform_tohost_VkImportColorBufferGOOGLE(VkDecoderGlobalState* resourceTracker,
                                                 VkImportColorBufferGOOGLE* toTransform);

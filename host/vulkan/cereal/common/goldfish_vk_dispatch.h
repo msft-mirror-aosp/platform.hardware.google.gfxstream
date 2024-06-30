@@ -617,6 +617,9 @@ struct VulkanDispatch {
     PFN_vkCmdSetLogicOpEXT vkCmdSetLogicOpEXT;
     PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT;
 #endif
+#ifdef VK_EXT_color_write_enable
+    PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT;
+#endif
 #ifdef VK_GOOGLE_gfxstream
     PFN_vkMapMemoryIntoAddressSpaceGOOGLE vkMapMemoryIntoAddressSpaceGOOGLE;
     PFN_vkUpdateDescriptorSetWithTemplateSizedGOOGLE vkUpdateDescriptorSetWithTemplateSizedGOOGLE;

@@ -20508,6 +20508,53 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_EXT_color_write_enable
+            case OP_vkCmdSetColorWriteEnableEXT: {
+                android::base::beginTrace("vkCmdSetColorWriteEnableEXT decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t attachmentCount;
+                const VkBool32* pColorWriteEnables;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pColorWriteEnables,
+                                    ((attachmentCount)) * sizeof(const VkBool32));
+                memcpy((VkBool32*)pColorWriteEnables, *readStreamPtrPtr,
+                       ((attachmentCount)) * sizeof(const VkBool32));
+                *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkBool32);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetColorWriteEnableEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)attachmentCount,
+                            (unsigned long long)pColorWriteEnables);
+                }
+                vk->vkCmdSetColorWriteEnableEXT(unboxed_commandBuffer, attachmentCount,
+                                                pColorWriteEnables);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetColorWriteEnableEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        attachmentCount, pColorWriteEnables);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
 #ifdef VK_GOOGLE_gfxstream
             case OP_vkMapMemoryIntoAddressSpaceGOOGLE: {
                 android::base::beginTrace("vkMapMemoryIntoAddressSpaceGOOGLE decode");

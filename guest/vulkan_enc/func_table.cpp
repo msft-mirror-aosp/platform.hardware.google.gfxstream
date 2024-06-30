@@ -4550,6 +4550,19 @@ void gfxstream_vk_CmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
     }
 }
 #endif
+#ifdef VK_EXT_color_write_enable
+void gfxstream_vk_CmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                            const VkBool32* pColorWriteEnables) {
+    AEMU_SCOPED_TRACE("vkCmdSetColorWriteEnableEXT");
+    VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
+            gfxstream_commandBuffer->internal_object);
+        vkEnc->vkCmdSetColorWriteEnableEXT(gfxstream_commandBuffer->internal_object,
+                                           attachmentCount, pColorWriteEnables, true /* do lock */);
+    }
+}
+#endif
 #ifdef VK_GOOGLE_gfxstream
 VkResult gfxstream_vk_MapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceMemory memory,
                                                       uint64_t* pAddress) {
