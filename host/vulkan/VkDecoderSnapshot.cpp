@@ -3150,8 +3150,6 @@ class VkDecoderSnapshot::Impl {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -3610,6 +3608,22 @@ class VkDecoderSnapshot::Impl {
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
         mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetPrimitiveRestartEnableEXT,
                                     snapshotTraceBegin, snapshotTraceBytes);
+        for (uint32_t i = 0; i < 1; ++i) {
+            VkCommandBuffer boxed = unboxed_to_boxed_VkCommandBuffer((&commandBuffer)[i]);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+        }
+    }
+#endif
+#ifdef VK_EXT_color_write_enable
+    void vkCmdSetColorWriteEnableEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                     android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                     uint32_t attachmentCount, const VkBool32* pColorWriteEnables) {
+        android::base::AutoLock lock(mLock);
+        // commandBuffer modify
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetColorWriteEnableEXT, snapshotTraceBegin,
+                                    snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             VkCommandBuffer boxed = unboxed_to_boxed_VkCommandBuffer((&commandBuffer)[i]);
             mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
@@ -7050,6 +7064,14 @@ void VkDecoderSnapshot::vkCmdSetPrimitiveRestartEnableEXT(const uint8_t* snapsho
                                                           VkBool32 primitiveRestartEnable) {
     mImpl->vkCmdSetPrimitiveRestartEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
                                              commandBuffer, primitiveRestartEnable);
+}
+#endif
+#ifdef VK_EXT_color_write_enable
+void VkDecoderSnapshot::vkCmdSetColorWriteEnableEXT(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkCommandBuffer commandBuffer, uint32_t attachmentCount, const VkBool32* pColorWriteEnables) {
+    mImpl->vkCmdSetColorWriteEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+                                       attachmentCount, pColorWriteEnables);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream

@@ -1337,8 +1337,6 @@ class VkDecoderSnapshot {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -1554,6 +1552,11 @@ class VkDecoderSnapshot {
                                            size_t snapshotTraceBytes, android::base::BumpPool* pool,
                                            VkCommandBuffer commandBuffer,
                                            VkBool32 primitiveRestartEnable);
+#endif
+#ifdef VK_EXT_color_write_enable
+    void vkCmdSetColorWriteEnableEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                     android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                     uint32_t attachmentCount, const VkBool32* pColorWriteEnables);
 #endif
 #ifdef VK_GOOGLE_gfxstream
     void vkMapMemoryIntoAddressSpaceGOOGLE(const uint8_t* snapshotTraceBegin,
