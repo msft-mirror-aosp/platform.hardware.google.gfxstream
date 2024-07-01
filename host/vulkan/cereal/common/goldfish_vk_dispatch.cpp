@@ -139,6 +139,8 @@ namespace vk {
 #endif
 #ifdef VK_ANDROID_native_buffer
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 #endif
 #ifdef VK_AMD_gpu_shader_half_float
@@ -148,8 +150,6 @@ namespace vk {
 #ifdef VK_EXT_depth_clip_enable
 #endif
 #ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
@@ -220,6 +220,8 @@ namespace vk {
 #ifdef VK_EXT_primitive_topology_list_restart
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
+#endif
+#ifdef VK_EXT_color_write_enable
 #endif
 #ifdef VK_GOOGLE_gfxstream
 #endif
@@ -326,6 +328,14 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetPhysicalDeviceWin32PresentationSupportKHR =
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)dlSymFunc(
             lib, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
+#endif
+#ifdef VK_EXT_debug_report
+    out->vkCreateDebugReportCallbackEXT =
+        (PFN_vkCreateDebugReportCallbackEXT)dlSymFunc(lib, "vkCreateDebugReportCallbackEXT");
+    out->vkDestroyDebugReportCallbackEXT =
+        (PFN_vkDestroyDebugReportCallbackEXT)dlSymFunc(lib, "vkDestroyDebugReportCallbackEXT");
+    out->vkDebugReportMessageEXT =
+        (PFN_vkDebugReportMessageEXT)dlSymFunc(lib, "vkDebugReportMessageEXT");
 #endif
 #ifdef VK_EXT_debug_utils
     out->vkCreateDebugUtilsMessengerEXT =
@@ -911,6 +921,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdSetPrimitiveRestartEnableEXT =
         (PFN_vkCmdSetPrimitiveRestartEnableEXT)dlSymFunc(lib, "vkCmdSetPrimitiveRestartEnableEXT");
 #endif
+#ifdef VK_EXT_color_write_enable
+    out->vkCmdSetColorWriteEnableEXT =
+        (PFN_vkCmdSetColorWriteEnableEXT)dlSymFunc(lib, "vkCmdSetColorWriteEnableEXT");
+#endif
 #ifdef VK_GOOGLE_gfxstream
     out->vkMapMemoryIntoAddressSpaceGOOGLE =
         (PFN_vkMapMemoryIntoAddressSpaceGOOGLE)dlSymFunc(lib, "vkMapMemoryIntoAddressSpaceGOOGLE");
@@ -967,14 +981,6 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)dlSymFunc(lib, "vkGetScreenBufferPropertiesQNX");
-#endif
-#ifdef VK_MVK_moltenvk
-    out->vkGetMTLDeviceMVK = (PFN_vkGetMTLDeviceMVK)dlSymFunc(lib, "vkGetMTLDeviceMVK");
-    out->vkSetMTLTextureMVK = (PFN_vkSetMTLTextureMVK)dlSymFunc(lib, "vkSetMTLTextureMVK");
-    out->vkGetMTLTextureMVK = (PFN_vkGetMTLTextureMVK)dlSymFunc(lib, "vkGetMTLTextureMVK");
-    out->vkGetMTLBufferMVK = (PFN_vkGetMTLBufferMVK)dlSymFunc(lib, "vkGetMTLBufferMVK");
-    out->vkUseIOSurfaceMVK = (PFN_vkUseIOSurfaceMVK)dlSymFunc(lib, "vkUseIOSurfaceMVK");
-    out->vkGetIOSurfaceMVK = (PFN_vkGetIOSurfaceMVK)dlSymFunc(lib, "vkGetIOSurfaceMVK");
 #endif
 }
 
@@ -1093,6 +1099,16 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetPhysicalDeviceWin32PresentationSupportKHR =
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
+#endif
+#ifdef VK_EXT_debug_report
+    out->vkCreateDebugReportCallbackEXT =
+        (PFN_vkCreateDebugReportCallbackEXT)vk->vkGetInstanceProcAddr(
+            instance, "vkCreateDebugReportCallbackEXT");
+    out->vkDestroyDebugReportCallbackEXT =
+        (PFN_vkDestroyDebugReportCallbackEXT)vk->vkGetInstanceProcAddr(
+            instance, "vkDestroyDebugReportCallbackEXT");
+    out->vkDebugReportMessageEXT =
+        (PFN_vkDebugReportMessageEXT)vk->vkGetInstanceProcAddr(instance, "vkDebugReportMessageEXT");
 #endif
 #ifdef VK_EXT_debug_utils
     out->vkCreateDebugUtilsMessengerEXT =
@@ -1855,6 +1871,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkCmdSetPrimitiveRestartEnableEXT)vk->vkGetInstanceProcAddr(
             instance, "vkCmdSetPrimitiveRestartEnableEXT");
 #endif
+#ifdef VK_EXT_color_write_enable
+    out->vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdSetColorWriteEnableEXT");
+#endif
 #ifdef VK_GOOGLE_gfxstream
     out->vkMapMemoryIntoAddressSpaceGOOGLE =
         (PFN_vkMapMemoryIntoAddressSpaceGOOGLE)vk->vkGetInstanceProcAddr(
@@ -2039,6 +2059,16 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetPhysicalDeviceWin32PresentationSupportKHR =
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)vk->vkGetDeviceProcAddr(
             device, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
+#endif
+#ifdef VK_EXT_debug_report
+    out->vkCreateDebugReportCallbackEXT =
+        (PFN_vkCreateDebugReportCallbackEXT)vk->vkGetDeviceProcAddr(
+            device, "vkCreateDebugReportCallbackEXT");
+    out->vkDestroyDebugReportCallbackEXT =
+        (PFN_vkDestroyDebugReportCallbackEXT)vk->vkGetDeviceProcAddr(
+            device, "vkDestroyDebugReportCallbackEXT");
+    out->vkDebugReportMessageEXT =
+        (PFN_vkDebugReportMessageEXT)vk->vkGetDeviceProcAddr(device, "vkDebugReportMessageEXT");
 #endif
 #ifdef VK_EXT_debug_utils
     out->vkCreateDebugUtilsMessengerEXT =
@@ -2780,6 +2810,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkCmdSetPrimitiveRestartEnableEXT =
         (PFN_vkCmdSetPrimitiveRestartEnableEXT)vk->vkGetDeviceProcAddr(
             device, "vkCmdSetPrimitiveRestartEnableEXT");
+#endif
+#ifdef VK_EXT_color_write_enable
+    out->vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)vk->vkGetDeviceProcAddr(
+        device, "vkCmdSetColorWriteEnableEXT");
 #endif
 #ifdef VK_GOOGLE_gfxstream
     out->vkMapMemoryIntoAddressSpaceGOOGLE =

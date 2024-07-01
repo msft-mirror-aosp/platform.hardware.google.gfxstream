@@ -67,27 +67,29 @@ void DeviceOpTracker::AddPendingGarbage(DeviceOpWaitable waitable, VkSemaphore s
     }
 }
 
-void DeviceOpTracker::PollAndProcessGarbage() {
-    {
-        std::lock_guard<std::mutex> lock(mPollFunctionsMutex);
+void DeviceOpTracker::Poll() {
+    std::lock_guard<std::mutex> lock(mPollFunctionsMutex);
 
-        // Assuming that polling functions are added to the queue in the roughly the order
-        // they are used, encountering an unsignaled/pending polling functions likely means
-        // that all polling functions after are also still pending. This might not necessarily
-        // always be the case but it is a simple heuristic to try to minimize the amount of
-        // work performed here as it is expected that this function will be called while
-        // processing other guest vulkan functions.
-        auto firstPendingIt = std::find_if(mPollFunctions.begin(), mPollFunctions.end(),
-                                           [](const OpPollingFunction& pollingFunc) {
-                                               DeviceOpStatus status = pollingFunc();
-                                               return status == DeviceOpStatus::kPending;
-                                           });
-        mPollFunctions.erase(mPollFunctions.begin(), firstPendingIt);
+    // Assuming that polling functions are added to the queue in the roughly the order
+    // they are used, encountering an unsignaled/pending polling functions likely means
+    // that all polling functions after are also still pending. This might not necessarily
+    // always be the case but it is a simple heuristic to try to minimize the amount of
+    // work performed here as it is expected that this function will be called while
+    // processing other guest vulkan functions.
+    auto firstPendingIt = std::find_if(mPollFunctions.begin(), mPollFunctions.end(),
+                                       [](const OpPollingFunction& pollingFunc) {
+                                           DeviceOpStatus status = pollingFunc();
+                                           return status == DeviceOpStatus::kPending;
+                                       });
+    mPollFunctions.erase(mPollFunctions.begin(), firstPendingIt);
 
-        if (mPollFunctions.size() > kSizeLoggingThreshold) {
-            WARN("VkDevice:%p has %d pending waitables.", mDevice, mPollFunctions.size());
-        }
+    if (mPollFunctions.size() > kSizeLoggingThreshold) {
+        WARN("VkDevice:%p has %d pending waitables.", mDevice, mPollFunctions.size());
     }
+}
+
+void DeviceOpTracker::PollAndProcessGarbage() {
+    Poll();
 
     const auto now = std::chrono::system_clock::now();
     const auto old = now - kTimeThreshold;

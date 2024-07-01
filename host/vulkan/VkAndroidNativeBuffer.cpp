@@ -168,6 +168,10 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
         }
         vk_struct_chain_remove(nativeBufferAndroid, &createImageCi);
 
+        // VkBindImageMemorySwapchainInfoKHR should also not be passed to image creation
+        auto* bindSwapchainInfo = vk_find_struct<VkBindImageMemorySwapchainInfoKHR>(&createImageCi);
+        vk_struct_chain_remove(bindSwapchainInfo, &createImageCi);
+
         if (vk_find_struct<VkExternalMemoryImageCreateInfo>(&createImageCi)) {
             GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                 << "Unhandled VkExternalMemoryImageCreateInfo in the pNext chain.";
@@ -178,6 +182,26 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
             0,
             VK_EXT_MEMORY_HANDLE_TYPE_BIT,
         };
+
+#if defined(__APPLE__)
+        VkImportMetalTextureInfoEXT metalImageImport = {
+            VK_STRUCTURE_TYPE_IMPORT_METAL_TEXTURE_INFO_EXT};
+
+        if (emu->instanceSupportsMoltenVK) {
+            // Change handle type requested to mtltexture
+            extImageCi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_KHR;
+
+            if (out->colorBufferHandle) {
+                // TODO(b/333460957): External memory is not properly supported on MoltenVK
+                // and although this works fine, it's not valid and causing validation layer issues
+                metalImageImport.plane = VK_IMAGE_ASPECT_PLANE_0_BIT;
+                metalImageImport.mtlTexture = getColorBufferMTLTexture(out->colorBufferHandle);
+
+                // Insert metalImageImport to the chain
+                vk_insert_struct(createImageCi, metalImageImport);
+            }
+        }
+#endif
 
         vk_insert_struct(createImageCi, extImageCi);
 
@@ -345,7 +369,7 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-        if (VK_SUCCESS != vk->vkMapMemory(device, out->stagingMemory, 0, out->memReqs.size, 0,
+        if (VK_SUCCESS != vk->vkMapMemory(device, out->stagingMemory, 0, VK_WHOLE_SIZE, 0,
                                           (void**)&out->mappedStagingPtr)) {
             VK_ANB_ERR(
                 "VK_ANDROID_native_buffer: could not map "

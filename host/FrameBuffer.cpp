@@ -2935,6 +2935,7 @@ const int FrameBuffer::getDisplayActiveConfig() {
 }
 
 bool FrameBuffer::flushColorBufferFromVk(HandleType colorBufferHandle) {
+    AutoLock mutex(m_lock);
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
@@ -2968,6 +2969,17 @@ bool FrameBuffer::invalidateColorBufferForVk(HandleType colorBufferHandle) {
         return false;
     }
     return colorBuffer->invalidateForVk();
+}
+
+int FrameBuffer::waitSyncColorBuffer(HandleType colorBufferHandle) {
+    AutoLock mutex(m_lock);
+
+    ColorBufferPtr colorBuffer = findColorBuffer(colorBufferHandle);
+    if (!colorBuffer) {
+        return -1;
+    }
+
+    return colorBuffer->waitSync();
 }
 
 #if GFXSTREAM_ENABLE_HOST_GLES

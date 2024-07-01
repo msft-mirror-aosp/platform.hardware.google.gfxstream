@@ -1759,6 +1759,7 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         "VK_KHR_storage_buffer_storage_class",
         "VK_EXT_depth_clip_enable",
         "VK_KHR_create_renderpass2",
+        "VK_EXT_vertex_attribute_divisor",
         "VK_EXT_host_query_reset",
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         "VK_KHR_external_semaphore",
@@ -1775,6 +1776,7 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         // Vulkan 1.3
         "VK_KHR_synchronization2",
         "VK_EXT_private_data",
+        "VK_EXT_color_write_enable",
     };
 
     VkEncoder* enc = (VkEncoder*)context;
@@ -1853,6 +1855,7 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
 
     bool win32ExtMemAvailable = getHostDeviceExtensionIndex("VK_KHR_external_memory_win32") != -1;
     bool posixExtMemAvailable = getHostDeviceExtensionIndex("VK_KHR_external_memory_fd") != -1;
+    //TODO(b/349066492): this should check external_memory_metal extension when it's ready
     bool moltenVkExtAvailable = getHostDeviceExtensionIndex("VK_MVK_moltenvk") != -1;
     bool qnxExtMemAvailable =
         getHostDeviceExtensionIndex("VK_QNX_external_memory_screen_buffer") != -1;
@@ -3233,6 +3236,9 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
 
     VkEncoder* enc = (VkEncoder*)context;
 
+    bool hasDedicatedImage = false;
+    bool hasDedicatedBuffer = false;
+
     VkMemoryAllocateInfo finalAllocInfo = vk_make_orphan_copy(*pAllocateInfo);
     vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&finalAllocInfo);
 
@@ -3379,9 +3385,9 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     if (exportAhb) {
-        bool hasDedicatedImage =
+        hasDedicatedImage =
             dedicatedAllocInfoPtr && (dedicatedAllocInfoPtr->image != VK_NULL_HANDLE);
-        bool hasDedicatedBuffer =
+        hasDedicatedBuffer =
             dedicatedAllocInfoPtr && (dedicatedAllocInfoPtr->buffer != VK_NULL_HANDLE);
         VkExtent3D imageExtent = {0, 0, 0};
         uint32_t imageLayers = 0;
@@ -3479,9 +3485,9 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
     }
 
     if (exportVmo) {
-        bool hasDedicatedImage =
+        hasDedicatedImage =
             dedicatedAllocInfoPtr && (dedicatedAllocInfoPtr->image != VK_NULL_HANDLE);
-        bool hasDedicatedBuffer =
+        hasDedicatedBuffer =
             dedicatedAllocInfoPtr && (dedicatedAllocInfoPtr->buffer != VK_NULL_HANDLE);
 
         if (hasDedicatedImage && hasDedicatedBuffer) {
@@ -3754,9 +3760,9 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
 #if defined(LINUX_GUEST_BUILD)
     if (exportDmabuf) {
         VirtGpuDevice* instance = VirtGpuDevice::getInstance();
-        bool hasDedicatedImage =
+        hasDedicatedImage =
             dedicatedAllocInfoPtr && (dedicatedAllocInfoPtr->image != VK_NULL_HANDLE);
-        bool hasDedicatedBuffer =
+        hasDedicatedBuffer =
             dedicatedAllocInfoPtr && (dedicatedAllocInfoPtr->buffer != VK_NULL_HANDLE);
 
         if (hasDedicatedImage) {
@@ -3785,7 +3791,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
                 on_vkGetImageSubresourceLayout(context, device, dedicatedAllocInfoPtr->image,
                                                &imageSubresource, &subResourceLayout);
                 if (!subResourceLayout.rowPitch) {
-                    mesa_loge("%s: Failed to query stride for VirtGpu resource creation.");
+                    mesa_loge("Failed to query stride for VirtGpu resource creation.");
                     return VK_ERROR_INITIALIZATION_FAILED;
                 }
 
