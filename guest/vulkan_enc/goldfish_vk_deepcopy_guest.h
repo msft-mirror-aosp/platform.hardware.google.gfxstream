@@ -1629,6 +1629,8 @@ void deepcopy_VkPhysicalDevicePresentationPropertiesANDROID(
     VkPhysicalDevicePresentationPropertiesANDROID* to);
 
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 void deepcopy_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -1666,8 +1668,6 @@ void deepcopy_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 
 #endif
 #ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
@@ -1998,6 +1998,17 @@ void deepcopy_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
     const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* from,
     VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* to);
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void deepcopy_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* from,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* to);
+
+void deepcopy_VkPipelineColorWriteCreateInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                                const VkPipelineColorWriteCreateInfoEXT* from,
+                                                VkPipelineColorWriteCreateInfoEXT* to);
 
 #endif
 #ifdef VK_GOOGLE_gfxstream
