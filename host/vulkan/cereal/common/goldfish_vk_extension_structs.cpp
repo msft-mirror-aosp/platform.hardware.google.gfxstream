@@ -134,6 +134,8 @@ namespace vk {
 #endif
 #ifdef VK_ANDROID_native_buffer
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 #endif
 #ifdef VK_AMD_gpu_shader_half_float
@@ -143,8 +145,6 @@ namespace vk {
 #ifdef VK_EXT_depth_clip_enable
 #endif
 #ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
@@ -215,6 +215,8 @@ namespace vk {
 #ifdef VK_EXT_primitive_topology_list_restart
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
+#endif
+#ifdef VK_EXT_color_write_enable
 #endif
 #ifdef VK_GOOGLE_gfxstream
 #endif
@@ -626,6 +628,11 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
             return sizeof(VkNativeBufferANDROID);
         }
 #endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            return sizeof(VkDebugReportCallbackCreateInfoEXT);
+        }
+#endif
 #ifdef VK_EXT_transform_feedback
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT: {
             return sizeof(VkPhysicalDeviceTransformFeedbackFeaturesEXT);
@@ -862,6 +869,14 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
 #ifdef VK_EXT_extended_dynamic_state2
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT: {
             return sizeof(VkPhysicalDeviceExtendedDynamicState2FeaturesEXT);
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceColorWriteEnableFeaturesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            return sizeof(VkPipelineColorWriteCreateInfoEXT);
         }
 #endif
 #ifdef VK_GOOGLE_gfxstream
@@ -1291,6 +1306,11 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
             return sizeof(VkNativeBufferANDROID);
         }
 #endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            return sizeof(VkDebugReportCallbackCreateInfoEXT);
+        }
+#endif
 #ifdef VK_EXT_transform_feedback
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT: {
             return sizeof(VkPhysicalDeviceTransformFeedbackFeaturesEXT);
@@ -1527,6 +1547,14 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
 #ifdef VK_EXT_extended_dynamic_state2
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT: {
             return sizeof(VkPhysicalDeviceExtendedDynamicState2FeaturesEXT);
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            return sizeof(VkPhysicalDeviceColorWriteEnableFeaturesEXT);
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            return sizeof(VkPipelineColorWriteCreateInfoEXT);
         }
 #endif
 #ifdef VK_GOOGLE_gfxstream

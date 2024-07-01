@@ -150,8 +150,8 @@ struct VirtGpuCaps LinuxVirtGpuDevice::getCaps(void) { return mCaps; }
 int64_t LinuxVirtGpuDevice::getDeviceHandle(void) { return mDeviceHandle; }
 
 VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t height,
-                                                      uint32_t virglFormat, uint32_t target,
-                                                      uint32_t bind, uint32_t bpp) {
+                                                      uint32_t stride, uint32_t virglFormat,
+                                                      uint32_t target, uint32_t bind) {
     drm_virtgpu_resource_create create = {
         .target = target,
         .format = virglFormat,
@@ -162,8 +162,8 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t h
         .array_size = 1U,
         .last_level = 0,
         .nr_samples = 0,
-        .size = width * height * bpp,
-        .stride = width * bpp,
+        .size = stride * height,
+        .stride = stride,
     };
 
     int ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE, &create);
@@ -184,6 +184,8 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob
     create.blob_mem = blobCreate.blobMem;
     create.blob_flags = blobCreate.flags;
     create.blob_id = blobCreate.blobId;
+    create.cmd = (uint64_t)(uintptr_t)blobCreate.blobCmd;
+    create.cmd_size = blobCreate.blobCmdSize;
 
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB, &create);
     if (ret < 0) {
