@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <android-base/expected.h>
-
 #include <string>
 
 #include "GfxstreamEnd2EndTestUtils.h"
@@ -105,7 +103,7 @@ VkExpected<BufferInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createAndPopulate
         physicalDevice, vertexBufferMemoryRequirements,
         vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
     if (vertexBufferMemoryType == -1) {
-        return android::base::unexpected(vkhpp::Result::eErrorOutOfHostMemory);
+        return gfxstream::unexpected(vkhpp::Result::eErrorOutOfHostMemory);
     }
     // Vertex memory
     const vkhpp::MemoryAllocateInfo vertexBufferMemoryAllocateInfo = {

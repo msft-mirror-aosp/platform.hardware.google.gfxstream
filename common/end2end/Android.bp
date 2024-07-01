@@ -38,7 +38,6 @@ cc_test_host {
     shared_libs: [
         "libandroidemu",
         "libOpenglSystemCommonWithHost",
-        "libbase",
         "liblog",
         "libgfxstream_platform_rutabaga_server",
     ],
