@@ -168,6 +168,8 @@ class VkDecoder {
 #endif
 #ifdef VK_ANDROID_native_buffer
 #endif
+#ifdef VK_EXT_debug_report
+#endif
 #ifdef VK_EXT_transform_feedback
 #endif
 #ifdef VK_AMD_gpu_shader_half_float
@@ -177,8 +179,6 @@ class VkDecoder {
 #ifdef VK_EXT_depth_clip_enable
 #endif
 #ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
@@ -249,6 +249,8 @@ class VkDecoder {
 #ifdef VK_EXT_primitive_topology_list_restart
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
+#endif
+#ifdef VK_EXT_color_write_enable
 #endif
 #ifdef VK_GOOGLE_gfxstream
 #endif

@@ -126,9 +126,11 @@ RendererImpl::~RendererImpl() {
 
 bool RendererImpl::initialize(int width, int height, gfxstream::host::FeatureSet features,
                               bool useSubWindow, bool egl2egl) {
+#ifdef CONFIG_AEMU
     if (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1") {
-        // base_enable_verbose_logs();
+        set_gfxstream_enable_verbose_logs();
     }
+#endif
 
     if (mRenderWindow) {
         return false;
@@ -557,9 +559,10 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
             FrameBuffer::getFB()->createBufferWithHandle(size, handle);
         },
     .create_color_buffer_with_handle =
-        [](uint32_t width, uint32_t height, uint32_t format, uint32_t fwkFormat, uint32_t handle) {
-            FrameBuffer::getFB()->createColorBufferWithHandle(width, height, (GLenum)format,
-                                                              (FrameworkFormat)fwkFormat, handle);
+        [](uint32_t width, uint32_t height, uint32_t format, uint32_t fwkFormat, uint32_t handle,
+           bool linear) {
+            FrameBuffer::getFB()->createColorBufferWithHandle(
+                width, height, (GLenum)format, (FrameworkFormat)fwkFormat, handle, linear);
         },
     .open_color_buffer = [](uint32_t handle) { FrameBuffer::getFB()->openColorBuffer(handle); },
     .close_buffer = [](uint32_t handle) { FrameBuffer::getFB()->closeBuffer(handle); },
@@ -671,6 +674,8 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
             return FrameBuffer::getFB()->platformDestroySharedEglContext(context);
         },
 #endif
+    .wait_sync_color_buffer =
+        [](uint32_t handle) { return FrameBuffer::getFB()->waitSyncColorBuffer(handle); },
 };
 
 struct AndroidVirtioGpuOps* RendererImpl::getVirtioGpuOps() {

@@ -1,18 +1,3 @@
-if (LINUX AND DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
-    set(
-        gfxstream-magma-server-backend-sources
-        Connection.cpp
-        DrmBuffer.cpp
-        DrmContext.cpp
-        DrmDevice.cpp
-        IntelDrmDecoder.cpp)
-    set(
-        gfxstream-magma-server-backend-defines
-        GFXSTREAM_MAGMA_USE_INTEL_DRM=1)
-    set(
-        gfxstream-magma-server-backend-libs
-        libdrm_headers)
-endif()
 add_library(
     gfxstream-magma-server
     Decoder.cpp
