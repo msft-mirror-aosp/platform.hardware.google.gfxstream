@@ -19,6 +19,9 @@
 
 #include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
+#include "gfxstream/Expected.h"
+#include "shaders/blit_sampler2d_frag.h"
+#include "shaders/fullscreen_triangle_with_uv_vert.h"
 
 namespace gfxstream {
 namespace tests {
@@ -118,6 +121,1079 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         if (withSemaphore) {
             semaphore.reset();
         }
+    }
+
+    gfxstream::expected<Ok, vkhpp::Result> DoCommandsImmediate(
+        TypicalVkTestEnvironment& vk,
+        const std::function<vkhpp::Result(vkhpp::UniqueCommandBuffer&)>& func,
+        const std::vector<vkhpp::UniqueSemaphore>& semaphores_wait = {},
+        const std::vector<vkhpp::UniqueSemaphore>& semaphores_signal = {}) {
+        const vkhpp::CommandPoolCreateInfo commandPoolCreateInfo = {
+            .queueFamilyIndex = vk.queueFamilyIndex,
+        };
+        auto commandPool = VK_EXPECT_RV(vk.device->createCommandPoolUnique(commandPoolCreateInfo));
+
+        const vkhpp::CommandBufferAllocateInfo commandBufferAllocateInfo = {
+            .commandPool = *commandPool,
+            .level = vkhpp::CommandBufferLevel::ePrimary,
+            .commandBufferCount = 1,
+        };
+        auto commandBuffers =
+            VK_EXPECT_RV(vk.device->allocateCommandBuffersUnique(commandBufferAllocateInfo));
+        auto commandBuffer = std::move(commandBuffers[0]);
+
+        const vkhpp::CommandBufferBeginInfo commandBufferBeginInfo = {
+            .flags = vkhpp::CommandBufferUsageFlagBits::eOneTimeSubmit,
+        };
+        commandBuffer->begin(commandBufferBeginInfo);
+        VK_EXPECT_RESULT(func(commandBuffer));
+        commandBuffer->end();
+
+        std::vector<vkhpp::CommandBuffer> commandBufferHandles;
+        commandBufferHandles.push_back(*commandBuffer);
+
+        std::vector<vkhpp::Semaphore> semaphoreHandlesWait;
+        semaphoreHandlesWait.reserve(semaphores_wait.size());
+        for (const auto& s : semaphores_wait) {
+            semaphoreHandlesWait.emplace_back(*s);
+        }
+
+        std::vector<vkhpp::Semaphore> semaphoreHandlesSignal;
+        semaphoreHandlesSignal.reserve(semaphores_signal.size());
+        for (const auto& s : semaphores_signal) {
+            semaphoreHandlesSignal.emplace_back(*s);
+        }
+
+        vkhpp::SubmitInfo submitInfo = {
+            .commandBufferCount = static_cast<uint32_t>(commandBufferHandles.size()),
+            .pCommandBuffers = commandBufferHandles.data(),
+        };
+        if (!semaphoreHandlesWait.empty()) {
+            submitInfo.waitSemaphoreCount = static_cast<uint32_t>(semaphoreHandlesWait.size());
+            submitInfo.pWaitSemaphores = semaphoreHandlesWait.data();
+        }
+        if (!semaphoreHandlesSignal.empty()) {
+            submitInfo.signalSemaphoreCount = static_cast<uint32_t>(semaphoreHandlesSignal.size());
+            submitInfo.pSignalSemaphores = semaphoreHandlesSignal.data();
+        }
+        vk.queue.submit(submitInfo);
+        vk.queue.waitIdle();
+        return Ok{};
+    }
+
+    struct BufferWithMemory {
+        vkhpp::UniqueBuffer buffer;
+        vkhpp::UniqueDeviceMemory bufferMemory;
+    };
+    gfxstream::expected<BufferWithMemory, vkhpp::Result> CreateBuffer(
+        TypicalVkTestEnvironment& vk, vkhpp::DeviceSize bufferSize,
+        vkhpp::BufferUsageFlags bufferUsages, vkhpp::MemoryPropertyFlags bufferMemoryProperties,
+        const uint8_t* data = nullptr, vkhpp::DeviceSize dataSize = 0) {
+        const vkhpp::BufferCreateInfo bufferCreateInfo = {
+            .size = static_cast<VkDeviceSize>(bufferSize),
+            .usage = bufferUsages,
+            .sharingMode = vkhpp::SharingMode::eExclusive,
+        };
+        auto buffer = VK_EXPECT_RV(vk.device->createBufferUnique(bufferCreateInfo));
+
+        vkhpp::MemoryRequirements bufferMemoryRequirements{};
+        vk.device->getBufferMemoryRequirements(*buffer, &bufferMemoryRequirements);
+
+        const auto bufferMemoryTypeIndex = utils::getMemoryType(
+            vk.physicalDevice, bufferMemoryRequirements, bufferMemoryProperties);
+
+        const vkhpp::MemoryAllocateInfo bufferMemoryAllocateInfo = {
+            .allocationSize = bufferMemoryRequirements.size,
+            .memoryTypeIndex = bufferMemoryTypeIndex,
+        };
+        auto bufferMemory = VK_EXPECT_RV(vk.device->allocateMemoryUnique(bufferMemoryAllocateInfo));
+
+        VK_EXPECT_RESULT(vk.device->bindBufferMemory(*buffer, *bufferMemory, 0));
+
+        if (data != nullptr) {
+            if (!(bufferUsages & vkhpp::BufferUsageFlagBits::eTransferDst)) {
+                return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+            }
+            if (!(bufferMemoryProperties & vkhpp::MemoryPropertyFlagBits::eHostVisible)) {
+                return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+            }
+
+            void* mapped = VK_EXPECT_RV(vk.device->mapMemory(*bufferMemory, 0, bufferSize));
+
+            std::memcpy(mapped, data, dataSize);
+
+            if (!(bufferMemoryProperties & vkhpp::MemoryPropertyFlagBits::eHostVisible)) {
+                vk.device->flushMappedMemoryRanges(vkhpp::MappedMemoryRange{
+                    .memory = *bufferMemory,
+                    .offset = 0,
+                    .size = VK_WHOLE_SIZE,
+                });
+            }
+
+            vk.device->unmapMemory(*bufferMemory);
+        }
+
+        return BufferWithMemory{
+            .buffer = std::move(buffer),
+            .bufferMemory = std::move(bufferMemory),
+        };
+    }
+
+    struct ImageWithMemory {
+        std::optional<vkhpp::UniqueSamplerYcbcrConversion> imageSamplerConversion;
+        vkhpp::UniqueSampler imageSampler;
+        vkhpp::UniqueDeviceMemory imageMemory;
+        vkhpp::UniqueImage image;
+        vkhpp::UniqueImageView imageView;
+    };
+    gfxstream::expected<ImageWithMemory, vkhpp::Result> CreateImageWithAhb(
+        TypicalVkTestEnvironment& vk, const ScopedAHardwareBuffer& ahb,
+        const vkhpp::ImageUsageFlags usages, const vkhpp::ImageLayout layout) {
+        const auto ahbHandle = mGralloc->getNativeHandle(ahb);
+        if (ahbHandle == nullptr) {
+            return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+        }
+        const bool ahbIsYuv = mGralloc->getFormat(ahb) == GFXSTREAM_AHB_FORMAT_YV12;
+
+        auto vkGetAndroidHardwareBufferPropertiesANDROID =
+            reinterpret_cast<PFN_vkGetAndroidHardwareBufferPropertiesANDROID>(
+                vk.device->getProcAddr("vkGetAndroidHardwareBufferPropertiesANDROID"));
+        if (vkGetAndroidHardwareBufferPropertiesANDROID == nullptr) {
+            return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+        }
+        VkAndroidHardwareBufferFormatPropertiesANDROID ahbFormatProperties = {
+            .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID,
+            .pNext = nullptr,
+        };
+        VkAndroidHardwareBufferPropertiesANDROID ahbProperties = {
+            .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID,
+            .pNext = &ahbFormatProperties,
+        };
+        if (vkGetAndroidHardwareBufferPropertiesANDROID(*vk.device, ahb, &ahbProperties) !=
+            VK_SUCCESS) {
+            return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+        }
+
+        std::optional<vkhpp::UniqueSamplerYcbcrConversion> imageSamplerConversion;
+        std::optional<vkhpp::SamplerYcbcrConversionInfo> samplerConversionInfo;
+        if (ahbIsYuv) {
+            const vkhpp::SamplerYcbcrConversionCreateInfo conversionCreateInfo = {
+                .format = static_cast<vkhpp::Format>(ahbFormatProperties.format),
+                .ycbcrModel = vkhpp::SamplerYcbcrModelConversion::eYcbcr601,
+                .ycbcrRange = vkhpp::SamplerYcbcrRange::eItuNarrow,
+                .components =
+                    {
+                        .r = vkhpp::ComponentSwizzle::eIdentity,
+                        .g = vkhpp::ComponentSwizzle::eIdentity,
+                        .b = vkhpp::ComponentSwizzle::eIdentity,
+                        .a = vkhpp::ComponentSwizzle::eIdentity,
+                    },
+                .xChromaOffset = vkhpp::ChromaLocation::eMidpoint,
+                .yChromaOffset = vkhpp::ChromaLocation::eMidpoint,
+                .chromaFilter = vkhpp::Filter::eLinear,
+                .forceExplicitReconstruction = VK_FALSE,
+            };
+            imageSamplerConversion =
+                VK_EXPECT_RV(vk.device->createSamplerYcbcrConversionUnique(conversionCreateInfo));
+
+            samplerConversionInfo = vkhpp::SamplerYcbcrConversionInfo{
+                .conversion = **imageSamplerConversion,
+            };
+        }
+        const vkhpp::SamplerCreateInfo samplerCreateInfo = {
+            .pNext = ahbIsYuv ? &samplerConversionInfo : nullptr,
+            .magFilter = vkhpp::Filter::eLinear,
+            .minFilter = vkhpp::Filter::eLinear,
+            .mipmapMode = vkhpp::SamplerMipmapMode::eNearest,
+            .addressModeU = vkhpp::SamplerAddressMode::eClampToEdge,
+            .addressModeV = vkhpp::SamplerAddressMode::eClampToEdge,
+            .addressModeW = vkhpp::SamplerAddressMode::eClampToEdge,
+            .mipLodBias = 0.0f,
+            .anisotropyEnable = VK_FALSE,
+            .maxAnisotropy = 1.0f,
+            .compareEnable = VK_FALSE,
+            .compareOp = vkhpp::CompareOp::eLessOrEqual,
+            .minLod = 0.0f,
+            .maxLod = 0.25f,
+            .borderColor = vkhpp::BorderColor::eIntTransparentBlack,
+            .unnormalizedCoordinates = VK_FALSE,
+        };
+        auto imageSampler = VK_EXPECT_RV(vk.device->createSamplerUnique(samplerCreateInfo));
+
+        const VkExternalFormatANDROID externalFormat = {
+            .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
+            .externalFormat = ahbFormatProperties.externalFormat,
+        };
+        const VkExternalMemoryImageCreateInfo externalMemoryImageCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
+            .pNext = &externalFormat,
+            .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID,
+        };
+        const vkhpp::ImageCreateInfo imageCreateInfo = {
+            .pNext = &externalMemoryImageCreateInfo,
+            .imageType = vkhpp::ImageType::e2D,
+            .format = static_cast<vkhpp::Format>(ahbFormatProperties.format),
+            .extent =
+                {
+                    .width = mGralloc->getWidth(ahb),
+                    .height = mGralloc->getHeight(ahb),
+                    .depth = 1,
+                },
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = vkhpp::SampleCountFlagBits::e1,
+            .tiling = vkhpp::ImageTiling::eOptimal,
+            .usage = usages,
+            .sharingMode = vkhpp::SharingMode::eExclusive,
+            .initialLayout = vkhpp::ImageLayout::eUndefined,
+        };
+        auto image = VK_EXPECT_RV(vk.device->createImageUnique(imageCreateInfo));
+
+        const vkhpp::MemoryRequirements imageMemoryRequirements = {
+            .size = ahbProperties.allocationSize,
+            .alignment = 0,
+            .memoryTypeBits = ahbProperties.memoryTypeBits,
+        };
+        const uint32_t imageMemoryIndex =
+            utils::getMemoryType(vk.physicalDevice, imageMemoryRequirements,
+                                 vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+
+        const vkhpp::ImportAndroidHardwareBufferInfoANDROID importAhbInfo = {
+            .buffer = ahb,
+        };
+        const vkhpp::MemoryDedicatedAllocateInfo importMemoryDedicatedInfo = {
+            .pNext = &importAhbInfo,
+            .image = *image,
+        };
+        const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
+            .pNext = &importMemoryDedicatedInfo,
+            .allocationSize = imageMemoryRequirements.size,
+            .memoryTypeIndex = imageMemoryIndex,
+        };
+        auto imageMemory = VK_EXPECT_RV(vk.device->allocateMemoryUnique(imageMemoryAllocateInfo));
+        vk.device->bindImageMemory(*image, *imageMemory, 0);
+
+        const vkhpp::ImageViewCreateInfo imageViewCreateInfo = {
+            .pNext = &samplerConversionInfo,
+            .image = *image,
+            .viewType = vkhpp::ImageViewType::e2D,
+            .format = static_cast<vkhpp::Format>(ahbFormatProperties.format),
+            .components =
+                {
+                    .r = vkhpp::ComponentSwizzle::eIdentity,
+                    .g = vkhpp::ComponentSwizzle::eIdentity,
+                    .b = vkhpp::ComponentSwizzle::eIdentity,
+                    .a = vkhpp::ComponentSwizzle::eIdentity,
+                },
+            .subresourceRange =
+                {
+                    .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        auto imageView = VK_EXPECT_RV(vk.device->createImageViewUnique(imageViewCreateInfo));
+
+        GFXSTREAM_EXPECT(DoCommandsImmediate(vk, [&](vkhpp::UniqueCommandBuffer& cmd) {
+            const std::vector<vkhpp::ImageMemoryBarrier> imageMemoryBarriers = {
+                vkhpp::ImageMemoryBarrier{
+                    .srcAccessMask = {},
+                    .dstAccessMask = vkhpp::AccessFlagBits::eTransferWrite,
+                    .oldLayout = vkhpp::ImageLayout::eUndefined,
+                    .newLayout = layout,
+                    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .image = *image,
+                    .subresourceRange =
+                        {
+                            .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                            .baseMipLevel = 0,
+                            .levelCount = 1,
+                            .baseArrayLayer = 0,
+                            .layerCount = 1,
+                        },
+
+                },
+            };
+            cmd->pipelineBarrier(
+                /*srcStageMask=*/vkhpp::PipelineStageFlagBits::eAllCommands,
+                /*dstStageMask=*/vkhpp::PipelineStageFlagBits::eAllCommands,
+                /*dependencyFlags=*/{},
+                /*memoryBarriers=*/{},
+                /*bufferMemoryBarriers=*/{},
+                /*imageMemoryBarriers=*/imageMemoryBarriers);
+            return vkhpp::Result::eSuccess;
+        }));
+
+        return ImageWithMemory{
+            .imageSamplerConversion = std::move(imageSamplerConversion),
+            .imageSampler = std::move(imageSampler),
+            .imageMemory = std::move(imageMemory),
+            .image = std::move(image),
+            .imageView = std::move(imageView),
+        };
+    }
+
+    gfxstream::expected<ImageWithMemory, vkhpp::Result> CreateImage(
+        TypicalVkTestEnvironment& vk, uint32_t width, uint32_t height, vkhpp::Format format,
+        vkhpp::ImageUsageFlags usages, vkhpp::MemoryPropertyFlags memoryProperties,
+        vkhpp::ImageLayout returnedLayout) {
+        const vkhpp::ImageCreateInfo imageCreateInfo = {
+            .imageType = vkhpp::ImageType::e2D,
+            .format = format,
+            .extent =
+                {
+                    .width = width,
+                    .height = height,
+                    .depth = 1,
+                },
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = vkhpp::SampleCountFlagBits::e1,
+            .tiling = vkhpp::ImageTiling::eOptimal,
+            .usage = usages,
+            .sharingMode = vkhpp::SharingMode::eExclusive,
+            .initialLayout = vkhpp::ImageLayout::eUndefined,
+        };
+        auto image = VK_EXPECT_RV(vk.device->createImageUnique(imageCreateInfo));
+
+        const auto memoryRequirements = vk.device->getImageMemoryRequirements(*image);
+        const uint32_t memoryIndex =
+            utils::getMemoryType(vk.physicalDevice, memoryRequirements, memoryProperties);
+
+        const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
+            .allocationSize = memoryRequirements.size,
+            .memoryTypeIndex = memoryIndex,
+        };
+        auto imageMemory = VK_EXPECT_RV(vk.device->allocateMemoryUnique(imageMemoryAllocateInfo));
+
+        vk.device->bindImageMemory(*image, *imageMemory, 0);
+
+        const vkhpp::ImageViewCreateInfo imageViewCreateInfo = {
+            .image = *image,
+            .viewType = vkhpp::ImageViewType::e2D,
+            .format = format,
+            .components =
+                {
+                    .r = vkhpp::ComponentSwizzle::eIdentity,
+                    .g = vkhpp::ComponentSwizzle::eIdentity,
+                    .b = vkhpp::ComponentSwizzle::eIdentity,
+                    .a = vkhpp::ComponentSwizzle::eIdentity,
+                },
+            .subresourceRange =
+                {
+                    .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        auto imageView = VK_EXPECT_RV(vk.device->createImageViewUnique(imageViewCreateInfo));
+
+        GFXSTREAM_EXPECT(DoCommandsImmediate(vk, [&](vkhpp::UniqueCommandBuffer& cmd) {
+            const std::vector<vkhpp::ImageMemoryBarrier> imageMemoryBarriers = {
+                vkhpp::ImageMemoryBarrier{
+                    .srcAccessMask = {},
+                    .dstAccessMask = vkhpp::AccessFlagBits::eTransferWrite,
+                    .oldLayout = vkhpp::ImageLayout::eUndefined,
+                    .newLayout = returnedLayout,
+                    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .image = *image,
+                    .subresourceRange =
+                        {
+                            .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                            .baseMipLevel = 0,
+                            .levelCount = 1,
+                            .baseArrayLayer = 0,
+                            .layerCount = 1,
+                        },
+                },
+            };
+            cmd->pipelineBarrier(
+                /*srcStageMask=*/vkhpp::PipelineStageFlagBits::eAllCommands,
+                /*dstStageMask=*/vkhpp::PipelineStageFlagBits::eAllCommands,
+                /*dependencyFlags=*/{},
+                /*memoryBarriers=*/{},
+                /*bufferMemoryBarriers=*/{},
+                /*imageMemoryBarriers=*/imageMemoryBarriers);
+
+            return vkhpp::Result::eSuccess;
+        }));
+
+        return ImageWithMemory{
+            .image = std::move(image),
+            .imageMemory = std::move(imageMemory),
+            .imageView = std::move(imageView),
+        };
+    }
+
+    struct FramebufferWithAttachments {
+        std::optional<ImageWithMemory> colorAttachment;
+        std::optional<ImageWithMemory> depthAttachment;
+        vkhpp::UniqueRenderPass renderpass;
+        vkhpp::UniqueFramebuffer framebuffer;
+    };
+    gfxstream::expected<FramebufferWithAttachments, vkhpp::Result> CreateFramebuffer(
+        TypicalVkTestEnvironment& vk, uint32_t width, uint32_t height,
+        vkhpp::Format colorAttachmentFormat = vkhpp::Format::eUndefined,
+        vkhpp::Format depthAttachmentFormat = vkhpp::Format::eUndefined) {
+        std::optional<ImageWithMemory> colorAttachment;
+        if (colorAttachmentFormat != vkhpp::Format::eUndefined) {
+            colorAttachment =
+                GFXSTREAM_EXPECT(CreateImage(vk, width, height, colorAttachmentFormat,
+                                             vkhpp::ImageUsageFlagBits::eColorAttachment |
+                                                 vkhpp::ImageUsageFlagBits::eTransferSrc,
+                                             vkhpp::MemoryPropertyFlagBits::eDeviceLocal,
+                                             vkhpp::ImageLayout::eColorAttachmentOptimal));
+        }
+
+        std::optional<ImageWithMemory> depthAttachment;
+        if (depthAttachmentFormat != vkhpp::Format::eUndefined) {
+            depthAttachment =
+                GFXSTREAM_EXPECT(CreateImage(vk, width, height, depthAttachmentFormat,
+                                             vkhpp::ImageUsageFlagBits::eDepthStencilAttachment |
+                                                 vkhpp::ImageUsageFlagBits::eTransferSrc,
+                                             vkhpp::MemoryPropertyFlagBits::eDeviceLocal,
+                                             vkhpp::ImageLayout::eDepthStencilAttachmentOptimal));
+        }
+
+        std::vector<vkhpp::AttachmentDescription> attachments;
+
+        std::optional<vkhpp::AttachmentReference> colorAttachmentReference;
+        if (colorAttachmentFormat != vkhpp::Format::eUndefined) {
+            attachments.push_back(vkhpp::AttachmentDescription{
+                .format = colorAttachmentFormat,
+                .samples = vkhpp::SampleCountFlagBits::e1,
+                .loadOp = vkhpp::AttachmentLoadOp::eClear,
+                .storeOp = vkhpp::AttachmentStoreOp::eStore,
+                .stencilLoadOp = vkhpp::AttachmentLoadOp::eClear,
+                .stencilStoreOp = vkhpp::AttachmentStoreOp::eStore,
+                .initialLayout = vkhpp::ImageLayout::eColorAttachmentOptimal,
+                .finalLayout = vkhpp::ImageLayout::eColorAttachmentOptimal,
+            });
+
+            colorAttachmentReference = vkhpp::AttachmentReference{
+                .attachment = static_cast<uint32_t>(attachments.size() - 1),
+                .layout = vkhpp::ImageLayout::eColorAttachmentOptimal,
+            };
+        }
+
+        std::optional<vkhpp::AttachmentReference> depthAttachmentReference;
+        if (depthAttachmentFormat != vkhpp::Format::eUndefined) {
+            attachments.push_back(vkhpp::AttachmentDescription{
+                .format = depthAttachmentFormat,
+                .samples = vkhpp::SampleCountFlagBits::e1,
+                .loadOp = vkhpp::AttachmentLoadOp::eClear,
+                .storeOp = vkhpp::AttachmentStoreOp::eStore,
+                .stencilLoadOp = vkhpp::AttachmentLoadOp::eClear,
+                .stencilStoreOp = vkhpp::AttachmentStoreOp::eStore,
+                .initialLayout = vkhpp::ImageLayout::eColorAttachmentOptimal,
+                .finalLayout = vkhpp::ImageLayout::eColorAttachmentOptimal,
+            });
+
+            depthAttachmentReference = vkhpp::AttachmentReference{
+                .attachment = static_cast<uint32_t>(attachments.size() - 1),
+                .layout = vkhpp::ImageLayout::eDepthStencilAttachmentOptimal,
+            };
+        }
+
+        vkhpp::SubpassDependency dependency = {
+            .srcSubpass = 0,
+            .dstSubpass = 0,
+            .srcStageMask = {},
+            .dstStageMask = vkhpp::PipelineStageFlagBits::eFragmentShader,
+            .srcAccessMask = {},
+            .dstAccessMask = vkhpp::AccessFlagBits::eInputAttachmentRead,
+            .dependencyFlags = vkhpp::DependencyFlagBits::eByRegion,
+        };
+        if (colorAttachmentFormat != vkhpp::Format::eUndefined) {
+            dependency.srcStageMask |= vkhpp::PipelineStageFlagBits::eColorAttachmentOutput;
+            dependency.dstStageMask |= vkhpp::PipelineStageFlagBits::eColorAttachmentOutput;
+            dependency.srcAccessMask |= vkhpp::AccessFlagBits::eColorAttachmentWrite;
+        }
+        if (depthAttachmentFormat != vkhpp::Format::eUndefined) {
+            dependency.srcStageMask |= vkhpp::PipelineStageFlagBits::eColorAttachmentOutput;
+            dependency.dstStageMask |= vkhpp::PipelineStageFlagBits::eColorAttachmentOutput;
+            dependency.srcAccessMask |= vkhpp::AccessFlagBits::eColorAttachmentWrite;
+        }
+
+        vkhpp::SubpassDescription subpass = {
+            .pipelineBindPoint = vkhpp::PipelineBindPoint::eGraphics,
+            .inputAttachmentCount = 0,
+            .pInputAttachments = nullptr,
+            .colorAttachmentCount = 0,
+            .pColorAttachments = nullptr,
+            .pResolveAttachments = nullptr,
+            .pDepthStencilAttachment = nullptr,
+            .pPreserveAttachments = nullptr,
+        };
+        if (colorAttachmentFormat != vkhpp::Format::eUndefined) {
+            subpass.colorAttachmentCount = 1;
+            subpass.pColorAttachments = &*colorAttachmentReference;
+        }
+        if (depthAttachmentFormat != vkhpp::Format::eUndefined) {
+            subpass.pDepthStencilAttachment = &*depthAttachmentReference;
+        }
+
+        const vkhpp::RenderPassCreateInfo renderpassCreateInfo = {
+            .attachmentCount = static_cast<uint32_t>(attachments.size()),
+            .pAttachments = attachments.data(),
+            .subpassCount = 1,
+            .pSubpasses = &subpass,
+            .dependencyCount = 1,
+            .pDependencies = &dependency,
+        };
+        auto renderpass = VK_EXPECT_RV(vk.device->createRenderPassUnique(renderpassCreateInfo));
+
+        std::vector<vkhpp::ImageView> framebufferAttachments;
+        if (colorAttachment) {
+            framebufferAttachments.push_back(*colorAttachment->imageView);
+        }
+        if (depthAttachment) {
+            framebufferAttachments.push_back(*depthAttachment->imageView);
+        }
+        const vkhpp::FramebufferCreateInfo framebufferCreateInfo = {
+            .renderPass = *renderpass,
+            .attachmentCount = static_cast<uint32_t>(framebufferAttachments.size()),
+            .pAttachments = framebufferAttachments.data(),
+            .width = width,
+            .height = height,
+            .layers = 1,
+        };
+        auto framebuffer = VK_EXPECT_RV(vk.device->createFramebufferUnique(framebufferCreateInfo));
+
+        return FramebufferWithAttachments{
+            .colorAttachment = std::move(colorAttachment),
+            .depthAttachment = std::move(depthAttachment),
+            .renderpass = std::move(renderpass),
+            .framebuffer = std::move(framebuffer),
+        };
+    }
+
+    struct DescriptorContents {
+        uint32_t binding = 0;
+        struct Image {
+            vkhpp::ImageView imageView;
+            vkhpp::ImageLayout imageLayout;
+            vkhpp::Sampler imageSampler;
+        };
+        std::optional<Image> image;
+    };
+    struct DescriptorSetBundle {
+        vkhpp::UniqueDescriptorPool pool;
+        vkhpp::UniqueDescriptorSetLayout layout;
+        vkhpp::UniqueDescriptorSet ds;
+    };
+    gfxstream::expected<DescriptorSetBundle, vkhpp::Result> CreateDescriptorSet(
+        TypicalVkTestEnvironment& vk,
+        const std::vector<vkhpp::DescriptorSetLayoutBinding>& bindings,
+        const std::vector<DescriptorContents> contents) {
+        std::unordered_map<vkhpp::DescriptorType, uint32_t> descriptorTypeToSizes;
+        for (const auto& binding : bindings) {
+            descriptorTypeToSizes[binding.descriptorType] += binding.descriptorCount;
+        }
+        std::vector<vkhpp::DescriptorPoolSize> descriptorPoolSizes;
+        for (const auto& [descriptorType, descriptorCount] : descriptorTypeToSizes) {
+            descriptorPoolSizes.push_back(vkhpp::DescriptorPoolSize{
+                .type = descriptorType,
+                .descriptorCount = descriptorCount,
+            });
+        }
+        const vkhpp::DescriptorPoolCreateInfo descriptorPoolCreateInfo = {
+            .flags = vkhpp::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+            .maxSets = 1,
+            .poolSizeCount = static_cast<uint32_t>(descriptorPoolSizes.size()),
+            .pPoolSizes = descriptorPoolSizes.data(),
+        };
+        auto descriptorSetPool =
+            VK_EXPECT_RV(vk.device->createDescriptorPoolUnique(descriptorPoolCreateInfo));
+
+        const vkhpp::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+            .bindingCount = static_cast<uint32_t>(bindings.size()),
+            .pBindings = bindings.data(),
+        };
+        auto descriptorSetLayout =
+            VK_EXPECT_RV(vk.device->createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo));
+
+        const vkhpp::DescriptorSetLayout descriptorSetLayoutHandle = *descriptorSetLayout;
+        const vkhpp::DescriptorSetAllocateInfo descriptorSetAllocateInfo = {
+            .descriptorPool = *descriptorSetPool,
+            .descriptorSetCount = 1,
+            .pSetLayouts = &descriptorSetLayoutHandle,
+        };
+        auto descriptorSets =
+            VK_EXPECT_RV(vk.device->allocateDescriptorSetsUnique(descriptorSetAllocateInfo));
+        auto descriptorSet(std::move(descriptorSets[0]));
+
+        std::vector<std::unique_ptr<vkhpp::DescriptorImageInfo>> descriptorImageInfos;
+        std::vector<vkhpp::WriteDescriptorSet> descriptorSetWrites;
+        for (const auto& content : contents) {
+            if (content.image) {
+                descriptorImageInfos.emplace_back(new vkhpp::DescriptorImageInfo{
+                    .sampler = content.image->imageSampler,
+                    .imageView = content.image->imageView,
+                    .imageLayout = content.image->imageLayout,
+                });
+                descriptorSetWrites.emplace_back(vkhpp::WriteDescriptorSet{
+                    .dstSet = *descriptorSet,
+                    .dstBinding = content.binding,
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = vkhpp::DescriptorType::eCombinedImageSampler,
+                    .pImageInfo = descriptorImageInfos.back().get(),
+                });
+            } else {
+                return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+            }
+        }
+        vk.device->updateDescriptorSets(descriptorSetWrites, {});
+
+        return DescriptorSetBundle{
+            .pool = std::move(descriptorSetPool),
+            .layout = std::move(descriptorSetLayout),
+            .ds = std::move(descriptorSet),
+        };
+    }
+
+    struct PipelineParams {
+        std::vector<uint32_t> vert;
+        std::vector<uint32_t> frag;
+        std::vector<DescriptorSetBundle*> descriptorSets;
+        const FramebufferWithAttachments* framebuffer = nullptr;
+    };
+    struct PipelineBundle {
+        vkhpp::UniqueShaderModule vert;
+        vkhpp::UniqueShaderModule frag;
+        vkhpp::UniquePipelineLayout pipelineLayout;
+        vkhpp::UniquePipeline pipeline;
+    };
+    gfxstream::expected<PipelineBundle, vkhpp::Result> CreatePipeline(
+        TypicalVkTestEnvironment& vk, const PipelineParams& params) {
+        const vkhpp::ShaderModuleCreateInfo vertShaderCreateInfo = {
+            .codeSize = params.vert.size() * sizeof(uint32_t),
+            .pCode = params.vert.data(),
+        };
+        auto vertShaderModule =
+            VK_EXPECT_RV(vk.device->createShaderModuleUnique(vertShaderCreateInfo));
+
+        const vkhpp::ShaderModuleCreateInfo fragShaderCreateInfo = {
+            .codeSize = params.frag.size() * sizeof(uint32_t),
+            .pCode = params.frag.data(),
+        };
+        auto fragShaderModule =
+            VK_EXPECT_RV(vk.device->createShaderModuleUnique(fragShaderCreateInfo));
+
+        const std::vector<vkhpp::PipelineShaderStageCreateInfo> pipelineStages = {
+            vkhpp::PipelineShaderStageCreateInfo{
+                .stage = vkhpp::ShaderStageFlagBits::eVertex,
+                .module = *vertShaderModule,
+                .pName = "main",
+            },
+            vkhpp::PipelineShaderStageCreateInfo{
+                .stage = vkhpp::ShaderStageFlagBits::eFragment,
+                .module = *fragShaderModule,
+                .pName = "main",
+            },
+        };
+
+        std::vector<vkhpp::DescriptorSetLayout> descriptorSetLayoutHandles;
+        for (const auto* descriptorSet : params.descriptorSets) {
+            descriptorSetLayoutHandles.push_back(*descriptorSet->layout);
+        }
+        const vkhpp::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
+            .setLayoutCount = static_cast<uint32_t>(descriptorSetLayoutHandles.size()),
+            .pSetLayouts = descriptorSetLayoutHandles.data(),
+        };
+        auto pipelineLayout =
+            VK_EXPECT_RV(vk.device->createPipelineLayoutUnique(pipelineLayoutCreateInfo));
+
+        const vkhpp::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo = {};
+        const vkhpp::PipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo = {
+            .topology = vkhpp::PrimitiveTopology::eTriangleList,
+        };
+        const vkhpp::PipelineViewportStateCreateInfo pipelineViewportStateCreateInfo = {
+            .viewportCount = 1,
+            .pViewports = nullptr,
+            .scissorCount = 1,
+            .pScissors = nullptr,
+        };
+        const vkhpp::PipelineRasterizationStateCreateInfo pipelineRasterStateCreateInfo = {
+            .depthClampEnable = VK_FALSE,
+            .rasterizerDiscardEnable = VK_FALSE,
+            .polygonMode = vkhpp::PolygonMode::eFill,
+            .cullMode = {},
+            .frontFace = vkhpp::FrontFace::eCounterClockwise,
+            .depthBiasEnable = VK_FALSE,
+            .depthBiasConstantFactor = 0.0f,
+            .depthBiasClamp = 0.0f,
+            .depthBiasSlopeFactor = 0.0f,
+            .lineWidth = 1.0f,
+        };
+        const vkhpp::SampleMask pipelineSampleMask = 65535;
+        const vkhpp::PipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo = {
+            .rasterizationSamples = vkhpp::SampleCountFlagBits::e1,
+            .sampleShadingEnable = VK_FALSE,
+            .minSampleShading = 1.0f,
+            .pSampleMask = &pipelineSampleMask,
+            .alphaToCoverageEnable = VK_FALSE,
+            .alphaToOneEnable = VK_FALSE,
+        };
+        const vkhpp::PipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo = {
+            .depthTestEnable = VK_FALSE,
+            .depthWriteEnable = VK_FALSE,
+            .depthCompareOp = vkhpp::CompareOp::eLess,
+            .depthBoundsTestEnable = VK_FALSE,
+            .stencilTestEnable = VK_FALSE,
+            .front =
+                {
+                    .failOp = vkhpp::StencilOp::eKeep,
+                    .passOp = vkhpp::StencilOp::eKeep,
+                    .depthFailOp = vkhpp::StencilOp::eKeep,
+                    .compareOp = vkhpp::CompareOp::eAlways,
+                    .compareMask = 0,
+                    .writeMask = 0,
+                    .reference = 0,
+                },
+            .back =
+                {
+                    .failOp = vkhpp::StencilOp::eKeep,
+                    .passOp = vkhpp::StencilOp::eKeep,
+                    .depthFailOp = vkhpp::StencilOp::eKeep,
+                    .compareOp = vkhpp::CompareOp::eAlways,
+                    .compareMask = 0,
+                    .writeMask = 0,
+                    .reference = 0,
+                },
+            .minDepthBounds = 0.0f,
+            .maxDepthBounds = 0.0f,
+        };
+        const std::vector<vkhpp::PipelineColorBlendAttachmentState> pipelineColorBlendAttachments =
+            {
+                vkhpp::PipelineColorBlendAttachmentState{
+                    .blendEnable = VK_FALSE,
+                    .srcColorBlendFactor = vkhpp::BlendFactor::eOne,
+                    .dstColorBlendFactor = vkhpp::BlendFactor::eOneMinusSrcAlpha,
+                    .colorBlendOp = vkhpp::BlendOp::eAdd,
+                    .srcAlphaBlendFactor = vkhpp::BlendFactor::eOne,
+                    .dstAlphaBlendFactor = vkhpp::BlendFactor::eOneMinusSrcAlpha,
+                    .alphaBlendOp = vkhpp::BlendOp::eAdd,
+                    .colorWriteMask =
+                        vkhpp::ColorComponentFlagBits::eR | vkhpp::ColorComponentFlagBits::eG |
+                        vkhpp::ColorComponentFlagBits::eB | vkhpp::ColorComponentFlagBits::eA,
+                },
+            };
+        const vkhpp::PipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo = {
+            .logicOpEnable = VK_FALSE,
+            .logicOp = vkhpp::LogicOp::eCopy,
+            .attachmentCount = static_cast<uint32_t>(pipelineColorBlendAttachments.size()),
+            .pAttachments = pipelineColorBlendAttachments.data(),
+            .blendConstants = {{
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+            }},
+        };
+        const std::vector<vkhpp::DynamicState> pipelineDynamicStates = {
+            vkhpp::DynamicState::eViewport,
+            vkhpp::DynamicState::eScissor,
+        };
+        const vkhpp::PipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo = {
+            .dynamicStateCount = static_cast<uint32_t>(pipelineDynamicStates.size()),
+            .pDynamicStates = pipelineDynamicStates.data(),
+        };
+        const vkhpp::GraphicsPipelineCreateInfo pipelineCreateInfo = {
+            .stageCount = static_cast<uint32_t>(pipelineStages.size()),
+            .pStages = pipelineStages.data(),
+            .pVertexInputState = &pipelineVertexInputStateCreateInfo,
+            .pInputAssemblyState = &pipelineInputAssemblyStateCreateInfo,
+            .pTessellationState = nullptr,
+            .pViewportState = &pipelineViewportStateCreateInfo,
+            .pRasterizationState = &pipelineRasterStateCreateInfo,
+            .pMultisampleState = &pipelineMultisampleStateCreateInfo,
+            .pDepthStencilState = &pipelineDepthStencilStateCreateInfo,
+            .pColorBlendState = &pipelineColorBlendStateCreateInfo,
+            .pDynamicState = &pipelineDynamicStateCreateInfo,
+            .layout = *pipelineLayout,
+            .renderPass = *params.framebuffer->renderpass,
+            .subpass = 0,
+            .basePipelineHandle = VK_NULL_HANDLE,
+            .basePipelineIndex = 0,
+        };
+        auto pipeline =
+            VK_EXPECT_RV(vk.device->createGraphicsPipelineUnique({}, pipelineCreateInfo));
+
+        return PipelineBundle{
+            .vert = std::move(vertShaderModule),
+            .frag = std::move(fragShaderModule),
+            .pipelineLayout = std::move(pipelineLayout),
+            .pipeline = std::move(pipeline),
+        };
+    }
+
+    gfxstream::expected<Image, vkhpp::Result> DownloadImage(TypicalVkTestEnvironment& vk,
+                                                            uint32_t width, uint32_t height,
+                                                            const vkhpp::UniqueImage& image,
+                                                            vkhpp::ImageLayout currentLayout,
+                                                            vkhpp::ImageLayout returnedLayout) {
+        static constexpr const VkDeviceSize kStagingBufferSize = 32 * 1024 * 1024;
+        auto stagingBuffer = GFXSTREAM_EXPECT(CreateBuffer(
+            vk, kStagingBufferSize,
+            vkhpp::BufferUsageFlagBits::eTransferDst | vkhpp::BufferUsageFlagBits::eTransferSrc,
+            vkhpp::MemoryPropertyFlagBits::eHostVisible |
+                vkhpp::MemoryPropertyFlagBits::eHostCoherent));
+
+        GFXSTREAM_EXPECT(DoCommandsImmediate(vk, [&](vkhpp::UniqueCommandBuffer& cmd) {
+            if (currentLayout != vkhpp::ImageLayout::eTransferSrcOptimal) {
+                const std::vector<vkhpp::ImageMemoryBarrier> imageMemoryBarriers = {
+                    vkhpp::ImageMemoryBarrier{
+                        .srcAccessMask = vkhpp::AccessFlagBits::eMemoryRead |
+                                         vkhpp::AccessFlagBits::eMemoryWrite,
+                        .dstAccessMask = vkhpp::AccessFlagBits::eTransferRead,
+                        .oldLayout = currentLayout,
+                        .newLayout = vkhpp::ImageLayout::eTransferSrcOptimal,
+                        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                        .image = *image,
+                        .subresourceRange =
+                            {
+                                .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                                .baseMipLevel = 0,
+                                .levelCount = 1,
+                                .baseArrayLayer = 0,
+                                .layerCount = 1,
+                            },
+                    },
+                };
+                cmd->pipelineBarrier(
+                    /*srcStageMask=*/vkhpp::PipelineStageFlagBits::eAllCommands,
+                    /*dstStageMask=*/vkhpp::PipelineStageFlagBits::eAllCommands,
+                    /*dependencyFlags=*/{},
+                    /*memoryBarriers=*/{},
+                    /*bufferMemoryBarriers=*/{},
+                    /*imageMemoryBarriers=*/imageMemoryBarriers);
+            }
+
+            const std::vector<vkhpp::BufferImageCopy> regions = {
+                vkhpp::BufferImageCopy{
+                    .bufferOffset = 0,
+                    .bufferRowLength = 0,
+                    .bufferImageHeight = 0,
+                    .imageSubresource =
+                        {
+                            .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                            .mipLevel = 0,
+                            .baseArrayLayer = 0,
+                            .layerCount = 1,
+                        },
+                    .imageOffset =
+                        {
+                            .x = 0,
+                            .y = 0,
+                            .z = 0,
+                        },
+                    .imageExtent =
+                        {
+                            .width = width,
+                            .height = height,
+                            .depth = 1,
+                        },
+                },
+            };
+            cmd->copyImageToBuffer(*image, vkhpp::ImageLayout::eTransferSrcOptimal,
+                                   *stagingBuffer.buffer, regions);
+
+            if (returnedLayout != vkhpp::ImageLayout::eTransferSrcOptimal) {
+                const std::vector<vkhpp::ImageMemoryBarrier> imageMemoryBarriers = {
+                    vkhpp::ImageMemoryBarrier{
+                        .srcAccessMask = vkhpp::AccessFlagBits::eTransferRead,
+                        .dstAccessMask = vkhpp::AccessFlagBits::eMemoryRead |
+                                         vkhpp::AccessFlagBits::eMemoryWrite,
+                        .oldLayout = vkhpp::ImageLayout::eTransferSrcOptimal,
+                        .newLayout = returnedLayout,
+                        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                        .image = *image,
+                        .subresourceRange =
+                            {
+                                .aspectMask = vkhpp::ImageAspectFlagBits::eColor,
+                                .baseMipLevel = 0,
+                                .levelCount = 1,
+                                .baseArrayLayer = 0,
+                                .layerCount = 1,
+                            },
+                    },
+                };
+                cmd->pipelineBarrier(
+                    /*srcStageMask=*/vkhpp::PipelineStageFlagBits::eAllCommands,
+                    /*dstStageMask=*/vkhpp::PipelineStageFlagBits::eAllCommands,
+                    /*dependencyFlags=*/{},
+                    /*memoryBarriers=*/{},
+                    /*bufferMemoryBarriers=*/{},
+                    /*imageMemoryBarriers=*/imageMemoryBarriers);
+            }
+            return vkhpp::Result::eSuccess;
+        }));
+
+        std::vector<uint32_t> outPixels;
+        outPixels.resize(width * height);
+
+        auto* mapped =
+            VK_EXPECT_RV(vk.device->mapMemory(*stagingBuffer.bufferMemory, 0, VK_WHOLE_SIZE));
+        std::memcpy(outPixels.data(), mapped, sizeof(uint32_t) * outPixels.size());
+        vk.device->unmapMemory(*stagingBuffer.bufferMemory);
+
+        return Image{
+            .width = width,
+            .height = height,
+            .pixels = outPixels,
+        };
+    }
+
+    gfxstream::expected<Ok, vkhpp::Result> DoFillAndRenderFromAhb(uint32_t ahbFormat) {
+        const uint32_t width = 16;
+        const uint32_t height = 16;
+        const auto goldenPixel = PixelR8G8B8A8(11, 22, 33, 44);
+        const auto goldenPixels = Fill(width, height, goldenPixel);
+
+        auto ahb = GFXSTREAM_EXPECT(
+            ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat)
+                .transform_error([](const std::string&) { return vkhpp::Result::eErrorUnknown; }));
+
+        // Initialize AHB with `goldenPixel`
+        {
+            uint8_t* mapped = GFXSTREAM_EXPECT(ahb.Lock().transform_error(
+                [](const std::string&) { return vkhpp::Result::eErrorUnknown; }));
+            std::memcpy(mapped, goldenPixels.data(), goldenPixels.size());
+            ahb.Unlock();
+        }
+
+        const vkhpp::PhysicalDeviceVulkan11Features deviceFeatures = {
+            .samplerYcbcrConversion = VK_TRUE,
+        };
+        auto vk = GFXSTREAM_EXPECT(SetUpTypicalVkTestEnvironment({
+            .deviceExtensions = {{VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME}},
+            .deviceCreateInfoPNext = &deviceFeatures,
+        }));
+
+        auto ahbImage =
+            GFXSTREAM_EXPECT(CreateImageWithAhb(vk, ahb, vkhpp::ImageUsageFlagBits::eSampled,
+                                                vkhpp::ImageLayout::eShaderReadOnlyOptimal));
+
+        auto framebuffer = GFXSTREAM_EXPECT(CreateFramebuffer(
+            vk, width, height, /*colorAttachmentFormat=*/vkhpp::Format::eR8G8B8A8Unorm));
+
+        const vkhpp::Sampler ahbSamplerHandle = *ahbImage.imageSampler;
+        auto descriptorSet0 = GFXSTREAM_EXPECT(
+            CreateDescriptorSet(vk,
+                                /*bindings=*/
+                                {{
+                                    .binding = 0,
+                                    .descriptorType = vkhpp::DescriptorType::eCombinedImageSampler,
+                                    .descriptorCount = 1,
+                                    .stageFlags = vkhpp::ShaderStageFlagBits::eFragment,
+                                    .pImmutableSamplers = &ahbSamplerHandle,
+                                }},
+                                /*writes=*/
+                                {{
+                                    .binding = 0,
+                                    .image = {{
+                                        .imageView = *ahbImage.imageView,
+                                        .imageLayout = vkhpp::ImageLayout::eShaderReadOnlyOptimal,
+                                        .imageSampler = *ahbImage.imageSampler,
+                                    }},
+                                }}));
+
+        auto pipeline =
+            GFXSTREAM_EXPECT(CreatePipeline(vk, {
+                                                    .vert = kFullscreenTriangleWithUVVert,
+                                                    .frag = kBlitSampler2dFrag,
+                                                    .descriptorSets = {&descriptorSet0},
+                                                    .framebuffer = &framebuffer,
+                                                }));
+
+        GFXSTREAM_EXPECT(DoCommandsImmediate(vk, [&](vkhpp::UniqueCommandBuffer& cmd) {
+            const std::vector<vkhpp::ClearValue> renderPassBeginClearValues = {
+                vkhpp::ClearValue{
+                    .color =
+                        {
+                            .float32 = {{
+                                1.0f,
+                                0.0f,
+                                0.0f,
+                                1.0f,
+                            }},
+                        },
+                },
+            };
+            const vkhpp::RenderPassBeginInfo renderPassBeginInfo = {
+                .renderPass = *framebuffer.renderpass,
+                .framebuffer = *framebuffer.framebuffer,
+                .renderArea =
+                    {
+                        .offset =
+                            {
+                                .x = 0,
+                                .y = 0,
+                            },
+                        .extent =
+                            {
+                                .width = width,
+                                .height = height,
+                            },
+                    },
+                .clearValueCount = static_cast<uint32_t>(renderPassBeginClearValues.size()),
+                .pClearValues = renderPassBeginClearValues.data(),
+            };
+            cmd->beginRenderPass(renderPassBeginInfo, vkhpp::SubpassContents::eInline);
+            cmd->bindPipeline(vkhpp::PipelineBindPoint::eGraphics, *pipeline.pipeline);
+            cmd->bindDescriptorSets(vkhpp::PipelineBindPoint::eGraphics, *pipeline.pipelineLayout,
+                                    /*firstSet=*/0, {*descriptorSet0.ds},
+                                    /*dynamicOffsets=*/{});
+            const vkhpp::Viewport viewport = {
+                .x = 0.0f,
+                .y = 0.0f,
+                .width = static_cast<float>(width),
+                .height = static_cast<float>(height),
+                .minDepth = 0.0f,
+                .maxDepth = 1.0f,
+            };
+            cmd->setViewport(0, {viewport});
+            const vkhpp::Rect2D scissor = {
+                .offset =
+                    {
+                        .x = 0,
+                        .y = 0,
+                    },
+                .extent =
+                    {
+                        .width = width,
+                        .height = height,
+                    },
+            };
+            cmd->setScissor(0, {scissor});
+            cmd->draw(3, 1, 0, 0);
+            cmd->endRenderPass();
+            return vkhpp::Result::eSuccess;
+        }));
+
+        auto resultImage = GFXSTREAM_EXPECT(
+            DownloadImage(vk, width, height, framebuffer.colorAttachment->image,
+                          /*currentLayout=*/vkhpp::ImageLayout::eColorAttachmentOptimal,
+                          /*returnedLayout=*/vkhpp::ImageLayout::eColorAttachmentOptimal));
+
+        for (uint32_t y = 0; y < height; y++) {
+            for (uint32_t x = 0; x < width; x++) {
+                const auto actual = PixelR8G8B8A8(x, y, resultImage.pixels[(y * height) + x]);
+                EXPECT_THAT(actual, Eq(goldenPixel));
+            }
+        }
+
+        return Ok{};
     }
 };
 
@@ -1006,6 +2082,10 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedResetCommandBuffer) {
     for (auto& thread : threads) {
         thread.join();
     }
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, ImportAndBlitFromR8G8B8A8Ahb) {
+    VK_ASSERT(DoFillAndRenderFromAhb(GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 }
 
 std::vector<TestParams> GenerateTestCases() {

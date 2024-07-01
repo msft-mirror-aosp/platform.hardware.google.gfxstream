@@ -28,47 +28,6 @@ using testing::IsTrue;
 using testing::Le;
 using testing::Not;
 
-struct PixelR8G8B8A8 {
-    PixelR8G8B8A8() = default;
-
-    PixelR8G8B8A8(uint8_t rr, uint8_t gg, uint8_t bb, uint8_t aa) : r(rr), g(gg), b(bb), a(aa) {}
-
-    PixelR8G8B8A8(int xx, int yy, uint8_t rr, uint8_t gg, uint8_t bb, uint8_t aa)
-        : x(xx), y(yy), r(rr), g(gg), b(bb), a(aa) {}
-
-    std::optional<int> x;
-    std::optional<int> y;
-
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
-    uint8_t a = 0;
-
-    std::string ToString() const {
-        std::string ret = std::string("Pixel");
-        if (x) {
-            ret += std::string(" x:") + std::to_string(*x);
-        }
-        if (y) {
-            ret += std::string(" y:") + std::to_string(*y);
-        }
-        ret += std::string(" {");
-        ret += std::string(" r:") + std::to_string(static_cast<int>(r));
-        ret += std::string(" g:") + std::to_string(static_cast<int>(g));
-        ret += std::string(" b:") + std::to_string(static_cast<int>(b));
-        ret += std::string(" a:") + std::to_string(static_cast<int>(a));
-        ret += std::string(" }");
-        return ret;
-    }
-
-    bool operator==(const PixelR8G8B8A8& rhs) const {
-        const auto& lhs = *this;
-        return std::tie(lhs.r, lhs.g, lhs.b, lhs.a) == std::tie(rhs.r, rhs.g, rhs.b, rhs.a);
-    }
-
-    friend void PrintTo(const PixelR8G8B8A8& pixel, std::ostream* os) { *os << pixel.ToString(); }
-};
-
 MATCHER_P(IsOkWith, expected, std::string(" equals ") + expected.ToString()) {
     const auto& actual = arg;
 
@@ -795,20 +754,6 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithTexture) {
     }
 
     mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-constexpr std::vector<uint8_t> Fill(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel) {
-    std::vector<uint8_t> ret;
-    ret.reserve(w * h * 4);
-    for (uint32_t y = 0; y < h; y++) {
-        for (uint32_t x = 0; x < w; x++) {
-            ret.push_back(pixel.r);
-            ret.push_back(pixel.g);
-            ret.push_back(pixel.b);
-            ret.push_back(pixel.a);
-        }
-    }
-    return ret;
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndReadback) {
