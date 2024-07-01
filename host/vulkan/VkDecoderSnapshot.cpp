@@ -53,6 +53,7 @@ class VkDecoderSnapshot::Impl {
     }
 
     void createExtraHandlesForNextApi(const uint64_t* created, uint32_t count) {
+        mLock.lock();
         mReconstruction.createExtraHandlesForNextApi(created, count);
     }
 #ifdef VK_VERSION_1_0
@@ -142,7 +143,6 @@ class VkDecoderSnapshot::Impl {
                         VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreateInfo,
                         const VkAllocationCallbacks* pAllocator, VkDevice* pDevice) {
         if (!pDevice) return;
-        android::base::AutoLock lock(mLock);
         // pDevice create
         mReconstruction.addHandles((const uint64_t*)pDevice, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pDevice, 1,
@@ -154,6 +154,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDevice, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDevice, 1);
+        mLock.unlock();
     }
     void vkDestroyDevice(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                          android::base::BumpPool* pool, VkDevice device,
@@ -750,7 +751,6 @@ class VkDecoderSnapshot::Impl {
                                 const VkAllocationCallbacks* pAllocator,
                                 VkDescriptorPool* pDescriptorPool) {
         if (!pDescriptorPool) return;
-        android::base::AutoLock lock(mLock);
         // pDescriptorPool create
         mReconstruction.addHandles((const uint64_t*)pDescriptorPool, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pDescriptorPool, 1,
@@ -762,6 +762,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorPool, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDescriptorPool, 1);
+        mLock.unlock();
     }
     void vkDestroyDescriptorPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                  android::base::BumpPool* pool, VkDevice device,
