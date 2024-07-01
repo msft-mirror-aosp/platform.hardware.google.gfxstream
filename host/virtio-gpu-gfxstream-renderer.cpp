@@ -2802,6 +2802,15 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     gfxstream::vk::vk_util::setVkCheckCallbacks(
         std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
             gfxstream::vk::vk_util::VkCheckCallbacks{
+                .onVkErrorDeviceLost =
+                    []() {
+                        auto fb = gfxstream::FrameBuffer::getFB();
+                        if (!fb) {
+                            ERR("FrameBuffer not yet initialized. Dropping device lost event");
+                            return;
+                        }
+                        fb->logVulkanDeviceLost();
+                    },
                 .onVkErrorOutOfMemory =
                     [](VkResult result, const char* function, int line) {
                         auto fb = gfxstream::FrameBuffer::getFB();
