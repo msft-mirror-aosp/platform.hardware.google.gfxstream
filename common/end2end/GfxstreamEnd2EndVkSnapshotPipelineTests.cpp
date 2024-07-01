@@ -17,8 +17,8 @@
 #include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
 #include "gfxstream/RutabagaLayerTestUtils.h"
-#include "simple_shader_frag.h"
-#include "simple_shader_vert.h"
+#include "shaders/simple_shader_frag.h"
+#include "shaders/simple_shader_vert.h"
 
 namespace gfxstream {
 namespace tests {

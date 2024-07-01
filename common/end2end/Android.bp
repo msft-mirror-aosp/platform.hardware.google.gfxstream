@@ -56,6 +56,9 @@ cc_test_host {
         "-Wno-unused-parameter",
         "-Wno-extern-c-compat",
     ],
+    local_include_dirs: [
+        ".",
+    ],
     test_options: {
         // Disabled by default as requires host OpenGL and Vulkan.
         unit_test: false,
