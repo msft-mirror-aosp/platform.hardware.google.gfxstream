@@ -2549,29 +2549,61 @@ class VkDecoderGlobalState::Impl {
         VkSemaphoreCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localCreateInfo);
 
+        bool timelineSemaphore = false;
+
         VkSemaphoreTypeCreateInfoKHR localSemaphoreTypeCreateInfo;
         if (const VkSemaphoreTypeCreateInfoKHR* semaphoreTypeCiPtr =
                 vk_find_struct<VkSemaphoreTypeCreateInfoKHR>(pCreateInfo);
             semaphoreTypeCiPtr) {
             localSemaphoreTypeCreateInfo = vk_make_orphan_copy(*semaphoreTypeCiPtr);
             vk_append_struct(&structChainIter, &localSemaphoreTypeCreateInfo);
+
+            if (localSemaphoreTypeCreateInfo.semaphoreType == VK_SEMAPHORE_TYPE_TIMELINE) {
+                timelineSemaphore = true;
+            }
         }
 
-        const VkExportSemaphoreCreateInfoKHR* exportCiPtr =
-            vk_find_struct<VkExportSemaphoreCreateInfoKHR>(pCreateInfo);
-        VkExportSemaphoreCreateInfoKHR localSemaphoreCreateInfo;
+        VkExportSemaphoreCreateInfoKHR localExportSemaphoreCi = {};
 
-        if (exportCiPtr) {
-            localSemaphoreCreateInfo = vk_make_orphan_copy(*exportCiPtr);
+        /* Timeline semaphores are exportable:
+         *
+         * "Timeline semaphore specific external sharing capabilities can be queried using
+         *  vkGetPhysicalDeviceExternalSemaphoreProperties by chaining the new
+         *  VkSemaphoreTypeCreateInfoKHR structure to its pExternalSemaphoreInfo structure.
+         *  This allows having a different set of external semaphore handle types supported
+         *  for timeline semaphores vs. binary semaphores."
+         *
+         *  We just don't support this here since neither Android or Zink use this feature
+         *  with timeline semaphores yet.
+         */
+        if (m_emu->features.VulkanExternalSync.enabled && !timelineSemaphore) {
+            localExportSemaphoreCi.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
+            localExportSemaphoreCi.pNext = nullptr;
 
-#ifdef _WIN32
-            if (localSemaphoreCreateInfo.handleTypes) {
-                localSemaphoreCreateInfo.handleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR;
+            {
+                std::lock_guard<std::recursive_mutex> lock(mLock);
+                auto* deviceInfo = android::base::find(mDeviceInfo, device);
+
+                if (!deviceInfo) {
+                    return VK_ERROR_DEVICE_LOST;
+                }
+
+                if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT) {
+                    localExportSemaphoreCi.handleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+                } else if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                           VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
+                    localExportSemaphoreCi.handleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+                } else if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                           VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT) {
+                    localExportSemaphoreCi.handleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+                }
             }
-#endif
 
-            vk_append_struct(&structChainIter, &localSemaphoreCreateInfo);
+            vk_append_struct(&structChainIter, &localExportSemaphoreCi);
         }
 
         VkResult res = vk->vkCreateSemaphore(device, &localCreateInfo, pAllocator, pSemaphore);
