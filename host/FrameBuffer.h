@@ -848,7 +848,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
 
     bool m_vulkanInteropSupported = false;
     bool m_vulkanEnabled = false;
-    bool m_guestUsesAngle = false;
     // Whether the guest manages ColorBuffer lifetime
     // so we don't need refcounting on the host side.
     bool m_guestManagedColorBufferLifetime = false;
