@@ -71,6 +71,12 @@
 #include <vulkan/vulkan_beta.h> // for MoltenVK portability extensions
 #endif
 
+#ifndef VERBOSE
+#define VERBOSE(fmt, ...)        \
+    if (android::base::isVerboseLogging()) \
+        fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#endif
+
 #include <climits>
 
 namespace gfxstream {
@@ -366,7 +372,6 @@ class VkDecoderGlobalState::Impl {
                                                 .control_get_hw_funcs()
                                                 ->getPhysAddrStartLocked();
         }
-        mGuestUsesAngle = m_emu->features.GuestUsesAngle.enabled;
     }
 
     ~Impl() = default;
@@ -465,9 +470,13 @@ class VkDecoderGlobalState::Impl {
 
     void save(android::base::Stream* stream) {
         mSnapshotState = SnapshotState::Saving;
+
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
         if (!mInstanceInfo.empty()) {
             get_emugl_vm_operations().setStatSnapshotUseVulkan();
         }
+#endif
+
         snapshot()->save(stream);
         // Save mapped memory
         uint32_t memoryCount = 0;
@@ -849,9 +858,13 @@ class VkDecoderGlobalState::Impl {
                 poolIds.data(), whichPool.data(), pendingAlloc.data(), writeStartingIndices.data(),
                 writeDescriptorSets.size(), writeDescriptorSets.data());
         }
+
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
         if (!mInstanceInfo.empty()) {
             get_emugl_vm_operations().setStatSnapshotUseVulkan();
         }
+#endif
+
         mSnapshotState = SnapshotState::Normal;
     }
 
@@ -948,7 +961,7 @@ class VkDecoderGlobalState::Impl {
             curr = curr->pNext;
         }
 
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+#if defined(__APPLE__)
         if (m_emu->instanceSupportsMoltenVK) {
             createInfoFiltered.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         }
@@ -995,6 +1008,7 @@ class VkDecoderGlobalState::Impl {
         INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
              info.applicationName.c_str(), info.engineName.c_str());
 
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
         // TODO: bug 129484301
         if (!m_emu->features.VulkanSnapshots.enabled
                 || kSnapshotAppAllowList.find(info.applicationName)
@@ -1002,19 +1016,11 @@ class VkDecoderGlobalState::Impl {
             get_emugl_vm_operations().setSkipSnapshotSave(true);
             get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_APP);
         }
-
+#endif
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
         init_vulkan_dispatch_from_instance(m_vk, *pInstance, dispatch_VkInstance(boxed));
         info.boxed = boxed;
-
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
-        if (m_emu->instanceSupportsMoltenVK) {
-            if (!m_vk->vkSetMTLTextureMVK) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Cannot find vkSetMTLTextureMVK";
-            }
-        }
-#endif
 
         std::string_view engineName = appInfo.pEngineName ? appInfo.pEngineName : "";
         info.isAngle = (engineName == "ANGLE");
@@ -1585,7 +1591,7 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
         bool shouldPassthrough = !m_emu->enableYcbcrEmulation;
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+#if defined(__APPLE__)
         shouldPassthrough = shouldPassthrough && !m_emu->instanceSupportsMoltenVK;
 #endif
         if (shouldPassthrough) {
@@ -1603,6 +1609,7 @@ class VkDecoderGlobalState::Impl {
         }
 
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+        // Guest will check for VK_MVK_moltenvk extension for enabling AHB support
         if (m_emu->instanceSupportsMoltenVK &&
             !hasDeviceExtension(properties, VK_MVK_MOLTENVK_EXTENSION_NAME)) {
             VkExtensionProperties mvk_props;
@@ -2101,7 +2108,8 @@ class VkDecoderGlobalState::Impl {
 
     VkResult on_vkCreateImage(android::base::BumpPool* pool, VkDevice boxed_device,
                               const VkImageCreateInfo* pCreateInfo,
-                              const VkAllocationCallbacks* pAllocator, VkImage* pImage) {
+                              const VkAllocationCallbacks* pAllocator, VkImage* pImage,
+                              bool boxImage = true) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -2113,7 +2121,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (deviceInfo->imageFormats.find(pCreateInfo->format) == deviceInfo->imageFormats.end()) {
-            INFO("gfxstream_texture_format_manifest: %s", string_VkFormat(pCreateInfo->format));
+            VERBOSE("gfxstream_texture_format_manifest: %s", string_VkFormat(pCreateInfo->format));
             deviceInfo->imageFormats.insert(pCreateInfo->format);
         }
 
@@ -2197,7 +2205,9 @@ class VkDecoderGlobalState::Impl {
         imageInfo.layout = pCreateInfo->initialLayout;
         if (nativeBufferANDROID) imageInfo.anbInfo = std::move(anbInfo);
 
-        *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
+        if (boxImage) {
+            *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
+        }
         return createRes;
     }
 
@@ -2252,8 +2262,9 @@ class VkDecoderGlobalState::Impl {
                 << "Missing VkNativeBufferANDROID for deferred AHB bind.";
         }
 
-        VkImage boxed_replacement_image = VK_NULL_HANDLE;
-        VkResult result = on_vkCreateImage(pool, boxed_device, &ici, nullptr, &boxed_replacement_image);
+        VkImage underlying_replacement_image = VK_NULL_HANDLE;
+        VkResult result = on_vkCreateImage(pool, boxed_device, &ici, nullptr,
+                                           &underlying_replacement_image, false);
         if (result != VK_SUCCESS) {
             ERR("Failed to create image for deferred AHB bind.");
             return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -2264,9 +2275,9 @@ class VkDecoderGlobalState::Impl {
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
 
-            auto underlying_replacement_image = unbox_VkImage(boxed_replacement_image);
-            delete_VkImage(boxed_replacement_image);
             set_boxed_non_dispatchable_VkImage(original_boxed_image, underlying_replacement_image);
+            const_cast<VkBindImageMemoryInfo*>(bimi)->image = underlying_replacement_image;
+            const_cast<VkBindImageMemoryInfo*>(bimi)->memory = nullptr;
         }
 
         return VK_SUCCESS;
@@ -2335,6 +2346,17 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkBindImageMemory2(android::base::BumpPool* pool, VkDevice boxed_device,
                                    uint32_t bindInfoCount,
                                    const VkBindImageMemoryInfo* pBindInfos) {
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+        if (bindInfoCount > 1 && snapshotsEnabled()) {
+            if (mVerbosePrints) {
+                fprintf(stderr,
+                    "vkBindImageMemory2 with more than 1 bindInfoCount not supporting snapshot");
+            }
+            get_emugl_vm_operations().setSkipSnapshotSave(true);
+            get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_API);
+        }
+#endif
+
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
         bool needEmulation = false;
@@ -4373,8 +4395,6 @@ class VkDecoderGlobalState::Impl {
         void* mappedPtr = nullptr;
         ManagedDescriptor externalMemoryHandle;
         if (importCbInfoPtr) {
-            bool vulkanOnly = mGuestUsesAngle;
-
             bool colorBufferMemoryUsesDedicatedAlloc = false;
             if (!getColorBufferAllocationInfo(importCbInfoPtr->colorBuffer,
                                               &localAllocInfo.allocationSize,
@@ -4387,7 +4407,7 @@ class VkDecoderGlobalState::Impl {
 
             shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
 
-            if (!vulkanOnly) {
+            if (!m_emu->features.GuestVulkanOnly.enabled) {
                 auto fb = FrameBuffer::getFB();
                 if (fb) {
                     fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
@@ -4481,8 +4501,9 @@ class VkDecoderGlobalState::Impl {
             } else
 #endif
             if (m_emu->deviceInfo.supportsExternalMemoryImport) {
+                uint32_t outStreamHandleType;
                 VK_EXT_MEMORY_HANDLE bufferExtMemoryHandle =
-                    getBufferExtMemoryHandle(importBufferInfoPtr->buffer);
+                    getBufferExtMemoryHandle(importBufferInfoPtr->buffer, &outStreamHandleType);
 
                 if (bufferExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
                     fprintf(stderr,
@@ -5351,8 +5372,7 @@ class VkDecoderGlobalState::Impl {
 
         std::unordered_set<HandleType> acquiredColorBuffers;
         std::unordered_set<HandleType> releasedColorBuffers;
-        bool vulkanOnly = mGuestUsesAngle;
-        if (!vulkanOnly) {
+        if (!m_emu->features.GuestVulkanOnly.enabled) {
             {
                 std::lock_guard<std::recursive_mutex> lock(mLock);
                 for (int i = 0; i < submitCount; i++) {
@@ -7756,7 +7776,6 @@ class VkDecoderGlobalState::Impl {
     bool mLogging = false;
     bool mVerbosePrints = false;
     bool mUseOldMemoryCleanupPath = false;
-    bool mGuestUsesAngle = false;
 
     std::recursive_mutex mLock;
 
@@ -9198,6 +9217,9 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HAN
         return (type)elt->underlying;                                                             \
     }                                                                                             \
     type unboxed_to_boxed_non_dispatchable_##type(type unboxed) {                                 \
+        if (!unboxed) {                                                                           \
+            return nullptr;                                                                       \
+        }                                                                                         \
         AutoLock lock(sBoxedHandleManager.lock);                                                  \
         return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
     }

@@ -2433,7 +2433,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, GlPipeChecksum, false);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
-        &features, GuestUsesAngle,
+        &features, GuestVulkanOnly,
         (renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT) &&
         !(renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT));
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
