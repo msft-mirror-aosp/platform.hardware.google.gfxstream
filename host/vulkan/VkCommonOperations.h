@@ -198,6 +198,7 @@ struct VkEmulation {
         bool hasComputeQueueFamily = false;
         bool supportsExternalMemoryImport = false;
         bool supportsExternalMemoryExport = false;
+        bool supportsDmaBuf = false;
         bool supportsIdProperties = false;
         bool supportsDriverProperties = false;
         bool hasSamplerYcbcrConversionExtension = false;
@@ -254,6 +255,7 @@ struct VkEmulation {
         // This is used as an external handle when MoltenVK is enabled
         MTLBufferRef externalMetalHandle = nullptr;
 #endif
+        uint32_t streamHandleType;
 
         bool dedicatedAllocation = false;
     };
@@ -501,6 +503,7 @@ VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
 struct VkColorBufferMemoryExport {
     android::base::ManagedDescriptor descriptor;
     uint64_t size = 0;
+    uint32_t streamHandleType = 0;
     bool linearTiling = false;
     bool dedicatedAllocation = false;
 };
@@ -528,7 +531,8 @@ bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
 bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly = false,
                    uint32_t memoryProperty = 0);
 bool teardownVkBuffer(uint32_t bufferHandle);
-VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle);
+
+VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle, uint32_t* outStreamHandleType);
 #ifdef __APPLE__
 MTLBufferRef getBufferMetalMemoryHandle(uint32_t bufferHandle);
 #endif
