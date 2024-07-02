@@ -446,6 +446,8 @@ void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t cou
                                            HandleState parentState) {
     if (!handles) return;
 
+    if (!parentHandle) return;
+
     auto parentItem = mHandleReconstructions.get(parentHandle);
 
     if (!parentItem) {
