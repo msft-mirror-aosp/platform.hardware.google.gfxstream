@@ -42,10 +42,10 @@ def main():
                  for i in range(0, len(spv_bytes), BYTES_PER_UINT32)]
     spv_bytes_chunks = [spv_bytes[i:i + UINT32_PER_LINE]
                         for i in range(0, len(spv_bytes), UINT32_PER_LINE)]
-    spv_bytes_in_c_array = ',\n'.join([', '.join(
+    spv_bytes_in_vector = ',\n'.join([', '.join(
             [f'{spv_byte:#010x}' for spv_byte in spv_bytes_chunk]) for spv_bytes_chunk in spv_bytes_chunks])
-    spv_bytes_in_c_array = f'const uint32_t {args.export_symbol}[] = ' + \
-            '{\n' + spv_bytes_in_c_array + '\n};'
+    spv_bytes_in_vector = f'const std::vector<uint32_t> {args.export_symbol} = ' + \
+            '{\n' + spv_bytes_in_vector + '\n};'
 
     source_file_lines = None
     with open(args.source_file, mode='r') as source_file:
@@ -73,6 +73,7 @@ def main():
 //   {"python3 " + " ".join(sys.argv)}
 
 #include <stdint.h>
+#include <vector>
 
 // From {args.source_file}:
 
@@ -84,7 +85,7 @@ def main():
 
         target_file.write("\n\n")
 
-        target_file.write(spv_bytes_in_c_array)
+        target_file.write(spv_bytes_in_vector)
 
 
 if __name__ == '__main__':
