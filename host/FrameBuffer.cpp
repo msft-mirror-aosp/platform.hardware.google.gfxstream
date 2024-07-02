@@ -2982,6 +2982,28 @@ int FrameBuffer::waitSyncColorBuffer(HandleType colorBufferHandle) {
     return colorBuffer->waitSync();
 }
 
+std::optional<ManagedDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType colorBufferHandle) {
+    AutoLock mutex(m_lock);
+
+    ColorBufferPtr colorBuffer = findColorBuffer(colorBufferHandle);
+    if (!colorBuffer) {
+        return std::nullopt;
+    }
+
+    return colorBuffer->exportBlob();
+}
+
+std::optional<ManagedDescriptorInfo> FrameBuffer::exportBuffer(HandleType bufferHandle) {
+    AutoLock mutex(m_lock);
+
+    BufferPtr buffer = findBuffer(bufferHandle);
+    if (!buffer) {
+        return std::nullopt;
+    }
+
+    return buffer->exportBlob();
+}
+
 #if GFXSTREAM_ENABLE_HOST_GLES
 HandleType FrameBuffer::getEmulatedEglWindowSurfaceColorBufferHandle(HandleType p_surface) {
     AutoLock mutex(m_lock);
