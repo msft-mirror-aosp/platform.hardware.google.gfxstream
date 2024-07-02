@@ -2044,6 +2044,31 @@ class PipeVirglRenderer {
         return -EINVAL;
     }
 
+    int exportFence(uint64_t fenceId, struct stream_renderer_handle* handle) {
+        auto it = mSyncMap.find(fenceId);
+        if (it == mSyncMap.end()) {
+            return -EINVAL;
+        }
+
+        auto& entry = it->second;
+        DescriptorType rawDescriptor;
+        auto rawDescriptorOpt = entry->descriptor.release();
+        if (rawDescriptorOpt)
+            rawDescriptor = *rawDescriptorOpt;
+        else
+            return -EINVAL;
+
+        handle->handle_type = entry->handleType;
+
+#ifdef _WIN32
+        handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
+#else
+        handle->os_handle = static_cast<int64_t>(rawDescriptor);
+#endif
+
+        return 0;
+    }
+
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info) {
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -EINVAL;
@@ -2275,6 +2300,11 @@ VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* f
     }
 
     return 0;
+}
+
+VG_EXPORT int stream_renderer_export_fence(uint64_t fence_id,
+                                           struct stream_renderer_handle* handle) {
+    return sRenderer()->exportFence(fence_id, handle);
 }
 
 VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
