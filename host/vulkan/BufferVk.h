@@ -15,6 +15,8 @@
 #include <memory>
 #include <vector>
 
+#include "BlobManager.h"
+
 namespace gfxstream {
 namespace vk {
 
@@ -27,6 +29,8 @@ class BufferVk {
     void readToBytes(uint64_t offset, uint64_t size, void* outBytes);
 
     bool updateFromBytes(uint64_t offset, uint64_t size, const void* bytes);
+
+    std::optional<ManagedDescriptorInfo> exportBlob();
 
    private:
     BufferVk(uint32_t handle);
