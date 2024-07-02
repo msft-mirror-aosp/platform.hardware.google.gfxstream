@@ -372,7 +372,6 @@ class VkDecoderGlobalState::Impl {
                                                 .control_get_hw_funcs()
                                                 ->getPhysAddrStartLocked();
         }
-        mGuestUsesAngle = m_emu->features.GuestUsesAngle.enabled;
     }
 
     ~Impl() = default;
@@ -4396,8 +4395,6 @@ class VkDecoderGlobalState::Impl {
         void* mappedPtr = nullptr;
         ManagedDescriptor externalMemoryHandle;
         if (importCbInfoPtr) {
-            bool vulkanOnly = mGuestUsesAngle;
-
             bool colorBufferMemoryUsesDedicatedAlloc = false;
             if (!getColorBufferAllocationInfo(importCbInfoPtr->colorBuffer,
                                               &localAllocInfo.allocationSize,
@@ -4410,7 +4407,7 @@ class VkDecoderGlobalState::Impl {
 
             shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
 
-            if (!vulkanOnly) {
+            if (!m_emu->features.GuestVulkanOnly.enabled) {
                 auto fb = FrameBuffer::getFB();
                 if (fb) {
                     fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
@@ -5375,8 +5372,7 @@ class VkDecoderGlobalState::Impl {
 
         std::unordered_set<HandleType> acquiredColorBuffers;
         std::unordered_set<HandleType> releasedColorBuffers;
-        bool vulkanOnly = mGuestUsesAngle;
-        if (!vulkanOnly) {
+        if (!m_emu->features.GuestVulkanOnly.enabled) {
             {
                 std::lock_guard<std::recursive_mutex> lock(mLock);
                 for (int i = 0; i < submitCount; i++) {
@@ -7780,7 +7776,6 @@ class VkDecoderGlobalState::Impl {
     bool mLogging = false;
     bool mVerbosePrints = false;
     bool mUseOldMemoryCleanupPath = false;
-    bool mGuestUsesAngle = false;
 
     std::recursive_mutex mLock;
 
