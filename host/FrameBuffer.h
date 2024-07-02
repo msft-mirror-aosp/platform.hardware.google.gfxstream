@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "BlobManager.h"
 #include "Buffer.h"
 #include "ColorBuffer.h"
 #include "Compositor.h"
@@ -498,6 +499,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     bool invalidateColorBufferForVk(HandleType colorBufferHandle);
 
     int waitSyncColorBuffer(HandleType colorBufferHandle);
+    std::optional<ManagedDescriptorInfo> exportColorBuffer(HandleType colorBufferHandle);
+    std::optional<ManagedDescriptorInfo> exportBuffer(HandleType bufferHandle);
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     // Retrieves the color buffer handle associated with |p_surface|.
