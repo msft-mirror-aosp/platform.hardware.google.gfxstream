@@ -446,6 +446,13 @@ def OP_vkGetPipelineCacheData(printer, indent: int):
     pData = printer.write_int("pData", 8, indent, optional=True, count=pDataSize, big_endian=False)
     return
 
+def OP_vkGetSemaphoreGOOGLE(printer, indent: int):
+    printer.write_int("seqno: ", 4, indent)
+    device = printer.write_int("device", 8, indent, signed=False, big_endian=False)
+    semaphore = printer.write_int("semaphore", 8, indent, signed=False, big_endian=False)
+    syncId = printer.write_int("syncId", 8, indent, signed=False, big_endian=False)
+    return
+
 def OP_vkGetSwapchainGrallocUsageANDROID(printer, indent: int):
     printer.write_int("seqno: ", 4, indent)
     device = printer.write_int("device", 8, indent, signed=False, big_endian=False)
