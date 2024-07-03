@@ -242,6 +242,7 @@ struct PipeCtxEntry {
     uint32_t addressSpaceHandle;
     bool hasAddressSpaceHandle;
     std::unordered_map<VirtioGpuResId, uint32_t> addressSpaceHandles;
+    std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
 };
 
 enum class ResType {
@@ -252,6 +253,8 @@ enum class ResType {
     BUFFER,
     // Used as a GPU texture.
     COLOR_BUFFER,
+    // Used as a blob and not known to FrameBuffer.
+    BLOB,
 };
 
 struct AlignedMemory {
@@ -782,6 +785,7 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
         std::unordered_map<uint32_t, uint32_t> map;
+        std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
 
         PipeCtxEntry res = {
             std::move(contextName),  // contextName
@@ -792,6 +796,7 @@ class PipeVirglRenderer {
             0,                       // AS handle
             false,                   // does not have an AS handle
             map,                     // resourceId --> ASG handle map
+            blobMap,                 // blobId -> resource create args
         };
 
         stream_renderer_debug("initial host pipe for ctxid %u: %p", ctx_id, hostPipe);
@@ -1023,6 +1028,36 @@ class PipeVirglRenderer {
                     [this, taskId] { mVirtioGpuTimelines->notifyTaskCompletion(taskId); });
                 break;
             }
+            case GFXSTREAM_RESOURCE_CREATE_3D: {
+                DECODE(create3d, gfxstream::gfxstreamResourceCreate3d, buffer)
+                struct stream_renderer_resource_create_args rc3d = {0};
+
+                rc3d.target = create3d.target;
+                rc3d.format = create3d.format;
+                rc3d.bind = create3d.bind;
+                rc3d.width = create3d.width;
+                rc3d.height = create3d.height;
+                rc3d.depth = create3d.depth;
+                rc3d.array_size = create3d.arraySize;
+                rc3d.last_level = create3d.lastLevel;
+                rc3d.nr_samples = create3d.nrSamples;
+                rc3d.flags = create3d.flags;
+
+                auto ctxIt = mContexts.find(cmd->ctx_id);
+                if (ctxIt == mContexts.end()) {
+                    stream_renderer_error("ctx id %u is not found", cmd->ctx_id);
+                    return -EINVAL;
+                }
+
+                auto& ctxEntry = ctxIt->second;
+                if (ctxEntry.blobMap.count(create3d.blobId)) {
+                    stream_renderer_error("blob ID already in use");
+                    return -EINVAL;
+                }
+
+                ctxEntry.blobMap[create3d.blobId] = rc3d;
+                break;
+            }
             case GFXSTREAM_PLACEHOLDER_COMMAND_VK: {
                 // Do nothing, this is a placeholder command
                 break;
@@ -1165,6 +1200,8 @@ class PipeVirglRenderer {
 
         const auto resType = getResourceType(*args);
         switch (resType) {
+            case ResType::BLOB:
+                return -EINVAL;
             case ResType::PIPE:
                 break;
             case ResType::BUFFER:
@@ -1207,6 +1244,7 @@ class PipeVirglRenderer {
 
         auto& entry = it->second;
         switch (entry.type) {
+            case ResType::BLOB:
             case ResType::PIPE:
                 break;
             case ResType::BUFFER:
@@ -1434,6 +1472,8 @@ class PipeVirglRenderer {
 
         auto& entry = it->second;
         switch (entry.type) {
+            case ResType::BLOB:
+                return -EINVAL;
             case ResType::PIPE:
                 ret = handleTransferReadPipe(&entry, offset, box);
                 break;
@@ -1483,6 +1523,8 @@ class PipeVirglRenderer {
         }
 
         switch (entry.type) {
+            case ResType::BLOB:
+                return -EINVAL;
             case ResType::PIPE:
                 ret = handleTransferWritePipe(&entry, offset, box);
                 break;
@@ -1539,6 +1581,10 @@ class PipeVirglRenderer {
                 if (vk_emu && vk_emu->live) {
                     capset->deferredMapping = 1;
                 }
+
+#if SUPPORT_DMABUF
+                capset->alwaysBlob = 1;
+#endif
                 break;
             }
             case VIRTGPU_CAPSET_GFXSTREAM_MAGMA: {
@@ -1717,8 +1763,47 @@ class PipeVirglRenderer {
 
         PipeResEntry e;
         struct stream_renderer_resource_create_args args = {0};
+        std::optional<ManagedDescriptorInfo> descriptorInfoOpt = std::nullopt;
         e.args = args;
         e.hostPipe = 0;
+
+        auto ctxIt = mContexts.find(ctx_id);
+        if (ctxIt == mContexts.end()) {
+            stream_renderer_error("ctx id %u is not found", ctx_id);
+            return -EINVAL;
+        }
+
+        auto& ctxEntry = ctxIt->second;
+
+        ResType blobType = ResType::BLOB;
+
+        auto blobIt = ctxEntry.blobMap.find(create_blob->blob_id);
+        if (blobIt != ctxEntry.blobMap.end()) {
+            auto& create3d = blobIt->second;
+            create3d.handle = res_handle;
+
+            const auto resType = getResourceType(create3d);
+            switch (resType) {
+                case ResType::BLOB:
+                    return -EINVAL;
+                case ResType::PIPE:
+                    // Fallthrough for pipe is intended for blob buffers.
+                case ResType::BUFFER:
+                    blobType = ResType::BUFFER;
+                    handleCreateResourceBuffer(&create3d);
+                    descriptorInfoOpt = gfxstream::FrameBuffer::getFB()->exportBuffer(res_handle);
+                    break;
+                case ResType::COLOR_BUFFER:
+                    blobType = ResType::COLOR_BUFFER;
+                    handleCreateResourceColorBuffer(&create3d);
+                    descriptorInfoOpt =
+                        gfxstream::FrameBuffer::getFB()->exportColorBuffer(res_handle);
+                    break;
+            }
+
+            e.args = create3d;
+            ctxEntry.blobMap.erase(create_blob->blob_id);
+        }
 
         if (create_blob->blob_id == 0) {
             int ret = createRingBlob(e, res_handle, create_blob, handle);
@@ -1739,8 +1824,11 @@ class PipeVirglRenderer {
                 return -EINVAL;
 #endif
             } else {
-                auto descriptorInfoOpt =
-                    BlobManager::get()->removeDescriptorInfo(ctx_id, create_blob->blob_id);
+                if (!descriptorInfoOpt) {
+                    descriptorInfoOpt =
+                        BlobManager::get()->removeDescriptorInfo(ctx_id, create_blob->blob_id);
+                }
+
                 if (descriptorInfoOpt) {
                     e.descriptorInfo =
                         std::make_shared<ManagedDescriptorInfo>(std::move(*descriptorInfoOpt));
@@ -1764,6 +1852,7 @@ class PipeVirglRenderer {
         e.blobId = create_blob->blob_id;
         e.blobMem = create_blob->blob_mem;
         e.blobFlags = create_blob->blob_flags;
+        e.type = blobType;
         e.iov = nullptr;
         e.numIovs = 0;
         e.linear = 0;
