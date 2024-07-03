@@ -15282,6 +15282,59 @@ void unmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+void marshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugReportCallbackCreateInfoEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkDebugReportFlagsEXT*)&forMarshaling->flags, sizeof(VkDebugReportFlagsEXT));
+    uint64_t cgen_var_0 = (uint64_t)forMarshaling->pfnCallback;
+    vkStream->putBe64(cgen_var_0);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pUserData;
+    vkStream->putBe64(cgen_var_1);
+    if (forMarshaling->pUserData) {
+        vkStream->write((void*)forMarshaling->pUserData, sizeof(uint8_t));
+    }
+}
+
+void unmarshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugReportCallbackCreateInfoEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((VkDebugReportFlagsEXT*)&forUnmarshaling->flags, sizeof(VkDebugReportFlagsEXT));
+    forUnmarshaling->pfnCallback = (PFN_vkDebugReportCallbackEXT)vkStream->getBe64();
+    // WARNING PTR CHECK
+    forUnmarshaling->pUserData = (void*)(uintptr_t)vkStream->getBe64();
+    if (forUnmarshaling->pUserData) {
+        vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
+        vkStream->read((void*)forUnmarshaling->pUserData, sizeof(uint8_t));
+    }
+}
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void marshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -15511,8 +15564,6 @@ void unmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 
 #endif
 #ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
@@ -18096,6 +18147,86 @@ void unmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
 }
 
 #endif
+#ifdef VK_EXT_color_write_enable
+void marshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkBool32*)&forMarshaling->colorWriteEnable, sizeof(VkBool32));
+}
+
+void unmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((VkBool32*)&forUnmarshaling->colorWriteEnable, sizeof(VkBool32));
+}
+
+void marshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
+    vkStream->write((const VkBool32*)forMarshaling->pColorWriteEnables,
+                    forMarshaling->attachmentCount * sizeof(const VkBool32));
+}
+
+void unmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineColorWriteCreateInfoEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((uint32_t*)&forUnmarshaling->attachmentCount, sizeof(uint32_t));
+    vkStream->alloc((void**)&forUnmarshaling->pColorWriteEnables,
+                    forUnmarshaling->attachmentCount * sizeof(const VkBool32));
+    vkStream->read((VkBool32*)forUnmarshaling->pColorWriteEnables,
+                   forUnmarshaling->attachmentCount * sizeof(const VkBool32));
+}
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void marshal_VkImportColorBufferGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                        const VkImportColorBufferGOOGLE* forMarshaling) {
@@ -19071,6 +19202,14 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            marshal_VkDebugReportCallbackCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDebugReportCallbackCreateInfoEXT*>(structExtension));
+            break;
+        }
+#endif
 #ifdef VK_EXT_transform_feedback
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT: {
             marshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
@@ -19505,6 +19644,21 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
                 vkStream, rootType,
                 reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT*>(
                     structExtension));
+            break;
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            marshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            marshal_VkPipelineColorWriteCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineColorWriteCreateInfoEXT*>(structExtension));
             break;
         }
 #endif
@@ -20352,6 +20506,14 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
             break;
         }
 #endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            unmarshal_VkDebugReportCallbackCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkDebugReportCallbackCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_transform_feedback
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT: {
             unmarshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
@@ -20782,6 +20944,21 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
                 vkStream, rootType,
                 reinterpret_cast<VkPhysicalDeviceExtendedDynamicState2FeaturesEXT*>(
                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            unmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            unmarshal_VkPipelineColorWriteCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineColorWriteCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif
@@ -21476,6 +21653,17 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkQueueSignalReleaseImageANDROID";
         }
 #endif
+#ifdef VK_EXT_debug_report
+        case OP_vkCreateDebugReportCallbackEXT: {
+            return "OP_vkCreateDebugReportCallbackEXT";
+        }
+        case OP_vkDestroyDebugReportCallbackEXT: {
+            return "OP_vkDestroyDebugReportCallbackEXT";
+        }
+        case OP_vkDebugReportMessageEXT: {
+            return "OP_vkDebugReportMessageEXT";
+        }
+#endif
 #ifdef VK_EXT_debug_utils
         case OP_vkSetDebugUtilsObjectNameEXT: {
             return "OP_vkSetDebugUtilsObjectNameEXT";
@@ -21577,6 +21765,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_KHR_maintenance4
         case OP_vkGetDeviceBufferMemoryRequirementsKHR: {
             return "OP_vkGetDeviceBufferMemoryRequirementsKHR";
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case OP_vkCmdSetColorWriteEnableEXT: {
+            return "OP_vkCmdSetColorWriteEnableEXT";
         }
 #endif
 #ifdef VK_KHR_maintenance5

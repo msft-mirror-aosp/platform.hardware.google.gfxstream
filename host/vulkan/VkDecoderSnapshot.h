@@ -1283,6 +1283,23 @@ class VkDecoderSnapshot {
         VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
         uint64_t* grallocProducerUsage);
 #endif
+#ifdef VK_EXT_debug_report
+    void vkCreateDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
+                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                        VkResult input_result, VkInstance instance,
+                                        const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkDebugReportCallbackEXT* pCallback);
+    void vkDestroyDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
+                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                         VkInstance instance, VkDebugReportCallbackEXT callback,
+                                         const VkAllocationCallbacks* pAllocator);
+    void vkDebugReportMessageEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                 android::base::BumpPool* pool, VkInstance instance,
+                                 VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+                                 uint64_t object, size_t location, int32_t messageCode,
+                                 const char* pLayerPrefix, const char* pMessage);
+#endif
 #ifdef VK_EXT_transform_feedback
     void vkCmdBindTransformFeedbackBuffersEXT(
         const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -1319,8 +1336,6 @@ class VkDecoderSnapshot {
 #ifdef VK_EXT_depth_clip_enable
 #endif
 #ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
@@ -1537,6 +1552,11 @@ class VkDecoderSnapshot {
                                            size_t snapshotTraceBytes, android::base::BumpPool* pool,
                                            VkCommandBuffer commandBuffer,
                                            VkBool32 primitiveRestartEnable);
+#endif
+#ifdef VK_EXT_color_write_enable
+    void vkCmdSetColorWriteEnableEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                     android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                     uint32_t attachmentCount, const VkBool32* pColorWriteEnables);
 #endif
 #ifdef VK_GOOGLE_gfxstream
     void vkMapMemoryIntoAddressSpaceGOOGLE(const uint8_t* snapshotTraceBegin,
