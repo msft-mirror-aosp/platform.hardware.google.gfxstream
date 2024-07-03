@@ -80,5 +80,19 @@ bool ColorBufferVk::importExtMemoryHandle(void* nativeResource, uint32_t type,
 
 int ColorBufferVk::waitSync() { return waitSyncVkColorBuffer(mHandle); }
 
+std::optional<ManagedDescriptorInfo> ColorBufferVk::exportBlob() {
+    auto info = exportColorBufferMemory(mHandle);
+    if (info) {
+        return ManagedDescriptorInfo{
+            .descriptor = std::move((*info).descriptor),
+            .handleType = (*info).streamHandleType,
+            .caching = 0,
+            .vulkanInfoOpt = std::nullopt,
+        };
+    } else {
+        return std::nullopt;
+    }
+}
+
 }  // namespace vk
 }  // namespace gfxstream

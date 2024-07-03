@@ -17,6 +17,7 @@
 #include <memory>
 #include <vector>
 
+#include "BlobManager.h"
 #include "FrameworkFormats.h"
 #include "aemu/base/files/Stream.h"
 
@@ -43,6 +44,7 @@ class ColorBufferVk {
     void onSave(android::base::Stream* stream);
 
     int waitSync();
+    std::optional<ManagedDescriptorInfo> exportBlob();
 
    private:
     ColorBufferVk(uint32_t handle);
