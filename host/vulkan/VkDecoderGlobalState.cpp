@@ -2848,7 +2848,49 @@ class VkDecoderGlobalState::Impl {
 
     VkResult on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
                                      VkSemaphore semaphore, uint64_t syncId) {
-        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        VK_EXT_SYNC_HANDLE handle;
+        uint32_t streamHandleType = 0;
+        auto* tInfo = RenderThreadInfoVk::get();
+        auto vk = dispatch_VkDevice(boxed_device);
+        auto device = unbox_VkDevice(boxed_device);
+        VkExternalSemaphoreHandleTypeFlagBits flagBits =
+            static_cast<VkExternalSemaphoreHandleTypeFlagBits>(0);
+
+        if (!m_emu->features.VulkanExternalSync.enabled) {
+            return VK_ERROR_FEATURE_NOT_PRESENT;
+        }
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+
+            if (!deviceInfo) {
+                return VK_ERROR_DEVICE_LOST;
+            }
+
+            if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT) {
+                flagBits = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+            } else if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                       VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
+                flagBits = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+            } else if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                       VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT) {
+                flagBits = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+            }
+        }
+
+        VkResult result =
+            exportSemaphore(vk, device, semaphore, &handle,
+                            std::make_optional<VkExternalSemaphoreHandleTypeFlagBits>(flagBits));
+        if (result != VK_SUCCESS) {
+            return result;
+        }
+
+        ManagedDescriptor descriptor(handle);
+        ExternalObjectManager::get()->addSyncDescriptorInfo(
+            tInfo->ctx_id, syncId, std::move(descriptor), streamHandleType);
+        return VK_SUCCESS;
     }
 
     void destroySemaphoreLocked(VkDevice device, VulkanDispatch* deviceDispatch,
