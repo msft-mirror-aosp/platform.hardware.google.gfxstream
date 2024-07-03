@@ -190,8 +190,6 @@ private:
     void updateHostTexture2DBindingsFromProgramData(GLuint program);
     bool texture2DNeedsOverride(GLenum target) const;
 
-    void updateProgramInfoAfterLink(GLuint program);
-
     // Utility classes for safe queries that
     // need access to private class members
     class ErrorUpdater;

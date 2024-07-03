@@ -125,7 +125,7 @@ struct VkEmulation {
     // conversion or not.
     bool enableYcbcrEmulation = false;
 
-    bool guestUsesAngle = false;
+    bool guestVulkanOnly = false;
 
     bool useDedicatedAllocations = false;
 
@@ -149,10 +149,8 @@ struct VkEmulation {
     PFN_vkGetPhysicalDeviceProperties2KHR getPhysicalDeviceProperties2Func = nullptr;
     PFN_vkGetPhysicalDeviceFeatures2 getPhysicalDeviceFeatures2Func = nullptr;
 
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+#if defined(__APPLE__)
     bool instanceSupportsMoltenVK = false;
-    PFN_vkSetMTLTextureMVK setMTLTextureFunc = nullptr;
-    PFN_vkGetMTLTextureMVK getMTLTextureFunc = nullptr;
 #else
     static const bool instanceSupportsMoltenVK = false;
 #endif
@@ -200,6 +198,7 @@ struct VkEmulation {
         bool hasComputeQueueFamily = false;
         bool supportsExternalMemoryImport = false;
         bool supportsExternalMemoryExport = false;
+        bool supportsDmaBuf = false;
         bool supportsIdProperties = false;
         bool supportsDriverProperties = false;
         bool hasSamplerYcbcrConversionExtension = false;
@@ -256,6 +255,7 @@ struct VkEmulation {
         // This is used as an external handle when MoltenVK is enabled
         MTLBufferRef externalMetalHandle = nullptr;
 #endif
+        uint32_t streamHandleType;
 
         bool dedicatedAllocation = false;
     };
@@ -445,7 +445,7 @@ struct VkEmulationFeatures {
     AstcEmulationMode astcLdrEmulationMode = AstcEmulationMode::Disabled;
     bool enableEtc2Emulation = false;
     bool enableYcbcrEmulation = false;
-    bool guestUsesAngle = false;
+    bool guestVulkanOnly = false;
     bool useDedicatedAllocations = false;
 };
 void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures>);
@@ -503,6 +503,7 @@ VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
 struct VkColorBufferMemoryExport {
     android::base::ManagedDescriptor descriptor;
     uint64_t size = 0;
+    uint32_t streamHandleType = 0;
     bool linearTiling = false;
     bool dedicatedAllocation = false;
 };
@@ -530,7 +531,8 @@ bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
 bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly = false,
                    uint32_t memoryProperty = 0);
 bool teardownVkBuffer(uint32_t bufferHandle);
-VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle);
+
+VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle, uint32_t* outStreamHandleType);
 #ifdef __APPLE__
 MTLBufferRef getBufferMetalMemoryHandle(uint32_t bufferHandle);
 #endif
