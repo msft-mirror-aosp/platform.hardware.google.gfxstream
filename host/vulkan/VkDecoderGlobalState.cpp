@@ -4399,74 +4399,83 @@ class VkDecoderGlobalState::Impl {
                                               &localAllocInfo.allocationSize,
                                               &localAllocInfo.memoryTypeIndex,
                                               &colorBufferMemoryUsesDedicatedAlloc, &mappedPtr)) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Failed to get allocation info for ColorBuffer:"
-                    << importCbInfoPtr->colorBuffer;
-            }
-
-            shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
-
-            if (!m_emu->features.GuestVulkanOnly.enabled) {
-                auto fb = FrameBuffer::getFB();
-                if (fb) {
-                    fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
+                if (mSnapshotState != SnapshotState::Loading) {
+                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                        << "Failed to get allocation info for ColorBuffer:"
+                        << importCbInfoPtr->colorBuffer;
                 }
-            }
+                // During snapshot load there could be invalidated references to
+                // color buffers.
+                // Here we just create a placeholder for it, as it is not suppoed
+                // to be used.
+                importCbInfoPtr = nullptr;
+            } else {
+                shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
+
+                if (!m_emu->features.GuestVulkanOnly.enabled) {
+                    auto fb = FrameBuffer::getFB();
+                    if (fb) {
+                        fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
+                    }
+                }
 
 #if defined(__APPLE__)
-            // Use metal object extension on MoltenVK mode for color buffer import,
-            // non-moltenVK path on MacOS will use FD handles
-            if (m_emu->instanceSupportsMoltenVK) {
-                // TODO(b/333460957): This is a temporary fix to get MoltenVK image memory binding
-                // checks working as expected  based on dedicated memory checks. It's not a valid usage
-                // of Vulkan as the device of the image is different than what's being used here
-                localDedicatedAllocInfo = {
-                    .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
-                    .pNext = nullptr,
-                    .image = getColorBufferVkImage(importCbInfoPtr->colorBuffer),
-                    .buffer = VK_NULL_HANDLE,
-                };
-                shouldUseDedicatedAllocInfo = true;
+                // Use metal object extension on MoltenVK mode for color buffer import,
+                // non-moltenVK path on MacOS will use FD handles
+                if (m_emu->instanceSupportsMoltenVK) {
+                    // TODO(b/333460957): This is a temporary fix to get MoltenVK image memory
+                    // binding checks working as expected  based on dedicated memory checks. It's
+                    // not a valid usage of Vulkan as the device of the image is different than
+                    // what's being used here
+                    localDedicatedAllocInfo = {
+                        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+                        .pNext = nullptr,
+                        .image = getColorBufferVkImage(importCbInfoPtr->colorBuffer),
+                        .buffer = VK_NULL_HANDLE,
+                    };
+                    shouldUseDedicatedAllocInfo = true;
 
-                MTLBufferRef cbExtMemoryHandle =
-                    getColorBufferMetalMemoryHandle(importCbInfoPtr->colorBuffer);
+                    MTLBufferRef cbExtMemoryHandle =
+                        getColorBufferMetalMemoryHandle(importCbInfoPtr->colorBuffer);
 
-                if (cbExtMemoryHandle == nullptr) {
-                    fprintf(stderr,
-                            "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
-                            "colorBuffer 0x%x does not have Vulkan external memory backing\n",
-                            __func__, importCbInfoPtr->colorBuffer);
-                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-                }
+                    if (cbExtMemoryHandle == nullptr) {
+                        fprintf(stderr,
+                                "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
+                                "colorBuffer 0x%x does not have Vulkan external memory backing\n",
+                                __func__, importCbInfoPtr->colorBuffer);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
 
-                importInfoMetalBuffer.mtlBuffer = cbExtMemoryHandle;
-                vk_append_struct(&structChainIter, &importInfoMetalBuffer);
-            } else
+                    importInfoMetalBuffer.mtlBuffer = cbExtMemoryHandle;
+                    vk_append_struct(&structChainIter, &importInfoMetalBuffer);
+                } else
 #endif
-            if (m_emu->deviceInfo.supportsExternalMemoryImport) {
-                VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
-                    getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
+                if (m_emu->deviceInfo.supportsExternalMemoryImport) {
+                    VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
+                        getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
 
-                if (cbExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
-                    fprintf(stderr,
-                            "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
-                            "colorBuffer 0x%x does not have Vulkan external memory backing\n",
-                            __func__, importCbInfoPtr->colorBuffer);
-                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-                }
+                    if (cbExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
+                        fprintf(stderr,
+                                "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
+                                "colorBuffer 0x%x does not have Vulkan external memory backing\n",
+                                __func__, importCbInfoPtr->colorBuffer);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
 
 #if defined(__QNX__)
-                importInfo.buffer = cbExtMemoryHandle;
+                    importInfo.buffer = cbExtMemoryHandle;
 #else
-                externalMemoryHandle = ManagedDescriptor(dupExternalMemory(cbExtMemoryHandle));
+                    externalMemoryHandle = ManagedDescriptor(dupExternalMemory(cbExtMemoryHandle));
 
 #ifdef _WIN32
-                importInfo.handle = externalMemoryHandle.get().value_or(static_cast<HANDLE>(NULL));
+                    importInfo.handle =
+                        externalMemoryHandle.get().value_or(static_cast<HANDLE>(NULL));
 #else
-                importInfo.fd = externalMemoryHandle.get().value_or(-1);
+                    importInfo.fd = externalMemoryHandle.get().value_or(-1);
 #endif
 #endif
-                vk_append_struct(&structChainIter, &importInfo);
+                    vk_append_struct(&structChainIter, &importInfo);
+                }
             }
         }
 
