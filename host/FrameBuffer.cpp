@@ -2980,7 +2980,7 @@ int FrameBuffer::waitSyncColorBuffer(HandleType colorBufferHandle) {
     return colorBuffer->waitSync();
 }
 
-std::optional<ManagedDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType colorBufferHandle) {
+std::optional<BlobDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType colorBufferHandle) {
     AutoLock mutex(m_lock);
 
     ColorBufferPtr colorBuffer = findColorBuffer(colorBufferHandle);
@@ -2991,7 +2991,7 @@ std::optional<ManagedDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType c
     return colorBuffer->exportBlob();
 }
 
-std::optional<ManagedDescriptorInfo> FrameBuffer::exportBuffer(HandleType bufferHandle) {
+std::optional<BlobDescriptorInfo> FrameBuffer::exportBuffer(HandleType bufferHandle) {
     AutoLock mutex(m_lock);
 
     BufferPtr buffer = findBuffer(bufferHandle);
