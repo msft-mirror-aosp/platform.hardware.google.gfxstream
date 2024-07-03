@@ -1638,6 +1638,10 @@ class PipeVirglRenderer {
 #if SUPPORT_DMABUF
                 capset->alwaysBlob = 1;
 #endif
+
+#if GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC
+                capset->externalSync = 1;
+#endif
                 break;
             }
             case VIRTGPU_CAPSET_GFXSTREAM_MAGMA: {
