@@ -153,7 +153,7 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     }
 
     out->useVulkanNativeImage =
-        (emu && emu->live && emu->guestUsesAngle) || colorBufferExportedToGl;
+        (emu && emu->live && emu->guestVulkanOnly) || colorBufferExportedToGl;
 
     VkDeviceSize bindOffset = 0;
     if (out->externallyBacked) {

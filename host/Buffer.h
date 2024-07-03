@@ -16,6 +16,7 @@
 
 #include <memory>
 
+#include "BlobManager.h"
 #include "Handle.h"
 #include "aemu/base/files/Stream.h"
 #include "snapshot/LazySnapshotObj.h"
@@ -57,6 +58,7 @@ class Buffer : public android::snapshot::LazySnapshotObj<Buffer> {
 
     void readToBytes(uint64_t offset, uint64_t size, void* outBytes);
     bool updateFromBytes(uint64_t offset, uint64_t size, const void* bytes);
+    std::optional<ManagedDescriptorInfo> exportBlob();
 
    private:
     Buffer(HandleType handle, uint64_t size);

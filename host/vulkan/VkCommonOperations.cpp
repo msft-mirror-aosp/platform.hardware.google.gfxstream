@@ -1369,7 +1369,7 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
     INFO("    ASTC LDR emulation mode: %d", features->astcLdrEmulationMode);
     INFO("    enable ETC2 emulation: %s", features->enableEtc2Emulation ? "true" : "false");
     INFO("    enable Ycbcr emulation: %s", features->enableYcbcrEmulation ? "true" : "false");
-    INFO("    guestUsesAngle: %s", features->guestUsesAngle ? "true" : "false");
+    INFO("    guestVulkanOnly: %s", features->guestVulkanOnly ? "true" : "false");
     INFO("    useDedicatedAllocations: %s", features->useDedicatedAllocations ? "true" : "false");
     sVkEmulation->deviceInfo.glInteropSupported = features->glInteropSupported;
     sVkEmulation->useDeferredCommands = features->deferredCommands;
@@ -1378,7 +1378,7 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
     sVkEmulation->astcLdrEmulationMode = features->astcLdrEmulationMode;
     sVkEmulation->enableEtc2Emulation = features->enableEtc2Emulation;
     sVkEmulation->enableYcbcrEmulation = features->enableYcbcrEmulation;
-    sVkEmulation->guestUsesAngle = features->guestUsesAngle;
+    sVkEmulation->guestVulkanOnly = features->guestVulkanOnly;
     sVkEmulation->useDedicatedAllocations = features->useDedicatedAllocations;
 
     if (features->useVulkanComposition) {
