@@ -25,7 +25,7 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "BlobManager.h"
+#include "ExternalObjectManager.h"
 #include "VkDecoderGlobalState.h"
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VkFormatUtils.h"

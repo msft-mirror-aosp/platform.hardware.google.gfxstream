@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "BlobManager.h"
+#include "ExternalObjectManager.h"
 #include "FrameBuffer.h"
 #include "RenderThreadInfoVk.h"
 #include "VkAndroidNativeBuffer.h"
@@ -93,11 +93,10 @@ using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Optional;
 using android::base::SharedMemory;
 using android::base::StaticLock;
-using android::emulation::ManagedDescriptorInfo;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 using emugl::GfxApiLogger;
-using gfxstream::BlobManager;
+using gfxstream::ExternalObjectManager;
 using gfxstream::VulkanInfo;
 
 // TODO(b/261477138): Move to a shared aemu definition
@@ -4600,8 +4599,8 @@ class VkDecoderGlobalState::Impl {
             uint32_t ctx_id = mSnapshotState == SnapshotState::Loading
                                   ? kTemporaryContextIdForSnapshotLoading
                                   : tInfo->ctx_id;
-            auto descriptorInfoOpt =
-                BlobManager::get()->removeDescriptorInfo(ctx_id, createBlobInfoPtr->blobId);
+            auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
+                ctx_id, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
                 auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
                 if (rawDescriptorOpt) {
@@ -5094,9 +5093,9 @@ class VkDecoderGlobalState::Impl {
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
-            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId,
-                                                  info->sharedMemory->releaseHandle(), handleType,
-                                                  info->caching, std::nullopt);
+            ExternalObjectManager::get()->addBlobDescriptorInfo(
+                ctx_id, hostBlobId, info->sharedMemory->releaseHandle(), handleType, info->caching,
+                std::nullopt);
         } else if (m_emu->features.ExternalBlob.enabled) {
             VkResult result;
             auto device = unbox_VkDevice(boxed_device);
@@ -5159,9 +5158,9 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             ManagedDescriptor managedHandle(handle);
-            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId, std::move(managedHandle),
-                                                  handleType, info->caching,
-                                                  std::optional<VulkanInfo>(vulkanInfo));
+            ExternalObjectManager::get()->addBlobDescriptorInfo(
+                ctx_id, hostBlobId, std::move(managedHandle), handleType, info->caching,
+                std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
             auto device = unbox_VkDevice(boxed_device);
             auto vk = dispatch_VkDevice(boxed_device);
@@ -5188,8 +5187,8 @@ class VkDecoderGlobalState::Impl {
                     "using this blob may be corrupted/offset.",
                     kPageSizeforBlob, hva, alignedHva);
             }
-            BlobManager::get()->addMapping(ctx_id, hostBlobId, (void*)(uintptr_t)alignedHva,
-                                           info->caching);
+            ExternalObjectManager::get()->addMapping(ctx_id, hostBlobId,
+                                                     (void*)(uintptr_t)alignedHva, info->caching);
             info->virtioGpuMapped = true;
             info->hostmemId = hostBlobId;
         }
