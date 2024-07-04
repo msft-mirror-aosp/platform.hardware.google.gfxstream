@@ -125,7 +125,7 @@ struct VkEmulation {
     // conversion or not.
     bool enableYcbcrEmulation = false;
 
-    bool guestUsesAngle = false;
+    bool guestVulkanOnly = false;
 
     bool useDedicatedAllocations = false;
 
@@ -445,7 +445,7 @@ struct VkEmulationFeatures {
     AstcEmulationMode astcLdrEmulationMode = AstcEmulationMode::Disabled;
     bool enableEtc2Emulation = false;
     bool enableYcbcrEmulation = false;
-    bool guestUsesAngle = false;
+    bool guestVulkanOnly = false;
     bool useDedicatedAllocations = false;
 };
 void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures>);
