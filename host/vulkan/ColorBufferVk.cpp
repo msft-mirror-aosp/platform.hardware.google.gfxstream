@@ -80,10 +80,10 @@ bool ColorBufferVk::importExtMemoryHandle(void* nativeResource, uint32_t type,
 
 int ColorBufferVk::waitSync() { return waitSyncVkColorBuffer(mHandle); }
 
-std::optional<ManagedDescriptorInfo> ColorBufferVk::exportBlob() {
+std::optional<BlobDescriptorInfo> ColorBufferVk::exportBlob() {
     auto info = exportColorBufferMemory(mHandle);
     if (info) {
-        return ManagedDescriptorInfo{
+        return BlobDescriptorInfo{
             .descriptor = std::move((*info).descriptor),
             .handleType = (*info).streamHandleType,
             .caching = 0,
