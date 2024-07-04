@@ -45,5 +45,21 @@ bool BufferVk::updateFromBytes(uint64_t offset, uint64_t size, const void* bytes
     return updateBufferFromBytes(mHandle, offset, size, bytes);
 }
 
+std::optional<BlobDescriptorInfo> BufferVk::exportBlob() {
+    uint32_t streamHandleType = 0;
+    auto vkHandle = getBufferExtMemoryHandle(mHandle, &streamHandleType);
+    if (vkHandle != VK_EXT_MEMORY_HANDLE_INVALID) {
+        ManagedDescriptor descriptor(dupExternalMemory(vkHandle));
+        return BlobDescriptorInfo{
+            .descriptor = std::move(descriptor),
+            .handleType = streamHandleType,
+            .caching = 0,
+            .vulkanInfoOpt = std::nullopt,
+        };
+    } else {
+        return std::nullopt;
+    }
+}
+
 }  // namespace vk
 }  // namespace gfxstream
