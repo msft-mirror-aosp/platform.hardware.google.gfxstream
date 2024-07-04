@@ -455,7 +455,7 @@ int ColorBuffer::waitSync() {
     return mColorBufferVk->waitSync();
 }
 
-std::optional<ManagedDescriptorInfo> ColorBuffer::exportBlob() {
+std::optional<BlobDescriptorInfo> ColorBuffer::exportBlob() {
     if (!mColorBufferVk) {
         return std::nullopt;
     }

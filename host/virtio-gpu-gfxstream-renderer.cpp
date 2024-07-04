@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <variant>
 
-#include "BlobManager.h"
+#include "ExternalObjectManager.h"
 #include "FrameBuffer.h"
 #include "GfxStreamAgents.h"
 #include "VirtioGpuTimelines.h"
@@ -220,8 +220,8 @@ using android::base::MetricsLogger;
 using android::base::SharedMemory;
 
 using emugl::FatalError;
-using gfxstream::BlobManager;
-using gfxstream::ManagedDescriptorInfo;
+using gfxstream::BlobDescriptorInfo;
+using gfxstream::ExternalObjectManager;
 
 using VirtioGpuResId = uint32_t;
 
@@ -315,7 +315,7 @@ struct PipeResEntry {
     ResType type;
     std::shared_ptr<RingBlob> ringBlob;
     bool externalAddr = false;
-    std::shared_ptr<ManagedDescriptorInfo> descriptorInfo = nullptr;
+    std::shared_ptr<BlobDescriptorInfo> descriptorInfo = nullptr;
 };
 
 static inline uint32_t align_up(uint32_t n, uint32_t a) { return ((n + a - 1) / a) * a; }
@@ -1763,7 +1763,7 @@ class PipeVirglRenderer {
 
         PipeResEntry e;
         struct stream_renderer_resource_create_args args = {0};
-        std::optional<ManagedDescriptorInfo> descriptorInfoOpt = std::nullopt;
+        std::optional<BlobDescriptorInfo> descriptorInfoOpt = std::nullopt;
         e.args = args;
         e.hostPipe = 0;
 
@@ -1815,9 +1815,9 @@ class PipeVirglRenderer {
                 (create_blob->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
 #if defined(__linux__) || defined(__QNX__)
                 ManagedDescriptor managedHandle(handle->os_handle);
-                BlobManager::get()->addDescriptorInfo(ctx_id, create_blob->blob_id,
-                                                      std::move(managedHandle), handle->handle_type,
-                                                      0, std::nullopt);
+                ExternalObjectManager::get()->addBlobDescriptorInfo(
+                    ctx_id, create_blob->blob_id, std::move(managedHandle), handle->handle_type, 0,
+                    std::nullopt);
 
                 e.caching = STREAM_RENDERER_MAP_CACHE_CACHED;
 #else
@@ -1825,13 +1825,13 @@ class PipeVirglRenderer {
 #endif
             } else {
                 if (!descriptorInfoOpt) {
-                    descriptorInfoOpt =
-                        BlobManager::get()->removeDescriptorInfo(ctx_id, create_blob->blob_id);
+                    descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
+                        ctx_id, create_blob->blob_id);
                 }
 
                 if (descriptorInfoOpt) {
                     e.descriptorInfo =
-                        std::make_shared<ManagedDescriptorInfo>(std::move(*descriptorInfoOpt));
+                        std::make_shared<BlobDescriptorInfo>(std::move(*descriptorInfoOpt));
                 } else {
                     return -EINVAL;
                 }
@@ -1839,7 +1839,8 @@ class PipeVirglRenderer {
                 e.caching = e.descriptorInfo->caching;
             }
         } else {
-            auto entryOpt = BlobManager::get()->removeMapping(ctx_id, create_blob->blob_id);
+            auto entryOpt =
+                ExternalObjectManager::get()->removeMapping(ctx_id, create_blob->blob_id);
             if (entryOpt) {
                 e.hva = entryOpt->addr;
                 e.caching = entryOpt->caching;
@@ -1969,22 +1970,12 @@ class PipeVirglRenderer {
         }
 
         if (entry.descriptorInfo) {
-            bool shareable = entry.blobFlags &
-                             (STREAM_BLOB_FLAG_USE_SHAREABLE | STREAM_BLOB_FLAG_USE_CROSS_DEVICE);
-
-            DescriptorType rawDescriptor;
-            if (shareable) {
-                // TODO: Add ManagedDescriptor::{clone, dup} method and use it;
-                // This should have no affect since gfxstream allocates mappable-only buffers
-                // currently
+	    DescriptorType rawDescriptor;
+            auto rawDescriptorOpt = entry.descriptorInfo->descriptor.release();
+            if (rawDescriptorOpt)
+                rawDescriptor = *rawDescriptorOpt;
+            else
                 return -EINVAL;
-            } else {
-                auto rawDescriptorOpt = entry.descriptorInfo->descriptor.release();
-                if (rawDescriptorOpt)
-                    rawDescriptor = *rawDescriptorOpt;
-                else
-                    return -EINVAL;
-            }
 
             handle->handle_type = entry.descriptorInfo->handleType;
 
