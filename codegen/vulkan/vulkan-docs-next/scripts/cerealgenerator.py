@@ -120,7 +120,6 @@ SUPPORTED_FEATURES = [
     "VK_KHR_xcb_surface",
     "VK_KHR_win32_surface",
     "VK_EXT_metal_surface",
-    "VK_MVK_moltenvk",
     "VK_EXT_metal_objects",
     "VK_KHR_external_semaphore_win32",
     "VK_KHR_external_memory_win32",
@@ -140,6 +139,8 @@ SUPPORTED_FEATURES = [
     "VK_QNX_external_memory_screen_buffer",
     # b/320855472 Chrome
     "VK_EXT_fragment_density_map",
+    # b/349122558 Zink
+    "VK_EXT_color_write_enable",
 ]
 
 HOST_MODULES = ["goldfish_vk_extension_structs", "goldfish_vk_marshaling",
@@ -158,9 +159,6 @@ SUPPORTED_MODULES = {
     "VK_KHR_xcb_surface": ["goldfish_vk_dispatch"],
     "VK_KHR_win32_surface": ["goldfish_vk_dispatch"],
     "VK_EXT_metal_surface": ["goldfish_vk_dispatch"],
-    # VK_MVK_moltenvk doesn't generate a generate dispatch entry for some reason, but should. The
-    # lack of this extension doesn't cause any build failures though.
-    "VK_MVK_moltenvk": ["goldfish_vk_dispatch"],
     "VK_EXT_metal_objects": ["goldfish_vk_dispatch"],
     "VK_KHR_external_semaphore_win32" : ["goldfish_vk_dispatch"],
     "VK_KHR_external_memory_win32" : ["goldfish_vk_dispatch"],

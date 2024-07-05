@@ -497,14 +497,6 @@ struct VulkanDispatch {
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-    PFN_vkGetMTLDeviceMVK vkGetMTLDeviceMVK;
-    PFN_vkSetMTLTextureMVK vkSetMTLTextureMVK;
-    PFN_vkGetMTLTextureMVK vkGetMTLTextureMVK;
-    PFN_vkGetMTLBufferMVK vkGetMTLBufferMVK;
-    PFN_vkUseIOSurfaceMVK vkUseIOSurfaceMVK;
-    PFN_vkGetIOSurfaceMVK vkGetIOSurfaceMVK;
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -616,6 +608,9 @@ struct VulkanDispatch {
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT;
     PFN_vkCmdSetLogicOpEXT vkCmdSetLogicOpEXT;
     PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT;
+#endif
+#ifdef VK_EXT_color_write_enable
+    PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT;
 #endif
 #ifdef VK_GOOGLE_gfxstream
     PFN_vkMapMemoryIntoAddressSpaceGOOGLE vkMapMemoryIntoAddressSpaceGOOGLE;

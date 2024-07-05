@@ -6448,8 +6448,6 @@ void count_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -7295,6 +7293,41 @@ void count_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     *count += sizeof(VkBool32);
     *count += sizeof(VkBool32);
     *count += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void count_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkBool32);
+}
+
+void count_VkPipelineColorWriteCreateInfoEXT(uint32_t featureBits, VkStructureType rootType,
+                                             const VkPipelineColorWriteCreateInfoEXT* toCount,
+                                             size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+    if (toCount) {
+        *count += toCount->attachmentCount * sizeof(const VkBool32);
+    }
 }
 
 #endif
@@ -8655,6 +8688,22 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
                 reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT*>(
                     structExtension),
                 count);
+            break;
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            count_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            count_VkPipelineColorWriteCreateInfoEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPipelineColorWriteCreateInfoEXT*>(structExtension), count);
             break;
         }
 #endif
