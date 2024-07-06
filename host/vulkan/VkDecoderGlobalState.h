@@ -232,8 +232,10 @@ class VkDecoderGlobalState {
 
     VkResult on_vkBindImageMemory(android::base::BumpPool* pool, VkDevice device, VkImage image,
                                   VkDeviceMemory memory, VkDeviceSize memoryOffset);
+    // It might modify pBindInfos to support snapshot.
     VkResult on_vkBindImageMemory2(android::base::BumpPool* pool, VkDevice device,
                                    uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos);
+    // It might modify pBindInfos to support snapshot.
     VkResult on_vkBindImageMemory2KHR(android::base::BumpPool* pool, VkDevice device,
                                       uint32_t bindInfoCount,
                                       const VkBindImageMemoryInfo* pBindInfos);
