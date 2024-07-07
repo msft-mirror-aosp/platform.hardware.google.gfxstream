@@ -3,11 +3,10 @@
 
 files_lib_platform = files(
   '../VirtGpu.cpp',
-  'RutabagaLayer.cpp',
-  'RutabagaVirtGpuBlob.cpp',
-  'RutabagaVirtGpuBlobMapping.cpp',
-  'RutabagaVirtGpuSyncHelper.cpp',
-  'RutabagaVirtGpuDevice.cpp',
+  'VirtGpuKumquatDevice.cpp',
+  'VirtGpuKumquatBlobMapping.cpp',
+  'VirtGpuKumquatBlob.cpp',
+  'VirtGpuKumquatSync.cpp',
 )
 
 lib_platform = static_library(
@@ -15,6 +14,5 @@ lib_platform = static_library(
    files_lib_platform,
    cpp_args: gfxstream_guest_args,
    include_directories: [inc_platform, inc_android_compat],
-   link_with: [lib_android_compat],
-   dependencies: [drm_dep, rutabaga_gfx_ffi_dep],
+   dependencies: virtgpu_kumquat_dep,
 )
