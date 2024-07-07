@@ -161,7 +161,7 @@ link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils
 
 files_lib_gfxstream_backend = files(
   'Buffer.cpp',
-  'BlobManager.cpp',
+  'ExternalObjectManager.cpp',
   'ChannelStream.cpp',
   'ColorBuffer.cpp',
   'DisplaySurface.cpp',
