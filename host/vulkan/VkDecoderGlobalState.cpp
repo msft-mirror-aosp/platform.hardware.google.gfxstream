@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "BlobManager.h"
+#include "ExternalObjectManager.h"
 #include "FrameBuffer.h"
 #include "RenderThreadInfoVk.h"
 #include "VkAndroidNativeBuffer.h"
@@ -93,11 +93,10 @@ using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Optional;
 using android::base::SharedMemory;
 using android::base::StaticLock;
-using android::emulation::ManagedDescriptorInfo;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 using emugl::GfxApiLogger;
-using gfxstream::BlobManager;
+using gfxstream::ExternalObjectManager;
 using gfxstream::VulkanInfo;
 
 // TODO(b/261477138): Move to a shared aemu definition
@@ -4400,74 +4399,83 @@ class VkDecoderGlobalState::Impl {
                                               &localAllocInfo.allocationSize,
                                               &localAllocInfo.memoryTypeIndex,
                                               &colorBufferMemoryUsesDedicatedAlloc, &mappedPtr)) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Failed to get allocation info for ColorBuffer:"
-                    << importCbInfoPtr->colorBuffer;
-            }
-
-            shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
-
-            if (!m_emu->features.GuestVulkanOnly.enabled) {
-                auto fb = FrameBuffer::getFB();
-                if (fb) {
-                    fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
+                if (mSnapshotState != SnapshotState::Loading) {
+                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                        << "Failed to get allocation info for ColorBuffer:"
+                        << importCbInfoPtr->colorBuffer;
                 }
-            }
+                // During snapshot load there could be invalidated references to
+                // color buffers.
+                // Here we just create a placeholder for it, as it is not suppoed
+                // to be used.
+                importCbInfoPtr = nullptr;
+            } else {
+                shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
+
+                if (!m_emu->features.GuestVulkanOnly.enabled) {
+                    auto fb = FrameBuffer::getFB();
+                    if (fb) {
+                        fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
+                    }
+                }
 
 #if defined(__APPLE__)
-            // Use metal object extension on MoltenVK mode for color buffer import,
-            // non-moltenVK path on MacOS will use FD handles
-            if (m_emu->instanceSupportsMoltenVK) {
-                // TODO(b/333460957): This is a temporary fix to get MoltenVK image memory binding
-                // checks working as expected  based on dedicated memory checks. It's not a valid usage
-                // of Vulkan as the device of the image is different than what's being used here
-                localDedicatedAllocInfo = {
-                    .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
-                    .pNext = nullptr,
-                    .image = getColorBufferVkImage(importCbInfoPtr->colorBuffer),
-                    .buffer = VK_NULL_HANDLE,
-                };
-                shouldUseDedicatedAllocInfo = true;
+                // Use metal object extension on MoltenVK mode for color buffer import,
+                // non-moltenVK path on MacOS will use FD handles
+                if (m_emu->instanceSupportsMoltenVK) {
+                    // TODO(b/333460957): This is a temporary fix to get MoltenVK image memory
+                    // binding checks working as expected  based on dedicated memory checks. It's
+                    // not a valid usage of Vulkan as the device of the image is different than
+                    // what's being used here
+                    localDedicatedAllocInfo = {
+                        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+                        .pNext = nullptr,
+                        .image = getColorBufferVkImage(importCbInfoPtr->colorBuffer),
+                        .buffer = VK_NULL_HANDLE,
+                    };
+                    shouldUseDedicatedAllocInfo = true;
 
-                MTLBufferRef cbExtMemoryHandle =
-                    getColorBufferMetalMemoryHandle(importCbInfoPtr->colorBuffer);
+                    MTLBufferRef cbExtMemoryHandle =
+                        getColorBufferMetalMemoryHandle(importCbInfoPtr->colorBuffer);
 
-                if (cbExtMemoryHandle == nullptr) {
-                    fprintf(stderr,
-                            "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
-                            "colorBuffer 0x%x does not have Vulkan external memory backing\n",
-                            __func__, importCbInfoPtr->colorBuffer);
-                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-                }
+                    if (cbExtMemoryHandle == nullptr) {
+                        fprintf(stderr,
+                                "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
+                                "colorBuffer 0x%x does not have Vulkan external memory backing\n",
+                                __func__, importCbInfoPtr->colorBuffer);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
 
-                importInfoMetalBuffer.mtlBuffer = cbExtMemoryHandle;
-                vk_append_struct(&structChainIter, &importInfoMetalBuffer);
-            } else
+                    importInfoMetalBuffer.mtlBuffer = cbExtMemoryHandle;
+                    vk_append_struct(&structChainIter, &importInfoMetalBuffer);
+                } else
 #endif
-            if (m_emu->deviceInfo.supportsExternalMemoryImport) {
-                VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
-                    getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
+                if (m_emu->deviceInfo.supportsExternalMemoryImport) {
+                    VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
+                        getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
 
-                if (cbExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
-                    fprintf(stderr,
-                            "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
-                            "colorBuffer 0x%x does not have Vulkan external memory backing\n",
-                            __func__, importCbInfoPtr->colorBuffer);
-                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-                }
+                    if (cbExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
+                        fprintf(stderr,
+                                "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
+                                "colorBuffer 0x%x does not have Vulkan external memory backing\n",
+                                __func__, importCbInfoPtr->colorBuffer);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
 
 #if defined(__QNX__)
-                importInfo.buffer = cbExtMemoryHandle;
+                    importInfo.buffer = cbExtMemoryHandle;
 #else
-                externalMemoryHandle = ManagedDescriptor(dupExternalMemory(cbExtMemoryHandle));
+                    externalMemoryHandle = ManagedDescriptor(dupExternalMemory(cbExtMemoryHandle));
 
 #ifdef _WIN32
-                importInfo.handle = externalMemoryHandle.get().value_or(static_cast<HANDLE>(NULL));
+                    importInfo.handle =
+                        externalMemoryHandle.get().value_or(static_cast<HANDLE>(NULL));
 #else
-                importInfo.fd = externalMemoryHandle.get().value_or(-1);
+                    importInfo.fd = externalMemoryHandle.get().value_or(-1);
 #endif
 #endif
-                vk_append_struct(&structChainIter, &importInfo);
+                    vk_append_struct(&structChainIter, &importInfo);
+                }
             }
         }
 
@@ -4600,8 +4608,8 @@ class VkDecoderGlobalState::Impl {
             uint32_t ctx_id = mSnapshotState == SnapshotState::Loading
                                   ? kTemporaryContextIdForSnapshotLoading
                                   : tInfo->ctx_id;
-            auto descriptorInfoOpt =
-                BlobManager::get()->removeDescriptorInfo(ctx_id, createBlobInfoPtr->blobId);
+            auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
+                ctx_id, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
                 auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
                 if (rawDescriptorOpt) {
@@ -5094,9 +5102,9 @@ class VkDecoderGlobalState::Impl {
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
-            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId,
-                                                  info->sharedMemory->releaseHandle(), handleType,
-                                                  info->caching, std::nullopt);
+            ExternalObjectManager::get()->addBlobDescriptorInfo(
+                ctx_id, hostBlobId, info->sharedMemory->releaseHandle(), handleType, info->caching,
+                std::nullopt);
         } else if (m_emu->features.ExternalBlob.enabled) {
             VkResult result;
             auto device = unbox_VkDevice(boxed_device);
@@ -5159,9 +5167,9 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             ManagedDescriptor managedHandle(handle);
-            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId, std::move(managedHandle),
-                                                  handleType, info->caching,
-                                                  std::optional<VulkanInfo>(vulkanInfo));
+            ExternalObjectManager::get()->addBlobDescriptorInfo(
+                ctx_id, hostBlobId, std::move(managedHandle), handleType, info->caching,
+                std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
             auto device = unbox_VkDevice(boxed_device);
             auto vk = dispatch_VkDevice(boxed_device);
@@ -5188,8 +5196,8 @@ class VkDecoderGlobalState::Impl {
                     "using this blob may be corrupted/offset.",
                     kPageSizeforBlob, hva, alignedHva);
             }
-            BlobManager::get()->addMapping(ctx_id, hostBlobId, (void*)(uintptr_t)alignedHva,
-                                           info->caching);
+            ExternalObjectManager::get()->addMapping(ctx_id, hostBlobId,
+                                                     (void*)(uintptr_t)alignedHva, info->caching);
             info->virtioGpuMapped = true;
             info->hostmemId = hostBlobId;
         }
