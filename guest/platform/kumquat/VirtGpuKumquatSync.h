@@ -12,31 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-#include <vector>
+#pragma once
 
-#include "ExternalObjectManager.h"
+#include "Sync.h"
 
 namespace gfxstream {
-namespace vk {
 
-class BufferVk {
+class VirtGpuKumquatSyncHelper : public SyncHelper {
    public:
-    static std::unique_ptr<BufferVk> create(uint32_t handle, uint64_t size, bool vulkanOnly);
+    VirtGpuKumquatSyncHelper();
 
-    ~BufferVk();
+    int wait(int syncFd, int timeoutMilliseconds) override;
 
-    void readToBytes(uint64_t offset, uint64_t size, void* outBytes);
+    int dup(int syncFd) override;
 
-    bool updateFromBytes(uint64_t offset, uint64_t size, const void* bytes);
-
-    std::optional<BlobDescriptorInfo> exportBlob();
-
-   private:
-    BufferVk(uint32_t handle);
-
-    const uint32_t mHandle;
+    int close(int syncFd) override;
 };
 
-}  // namespace vk
 }  // namespace gfxstream

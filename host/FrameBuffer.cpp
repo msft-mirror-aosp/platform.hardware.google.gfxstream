@@ -339,7 +339,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     // Do not initialize GL emulation if the guest is using ANGLE.
-    if (!fb->m_features.GuestUsesAngle.enabled) {
+    if (!fb->m_features.GuestVulkanOnly.enabled) {
         fb->m_emulationGl = EmulationGl::create(width, height, fb->m_features, useSubWindow, egl2egl);
         if (!fb->m_emulationGl) {
             ERR("Failed to initialize GL emulation.");
@@ -348,9 +348,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     }
 #endif
 
-    fb->m_guestUsesAngle = fb->m_features.GuestUsesAngle.enabled;
-
-    fb->m_useVulkanComposition = fb->m_features.GuestUsesAngle.enabled ||
+    fb->m_useVulkanComposition = fb->m_features.GuestVulkanOnly.enabled ||
                                  fb->m_features.VulkanNativeSwapchain.enabled;
 
     std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
@@ -369,7 +367,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
             .astcLdrEmulationMode = AstcEmulationMode::Gpu,
             .enableEtc2Emulation = true,
             .enableYcbcrEmulation = false,
-            .guestUsesAngle = fb->m_guestUsesAngle,
+            .guestVulkanOnly = fb->m_features.GuestVulkanOnly.enabled,
             .useDedicatedAllocations = false,  // Set later.
         });
 
@@ -378,7 +376,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     // current-context when asked for them.
     //
     bool useVulkanGraphicsDiagInfo =
-        vkEmu && fb->m_features.VulkanNativeSwapchain.enabled && fb->m_guestUsesAngle;
+        vkEmu && fb->m_features.VulkanNativeSwapchain.enabled && fb->m_features.GuestVulkanOnly.enabled;
 
     if (useVulkanGraphicsDiagInfo) {
         fb->m_graphicsAdapterVendor = vkEmu->deviceInfo.driverVendor;
@@ -1706,7 +1704,7 @@ bool FrameBuffer::getBufferInfo(HandleType p_buffer, int* size) {
 
 bool FrameBuffer::post(HandleType p_colorbuffer, bool needLockAndBind) {
 #if GFXSTREAM_ENABLE_HOST_GLES
-    if (m_guestUsesAngle) {
+    if (m_features.GuestVulkanOnly.enabled) {
         flushColorBufferFromGl(p_colorbuffer);
     }
 #endif
@@ -1719,7 +1717,7 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLockAndBind) {
 void FrameBuffer::postWithCallback(HandleType p_colorbuffer, Post::CompletionCallback callback,
                                    bool needLockAndBind) {
 #if GFXSTREAM_ENABLE_HOST_GLES
-    if (m_guestUsesAngle) {
+    if (m_features.GuestVulkanOnly.enabled) {
         flushColorBufferFromGl(p_colorbuffer);
     }
 #endif
@@ -2980,6 +2978,28 @@ int FrameBuffer::waitSyncColorBuffer(HandleType colorBufferHandle) {
     }
 
     return colorBuffer->waitSync();
+}
+
+std::optional<BlobDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType colorBufferHandle) {
+    AutoLock mutex(m_lock);
+
+    ColorBufferPtr colorBuffer = findColorBuffer(colorBufferHandle);
+    if (!colorBuffer) {
+        return std::nullopt;
+    }
+
+    return colorBuffer->exportBlob();
+}
+
+std::optional<BlobDescriptorInfo> FrameBuffer::exportBuffer(HandleType bufferHandle) {
+    AutoLock mutex(m_lock);
+
+    BufferPtr buffer = findBuffer(bufferHandle);
+    if (!buffer) {
+        return std::nullopt;
+    }
+
+    return buffer->exportBlob();
 }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
