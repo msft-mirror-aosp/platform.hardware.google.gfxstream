@@ -5447,6 +5447,8 @@ class VkDecoderGlobalState::Impl {
                 usedFence = builder.CreateFenceForOp();
             }
             queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
+
+            deviceInfo->deviceOpTracker->PollAndProcessGarbage();
         }
 
         {
@@ -5474,6 +5476,7 @@ class VkDecoderGlobalState::Impl {
         auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
 
         if (result != VK_SUCCESS) {
+            WARN("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result), result);
             return result;
         }
         {
