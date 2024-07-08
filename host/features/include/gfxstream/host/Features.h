@@ -114,10 +114,12 @@ struct FeatureSet {
         "a guest app may directly writing to gralloc buffers and posting.",
         &map,
     };
-    FeatureInfo GuestUsesAngle = {
-        "GuestUsesAngle",
-        "If enabled, indicates that the guest will not use GL and the host will not "
-        "enable the GL backend.",
+    FeatureInfo GuestVulkanOnly = {
+        "GuestVulkanOnly",
+        "If enabled, indicates that the guest only requires Vulkan translation. "
+        " The guest will not use GL and the host will not enable the GL backend. "
+        " This is the case when the guest uses libraries such as Angle or Zink for "
+        " GL to Vulkan translation.",
         &map,
     };
     FeatureInfo HasSharedSlotsHostMemoryAllocator = {

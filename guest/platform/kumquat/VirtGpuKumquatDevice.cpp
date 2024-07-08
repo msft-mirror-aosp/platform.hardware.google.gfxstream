@@ -15,40 +15,42 @@
  */
 
 #include <cutils/log.h>
-#include <fcntl.h>
 #include <pthread.h>
 #include <stdlib.h>
-#include <sys/mman.h>
 #include <unistd.h>
-#include <xf86drm.h>
 
 #include <cerrno>
 #include <cstring>
 #include <fstream>
 #include <string>
 
-#include "LinuxVirtGpu.h"
-#include "virtgpu_drm.h"
+#include "VirtGpuKumquat.h"
 #include "virtgpu_gfxstream_protocol.h"
+#include "virtgpu_kumquat/virtgpu_kumquat_ffi.h"
 
 #define PARAM(x) \
     (struct VirtGpuParam) { x, #x, 0 }
 
 static inline uint32_t align_up(uint32_t n, uint32_t a) { return ((n + a - 1) / a) * a; }
 
-LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : VirtGpuDevice(capset) {
+VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
+    : VirtGpuDevice(capset) {
     struct VirtGpuParam params[] = {
-        PARAM(VIRTGPU_PARAM_3D_FEATURES),          PARAM(VIRTGPU_PARAM_CAPSET_QUERY_FIX),
-        PARAM(VIRTGPU_PARAM_RESOURCE_BLOB),        PARAM(VIRTGPU_PARAM_HOST_VISIBLE),
-        PARAM(VIRTGPU_PARAM_CROSS_DEVICE),         PARAM(VIRTGPU_PARAM_CONTEXT_INIT),
-        PARAM(VIRTGPU_PARAM_SUPPORTED_CAPSET_IDs), PARAM(VIRTGPU_PARAM_EXPLICIT_DEBUG_NAME),
-        PARAM(VIRTGPU_PARAM_CREATE_GUEST_HANDLE),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_3D_FEATURES),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_CAPSET_QUERY_FIX),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_RESOURCE_BLOB),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_HOST_VISIBLE),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_CROSS_DEVICE),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_CONTEXT_INIT),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_SUPPORTED_CAPSET_IDs),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_EXPLICIT_DEBUG_NAME),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_CREATE_GUEST_HANDLE),
     };
 
     int ret;
-    struct drm_virtgpu_get_caps get_caps = {0};
-    struct drm_virtgpu_context_init init = {0};
-    struct drm_virtgpu_context_set_param ctx_set_params[3] = {{0}};
+    struct drm_kumquat_get_caps get_caps = {0};
+    struct drm_kumquat_context_init init = {0};
+    struct drm_kumquat_context_set_param ctx_set_params[3] = {{0}};
     const char* processName = nullptr;
 
     memset(&mCaps, 0, sizeof(struct VirtGpuCaps));
@@ -57,26 +59,18 @@ LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : Virt
     processName = getprogname();
 #endif
 
-    if (fd < 0) {
-        mDeviceHandle = static_cast<int64_t>(drmOpenRender(128));
-        if (mDeviceHandle < 0) {
-            ALOGE("Failed to open rendernode: %s", strerror(errno));
-            return;
-        }
-    } else {
-        mDeviceHandle = dup(fd);
-        if (mDeviceHandle < 0) {
-            ALOGE("Failed to dup rendernode: %s", strerror(errno));
-            return;
-        }
+    ret = virtgpu_kumquat_init(&mVirtGpu);
+    if (ret) {
+        ALOGV("Failed to init virtgpu kumquat");
+        return;
     }
 
     for (uint32_t i = 0; i < kParamMax; i++) {
-        struct drm_virtgpu_getparam get_param = {0};
+        struct drm_kumquat_getparam get_param = {0};
         get_param.param = params[i].param;
         get_param.value = (uint64_t)(uintptr_t)&params[i].value;
 
-        ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_GETPARAM, &get_param);
+        ret = virtgpu_kumquat_get_param(mVirtGpu, &get_param);
         if (ret) {
             ALOGV("virtgpu backend not enabling %s", params[i].name);
             continue;
@@ -107,11 +101,11 @@ LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : Virt
             get_caps.size = 0;
     }
 
-    ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_GET_CAPS, &get_caps);
+    ret = virtgpu_kumquat_get_caps(mVirtGpu, &get_caps);
     if (ret) {
         // Don't fail get capabilities just yet, AEMU doesn't use this API
         // yet (b/272121235);
-        ALOGE("DRM_IOCTL_VIRTGPU_GET_CAPS failed with %s", strerror(errno));
+        ALOGE("DRM_IOCTL_VIRTGPU_KUMQUAT_GET_CAPS failed with %s", strerror(errno));
     }
 
     // We always need an ASG blob in some cases, so always define blobAlignment
@@ -119,40 +113,41 @@ LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : Virt
         mCaps.vulkanCapset.blobAlignment = 4096;
     }
 
-    ctx_set_params[0].param = VIRTGPU_CONTEXT_PARAM_NUM_RINGS;
+    ctx_set_params[0].param = VIRTGPU_KUMQUAT_CONTEXT_PARAM_NUM_RINGS;
     ctx_set_params[0].value = 2;
     init.num_params = 1;
 
     if (capset != kCapsetNone) {
-        ctx_set_params[init.num_params].param = VIRTGPU_CONTEXT_PARAM_CAPSET_ID;
+        ctx_set_params[init.num_params].param = VIRTGPU_KUMQUAT_CONTEXT_PARAM_CAPSET_ID;
         ctx_set_params[init.num_params].value = static_cast<uint32_t>(capset);
         init.num_params++;
     }
 
     if (mCaps.params[kParamExplicitDebugName] && processName) {
-        ctx_set_params[init.num_params].param = VIRTGPU_CONTEXT_PARAM_DEBUG_NAME;
+        ctx_set_params[init.num_params].param = VIRTGPU_KUMQUAT_CONTEXT_PARAM_DEBUG_NAME;
         ctx_set_params[init.num_params].value = reinterpret_cast<uint64_t>(processName);
         init.num_params++;
     }
 
     init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
-    ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &init);
+    ret = virtgpu_kumquat_context_init(mVirtGpu, &init);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s, continuing without context...",
-              strerror(errno));
+        ALOGE(
+            "DRM_IOCTL_VIRTGPU_KUMQUAT_CONTEXT_INIT failed with %s, continuing without context...",
+            strerror(errno));
     }
 }
 
-LinuxVirtGpuDevice::~LinuxVirtGpuDevice() { close(mDeviceHandle); }
+VirtGpuKumquatDevice::~VirtGpuKumquatDevice() { virtgpu_kumquat_finish(&mVirtGpu); }
 
-struct VirtGpuCaps LinuxVirtGpuDevice::getCaps(void) { return mCaps; }
+struct VirtGpuCaps VirtGpuKumquatDevice::getCaps(void) { return mCaps; }
 
-int64_t LinuxVirtGpuDevice::getDeviceHandle(void) { return mDeviceHandle; }
+int64_t VirtGpuKumquatDevice::getDeviceHandle(void) { return -1; }
 
-VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t height,
-                                                      uint32_t stride, uint32_t virglFormat,
-                                                      uint32_t target, uint32_t bind) {
-    drm_virtgpu_resource_create create = {
+VirtGpuResourcePtr VirtGpuKumquatDevice::createResource(uint32_t width, uint32_t height,
+                                                        uint32_t virglFormat, uint32_t target,
+                                                        uint32_t bind, uint32_t bpp) {
+    struct drm_kumquat_resource_create_3d create = {
         .target = target,
         .format = virglFormat,
         .bind = bind,
@@ -162,23 +157,23 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t h
         .array_size = 1U,
         .last_level = 0,
         .nr_samples = 0,
-        .size = stride * height,
-        .stride = stride,
+        .size = width * height * bpp,
+        .stride = width * bpp,
     };
 
-    int ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE, &create);
+    int ret = virtgpu_kumquat_resource_create_3d(mVirtGpu, &create);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_RESOURCE_CREATE failed with %s", strerror(errno));
+        ALOGE("DRM_IOCTL_VIRTGPU_KUMQUAT_RESOURCE_CREATE failed with %s", strerror(errno));
         return nullptr;
     }
 
-    return std::make_shared<LinuxVirtGpuResource>(
-        mDeviceHandle, create.bo_handle, create.res_handle, static_cast<uint64_t>(create.size));
+    return std::make_shared<VirtGpuKumquatResource>(mVirtGpu, create.bo_handle, create.res_handle,
+                                                    static_cast<uint64_t>(create.size));
 }
 
-VirtGpuResourcePtr LinuxVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
+VirtGpuResourcePtr VirtGpuKumquatDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
     int ret;
-    struct drm_virtgpu_resource_create_blob create = {0};
+    struct drm_kumquat_resource_create_blob create = {0};
 
     create.size = blobCreate.size;
     create.blob_mem = blobCreate.blobMem;
@@ -187,43 +182,37 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob
     create.cmd = (uint64_t)(uintptr_t)blobCreate.blobCmd;
     create.cmd_size = blobCreate.blobCmdSize;
 
-    ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB, &create);
+    ret = virtgpu_kumquat_resource_create_blob(mVirtGpu, &create);
     if (ret < 0) {
-        ALOGE("DRM_VIRTGPU_RESOURCE_CREATE_BLOB failed with %s", strerror(errno));
+        ALOGE("DRM_VIRTGPU_KUMQUAT_RESOURCE_CREATE_BLOB failed with %s", strerror(errno));
         return nullptr;
     }
 
-    return std::make_shared<LinuxVirtGpuResource>(mDeviceHandle, create.bo_handle,
-                                                  create.res_handle, blobCreate.size);
+    return std::make_shared<VirtGpuKumquatResource>(mVirtGpu, create.bo_handle, create.res_handle,
+                                                    blobCreate.size);
 }
 
-VirtGpuResourcePtr LinuxVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle& handle) {
-    struct drm_virtgpu_resource_info info = {0};
-    uint32_t blobHandle;
+VirtGpuResourcePtr VirtGpuKumquatDevice::importBlob(const struct VirtGpuExternalHandle& handle) {
     int ret;
+    struct drm_kumquat_resource_import resource_import = {0};
 
-    ret = drmPrimeFDToHandle(mDeviceHandle, handle.osHandle, &blobHandle);
-    close(handle.osHandle);
-    if (ret) {
-        ALOGE("DRM_IOCTL_PRIME_FD_TO_HANDLE failed: %s", strerror(errno));
+    resource_import.os_handle = static_cast<uint64_t>(handle.osHandle);
+    resource_import.handle_type = static_cast<uint32_t>(handle.type);
+
+    ret = virtgpu_kumquat_resource_import(mVirtGpu, &resource_import);
+    if (ret < 0) {
+        ALOGE("DRM_VIRTGPU_KUMQUAT_RESOURCE_IMPORT failed with %s", strerror(errno));
         return nullptr;
     }
 
-    info.bo_handle = blobHandle;
-    ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_RESOURCE_INFO, &info);
-    if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_RESOURCE_INFO failed: %s", strerror(errno));
-        return nullptr;
-    }
-
-    return std::make_shared<LinuxVirtGpuResource>(mDeviceHandle, blobHandle, info.res_handle,
-                                                  static_cast<uint64_t>(info.size));
+    return std::make_shared<VirtGpuKumquatResource>(
+        mVirtGpu, resource_import.bo_handle, resource_import.res_handle, resource_import.size);
 }
 
-int LinuxVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
-                                   const VirtGpuResource* blob) {
+int VirtGpuKumquatDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
+                                     const VirtGpuResource* blob) {
     int ret;
-    struct drm_virtgpu_execbuffer exec = {0};
+    struct drm_kumquat_execbuffer exec = {0};
     uint32_t blobHandle;
 
     exec.flags = execbuffer.flags;
@@ -238,9 +227,9 @@ int LinuxVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
         exec.num_bo_handles = 1;
     }
 
-    ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_EXECBUFFER, &exec);
+    ret = virtgpu_kumquat_execbuffer(mVirtGpu, &exec);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_EXECBUFFER failed: %s", strerror(errno));
+        ALOGE("DRM_IOCTL_VIRTGPU_KUMQUAT_EXECBUFFER failed: %s", strerror(errno));
         return ret;
     }
 
@@ -253,5 +242,5 @@ int LinuxVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
 }
 
 VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int fd) {
-    return new LinuxVirtGpuDevice(capset, fd);
+    return new VirtGpuKumquatDevice(capset, fd);
 }

@@ -8125,8 +8125,6 @@ void reservedmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 #endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
@@ -9060,6 +9058,41 @@ void reservedmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     memcpy(*ptr, (VkBool32*)&forMarshaling->extendedDynamicState2PatchControlPoints,
            sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void reservedmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkBool32*)&forMarshaling->colorWriteEnable, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const VkBool32*)forMarshaling->pColorWriteEnables,
+           forMarshaling->attachmentCount * sizeof(const VkBool32));
+    *ptr += forMarshaling->attachmentCount * sizeof(const VkBool32);
 }
 
 #endif
@@ -10417,6 +10450,22 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
                 reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT*>(
                     structExtension),
                 ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            reservedmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            reservedmarshal_VkPipelineColorWriteCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineColorWriteCreateInfoEXT*>(structExtension), ptr);
             break;
         }
 #endif
