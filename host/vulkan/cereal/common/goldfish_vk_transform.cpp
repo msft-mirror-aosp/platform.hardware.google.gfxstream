@@ -6138,8 +6138,6 @@ void transform_fromhost_VkDeviceImageMemoryRequirements(
 }
 
 #endif
-#ifdef VK_KHR_surface
-#endif
 #ifdef VK_KHR_swapchain
 void transform_tohost_VkSwapchainCreateInfoKHR(VkDecoderGlobalState* resourceTracker,
                                                VkSwapchainCreateInfoKHR* toTransform) {
@@ -6288,12 +6286,6 @@ void transform_fromhost_VkDeviceGroupSwapchainCreateInfoKHR(
 }
 
 #endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
-#endif
 #ifdef VK_KHR_dynamic_rendering
 void transform_tohost_VkRenderingFragmentShadingRateAttachmentInfoKHR(
     VkDecoderGlobalState* resourceTracker,
@@ -6376,24 +6368,6 @@ void transform_fromhost_VkMultiviewPerViewAttributesInfoNVX(
 }
 
 #endif
-#ifdef VK_KHR_get_physical_device_properties2
-#endif
-#ifdef VK_KHR_maintenance1
-#endif
-#ifdef VK_KHR_external_memory_capabilities
-#endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
-#ifdef VK_KHR_external_semaphore_capabilities
-#endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
-#endif
 #ifdef VK_KHR_external_semaphore_fd
 void transform_tohost_VkImportSemaphoreFdInfoKHR(VkDecoderGlobalState* resourceTracker,
                                                  VkImportSemaphoreFdInfoKHR* toTransform) {
@@ -6431,8 +6405,6 @@ void transform_fromhost_VkSemaphoreGetFdInfoKHR(VkDecoderGlobalState* resourceTr
     }
 }
 
-#endif
-#ifdef VK_KHR_shader_float16_int8
 #endif
 #ifdef VK_KHR_incremental_present
 void transform_tohost_VkRectLayerKHR(VkDecoderGlobalState* resourceTracker,
@@ -6514,16 +6486,6 @@ void transform_fromhost_VkPresentRegionsKHR(VkDecoderGlobalState* resourceTracke
 }
 
 #endif
-#ifdef VK_KHR_descriptor_update_template
-#endif
-#ifdef VK_KHR_imageless_framebuffer
-#endif
-#ifdef VK_KHR_create_renderpass2
-#endif
-#ifdef VK_KHR_external_fence_capabilities
-#endif
-#ifdef VK_KHR_external_fence
-#endif
 #ifdef VK_KHR_external_fence_fd
 void transform_tohost_VkImportFenceFdInfoKHR(VkDecoderGlobalState* resourceTracker,
                                              VkImportFenceFdInfoKHR* toTransform) {
@@ -6561,30 +6523,6 @@ void transform_fromhost_VkFenceGetFdInfoKHR(VkDecoderGlobalState* resourceTracke
     }
 }
 
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
-#endif
-#ifdef VK_KHR_get_memory_requirements2
-#endif
-#ifdef VK_KHR_image_format_list
-#endif
-#ifdef VK_KHR_sampler_ycbcr_conversion
-#endif
-#ifdef VK_KHR_bind_memory2
-#endif
-#ifdef VK_KHR_maintenance3
-#endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
-#endif
-#ifdef VK_KHR_buffer_device_address
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 void transform_tohost_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
@@ -6716,10 +6654,6 @@ void transform_fromhost_VkPipelineExecutableInternalRepresentationKHR(
 }
 
 #endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
-#endif
 #ifdef VK_KHR_synchronization2
 void transform_tohost_VkQueueFamilyCheckpointProperties2NV(
     VkDecoderGlobalState* resourceTracker, VkQueueFamilyCheckpointProperties2NV* toTransform) {
@@ -6757,14 +6691,6 @@ void transform_fromhost_VkCheckpointData2NV(VkDecoderGlobalState* resourceTracke
     }
 }
 
-#endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
-#endif
-#ifdef VK_KHR_copy_commands2
-#endif
-#ifdef VK_KHR_format_feature_flags2
-#endif
-#ifdef VK_KHR_maintenance4
 #endif
 #ifdef VK_KHR_maintenance5
 void transform_tohost_VkPhysicalDeviceMaintenance5FeaturesKHR(
@@ -7094,10 +7020,6 @@ void transform_fromhost_VkPipelineRasterizationStateStreamCreateInfoEXT(
 }
 
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
 #ifdef VK_EXT_depth_clip_enable
 void transform_tohost_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -7139,10 +7061,6 @@ void transform_fromhost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     }
 }
 
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
 void transform_tohost_VkDebugUtilsLabelEXT(VkDecoderGlobalState* resourceTracker,
@@ -7284,12 +7202,6 @@ void transform_fromhost_VkDebugUtilsObjectTagInfoEXT(VkDecoderGlobalState* resou
 }
 
 #endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
-#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -7386,12 +7298,6 @@ void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
 }
 
 #endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
 #ifdef VK_EXT_fragment_density_map
 void transform_tohost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -7465,12 +7371,6 @@ void transform_fromhost_VkRenderPassFragmentDensityMapCreateInfoEXT(
         resourceTracker, (VkAttachmentReference*)(&toTransform->fragmentDensityMapAttachment));
 }
 
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
-#endif
-#ifdef VK_EXT_tooling_info
 #endif
 #ifdef VK_EXT_validation_features
 void transform_tohost_VkValidationFeaturesEXT(VkDecoderGlobalState* resourceTracker,
@@ -8022,8 +7922,6 @@ void transform_fromhost_VkReleaseSwapchainImagesInfoEXT(
 }
 
 #endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
 #ifdef VK_EXT_texel_buffer_alignment
 void transform_tohost_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -8206,12 +8104,6 @@ void transform_fromhost_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 }
 
 #endif
-#ifdef VK_EXT_private_data
-#endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_metal_objects
-#endif
 #ifdef VK_EXT_graphics_pipeline_library
 void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -8293,8 +8185,6 @@ void transform_fromhost_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     }
 }
 
-#endif
-#ifdef VK_EXT_image_robustness
 #endif
 #ifdef VK_EXT_image_compression_control
 void transform_tohost_VkPhysicalDeviceImageCompressionControlFeaturesEXT(
@@ -8514,8 +8404,6 @@ void transform_fromhost_VkCreateBlobGOOGLE(VkDecoderGlobalState* resourceTracker
 }
 
 #endif
-#ifdef VK_EXT_load_store_op_none
-#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void transform_tohost_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -8537,8 +8425,6 @@ void transform_fromhost_VkPhysicalDeviceImageCompressionControlSwapchainFeatures
     }
 }
 
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
                                        void* structExtension_out) {
