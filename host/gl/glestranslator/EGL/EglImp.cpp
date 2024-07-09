@@ -131,6 +131,7 @@ EGLAPI void EGLAPIENTRY eglAddLibrarySearchPathANDROID(const char* path);
 EGLAPI EGLBoolean EGLAPIENTRY eglQueryVulkanInteropSupportANDROID(void);
 EGLAPI EGLBoolean EGLAPIENTRY eglGetSyncAttribKHR(EGLDisplay display, EGLSyncKHR sync, EGLint attribute, EGLint *value);
 EGLAPI EGLBoolean EGLAPIENTRY eglSetNativeTextureDecompressionEnabledANDROID(EGLDisplay display, EGLBoolean enabled);
+EGLAPI EGLBoolean EGLAPIENTRY eglSetProgramBinaryLinkStatusEnabledANDROID(EGLDisplay display, EGLBoolean enabled);
 
 EGLAPI EGLBoolean EGLAPIENTRY eglSaveConfig(EGLDisplay display, EGLConfig config, EGLStreamKHR stream);
 EGLAPI EGLConfig EGLAPIENTRY eglLoadConfig(EGLDisplay display, EGLStreamKHR stream);
@@ -194,6 +195,8 @@ static const ExtensionDescriptor s_eglExtensions[] = {
                 (__eglMustCastToProperFunctionPointerType)eglGetSyncAttribKHR },
         {"eglSetNativeTextureDecompressionEnabledANDROID",
                 (__eglMustCastToProperFunctionPointerType)eglSetNativeTextureDecompressionEnabledANDROID },
+        {"eglSetProgramBinaryLinkStatusEnabledANDROID",
+                (__eglMustCastToProperFunctionPointerType)eglSetProgramBinaryLinkStatusEnabledANDROID },
 };
 
 static const int s_eglExtensionsSize =
@@ -1180,7 +1183,8 @@ EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay display,
             thread->updateInfo(newCtx,dpy,newCtx->getGlesContext(),newCtx->getShareGroup(),dpy->getManager(newCtx->version()));
             newCtx->setSurfaces(newReadSrfc,newDrawSrfc);
             g_eglInfo->getIface(newCtx->version())->initContext(newCtx->getGlesContext(), newCtx->getShareGroup(),
-                                                                dpy->nativeTextureDecompressionEnabled());
+                                                                dpy->nativeTextureDecompressionEnabled(),
+                                                                dpy->programBinaryLinkStatusEnabled());
             g_eglInfo->sweepDestroySurfaces();
         }
 
@@ -1662,6 +1666,13 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSetNativeTextureDecompressionEnabledANDROID(EGL
     MEM_TRACE("EMUGL");
     VALIDATE_DISPLAY_RETURN(display, EGL_FALSE);
     dpy->setNativeTextureDecompressionEnabled(enabled == EGL_TRUE);
+    return EGL_TRUE;
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglSetProgramBinaryLinkStatusEnabledANDROID(EGLDisplay display, EGLBoolean enabled) {
+    MEM_TRACE("EMUGL");
+    VALIDATE_DISPLAY_RETURN(display, EGL_FALSE);
+    dpy->setProgramBinaryLinkStatusEnabled(enabled == EGL_TRUE);
     return EGL_TRUE;
 }
 
