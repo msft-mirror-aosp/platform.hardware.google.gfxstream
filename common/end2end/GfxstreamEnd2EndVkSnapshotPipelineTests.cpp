@@ -57,10 +57,9 @@ class GfxstreamEnd2EndVkSnapshotPipelineTest : public GfxstreamEnd2EndTest {
     std::unique_ptr<ImageInfo> createColorAttachment(vkhpp::PhysicalDevice physicalDevice,
                                                      vkhpp::Device device);
     std::unique_ptr<PipelineInfo> createPipeline(vkhpp::Device device);
-    VkExpected<BufferInfo> createAndPopulateBuffer(vkhpp::PhysicalDevice physicalDevice,
-                                                   vkhpp::Device device,
-                                                   vkhpp::BufferUsageFlags usage, const void* data,
-                                                   uint64_t dataSize);
+    Result<BufferInfo> createAndPopulateBuffer(vkhpp::PhysicalDevice physicalDevice,
+                                               vkhpp::Device device, vkhpp::BufferUsageFlags usage,
+                                               const void* data, uint64_t dataSize);
     static const uint32_t kFbWidth = 32;
     static const uint32_t kFbHeight = 32;
 };
@@ -86,7 +85,7 @@ const float kFullscreenBlueRectangleVertexData[] = {
     // clang-format on
 };
 
-VkExpected<BufferInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createAndPopulateBuffer(
+Result<BufferInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createAndPopulateBuffer(
     vkhpp::PhysicalDevice physicalDevice, vkhpp::Device device, vkhpp::BufferUsageFlags usage,
     const void* data, uint64_t dataSize) {
     const vkhpp::BufferCreateInfo vertexBufferCreateInfo = {
@@ -94,7 +93,8 @@ VkExpected<BufferInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createAndPopulate
         .usage = usage,
         .sharingMode = vkhpp::SharingMode::eExclusive,
     };
-    auto vertexBuffer = VK_EXPECT_RV(device.createBufferUnique(vertexBufferCreateInfo));
+    auto vertexBuffer =
+        GFXSTREAM_EXPECT_VKHPP_RV(device.createBufferUnique(vertexBufferCreateInfo));
 
     vkhpp::MemoryRequirements vertexBufferMemoryRequirements{};
     device.getBufferMemoryRequirements(*vertexBuffer, &vertexBufferMemoryRequirements);
@@ -103,7 +103,7 @@ VkExpected<BufferInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createAndPopulate
         physicalDevice, vertexBufferMemoryRequirements,
         vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
     if (vertexBufferMemoryType == -1) {
-        return gfxstream::unexpected(vkhpp::Result::eErrorOutOfHostMemory);
+        return gfxstream::unexpected("Failed to allocate buffer memory.");
     }
     // Vertex memory
     const vkhpp::MemoryAllocateInfo vertexBufferMemoryAllocateInfo = {
@@ -111,7 +111,7 @@ VkExpected<BufferInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createAndPopulate
         .memoryTypeIndex = vertexBufferMemoryType,
     };
     auto vertexBufferMemory =
-        VK_EXPECT_RV(device.allocateMemoryUnique(vertexBufferMemoryAllocateInfo));
+        GFXSTREAM_EXPECT_VKHPP_RV(device.allocateMemoryUnique(vertexBufferMemoryAllocateInfo));
     device.bindBufferMemory(*vertexBuffer, *vertexBufferMemory, 0);
     void* mapped;
     device.mapMemory(*vertexBufferMemory, 0, VK_WHOLE_SIZE, vkhpp::MemoryMapFlags{}, &mapped);
@@ -336,7 +336,7 @@ std::unique_ptr<ImageInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createColorAt
 
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanRecreateShaderModule) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     auto pipelineInfo = createPipeline(device.get());
     ASSERT_THAT(pipelineInfo->renderPass, IsValidHandle());
     ASSERT_THAT(pipelineInfo->descriptorSetLayout, IsValidHandle());
@@ -359,7 +359,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanRecreateShaderModule) {
 // a test for it.
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotDescriptorPool) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     std::vector<vkhpp::DescriptorPoolSize> sizes = {
         {
             .descriptorCount = 10,
@@ -403,7 +403,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotDescriptorPool) {
 
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotFramebuffer) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     auto renderPass = createRenderPass(device.get());
     ASSERT_THAT(renderPass, IsValidHandle());
 
@@ -428,7 +428,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotFramebuffer) {
 }
 
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) {
-    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    TypicalVkTestEnvironment testEnvironment = GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = testEnvironment;
 
     auto pipelineInfo = createPipeline(device.get());
@@ -567,7 +567,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) 
 }
 
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotCommandBuffer) {
-    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    TypicalVkTestEnvironment testEnvironment = GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = testEnvironment;
 
     auto pipelineInfo = createPipeline(device.get());
@@ -692,7 +692,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotCommandBuffer) {
 }
 
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotDescriptors) {
-    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    TypicalVkTestEnvironment testEnvironment = GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = testEnvironment;
 
     auto pipelineInfo = createPipeline(device.get());
@@ -913,7 +913,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, CanSnapshotDescriptors) {
 }
 
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, DeleteBufferBeforeCommit) {
-    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    TypicalVkTestEnvironment testEnvironment = GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = testEnvironment;
 
     auto pipelineInfo = createPipeline(device.get());
@@ -1085,7 +1085,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, DeleteBufferBeforeCommit) {
 }
 
 TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, DeleteBufferAfterWriteDescriptor) {
-    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    TypicalVkTestEnvironment testEnvironment = GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = testEnvironment;
 
     auto pipelineInfo = createPipeline(device.get());

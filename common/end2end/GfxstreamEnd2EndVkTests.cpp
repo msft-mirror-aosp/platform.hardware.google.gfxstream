@@ -52,12 +52,12 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
     // are in use on the host.
     void DoAcquireImageAndroidWithSync(bool withFence, bool withSemaphore) {
         auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-            VK_ASSERT(SetUpTypicalVkTestEnvironment());
+            GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
         const uint32_t width = 32;
         const uint32_t height = 32;
-        auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
-                                                             GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+        auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+            *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
         const VkNativeBufferANDROID imageNativeBufferInfo = {
             .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
@@ -123,30 +123,31 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         }
     }
 
-    gfxstream::expected<Ok, vkhpp::Result> DoCommandsImmediate(
+    Result<Ok> DoCommandsImmediate(
         TypicalVkTestEnvironment& vk,
-        const std::function<vkhpp::Result(vkhpp::UniqueCommandBuffer&)>& func,
+        const std::function<Result<Ok>(vkhpp::UniqueCommandBuffer&)>& func,
         const std::vector<vkhpp::UniqueSemaphore>& semaphores_wait = {},
         const std::vector<vkhpp::UniqueSemaphore>& semaphores_signal = {}) {
         const vkhpp::CommandPoolCreateInfo commandPoolCreateInfo = {
             .queueFamilyIndex = vk.queueFamilyIndex,
         };
-        auto commandPool = VK_EXPECT_RV(vk.device->createCommandPoolUnique(commandPoolCreateInfo));
+        auto commandPool =
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createCommandPoolUnique(commandPoolCreateInfo));
 
         const vkhpp::CommandBufferAllocateInfo commandBufferAllocateInfo = {
             .commandPool = *commandPool,
             .level = vkhpp::CommandBufferLevel::ePrimary,
             .commandBufferCount = 1,
         };
-        auto commandBuffers =
-            VK_EXPECT_RV(vk.device->allocateCommandBuffersUnique(commandBufferAllocateInfo));
+        auto commandBuffers = GFXSTREAM_EXPECT_VKHPP_RV(
+            vk.device->allocateCommandBuffersUnique(commandBufferAllocateInfo));
         auto commandBuffer = std::move(commandBuffers[0]);
 
         const vkhpp::CommandBufferBeginInfo commandBufferBeginInfo = {
             .flags = vkhpp::CommandBufferUsageFlagBits::eOneTimeSubmit,
         };
         commandBuffer->begin(commandBufferBeginInfo);
-        VK_EXPECT_RESULT(func(commandBuffer));
+        GFXSTREAM_EXPECT(func(commandBuffer));
         commandBuffer->end();
 
         std::vector<vkhpp::CommandBuffer> commandBufferHandles;
@@ -185,16 +186,18 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         vkhpp::UniqueBuffer buffer;
         vkhpp::UniqueDeviceMemory bufferMemory;
     };
-    gfxstream::expected<BufferWithMemory, vkhpp::Result> CreateBuffer(
-        TypicalVkTestEnvironment& vk, vkhpp::DeviceSize bufferSize,
-        vkhpp::BufferUsageFlags bufferUsages, vkhpp::MemoryPropertyFlags bufferMemoryProperties,
-        const uint8_t* data = nullptr, vkhpp::DeviceSize dataSize = 0) {
+    Result<BufferWithMemory> CreateBuffer(TypicalVkTestEnvironment& vk,
+                                          vkhpp::DeviceSize bufferSize,
+                                          vkhpp::BufferUsageFlags bufferUsages,
+                                          vkhpp::MemoryPropertyFlags bufferMemoryProperties,
+                                          const uint8_t* data = nullptr,
+                                          vkhpp::DeviceSize dataSize = 0) {
         const vkhpp::BufferCreateInfo bufferCreateInfo = {
             .size = static_cast<VkDeviceSize>(bufferSize),
             .usage = bufferUsages,
             .sharingMode = vkhpp::SharingMode::eExclusive,
         };
-        auto buffer = VK_EXPECT_RV(vk.device->createBufferUnique(bufferCreateInfo));
+        auto buffer = GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createBufferUnique(bufferCreateInfo));
 
         vkhpp::MemoryRequirements bufferMemoryRequirements{};
         vk.device->getBufferMemoryRequirements(*buffer, &bufferMemoryRequirements);
@@ -206,19 +209,23 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .allocationSize = bufferMemoryRequirements.size,
             .memoryTypeIndex = bufferMemoryTypeIndex,
         };
-        auto bufferMemory = VK_EXPECT_RV(vk.device->allocateMemoryUnique(bufferMemoryAllocateInfo));
+        auto bufferMemory =
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->allocateMemoryUnique(bufferMemoryAllocateInfo));
 
-        VK_EXPECT_RESULT(vk.device->bindBufferMemory(*buffer, *bufferMemory, 0));
+        GFXSTREAM_EXPECT_VKHPP_RESULT(vk.device->bindBufferMemory(*buffer, *bufferMemory, 0));
 
         if (data != nullptr) {
             if (!(bufferUsages & vkhpp::BufferUsageFlagBits::eTransferDst)) {
-                return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+                return gfxstream::unexpected(
+                    "Must request transfer dst usage when creating buffer with data");
             }
             if (!(bufferMemoryProperties & vkhpp::MemoryPropertyFlagBits::eHostVisible)) {
-                return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+                return gfxstream::unexpected(
+                    "Must request host visible mem property when creating buffer with data");
             }
 
-            void* mapped = VK_EXPECT_RV(vk.device->mapMemory(*bufferMemory, 0, bufferSize));
+            void* mapped =
+                GFXSTREAM_EXPECT_VKHPP_RV(vk.device->mapMemory(*bufferMemory, 0, bufferSize));
 
             std::memcpy(mapped, data, dataSize);
 
@@ -246,12 +253,13 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         vkhpp::UniqueImage image;
         vkhpp::UniqueImageView imageView;
     };
-    gfxstream::expected<ImageWithMemory, vkhpp::Result> CreateImageWithAhb(
-        TypicalVkTestEnvironment& vk, const ScopedAHardwareBuffer& ahb,
-        const vkhpp::ImageUsageFlags usages, const vkhpp::ImageLayout layout) {
+    Result<ImageWithMemory> CreateImageWithAhb(TypicalVkTestEnvironment& vk,
+                                               const ScopedAHardwareBuffer& ahb,
+                                               const vkhpp::ImageUsageFlags usages,
+                                               const vkhpp::ImageLayout layout) {
         const auto ahbHandle = mGralloc->getNativeHandle(ahb);
         if (ahbHandle == nullptr) {
-            return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+            return gfxstream::unexpected("Failed to query native handle.");
         }
         const bool ahbIsYuv = mGralloc->getFormat(ahb) == GFXSTREAM_AHB_FORMAT_YV12;
 
@@ -259,7 +267,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             reinterpret_cast<PFN_vkGetAndroidHardwareBufferPropertiesANDROID>(
                 vk.device->getProcAddr("vkGetAndroidHardwareBufferPropertiesANDROID"));
         if (vkGetAndroidHardwareBufferPropertiesANDROID == nullptr) {
-            return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+            return gfxstream::unexpected(
+                "Failed to query vkGetAndroidHardwareBufferPropertiesANDROID().");
         }
         VkAndroidHardwareBufferFormatPropertiesANDROID ahbFormatProperties = {
             .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID,
@@ -271,7 +280,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         };
         if (vkGetAndroidHardwareBufferPropertiesANDROID(*vk.device, ahb, &ahbProperties) !=
             VK_SUCCESS) {
-            return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+            return gfxstream::unexpected("Failed to query ahb properties.");
         }
 
         std::optional<vkhpp::UniqueSamplerYcbcrConversion> imageSamplerConversion;
@@ -293,8 +302,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                 .chromaFilter = vkhpp::Filter::eLinear,
                 .forceExplicitReconstruction = VK_FALSE,
             };
-            imageSamplerConversion =
-                VK_EXPECT_RV(vk.device->createSamplerYcbcrConversionUnique(conversionCreateInfo));
+            imageSamplerConversion = GFXSTREAM_EXPECT_VKHPP_RV(
+                vk.device->createSamplerYcbcrConversionUnique(conversionCreateInfo));
 
             samplerConversionInfo = vkhpp::SamplerYcbcrConversionInfo{
                 .conversion = **imageSamplerConversion,
@@ -318,7 +327,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .borderColor = vkhpp::BorderColor::eIntTransparentBlack,
             .unnormalizedCoordinates = VK_FALSE,
         };
-        auto imageSampler = VK_EXPECT_RV(vk.device->createSamplerUnique(samplerCreateInfo));
+        auto imageSampler =
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createSamplerUnique(samplerCreateInfo));
 
         const VkExternalFormatANDROID externalFormat = {
             .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
@@ -347,7 +357,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .sharingMode = vkhpp::SharingMode::eExclusive,
             .initialLayout = vkhpp::ImageLayout::eUndefined,
         };
-        auto image = VK_EXPECT_RV(vk.device->createImageUnique(imageCreateInfo));
+        auto image = GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createImageUnique(imageCreateInfo));
 
         const vkhpp::MemoryRequirements imageMemoryRequirements = {
             .size = ahbProperties.allocationSize,
@@ -370,7 +380,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .allocationSize = imageMemoryRequirements.size,
             .memoryTypeIndex = imageMemoryIndex,
         };
-        auto imageMemory = VK_EXPECT_RV(vk.device->allocateMemoryUnique(imageMemoryAllocateInfo));
+        auto imageMemory =
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->allocateMemoryUnique(imageMemoryAllocateInfo));
         vk.device->bindImageMemory(*image, *imageMemory, 0);
 
         const vkhpp::ImageViewCreateInfo imageViewCreateInfo = {
@@ -394,7 +405,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                     .layerCount = 1,
                 },
         };
-        auto imageView = VK_EXPECT_RV(vk.device->createImageViewUnique(imageViewCreateInfo));
+        auto imageView =
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createImageViewUnique(imageViewCreateInfo));
 
         GFXSTREAM_EXPECT(DoCommandsImmediate(vk, [&](vkhpp::UniqueCommandBuffer& cmd) {
             const std::vector<vkhpp::ImageMemoryBarrier> imageMemoryBarriers = {
@@ -424,7 +436,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                 /*memoryBarriers=*/{},
                 /*bufferMemoryBarriers=*/{},
                 /*imageMemoryBarriers=*/imageMemoryBarriers);
-            return vkhpp::Result::eSuccess;
+            return Ok{};
         }));
 
         return ImageWithMemory{
@@ -436,10 +448,11 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         };
     }
 
-    gfxstream::expected<ImageWithMemory, vkhpp::Result> CreateImage(
-        TypicalVkTestEnvironment& vk, uint32_t width, uint32_t height, vkhpp::Format format,
-        vkhpp::ImageUsageFlags usages, vkhpp::MemoryPropertyFlags memoryProperties,
-        vkhpp::ImageLayout returnedLayout) {
+    Result<ImageWithMemory> CreateImage(TypicalVkTestEnvironment& vk, uint32_t width,
+                                        uint32_t height, vkhpp::Format format,
+                                        vkhpp::ImageUsageFlags usages,
+                                        vkhpp::MemoryPropertyFlags memoryProperties,
+                                        vkhpp::ImageLayout returnedLayout) {
         const vkhpp::ImageCreateInfo imageCreateInfo = {
             .imageType = vkhpp::ImageType::e2D,
             .format = format,
@@ -457,7 +470,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .sharingMode = vkhpp::SharingMode::eExclusive,
             .initialLayout = vkhpp::ImageLayout::eUndefined,
         };
-        auto image = VK_EXPECT_RV(vk.device->createImageUnique(imageCreateInfo));
+        auto image = GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createImageUnique(imageCreateInfo));
 
         const auto memoryRequirements = vk.device->getImageMemoryRequirements(*image);
         const uint32_t memoryIndex =
@@ -467,7 +480,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .allocationSize = memoryRequirements.size,
             .memoryTypeIndex = memoryIndex,
         };
-        auto imageMemory = VK_EXPECT_RV(vk.device->allocateMemoryUnique(imageMemoryAllocateInfo));
+        auto imageMemory =
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->allocateMemoryUnique(imageMemoryAllocateInfo));
 
         vk.device->bindImageMemory(*image, *imageMemory, 0);
 
@@ -491,7 +505,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                     .layerCount = 1,
                 },
         };
-        auto imageView = VK_EXPECT_RV(vk.device->createImageViewUnique(imageViewCreateInfo));
+        auto imageView =
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createImageViewUnique(imageViewCreateInfo));
 
         GFXSTREAM_EXPECT(DoCommandsImmediate(vk, [&](vkhpp::UniqueCommandBuffer& cmd) {
             const std::vector<vkhpp::ImageMemoryBarrier> imageMemoryBarriers = {
@@ -521,7 +536,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                 /*bufferMemoryBarriers=*/{},
                 /*imageMemoryBarriers=*/imageMemoryBarriers);
 
-            return vkhpp::Result::eSuccess;
+            return Ok{};
         }));
 
         return ImageWithMemory{
@@ -537,7 +552,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         vkhpp::UniqueRenderPass renderpass;
         vkhpp::UniqueFramebuffer framebuffer;
     };
-    gfxstream::expected<FramebufferWithAttachments, vkhpp::Result> CreateFramebuffer(
+    Result<FramebufferWithAttachments> CreateFramebuffer(
         TypicalVkTestEnvironment& vk, uint32_t width, uint32_t height,
         vkhpp::Format colorAttachmentFormat = vkhpp::Format::eUndefined,
         vkhpp::Format depthAttachmentFormat = vkhpp::Format::eUndefined) {
@@ -647,7 +662,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .dependencyCount = 1,
             .pDependencies = &dependency,
         };
-        auto renderpass = VK_EXPECT_RV(vk.device->createRenderPassUnique(renderpassCreateInfo));
+        auto renderpass =
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createRenderPassUnique(renderpassCreateInfo));
 
         std::vector<vkhpp::ImageView> framebufferAttachments;
         if (colorAttachment) {
@@ -664,7 +680,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .height = height,
             .layers = 1,
         };
-        auto framebuffer = VK_EXPECT_RV(vk.device->createFramebufferUnique(framebufferCreateInfo));
+        auto framebuffer =
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createFramebufferUnique(framebufferCreateInfo));
 
         return FramebufferWithAttachments{
             .colorAttachment = std::move(colorAttachment),
@@ -688,7 +705,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         vkhpp::UniqueDescriptorSetLayout layout;
         vkhpp::UniqueDescriptorSet ds;
     };
-    gfxstream::expected<DescriptorSetBundle, vkhpp::Result> CreateDescriptorSet(
+    Result<DescriptorSetBundle> CreateDescriptorSet(
         TypicalVkTestEnvironment& vk,
         const std::vector<vkhpp::DescriptorSetLayoutBinding>& bindings,
         const std::vector<DescriptorContents> contents) {
@@ -709,15 +726,15 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .poolSizeCount = static_cast<uint32_t>(descriptorPoolSizes.size()),
             .pPoolSizes = descriptorPoolSizes.data(),
         };
-        auto descriptorSetPool =
-            VK_EXPECT_RV(vk.device->createDescriptorPoolUnique(descriptorPoolCreateInfo));
+        auto descriptorSetPool = GFXSTREAM_EXPECT_VKHPP_RV(
+            vk.device->createDescriptorPoolUnique(descriptorPoolCreateInfo));
 
         const vkhpp::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
             .bindingCount = static_cast<uint32_t>(bindings.size()),
             .pBindings = bindings.data(),
         };
-        auto descriptorSetLayout =
-            VK_EXPECT_RV(vk.device->createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo));
+        auto descriptorSetLayout = GFXSTREAM_EXPECT_VKHPP_RV(
+            vk.device->createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo));
 
         const vkhpp::DescriptorSetLayout descriptorSetLayoutHandle = *descriptorSetLayout;
         const vkhpp::DescriptorSetAllocateInfo descriptorSetAllocateInfo = {
@@ -725,8 +742,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .descriptorSetCount = 1,
             .pSetLayouts = &descriptorSetLayoutHandle,
         };
-        auto descriptorSets =
-            VK_EXPECT_RV(vk.device->allocateDescriptorSetsUnique(descriptorSetAllocateInfo));
+        auto descriptorSets = GFXSTREAM_EXPECT_VKHPP_RV(
+            vk.device->allocateDescriptorSetsUnique(descriptorSetAllocateInfo));
         auto descriptorSet(std::move(descriptorSets[0]));
 
         std::vector<std::unique_ptr<vkhpp::DescriptorImageInfo>> descriptorImageInfos;
@@ -747,7 +764,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                     .pImageInfo = descriptorImageInfos.back().get(),
                 });
             } else {
-                return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+                return gfxstream::unexpected("Unhandled descriptor type");
+                ;
             }
         }
         vk.device->updateDescriptorSets(descriptorSetWrites, {});
@@ -771,21 +789,21 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         vkhpp::UniquePipelineLayout pipelineLayout;
         vkhpp::UniquePipeline pipeline;
     };
-    gfxstream::expected<PipelineBundle, vkhpp::Result> CreatePipeline(
-        TypicalVkTestEnvironment& vk, const PipelineParams& params) {
+    Result<PipelineBundle> CreatePipeline(TypicalVkTestEnvironment& vk,
+                                          const PipelineParams& params) {
         const vkhpp::ShaderModuleCreateInfo vertShaderCreateInfo = {
             .codeSize = params.vert.size() * sizeof(uint32_t),
             .pCode = params.vert.data(),
         };
         auto vertShaderModule =
-            VK_EXPECT_RV(vk.device->createShaderModuleUnique(vertShaderCreateInfo));
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createShaderModuleUnique(vertShaderCreateInfo));
 
         const vkhpp::ShaderModuleCreateInfo fragShaderCreateInfo = {
             .codeSize = params.frag.size() * sizeof(uint32_t),
             .pCode = params.frag.data(),
         };
         auto fragShaderModule =
-            VK_EXPECT_RV(vk.device->createShaderModuleUnique(fragShaderCreateInfo));
+            GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createShaderModuleUnique(fragShaderCreateInfo));
 
         const std::vector<vkhpp::PipelineShaderStageCreateInfo> pipelineStages = {
             vkhpp::PipelineShaderStageCreateInfo{
@@ -808,8 +826,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .setLayoutCount = static_cast<uint32_t>(descriptorSetLayoutHandles.size()),
             .pSetLayouts = descriptorSetLayoutHandles.data(),
         };
-        auto pipelineLayout =
-            VK_EXPECT_RV(vk.device->createPipelineLayoutUnique(pipelineLayoutCreateInfo));
+        auto pipelineLayout = GFXSTREAM_EXPECT_VKHPP_RV(
+            vk.device->createPipelineLayoutUnique(pipelineLayoutCreateInfo));
 
         const vkhpp::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo = {};
         const vkhpp::PipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo = {
@@ -924,8 +942,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .basePipelineHandle = VK_NULL_HANDLE,
             .basePipelineIndex = 0,
         };
-        auto pipeline =
-            VK_EXPECT_RV(vk.device->createGraphicsPipelineUnique({}, pipelineCreateInfo));
+        auto pipeline = GFXSTREAM_EXPECT_VKHPP_RV(
+            vk.device->createGraphicsPipelineUnique({}, pipelineCreateInfo));
 
         return PipelineBundle{
             .vert = std::move(vertShaderModule),
@@ -935,11 +953,9 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         };
     }
 
-    gfxstream::expected<Image, vkhpp::Result> DownloadImage(TypicalVkTestEnvironment& vk,
-                                                            uint32_t width, uint32_t height,
-                                                            const vkhpp::UniqueImage& image,
-                                                            vkhpp::ImageLayout currentLayout,
-                                                            vkhpp::ImageLayout returnedLayout) {
+    Result<Image> DownloadImage(TypicalVkTestEnvironment& vk, uint32_t width, uint32_t height,
+                                const vkhpp::UniqueImage& image, vkhpp::ImageLayout currentLayout,
+                                vkhpp::ImageLayout returnedLayout) {
         static constexpr const VkDeviceSize kStagingBufferSize = 32 * 1024 * 1024;
         auto stagingBuffer = GFXSTREAM_EXPECT(CreateBuffer(
             vk, kStagingBufferSize,
@@ -1036,14 +1052,14 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                     /*bufferMemoryBarriers=*/{},
                     /*imageMemoryBarriers=*/imageMemoryBarriers);
             }
-            return vkhpp::Result::eSuccess;
+            return Ok{};
         }));
 
         std::vector<uint32_t> outPixels;
         outPixels.resize(width * height);
 
-        auto* mapped =
-            VK_EXPECT_RV(vk.device->mapMemory(*stagingBuffer.bufferMemory, 0, VK_WHOLE_SIZE));
+        auto* mapped = GFXSTREAM_EXPECT_VKHPP_RV(
+            vk.device->mapMemory(*stagingBuffer.bufferMemory, 0, VK_WHOLE_SIZE));
         std::memcpy(outPixels.data(), mapped, sizeof(uint32_t) * outPixels.size());
         vk.device->unmapMemory(*stagingBuffer.bufferMemory);
 
@@ -1054,20 +1070,18 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         };
     }
 
-    gfxstream::expected<Ok, vkhpp::Result> DoFillAndRenderFromAhb(uint32_t ahbFormat) {
+    void DoFillAndRenderFromAhb(uint32_t ahbFormat) {
         const uint32_t width = 16;
         const uint32_t height = 16;
         const auto goldenPixel = PixelR8G8B8A8(11, 22, 33, 44);
         const auto goldenPixels = Fill(width, height, goldenPixel);
 
-        auto ahb = GFXSTREAM_EXPECT(
-            ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat)
-                .transform_error([](const std::string&) { return vkhpp::Result::eErrorUnknown; }));
+        auto ahb =
+            GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
 
         // Initialize AHB with `goldenPixel`
         {
-            uint8_t* mapped = GFXSTREAM_EXPECT(ahb.Lock().transform_error(
-                [](const std::string&) { return vkhpp::Result::eErrorUnknown; }));
+            uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
             std::memcpy(mapped, goldenPixels.data(), goldenPixels.size());
             ahb.Unlock();
         }
@@ -1075,20 +1089,20 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         const vkhpp::PhysicalDeviceVulkan11Features deviceFeatures = {
             .samplerYcbcrConversion = VK_TRUE,
         };
-        auto vk = GFXSTREAM_EXPECT(SetUpTypicalVkTestEnvironment({
+        auto vk = GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment({
             .deviceExtensions = {{VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME}},
             .deviceCreateInfoPNext = &deviceFeatures,
         }));
 
         auto ahbImage =
-            GFXSTREAM_EXPECT(CreateImageWithAhb(vk, ahb, vkhpp::ImageUsageFlagBits::eSampled,
+            GFXSTREAM_ASSERT(CreateImageWithAhb(vk, ahb, vkhpp::ImageUsageFlagBits::eSampled,
                                                 vkhpp::ImageLayout::eShaderReadOnlyOptimal));
 
-        auto framebuffer = GFXSTREAM_EXPECT(CreateFramebuffer(
+        auto framebuffer = GFXSTREAM_ASSERT(CreateFramebuffer(
             vk, width, height, /*colorAttachmentFormat=*/vkhpp::Format::eR8G8B8A8Unorm));
 
         const vkhpp::Sampler ahbSamplerHandle = *ahbImage.imageSampler;
-        auto descriptorSet0 = GFXSTREAM_EXPECT(
+        auto descriptorSet0 = GFXSTREAM_ASSERT(
             CreateDescriptorSet(vk,
                                 /*bindings=*/
                                 {{
@@ -1109,14 +1123,14 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                                 }}));
 
         auto pipeline =
-            GFXSTREAM_EXPECT(CreatePipeline(vk, {
+            GFXSTREAM_ASSERT(CreatePipeline(vk, {
                                                     .vert = kFullscreenTriangleWithUVVert,
                                                     .frag = kBlitSampler2dFrag,
                                                     .descriptorSets = {&descriptorSet0},
                                                     .framebuffer = &framebuffer,
                                                 }));
 
-        GFXSTREAM_EXPECT(DoCommandsImmediate(vk, [&](vkhpp::UniqueCommandBuffer& cmd) {
+        GFXSTREAM_ASSERT(DoCommandsImmediate(vk, [&](vkhpp::UniqueCommandBuffer& cmd) {
             const std::vector<vkhpp::ClearValue> renderPassBeginClearValues = {
                 vkhpp::ClearValue{
                     .color =
@@ -1178,10 +1192,10 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             cmd->setScissor(0, {scissor});
             cmd->draw(3, 1, 0, 0);
             cmd->endRenderPass();
-            return vkhpp::Result::eSuccess;
+            return Ok{};
         }));
 
-        auto resultImage = GFXSTREAM_EXPECT(
+        auto resultImage = GFXSTREAM_ASSERT(
             DownloadImage(vk, width, height, framebuffer.colorAttachment->image,
                           /*currentLayout=*/vkhpp::ImageLayout::eColorAttachmentOptimal,
                           /*returnedLayout=*/vkhpp::ImageLayout::eColorAttachmentOptimal));
@@ -1192,24 +1206,22 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                 EXPECT_THAT(actual, Eq(goldenPixel));
             }
         }
-
-        return Ok{};
     }
 };
 
 TEST_P(GfxstreamEnd2EndVkTest, Basic) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const uint32_t width = 32;
     const uint32_t height = 32;
-    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
-                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const VkNativeBufferANDROID imageNativeBufferInfo = {
         .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
@@ -1328,12 +1340,12 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
 
 TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const uint32_t width = 32;
     const uint32_t height = 32;
-    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
-                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
         device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
@@ -1393,11 +1405,11 @@ TEST_P(GfxstreamEnd2EndVkTest, BlobAHBIsNotMapable) {
     }
 
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const uint32_t width = 32;
     const uint32_t height = 1;
-    auto ahb = GL_ASSERT(
+    auto ahb = GFXSTREAM_ASSERT(
         ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, GFXSTREAM_AHB_FORMAT_BLOB));
 
     const vkhpp::ExternalMemoryBufferCreateInfo externalMemoryBufferCreateInfo = {
@@ -1465,7 +1477,7 @@ TEST_P(GfxstreamEnd2EndVkTest, HostMemory) {
     static constexpr const vkhpp::DeviceSize kSize = 16 * 1024;
 
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     uint32_t hostMemoryTypeIndex = -1;
     const auto memoryProperties = physicalDevice.getMemoryProperties();
@@ -1511,7 +1523,7 @@ TEST_P(GfxstreamEnd2EndVkTest, HostMemory) {
 
 TEST_P(GfxstreamEnd2EndVkTest, GetPhysicalDeviceProperties2) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     auto props1 = physicalDevice.getProperties();
     auto props2 = physicalDevice.getProperties2();
@@ -1522,7 +1534,7 @@ TEST_P(GfxstreamEnd2EndVkTest, GetPhysicalDeviceProperties2) {
 
 TEST_P(GfxstreamEnd2EndVkTest, GetPhysicalDeviceFeatures2KHR) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     auto features1 = physicalDevice.getFeatures();
     auto features2 = physicalDevice.getFeatures2();
@@ -1531,7 +1543,7 @@ TEST_P(GfxstreamEnd2EndVkTest, GetPhysicalDeviceFeatures2KHR) {
 
 TEST_P(GfxstreamEnd2EndVkTest, GetPhysicalDeviceImageFormatProperties2KHR) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const vkhpp::PhysicalDeviceImageFormatInfo2 imageFormatInfo = {
         .format = vkhpp::Format::eR8G8B8A8Unorm,
@@ -1539,7 +1551,8 @@ TEST_P(GfxstreamEnd2EndVkTest, GetPhysicalDeviceImageFormatProperties2KHR) {
         .tiling = vkhpp::ImageTiling::eOptimal,
         .usage = vkhpp::ImageUsageFlagBits::eSampled,
     };
-    const auto properties = VK_ASSERT_RV(physicalDevice.getImageFormatProperties2(imageFormatInfo));
+    const auto properties =
+        GFXSTREAM_ASSERT_VKHPP_RV(physicalDevice.getImageFormatProperties2(imageFormatInfo));
     EXPECT_THAT(properties.imageFormatProperties.maxExtent.width, Ge(1));
     EXPECT_THAT(properties.imageFormatProperties.maxExtent.height, Ge(1));
     EXPECT_THAT(properties.imageFormatProperties.maxExtent.depth, Ge(1));
@@ -1562,10 +1575,10 @@ struct DescriptorBundle {
     std::vector<vkhpp::UniqueDescriptorSet> descriptorSets;
 };
 
-vkhpp::Result ReallocateDescriptorBundleSets(vkhpp::Device device, uint32_t count, DescriptorBundle* bundle) {
+Result<Ok> ReallocateDescriptorBundleSets(vkhpp::Device device, uint32_t count,
+                                          DescriptorBundle* bundle) {
     if (!bundle->descriptorSetLayout) {
-        ALOGE("Invalid descriptor set layout.");
-        return vkhpp::Result::eErrorUnknown;
+        return gfxstream::unexpected("Invalid descriptor set layout");
     }
 
     const std::vector<vkhpp::DescriptorSetLayout> descriptorSetLayouts(count, *bundle->descriptorSetLayout);
@@ -1574,12 +1587,13 @@ vkhpp::Result ReallocateDescriptorBundleSets(vkhpp::Device device, uint32_t coun
         .descriptorSetCount = count,
         .pSetLayouts = descriptorSetLayouts.data(),
     };
-    auto descriptorSets = VK_TRY_RV(device.allocateDescriptorSetsUnique(descriptorSetAllocateInfo));
+    auto descriptorSets =
+        GFXSTREAM_EXPECT_VKHPP_RV(device.allocateDescriptorSetsUnique(descriptorSetAllocateInfo));
     bundle->descriptorSets = std::move(descriptorSets);
-    return vkhpp::Result::eSuccess;
+    return Ok{};
 }
 
-VkExpected<DescriptorBundle> AllocateDescriptorBundle(vkhpp::Device device, uint32_t count) {
+Result<DescriptorBundle> AllocateDescriptorBundle(vkhpp::Device device, uint32_t count) {
     const vkhpp::DescriptorPoolSize descriptorPoolSize = {
         .type = vkhpp::DescriptorType::eUniformBuffer,
         .descriptorCount = 1 * count,
@@ -1590,7 +1604,8 @@ VkExpected<DescriptorBundle> AllocateDescriptorBundle(vkhpp::Device device, uint
         .poolSizeCount = 1,
         .pPoolSizes = &descriptorPoolSize,
     };
-    auto descriptorPool = VK_EXPECT_RV(device.createDescriptorPoolUnique(descriptorPoolCreateInfo));
+    auto descriptorPool =
+        GFXSTREAM_EXPECT_VKHPP_RV(device.createDescriptorPoolUnique(descriptorPoolCreateInfo));
 
     const vkhpp::DescriptorSetLayoutBinding descriptorSetBinding = {
         .binding = 0,
@@ -1602,13 +1617,14 @@ VkExpected<DescriptorBundle> AllocateDescriptorBundle(vkhpp::Device device, uint
         .bindingCount = 1,
         .pBindings = &descriptorSetBinding,
     };
-    auto descriptorSetLayout = VK_EXPECT_RV(device.createDescriptorSetLayoutUnique(descriptorSetLayoutInfo));
+    auto descriptorSetLayout =
+        GFXSTREAM_EXPECT_VKHPP_RV(device.createDescriptorSetLayoutUnique(descriptorSetLayoutInfo));
 
     DescriptorBundle bundle = {
         .descriptorPool = std::move(descriptorPool),
         .descriptorSetLayout = std::move(descriptorSetLayout),
     };
-    VK_EXPECT_RESULT(ReallocateDescriptorBundleSets(device, count, &bundle));
+    GFXSTREAM_EXPECT(ReallocateDescriptorBundleSets(device, count, &bundle));
     return std::move(bundle);
 }
 
@@ -1625,9 +1641,9 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorSetAllocFree) {
     constexpr const uint32_t kNumSets = 4;
 
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
-    auto bundle = VK_ASSERT(AllocateDescriptorBundle(*device, kNumSets));
+    auto bundle = GFXSTREAM_ASSERT(AllocateDescriptorBundle(*device, kNumSets));
 
     auto descriptorSetHandles = AsHandles(bundle.descriptorSets);
     EXPECT_THAT(device->freeDescriptorSets(*bundle.descriptorPool, kNumSets, descriptorSetHandles.data()), IsVkSuccess());
@@ -1636,7 +1652,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorSetAllocFree) {
     EXPECT_THAT(device->freeDescriptorSets(*bundle.descriptorPool, kNumSets, descriptorSetHandles.data()), IsVkSuccess());
 
     // Alloc/free again should also work
-    ASSERT_THAT(ReallocateDescriptorBundleSets(*device, kNumSets, &bundle), IsVkSuccess());
+    GFXSTREAM_ASSERT(ReallocateDescriptorBundleSets(*device, kNumSets, &bundle));
 
     descriptorSetHandles = AsHandles(bundle.descriptorSets);
     EXPECT_THAT(device->freeDescriptorSets(*bundle.descriptorPool, kNumSets, descriptorSetHandles.data()), IsVkSuccess());
@@ -1646,9 +1662,9 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorSetAllocFreeReset) {
     constexpr const uint32_t kNumSets = 4;
 
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
-    auto bundle = VK_ASSERT(AllocateDescriptorBundle(*device, kNumSets));
+    auto bundle = GFXSTREAM_ASSERT(AllocateDescriptorBundle(*device, kNumSets));
 
     device->resetDescriptorPool(*bundle.descriptorPool);
 
@@ -1657,7 +1673,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorSetAllocFreeReset) {
     EXPECT_THAT(device->freeDescriptorSets(*bundle.descriptorPool, kNumSets, descriptorSetHandles.data()), IsVkSuccess());
 
     // Alloc/reset/free again should also work
-    ASSERT_THAT(ReallocateDescriptorBundleSets(*device, kNumSets, &bundle), IsVkSuccess());
+    GFXSTREAM_ASSERT(ReallocateDescriptorBundleSets(*device, kNumSets, &bundle));
 
     device->resetDescriptorPool(*bundle.descriptorPool);
 
@@ -1669,9 +1685,9 @@ TEST_P(GfxstreamEnd2EndVkTest, DISABLED_DescriptorSetAllocFreeDestroy) {
     constexpr const uint32_t kNumSets = 4;
 
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
-    auto bundle = VK_ASSERT(AllocateDescriptorBundle(*device, kNumSets));
+    auto bundle = GFXSTREAM_ASSERT(AllocateDescriptorBundle(*device, kNumSets));
 
     device->destroyDescriptorPool(*bundle.descriptorPool);
 
@@ -1684,7 +1700,7 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
     constexpr const int kNumIterations = 20;
     for (int i = 0; i < kNumIterations; i++) {
         auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-                VK_ASSERT(SetUpTypicalVkTestEnvironment());
+            GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
         const vkhpp::BufferCreateInfo bufferCreateInfo = {
             .size = 1024,
@@ -1806,7 +1822,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DeviceMemoryReport) {
     };
 
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment({
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment({
             .deviceExtensions = {{
                 VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME,
             }},
@@ -1823,13 +1839,13 @@ TEST_P(GfxstreamEnd2EndVkTest, DeviceMemoryReport) {
 
 TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const vkhpp::BufferCreateInfo bufferCreateInfo = {
         .size = 1024,
         .usage = vkhpp::BufferUsageFlagBits::eUniformBuffer,
     };
-    auto buffer = VK_ASSERT_RV(device->createBufferUnique(bufferCreateInfo));
+    auto buffer = GFXSTREAM_ASSERT_VKHPP_RV(device->createBufferUnique(bufferCreateInfo));
 
     const std::vector<VkDescriptorBufferInfo> descriptorInfo = {
         VkDescriptorBufferInfo{
@@ -1867,7 +1883,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
         .pPoolSizes = descriptorPoolSizes.data(),
     };
     auto descriptorPool =
-        VK_ASSERT_RV(device->createDescriptorPoolUnique(descriptorPoolCreateInfo));
+        GFXSTREAM_ASSERT_VKHPP_RV(device->createDescriptorPoolUnique(descriptorPoolCreateInfo));
 
     const std::vector<vkhpp::DescriptorSetLayoutBinding> descriptorSetBindings = {
         {
@@ -1900,7 +1916,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
         .pBindings = descriptorSetBindings.data(),
     };
     auto descriptorSetLayout =
-        VK_ASSERT_RV(device->createDescriptorSetLayoutUnique(descriptorSetLayoutInfo));
+        GFXSTREAM_ASSERT_VKHPP_RV(device->createDescriptorSetLayoutUnique(descriptorSetLayoutInfo));
 
     const std::vector<vkhpp::DescriptorSetLayout> descriptorSetLayouts = {*descriptorSetLayout};
     const vkhpp::DescriptorSetAllocateInfo descriptorSetAllocateInfo = {
@@ -1909,7 +1925,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
         .pSetLayouts = descriptorSetLayouts.data(),
     };
     auto descriptorSets =
-        VK_ASSERT_RV(device->allocateDescriptorSetsUnique(descriptorSetAllocateInfo));
+        GFXSTREAM_ASSERT_VKHPP_RV(device->allocateDescriptorSetsUnique(descriptorSetAllocateInfo));
     auto descriptorSet = std::move(descriptorSets[0]);
 
     const vkhpp::PipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
@@ -1917,7 +1933,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
         .pSetLayouts = descriptorSetLayouts.data(),
     };
     auto pipelineLayout =
-        VK_ASSERT_RV(device->createPipelineLayoutUnique(pipelineLayoutCreateInfo));
+        GFXSTREAM_ASSERT_VKHPP_RV(device->createPipelineLayoutUnique(pipelineLayoutCreateInfo));
 
     const std::vector<vkhpp::DescriptorUpdateTemplateEntry> descriptorUpdateEntries = {
         {
@@ -1937,7 +1953,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
         .pipelineLayout = *pipelineLayout,
         .set = 0,
     };
-    auto descriptorUpdateTemplate = VK_ASSERT_RV(
+    auto descriptorUpdateTemplate = GFXSTREAM_ASSERT_VKHPP_RV(
         device->createDescriptorUpdateTemplateUnique(descriptorUpdateTemplateCreateInfo));
 
     device->updateDescriptorSetWithTemplate(*descriptorSet, *descriptorUpdateTemplate,
@@ -1946,7 +1962,7 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
 
 TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedVkMapMemory) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     static constexpr const vkhpp::DeviceSize kSize = 1024;
     const vkhpp::BufferCreateInfo bufferCreateInfo = {
@@ -2011,7 +2027,7 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedVkMapMemory) {
 
 TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedResetCommandBuffer) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     static constexpr const vkhpp::DeviceSize kSize = 1024;
     const vkhpp::BufferCreateInfo bufferCreateInfo = {
@@ -2085,7 +2101,7 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedResetCommandBuffer) {
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, ImportAndBlitFromR8G8B8A8Ahb) {
-    VK_ASSERT(DoFillAndRenderFromAhb(GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    DoFillAndRenderFromAhb(GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM);
 }
 
 std::vector<TestParams> GenerateTestCases() {

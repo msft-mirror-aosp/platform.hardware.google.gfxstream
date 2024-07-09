@@ -357,8 +357,8 @@ void GfxstreamEnd2EndTest::TearDownEglContextAndSurface(
     ASSERT_THAT(mGl->eglDestroySurface(display, surface), IsTrue());
 }
 
-GlExpected<ScopedGlShader> ScopedGlShader::MakeShader(GlDispatch& dispatch, GLenum type,
-                                                      const std::string& source) {
+Result<ScopedGlShader> ScopedGlShader::MakeShader(GlDispatch& dispatch, GLenum type,
+                                                  const std::string& source) {
     GLuint shader = dispatch.glCreateShader(type);
     if (!shader) {
         return gfxstream::unexpected("Failed to create shader.");
@@ -392,12 +392,13 @@ GlExpected<ScopedGlShader> ScopedGlShader::MakeShader(GlDispatch& dispatch, GLen
     return ScopedGlShader(dispatch, shader);
 }
 
-GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(GlDispatch& dispatch,
-                                                         const std::string& vertSource,
-                                                         const std::string& fragSource) {
-    auto vertShader = GL_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_VERTEX_SHADER, vertSource));
+Result<ScopedGlProgram> ScopedGlProgram::MakeProgram(GlDispatch& dispatch,
+                                                     const std::string& vertSource,
+                                                     const std::string& fragSource) {
+    auto vertShader =
+        GFXSTREAM_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_VERTEX_SHADER, vertSource));
     auto fragShader =
-        GL_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_FRAGMENT_SHADER, fragSource));
+        GFXSTREAM_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_FRAGMENT_SHADER, fragSource));
 
     GLuint program = dispatch.glCreateProgram();
     dispatch.glAttachShader(program, vertShader);
@@ -426,7 +427,7 @@ GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(GlDispatch& dispatch,
     return ScopedGlProgram(dispatch, program);
 }
 
-GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(
+Result<ScopedGlProgram> ScopedGlProgram::MakeProgram(
     GlDispatch& dispatch, GLenum programBinaryFormat,
     const std::vector<uint8_t>& programBinaryData) {
     GLuint program = dispatch.glCreateProgram();
@@ -455,9 +456,8 @@ GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(
     return ScopedGlProgram(dispatch, program);
 }
 
-GlExpected<ScopedAHardwareBuffer> ScopedAHardwareBuffer::Allocate(Gralloc& gralloc, uint32_t width,
-                                                                  uint32_t height,
-                                                                  uint32_t format) {
+Result<ScopedAHardwareBuffer> ScopedAHardwareBuffer::Allocate(Gralloc& gralloc, uint32_t width,
+                                                              uint32_t height, uint32_t format) {
     AHardwareBuffer* ahb = nullptr;
     int status = gralloc.allocate(width, height, format, -1, &ahb);
     if (status != 0) {
@@ -470,8 +470,7 @@ GlExpected<ScopedAHardwareBuffer> ScopedAHardwareBuffer::Allocate(Gralloc& grall
     return ScopedAHardwareBuffer(gralloc, ahb);
 }
 
-GlExpected<ScopedGlShader> GfxstreamEnd2EndTest::SetUpShader(GLenum type,
-                                                             const std::string& source) {
+Result<ScopedGlShader> GfxstreamEnd2EndTest::SetUpShader(GLenum type, const std::string& source) {
     if (!mGl) {
         return gfxstream::unexpected("Gl not enabled for this test.");
     }
@@ -479,8 +478,8 @@ GlExpected<ScopedGlShader> GfxstreamEnd2EndTest::SetUpShader(GLenum type,
     return ScopedGlShader::MakeShader(*mGl, type, source);
 }
 
-GlExpected<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(const std::string& vertSource,
-                                                               const std::string& fragSource) {
+Result<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(const std::string& vertSource,
+                                                           const std::string& fragSource) {
     if (!mGl) {
         return gfxstream::unexpected("Gl not enabled for this test.");
     }
@@ -488,7 +487,7 @@ GlExpected<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(const std::string
     return ScopedGlProgram::MakeProgram(*mGl, vertSource, fragSource);
 }
 
-GlExpected<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(
+Result<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(
     GLenum programBinaryFormat, const std::vector<uint8_t>& programBinaryData) {
     if (!mGl) {
         return gfxstream::unexpected("Gl not enabled for this test.");
@@ -497,7 +496,7 @@ GlExpected<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(
     return ScopedGlProgram::MakeProgram(*mGl, programBinaryFormat, programBinaryData);
 }
 
-VkExpected<GfxstreamEnd2EndTest::TypicalVkTestEnvironment>
+Result<GfxstreamEnd2EndTest::TypicalVkTestEnvironment>
 GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironmentOptions& opts) {
     const auto availableInstanceLayers = vkhpp::enumerateInstanceLayerProperties().value;
     ALOGV("Available instance layers:");
@@ -529,11 +528,11 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
         .ppEnabledExtensionNames = requestedInstanceExtensions.data(),
     };
 
-    auto instance = VK_EXPECT_RV(vkhpp::createInstanceUnique(instanceCreateInfo));
+    auto instance = GFXSTREAM_EXPECT_VKHPP_RV(vkhpp::createInstanceUnique(instanceCreateInfo));
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 
-    auto physicalDevices = VK_EXPECT_RV(instance->enumeratePhysicalDevices());
+    auto physicalDevices = GFXSTREAM_EXPECT_VKHPP_RV(instance->enumeratePhysicalDevices());
     ALOGV("Available physical devices:");
     for (const auto& physicalDevice : physicalDevices) {
         const auto physicalDeviceProps = physicalDevice.getProperties();
@@ -541,8 +540,8 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
     }
 
     if (physicalDevices.empty()) {
-        ALOGE("No physical devices available?");
-        return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+        return gfxstream::unexpected(
+            "Failed to set up typical VK env: no physical devices available.");
     }
 
     auto physicalDevice = std::move(physicalDevices[0]);
@@ -551,7 +550,8 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
         ALOGV("Selected physical device: %s", physicalDeviceProps.deviceName.data());
     }
     {
-        const auto exts = VK_EXPECT_RV(physicalDevice.enumerateDeviceExtensionProperties());
+        const auto exts =
+            GFXSTREAM_EXPECT_VKHPP_RV(physicalDevice.enumerateDeviceExtensionProperties());
         ALOGV("Available physical device extensions:");
         for (const auto& ext : exts) {
             ALOGV(" - %s", ext.extensionName.data());
@@ -570,8 +570,7 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
         }
     }
     if (graphicsQueueFamilyIndex == -1) {
-        ALOGE("Failed to find graphics queue.");
-        return gfxstream::unexpected(vkhpp::Result::eErrorUnknown);
+        return gfxstream::unexpected("Failed to set up typical VK env: no graphics queue.");
     }
 
     const float queuePriority = 1.0f;
@@ -598,7 +597,7 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
         .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
         .ppEnabledExtensionNames = deviceExtensions.data(),
     };
-    auto device = VK_EXPECT_RV(physicalDevice.createDeviceUnique(deviceCreateInfo));
+    auto device = GFXSTREAM_EXPECT_VKHPP_RV(physicalDevice.createDeviceUnique(deviceCreateInfo));
 
     auto queue = device->getQueue(graphicsQueueFamilyIndex, 0);
 
@@ -620,7 +619,7 @@ void GfxstreamEnd2EndTest::SnapshotSaveAndLoad() {
     emulation->SnapshotRestore(directory);
 }
 
-GlExpected<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
+Result<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
     const std::string filepath = GetTestDataPath(basename);
     if (!std::filesystem::exists(filepath)) {
         return gfxstream::unexpected("File " + filepath + " does not exist.");
@@ -641,7 +640,7 @@ GlExpected<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
     return image;
 }
 
-GlExpected<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
+Result<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
     Image actual;
     actual.width = ahb.GetWidth();
     if (actual.width == 0) {
@@ -660,7 +659,7 @@ GlExpected<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
     }
 
     {
-        uint8_t* ahbPixels = GL_EXPECT(ahb.Lock());
+        uint8_t* ahbPixels = GFXSTREAM_EXPECT(ahb.Lock());
         std::memcpy(actual.pixels.data(), ahbPixels, actual.pixels.size() * sizeof(uint32_t));
         ahb.Unlock();
     }
@@ -675,15 +674,15 @@ GlExpected<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
     return actual;
 }
 
-GlExpected<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
+Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
     const std::string& basename) {
-    auto image = GL_EXPECT(LoadImage(basename));
+    auto image = GFXSTREAM_EXPECT(LoadImage(basename));
 
-    auto ahb = GL_EXPECT(
-        ScopedAHardwareBuffer::Allocate(*mGralloc, image.width, image.height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_EXPECT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, image.width, image.height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     {
-        uint8_t* ahbPixels = GL_EXPECT(ahb.Lock());
+        uint8_t* ahbPixels = GFXSTREAM_EXPECT(ahb.Lock());
         std::memcpy(ahbPixels, image.pixels.data(), image.pixels.size() * sizeof(uint32_t));
         ahb.Unlock();
     }
@@ -760,10 +759,10 @@ bool GfxstreamEnd2EndTest::AreImagesSimilar(const Image& expected, const Image& 
     return imagesSimilar;
 }
 
-GlExpected<Ok> GfxstreamEnd2EndTest::CompareAHBWithGolden(ScopedAHardwareBuffer& ahb,
-                                                          const std::string& goldenBasename) {
-    Image actual = GL_EXPECT(AsImage(ahb));
-    GlExpected<Image> expected = LoadImage(goldenBasename);
+Result<Ok> GfxstreamEnd2EndTest::CompareAHBWithGolden(ScopedAHardwareBuffer& ahb,
+                                                      const std::string& goldenBasename) {
+    Image actual = GFXSTREAM_EXPECT(AsImage(ahb));
+    Result<Image> expected = LoadImage(goldenBasename);
 
     bool imagesAreSimilar = false;
     if (expected.ok()) {

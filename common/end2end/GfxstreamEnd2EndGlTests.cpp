@@ -92,7 +92,7 @@ class SimpleLatch {
 
 class GfxstreamEnd2EndGlTest : public GfxstreamEnd2EndTest {
    protected:
-    GlExpected<PixelR8G8B8A8> GetPixelAt(GLint x, GLint y) {
+    Result<PixelR8G8B8A8> GetPixelAt(GLint x, GLint y) {
         if (!mGl) {
             return gfxstream::unexpected("GL not available, running with `with_gl = false`?");
         }
@@ -408,7 +408,7 @@ void main() {
 }
     )";
 
-    ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
+    ScopedGlProgram program = GFXSTREAM_ASSERT(SetUpProgram(vertSource, fragSource));
 
     GLint transformUniformLocation = mGl->glGetUniformLocation(program, "transform");
     mGl->glEnableVertexAttribArray(0);
@@ -464,11 +464,11 @@ void main() {
 TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
     const uint32_t width = 2;
     const uint32_t height = 2;
-    auto ahb =
-        GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     {
-        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
         uint32_t pos = 0;
         for (uint32_t h = 0; h < height; h++) {
             for (uint32_t w = 0; w < width; w++) {
@@ -530,7 +530,7 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
                 oColor = texture(uTexture, vTex) * uMultiplier;
             })";
 
-        ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
+        ScopedGlProgram program = GFXSTREAM_ASSERT(SetUpProgram(vertSource, fragSource));
 
         GLint programBinaryLength = 0;
         mGl->glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &programBinaryLength);
@@ -545,7 +545,8 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
         ASSERT_THAT(programBinaryLength, Eq(readProgramBinaryLength));
     }
 
-    ScopedGlProgram program = GL_ASSERT(SetUpProgram(programBinaryFormat, programBinaryData));
+    ScopedGlProgram program =
+        GFXSTREAM_ASSERT(SetUpProgram(programBinaryFormat, programBinaryData));
     ASSERT_THAT(program, Not(Eq(0)));
 
     GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
@@ -668,7 +669,7 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithTexture) {
                 oColor = texture(uTexture, vTex) * uMultiplier;
             })";
 
-        ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
+        ScopedGlProgram program = GFXSTREAM_ASSERT(SetUpProgram(vertSource, fragSource));
 
         GLint programBinaryLength = 0;
         mGl->glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &programBinaryLength);
@@ -683,7 +684,8 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithTexture) {
         ASSERT_THAT(programBinaryLength, Eq(readProgramBinaryLength));
     }
 
-    ScopedGlProgram program = GL_ASSERT(SetUpProgram(programBinaryFormat, programBinaryData));
+    ScopedGlProgram program =
+        GFXSTREAM_ASSERT(SetUpProgram(programBinaryFormat, programBinaryData));
     ASSERT_THAT(program, Not(Eq(0)));
 
     GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
@@ -766,12 +768,12 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndReadback) {
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
 
-    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
-                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     // Initialize AHB with `lockPixel`
     {
-        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
         std::memcpy(mapped, lockPixels.data(), lockPixels.size());
         ahb.Unlock();
     }
@@ -877,12 +879,12 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndBlit) {
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
 
-    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
-                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     // Initialize AHB with `lockPixel`
     {
-        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
         std::memcpy(mapped, lockPixels.data(), lockPixels.size());
         ahb.Unlock();
     }
@@ -954,7 +956,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndBlit) {
             })";
 
         ScopedGlProgram program =
-            GL_ASSERT(SetUpProgram(blitTextureVertSource, blitTextureFragSource));
+            GFXSTREAM_ASSERT(SetUpProgram(blitTextureVertSource, blitTextureFragSource));
 
         GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
         ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
@@ -1038,8 +1040,8 @@ TEST_P(GfxstreamEnd2EndGlTest, MultiThreadedAhbTextureUploadAndReadback) {
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
 
-    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
-                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const EGLint ahbImageAttribs[] = {
         // clang-format off
@@ -1115,7 +1117,7 @@ TEST_P(GfxstreamEnd2EndGlTest, MultiThreadedAhbTextureUploadAndReadback) {
                     void main() {
                         oColor = texture(uTexture, vTex);
                     })";
-            ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
+            ScopedGlProgram program = GFXSTREAM_ASSERT(SetUpProgram(vertSource, fragSource));
             ASSERT_THAT(program, Not(Eq(0)));
 
             GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
@@ -1229,7 +1231,7 @@ TEST_P(GfxstreamEnd2EndGlTest, MultiThreadedAhbTextureUploadAndReadback) {
 
     // "MainThread" updates the AHB with `lockPixel` via Gralloc->Lock():
     {
-        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
         std::memcpy(mapped, lockPixels.data(), lockPixels.size());
         ahb.Unlock();
     }
@@ -1295,8 +1297,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
 
-    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
-                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const EGLint ahbImageAttribs[] = {
         // clang-format off
@@ -1307,7 +1309,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
 
     // Initialize AHB with `lockPixel`
     {
-        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
         std::memcpy(mapped, lockPixels.data(), lockPixels.size());
         ahb.Unlock();
     }
@@ -1366,7 +1368,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
             })";
 
         ScopedGlProgram program =
-            GL_ASSERT(SetUpProgram(blitTextureVertSource, blitTextureFragSource));
+            GFXSTREAM_ASSERT(SetUpProgram(blitTextureVertSource, blitTextureFragSource));
 
         GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
         ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
@@ -1460,8 +1462,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
     const auto lockPixels = Fill(width, height, lockPixel);
 
-    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
-                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const EGLint ahbImageAttribs[] = {
         // clang-format off
@@ -1472,7 +1474,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
 
     // Initialize AHB with `lockPixel`
     {
-        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
         std::memcpy(mapped, lockPixels.data(), lockPixels.size());
         ahb.Unlock();
     }
@@ -1509,7 +1511,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
             })";
 
         ScopedGlProgram program =
-            GL_ASSERT(SetUpProgram(blitTextureVertSource, blitTextureFragSource));
+            GFXSTREAM_ASSERT(SetUpProgram(blitTextureVertSource, blitTextureFragSource));
 
         GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
         ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
@@ -1604,8 +1606,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
     const auto lockPixels = Fill(width, height, lockPixel);
 
-    auto ahb = GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height,
-                                                         GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const EGLint ahbImageAttribs[] = {
         // clang-format off
@@ -1616,7 +1618,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
 
     // Initialize AHB with `lockPixel`
     {
-        uint8_t* mapped = GL_ASSERT(ahb.Lock());
+        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
         std::memcpy(mapped, lockPixels.data(), lockPixels.size());
         ahb.Unlock();
     }
@@ -1646,7 +1648,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
                 oColor = texture(uTexture, vTex);
             })";
 
-        ScopedGlProgram program = GL_ASSERT(SetUpProgram(vertSource, fragSource));
+        ScopedGlProgram program = GFXSTREAM_ASSERT(SetUpProgram(vertSource, fragSource));
 
         GLint programBinaryLength = 0;
         mGl->glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &programBinaryLength);
@@ -1663,7 +1665,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
 
     // Blit from AHB to an additional framebuffer and readback:
     {
-        ScopedGlProgram program = GL_ASSERT(SetUpProgram(programBinaryFormat, programBinaryData));
+        ScopedGlProgram program =
+            GFXSTREAM_ASSERT(SetUpProgram(programBinaryFormat, programBinaryData));
         ASSERT_THAT(program, Not(Eq(0)));
 
         GLint textureUniformLoc = mGl->glGetUniformLocation(program, "uTexture");
