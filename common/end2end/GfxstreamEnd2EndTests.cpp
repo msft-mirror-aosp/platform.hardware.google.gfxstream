@@ -50,6 +50,21 @@ std::string GetTestDataPath(const std::string& basename) {
 
 }  // namespace
 
+Image ImageFromColor(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel) {
+    uint32_t rgba = 0;
+    uint8_t* rgbaParts = reinterpret_cast<uint8_t*>(&rgba);
+    rgbaParts[0] = pixel.r;
+    rgbaParts[1] = pixel.g;
+    rgbaParts[2] = pixel.b;
+    rgbaParts[3] = pixel.a;
+
+    Image ret;
+    ret.width = w;
+    ret.height = h;
+    ret.pixels.resize(w * h, rgba);
+    return ret;
+}
+
 std::string GfxstreamTransportToEnvVar(GfxstreamTransport transport) {
     switch (transport) {
         case GfxstreamTransport::kVirtioGpuAsg: {
@@ -787,6 +802,47 @@ Result<Ok> GfxstreamEnd2EndTest::CompareAHBWithGolden(ScopedAHardwareBuffer& ahb
     }
 
     return {};
+}
+
+namespace {
+
+static constexpr uint8_t ClampToU8(int x) {
+    if (x < 0) return 0;
+    if (x > 255) return 255;
+    return static_cast<uint8_t>(x);
+}
+
+static constexpr int SaturateToInt(float x) {
+    constexpr int kMaxS32FitsInFloat = 2147483520;
+    constexpr int kMinS32FitsInFloat = -kMaxS32FitsInFloat;
+    x = x < kMaxS32FitsInFloat ? x : kMaxS32FitsInFloat;
+    x = x > kMinS32FitsInFloat ? x : kMinS32FitsInFloat;
+    return (int)x;
+}
+
+static constexpr float Round(float x) { return (float)((double)x); }
+
+}  // namespace
+
+void RGBToYUV(uint8_t r, uint8_t g, uint8_t b, uint8_t* outY, uint8_t* outU, uint8_t* outV) {
+    static const float kRGBToYUVBT601FullRange[] = {
+        // clang-format off
+         0.299000f,  0.587000f,  0.114000f,  0.000000f,  0.000000f,
+        -0.168736f, -0.331264f,  0.500000f,  0.000000f,  0.501961f,
+         0.500000f, -0.418688f, -0.081312f,  0.000000f,  0.501961f,
+         0.000000f,  0.000000f,  0.000000f,  1.000000f,  0.000000f,
+        // clang-format on
+    };
+
+    *outY = ClampToU8(SaturateToInt(
+        Round((kRGBToYUVBT601FullRange[0] * r) + (kRGBToYUVBT601FullRange[1] * g) +
+              (kRGBToYUVBT601FullRange[2] * b) + (kRGBToYUVBT601FullRange[4] * 255))));
+    *outU = ClampToU8(SaturateToInt(
+        Round((kRGBToYUVBT601FullRange[5] * r) + (kRGBToYUVBT601FullRange[6] * g) +
+              (kRGBToYUVBT601FullRange[7] * b) + (kRGBToYUVBT601FullRange[9] * 255))));
+    *outV = ClampToU8(SaturateToInt(
+        Round((kRGBToYUVBT601FullRange[10] * r) + (kRGBToYUVBT601FullRange[11] * g) +
+              (kRGBToYUVBT601FullRange[12] * b) + (kRGBToYUVBT601FullRange[14] * 255))));
 }
 
 }  // namespace tests

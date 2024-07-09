@@ -20,6 +20,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <vector>
+
 typedef struct AHardwareBuffer AHardwareBuffer;
 
 namespace gfxstream {
@@ -67,6 +69,13 @@ class Gralloc {
                          AHardwareBuffer** outputAhb) = 0;
 
     virtual int lock(AHardwareBuffer* ahb, uint8_t** ptr) = 0;
+    struct LockedPlane {
+        uint8_t* data = nullptr;
+        uint32_t pixelStrideBytes = 0;
+        uint32_t rowStrideBytes = 0;
+    };
+    // If AHB is a YUV format, always returns Y, then U, then V.
+    virtual int lockPlanes(AHardwareBuffer* ahb, std::vector<LockedPlane>* ahbPlanes) = 0;
     virtual int unlock(AHardwareBuffer* ahb) = 0;
 
     virtual const native_handle_t* getNativeHandle(const AHardwareBuffer* ahb) = 0;

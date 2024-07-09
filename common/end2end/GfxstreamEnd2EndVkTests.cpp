@@ -32,6 +32,7 @@ using testing::Eq;
 using testing::Ge;
 using testing::IsEmpty;
 using testing::IsNull;
+using testing::IsTrue;
 using testing::Ne;
 using testing::Not;
 using testing::NotNull;
@@ -261,7 +262,9 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         if (ahbHandle == nullptr) {
             return gfxstream::unexpected("Failed to query native handle.");
         }
-        const bool ahbIsYuv = mGralloc->getFormat(ahb) == GFXSTREAM_AHB_FORMAT_YV12;
+        const auto ahbFormat = mGralloc->getFormat(ahb);
+        const bool ahbIsYuv = ahbFormat == GFXSTREAM_AHB_FORMAT_YV12 ||
+                              ahbFormat == GFXSTREAM_AHB_FORMAT_Y8Cb8Cr8_420;
 
         auto vkGetAndroidHardwareBufferPropertiesANDROID =
             reinterpret_cast<PFN_vkGetAndroidHardwareBufferPropertiesANDROID>(
@@ -283,23 +286,37 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             return gfxstream::unexpected("Failed to query ahb properties.");
         }
 
+        const VkExternalFormatANDROID externalFormat = {
+            .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
+            .externalFormat = ahbFormatProperties.externalFormat,
+        };
+
         std::optional<vkhpp::UniqueSamplerYcbcrConversion> imageSamplerConversion;
         std::optional<vkhpp::SamplerYcbcrConversionInfo> samplerConversionInfo;
         if (ahbIsYuv) {
             const vkhpp::SamplerYcbcrConversionCreateInfo conversionCreateInfo = {
+                .pNext = &externalFormat,
                 .format = static_cast<vkhpp::Format>(ahbFormatProperties.format),
-                .ycbcrModel = vkhpp::SamplerYcbcrModelConversion::eYcbcr601,
-                .ycbcrRange = vkhpp::SamplerYcbcrRange::eItuNarrow,
+                .ycbcrModel = static_cast<vkhpp::SamplerYcbcrModelConversion>(
+                    ahbFormatProperties.suggestedYcbcrModel),
+                .ycbcrRange =
+                    static_cast<vkhpp::SamplerYcbcrRange>(ahbFormatProperties.suggestedYcbcrRange),
                 .components =
                     {
-                        .r = vkhpp::ComponentSwizzle::eIdentity,
-                        .g = vkhpp::ComponentSwizzle::eIdentity,
-                        .b = vkhpp::ComponentSwizzle::eIdentity,
-                        .a = vkhpp::ComponentSwizzle::eIdentity,
+                        .r = static_cast<vkhpp::ComponentSwizzle>(
+                            ahbFormatProperties.samplerYcbcrConversionComponents.r),
+                        .g = static_cast<vkhpp::ComponentSwizzle>(
+                            ahbFormatProperties.samplerYcbcrConversionComponents.g),
+                        .b = static_cast<vkhpp::ComponentSwizzle>(
+                            ahbFormatProperties.samplerYcbcrConversionComponents.b),
+                        .a = static_cast<vkhpp::ComponentSwizzle>(
+                            ahbFormatProperties.samplerYcbcrConversionComponents.a),
                     },
-                .xChromaOffset = vkhpp::ChromaLocation::eMidpoint,
-                .yChromaOffset = vkhpp::ChromaLocation::eMidpoint,
-                .chromaFilter = vkhpp::Filter::eLinear,
+                .xChromaOffset =
+                    static_cast<vkhpp::ChromaLocation>(ahbFormatProperties.suggestedXChromaOffset),
+                .yChromaOffset =
+                    static_cast<vkhpp::ChromaLocation>(ahbFormatProperties.suggestedYChromaOffset),
+                .chromaFilter = vkhpp::Filter::eNearest,
                 .forceExplicitReconstruction = VK_FALSE,
             };
             imageSamplerConversion = GFXSTREAM_EXPECT_VKHPP_RV(
@@ -311,8 +328,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         }
         const vkhpp::SamplerCreateInfo samplerCreateInfo = {
             .pNext = ahbIsYuv ? &samplerConversionInfo : nullptr,
-            .magFilter = vkhpp::Filter::eLinear,
-            .minFilter = vkhpp::Filter::eLinear,
+            .magFilter = vkhpp::Filter::eNearest,
+            .minFilter = vkhpp::Filter::eNearest,
             .mipmapMode = vkhpp::SamplerMipmapMode::eNearest,
             .addressModeU = vkhpp::SamplerAddressMode::eClampToEdge,
             .addressModeV = vkhpp::SamplerAddressMode::eClampToEdge,
@@ -323,17 +340,13 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .compareEnable = VK_FALSE,
             .compareOp = vkhpp::CompareOp::eLessOrEqual,
             .minLod = 0.0f,
-            .maxLod = 0.25f,
+            .maxLod = 0.0f,
             .borderColor = vkhpp::BorderColor::eIntTransparentBlack,
             .unnormalizedCoordinates = VK_FALSE,
         };
         auto imageSampler =
             GFXSTREAM_EXPECT_VKHPP_RV(vk.device->createSamplerUnique(samplerCreateInfo));
 
-        const VkExternalFormatANDROID externalFormat = {
-            .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
-            .externalFormat = ahbFormatProperties.externalFormat,
-        };
         const VkExternalMemoryImageCreateInfo externalMemoryImageCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
             .pNext = &externalFormat,
@@ -1070,21 +1083,73 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         };
     }
 
+    Result<Ok> FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8A8 color) {
+        const uint32_t drmFormat = ahb.GetDrmFormat();
+
+        const uint32_t ahbWidth = ahb.GetWidth();
+        const uint32_t ahbHeight = ahb.GetHeight();
+
+        std::vector<Gralloc::LockedPlane> planes = GFXSTREAM_EXPECT(ahb.LockPlanes());
+        if (drmFormat == DRM_FORMAT_ABGR8888) {
+            const Gralloc::LockedPlane& plane = planes[0];
+
+            std::vector<uint8_t> srcRow;
+            for (uint32_t x = 0; x < ahbWidth; x++) {
+                srcRow.push_back(color.r);
+                srcRow.push_back(color.g);
+                srcRow.push_back(color.b);
+                srcRow.push_back(color.a);
+            }
+
+            for (uint32_t y = 0; y < ahbHeight; y++) {
+                uint8_t* dstRow = plane.data + (y * plane.rowStrideBytes);
+                std::memcpy(dstRow, srcRow.data(), srcRow.size());
+            }
+        } else if (drmFormat == DRM_FORMAT_NV12 || drmFormat == DRM_FORMAT_YVU420) {
+            uint8_t colorY;
+            uint8_t colorU;
+            uint8_t colorV;
+            RGBToYUV(color.r, color.g, color.b, &colorY, &colorU, &colorV);
+
+            const Gralloc::LockedPlane& yPlane = planes[0];
+            const Gralloc::LockedPlane& uPlane = planes[1];
+            const Gralloc::LockedPlane& vPlane = planes[2];
+
+            colorY = 178;
+            colorU = 171;
+            colorV = 0;
+
+            for (uint32_t y = 0; y < ahbHeight; y++) {
+                for (uint32_t x = 0; x < ahbWidth; x++) {
+                    uint8_t* dstY =
+                        yPlane.data + (y * yPlane.rowStrideBytes) + (x * yPlane.pixelStrideBytes);
+                    uint8_t* dstU = uPlane.data + ((y / 2) * uPlane.rowStrideBytes) +
+                                    ((x / 2) * uPlane.pixelStrideBytes);
+                    uint8_t* dstV = vPlane.data + ((y / 2) * vPlane.rowStrideBytes) +
+                                    ((x / 2) * vPlane.pixelStrideBytes);
+                    *dstY = colorY;
+                    *dstU = colorU;
+                    *dstV = colorV;
+                }
+            }
+        } else {
+            return gfxstream::unexpected("Unhandled DRM format: " + std::to_string(drmFormat));
+        }
+
+        ahb.Unlock();
+
+        return Ok{};
+    }
+
     void DoFillAndRenderFromAhb(uint32_t ahbFormat) {
-        const uint32_t width = 16;
-        const uint32_t height = 16;
-        const auto goldenPixel = PixelR8G8B8A8(11, 22, 33, 44);
-        const auto goldenPixels = Fill(width, height, goldenPixel);
+        const uint32_t width = 1920;
+        const uint32_t height = 1080;
+        const auto goldenPixel = PixelR8G8B8A8(0, 255, 255, 255);
 
         auto ahb =
             GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
 
-        // Initialize AHB with `goldenPixel`
-        {
-            uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
-            std::memcpy(mapped, goldenPixels.data(), goldenPixels.size());
-            ahb.Unlock();
-        }
+        GFXSTREAM_ASSERT(FillAhb(ahb, goldenPixel));
 
         const vkhpp::PhysicalDeviceVulkan11Features deviceFeatures = {
             .samplerYcbcrConversion = VK_TRUE,
@@ -1195,17 +1260,13 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             return Ok{};
         }));
 
-        auto resultImage = GFXSTREAM_ASSERT(
+        const auto actualImage = GFXSTREAM_ASSERT(
             DownloadImage(vk, width, height, framebuffer.colorAttachment->image,
                           /*currentLayout=*/vkhpp::ImageLayout::eColorAttachmentOptimal,
                           /*returnedLayout=*/vkhpp::ImageLayout::eColorAttachmentOptimal));
 
-        for (uint32_t y = 0; y < height; y++) {
-            for (uint32_t x = 0; x < width; x++) {
-                const auto actual = PixelR8G8B8A8(x, y, resultImage.pixels[(y * height) + x]);
-                EXPECT_THAT(actual, Eq(goldenPixel));
-            }
-        }
+        const auto expectedImage = ImageFromColor(width, height, goldenPixel);
+        EXPECT_THAT(AreImagesSimilar(expectedImage, actualImage), IsTrue());
     }
 };
 
@@ -2102,6 +2163,14 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedResetCommandBuffer) {
 
 TEST_P(GfxstreamEnd2EndVkTest, ImportAndBlitFromR8G8B8A8Ahb) {
     DoFillAndRenderFromAhb(GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM);
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, ImportAndBlitFromYCbCr888420Ahb) {
+    DoFillAndRenderFromAhb(GFXSTREAM_AHB_FORMAT_Y8Cb8Cr8_420);
+}
+
+TEST_P(GfxstreamEnd2EndVkTest, ImportAndBlitFromYv12Ahb) {
+    DoFillAndRenderFromAhb(GFXSTREAM_AHB_FORMAT_YV12);
 }
 
 std::vector<TestParams> GenerateTestCases() {

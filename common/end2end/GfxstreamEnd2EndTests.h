@@ -379,6 +379,8 @@ class ScopedAHardwareBuffer {
 
     uint32_t GetAHBFormat() const { return mGralloc->getFormat(mHandle); }
 
+    uint32_t GetDrmFormat() const { return mGralloc->getFormatDrmFourcc(mHandle); }
+
     Result<uint8_t*> Lock() {
         uint8_t* mapped = nullptr;
         int status = mGralloc->lock(mHandle, &mapped);
@@ -386,6 +388,15 @@ class ScopedAHardwareBuffer {
             return gfxstream::unexpected("Failed to lock AHB");
         }
         return mapped;
+    }
+
+    Result<std::vector<Gralloc::LockedPlane>> LockPlanes() {
+        std::vector<Gralloc::LockedPlane> planes;
+        int status = mGralloc->lockPlanes(mHandle, &planes);
+        if (status != 0) {
+            return gfxstream::unexpected("Failed to lock AHB");
+        }
+        return planes;
     }
 
     void Unlock() { mGralloc->unlock(mHandle); }
@@ -450,6 +461,8 @@ struct PixelR8G8B8A8 {
     friend void PrintTo(const PixelR8G8B8A8& pixel, std::ostream* os) { *os << pixel.ToString(); }
 };
 
+void RGBToYUV(uint8_t r, uint8_t g, uint8_t b, uint8_t* outY, uint8_t* outU, uint8_t* outV);
+
 constexpr std::vector<uint8_t> Fill(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel) {
     std::vector<uint8_t> ret;
     ret.reserve(w * h * 4);
@@ -469,6 +482,7 @@ struct Image {
     uint32_t height;
     std::vector<uint32_t> pixels;
 };
+Image ImageFromColor(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel);
 
 enum class GfxstreamTransport {
   kVirtioGpuAsg,
