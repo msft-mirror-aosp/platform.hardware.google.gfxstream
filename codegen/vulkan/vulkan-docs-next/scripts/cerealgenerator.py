@@ -171,6 +171,13 @@ SUPPORTED_MODULES = {
     "VK_KHR_swapchain" : HOST_MODULES,
 }
 
+# These modules will be used when the feature is not supported.
+# This is necessary to cover all extensions where needed.
+UNSUPPORTED_FEATURE_MODULES = {
+    "goldfish_vk_extension_structs",
+}
+
+
 REQUIRED_TYPES = {
     "int",
     "uint16_t",
@@ -447,6 +454,7 @@ using DlSymFunc = void* (void*, const char*);
 {self.hostCommonExtraVulkanHeaders}
 #include "goldfish_vk_private_defs.h"
 #include "host-common/GfxstreamFatalError.h"
+#include "vulkan/vk_enum_string_helper.h"
 """
 
         extensionStructsIncludeGuest = """
@@ -788,10 +796,14 @@ class BumpPool;
             if self.featureName == supportedFeature:
                 self.featureSupported = True
 
-        if self.featureSupported == False:
+        if self.featureSupported == False and UNSUPPORTED_FEATURE_MODULES:
+            self.featureSupported = True
+            self.supportedModules = UNSUPPORTED_FEATURE_MODULES
+        elif self.featureSupported == False:
             return
+        else:
+            self.supportedModules = SUPPORTED_MODULES.get(self.featureName)
 
-        self.supportedModules = SUPPORTED_MODULES.get(self.featureName)
         self.typeInfo.onBeginFeature(self.featureName, self.featureType)
 
         self.forEachModule(

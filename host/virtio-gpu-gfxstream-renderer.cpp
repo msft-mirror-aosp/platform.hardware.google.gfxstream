@@ -1185,7 +1185,13 @@ class PipeVirglRenderer {
 
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const uint32_t fwkformat = virgl_format_to_fwk_format(args->format);
-        const bool linear = !!(args->bind & VIRGL_BIND_LINEAR);
+
+        const bool linear =
+#ifdef GFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL
+            !!(args->bind & VIRGL_BIND_LINEAR);
+#else
+            false;
+#endif
         gfxstream::FrameBuffer::getFB()->createColorBufferWithHandle(
             args->width, args->height, glformat, (gfxstream::FrameworkFormat)fwkformat,
             args->handle, linear);
@@ -2502,6 +2508,8 @@ int parseGfxstreamFeatures(const int renderer_flags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, ExternalBlob,
         renderer_flags & STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, VulkanExternalSync,
+                                       renderer_flags & STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, GlAsyncSwap, false);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
@@ -2778,6 +2786,10 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
         stream_renderer_error("Failing initialization intentionally");
         return -EINVAL;
     }
+
+#if GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC
+    renderer_flags |= STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC;
+#endif
 
     gfxstream::host::FeatureSet features;
     int ret = parseGfxstreamFeatures(renderer_flags, renderer_features_str, features);

@@ -67,6 +67,12 @@ struct FeatureSet {
         "memory and will be exportable via file descriptors.",
         &map,
     };
+    FeatureInfo VulkanExternalSync = {
+        "VulkanExternalSync",
+        "If enabled, Vulkan fences/semaphores will be allocated with external "
+        "create info and will be exportable via fence handles.",
+        &map,
+    };
     FeatureInfo SystemBlob = {
         "SystemBlob",
         "If enabled, virtio gpu blob resources will be allocated with shmem and "
@@ -94,6 +100,31 @@ struct FeatureSet {
     FeatureInfo GlDma2 = {
         "GlDma2",
         "Default description: consider contributing a description if you see this!",
+        &map,
+    };
+    FeatureInfo GlProgramBinaryLinkStatus = {
+        "GlProgramBinaryLinkStatus",
+        "If enabled, the host will track and report the correct link status of programs "
+        "created with glProgramBinary(). If not enabled, the host will effectively "
+        "return false for all glGetProgramiv(... GL_LINK_STATUS ...) calls."
+        ""
+        "Prior to aosp/3151743, the host GLES translator was not tracking the link "
+        "status of programs created by glProgramBinary() and would always return "
+        "false for glGetProgramiv(... GL_LINK_STATUS ...) calls."
+        ""
+        "Also, prior to aosp/3151743, the guest GL encoder was losing information about "
+        "`samplerExternalOES` between glGetProgramBinary() and glProgramBinary() calls "
+        "which would cause incorrect handling of sampling from a binding with "
+        "GL_TEXTURE_EXTERNAL_OES."
+        ""
+        "Guest applications seem to typically fallback to fully recreating programs "
+        "with shaders (glCreateShader() + glShaderSource() + glAttachShader()) when "
+        "linking fails with glProgramBinary(). This lead to backwards compatibility "
+        "problems when an old guest (which does not have the above guest GL encoder "
+        "fix) runs with a newer host (which does have the above host GLES translator "
+        "fix) as the fallback path would be disabled but the guest would have "
+        "incorrect GL_TEXTURE_EXTERNAL_OES handling. As such, the corrected host "
+        "behavior is hidden behind this feature.",
         &map,
     };
     FeatureInfo GlPipeChecksum = {

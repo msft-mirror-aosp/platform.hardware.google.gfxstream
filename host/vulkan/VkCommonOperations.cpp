@@ -814,8 +814,10 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
             deviceInfos[i].supportsExternalMemoryExport = false;
 #endif
 
+#if SUPPORT_DMABUF
             deviceInfos[i].supportsDmaBuf =
                 extensionsSupported(deviceExts, {VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME});
+#endif
             deviceInfos[i].supportsIdProperties =
                 sVkEmulation->getPhysicalDeviceProperties2Func != nullptr;
             deviceInfos[i].supportsDriverProperties =
