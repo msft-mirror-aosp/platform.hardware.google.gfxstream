@@ -248,7 +248,7 @@ public:
     GLEScontext();
     GLEScontext(GlobalNameSpace* globalNameSpace, android::base::Stream* stream,
             GlLibrary* glLib);
-    virtual void init(bool nativeTextureDecompressionEnabled);
+    virtual void init(bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled);
     static void initGlobal(EGLiface* eglIface);
     GLenum getGLerror();
     void setGLerror(GLenum err);
@@ -509,6 +509,8 @@ public:
                                             GLint internalFormat, GLenum format, GLenum type);
     void blitFromReadBufferToEGLImage(EGLImage image, GLint internalFormat, int width, int height);
 
+    bool programBinaryLinkStatusEnabled() const { return m_programBinaryLinkStatusEnabled; }
+
 protected:
     void initDefaultFboImpl(
         GLint width, GLint height,
@@ -674,6 +676,7 @@ protected:
     GLuint m_useProgram = 0;
 
     bool m_nativeTextureDecompressionEnabled = false;
+    bool m_programBinaryLinkStatusEnabled = false;
 
 private:
 

@@ -95,7 +95,7 @@ namespace android_studio {
 typedef struct {
     void (*initGLESx)(bool isGles2Gles);
     GLEScontext*                                    (*createGLESContext)(int majorVersion, int minorVersion, GlobalNameSpace* globalNameSpace, android::base::Stream* stream);
-    void                                            (*initContext)(GLEScontext*, ShareGroupPtr, bool);
+    void                                            (*initContext)(GLEScontext*, ShareGroupPtr, bool, bool);
     void                                            (*setMaxGlesVersion)(GLESVersion);
     void                                            (*deleteGLESContext)(GLEScontext*);
     void                                            (*flush)();

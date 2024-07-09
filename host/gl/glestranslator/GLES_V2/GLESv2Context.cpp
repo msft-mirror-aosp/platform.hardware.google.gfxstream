@@ -64,10 +64,10 @@ void GLESv2Context::initGlobal(EGLiface* iface) {
     GLEScontext::initGlobal(iface);
 }
 
-void GLESv2Context::init(bool nativeTextureDecompressionEnabled) {
+void GLESv2Context::init(bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled) {
     android::base::AutoLock mutex(s_lock);
     if(!m_initialized) {
-        GLEScontext::init(nativeTextureDecompressionEnabled);
+        GLEScontext::init(nativeTextureDecompressionEnabled, programBinaryLinkStatusEnabled);
         addVertexArrayObject(0);
         setVertexArrayObject(0);
         setAttribute0value(0.0, 0.0, 0.0, 1.0);
