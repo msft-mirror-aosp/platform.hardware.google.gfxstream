@@ -67,6 +67,12 @@ struct FeatureSet {
         "memory and will be exportable via file descriptors.",
         &map,
     };
+    FeatureInfo VulkanExternalSync = {
+        "VulkanExternalSync",
+        "If enabled, Vulkan fences/semaphores will be allocated with external "
+        "create info and will be exportable via fence handles.",
+        &map,
+    };
     FeatureInfo SystemBlob = {
         "SystemBlob",
         "If enabled, virtio gpu blob resources will be allocated with shmem and "
