@@ -255,6 +255,8 @@ enum RendererFlags {
     STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB = 1 << 6,
     STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB = 1 << 7,
     STREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT = 1 << 8,
+    // Unstable: do not use until a release greater than 0.1.2
+    STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC = 1 << 31,
 };
 
 #endif
