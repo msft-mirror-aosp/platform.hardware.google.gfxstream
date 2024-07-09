@@ -76,6 +76,7 @@ else
   aemu_snapshot_dep = dependency('aemu_snapshot')
   dl_dep = dependency('dl')
   thread_dep = dependency('threads')
+  gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC=1'
 endif
 
 if log_level == 'error'
@@ -161,7 +162,7 @@ link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils
 
 files_lib_gfxstream_backend = files(
   'Buffer.cpp',
-  'BlobManager.cpp',
+  'ExternalObjectManager.cpp',
   'ChannelStream.cpp',
   'ColorBuffer.cpp',
   'DisplaySurface.cpp',

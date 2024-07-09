@@ -24732,16 +24732,6 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirements(
 }
 
 #endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
-#endif
 #ifdef VK_KHR_dynamic_rendering
 void VkEncoder::vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
                                        const VkRenderingInfo* pRenderingInfo, uint32_t doLock) {
@@ -25982,12 +25972,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
 }
 
 #endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
 #ifdef VK_KHR_external_semaphore_capabilities
 void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     VkPhysicalDevice physicalDevice,
@@ -26115,10 +26099,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 VkResult VkEncoder::vkImportSemaphoreFdKHR(VkDevice device,
@@ -26330,10 +26310,6 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(VkDevice device, const VkSemaphoreGetFdI
     return vkGetSemaphoreFdKHR_VkResult_return;
 }
 
-#endif
-#ifdef VK_KHR_shader_float16_int8
-#endif
-#ifdef VK_KHR_incremental_present
 #endif
 #ifdef VK_KHR_descriptor_update_template
 VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
@@ -26735,8 +26711,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_imageless_framebuffer
 #endif
 #ifdef VK_KHR_create_renderpass2
 VkResult VkEncoder::vkCreateRenderPass2KHR(VkDevice device,
@@ -27321,8 +27295,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
 }
 
 #endif
-#ifdef VK_KHR_external_fence
-#endif
 #ifdef VK_KHR_external_fence_fd
 VkResult VkEncoder::vkImportFenceFdKHR(VkDevice device,
                                        const VkImportFenceFdInfoKHR* pImportFenceFdInfo,
@@ -27527,12 +27499,6 @@ VkResult VkEncoder::vkGetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* 
     return vkGetFenceFdKHR_VkResult_return;
 }
 
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 void VkEncoder::vkGetImageMemoryRequirements2KHR(VkDevice device,
@@ -27944,8 +27910,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_image_format_list
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
 VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
@@ -28569,12 +28533,6 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
 #endif
 #ifdef VK_KHR_buffer_device_address
 VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressKHR(VkDevice device,
@@ -29426,10 +29384,6 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     return vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return;
 }
 
-#endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
 #endif
 #ifdef VK_KHR_synchronization2
 void VkEncoder::vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
@@ -30299,8 +30253,6 @@ void VkEncoder::vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpoint
 }
 
 #endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
-#endif
 #ifdef VK_KHR_copy_commands2
 void VkEncoder::vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
                                     const VkCopyBufferInfo2* pCopyBufferInfo, uint32_t doLock) {
@@ -30861,8 +30813,6 @@ void VkEncoder::vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer,
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_format_feature_flags2
 #endif
 #ifdef VK_KHR_maintenance4
 void VkEncoder::vkGetDeviceBufferMemoryRequirementsKHR(
@@ -32892,40 +32842,6 @@ void VkEncoder::vkCmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
 }
 
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
-#ifdef VK_EXT_depth_clip_enable
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
-#endif
-#ifdef VK_EXT_vertex_attribute_divisor
-#endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
-#ifdef VK_EXT_fragment_density_map
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
-#endif
 #ifdef VK_EXT_tooling_info
 VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
     VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
@@ -33086,10 +33002,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
 }
 
 #endif
-#ifdef VK_EXT_validation_features
-#endif
-#ifdef VK_EXT_provoking_vertex
-#endif
 #ifdef VK_EXT_line_rasterization
 void VkEncoder::vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
                                        uint16_t lineStipplePattern, uint32_t doLock) {
@@ -33178,8 +33090,6 @@ void VkEncoder::vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t l
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_EXT_index_type_uint8
 #endif
 #ifdef VK_EXT_extended_dynamic_state
 void VkEncoder::vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode,
@@ -34852,18 +34762,6 @@ void VkEncoder::vkGetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
 }
 
 #endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
-#ifdef VK_EXT_texel_buffer_alignment
-#endif
-#ifdef VK_EXT_device_memory_report
-#endif
-#ifdef VK_EXT_robustness2
-#endif
-#ifdef VK_EXT_custom_border_color
-#endif
 #ifdef VK_EXT_private_data
 VkResult VkEncoder::vkCreatePrivateDataSlotEXT(VkDevice device,
                                                const VkPrivateDataSlotCreateInfo* pCreateInfo,
@@ -35333,22 +35231,6 @@ void VkEncoder::vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType, ui
 }
 
 #endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_metal_objects
-#endif
-#ifdef VK_EXT_graphics_pipeline_library
-#endif
-#ifdef VK_EXT_ycbcr_2plane_444_formats
-#endif
-#ifdef VK_EXT_image_robustness
-#endif
-#ifdef VK_EXT_image_compression_control
-#endif
-#ifdef VK_EXT_4444_formats
-#endif
-#ifdef VK_EXT_primitive_topology_list_restart
-#endif
 #ifdef VK_EXT_extended_dynamic_state2
 void VkEncoder::vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
                                               uint32_t patchControlPoints, uint32_t doLock) {
@@ -35750,6 +35632,97 @@ void VkEncoder::vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
     if (watchdog) {
         size_t watchdogBufSize = std::min<size_t>(
             static_cast<size_t>(packetSize_vkCmdSetPrimitiveRestartEnableEXT), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    ++encodeCount;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void VkEncoder::vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                            const VkBool32* pColorWriteEnables, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkCmdSetColorWriteEnableEXT in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG(
+        "vkCmdSetColorWriteEnableEXT(commandBuffer:%p, attachmentCount:%d, pColorWriteEnables:%p)",
+        commandBuffer, attachmentCount, pColorWriteEnables);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkCommandBuffer local_commandBuffer;
+    uint32_t local_attachmentCount;
+    VkBool32* local_pColorWriteEnables;
+    local_commandBuffer = commandBuffer;
+    local_attachmentCount = attachmentCount;
+    // Avoiding deepcopy for pColorWriteEnables
+    local_pColorWriteEnables = (VkBool32*)pColorWriteEnables;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+        *countPtr += ((attachmentCount)) * sizeof(VkBool32);
+    }
+    uint32_t packetSize_vkCmdSetColorWriteEnableEXT = 4 + 4 + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkCmdSetColorWriteEnableEXT);
+    if (queueSubmitWithCommandsEnabled) packetSize_vkCmdSetColorWriteEnableEXT -= 8;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetColorWriteEnableEXT);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkCmdSetColorWriteEnableEXT = OP_vkCmdSetColorWriteEnableEXT;
+    memcpy(streamPtr, &opcode_vkCmdSetColorWriteEnableEXT, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkCmdSetColorWriteEnableEXT, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (!queueSubmitWithCommandsEnabled) {
+        uint64_t cgen_var_0;
+        *&cgen_var_0 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
+        memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+        *streamPtrPtr += 1 * 8;
+    }
+    memcpy(*streamPtrPtr, (uint32_t*)&local_attachmentCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (VkBool32*)local_pColorWriteEnables,
+           ((attachmentCount)) * sizeof(VkBool32));
+    *streamPtrPtr += ((attachmentCount)) * sizeof(VkBool32);
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkCmdSetColorWriteEnableEXT), kWatchdogBufferMax);
         healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
@@ -38836,12 +38809,5 @@ void VkEncoder::vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
 }
 
 #endif
-#ifdef VK_EXT_load_store_op_none
-#endif
-#ifdef VK_EXT_image_compression_control_swapchain
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
-#endif
-
 }  // namespace vk
 }  // namespace gfxstream

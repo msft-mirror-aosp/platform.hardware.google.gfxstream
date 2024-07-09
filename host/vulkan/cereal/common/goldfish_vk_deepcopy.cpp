@@ -6503,8 +6503,6 @@ void deepcopy_VkDeviceImageMemoryRequirements(Allocator* alloc, VkStructureType 
 }
 
 #endif
-#ifdef VK_KHR_surface
-#endif
 #ifdef VK_KHR_swapchain
 void deepcopy_VkSwapchainCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
                                        const VkSwapchainCreateInfoKHR* from,
@@ -6714,12 +6712,6 @@ void deepcopy_VkDeviceGroupSwapchainCreateInfoKHR(Allocator* alloc, VkStructureT
 }
 
 #endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
-#endif
 #ifdef VK_KHR_dynamic_rendering
 void deepcopy_VkRenderingFragmentShadingRateAttachmentInfoKHR(
     Allocator* alloc, VkStructureType rootType,
@@ -6820,24 +6812,6 @@ void deepcopy_VkMultiviewPerViewAttributesInfoNVX(Allocator* alloc, VkStructureT
 }
 
 #endif
-#ifdef VK_KHR_get_physical_device_properties2
-#endif
-#ifdef VK_KHR_maintenance1
-#endif
-#ifdef VK_KHR_external_memory_capabilities
-#endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
-#ifdef VK_KHR_external_semaphore_capabilities
-#endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
-#endif
 #ifdef VK_KHR_external_semaphore_fd
 void deepcopy_VkImportSemaphoreFdInfoKHR(Allocator* alloc, VkStructureType rootType,
                                          const VkImportSemaphoreFdInfoKHR* from,
@@ -6883,8 +6857,6 @@ void deepcopy_VkSemaphoreGetFdInfoKHR(Allocator* alloc, VkStructureType rootType
     }
 }
 
-#endif
-#ifdef VK_KHR_shader_float16_int8
 #endif
 #ifdef VK_KHR_incremental_present
 void deepcopy_VkRectLayerKHR(Allocator* alloc, VkStructureType rootType, const VkRectLayerKHR* from,
@@ -6949,16 +6921,6 @@ void deepcopy_VkPresentRegionsKHR(Allocator* alloc, VkStructureType rootType,
 }
 
 #endif
-#ifdef VK_KHR_descriptor_update_template
-#endif
-#ifdef VK_KHR_imageless_framebuffer
-#endif
-#ifdef VK_KHR_create_renderpass2
-#endif
-#ifdef VK_KHR_external_fence_capabilities
-#endif
-#ifdef VK_KHR_external_fence
-#endif
 #ifdef VK_KHR_external_fence_fd
 void deepcopy_VkImportFenceFdInfoKHR(Allocator* alloc, VkStructureType rootType,
                                      const VkImportFenceFdInfoKHR* from,
@@ -7003,30 +6965,6 @@ void deepcopy_VkFenceGetFdInfoKHR(Allocator* alloc, VkStructureType rootType,
     }
 }
 
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
-#endif
-#ifdef VK_KHR_get_memory_requirements2
-#endif
-#ifdef VK_KHR_image_format_list
-#endif
-#ifdef VK_KHR_sampler_ycbcr_conversion
-#endif
-#ifdef VK_KHR_bind_memory2
-#endif
-#ifdef VK_KHR_maintenance3
-#endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
-#endif
-#ifdef VK_KHR_buffer_device_address
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 void deepcopy_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
@@ -7183,10 +7121,6 @@ void deepcopy_VkPipelineExecutableInternalRepresentationKHR(
 }
 
 #endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
-#endif
 #ifdef VK_KHR_synchronization2
 void deepcopy_VkQueueFamilyCheckpointProperties2NV(Allocator* alloc, VkStructureType rootType,
                                                    const VkQueueFamilyCheckpointProperties2NV* from,
@@ -7235,14 +7169,6 @@ void deepcopy_VkCheckpointData2NV(Allocator* alloc, VkStructureType rootType,
     }
 }
 
-#endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
-#endif
-#ifdef VK_KHR_copy_commands2
-#endif
-#ifdef VK_KHR_format_feature_flags2
-#endif
-#ifdef VK_KHR_maintenance4
 #endif
 #ifdef VK_KHR_maintenance5
 void deepcopy_VkPhysicalDeviceMaintenance5FeaturesKHR(
@@ -7527,6 +7453,34 @@ void deepcopy_VkPhysicalDevicePresentationPropertiesANDROID(
 }
 
 #endif
+#ifdef VK_EXT_debug_report
+void deepcopy_VkDebugReportCallbackCreateInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                                 const VkDebugReportCallbackCreateInfoEXT* from,
+                                                 VkDebugReportCallbackCreateInfoEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    to->pUserData = nullptr;
+    if (from->pUserData) {
+        to->pUserData = (void*)alloc->dupArray(from->pUserData, sizeof(uint8_t));
+    }
+}
+
+#endif
 #ifdef VK_EXT_transform_feedback
 void deepcopy_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -7598,10 +7552,6 @@ void deepcopy_VkPipelineRasterizationStateStreamCreateInfoEXT(
 }
 
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
 #ifdef VK_EXT_depth_clip_enable
 void deepcopy_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -7649,12 +7599,6 @@ void deepcopy_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     }
 }
 
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
-#endif
-#ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
 void deepcopy_VkDebugUtilsLabelEXT(Allocator* alloc, VkStructureType rootType,
@@ -7829,12 +7773,6 @@ void deepcopy_VkDebugUtilsObjectTagInfoEXT(Allocator* alloc, VkStructureType roo
 }
 
 #endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
-#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void deepcopy_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -7929,12 +7867,6 @@ void deepcopy_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
 }
 
 #endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
 #ifdef VK_EXT_fragment_density_map
 void deepcopy_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -8011,12 +7943,6 @@ void deepcopy_VkRenderPassFragmentDensityMapCreateInfoEXT(
                                    (VkAttachmentReference*)(&to->fragmentDensityMapAttachment));
 }
 
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
-#endif
-#ifdef VK_EXT_tooling_info
 #endif
 #ifdef VK_EXT_validation_features
 void deepcopy_VkValidationFeaturesEXT(Allocator* alloc, VkStructureType rootType,
@@ -8692,8 +8618,6 @@ void deepcopy_VkReleaseSwapchainImagesInfoEXT(Allocator* alloc, VkStructureType 
 }
 
 #endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
 #ifdef VK_EXT_texel_buffer_alignment
 void deepcopy_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -8911,12 +8835,6 @@ void deepcopy_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 }
 
 #endif
-#ifdef VK_EXT_private_data
-#endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_metal_objects
-#endif
 #ifdef VK_EXT_graphics_pipeline_library
 void deepcopy_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -9011,8 +8929,6 @@ void deepcopy_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     }
 }
 
-#endif
-#ifdef VK_EXT_image_robustness
 #endif
 #ifdef VK_EXT_image_compression_control
 void deepcopy_VkPhysicalDeviceImageCompressionControlFeaturesEXT(
@@ -9163,6 +9079,58 @@ void deepcopy_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
 }
 
 #endif
+#ifdef VK_EXT_color_write_enable
+void deepcopy_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* from,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkPipelineColorWriteCreateInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                                const VkPipelineColorWriteCreateInfoEXT* from,
+                                                VkPipelineColorWriteCreateInfoEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    to->pColorWriteEnables = nullptr;
+    if (from->pColorWriteEnables) {
+        to->pColorWriteEnables = (VkBool32*)alloc->dupArray(
+            from->pColorWriteEnables, from->attachmentCount * sizeof(const VkBool32));
+    }
+}
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void deepcopy_VkImportColorBufferGOOGLE(Allocator* alloc, VkStructureType rootType,
                                         const VkImportColorBufferGOOGLE* from,
@@ -9229,8 +9197,6 @@ void deepcopy_VkCreateBlobGOOGLE(Allocator* alloc, VkStructureType rootType,
 }
 
 #endif
-#ifdef VK_EXT_load_store_op_none
-#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -9255,8 +9221,6 @@ void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     }
 }
 
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                                const void* structExtension, void* structExtension_out) {
@@ -10208,6 +10172,15 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_EXT_debug_report
+        case VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: {
+            deepcopy_VkDebugReportCallbackCreateInfoEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkDebugReportCallbackCreateInfoEXT*>(structExtension),
+                reinterpret_cast<VkDebugReportCallbackCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_transform_feedback
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT: {
             deepcopy_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
@@ -10729,6 +10702,24 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                     structExtension),
                 reinterpret_cast<VkPhysicalDeviceExtendedDynamicState2FeaturesEXT*>(
                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            deepcopy_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            deepcopy_VkPipelineColorWriteCreateInfoEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPipelineColorWriteCreateInfoEXT*>(structExtension),
+                reinterpret_cast<VkPipelineColorWriteCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif

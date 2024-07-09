@@ -67,6 +67,12 @@ struct FeatureSet {
         "memory and will be exportable via file descriptors.",
         &map,
     };
+    FeatureInfo VulkanExternalSync = {
+        "VulkanExternalSync",
+        "If enabled, Vulkan fences/semaphores will be allocated with external "
+        "create info and will be exportable via fence handles.",
+        &map,
+    };
     FeatureInfo SystemBlob = {
         "SystemBlob",
         "If enabled, virtio gpu blob resources will be allocated with shmem and "
@@ -114,10 +120,12 @@ struct FeatureSet {
         "a guest app may directly writing to gralloc buffers and posting.",
         &map,
     };
-    FeatureInfo GuestUsesAngle = {
-        "GuestUsesAngle",
-        "If enabled, indicates that the guest will not use GL and the host will not "
-        "enable the GL backend.",
+    FeatureInfo GuestVulkanOnly = {
+        "GuestVulkanOnly",
+        "If enabled, indicates that the guest only requires Vulkan translation. "
+        " The guest will not use GL and the host will not enable the GL backend. "
+        " This is the case when the guest uses libraries such as Angle or Zink for "
+        " GL to Vulkan translation.",
         &map,
     };
     FeatureInfo HasSharedSlotsHostMemoryAllocator = {
@@ -258,6 +266,12 @@ struct FeatureSet {
     FeatureInfo YuvCache = {
         "YuvCache",
         "If enabled, the host will cache YUV frames.",
+        &map,
+    };
+    FeatureInfo VulkanDebugUtils = {
+        "VulkanDebugUtils",
+        "If enabled, the host will enable VK_EXT_debug_utils extension when available to use "
+        "labels on Vulkan resources and operation",
         &map,
     };
 };

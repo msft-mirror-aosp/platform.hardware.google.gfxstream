@@ -443,6 +443,26 @@ bool ColorBuffer::importNativeResource(void* nativeResource, uint32_t type, bool
     }
 }
 
+int ColorBuffer::waitSync() {
+    if (mColorBufferGl) {
+        return -1;
+    }
+
+    if (!mColorBufferVk) {
+        return -1;
+    }
+
+    return mColorBufferVk->waitSync();
+}
+
+std::optional<BlobDescriptorInfo> ColorBuffer::exportBlob() {
+    if (!mColorBufferVk) {
+        return std::nullopt;
+    }
+
+    return mColorBufferVk->exportBlob();
+}
+
 #if GFXSTREAM_ENABLE_HOST_GLES
 bool ColorBuffer::glOpBlitFromCurrentReadBuffer() {
     if (!mColorBufferGl) {

@@ -100,6 +100,14 @@ static void initIcdPaths(bool forTesting) {
         //  submitted to a queue will give the same result as if they had been run in
         //  submission order.
         android::base::setEnvironmentVariable("MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE", "0");
+
+        // TODO(b/351765838): VVL won't work with MoltenVK due to the current
+        //  way of external memory handling, add it into disable list to
+        //  avoid users enabling it implicitly (i.e. via vkconfig).
+        //  It can be enabled with VK_LOADER_LAYERS_ALLOW=VK_LAYER_KHRONOS_validation
+        INFO("Vulkan Validation Layers won't be enabled with MoltenVK");
+        android::base::setEnvironmentVariable("VK_LOADER_LAYERS_DISABLE",
+                                              "VK_LAYER_KHRONOS_validation");
 #else
         // By default, on other platforms, just use whatever the system
         // is packing.
@@ -157,15 +165,7 @@ class SharedLibraries {
 };
 
 static constexpr size_t getVulkanLibraryNumLimits() {
-    // macOS may have both Vulkan loader (for non MoltenVK-specific functions) and
-    // MoltenVK library (only for MoltenVK-specific vk...MVK functions) loaded at
-    // the same time. So there could be at most 2 libraries loaded. On other systems
-    // only one Vulkan loader is allowed.
-#ifdef __APPLE__
-    return 2;
-#else
     return 1;
-#endif
 }
 
 class VulkanDispatchImpl {
@@ -277,41 +277,9 @@ class VulkanDispatchImpl {
         return possiblePaths;
     }
 
-#ifdef __APPLE__
-    std::vector<std::string> getPossibleMoltenVkPaths() {
-        const std::string explicitPath =
-            android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH");
-        if (!explicitPath.empty()) {
-            return {
-                explicitPath,
-            };
-        }
-
-        const std::string& customIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
-
-        // Skip loader when using MoltenVK as this gives us access to
-        // VK_MVK_moltenvk, which is required for external memory support.
-        if (!mForTesting && customIcd == "moltenvk") {
-            return {
-                pj({android::base::getProgramDirectory(), "lib64", "vulkan", "libMoltenVK.dylib"}),
-                pj({android::base::getLauncherDirectory(), "lib64", "vulkan", "libMoltenVK.dylib"}),
-            };
-        }
-
-        return {};
-    }
-#endif
-
     void* dlopen() {
         if (mVulkanLibs.size() == 0) {
             mVulkanLibs.addFirstAvailableLibrary(getPossibleLoaderPaths());
-
-#ifdef __APPLE__
-            // On macOS it is possible that we are using MoltenVK as the
-            // ICD. In that case we need to add MoltenVK libraries to
-            // mSharedLibs to use MoltenVK-specific functions.
-            mVulkanLibs.addFirstAvailableLibrary(getPossibleMoltenVkPaths());
-#endif
         }
         return static_cast<void*>(&mVulkanLibs);
     }
