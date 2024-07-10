@@ -512,6 +512,8 @@ class VkDecoderGlobalState {
                                        const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo);
     VkResult on_vkGetSemaphoreFdKHR(android::base::BumpPool* pool, VkDevice boxed_device,
                                     const VkSemaphoreGetFdInfoKHR* pGetFdInfo, int* pFd);
+    VkResult on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
+                                     VkSemaphore semaphore, uint64_t syncId);
     void on_vkDestroySemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
                                VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator);
 
