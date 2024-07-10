@@ -299,6 +299,13 @@ struct FeatureSet {
         "labels on Vulkan resources and operation",
         &map,
     };
+    FeatureInfo VulkanCommandBufferCheckpoints = {
+        "VulkanCommandBufferCheckpoints",
+        "If enabled, the host will enable the VK_NV_device_diagnostic_checkpoints extension "
+        "when available, track command buffers with markers, and report unfinished command "
+        "buffers on device lost. (TODO: VK_AMD_buffer_marker)",
+        &map,
+    };
 };
 
 #define GFXSTREAM_SET_FEATURE_ON_CONDITION(set, feature, condition) \

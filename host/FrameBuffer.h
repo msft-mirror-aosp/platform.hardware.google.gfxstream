@@ -482,6 +482,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
         return *m_logger;
     }
 
+    void logVulkanDeviceLost();
     void logVulkanOutOfMemory(VkResult result, const char* function, int line,
                               std::optional<uint64_t> allocationSize = std::nullopt);
 
