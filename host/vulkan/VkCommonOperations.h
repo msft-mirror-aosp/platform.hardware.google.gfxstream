@@ -26,6 +26,7 @@
 #include "BorrowedImageVk.h"
 #include "CompositorVk.h"
 #include "DebugUtilsHelper.h"
+#include "DeviceLostHelper.h"
 #include "DeviceOpTracker.h"
 #include "DisplayVk.h"
 #include "FrameworkFormats.h"
@@ -158,6 +159,9 @@ struct VkEmulation {
     bool debugUtilsAvailableAndRequested = false;
     DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
 
+    bool commandBufferCheckpointsSupportedAndRequested = false;
+    DeviceLostHelper deviceLostHelper{};
+
     // Queue, command pool, and command buffer
     // for running commands to sync stuff system-wide.
     // TODO(b/197362803): Encapsulate host side VkQueue and the lock.
@@ -204,6 +208,8 @@ struct VkEmulation {
         bool hasSamplerYcbcrConversionExtension = false;
         bool supportsSamplerYcbcrConversion = false;
         bool glInteropSupported = false;
+        bool hasNvidiaDeviceDiagnosticCheckpointsExtension = false;
+        bool supportsNvidiaDeviceDiagnosticCheckpoints = false;
 
         std::vector<VkExtensionProperties> extensions;
 
@@ -452,6 +458,8 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures>);
 
 VkEmulation* getGlobalVkEmulation();
 void teardownGlobalVkEmulation();
+
+void onVkDeviceLost();
 
 std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowType window,
                                                                 uint32_t width, uint32_t height);

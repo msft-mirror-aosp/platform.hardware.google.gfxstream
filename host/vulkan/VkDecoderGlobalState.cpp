@@ -1643,9 +1643,11 @@ class VkDecoderGlobalState::Impl {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        const std::vector<const char*> finalExts =
+        std::vector<const char*> updatedDeviceExtensions =
             filteredDeviceExtensionNames(vk, physicalDevice, pCreateInfo->enabledExtensionCount,
                                          pCreateInfo->ppEnabledExtensionNames);
+
+        m_emu->deviceLostHelper.addNeededDeviceExtensions(&updatedDeviceExtensions);
 
         // Run the underlying API call, filtering extensions.
         VkDeviceCreateInfo createInfoFiltered = *pCreateInfo;
@@ -1756,8 +1758,8 @@ class VkDecoderGlobalState::Impl {
         // Filter device memory report as callbacks can not be passed between guest and host.
         vk_struct_chain_filter<VkDeviceDeviceMemoryReportCreateInfoEXT>(&createInfoFiltered);
 
-        createInfoFiltered.enabledExtensionCount = (uint32_t)finalExts.size();
-        createInfoFiltered.ppEnabledExtensionNames = finalExts.data();
+        createInfoFiltered.enabledExtensionCount = (uint32_t)updatedDeviceExtensions.size();
+        createInfoFiltered.ppEnabledExtensionNames = updatedDeviceExtensions.data();
 
         // bug: 155795731
         bool swiftshader =
@@ -5571,6 +5573,8 @@ class VkDecoderGlobalState::Impl {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
+        m_emu->deviceLostHelper.onResetCommandBuffer(commandBuffer);
+
         VkResult result = vk->vkResetCommandBuffer(commandBuffer, flags);
         if (VK_SUCCESS == result) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
@@ -5587,7 +5591,13 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkDevice(boxed_device);
 
         if (!device) return;
+
+        for (uint32_t i = 0; i < commandBufferCount; i++) {
+            m_emu->deviceLostHelper.onFreeCommandBuffer(pCommandBuffers[i]);
+        }
+
         vk->vkFreeCommandBuffers(device, commandPool, commandBufferCount, pCommandBuffers);
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
         for (uint32_t i = 0; i < commandBufferCount; i++) {
             const auto& cmdBufferInfoIt = mCmdBufferInfo.find(pCommandBuffers[i]);
@@ -5894,6 +5904,8 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
 
+        m_emu->deviceLostHelper.onBeginCommandBuffer(commandBuffer, vk);
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
         auto* commandBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
@@ -5920,6 +5932,8 @@ class VkDecoderGlobalState::Impl {
                                    const VkDecoderContext& context) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        m_emu->deviceLostHelper.onEndCommandBuffer(commandBuffer, vk);
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
@@ -6574,9 +6588,25 @@ class VkDecoderGlobalState::Impl {
         return;
     }
 
-    void on_DeviceLost() { GFXSTREAM_ABORT(FatalError(VK_ERROR_DEVICE_LOST)); }
+    void on_DeviceLost() {
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
 
-    void DeviceLostHandler() {}
+            std::vector<DeviceLostHelper::DeviceWithQueues> devicesToQueues;
+            for (const auto& [device, deviceInfo] : mDeviceInfo) {
+                auto& deviceToQueues = devicesToQueues.emplace_back();
+                deviceToQueues.device = device;
+                deviceToQueues.deviceDispatch = dispatch_VkDevice(deviceInfo.boxed);
+                for (const auto& [queueIndex, queues] : deviceInfo.queues) {
+                    deviceToQueues.queues.insert(deviceToQueues.queues.end(), queues.begin(),
+                                                 queues.end());
+                }
+            }
+            m_emu->deviceLostHelper.onDeviceLost(devicesToQueues);
+        }
+
+        GFXSTREAM_ABORT(FatalError(VK_ERROR_DEVICE_LOST));
+    }
 
     void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,
                              std::optional<uint64_t> allocationSize = std::nullopt) {
@@ -9079,8 +9109,6 @@ void VkDecoderGlobalState::on_vkDestroySamplerYcbcrConversionKHR(
 }
 
 void VkDecoderGlobalState::on_DeviceLost() { mImpl->on_DeviceLost(); }
-
-void VkDecoderGlobalState::DeviceLostHandler() { mImpl->DeviceLostHandler(); }
 
 void VkDecoderGlobalState::on_CheckOutOfMemory(VkResult result, uint32_t opCode,
                                                const VkDecoderContext& context,
