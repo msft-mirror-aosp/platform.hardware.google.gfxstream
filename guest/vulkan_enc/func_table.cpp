@@ -4959,4 +4959,17 @@ void gfxstream_vk_QueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
             true /* do lock */);
     }
 }
+VkResult gfxstream_vk_GetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore, uint64_t syncId) {
+    AEMU_SCOPED_TRACE("vkGetSemaphoreGOOGLE");
+    VkResult vkGetSemaphoreGOOGLE_VkResult_return = (VkResult)0;
+    VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
+    VK_FROM_HANDLE(gfxstream_vk_semaphore, gfxstream_semaphore, semaphore);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
+        vkGetSemaphoreGOOGLE_VkResult_return = vkEnc->vkGetSemaphoreGOOGLE(
+            gfxstream_device->internal_object, gfxstream_semaphore->internal_object, syncId,
+            true /* do lock */);
+    }
+    return vkGetSemaphoreGOOGLE_VkResult_return;
+}
 #endif

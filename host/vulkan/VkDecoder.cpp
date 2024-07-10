@@ -22073,6 +22073,51 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::endTrace();
                 break;
             }
+            case OP_vkGetSemaphoreGOOGLE: {
+                android::base::beginTrace("vkGetSemaphoreGOOGLE decode");
+                VkDevice device;
+                VkSemaphore semaphore;
+                uint64_t syncId;
+                // Begin global wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkSemaphore*)&semaphore =
+                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)(*&cgen_var_1));
+                memcpy((uint64_t*)&syncId, *readStreamPtrPtr, sizeof(uint64_t));
+                *readStreamPtrPtr += sizeof(uint64_t);
+                if (m_logCalls) {
+                    fprintf(stderr, "stream %p: call vkGetSemaphoreGOOGLE 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)semaphore,
+                            (unsigned long long)syncId);
+                }
+                VkResult vkGetSemaphoreGOOGLE_VkResult_return = (VkResult)0;
+                vkGetSemaphoreGOOGLE_VkResult_return =
+                    m_state->on_vkGetSemaphoreGOOGLE(&m_pool, device, semaphore, syncId);
+                if ((vkGetSemaphoreGOOGLE_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkGetSemaphoreGOOGLE_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkGetSemaphoreGOOGLE_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetSemaphoreGOOGLE(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetSemaphoreGOOGLE_VkResult_return, device, semaphore, syncId);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
 #endif
             default: {
                 m_pool.freeAll();

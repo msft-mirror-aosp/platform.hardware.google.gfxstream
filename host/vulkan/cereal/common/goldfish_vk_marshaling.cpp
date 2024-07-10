@@ -21637,6 +21637,9 @@ const char* api_opcode_to_string(const uint32_t opcode) {
         case OP_vkGetBlobGOOGLE: {
             return "OP_vkGetBlobGOOGLE";
         }
+        case OP_vkGetSemaphoreGOOGLE: {
+            return "OP_vkGetSemaphoreGOOGLE";
+        }
 #endif
 #ifdef VK_KHR_dynamic_rendering
         case OP_vkCmdEndRenderingKHR: {
