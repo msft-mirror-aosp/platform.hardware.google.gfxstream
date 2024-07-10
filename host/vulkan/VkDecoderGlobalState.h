@@ -705,8 +705,6 @@ class VkDecoderGlobalState {
 
     void on_DeviceLost();
 
-    void DeviceLostHandler();
-
     void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,
                              std::optional<uint64_t> allocationSize = std::nullopt);
 

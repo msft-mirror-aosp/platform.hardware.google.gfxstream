@@ -466,6 +466,10 @@ struct VulkanDispatch {
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
     PFN_vkSubmitDebugUtilsMessageEXT vkSubmitDebugUtilsMessageEXT;
 #endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
+    PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+#endif
 #ifdef VK_EXT_metal_surface
     PFN_vkCreateMetalSurfaceEXT vkCreateMetalSurfaceEXT;
 #endif

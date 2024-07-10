@@ -1185,7 +1185,13 @@ class PipeVirglRenderer {
 
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const uint32_t fwkformat = virgl_format_to_fwk_format(args->format);
-        const bool linear = !!(args->bind & VIRGL_BIND_LINEAR);
+
+        const bool linear =
+#ifdef GFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL
+            !!(args->bind & VIRGL_BIND_LINEAR);
+#else
+            false;
+#endif
         gfxstream::FrameBuffer::getFB()->createColorBufferWithHandle(
             args->width, args->height, glformat, (gfxstream::FrameworkFormat)fwkformat,
             args->handle, linear);
@@ -2802,6 +2808,15 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     gfxstream::vk::vk_util::setVkCheckCallbacks(
         std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
             gfxstream::vk::vk_util::VkCheckCallbacks{
+                .onVkErrorDeviceLost =
+                    []() {
+                        auto fb = gfxstream::FrameBuffer::getFB();
+                        if (!fb) {
+                            ERR("FrameBuffer not yet initialized. Dropping device lost event");
+                            return;
+                        }
+                        fb->logVulkanDeviceLost();
+                    },
                 .onVkErrorOutOfMemory =
                     [](VkResult result, const char* function, int line) {
                         auto fb = gfxstream::FrameBuffer::getFB();
