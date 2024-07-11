@@ -11,6 +11,7 @@ add_library(gfxstream-vulkan-server
             BufferVk.cpp
             ColorBufferVk.cpp
             CompositorVk.cpp
+            DeviceLostHelper.cpp
             DeviceOpTracker.cpp
             DisplayVk.cpp
             DisplaySurfaceVk.cpp
