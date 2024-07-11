@@ -38808,6 +38808,103 @@ void VkEncoder::vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
+VkResult VkEncoder::vkGetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore, uint64_t syncId,
+                                         uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkGetSemaphoreGOOGLE in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG("vkGetSemaphoreGOOGLE(device:%p, semaphore:%p, syncId:%ld)", device,
+                      semaphore, syncId);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkSemaphore local_semaphore;
+    uint64_t local_syncId;
+    local_device = device;
+    local_semaphore = semaphore;
+    local_syncId = syncId;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint64_t);
+    }
+    uint32_t packetSize_vkGetSemaphoreGOOGLE =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkGetSemaphoreGOOGLE);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkGetSemaphoreGOOGLE);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkGetSemaphoreGOOGLE = OP_vkGetSemaphoreGOOGLE;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkGetSemaphoreGOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkGetSemaphoreGOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSemaphore((*&local_semaphore));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint64_t*)&local_syncId, sizeof(uint64_t));
+    *streamPtrPtr += sizeof(uint64_t);
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkGetSemaphoreGOOGLE), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    VkResult vkGetSemaphoreGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkGetSemaphoreGOOGLE_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkGetSemaphoreGOOGLE_VkResult_return;
+}
+
 #endif
 }  // namespace vk
 }  // namespace gfxstream

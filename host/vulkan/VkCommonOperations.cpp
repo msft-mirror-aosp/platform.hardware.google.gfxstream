@@ -574,6 +574,10 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
     };
 
+    std::vector<const char*> externalFenceInstanceExtNames = {
+        VK_KHR_EXTERNAL_FENCE_CAPABILITIES_EXTENSION_NAME,
+    };
+
     std::vector<const char*> surfaceInstanceExtNames = {
         VK_KHR_SURFACE_EXTENSION_NAME,
     };
@@ -599,6 +603,8 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         extensionsSupported(instanceExts, externalMemoryInstanceExtNames);
     bool externalSemaphoreCapabilitiesSupported =
         extensionsSupported(instanceExts, externalSemaphoreInstanceExtNames);
+    bool externalFenceCapabilitiesSupported =
+        extensionsSupported(instanceExts, externalFenceInstanceExtNames);
     bool surfaceSupported = extensionsSupported(instanceExts, surfaceInstanceExtNames);
 #if defined(__APPLE__)
     const std::string vulkanIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
@@ -735,6 +741,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     sVkEmulation->instanceSupportsExternalMemoryCapabilities = externalMemoryCapabilitiesSupported;
     sVkEmulation->instanceSupportsExternalSemaphoreCapabilities =
         externalSemaphoreCapabilitiesSupported;
+    sVkEmulation->instanceSupportsExternalFenceCapabilities = externalFenceCapabilitiesSupported;
     sVkEmulation->instanceSupportsSurface = surfaceSupported;
 #if defined(__APPLE__)
     sVkEmulation->instanceSupportsMoltenVK = moltenVKSupported;
