@@ -1561,6 +1561,9 @@ class VkDecoderSnapshot {
                                    android::base::BumpPool* pool, VkQueue queue,
                                    uint32_t submitCount, const VkSubmitInfo2* pSubmits,
                                    VkFence fence);
+    void vkGetSemaphoreGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+                              VkSemaphore semaphore, uint64_t syncId);
 #endif
    private:
     class Impl;

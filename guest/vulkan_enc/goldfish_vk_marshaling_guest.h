@@ -3736,6 +3736,7 @@ void unmarshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructureType r
 #define OP_vkGetBlobGOOGLE 20341
 #define OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE 244782974
 #define OP_vkQueueSubmitAsync2GOOGLE 292092830
+#define OP_vkGetSemaphoreGOOGLE 20342
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void marshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
