@@ -467,19 +467,7 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
     auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
         *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
-    {
-        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
-        uint32_t pos = 0;
-        for (uint32_t h = 0; h < height; h++) {
-            for (uint32_t w = 0; w < width; w++) {
-                mapped[pos++] = 0;
-                mapped[pos++] = 0;
-                mapped[pos++] = 128;
-                mapped[pos++] = 255;
-            }
-        }
-        ahb.Unlock();
-    }
+    GFXSTREAM_ASSERT(FillAhb(ahb, PixelR8G8B8A8(0, 0, 128, 255)));
 
     const EGLint ahbImageAttribs[] = {
         // clang-format off
@@ -763,7 +751,6 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndReadback) {
     const uint32_t height = 2;
 
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
-    const auto lockPixels = Fill(width, height, lockPixel);
 
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
@@ -772,11 +759,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndReadback) {
         *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     // Initialize AHB with `lockPixel`
-    {
-        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
-        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
-        ahb.Unlock();
-    }
+    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
 
     // Update AHB with `uploadPixel` via texture upload:
     {
@@ -874,7 +857,6 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndBlit) {
     ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
 
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
-    const auto lockPixels = Fill(width, height, lockPixel);
 
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
@@ -883,11 +865,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndBlit) {
         *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     // Initialize AHB with `lockPixel`
-    {
-        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
-        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
-        ahb.Unlock();
-    }
+    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
 
     // Update AHB with `uploadPixel` via texture upload:
     {
@@ -1035,7 +1013,6 @@ TEST_P(GfxstreamEnd2EndGlTest, MultiThreadedAhbTextureUploadAndReadback) {
     const uint32_t height = 2;
 
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
-    const auto lockPixels = Fill(width, height, lockPixel);
 
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
@@ -1230,11 +1207,7 @@ TEST_P(GfxstreamEnd2EndGlTest, MultiThreadedAhbTextureUploadAndReadback) {
     uploadThreadInitialized.wait();
 
     // "MainThread" updates the AHB with `lockPixel` via Gralloc->Lock():
-    {
-        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
-        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
-        ahb.Unlock();
-    }
+    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
 
     // "UploadThread" updates the AHB with `uploadPixel` via GL texture upload:
     uploadThreadStartUpload.count_down();
@@ -1292,7 +1265,6 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
     ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
 
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
-    const auto lockPixels = Fill(width, height, lockPixel);
 
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
@@ -1308,11 +1280,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
     };
 
     // Initialize AHB with `lockPixel`
-    {
-        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
-        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
-        ahb.Unlock();
-    }
+    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
 
     // Update AHB with `uploadPixel` via texture upload:
     {
@@ -1460,7 +1428,6 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
     ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
 
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
-    const auto lockPixels = Fill(width, height, lockPixel);
 
     auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
         *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
@@ -1473,11 +1440,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
     };
 
     // Initialize AHB with `lockPixel`
-    {
-        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
-        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
-        ahb.Unlock();
-    }
+    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
 
     // Blit from AHB to an additional framebuffer and readback:
     {
@@ -1604,7 +1567,6 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
     ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
 
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
-    const auto lockPixels = Fill(width, height, lockPixel);
 
     auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
         *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
@@ -1617,11 +1579,7 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
     };
 
     // Initialize AHB with `lockPixel`
-    {
-        uint8_t* mapped = GFXSTREAM_ASSERT(ahb.Lock());
-        std::memcpy(mapped, lockPixels.data(), lockPixels.size());
-        ahb.Unlock();
-    }
+    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
 
     // Setup blit program:
     GLenum programBinaryFormat = GL_NONE;

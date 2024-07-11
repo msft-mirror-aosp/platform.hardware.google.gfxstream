@@ -560,6 +560,8 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
 
     Result<Image> AsImage(ScopedAHardwareBuffer& ahb);
 
+    Result<Ok> FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8A8 color);
+
     Result<ScopedAHardwareBuffer> CreateAHBFromImage(const std::string& basename);
 
     bool ArePixelsSimilar(uint32_t expectedPixel, uint32_t actualPixel);
