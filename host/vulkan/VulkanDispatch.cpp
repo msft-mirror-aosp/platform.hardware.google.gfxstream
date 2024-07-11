@@ -24,6 +24,10 @@ using android::base::AutoLock;
 using android::base::Lock;
 using android::base::pj;
 
+#ifndef VERBOSE
+#define VERBOSE INFO
+#endif
+
 namespace gfxstream {
 namespace vk {
 
@@ -123,17 +127,18 @@ class SharedLibraries {
 
     bool addLibrary(const std::string& path) {
         if (size() >= mSizeLimit) {
-            fprintf(stderr, "cannot add library %s: full\n", path.c_str());
+            WARN("Cannot add library %s due to size limit(%d)", path.c_str(), mSizeLimit);
             return false;
         }
 
         auto library = android::base::SharedLibrary::open(path.c_str());
         if (library) {
             mLibs.push_back(library);
-            fprintf(stderr, "added library %s\n", path.c_str());
+            INFO("Added library: %s", path.c_str());
             return true;
         } else {
-            fprintf(stderr, "cannot add library %s: failed\n", path.c_str());
+            // This is expected when searching for a valid library path
+            VERBOSE("Library cannot be added: %s", path.c_str());
             return false;
         }
     }
@@ -279,7 +284,11 @@ class VulkanDispatchImpl {
 
     void* dlopen() {
         if (mVulkanLibs.size() == 0) {
-            mVulkanLibs.addFirstAvailableLibrary(getPossibleLoaderPaths());
+            const std::vector<std::string> possiblePaths = getPossibleLoaderPaths();
+            if (!mVulkanLibs.addFirstAvailableLibrary(possiblePaths)) {
+                ERR("Cannot add any library for Vulkan loader from the list of %d items",
+                    possiblePaths.size());
+            }
         }
         return static_cast<void*>(&mVulkanLibs);
     }

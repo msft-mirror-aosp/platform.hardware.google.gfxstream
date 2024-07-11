@@ -659,6 +659,11 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdInsertDebugUtilsLabelEXT =
         (PFN_vkCmdInsertDebugUtilsLabelEXT)dlSymFunc(lib, "vkCmdInsertDebugUtilsLabelEXT");
 #endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    out->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)dlSymFunc(lib, "vkCmdSetCheckpointNV");
+    out->vkGetQueueCheckpointDataNV =
+        (PFN_vkGetQueueCheckpointDataNV)dlSymFunc(lib, "vkGetQueueCheckpointDataNV");
+#endif
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT = (PFN_vkGetPhysicalDeviceToolPropertiesEXT)dlSymFunc(
         lib, "vkGetPhysicalDeviceToolPropertiesEXT");
@@ -784,6 +789,7 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
             lib, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
     out->vkQueueSubmitAsync2GOOGLE =
         (PFN_vkQueueSubmitAsync2GOOGLE)dlSymFunc(lib, "vkQueueSubmitAsync2GOOGLE");
+    out->vkGetSemaphoreGOOGLE = (PFN_vkGetSemaphoreGOOGLE)dlSymFunc(lib, "vkGetSemaphoreGOOGLE");
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
@@ -1596,6 +1602,12 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkCmdInsertDebugUtilsLabelEXT)vk->vkGetInstanceProcAddr(
             instance, "vkCmdInsertDebugUtilsLabelEXT");
 #endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    out->vkCmdSetCheckpointNV =
+        (PFN_vkCmdSetCheckpointNV)vk->vkGetInstanceProcAddr(instance, "vkCmdSetCheckpointNV");
+    out->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vk->vkGetInstanceProcAddr(
+        instance, "vkGetQueueCheckpointDataNV");
+#endif
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT =
         (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vk->vkGetInstanceProcAddr(
@@ -1746,6 +1758,8 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
             instance, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
     out->vkQueueSubmitAsync2GOOGLE = (PFN_vkQueueSubmitAsync2GOOGLE)vk->vkGetInstanceProcAddr(
         instance, "vkQueueSubmitAsync2GOOGLE");
+    out->vkGetSemaphoreGOOGLE =
+        (PFN_vkGetSemaphoreGOOGLE)vk->vkGetInstanceProcAddr(instance, "vkGetSemaphoreGOOGLE");
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
@@ -2537,6 +2551,12 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkCmdInsertDebugUtilsLabelEXT = (PFN_vkCmdInsertDebugUtilsLabelEXT)vk->vkGetDeviceProcAddr(
         device, "vkCmdInsertDebugUtilsLabelEXT");
 #endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    out->vkCmdSetCheckpointNV =
+        (PFN_vkCmdSetCheckpointNV)vk->vkGetDeviceProcAddr(device, "vkCmdSetCheckpointNV");
+    out->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vk->vkGetDeviceProcAddr(
+        device, "vkGetQueueCheckpointDataNV");
+#endif
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT =
         (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vk->vkGetDeviceProcAddr(
@@ -2682,6 +2702,8 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
             device, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
     out->vkQueueSubmitAsync2GOOGLE =
         (PFN_vkQueueSubmitAsync2GOOGLE)vk->vkGetDeviceProcAddr(device, "vkQueueSubmitAsync2GOOGLE");
+    out->vkGetSemaphoreGOOGLE =
+        (PFN_vkGetSemaphoreGOOGLE)vk->vkGetDeviceProcAddr(device, "vkGetSemaphoreGOOGLE");
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
