@@ -2576,8 +2576,6 @@ class VkDecoderGlobalState::Impl {
 #else
         return VK_ERROR_OUT_OF_HOST_MEMORY;
 #endif
-
-        return VK_SUCCESS;
     }
 
     VkResult on_vkCreateSemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
