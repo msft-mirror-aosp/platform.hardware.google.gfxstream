@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <android-base/expected.h>
-
 #include <string>
 
 #include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
 #include "gfxstream/RutabagaLayerTestUtils.h"
-#include "simple_shader_frag.h"
-#include "simple_shader_vert.h"
+#include "shaders/simple_shader_frag.h"
+#include "shaders/simple_shader_vert.h"
 
 namespace gfxstream {
 namespace tests {
@@ -105,7 +103,7 @@ VkExpected<BufferInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createAndPopulate
         physicalDevice, vertexBufferMemoryRequirements,
         vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
     if (vertexBufferMemoryType == -1) {
-        return android::base::unexpected(vkhpp::Result::eErrorOutOfHostMemory);
+        return gfxstream::unexpected(vkhpp::Result::eErrorOutOfHostMemory);
     }
     // Vertex memory
     const vkhpp::MemoryAllocateInfo vertexBufferMemoryAllocateInfo = {
@@ -180,12 +178,12 @@ std::unique_ptr<PipelineInfo> GfxstreamEnd2EndVkSnapshotPipelineTest::createPipe
                               .value;
 
     vkhpp::ShaderModuleCreateInfo vertexShaderModuleCreateInfo = {
-        .codeSize = sizeof(kSimpleShaderVert),
-        .pCode = (const uint32_t*)kSimpleShaderVert,
+        .codeSize = kSimpleShaderVert.size() * sizeof(uint32_t),
+        .pCode = kSimpleShaderVert.data(),
     };
     vkhpp::ShaderModuleCreateInfo fragmentShaderModuleCreateInfo = {
-        .codeSize = sizeof(kSimpleShaderFrag),
-        .pCode = (const uint32_t*)kSimpleShaderFrag,
+        .codeSize = kSimpleShaderFrag.size() * sizeof(uint32_t),
+        .pCode = kSimpleShaderFrag.data(),
     };
     res->vertexShaderModule = device.createShaderModuleUnique(vertexShaderModuleCreateInfo).value;
     res->fragmentShaderModule =

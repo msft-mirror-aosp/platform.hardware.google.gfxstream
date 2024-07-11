@@ -38,7 +38,6 @@ cc_test_host {
     shared_libs: [
         "libandroidemu",
         "libOpenglSystemCommonWithHost",
-        "libbase",
         "liblog",
         "libgfxstream_platform_rutabaga_server",
     ],
@@ -56,6 +55,9 @@ cc_test_host {
         "-Wno-macro-redefined",
         "-Wno-unused-parameter",
         "-Wno-extern-c-compat",
+    ],
+    local_include_dirs: [
+        ".",
     ],
     test_options: {
         // Disabled by default as requires host OpenGL and Vulkan.
