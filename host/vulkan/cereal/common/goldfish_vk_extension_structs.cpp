@@ -1136,11 +1136,6 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
             return sizeof(VkPhysicalDeviceExclusiveScissorFeaturesNV);
         }
 #endif
-#ifdef VK_NV_device_diagnostic_checkpoints
-        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV: {
-            return sizeof(VkQueueFamilyCheckpointPropertiesNV);
-        }
-#endif
 #ifdef VK_INTEL_shader_integer_functions2
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_FUNCTIONS_2_FEATURES_INTEL: {
             return sizeof(VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL);
@@ -3253,11 +3248,6 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXCLUSIVE_SCISSOR_FEATURES_NV: {
             return sizeof(VkPhysicalDeviceExclusiveScissorFeaturesNV);
-        }
-#endif
-#ifdef VK_NV_device_diagnostic_checkpoints
-        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV: {
-            return sizeof(VkQueueFamilyCheckpointPropertiesNV);
         }
 #endif
 #ifdef VK_INTEL_shader_integer_functions2
