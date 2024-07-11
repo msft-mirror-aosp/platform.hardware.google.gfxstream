@@ -135,14 +135,14 @@ class GfxstreamEnd2EndGlTest : public GfxstreamEnd2EndTest {
    protected:
     GlExpected<PixelR8G8B8A8> GetPixelAt(GLint x, GLint y) {
         if (!mGl) {
-            return android::base::unexpected("GL not available, running with `with_gl = false`?");
+            return gfxstream::unexpected("GL not available, running with `with_gl = false`?");
         }
 
         GLubyte rgba[4] = {0, 0, 0, 0};
         mGl->glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
 
         if (GLenum error = mGl->glGetError(); error != GL_NO_ERROR) {
-            return android::base::unexpected("Failed to glReadPixels() with error " +
+            return gfxstream::unexpected("Failed to glReadPixels() with error " +
                                              std::to_string(error));
         }
 
