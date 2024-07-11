@@ -187,12 +187,19 @@ struct PhysicalDeviceInfo {
     VkPhysicalDevice boxed = nullptr;
 };
 
+struct ExternalFenceInfo {
+    VkExternalSemaphoreHandleTypeFlagBits supportedBinarySemaphoreHandleTypes;
+    VkExternalFenceHandleTypeFlagBits supportedFenceHandleTypes;
+};
+
 struct DeviceInfo {
     std::unordered_map<uint32_t, std::vector<VkQueue>> queues;
     std::vector<std::string> enabledExtensionNames;
     bool emulateTextureEtc2 = false;
     bool emulateTextureAstc = false;
     bool useAstcCpuDecompression = false;
+
+    ExternalFenceInfo externalFenceInfo;
     VkPhysicalDevice physicalDevice;
     VkDevice boxed = nullptr;
     DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();

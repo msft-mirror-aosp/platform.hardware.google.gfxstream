@@ -1026,6 +1026,8 @@ class VkEncoder {
         const uint8_t* pInlineUniformBlockData, uint32_t doLock);
     void vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
                                    const VkSubmitInfo2* pSubmits, VkFence fence, uint32_t doLock);
+    VkResult vkGetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore, uint64_t syncId,
+                                  uint32_t doLock);
 #endif
    private:
     class Impl;
