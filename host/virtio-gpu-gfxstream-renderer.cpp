@@ -1150,6 +1150,7 @@ class PipeVirglRenderer {
             ctxEntry.latestFence = nullptr;
         } else {
             stream_renderer_error("Failed to acquire sync descriptor");
+            return -EINVAL;
         }
 
         return 0;
