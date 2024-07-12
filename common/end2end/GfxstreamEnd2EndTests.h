@@ -17,7 +17,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <android-base/expected.h>
 #include <inttypes.h>
 
 #include <future>
@@ -47,6 +46,7 @@
 
 #include "Sync.h"
 #include "drm_fourcc.h"
+#include "gfxstream/Expected.h"
 #include "gfxstream/guest/ANativeWindow.h"
 #include "gfxstream/guest/Gralloc.h"
 #include "gfxstream/guest/RenderControlApi.h"
@@ -97,7 +97,7 @@ MATCHER(IsValidHandle, "a non-null handle") {
 struct Ok {};
 
 template <typename GlType>
-using GlExpected = android::base::expected<GlType, std::string>;
+using GlExpected = gfxstream::expected<GlType, std::string>;
 
 #define GL_ASSERT(x)                        \
     ({                                      \
@@ -112,21 +112,21 @@ using GlExpected = android::base::expected<GlType, std::string>;
     ({                                                           \
         auto gl_result = (x);                                    \
         if (!gl_result.ok()) {                                   \
-            return android::base::unexpected(gl_result.error()); \
+            return gfxstream::unexpected(gl_result.error());     \
         }                                                        \
         std::move(gl_result.value());                            \
     })
 
 template <typename VkType>
-using VkExpected = android::base::expected<VkType, vkhpp::Result>;
+using VkExpected = gfxstream::expected<VkType, vkhpp::Result>;
 
 #define VK_ASSERT(x)                                                          \
   ({                                                                          \
-    auto vk_expect_android_base_expected = (x);                               \
-    if (!vk_expect_android_base_expected.ok()) {                              \
-      ASSERT_THAT(vk_expect_android_base_expected.ok(), ::testing::IsTrue()); \
+    auto vk_expect_gfxstream_expected = (x);                               \
+    if (!vk_expect_gfxstream_expected.ok()) {                              \
+      ASSERT_THAT(vk_expect_gfxstream_expected.ok(), ::testing::IsTrue()); \
     };                                                                        \
-    std::move(vk_expect_android_base_expected.value());                       \
+    std::move(vk_expect_gfxstream_expected.value());                       \
   })
 
 #define VK_ASSERT_RV(x)                                                       \
@@ -140,7 +140,7 @@ using VkExpected = android::base::expected<VkType, vkhpp::Result>;
   ({                                                                          \
     auto vkhpp_result = (x);                                                  \
     if (vkhpp_result != vkhpp::Result::eSuccess) {                            \
-        return android::base::unexpected(vkhpp_result);                       \
+        return gfxstream::unexpected(vkhpp_result);                           \
     }                                                                         \
   })
 
@@ -148,18 +148,18 @@ using VkExpected = android::base::expected<VkType, vkhpp::Result>;
   ({                                                                          \
     auto vkhpp_result_value = (x);                                            \
     if (vkhpp_result_value.result != vkhpp::Result::eSuccess) {               \
-        return android::base::unexpected(vkhpp_result_value.result);          \
+        return gfxstream::unexpected(vkhpp_result_value.result);              \
     }                                                                         \
     std::move(vkhpp_result_value.value);                                      \
   })
 
 #define VK_TRY(x)                                                                   \
     ({                                                                              \
-        auto vk_try_android_base_expected = (x);                                    \
-        if (!vk_try_android_base_expected.ok()) {                                   \
-            return android::base::unexpected(vk_try_android_base_expected.error()); \
+        auto vk_try_gfxstream_expected = (x);                                    \
+        if (!vk_try_gfxstream_expected.ok()) {                                   \
+            return gfxstream::unexpected(vk_try_gfxstream_expected.error());     \
         }                                                                           \
-        std::move(vk_try_android_base_expected.value());                            \
+        std::move(vk_try_gfxstream_expected.value());                            \
     })
 
 #define VK_TRY_RESULT(x)                               \
@@ -425,7 +425,7 @@ class ScopedAHardwareBuffer {
         uint8_t* mapped = nullptr;
         int status = mGralloc->lock(mHandle, &mapped);
         if (status != 0) {
-            return android::base::unexpected("Failed to lock AHB");
+            return gfxstream::unexpected("Failed to lock AHB");
         }
         return mapped;
     }
