@@ -81,7 +81,7 @@ class expected {
             if constexpr (std::is_void_v<T>) {
                 return expected<T, NewE>();
             } else {
-                return expected<T, NewE>(std::in_place, value());
+                return expected<T, NewE>(std::in_place, std::move(value()));
             }
         } else {
             return unexpected(std::invoke(std::forward<F>(function), error()));
