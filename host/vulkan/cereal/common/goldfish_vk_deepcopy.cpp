@@ -7121,6 +7121,35 @@ void deepcopy_VkPipelineExecutableInternalRepresentationKHR(
 }
 
 #endif
+#ifdef VK_KHR_pipeline_library
+void deepcopy_VkPipelineLibraryCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                             const VkPipelineLibraryCreateInfoKHR* from,
+                                             VkPipelineLibraryCreateInfoKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    to->pLibraries = nullptr;
+    if (from->pLibraries) {
+        to->pLibraries = (VkPipeline*)alloc->dupArray(
+            from->pLibraries, from->libraryCount * sizeof(const VkPipeline));
+    }
+}
+
+#endif
 #ifdef VK_KHR_synchronization2
 void deepcopy_VkQueueFamilyCheckpointProperties2NV(Allocator* alloc, VkStructureType rootType,
                                                    const VkQueueFamilyCheckpointProperties2NV* from,
@@ -9222,6 +9251,192 @@ void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
 }
 
 #endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void deepcopy_VkRayTracingShaderGroupCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                                   const VkRayTracingShaderGroupCreateInfoKHR* from,
+                                                   VkRayTracingShaderGroupCreateInfoKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    to->pShaderGroupCaptureReplayHandle = nullptr;
+    if (from->pShaderGroupCaptureReplayHandle) {
+        to->pShaderGroupCaptureReplayHandle =
+            (void*)alloc->dupArray(from->pShaderGroupCaptureReplayHandle, sizeof(const uint8_t));
+    }
+}
+
+void deepcopy_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkRayTracingPipelineInterfaceCreateInfoKHR* from,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkRayTracingPipelineCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                                const VkRayTracingPipelineCreateInfoKHR* from,
+                                                VkRayTracingPipelineCreateInfoKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    if (from) {
+        to->pStages = nullptr;
+        if (from->pStages) {
+            to->pStages = (VkPipelineShaderStageCreateInfo*)alloc->alloc(
+                from->stageCount * sizeof(const VkPipelineShaderStageCreateInfo));
+            to->stageCount = from->stageCount;
+            for (uint32_t i = 0; i < (uint32_t)from->stageCount; ++i) {
+                deepcopy_VkPipelineShaderStageCreateInfo(
+                    alloc, rootType, from->pStages + i,
+                    (VkPipelineShaderStageCreateInfo*)(to->pStages + i));
+            }
+        }
+    }
+    if (from) {
+        to->pGroups = nullptr;
+        if (from->pGroups) {
+            to->pGroups = (VkRayTracingShaderGroupCreateInfoKHR*)alloc->alloc(
+                from->groupCount * sizeof(const VkRayTracingShaderGroupCreateInfoKHR));
+            to->groupCount = from->groupCount;
+            for (uint32_t i = 0; i < (uint32_t)from->groupCount; ++i) {
+                deepcopy_VkRayTracingShaderGroupCreateInfoKHR(
+                    alloc, rootType, from->pGroups + i,
+                    (VkRayTracingShaderGroupCreateInfoKHR*)(to->pGroups + i));
+            }
+        }
+    }
+    to->pLibraryInfo = nullptr;
+    if (from->pLibraryInfo) {
+        to->pLibraryInfo = (VkPipelineLibraryCreateInfoKHR*)alloc->alloc(
+            sizeof(const VkPipelineLibraryCreateInfoKHR));
+        deepcopy_VkPipelineLibraryCreateInfoKHR(
+            alloc, rootType, from->pLibraryInfo,
+            (VkPipelineLibraryCreateInfoKHR*)(to->pLibraryInfo));
+    }
+    to->pLibraryInterface = nullptr;
+    if (from->pLibraryInterface) {
+        to->pLibraryInterface = (VkRayTracingPipelineInterfaceCreateInfoKHR*)alloc->alloc(
+            sizeof(const VkRayTracingPipelineInterfaceCreateInfoKHR));
+        deepcopy_VkRayTracingPipelineInterfaceCreateInfoKHR(
+            alloc, rootType, from->pLibraryInterface,
+            (VkRayTracingPipelineInterfaceCreateInfoKHR*)(to->pLibraryInterface));
+    }
+    to->pDynamicState = nullptr;
+    if (from->pDynamicState) {
+        to->pDynamicState = (VkPipelineDynamicStateCreateInfo*)alloc->alloc(
+            sizeof(const VkPipelineDynamicStateCreateInfo));
+        deepcopy_VkPipelineDynamicStateCreateInfo(
+            alloc, rootType, from->pDynamicState,
+            (VkPipelineDynamicStateCreateInfo*)(to->pDynamicState));
+    }
+}
+
+void deepcopy_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelineFeaturesKHR* from,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* from,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkStridedDeviceAddressRegionKHR(Allocator* alloc, VkStructureType rootType,
+                                              const VkStridedDeviceAddressRegionKHR* from,
+                                              VkStridedDeviceAddressRegionKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+}
+
+void deepcopy_VkTraceRaysIndirectCommandKHR(Allocator* alloc, VkStructureType rootType,
+                                            const VkTraceRaysIndirectCommandKHR* from,
+                                            VkTraceRaysIndirectCommandKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+}
+
+#endif
 void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                                const void* structExtension, void* structExtension_out) {
     if (!structExtension) {
@@ -10125,6 +10340,15 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_KHR_pipeline_library
+        case VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR: {
+            deepcopy_VkPipelineLibraryCreateInfoKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkPipelineLibraryCreateInfoKHR*>(structExtension),
+                reinterpret_cast<VkPipelineLibraryCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_KHR_synchronization2
         case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV: {
             deepcopy_VkQueueFamilyCheckpointProperties2NV(
@@ -10752,6 +10976,26 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                     const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT*>(
                     structExtension),
                 reinterpret_cast<VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR: {
+            deepcopy_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingPipelineFeaturesKHR*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceRayTracingPipelineFeaturesKHR*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR: {
+            deepcopy_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRayTracingPipelinePropertiesKHR*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceRayTracingPipelinePropertiesKHR*>(
                     structExtension_out));
             break;
         }

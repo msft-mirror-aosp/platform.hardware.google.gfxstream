@@ -795,6 +795,22 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)dlSymFunc(lib, "vkGetScreenBufferPropertiesQNX");
 #endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    out->vkCmdTraceRaysKHR = (PFN_vkCmdTraceRaysKHR)dlSymFunc(lib, "vkCmdTraceRaysKHR");
+    out->vkCreateRayTracingPipelinesKHR =
+        (PFN_vkCreateRayTracingPipelinesKHR)dlSymFunc(lib, "vkCreateRayTracingPipelinesKHR");
+    out->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
+        (PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)dlSymFunc(
+            lib, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
+    out->vkCmdTraceRaysIndirectKHR =
+        (PFN_vkCmdTraceRaysIndirectKHR)dlSymFunc(lib, "vkCmdTraceRaysIndirectKHR");
+    out->vkGetRayTracingShaderGroupStackSizeKHR =
+        (PFN_vkGetRayTracingShaderGroupStackSizeKHR)dlSymFunc(
+            lib, "vkGetRayTracingShaderGroupStackSizeKHR");
+    out->vkCmdSetRayTracingPipelineStackSizeKHR =
+        (PFN_vkCmdSetRayTracingPipelineStackSizeKHR)dlSymFunc(
+            lib, "vkCmdSetRayTracingPipelineStackSizeKHR");
+#endif
 }
 
 void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
@@ -1766,6 +1782,24 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetScreenBufferPropertiesQNX)vk->vkGetInstanceProcAddr(
             instance, "vkGetScreenBufferPropertiesQNX");
 #endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    out->vkCmdTraceRaysKHR =
+        (PFN_vkCmdTraceRaysKHR)vk->vkGetInstanceProcAddr(instance, "vkCmdTraceRaysKHR");
+    out->vkCreateRayTracingPipelinesKHR =
+        (PFN_vkCreateRayTracingPipelinesKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCreateRayTracingPipelinesKHR");
+    out->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
+        (PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
+    out->vkCmdTraceRaysIndirectKHR = (PFN_vkCmdTraceRaysIndirectKHR)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdTraceRaysIndirectKHR");
+    out->vkGetRayTracingShaderGroupStackSizeKHR =
+        (PFN_vkGetRayTracingShaderGroupStackSizeKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkGetRayTracingShaderGroupStackSizeKHR");
+    out->vkCmdSetRayTracingPipelineStackSizeKHR =
+        (PFN_vkCmdSetRayTracingPipelineStackSizeKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdSetRayTracingPipelineStackSizeKHR");
+#endif
 }
 
 void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, VulkanDispatch* out) {
@@ -2709,6 +2743,24 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)vk->vkGetDeviceProcAddr(
             device, "vkGetScreenBufferPropertiesQNX");
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    out->vkCmdTraceRaysKHR =
+        (PFN_vkCmdTraceRaysKHR)vk->vkGetDeviceProcAddr(device, "vkCmdTraceRaysKHR");
+    out->vkCreateRayTracingPipelinesKHR =
+        (PFN_vkCreateRayTracingPipelinesKHR)vk->vkGetDeviceProcAddr(
+            device, "vkCreateRayTracingPipelinesKHR");
+    out->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
+        (PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)vk->vkGetDeviceProcAddr(
+            device, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
+    out->vkCmdTraceRaysIndirectKHR =
+        (PFN_vkCmdTraceRaysIndirectKHR)vk->vkGetDeviceProcAddr(device, "vkCmdTraceRaysIndirectKHR");
+    out->vkGetRayTracingShaderGroupStackSizeKHR =
+        (PFN_vkGetRayTracingShaderGroupStackSizeKHR)vk->vkGetDeviceProcAddr(
+            device, "vkGetRayTracingShaderGroupStackSizeKHR");
+    out->vkCmdSetRayTracingPipelineStackSizeKHR =
+        (PFN_vkCmdSetRayTracingPipelineStackSizeKHR)vk->vkGetDeviceProcAddr(
+            device, "vkCmdSetRayTracingPipelineStackSizeKHR");
 #endif
 }
 
