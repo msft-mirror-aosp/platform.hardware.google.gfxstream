@@ -1636,7 +1636,7 @@ class PipeVirglRenderer {
                     capset->deferredMapping = 1;
                 }
 
-#if SUPPORT_DMABUF
+#if GFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS
                 capset->alwaysBlob = 1;
 #endif
 

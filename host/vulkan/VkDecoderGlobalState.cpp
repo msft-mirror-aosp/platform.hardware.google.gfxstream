@@ -4691,7 +4691,8 @@ class VkDecoderGlobalState::Impl {
 #endif
 
 #ifdef __linux__
-        if (hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+        if (m_emu->deviceInfo.supportsDmaBuf &&
+            hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
             exportAllocate.handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
         }
 #endif
@@ -4737,7 +4738,8 @@ class VkDecoderGlobalState::Impl {
 #endif
 
 #ifdef __linux__
-            if (hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+            if (m_emu->deviceInfo.supportsDmaBuf &&
+                hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
                 importInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
             }
 #endif
@@ -5240,7 +5242,8 @@ class VkDecoderGlobalState::Impl {
 #endif
 
 #ifdef __linux__
-            if (hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+            if (m_emu->deviceInfo.supportsDmaBuf &&
+                hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
                 getFd.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
                 handleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
             }
@@ -7299,7 +7302,8 @@ class VkDecoderGlobalState::Impl {
 #ifdef __linux__
         // A dma-buf is a Linux kernel construct, commonly used with open-source DRM drivers.
         // See https://docs.kernel.org/driver-api/dma-buf.html for details.
-        if (hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+        if (m_emu->deviceInfo.supportsDmaBuf &&
+            hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
             res.push_back(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
         }
 #endif
