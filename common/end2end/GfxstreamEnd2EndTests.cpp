@@ -689,6 +689,64 @@ Result<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
     return actual;
 }
 
+Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8A8 color) {
+    const uint32_t drmFormat = ahb.GetDrmFormat();
+
+    const uint32_t ahbWidth = ahb.GetWidth();
+    const uint32_t ahbHeight = ahb.GetHeight();
+
+    std::vector<Gralloc::LockedPlane> planes = GFXSTREAM_EXPECT(ahb.LockPlanes());
+    if (drmFormat == DRM_FORMAT_ABGR8888) {
+        const Gralloc::LockedPlane& plane = planes[0];
+
+        std::vector<uint8_t> srcRow;
+        for (uint32_t x = 0; x < ahbWidth; x++) {
+            srcRow.push_back(color.r);
+            srcRow.push_back(color.g);
+            srcRow.push_back(color.b);
+            srcRow.push_back(color.a);
+        }
+
+        for (uint32_t y = 0; y < ahbHeight; y++) {
+            uint8_t* dstRow = plane.data + (y * plane.rowStrideBytes);
+            std::memcpy(dstRow, srcRow.data(), srcRow.size());
+        }
+    } else if (drmFormat == DRM_FORMAT_NV12 || drmFormat == DRM_FORMAT_YVU420) {
+        uint8_t colorY;
+        uint8_t colorU;
+        uint8_t colorV;
+        RGBToYUV(color.r, color.g, color.b, &colorY, &colorU, &colorV);
+
+        const Gralloc::LockedPlane& yPlane = planes[0];
+        const Gralloc::LockedPlane& uPlane = planes[1];
+        const Gralloc::LockedPlane& vPlane = planes[2];
+
+        colorY = 178;
+        colorU = 171;
+        colorV = 0;
+
+        for (uint32_t y = 0; y < ahbHeight; y++) {
+            for (uint32_t x = 0; x < ahbWidth; x++) {
+                uint8_t* dstY =
+                    yPlane.data + (y * yPlane.rowStrideBytes) + (x * yPlane.pixelStrideBytes);
+                uint8_t* dstU = uPlane.data + ((y / 2) * uPlane.rowStrideBytes) +
+                                ((x / 2) * uPlane.pixelStrideBytes);
+                uint8_t* dstV = vPlane.data + ((y / 2) * vPlane.rowStrideBytes) +
+                                ((x / 2) * vPlane.pixelStrideBytes);
+                *dstY = colorY;
+                *dstU = colorU;
+                *dstV = colorV;
+            }
+        }
+    } else {
+        return gfxstream::unexpected("Unhandled DRM format: " + std::to_string(drmFormat));
+    }
+
+    ahb.Unlock();
+
+    return Ok{};
+}
+
 Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
     const std::string& basename) {
     auto image = GFXSTREAM_EXPECT(LoadImage(basename));
