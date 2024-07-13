@@ -69,8 +69,7 @@ typedef void (VKAPI_PTR *PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)(VkQueue qu
 typedef VkResult (VKAPI_PTR *PFN_vkGetBlobGOOGLE)(VkDevice device, VkDeviceMemory memory);
 typedef void (VKAPI_PTR *PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE)(VkDevice device, VkDescriptorSet descriptorSet, VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount, uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount, const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews, const uint8_t* pInlineUniformBlockData);
 typedef void (VKAPI_PTR *PFN_vkQueueSubmitAsync2GOOGLE)(VkQueue queue, uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence);
-typedef VkResult(VKAPI_PTR* PFN_vkGetSemaphoreGOOGLE)(VkDevice device, VkSemaphore semaphore,
-                                                      uint64_t guestHandleTypes, uint64_t syncId);
+typedef VkResult (VKAPI_PTR *PFN_vkGetSemaphoreGOOGLE)(VkDevice device, VkSemaphore semaphore, uint64_t syncId);
 
 #ifndef VK_NO_PROTOTYPES
 VKAPI_ATTR VkResult VKAPI_CALL vkMapMemoryIntoAddressSpaceGOOGLE(
@@ -230,8 +229,10 @@ VKAPI_ATTR void VKAPI_CALL vkQueueSubmitAsync2GOOGLE(
     const VkSubmitInfo2*                        pSubmits,
     VkFence                                     fence);
 
-VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore,
-                                                    uint64_t guestHandleTypes, uint64_t syncId);
+VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreGOOGLE(
+    VkDevice                                    device,
+    VkSemaphore                                 semaphore,
+    uint64_t                                    syncId);
 #endif
 
 #ifdef __cplusplus

@@ -96,88 +96,47 @@ MATCHER(IsValidHandle, "a non-null handle") {
 
 struct Ok {};
 
-template <typename GlType>
-using GlExpected = gfxstream::expected<GlType, std::string>;
+template <typename T>
+using Result = gfxstream::expected<T, std::string>;
 
-#define GL_ASSERT(x)                        \
-    ({                                      \
-        auto gl_result = (x);               \
-        if (!gl_result.ok()) {              \
-            ASSERT_THAT(gl_result, IsOk()); \
-        }                                   \
-        std::move(gl_result.value());       \
+#define GFXSTREAM_ASSERT(x)                                           \
+    ({                                                                \
+        auto gfxstream_expected = (x);                                \
+        if (!gfxstream_expected.ok()) {                               \
+            ASSERT_THAT(gfxstream_expected.ok(), ::testing::IsTrue()) \
+                << "Assertion failed at line " << __LINE__            \
+                << ": error was: " << gfxstream_expected.error();     \
+        }                                                             \
+        std::move(gfxstream_expected.value());                        \
     })
 
-#define GL_EXPECT(x)                                             \
-    ({                                                           \
-        auto gl_result = (x);                                    \
-        if (!gl_result.ok()) {                                   \
-            return gfxstream::unexpected(gl_result.error());     \
-        }                                                        \
-        std::move(gl_result.value());                            \
+#define GFXSTREAM_ASSERT_VKHPP_RV(x)                                        \
+    ({                                                                      \
+        auto vkhpp_result_value = (x);                                      \
+        ASSERT_THAT(vkhpp_result_value.result, IsVkSuccess())               \
+            << "Assertion failed at line " << __LINE__ << ": VkResult was " \
+            << to_string(vkhpp_result_value.result);                        \
+        std::move(vkhpp_result_value.value);                                \
     })
 
-template <typename VkType>
-using VkExpected = gfxstream::expected<VkType, vkhpp::Result>;
-
-#define VK_ASSERT(x)                                                          \
-  ({                                                                          \
-    auto vk_expect_gfxstream_expected = (x);                               \
-    if (!vk_expect_gfxstream_expected.ok()) {                              \
-      ASSERT_THAT(vk_expect_gfxstream_expected.ok(), ::testing::IsTrue()); \
-    };                                                                        \
-    std::move(vk_expect_gfxstream_expected.value());                       \
-  })
-
-#define VK_ASSERT_RV(x)                                                       \
-  ({                                                                          \
-    auto vkhpp_result_value = (x);                                            \
-    ASSERT_THAT(vkhpp_result_value.result, IsVkSuccess());                    \
-    std::move(vkhpp_result_value.value);                                      \
-  })
-
-#define VK_EXPECT_RESULT(x)                                                   \
-  ({                                                                          \
-    auto vkhpp_result = (x);                                                  \
-    if (vkhpp_result != vkhpp::Result::eSuccess) {                            \
-        return gfxstream::unexpected(vkhpp_result);                           \
-    }                                                                         \
-  })
-
-#define VK_EXPECT_RV(x)                                                       \
-  ({                                                                          \
-    auto vkhpp_result_value = (x);                                            \
-    if (vkhpp_result_value.result != vkhpp::Result::eSuccess) {               \
-        return gfxstream::unexpected(vkhpp_result_value.result);              \
-    }                                                                         \
-    std::move(vkhpp_result_value.value);                                      \
-  })
-
-#define VK_TRY(x)                                                                   \
-    ({                                                                              \
-        auto vk_try_gfxstream_expected = (x);                                    \
-        if (!vk_try_gfxstream_expected.ok()) {                                   \
-            return gfxstream::unexpected(vk_try_gfxstream_expected.error());     \
-        }                                                                           \
-        std::move(vk_try_gfxstream_expected.value());                            \
+#define GFXSTREAM_EXPECT_VKHPP_RESULT(x)                                                           \
+    ({                                                                                             \
+        auto vkhpp_result = (x);                                                                   \
+        if (vkhpp_result != vkhpp::Result::eSuccess) {                                             \
+            return gfxstream::unexpected("Found " + vkhpp::to_string(vkhpp_result) + " at line " + \
+                                         std::to_string(__LINE__));                                \
+        }                                                                                          \
     })
 
-#define VK_TRY_RESULT(x)                               \
-    ({                                                 \
-        auto vkhpp_result = (x);                       \
-        if (vkhpp_result != vkhpp::Result::eSuccess) { \
-            return vkhpp_result;                       \
-        }                                              \
+#define GFXSTREAM_EXPECT_VKHPP_RV(x)                                                              \
+    ({                                                                                            \
+        auto vkhpp_result_value = (x);                                                            \
+        if (vkhpp_result_value.result != vkhpp::Result::eSuccess) {                               \
+            return gfxstream::unexpected("Found " + vkhpp::to_string(vkhpp_result_value.result) + \
+                                         " at line " + std::to_string(__LINE__));                 \
+        }                                                                                         \
+        std::move(vkhpp_result_value.value);                                                      \
     })
-
-#define VK_TRY_RV(x)                                                          \
-  ({                                                                          \
-    auto vkhpp_result_value = (x);                                            \
-    if (vkhpp_result_value.result != vkhpp::Result::eSuccess) {               \
-        return vkhpp_result_value.result;                                     \
-    }                                                                         \
-    std::move(vkhpp_result_value.value);                                      \
-  })
 
 struct GuestGlDispatchTable {
 #define DECLARE_EGL_FUNCTION(return_type, function_name, signature) \
@@ -313,8 +272,8 @@ class ScopedGlShader {
     ScopedGlShader(const ScopedGlShader& rhs) = delete;
     ScopedGlShader& operator=(const ScopedGlShader& rhs) = delete;
 
-    static GlExpected<ScopedGlShader> MakeShader(GlDispatch& dispatch, GLenum type,
-                                                 const std::string& source);
+    static Result<ScopedGlShader> MakeShader(GlDispatch& dispatch, GLenum type,
+                                             const std::string& source);
 
     ScopedGlShader(ScopedGlShader&& rhs) : mGlDispatch(rhs.mGlDispatch), mHandle(rhs.mHandle) {
         rhs.mHandle = 0;
@@ -352,12 +311,11 @@ class ScopedGlProgram {
     ScopedGlProgram(const ScopedGlProgram& rhs) = delete;
     ScopedGlProgram& operator=(const ScopedGlProgram& rhs) = delete;
 
-    static GlExpected<ScopedGlProgram> MakeProgram(GlDispatch& dispatch,
-                                                   const std::string& vertShader,
-                                                   const std::string& fragShader);
+    static Result<ScopedGlProgram> MakeProgram(GlDispatch& dispatch, const std::string& vertShader,
+                                               const std::string& fragShader);
 
-    static GlExpected<ScopedGlProgram> MakeProgram(GlDispatch& dispatch, GLenum programBinaryFormat,
-                                                   const std::vector<uint8_t>& programBinaryData);
+    static Result<ScopedGlProgram> MakeProgram(GlDispatch& dispatch, GLenum programBinaryFormat,
+                                               const std::vector<uint8_t>& programBinaryData);
 
     ScopedGlProgram(ScopedGlProgram&& rhs) : mGlDispatch(rhs.mGlDispatch), mHandle(rhs.mHandle) {
         rhs.mHandle = 0;
@@ -391,8 +349,8 @@ class ScopedAHardwareBuffer {
    public:
     ScopedAHardwareBuffer() = default;
 
-    static GlExpected<ScopedAHardwareBuffer> Allocate(Gralloc& gralloc, uint32_t width,
-                                                      uint32_t height, uint32_t format);
+    static Result<ScopedAHardwareBuffer> Allocate(Gralloc& gralloc, uint32_t width, uint32_t height,
+                                                  uint32_t format);
 
     ScopedAHardwareBuffer(const ScopedAHardwareBuffer& rhs) = delete;
     ScopedAHardwareBuffer& operator=(const ScopedAHardwareBuffer& rhs) = delete;
@@ -421,13 +379,24 @@ class ScopedAHardwareBuffer {
 
     uint32_t GetAHBFormat() const { return mGralloc->getFormat(mHandle); }
 
-    GlExpected<uint8_t*> Lock() {
+    uint32_t GetDrmFormat() const { return mGralloc->getFormatDrmFourcc(mHandle); }
+
+    Result<uint8_t*> Lock() {
         uint8_t* mapped = nullptr;
         int status = mGralloc->lock(mHandle, &mapped);
         if (status != 0) {
             return gfxstream::unexpected("Failed to lock AHB");
         }
         return mapped;
+    }
+
+    Result<std::vector<Gralloc::LockedPlane>> LockPlanes() {
+        std::vector<Gralloc::LockedPlane> planes;
+        int status = mGralloc->lockPlanes(mHandle, &planes);
+        if (status != 0) {
+            return gfxstream::unexpected("Failed to lock AHB");
+        }
+        return planes;
     }
 
     void Unlock() { mGralloc->unlock(mHandle); }
@@ -443,11 +412,77 @@ class ScopedAHardwareBuffer {
     AHardwareBuffer* mHandle = nullptr;
 };
 
+struct PixelR8G8B8A8 {
+    PixelR8G8B8A8() = default;
+
+    PixelR8G8B8A8(uint8_t rr, uint8_t gg, uint8_t bb, uint8_t aa) : r(rr), g(gg), b(bb), a(aa) {}
+
+    PixelR8G8B8A8(int xx, int yy, uint8_t rr, uint8_t gg, uint8_t bb, uint8_t aa)
+        : x(xx), y(yy), r(rr), g(gg), b(bb), a(aa) {}
+
+    PixelR8G8B8A8(int xx, int yy, uint32_t rgba) : x(xx), y(yy) {
+        const uint8_t* parts = reinterpret_cast<const uint8_t*>(&rgba);
+        r = parts[0];
+        g = parts[1];
+        b = parts[2];
+        a = parts[3];
+    }
+
+    std::optional<int> x;
+    std::optional<int> y;
+
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+    uint8_t a = 0;
+
+    std::string ToString() const {
+        std::string ret = std::string("Pixel");
+        if (x) {
+            ret += std::string(" x:") + std::to_string(*x);
+        }
+        if (y) {
+            ret += std::string(" y:") + std::to_string(*y);
+        }
+        ret += std::string(" {");
+        ret += std::string(" r:") + std::to_string(static_cast<int>(r));
+        ret += std::string(" g:") + std::to_string(static_cast<int>(g));
+        ret += std::string(" b:") + std::to_string(static_cast<int>(b));
+        ret += std::string(" a:") + std::to_string(static_cast<int>(a));
+        ret += std::string(" }");
+        return ret;
+    }
+
+    bool operator==(const PixelR8G8B8A8& rhs) const {
+        const auto& lhs = *this;
+        return std::tie(lhs.r, lhs.g, lhs.b, lhs.a) == std::tie(rhs.r, rhs.g, rhs.b, rhs.a);
+    }
+
+    friend void PrintTo(const PixelR8G8B8A8& pixel, std::ostream* os) { *os << pixel.ToString(); }
+};
+
+void RGBToYUV(uint8_t r, uint8_t g, uint8_t b, uint8_t* outY, uint8_t* outU, uint8_t* outV);
+
+constexpr std::vector<uint8_t> Fill(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel) {
+    std::vector<uint8_t> ret;
+    ret.reserve(w * h * 4);
+    for (uint32_t y = 0; y < h; y++) {
+        for (uint32_t x = 0; x < w; x++) {
+            ret.push_back(pixel.r);
+            ret.push_back(pixel.g);
+            ret.push_back(pixel.b);
+            ret.push_back(pixel.a);
+        }
+    }
+    return ret;
+}
+
 struct Image {
     uint32_t width;
     uint32_t height;
     std::vector<uint32_t> pixels;
 };
+Image ImageFromColor(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel);
 
 enum class GfxstreamTransport {
   kVirtioGpuAsg,
@@ -501,13 +536,13 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
                                       EGLContext context,
                                       EGLSurface surface);
 
-    GlExpected<ScopedGlShader> SetUpShader(GLenum type, const std::string& source);
+    Result<ScopedGlShader> SetUpShader(GLenum type, const std::string& source);
 
-    GlExpected<ScopedGlProgram> SetUpProgram(const std::string& vertSource,
-                                             const std::string& fragSource);
+    Result<ScopedGlProgram> SetUpProgram(const std::string& vertSource,
+                                         const std::string& fragSource);
 
-    GlExpected<ScopedGlProgram> SetUpProgram(GLenum programBinaryFormat,
-                                             const std::vector<uint8_t>& programBinaryData);
+    Result<ScopedGlProgram> SetUpProgram(GLenum programBinaryFormat,
+                                         const std::vector<uint8_t>& programBinaryData);
 
     struct TypicalVkTestEnvironment {
         vkhpp::UniqueInstance instance;
@@ -516,23 +551,24 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
         vkhpp::Queue queue;
         uint32_t queueFamilyIndex;
     };
-    VkExpected<TypicalVkTestEnvironment> SetUpTypicalVkTestEnvironment(
+    Result<TypicalVkTestEnvironment> SetUpTypicalVkTestEnvironment(
         const TypicalVkTestEnvironmentOptions& opts = {});
 
     void SnapshotSaveAndLoad();
 
-    GlExpected<Image> LoadImage(const std::string& basename);
+    Result<Image> LoadImage(const std::string& basename);
 
-    GlExpected<Image> AsImage(ScopedAHardwareBuffer& ahb);
+    Result<Image> AsImage(ScopedAHardwareBuffer& ahb);
 
-    GlExpected<ScopedAHardwareBuffer> CreateAHBFromImage(const std::string& basename);
+    Result<Ok> FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8A8 color);
+
+    Result<ScopedAHardwareBuffer> CreateAHBFromImage(const std::string& basename);
 
     bool ArePixelsSimilar(uint32_t expectedPixel, uint32_t actualPixel);
 
     bool AreImagesSimilar(const Image& expected, const Image& actual);
 
-    GlExpected<Ok> CompareAHBWithGolden(ScopedAHardwareBuffer& ahb,
-                                        const std::string& goldenBasename);
+    Result<Ok> CompareAHBWithGolden(ScopedAHardwareBuffer& ahb, const std::string& goldenBasename);
 
     std::unique_ptr<ANativeWindowHelper> mAnwHelper;
     std::unique_ptr<Gralloc> mGralloc;
