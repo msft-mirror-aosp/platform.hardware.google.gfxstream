@@ -78,6 +78,7 @@ else
   dl_dep = dependency('dl')
   thread_dep = dependency('threads')
   gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC=1'
+  gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS=1'
 endif
 
 if log_level == 'error'
