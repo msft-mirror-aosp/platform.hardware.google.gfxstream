@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <mutex>
+#include <vector>
 #include <unordered_set>
 
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
