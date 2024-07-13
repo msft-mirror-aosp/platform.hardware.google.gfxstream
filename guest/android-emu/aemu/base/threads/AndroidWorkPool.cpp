@@ -33,6 +33,9 @@ using gfxstream::guest::MessageChannel;
 namespace gfxstream {
 namespace guest {
 
+static constexpr const uint64_t kMicrosecondsPerSecond = 1000000;
+static constexpr const uint64_t kNanosecondsPerMicrosecond = 1000;
+
 class WaitGroup { // intrusive refcounted
 public:
 
@@ -104,24 +107,23 @@ private:
         struct timespec deadlineNs;
         gettimeofday(&deadlineUs, 0);
 
-        auto prevDeadlineUs = deadlineUs.tv_usec;
+        deadlineUs.tv_sec += (relative / kMicrosecondsPerSecond);
+        deadlineUs.tv_usec += (relative % kMicrosecondsPerSecond);
 
-        deadlineUs.tv_usec += relative;
-
-        // Wrap around
-        if (prevDeadlineUs > deadlineUs.tv_usec) {
-            ++deadlineUs.tv_sec;
+        if (deadlineUs.tv_usec > kMicrosecondsPerSecond) {
+            deadlineUs.tv_sec += (deadlineUs.tv_usec / kMicrosecondsPerSecond);
+            deadlineUs.tv_usec = (deadlineUs.tv_usec % kMicrosecondsPerSecond);
         }
 
         deadlineNs.tv_sec = deadlineUs.tv_sec;
-        deadlineNs.tv_nsec = deadlineUs.tv_usec * 1000LL;
+        deadlineNs.tv_nsec = deadlineUs.tv_usec * kNanosecondsPerMicrosecond;
         return deadlineNs;
     }
 
     uint64_t currTimeUs() {
         struct timeval tv;
         gettimeofday(&tv, 0);
-        return (uint64_t)(tv.tv_sec * 1000000LL + tv.tv_usec);
+        return (uint64_t)(tv.tv_sec * kMicrosecondsPerSecond + tv.tv_usec);
     }
 
     bool conditionalTimeoutLocked(std::function<bool()> conditionFunc, WorkPool::TimeoutUs timeout) {
