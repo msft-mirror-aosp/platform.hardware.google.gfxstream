@@ -2851,12 +2851,6 @@ void gfxstream_vk_GetDeviceImageSparseMemoryRequirements(
     }
 }
 #endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
 #ifdef VK_KHR_android_surface
 VkResult gfxstream_vk_CreateAndroidSurfaceKHR(VkInstance instance,
                                               const VkAndroidSurfaceCreateInfoKHR* pCreateInfo,
@@ -2873,8 +2867,6 @@ VkResult gfxstream_vk_CreateAndroidSurfaceKHR(VkInstance instance,
     }
     return vkCreateAndroidSurfaceKHR_VkResult_return;
 }
-#endif
-#ifdef VK_KHR_win32_surface
 #endif
 #ifdef VK_KHR_dynamic_rendering
 void gfxstream_vk_CmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
@@ -3011,10 +3003,6 @@ void gfxstream_vk_GetPhysicalDeviceExternalBufferPropertiesKHR(
     }
 }
 #endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
 #ifdef VK_KHR_external_memory_fd
 VkResult gfxstream_vk_GetMemoryFdKHR(VkDevice device, const VkMemoryGetFdInfoKHR* pGetFdInfo,
                                      int* pFd) {
@@ -3061,10 +3049,6 @@ void gfxstream_vk_GetPhysicalDeviceExternalSemaphorePropertiesKHR(
     }
 }
 #endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
-#endif
 #ifdef VK_KHR_external_semaphore_fd
 VkResult gfxstream_vk_ImportSemaphoreFdKHR(
     VkDevice device, const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {
@@ -3109,10 +3093,6 @@ VkResult gfxstream_vk_GetSemaphoreFdKHR(VkDevice device, const VkSemaphoreGetFdI
     }
     return vkGetSemaphoreFdKHR_VkResult_return;
 }
-#endif
-#ifdef VK_KHR_shader_float16_int8
-#endif
-#ifdef VK_KHR_incremental_present
 #endif
 #ifdef VK_KHR_descriptor_update_template
 VkResult gfxstream_vk_CreateDescriptorUpdateTemplateKHR(
@@ -3159,8 +3139,6 @@ void gfxstream_vk_UpdateDescriptorSetWithTemplateKHR(
                                                            pData);
     }
 }
-#endif
-#ifdef VK_KHR_imageless_framebuffer
 #endif
 #ifdef VK_KHR_create_renderpass2
 VkResult gfxstream_vk_CreateRenderPass2KHR(VkDevice device,
@@ -3229,8 +3207,6 @@ void gfxstream_vk_GetPhysicalDeviceExternalFencePropertiesKHR(
     }
 }
 #endif
-#ifdef VK_KHR_external_fence
-#endif
 #ifdef VK_KHR_external_fence_fd
 VkResult gfxstream_vk_ImportFenceFdKHR(VkDevice device,
                                        const VkImportFenceFdInfoKHR* pImportFenceFdInfo) {
@@ -3274,12 +3250,6 @@ VkResult gfxstream_vk_GetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* 
     }
     return vkGetFenceFdKHR_VkResult_return;
 }
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 void gfxstream_vk_GetImageMemoryRequirements2KHR(VkDevice device,
@@ -3326,8 +3296,6 @@ void gfxstream_vk_GetImageSparseMemoryRequirements2KHR(
             pSparseMemoryRequirements, true /* do lock */);
     }
 }
-#endif
-#ifdef VK_KHR_image_format_list
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
 VkResult gfxstream_vk_CreateSamplerYcbcrConversionKHR(
@@ -3410,12 +3378,6 @@ void gfxstream_vk_GetDescriptorSetLayoutSupportKHR(
                                                   pSupport, true /* do lock */);
     }
 }
-#endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
 #endif
 #ifdef VK_KHR_buffer_device_address
 VkDeviceAddress gfxstream_vk_GetBufferDeviceAddressKHR(VkDevice device,
@@ -3518,10 +3480,6 @@ VkResult gfxstream_vk_GetPipelineExecutableInternalRepresentationsKHR(
     }
     return vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return;
 }
-#endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
 #endif
 #ifdef VK_KHR_synchronization2
 void gfxstream_vk_CmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
@@ -3744,8 +3702,6 @@ void gfxstream_vk_GetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpoint
     }
 }
 #endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
-#endif
 #ifdef VK_KHR_copy_commands2
 void gfxstream_vk_CmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
                                     const VkCopyBufferInfo2* pCopyBufferInfo) {
@@ -3843,8 +3799,6 @@ void gfxstream_vk_CmdResolveImage2KHR(VkCommandBuffer commandBuffer,
                                      true /* do lock */);
     }
 }
-#endif
-#ifdef VK_KHR_format_feature_flags2
 #endif
 #ifdef VK_KHR_maintenance4
 void gfxstream_vk_GetDeviceBufferMemoryRequirementsKHR(
@@ -4003,8 +3957,6 @@ VkResult gfxstream_vk_GetSwapchainGrallocUsage2ANDROID(
     return vkGetSwapchainGrallocUsage2ANDROID_VkResult_return;
 }
 #endif
-#ifdef VK_EXT_debug_report
-#endif
 #ifdef VK_EXT_transform_feedback
 void gfxstream_vk_CmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuffer,
                                                      uint32_t firstBinding, uint32_t bindingCount,
@@ -4110,18 +4062,6 @@ void gfxstream_vk_CmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
     }
 }
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
-#ifdef VK_EXT_depth_clip_enable
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 VkResult gfxstream_vk_GetAndroidHardwareBufferPropertiesANDROID(
     VkDevice device, const AHardwareBuffer* buffer,
@@ -4154,24 +4094,6 @@ VkResult gfxstream_vk_GetMemoryAndroidHardwareBufferANDROID(
     return vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return;
 }
 #endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
-#endif
-#ifdef VK_EXT_vertex_attribute_divisor
-#endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
-#ifdef VK_EXT_fragment_density_map
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
-#endif
 #ifdef VK_EXT_tooling_info
 VkResult gfxstream_vk_GetPhysicalDeviceToolPropertiesEXT(
     VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
@@ -4189,10 +4111,6 @@ VkResult gfxstream_vk_GetPhysicalDeviceToolPropertiesEXT(
     return vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return;
 }
 #endif
-#ifdef VK_EXT_validation_features
-#endif
-#ifdef VK_EXT_provoking_vertex
-#endif
 #ifdef VK_EXT_line_rasterization
 void gfxstream_vk_CmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
                                        uint16_t lineStipplePattern) {
@@ -4205,8 +4123,6 @@ void gfxstream_vk_CmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t l
                                       lineStipplePattern, true /* do lock */);
     }
 }
-#endif
-#ifdef VK_EXT_index_type_uint8
 #endif
 #ifdef VK_EXT_extended_dynamic_state
 void gfxstream_vk_CmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
@@ -4413,18 +4329,6 @@ void gfxstream_vk_GetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
     }
 }
 #endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
-#ifdef VK_EXT_texel_buffer_alignment
-#endif
-#ifdef VK_EXT_device_memory_report
-#endif
-#ifdef VK_EXT_robustness2
-#endif
-#ifdef VK_EXT_custom_border_color
-#endif
 #ifdef VK_EXT_private_data
 VkResult gfxstream_vk_CreatePrivateDataSlotEXT(VkDevice device,
                                                const VkPrivateDataSlotCreateInfo* pCreateInfo,
@@ -4475,22 +4379,6 @@ void gfxstream_vk_GetPrivateDataEXT(VkDevice device, VkObjectType objectType, ui
                                    privateDataSlot, pData, true /* do lock */);
     }
 }
-#endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_metal_objects
-#endif
-#ifdef VK_EXT_graphics_pipeline_library
-#endif
-#ifdef VK_EXT_ycbcr_2plane_444_formats
-#endif
-#ifdef VK_EXT_image_robustness
-#endif
-#ifdef VK_EXT_image_compression_control
-#endif
-#ifdef VK_EXT_4444_formats
-#endif
-#ifdef VK_EXT_primitive_topology_list_restart
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
 void gfxstream_vk_CmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
@@ -5071,10 +4959,17 @@ void gfxstream_vk_QueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
             true /* do lock */);
     }
 }
-#endif
-#ifdef VK_EXT_load_store_op_none
-#endif
-#ifdef VK_EXT_image_compression_control_swapchain
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
+VkResult gfxstream_vk_GetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore, uint64_t syncId) {
+    AEMU_SCOPED_TRACE("vkGetSemaphoreGOOGLE");
+    VkResult vkGetSemaphoreGOOGLE_VkResult_return = (VkResult)0;
+    VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
+    VK_FROM_HANDLE(gfxstream_vk_semaphore, gfxstream_semaphore, semaphore);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
+        vkGetSemaphoreGOOGLE_VkResult_return = vkEnc->vkGetSemaphoreGOOGLE(
+            gfxstream_device->internal_object, gfxstream_semaphore->internal_object, syncId,
+            true /* do lock */);
+    }
+    return vkGetSemaphoreGOOGLE_VkResult_return;
+}
 #endif

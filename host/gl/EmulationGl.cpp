@@ -251,6 +251,12 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
             emulationGl->mFeatures.NativeTextureDecompression.enabled);
     }
 
+    if (s_egl.eglSetProgramBinaryLinkStatusEnabledANDROID) {
+        s_egl.eglSetProgramBinaryLinkStatusEnabledANDROID(
+            emulationGl->mEglDisplay,
+            emulationGl->mFeatures.GlProgramBinaryLinkStatus.enabled);
+    }
+
     s_egl.eglBindAPI(EGL_OPENGL_ES_API);
 
 #ifdef ENABLE_GL_LOG

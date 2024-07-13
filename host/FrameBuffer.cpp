@@ -2849,6 +2849,13 @@ std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForDisplay(
     return colorBufferPtr->borrowForDisplay(api);
 }
 
+void FrameBuffer::logVulkanDeviceLost() {
+    if (!m_emulationVk) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Device lost without VkEmulation?";
+    }
+    vk::onVkDeviceLost();
+}
+
 void FrameBuffer::logVulkanOutOfMemory(VkResult result, const char* function, int line,
                                        std::optional<uint64_t> allocationSize) {
     m_logger->logMetricEvent(MetricEventVulkanOutOfMemory{
