@@ -16,12 +16,14 @@
 #ifndef _GL2_ENCODER_H_
 #define _GL2_ENCODER_H_
 
-#include "gl2_enc.h"
-#include "gfxstream/guest/GLClientState.h"
-#include "gfxstream/guest/GLSharedGroup.h"
-
+#include <optional>
 #include <string>
 #include <vector>
+
+#include "ProgramBinary.pb.h"
+#include "gfxstream/guest/GLClientState.h"
+#include "gfxstream/guest/GLSharedGroup.h"
+#include "gl2_enc.h"
 
 struct Extensions
 {
@@ -117,7 +119,10 @@ public:
     bool isBufferMapped(GLuint buffer) const;
     bool isBufferTargetMapped(GLenum target) const;
 
-private:
+    std::optional<gfxstream::guest::gles2::ProgramBinaryInfo> getProgramBinary(GLuint program);
+    void getProgramBinaryLength(GLuint program, GLint* outLength);
+
+   private:
 
     int m_currMajorVersion;
     int m_currMinorVersion;
@@ -189,6 +194,8 @@ private:
     bool updateHostTexture2DBinding(GLenum texUnit, GLenum newTarget);
     void updateHostTexture2DBindingsFromProgramData(GLuint program);
     bool texture2DNeedsOverride(GLenum target) const;
+
+    void updateProgramInfoAfterLink(GLuint program);
 
     // Utility classes for safe queries that
     // need access to private class members
