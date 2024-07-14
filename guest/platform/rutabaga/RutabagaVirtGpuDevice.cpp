@@ -105,10 +105,9 @@ VirtGpuResourcePtr RutabagaVirtGpuDevice::createBlob(const struct VirtGpuCreateB
 }
 
 VirtGpuResourcePtr RutabagaVirtGpuDevice::createResource(uint32_t width, uint32_t height,
-                                                         uint32_t stride, uint32_t virglFormat,
-                                                         uint32_t target, uint32_t bind) {
-    uint32_t size = stride * height;
-
+                                                         uint32_t /*stride*/, uint32_t size,
+                                                         uint32_t virglFormat, uint32_t target,
+                                                         uint32_t bind) {
     const auto resourceIdOpt =
         mEmulation->CreateVirglBlob(mContextId, width, height, virglFormat, target, bind, size);
     if (!resourceIdOpt) {

@@ -1815,8 +1815,6 @@ void transform_fromhost_VkDeviceImageMemoryRequirements(
     VkDecoderGlobalState* resourceTracker, VkDeviceImageMemoryRequirements* toTransform);
 
 #endif
-#ifdef VK_KHR_surface
-#endif
 #ifdef VK_KHR_swapchain
 void transform_tohost_VkSwapchainCreateInfoKHR(VkDecoderGlobalState* resourceTracker,
                                                VkSwapchainCreateInfoKHR* toTransform);
@@ -1866,12 +1864,6 @@ void transform_tohost_VkDeviceGroupSwapchainCreateInfoKHR(
 void transform_fromhost_VkDeviceGroupSwapchainCreateInfoKHR(
     VkDecoderGlobalState* resourceTracker, VkDeviceGroupSwapchainCreateInfoKHR* toTransform);
 
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
 #endif
 #ifdef VK_KHR_dynamic_rendering
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkRenderingInfo, transform_tohost_VkRenderingInfoKHR)
@@ -1992,8 +1984,6 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceSparseImageFormatInfo2,
                       transform_fromhost_VkPhysicalDeviceSparseImageFormatInfo2KHR)
 
 #endif
-#ifdef VK_KHR_maintenance1
-#endif
 #ifdef VK_KHR_external_memory_capabilities
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkExternalMemoryProperties,
                       transform_tohost_VkExternalMemoryPropertiesKHR)
@@ -2052,10 +2042,6 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkExportMemoryAllocateInfo,
                       transform_fromhost_VkExportMemoryAllocateInfoKHR)
 
 #endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
 #ifdef VK_KHR_external_semaphore_capabilities
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceExternalSemaphoreInfo,
                       transform_tohost_VkPhysicalDeviceExternalSemaphoreInfoKHR)
@@ -2077,8 +2063,6 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkExportSemaphoreCreateInfo,
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkExportSemaphoreCreateInfo,
                       transform_fromhost_VkExportSemaphoreCreateInfoKHR)
 
-#endif
-#ifdef VK_KHR_external_semaphore_win32
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 void transform_tohost_VkImportSemaphoreFdInfoKHR(VkDecoderGlobalState* resourceTracker,
@@ -2290,8 +2274,6 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkMemoryDedicatedAllocateInfo,
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkMemoryDedicatedAllocateInfo,
                       transform_fromhost_VkMemoryDedicatedAllocateInfoKHR)
 
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkBufferMemoryRequirementsInfo2,
@@ -2517,7 +2499,13 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceShaderIntegerDotProduct
                       transform_fromhost_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
 #endif
-#ifdef VK_KHR_shader_non_semantic_info
+#ifdef VK_KHR_pipeline_library
+void transform_tohost_VkPipelineLibraryCreateInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                     VkPipelineLibraryCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkPipelineLibraryCreateInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                       VkPipelineLibraryCreateInfoKHR* toTransform);
+
 #endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkMemoryBarrier2, transform_tohost_VkMemoryBarrier2KHR)
@@ -2780,8 +2768,6 @@ void transform_fromhost_VkPipelineRasterizationStateStreamCreateInfoEXT(
     VkPipelineRasterizationStateStreamCreateInfoEXT* toTransform);
 
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceTextureCompressionASTCHDRFeatures,
                       transform_tohost_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
@@ -2805,10 +2791,6 @@ void transform_fromhost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     VkDecoderGlobalState* resourceTracker,
     VkPipelineRasterizationDepthClipStateCreateInfoEXT* toTransform);
 
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
 void transform_tohost_VkDebugUtilsLabelEXT(VkDecoderGlobalState* resourceTracker,
@@ -2842,8 +2824,6 @@ void transform_fromhost_VkDebugUtilsObjectTagInfoEXT(VkDecoderGlobalState* resou
                                                      VkDebugUtilsObjectTagInfoEXT* toTransform);
 
 #endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
 #ifdef VK_EXT_inline_uniform_block
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceInlineUniformBlockFeatures,
                       transform_tohost_VkPhysicalDeviceInlineUniformBlockFeaturesEXT)
@@ -2869,8 +2849,6 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkDescriptorPoolInlineUniformBlockCreateI
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       transform_fromhost_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
-#endif
-#ifdef VK_EXT_shader_stencil_export
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
@@ -2917,10 +2895,6 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkPipelineCreationFeedback,
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPipelineCreationFeedback,
                       transform_fromhost_VkPipelineCreationFeedbackEXT)
 
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
 #endif
 #ifdef VK_EXT_fragment_density_map
 void transform_tohost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
@@ -3286,8 +3260,6 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDevicePipelineCreationCacheCo
                       transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
-#ifdef VK_EXT_metal_objects
-#endif
 #ifdef VK_EXT_graphics_pipeline_library
 void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -3416,8 +3388,6 @@ void transform_fromhost_VkCreateBlobGOOGLE(VkDecoderGlobalState* resourceTracker
                                            VkCreateBlobGOOGLE* toTransform);
 
 #endif
-#ifdef VK_EXT_load_store_op_none
-#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void transform_tohost_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -3428,8 +3398,53 @@ void transform_fromhost_VkPhysicalDeviceImageCompressionControlSwapchainFeatures
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* toTransform);
 
 #endif
-#ifdef VK_QNX_external_memory_screen_buffer
-#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void transform_tohost_VkRayTracingShaderGroupCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkRayTracingShaderGroupCreateInfoKHR* toTransform);
 
+void transform_fromhost_VkRayTracingShaderGroupCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkRayTracingShaderGroupCreateInfoKHR* toTransform);
+
+void transform_tohost_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkRayTracingPipelineInterfaceCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkRayTracingPipelineInterfaceCreateInfoKHR* toTransform);
+
+void transform_tohost_VkRayTracingPipelineCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkRayTracingPipelineCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkRayTracingPipelineCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkRayTracingPipelineCreateInfoKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* toTransform);
+
+void transform_tohost_VkStridedDeviceAddressRegionKHR(VkDecoderGlobalState* resourceTracker,
+                                                      VkStridedDeviceAddressRegionKHR* toTransform);
+
+void transform_fromhost_VkStridedDeviceAddressRegionKHR(
+    VkDecoderGlobalState* resourceTracker, VkStridedDeviceAddressRegionKHR* toTransform);
+
+void transform_tohost_VkTraceRaysIndirectCommandKHR(VkDecoderGlobalState* resourceTracker,
+                                                    VkTraceRaysIndirectCommandKHR* toTransform);
+
+void transform_fromhost_VkTraceRaysIndirectCommandKHR(VkDecoderGlobalState* resourceTracker,
+                                                      VkTraceRaysIndirectCommandKHR* toTransform);
+
+#endif
 }  // namespace vk
 }  // namespace gfxstream
