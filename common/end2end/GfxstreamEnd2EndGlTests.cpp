@@ -502,7 +502,7 @@ void main() {
     mGl->glUseProgram(0);
 }
 
-TEST_P(GfxstreamEnd2EndGlTest, DISABLED_ProgramBinaryWithAHB) {
+TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
     const uint32_t width = 2;
     const uint32_t height = 2;
     auto ahb =
@@ -659,7 +659,7 @@ TEST_P(GfxstreamEnd2EndGlTest, DISABLED_ProgramBinaryWithAHB) {
     mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-TEST_P(GfxstreamEnd2EndGlTest, DISABLED_ProgramBinaryWithTexture) {
+TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithTexture) {
     const GLsizei kTextureWidth = 2;
     const GLsizei kTextureHeight = 2;
     const GLubyte kTextureData[16] = {
@@ -1633,7 +1633,11 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
     }
 }
 
-TEST_P(GfxstreamEnd2EndGlTest, DISABLED_AhbExternalOesTextureBlitProgramBinary) {
+TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
+    if (GetParam().with_features.count("GlProgramBinaryLinkStatus") == 0) {
+        GTEST_SKIP() << "Skipping test, GlProgramBinaryLinkStatus not enabled.";
+    }
+
     const uint32_t width = 2;
     const uint32_t height = 2;
 
@@ -1709,7 +1713,7 @@ TEST_P(GfxstreamEnd2EndGlTest, DISABLED_AhbExternalOesTextureBlitProgramBinary) 
         mGl->glGetProgramBinary(program, programBinaryLength, &readProgramBinaryLength,
                                 &programBinaryFormat, programBinaryData.data());
         ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
-        ASSERT_THAT(programBinaryLength, Eq(readProgramBinaryLength));
+        ASSERT_THAT(readProgramBinaryLength, Eq(programBinaryLength));
     }
 
     // Blit from AHB to an additional framebuffer and readback:
@@ -1789,10 +1793,12 @@ INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndGlTest,
                             TestParams{
                                 .with_gl = true,
                                 .with_vk = false,
+                                .with_features = {"GlProgramBinaryLinkStatus"},
                             },
                             TestParams{
                                 .with_gl = true,
                                 .with_vk = true,
+                                .with_features = {"GlProgramBinaryLinkStatus"},
                             },
                         }),
                         &GetTestName);
