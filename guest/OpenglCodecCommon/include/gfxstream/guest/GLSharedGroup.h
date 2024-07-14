@@ -113,6 +113,7 @@ public:
     GLuint getIndexForLocation(GLint location);
     GLenum getTypeForLocation(GLint location);
     bool isValidUniformLocation(GLint location);
+    void getExternalSamplerUniformIndices(std::vector<GLuint>* outIndices);
 
     GLint getNextSamplerUniform(GLint index, GLint* val, GLenum* target);
     bool setSamplerUniform(GLint appLoc, GLint val, GLenum* target);
@@ -210,7 +211,7 @@ public:
 
     bool    isProgram(GLuint program);
     bool    isProgramInitialized(GLuint program);
-    void    addProgramData(GLuint program); 
+    void    addProgramData(GLuint program);
     void    initProgramData(GLuint program, GLuint numIndexes, GLuint numAttributes);
     void    refProgramData(GLuint program);
     void    onUseProgram(GLuint previous, GLuint next);
@@ -220,11 +221,13 @@ public:
     void    deleteProgramData(GLuint program);
     void    deleteProgramDataLocked(GLuint program);
     void    setProgramIndexInfo(GLuint program, GLuint index, GLint base, GLint size, GLenum type, const char* name);
+    void    setProgramIndexFlag(GLuint program, GLuint index, GLuint flags);
     void    setProgramAttribInfo(GLuint program, GLuint index, GLint attribLoc, GLint size, GLenum type, const char* name);
     GLenum  getProgramUniformType(GLuint program, GLint location);
     GLint   getNextSamplerUniform(GLuint program, GLint index, GLint* val, GLenum* target);
     bool    setSamplerUniform(GLuint program, GLint appLoc, GLint val, GLenum* target);
     bool    isProgramUniformLocationValid(GLuint program, GLint location);
+    bool    getExternalSamplerUniformIndices(GLuint program, std::vector<GLuint>* outIndices);
 
     bool    isShader(GLuint shader);
     bool    addShaderData(GLuint shader, GLenum shaderType);

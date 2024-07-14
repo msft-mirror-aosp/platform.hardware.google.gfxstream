@@ -401,9 +401,10 @@ void GLEScontext::initGlobal(EGLiface* iface) {
     s_lock.unlock();
 }
 
-void GLEScontext::init(bool nativeTextureDecompressionEnabled) {
+void GLEScontext::init(bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled) {
     if (!m_initialized) {
         m_nativeTextureDecompressionEnabled = nativeTextureDecompressionEnabled;
+        m_programBinaryLinkStatusEnabled = programBinaryLinkStatusEnabled;
         initExtensionString();
 
         m_maxTexUnits = getMaxCombinedTexUnits();

@@ -31,6 +31,9 @@
 #include "virtgpu_drm.h"
 #include "virtgpu_gfxstream_protocol.h"
 
+#define VIRTGPU_PARAM_CREATE_FENCE_PASSING 9  /* Fence passing */
+#define VIRTGPU_PARAM_CREATE_GUEST_HANDLE 10  /* Host OS handle can be created from guest memory. */
+
 #define PARAM(x) \
     (struct VirtGpuParam) { x, #x, 0 }
 
@@ -42,6 +45,7 @@ LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : Virt
         PARAM(VIRTGPU_PARAM_RESOURCE_BLOB),        PARAM(VIRTGPU_PARAM_HOST_VISIBLE),
         PARAM(VIRTGPU_PARAM_CROSS_DEVICE),         PARAM(VIRTGPU_PARAM_CONTEXT_INIT),
         PARAM(VIRTGPU_PARAM_SUPPORTED_CAPSET_IDs), PARAM(VIRTGPU_PARAM_EXPLICIT_DEBUG_NAME),
+        PARAM(VIRTGPU_PARAM_CREATE_FENCE_PASSING),
         PARAM(VIRTGPU_PARAM_CREATE_GUEST_HANDLE),
     };
 
@@ -150,8 +154,9 @@ struct VirtGpuCaps LinuxVirtGpuDevice::getCaps(void) { return mCaps; }
 int64_t LinuxVirtGpuDevice::getDeviceHandle(void) { return mDeviceHandle; }
 
 VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t height,
-                                                      uint32_t stride, uint32_t virglFormat,
-                                                      uint32_t target, uint32_t bind) {
+                                                      uint32_t stride, uint32_t size,
+                                                      uint32_t virglFormat, uint32_t target,
+                                                      uint32_t bind) {
     drm_virtgpu_resource_create create = {
         .target = target,
         .format = virglFormat,
@@ -162,7 +167,7 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t h
         .array_size = 1U,
         .last_level = 0,
         .nr_samples = 0,
-        .size = stride * height,
+        .size = size,
         .stride = stride,
     };
 
