@@ -222,6 +222,7 @@ using android::base::SharedMemory;
 using emugl::FatalError;
 using gfxstream::BlobDescriptorInfo;
 using gfxstream::ExternalObjectManager;
+using gfxstream::SyncDescriptorInfo;
 
 using VirtioGpuResId = uint32_t;
 
@@ -243,6 +244,7 @@ struct PipeCtxEntry {
     bool hasAddressSpaceHandle;
     std::unordered_map<VirtioGpuResId, uint32_t> addressSpaceHandles;
     std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
+    std::shared_ptr<gfxstream::SyncDescriptorInfo> latestFence;
 };
 
 enum class ResType {
@@ -1058,6 +1060,33 @@ class PipeVirglRenderer {
                 ctxEntry.blobMap[create3d.blobId] = rc3d;
                 break;
             }
+            case GFXSTREAM_ACQUIRE_SYNC: {
+                DECODE(acquireSync, gfxstream::gfxstreamAcquireSync, buffer);
+
+                auto ctxIt = mContexts.find(cmd->ctx_id);
+                if (ctxIt == mContexts.end()) {
+                    stream_renderer_error("ctx id %u is not found", cmd->ctx_id);
+                    return -EINVAL;
+                }
+
+                auto& ctxEntry = ctxIt->second;
+                if (ctxEntry.latestFence) {
+                    stream_renderer_error("expected latest fence to empty");
+                    return -EINVAL;
+                }
+
+                auto syncDescriptorInfoOpt = ExternalObjectManager::get()->removeSyncDescriptorInfo(
+                    cmd->ctx_id, acquireSync.syncId);
+                if (syncDescriptorInfoOpt) {
+                    ctxEntry.latestFence = std::make_shared<gfxstream::SyncDescriptorInfo>(
+                        std::move(*syncDescriptorInfoOpt));
+                } else {
+                    stream_renderer_error("failed to get sync descriptor info");
+                    return -EINVAL;
+                }
+
+                break;
+            }
             case GFXSTREAM_PLACEHOLDER_COMMAND_VK: {
                 // Do nothing, this is a placeholder command
                 break;
@@ -1104,6 +1133,25 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
         mVirtioGpuTimelines->enqueueFence(ring, fence_id, std::move(callback));
+
+        return 0;
+    }
+
+    int acquireContextFence(uint32_t ctx_id, uint64_t fenceId) {
+        auto ctxIt = mContexts.find(ctx_id);
+        if (ctxIt == mContexts.end()) {
+            stream_renderer_error("ctx id %u is not found", ctx_id);
+            return -EINVAL;
+        }
+
+        auto& ctxEntry = ctxIt->second;
+        if (ctxEntry.latestFence) {
+            mSyncMap[fenceId] = ctxEntry.latestFence;
+            ctxEntry.latestFence = nullptr;
+        } else {
+            stream_renderer_error("Failed to acquire sync descriptor");
+            return -EINVAL;
+        }
 
         return 0;
     }
@@ -1185,7 +1233,13 @@ class PipeVirglRenderer {
 
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const uint32_t fwkformat = virgl_format_to_fwk_format(args->format);
-        const bool linear = !!(args->bind & VIRGL_BIND_LINEAR);
+
+        const bool linear =
+#ifdef GFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL
+            !!(args->bind & VIRGL_BIND_LINEAR);
+#else
+            false;
+#endif
         gfxstream::FrameBuffer::getFB()->createColorBufferWithHandle(
             args->width, args->height, glformat, (gfxstream::FrameworkFormat)fwkformat,
             args->handle, linear);
@@ -1582,8 +1636,12 @@ class PipeVirglRenderer {
                     capset->deferredMapping = 1;
                 }
 
-#if SUPPORT_DMABUF
+#if GFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS
                 capset->alwaysBlob = 1;
+#endif
+
+#if GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC
+                capset->externalSync = 1;
 #endif
                 break;
             }
@@ -1991,6 +2049,31 @@ class PipeVirglRenderer {
         return -EINVAL;
     }
 
+    int exportFence(uint64_t fenceId, struct stream_renderer_handle* handle) {
+        auto it = mSyncMap.find(fenceId);
+        if (it == mSyncMap.end()) {
+            return -EINVAL;
+        }
+
+        auto& entry = it->second;
+        DescriptorType rawDescriptor;
+        auto rawDescriptorOpt = entry->descriptor.release();
+        if (rawDescriptorOpt)
+            rawDescriptor = *rawDescriptorOpt;
+        else
+            return -EINVAL;
+
+        handle->handle_type = entry->handleType;
+
+#ifdef _WIN32
+        handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
+#else
+        handle->os_handle = static_cast<int64_t>(rawDescriptor);
+#endif
+
+        return 0;
+    }
+
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info) {
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -EINVAL;
@@ -2094,6 +2177,7 @@ class PipeVirglRenderer {
     std::unordered_map<VirtioGpuResId, PipeResEntry> mResources;
     std::unordered_map<VirtioGpuCtxId, std::vector<VirtioGpuResId>> mContextResources;
     std::unordered_map<VirtioGpuResId, std::vector<VirtioGpuCtxId>> mResourceContexts;
+    std::unordered_map<uint64_t, std::shared_ptr<SyncDescriptorInfo>> mSyncMap;
 
     // When we wait for gpu or wait for gpu vulkan, the next (and subsequent)
     // fences created for that context should not be signaled immediately.
@@ -2204,6 +2288,13 @@ VG_EXPORT int stream_renderer_context_create(uint32_t ctx_id, uint32_t nlen, con
 }
 
 VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* fence) {
+    if (fence->flags & STREAM_RENDERER_FLAG_FENCE_SHAREABLE) {
+        int ret = sRenderer()->acquireContextFence(fence->ctx_id, fence->fence_id);
+        if (ret) {
+            return ret;
+        }
+    }
+
     if (fence->flags & STREAM_RENDERER_FLAG_FENCE_RING_IDX) {
         sRenderer()->createFence(fence->fence_id, VirtioGpuRingContextSpecific{
                                                       .mCtxId = fence->ctx_id,
@@ -2214,6 +2305,11 @@ VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* f
     }
 
     return 0;
+}
+
+VG_EXPORT int stream_renderer_export_fence(uint64_t fence_id,
+                                           struct stream_renderer_handle* handle) {
+    return sRenderer()->exportFence(fence_id, handle);
 }
 
 VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
@@ -2802,6 +2898,15 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     gfxstream::vk::vk_util::setVkCheckCallbacks(
         std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
             gfxstream::vk::vk_util::VkCheckCallbacks{
+                .onVkErrorDeviceLost =
+                    []() {
+                        auto fb = gfxstream::FrameBuffer::getFB();
+                        if (!fb) {
+                            ERR("FrameBuffer not yet initialized. Dropping device lost event");
+                            return;
+                        }
+                        fb->logVulkanDeviceLost();
+                    },
                 .onVkErrorOutOfMemory =
                     [](VkResult result, const char* function, int line) {
                         auto fb = gfxstream::FrameBuffer::getFB();

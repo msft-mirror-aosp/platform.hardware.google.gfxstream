@@ -2863,6 +2863,14 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderIntegerDotProductPropertie
                       unmarshal_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
 #endif
+#ifdef VK_KHR_pipeline_library
+void marshal_VkPipelineLibraryCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkPipelineLibraryCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkPipelineLibraryCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkPipelineLibraryCreateInfoKHR* forUnmarshaling);
+
+#endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(marshal_VkMemoryBarrier2, marshal_VkMemoryBarrier2KHR)
 
@@ -3873,6 +3881,7 @@ void unmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureType rootTy
 #define OP_vkGetBlobGOOGLE 20341
 #define OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE 244782974
 #define OP_vkQueueSubmitAsync2GOOGLE 292092830
+#define OP_vkGetSemaphoreGOOGLE 20342
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void marshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
@@ -3883,6 +3892,66 @@ void unmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forUnmarshaling);
 
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void marshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingShaderGroupCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingShaderGroupCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineInterfaceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forUnmarshaling);
+
+void marshal_VkStridedDeviceAddressRegionKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkStridedDeviceAddressRegionKHR* forMarshaling);
+
+void unmarshal_VkStridedDeviceAddressRegionKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkStridedDeviceAddressRegionKHR* forUnmarshaling);
+
+void marshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkTraceRaysIndirectCommandKHR* forMarshaling);
+
+void unmarshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkTraceRaysIndirectCommandKHR* forUnmarshaling);
+
+#define OP_vkCmdTraceRaysKHR 213680716
+#define OP_vkCreateRayTracingPipelinesKHR 247628685
+#define OP_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR 221334934
+#define OP_vkCmdTraceRaysIndirectKHR 211788517
+#define OP_vkGetRayTracingShaderGroupStackSizeKHR 205271933
+#define OP_vkCmdSetRayTracingPipelineStackSizeKHR 260219604
 #endif
 const char* api_opcode_to_string(const uint32_t opcode);
 

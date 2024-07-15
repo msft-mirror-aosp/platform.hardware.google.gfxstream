@@ -1507,6 +1507,12 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderIntegerDotProductProperties
                       deepcopy_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
 #endif
+#ifdef VK_KHR_pipeline_library
+void deepcopy_VkPipelineLibraryCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                             const VkPipelineLibraryCreateInfoKHR* from,
+                                             VkPipelineLibraryCreateInfoKHR* to);
+
+#endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(deepcopy_VkMemoryBarrier2, deepcopy_VkMemoryBarrier2KHR)
 
@@ -2068,6 +2074,39 @@ void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
     const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* from,
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* to);
+
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void deepcopy_VkRayTracingShaderGroupCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                                   const VkRayTracingShaderGroupCreateInfoKHR* from,
+                                                   VkRayTracingShaderGroupCreateInfoKHR* to);
+
+void deepcopy_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkRayTracingPipelineInterfaceCreateInfoKHR* from,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* to);
+
+void deepcopy_VkRayTracingPipelineCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                                const VkRayTracingPipelineCreateInfoKHR* from,
+                                                VkRayTracingPipelineCreateInfoKHR* to);
+
+void deepcopy_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelineFeaturesKHR* from,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* to);
+
+void deepcopy_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* from,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* to);
+
+void deepcopy_VkStridedDeviceAddressRegionKHR(Allocator* alloc, VkStructureType rootType,
+                                              const VkStridedDeviceAddressRegionKHR* from,
+                                              VkStridedDeviceAddressRegionKHR* to);
+
+void deepcopy_VkTraceRaysIndirectCommandKHR(Allocator* alloc, VkStructureType rootType,
+                                            const VkTraceRaysIndirectCommandKHR* from,
+                                            VkTraceRaysIndirectCommandKHR* to);
 
 #endif
 }  // namespace vk
