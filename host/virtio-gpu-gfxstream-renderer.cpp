@@ -1150,6 +1150,7 @@ class PipeVirglRenderer {
             ctxEntry.latestFence = nullptr;
         } else {
             stream_renderer_error("Failed to acquire sync descriptor");
+            return -EINVAL;
         }
 
         return 0;
@@ -1635,7 +1636,7 @@ class PipeVirglRenderer {
                     capset->deferredMapping = 1;
                 }
 
-#if SUPPORT_DMABUF
+#if GFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS
                 capset->alwaysBlob = 1;
 #endif
 

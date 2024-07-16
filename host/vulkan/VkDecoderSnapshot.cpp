@@ -3738,6 +3738,79 @@ class VkDecoderSnapshot::Impl {
                               android::base::BumpPool* pool, VkResult input_result, VkDevice device,
                               VkSemaphore semaphore, uint64_t syncId) {}
 #endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    void vkCmdTraceRaysKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                           const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+                           uint32_t width, uint32_t height, uint32_t depth) {
+        android::base::AutoLock lock(mLock);
+        // commandBuffer modify
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCmdTraceRaysKHR, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        for (uint32_t i = 0; i < 1; ++i) {
+            VkCommandBuffer boxed = unboxed_to_boxed_VkCommandBuffer((&commandBuffer)[i]);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+        }
+    }
+    void vkCreateRayTracingPipelinesKHR(const uint8_t* snapshotTraceBegin,
+                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                        VkResult input_result, VkDevice device,
+                                        VkDeferredOperationKHR deferredOperation,
+                                        VkPipelineCache pipelineCache, uint32_t createInfoCount,
+                                        const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkPipeline* pPipelines) {}
+    void vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkDevice device, VkPipeline pipeline, uint32_t firstGroup,
+        uint32_t groupCount, size_t dataSize, void* pData) {}
+    void vkCmdTraceRaysIndirectKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkCommandBuffer commandBuffer,
+        const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+        VkDeviceAddress indirectDeviceAddress) {
+        android::base::AutoLock lock(mLock);
+        // commandBuffer modify
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCmdTraceRaysIndirectKHR, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        for (uint32_t i = 0; i < 1; ++i) {
+            VkCommandBuffer boxed = unboxed_to_boxed_VkCommandBuffer((&commandBuffer)[i]);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+        }
+    }
+    void vkGetRayTracingShaderGroupStackSizeKHR(const uint8_t* snapshotTraceBegin,
+                                                size_t snapshotTraceBytes,
+                                                android::base::BumpPool* pool,
+                                                VkDeviceSize input_result, VkDevice device,
+                                                VkPipeline pipeline, uint32_t group,
+                                                VkShaderGroupShaderKHR groupShader) {}
+    void vkCmdSetRayTracingPipelineStackSizeKHR(const uint8_t* snapshotTraceBegin,
+                                                size_t snapshotTraceBytes,
+                                                android::base::BumpPool* pool,
+                                                VkCommandBuffer commandBuffer,
+                                                uint32_t pipelineStackSize) {
+        android::base::AutoLock lock(mLock);
+        // commandBuffer modify
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetRayTracingPipelineStackSizeKHR,
+                                    snapshotTraceBegin, snapshotTraceBytes);
+        for (uint32_t i = 0; i < 1; ++i) {
+            VkCommandBuffer boxed = unboxed_to_boxed_VkCommandBuffer((&commandBuffer)[i]);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+        }
+    }
+#endif
    private:
     android::base::Lock mLock;
     VkReconstruction mReconstruction;
@@ -7260,5 +7333,75 @@ void VkDecoderSnapshot::vkGetSemaphoreGOOGLE(const uint8_t* snapshotTraceBegin,
                                              uint64_t syncId) {
     mImpl->vkGetSemaphoreGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
                                 semaphore, syncId);
+}
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void VkDecoderSnapshot::vkCmdTraceRaysKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable, uint32_t width,
+    uint32_t height, uint32_t depth) {
+    mImpl->vkCmdTraceRaysKHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+                             pRaygenShaderBindingTable, pMissShaderBindingTable,
+                             pHitShaderBindingTable, pCallableShaderBindingTable, width, height,
+                             depth);
+}
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void VkDecoderSnapshot::vkCreateRayTracingPipelinesKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkResult input_result, VkDevice device, VkDeferredOperationKHR deferredOperation,
+    VkPipelineCache pipelineCache, uint32_t createInfoCount,
+    const VkRayTracingPipelineCreateInfoKHR* pCreateInfos, const VkAllocationCallbacks* pAllocator,
+    VkPipeline* pPipelines) {
+    mImpl->vkCreateRayTracingPipelinesKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+                                          input_result, device, deferredOperation, pipelineCache,
+                                          createInfoCount, pCreateInfos, pAllocator, pPipelines);
+}
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void VkDecoderSnapshot::vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkResult input_result, VkDevice device, VkPipeline pipeline, uint32_t firstGroup,
+    uint32_t groupCount, size_t dataSize, void* pData) {
+    mImpl->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+        snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device, pipeline, firstGroup,
+        groupCount, dataSize, pData);
+}
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void VkDecoderSnapshot::vkCmdTraceRaysIndirectKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+    const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+    VkDeviceAddress indirectDeviceAddress) {
+    mImpl->vkCmdTraceRaysIndirectKHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+                                     pRaygenShaderBindingTable, pMissShaderBindingTable,
+                                     pHitShaderBindingTable, pCallableShaderBindingTable,
+                                     indirectDeviceAddress);
+}
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void VkDecoderSnapshot::vkGetRayTracingShaderGroupStackSizeKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkDeviceSize input_result, VkDevice device, VkPipeline pipeline, uint32_t group,
+    VkShaderGroupShaderKHR groupShader) {
+    mImpl->vkGetRayTracingShaderGroupStackSizeKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+                                                  input_result, device, pipeline, group,
+                                                  groupShader);
+}
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void VkDecoderSnapshot::vkCmdSetRayTracingPipelineStackSizeKHR(const uint8_t* snapshotTraceBegin,
+                                                               size_t snapshotTraceBytes,
+                                                               android::base::BumpPool* pool,
+                                                               VkCommandBuffer commandBuffer,
+                                                               uint32_t pipelineStackSize) {
+    mImpl->vkCmdSetRayTracingPipelineStackSizeKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+                                                  commandBuffer, pipelineStackSize);
 }
 #endif

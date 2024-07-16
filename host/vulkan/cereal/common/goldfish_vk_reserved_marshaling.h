@@ -1501,6 +1501,12 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceShaderIntegerDotProductP
                       reservedunmarshal_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
 #endif
+#ifdef VK_KHR_pipeline_library
+void reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineLibraryCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkMemoryBarrier2, reservedunmarshal_VkMemoryBarrier2KHR)
 
@@ -2039,6 +2045,37 @@ void reservedunmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureTyp
 void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void reservedunmarshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingShaderGroupCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkStridedDeviceAddressRegionKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream,
+                                                     VkStructureType rootType,
+                                                     VkTraceRaysIndirectCommandKHR* forUnmarshaling,
+                                                     uint8_t** ptr);
 
 #endif
 }  // namespace vk
