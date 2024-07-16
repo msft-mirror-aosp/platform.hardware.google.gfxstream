@@ -7172,6 +7172,7 @@ class VkDecoderGlobalState::Impl {
         return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
     }                                                                                             \
     type unbox_##type(type boxed) {                                                               \
+        AutoLock lock(sBoxedHandleManager.lock);                                                  \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
         if (!elt) {                                                                               \
             if constexpr (!std::is_same_v<type, VkFence>) {                                       \
