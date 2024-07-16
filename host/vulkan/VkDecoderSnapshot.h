@@ -895,8 +895,6 @@ class VkDecoderSnapshot {
         uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements);
 #endif
-#ifdef VK_KHR_surface
-#endif
 #ifdef VK_KHR_swapchain
     void vkCreateSwapchainKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                               android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -934,12 +932,6 @@ class VkDecoderSnapshot {
                                 android::base::BumpPool* pool, VkResult input_result,
                                 VkDevice device, const VkAcquireNextImageInfoKHR* pAcquireInfo,
                                 uint32_t* pImageIndex);
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
 #endif
 #ifdef VK_KHR_dynamic_rendering
     void vkCmdBeginRenderingKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -991,22 +983,12 @@ class VkDecoderSnapshot {
         const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
         VkExternalBufferProperties* pExternalBufferProperties);
 #endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
 #ifdef VK_KHR_external_semaphore_capabilities
     void vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
         const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
         VkPhysicalDevice physicalDevice,
         const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
         VkExternalSemaphoreProperties* pExternalSemaphoreProperties);
-#endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
 #endif
 #ifdef VK_KHR_external_semaphore_fd
     void vkImportSemaphoreFdKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -1016,10 +998,6 @@ class VkDecoderSnapshot {
     void vkGetSemaphoreFdKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
                              const VkSemaphoreGetFdInfoKHR* pGetFdInfo, int* pFd);
-#endif
-#ifdef VK_KHR_shader_float16_int8
-#endif
-#ifdef VK_KHR_incremental_present
 #endif
 #ifdef VK_KHR_descriptor_update_template
     void vkCreateDescriptorUpdateTemplateKHR(
@@ -1039,8 +1017,6 @@ class VkDecoderSnapshot {
                                               VkDescriptorSet descriptorSet,
                                               VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                               const void* pData);
-#endif
-#ifdef VK_KHR_imageless_framebuffer
 #endif
 #ifdef VK_KHR_create_renderpass2
     void vkCreateRenderPass2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -1066,8 +1042,6 @@ class VkDecoderSnapshot {
         const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
         VkExternalFenceProperties* pExternalFenceProperties);
 #endif
-#ifdef VK_KHR_external_fence
-#endif
 #ifdef VK_KHR_external_fence_fd
     void vkImportFenceFdKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
@@ -1075,12 +1049,6 @@ class VkDecoderSnapshot {
     void vkGetFenceFdKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                          android::base::BumpPool* pool, VkResult input_result, VkDevice device,
                          const VkFenceGetFdInfoKHR* pGetFdInfo, int* pFd);
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
     void vkGetImageMemoryRequirements2KHR(const uint8_t* snapshotTraceBegin,
@@ -1098,8 +1066,6 @@ class VkDecoderSnapshot {
         VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
         uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements);
-#endif
-#ifdef VK_KHR_image_format_list
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
     void vkCreateSamplerYcbcrConversionKHR(const uint8_t* snapshotTraceBegin,
@@ -1131,12 +1097,6 @@ class VkDecoderSnapshot {
                                             const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                             VkDescriptorSetLayoutSupport* pSupport);
 #endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
-#endif
 #ifdef VK_KHR_buffer_device_address
     void vkGetBufferDeviceAddressKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                      android::base::BumpPool* pool, VkDeviceAddress input_result,
@@ -1165,10 +1125,6 @@ class VkDecoderSnapshot {
         VkResult input_result, VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo,
         uint32_t* pInternalRepresentationCount,
         VkPipelineExecutableInternalRepresentationKHR* pInternalRepresentations);
-#endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
 #endif
 #ifdef VK_KHR_synchronization2
     void vkCmdSetEvent2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -1200,8 +1156,6 @@ class VkDecoderSnapshot {
                                      uint32_t* pCheckpointDataCount,
                                      VkCheckpointData2NV* pCheckpointData);
 #endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
-#endif
 #ifdef VK_KHR_copy_commands2
     void vkCmdCopyBuffer2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
@@ -1221,8 +1175,6 @@ class VkDecoderSnapshot {
     void vkCmdResolveImage2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
                                const VkResolveImageInfo2* pResolveImageInfo);
-#endif
-#ifdef VK_KHR_format_feature_flags2
 #endif
 #ifdef VK_KHR_maintenance4
     void vkGetDeviceBufferMemoryRequirementsKHR(const uint8_t* snapshotTraceBegin,
@@ -1283,6 +1235,23 @@ class VkDecoderSnapshot {
         VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
         uint64_t* grallocProducerUsage);
 #endif
+#ifdef VK_EXT_debug_report
+    void vkCreateDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
+                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                        VkResult input_result, VkInstance instance,
+                                        const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkDebugReportCallbackEXT* pCallback);
+    void vkDestroyDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
+                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                         VkInstance instance, VkDebugReportCallbackEXT callback,
+                                         const VkAllocationCallbacks* pAllocator);
+    void vkDebugReportMessageEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                 android::base::BumpPool* pool, VkInstance instance,
+                                 VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+                                 uint64_t object, size_t location, int32_t messageCode,
+                                 const char* pLayerPrefix, const char* pMessage);
+#endif
 #ifdef VK_EXT_transform_feedback
     void vkCmdBindTransformFeedbackBuffersEXT(
         const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -1311,18 +1280,6 @@ class VkDecoderSnapshot {
                                        uint32_t instanceCount, uint32_t firstInstance,
                                        VkBuffer counterBuffer, VkDeviceSize counterBufferOffset,
                                        uint32_t counterOffset, uint32_t vertexStride);
-#endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
-#ifdef VK_EXT_depth_clip_enable
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
-#endif
-#ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
     void vkSetDebugUtilsObjectNameEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -1364,26 +1321,6 @@ class VkDecoderSnapshot {
                                       VkDebugUtilsMessageTypeFlagsEXT messageTypes,
                                       const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData);
 #endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
-#endif
-#ifdef VK_EXT_vertex_attribute_divisor
-#endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
-#ifdef VK_EXT_fragment_density_map
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
-#endif
 #ifdef VK_EXT_tooling_info
     void vkGetPhysicalDeviceToolPropertiesEXT(const uint8_t* snapshotTraceBegin,
                                               size_t snapshotTraceBytes,
@@ -1391,16 +1328,10 @@ class VkDecoderSnapshot {
                                               VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
                                               VkPhysicalDeviceToolProperties* pToolProperties);
 #endif
-#ifdef VK_EXT_validation_features
-#endif
-#ifdef VK_EXT_provoking_vertex
-#endif
 #ifdef VK_EXT_line_rasterization
     void vkCmdSetLineStippleEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                 android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
                                 uint32_t lineStippleFactor, uint16_t lineStipplePattern);
-#endif
-#ifdef VK_EXT_index_type_uint8
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     void vkCmdSetCullModeEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -1473,16 +1404,6 @@ class VkDecoderSnapshot {
                                      VkDevice device,
                                      const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo);
 #endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
-#ifdef VK_EXT_texel_buffer_alignment
-#endif
-#ifdef VK_EXT_device_memory_report
-#endif
-#ifdef VK_EXT_robustness2
-#endif
-#ifdef VK_EXT_custom_border_color
-#endif
 #ifdef VK_EXT_private_data
     void vkCreatePrivateDataSlotEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                     android::base::BumpPool* pool, VkResult input_result,
@@ -1501,22 +1422,6 @@ class VkDecoderSnapshot {
                              android::base::BumpPool* pool, VkDevice device,
                              VkObjectType objectType, uint64_t objectHandle,
                              VkPrivateDataSlot privateDataSlot, uint64_t* pData);
-#endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_metal_objects
-#endif
-#ifdef VK_EXT_graphics_pipeline_library
-#endif
-#ifdef VK_EXT_ycbcr_2plane_444_formats
-#endif
-#ifdef VK_EXT_image_robustness
-#endif
-#ifdef VK_EXT_image_compression_control
-#endif
-#ifdef VK_EXT_4444_formats
-#endif
-#ifdef VK_EXT_primitive_topology_list_restart
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
     void vkCmdSetPatchControlPointsEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -1537,6 +1442,11 @@ class VkDecoderSnapshot {
                                            size_t snapshotTraceBytes, android::base::BumpPool* pool,
                                            VkCommandBuffer commandBuffer,
                                            VkBool32 primitiveRestartEnable);
+#endif
+#ifdef VK_EXT_color_write_enable
+    void vkCmdSetColorWriteEnableEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                     android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                     uint32_t attachmentCount, const VkBool32* pColorWriteEnables);
 #endif
 #ifdef VK_GOOGLE_gfxstream
     void vkMapMemoryIntoAddressSpaceGOOGLE(const uint8_t* snapshotTraceBegin,
@@ -1651,14 +1561,50 @@ class VkDecoderSnapshot {
                                    android::base::BumpPool* pool, VkQueue queue,
                                    uint32_t submitCount, const VkSubmitInfo2* pSubmits,
                                    VkFence fence);
+    void vkGetSemaphoreGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+                              VkSemaphore semaphore, uint64_t syncId);
 #endif
-#ifdef VK_EXT_load_store_op_none
+#ifdef VK_KHR_ray_tracing_pipeline
+    void vkCmdTraceRaysKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                           const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+                           uint32_t width, uint32_t height, uint32_t depth);
+    void vkCreateRayTracingPipelinesKHR(const uint8_t* snapshotTraceBegin,
+                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                        VkResult input_result, VkDevice device,
+                                        VkDeferredOperationKHR deferredOperation,
+                                        VkPipelineCache pipelineCache, uint32_t createInfoCount,
+                                        const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkPipeline* pPipelines);
+    void vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkDevice device, VkPipeline pipeline, uint32_t firstGroup,
+        uint32_t groupCount, size_t dataSize, void* pData);
+    void vkCmdTraceRaysIndirectKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkCommandBuffer commandBuffer,
+        const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+        VkDeviceAddress indirectDeviceAddress);
+    void vkGetRayTracingShaderGroupStackSizeKHR(const uint8_t* snapshotTraceBegin,
+                                                size_t snapshotTraceBytes,
+                                                android::base::BumpPool* pool,
+                                                VkDeviceSize input_result, VkDevice device,
+                                                VkPipeline pipeline, uint32_t group,
+                                                VkShaderGroupShaderKHR groupShader);
+    void vkCmdSetRayTracingPipelineStackSizeKHR(const uint8_t* snapshotTraceBegin,
+                                                size_t snapshotTraceBytes,
+                                                android::base::BumpPool* pool,
+                                                VkCommandBuffer commandBuffer,
+                                                uint32_t pipelineStackSize);
 #endif
-#ifdef VK_EXT_image_compression_control_swapchain
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
-#endif
-
    private:
     class Impl;
     std::unique_ptr<Impl> mImpl;

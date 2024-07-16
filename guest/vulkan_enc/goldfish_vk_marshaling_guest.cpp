@@ -10807,16 +10807,6 @@ void unmarshal_VkDeviceImageMemoryRequirements(VulkanStreamGuest* vkStream,
 }
 
 #endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
-#endif
 #ifdef VK_KHR_dynamic_rendering
 void marshal_VkRenderingFragmentShadingRateAttachmentInfoKHR(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -10958,24 +10948,6 @@ void unmarshal_VkMultiviewPerViewAttributesInfoNVX(
 }
 
 #endif
-#ifdef VK_KHR_get_physical_device_properties2
-#endif
-#ifdef VK_KHR_maintenance1
-#endif
-#ifdef VK_KHR_external_memory_capabilities
-#endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
-#ifdef VK_KHR_external_semaphore_capabilities
-#endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
-#endif
 #ifdef VK_KHR_external_semaphore_fd
 void marshal_VkImportSemaphoreFdInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                         const VkImportSemaphoreFdInfoKHR* forMarshaling) {
@@ -11046,8 +11018,6 @@ void unmarshal_VkSemaphoreGetFdInfoKHR(VulkanStreamGuest* vkStream, VkStructureT
                    sizeof(VkExternalSemaphoreHandleTypeFlagBits));
 }
 
-#endif
-#ifdef VK_KHR_shader_float16_int8
 #endif
 #ifdef VK_KHR_incremental_present
 void marshal_VkRectLayerKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -11153,16 +11123,6 @@ void unmarshal_VkPresentRegionsKHR(VulkanStreamGuest* vkStream, VkStructureType 
 }
 
 #endif
-#ifdef VK_KHR_descriptor_update_template
-#endif
-#ifdef VK_KHR_imageless_framebuffer
-#endif
-#ifdef VK_KHR_create_renderpass2
-#endif
-#ifdef VK_KHR_external_fence_capabilities
-#endif
-#ifdef VK_KHR_external_fence
-#endif
 #ifdef VK_KHR_external_fence_fd
 void marshal_VkImportFenceFdInfoKHR(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                     const VkImportFenceFdInfoKHR* forMarshaling) {
@@ -11230,30 +11190,6 @@ void unmarshal_VkFenceGetFdInfoKHR(VulkanStreamGuest* vkStream, VkStructureType 
                    sizeof(VkExternalFenceHandleTypeFlagBits));
 }
 
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
-#endif
-#ifdef VK_KHR_get_memory_requirements2
-#endif
-#ifdef VK_KHR_image_format_list
-#endif
-#ifdef VK_KHR_sampler_ycbcr_conversion
-#endif
-#ifdef VK_KHR_bind_memory2
-#endif
-#ifdef VK_KHR_maintenance3
-#endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
-#endif
-#ifdef VK_KHR_buffer_device_address
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 void marshal_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
@@ -11461,10 +11397,6 @@ void unmarshal_VkPipelineExecutableInternalRepresentationKHR(
 }
 
 #endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
-#endif
 #ifdef VK_KHR_synchronization2
 void marshal_VkQueueFamilyCheckpointProperties2NV(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -11531,14 +11463,6 @@ void unmarshal_VkCheckpointData2NV(VulkanStreamGuest* vkStream, VkStructureType 
     }
 }
 
-#endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
-#endif
-#ifdef VK_KHR_copy_commands2
-#endif
-#ifdef VK_KHR_format_feature_flags2
-#endif
-#ifdef VK_KHR_maintenance4
 #endif
 #ifdef VK_KHR_maintenance5
 void marshal_VkPhysicalDeviceMaintenance5FeaturesKHR(
@@ -12004,10 +11928,6 @@ void unmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
 }
 
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
 #ifdef VK_EXT_depth_clip_enable
 void marshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -12061,20 +11981,6 @@ void unmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     vkStream->read((VkBool32*)&forUnmarshaling->depthClipEnable, sizeof(VkBool32));
 }
 
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
@@ -12190,12 +12096,6 @@ void unmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
 }
 
 #endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
 #ifdef VK_EXT_fragment_density_map
 void marshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -12289,14 +12189,6 @@ void unmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
         (VkAttachmentReference*)(&forUnmarshaling->fragmentDensityMapAttachment));
 }
 
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
-#endif
-#ifdef VK_EXT_tooling_info
-#endif
-#ifdef VK_EXT_validation_features
 #endif
 #ifdef VK_EXT_provoking_vertex
 void marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -12926,10 +12818,6 @@ void unmarshal_VkHostImageCopyDevicePerformanceQueryEXT(
 }
 
 #endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
 #ifdef VK_EXT_texel_buffer_alignment
 void marshal_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -13193,12 +13081,6 @@ void unmarshal_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
 }
 
 #endif
-#ifdef VK_EXT_private_data
-#endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_metal_objects
-#endif
 #ifdef VK_EXT_graphics_pipeline_library
 void marshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -13308,8 +13190,6 @@ void unmarshal_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     vkStream->read((VkBool32*)&forUnmarshaling->ycbcr2plane444Formats, sizeof(VkBool32));
 }
 
-#endif
-#ifdef VK_EXT_image_robustness
 #endif
 #ifdef VK_EXT_image_compression_control
 void marshal_VkPhysicalDeviceImageCompressionControlFeaturesEXT(
@@ -13504,6 +13384,60 @@ void unmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
 }
 
 #endif
+#ifdef VK_EXT_color_write_enable
+void marshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkBool32*)&forMarshaling->colorWriteEnable, sizeof(VkBool32));
+}
+
+void unmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    vkStream->read((VkBool32*)&forUnmarshaling->colorWriteEnable, sizeof(VkBool32));
+}
+
+void marshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
+    vkStream->write((const VkBool32*)forMarshaling->pColorWriteEnables,
+                    forMarshaling->attachmentCount * sizeof(const VkBool32));
+}
+
+void unmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPipelineColorWriteCreateInfoEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    vkStream->read((uint32_t*)&forUnmarshaling->attachmentCount, sizeof(uint32_t));
+    vkStream->read((VkBool32*)forUnmarshaling->pColorWriteEnables,
+                   forUnmarshaling->attachmentCount * sizeof(const VkBool32));
+}
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void marshal_VkImportColorBufferGOOGLE(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                        const VkImportColorBufferGOOGLE* forMarshaling) {
@@ -13579,8 +13513,6 @@ void unmarshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructureType r
 }
 
 #endif
-#ifdef VK_EXT_load_store_op_none
-#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void marshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -13606,8 +13538,6 @@ void unmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     vkStream->read((VkBool32*)&forUnmarshaling->imageCompressionControlSwapchain, sizeof(VkBool32));
 }
 
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
 #endif
 void marshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType rootType,
                               const void* structExtension) {
@@ -14784,6 +14714,21 @@ void marshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType rootT
                 vkStream, rootType,
                 reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT*>(
                     structExtension));
+            break;
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            marshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            marshal_VkPipelineColorWriteCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPipelineColorWriteCreateInfoEXT*>(structExtension));
             break;
         }
 #endif
@@ -15987,6 +15932,21 @@ void unmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureType roo
             break;
         }
 #endif
+#ifdef VK_EXT_color_write_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: {
+            unmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceColorWriteEnableFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: {
+            unmarshal_VkPipelineColorWriteCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineColorWriteCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_GOOGLE_gfxstream
         case VK_STRUCTURE_TYPE_IMPORT_COLOR_BUFFER_GOOGLE: {
             unmarshal_VkImportColorBufferGOOGLE(
@@ -16701,6 +16661,9 @@ const char* api_opcode_to_string(const uint32_t opcode) {
         case OP_vkGetBlobGOOGLE: {
             return "OP_vkGetBlobGOOGLE";
         }
+        case OP_vkGetSemaphoreGOOGLE: {
+            return "OP_vkGetSemaphoreGOOGLE";
+        }
 #endif
 #ifdef VK_KHR_dynamic_rendering
         case OP_vkCmdEndRenderingKHR: {
@@ -16715,6 +16678,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_KHR_maintenance4
         case OP_vkGetDeviceBufferMemoryRequirementsKHR: {
             return "OP_vkGetDeviceBufferMemoryRequirementsKHR";
+        }
+#endif
+#ifdef VK_EXT_color_write_enable
+        case OP_vkCmdSetColorWriteEnableEXT: {
+            return "OP_vkCmdSetColorWriteEnableEXT";
         }
 #endif
 #ifdef VK_KHR_maintenance5
