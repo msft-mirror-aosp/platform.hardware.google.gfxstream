@@ -370,7 +370,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                 uint64_t tmpval;
                                 memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                                 *(((VkPhysicalDevice*)pPhysicalDevices) + k) =
-                                    (VkPhysicalDevice)(VkPhysicalDevice)((VkPhysicalDevice)tmpval);
+                                    tmpval ? (VkPhysicalDevice)(VkPhysicalDevice)((
+                                                 VkPhysicalDevice)tmpval)
+                                           : VK_NULL_HANDLE;
                             }
                         }
                     }
@@ -2743,7 +2745,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((fenceCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkFence*)pFences) + k) = (VkFence)unbox_VkFence((VkFence)tmpval);
+                        *(((VkFence*)pFences) + k) =
+                            tmpval ? (VkFence)unbox_VkFence((VkFence)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (m_logCalls) {
@@ -2840,7 +2843,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((fenceCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkFence*)pFences) + k) = (VkFence)unbox_VkFence((VkFence)tmpval);
+                        *(((VkFence*)pFences) + k) =
+                            tmpval ? (VkFence)unbox_VkFence((VkFence)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((VkBool32*)&waitAll, *readStreamPtrPtr, sizeof(VkBool32));
@@ -4479,7 +4483,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipelineCache*)pSrcCaches) + k) =
-                            (VkPipelineCache)unbox_VkPipelineCache((VkPipelineCache)tmpval);
+                            tmpval ? (VkPipelineCache)unbox_VkPipelineCache((VkPipelineCache)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 if (m_logCalls) {
@@ -4561,7 +4566,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_3_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipeline*)pPipelines) + k) =
-                            (VkPipeline)(VkPipeline)((VkPipeline)tmpval);
+                            tmpval ? (VkPipeline)(VkPipeline)((VkPipeline)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (pCreateInfos) {
@@ -4672,7 +4677,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_3_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipeline*)pPipelines) + k) =
-                            (VkPipeline)(VkPipeline)((VkPipeline)tmpval);
+                            tmpval ? (VkPipeline)(VkPipeline)((VkPipeline)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (pCreateInfos) {
@@ -5429,7 +5434,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSet*)pDescriptorSets) + k) =
-                            (VkDescriptorSet)(VkDescriptorSet)((VkDescriptorSet)tmpval);
+                            tmpval ? (VkDescriptorSet)(VkDescriptorSet)((VkDescriptorSet)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 if (pAllocateInfo) {
@@ -5518,7 +5524,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkDescriptorSet*)pDescriptorSets) + k) =
-                                (VkDescriptorSet)(VkDescriptorSet)((VkDescriptorSet)tmpval);
+                                tmpval ? (VkDescriptorSet)(VkDescriptorSet)((VkDescriptorSet)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -6164,7 +6171,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkCommandBuffer*)pCommandBuffers) + k) =
-                            (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)tmpval);
+                            tmpval ? (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 if (pAllocateInfo) {
@@ -6249,7 +6257,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkCommandBuffer*)pCommandBuffers) + k) =
-                                (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)tmpval);
+                                tmpval ? (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -6869,7 +6878,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSet*)pDescriptorSets) + k) =
-                            (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval);
+                            tmpval ? (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((uint32_t*)&dynamicOffsetCount, *readStreamPtrPtr, sizeof(uint32_t));
@@ -6981,7 +6991,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((bindingCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkBuffer*)pBuffers) + k) = (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                        *(((VkBuffer*)pBuffers) + k) =
+                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pOffsets,
@@ -8119,7 +8130,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((VkPipelineStageFlags*)&srcStageMask, *readStreamPtrPtr,
@@ -8754,7 +8766,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkCommandBuffer*)pCommandBuffers) + k) =
-                            (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval);
+                            tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 if (m_logCalls) {
@@ -11774,7 +11787,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pDependencyInfos,
@@ -12503,7 +12517,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -13337,7 +13352,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                 uint64_t tmpval;
                                 memcpy(&tmpval, cgen_var_3_0_ptr + k * 8, sizeof(uint64_t));
                                 *(((VkImage*)pSwapchainImages) + k) =
-                                    (VkImage)(VkImage)((VkImage)tmpval);
+                                    tmpval ? (VkImage)(VkImage)((VkImage)tmpval) : VK_NULL_HANDLE;
                             }
                         }
                     }
@@ -16483,7 +16498,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pDependencyInfos,
@@ -17696,7 +17712,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkSemaphore*)pWaitSemaphores) + k) =
-                                (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                                tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -18060,7 +18077,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((bindingCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkBuffer*)pBuffers) + k) = (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                        *(((VkBuffer*)pBuffers) + k) =
+                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pOffsets,
@@ -18139,7 +18157,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -18217,7 +18236,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -19348,7 +19368,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -20619,7 +20640,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_8_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBufferView*)pBufferViews) + k) =
-                                (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval);
+                                tmpval ? (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -21529,7 +21551,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorPool*)pDescriptorPools) + k) =
-                            (VkDescriptorPool)unbox_VkDescriptorPool((VkDescriptorPool)tmpval);
+                            tmpval
+                                ? (VkDescriptorPool)unbox_VkDescriptorPool((VkDescriptorPool)tmpval)
+                                : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((uint32_t*)&descriptorSetCount, *readStreamPtrPtr, sizeof(uint32_t));
@@ -21543,8 +21567,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSetLayout*)pSetLayouts) + k) =
-                            (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
-                                (VkDescriptorSetLayout)tmpval);
+                            tmpval ? (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
+                                         (VkDescriptorSetLayout)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pDescriptorSetPoolIds,
@@ -21715,7 +21740,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkSemaphore*)pWaitSemaphores) + k) =
-                                (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                                tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -21954,7 +21980,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_8_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBufferView*)pBufferViews) + k) =
-                                (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval);
+                                tmpval ? (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -22269,7 +22296,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_4_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipeline*)pPipelines) + k) =
-                            (VkPipeline)(VkPipeline)((VkPipeline)tmpval);
+                            tmpval ? (VkPipeline)(VkPipeline)((VkPipeline)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (pCreateInfos) {
