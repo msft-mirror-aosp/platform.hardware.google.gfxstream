@@ -138,4 +138,12 @@ bool Buffer::updateFromBytes(uint64_t offset, uint64_t size, const void* bytes) 
     return false;
 }
 
+std::optional<BlobDescriptorInfo> Buffer::exportBlob() {
+    if (!mBufferVk) {
+        return std::nullopt;
+    }
+
+    return mBufferVk->exportBlob();
+}
+
 }  // namespace gfxstream

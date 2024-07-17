@@ -35,17 +35,6 @@ if(NOT TARGET lz4_static AND AEMU_BASE_USE_LZ4)
         find_package(PkgConfig REQUIRED)
         pkg_search_module(lz4 REQUIRED IMPORTED_TARGET GLOBAL liblz4)
         add_library(lz4_static ALIAS PkgConfig::lz4)
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
-        FetchContent_Declare(
-            lz4
-            GIT_REPOSITORY https://android.googlesource.com/platform/external/lz4
-            GIT_REMOTE_NAME aosp
-            GIT_TAG aosp/master
-            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-            GIT_PROGRESS TRUE
-            SOURCE_SUBDIR build/cmake
-        )
-        FetchContent_MakeAvailable(lz4)
     endif()
 endif()
 
@@ -67,16 +56,6 @@ if(NOT TARGET gtest_main AND ENABLE_VKCEREAL_TESTS)
         add_library(gtest_main ALIAS PkgConfig::gtest_main)
         add_library(gmock ALIAS PkgConfig::gmock)
         add_library(gmock_main ALIAS PkgConfig::gmock_main)
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
-        FetchContent_Declare(
-            googletest
-            GIT_REPOSITORY https://android.googlesource.com/platform/external/googletest
-            GIT_REMOTE_NAME aosp
-            GIT_TAG aosp/master
-            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-            GIT_PROGRESS TRUE
-        )
-        FetchContent_MakeAvailable(googletest)
     endif()
 endif()
 
@@ -164,16 +143,6 @@ if(NOT TARGET aemu_common)
         add_library(aemu_common INTERFACE)
         target_link_libraries(aemu_common INTERFACE aemu-base aemu-host-common)
         target_include_directories(aemu_common INTERFACE aemu-base.headers aemu-host-common.headers)
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
-        FetchContent_Declare(
-            aemu_common
-            GIT_REPOSITORY https://android.googlesource.com/platform/hardware/google/aemu
-            GIT_REMOTE_NAME aosp
-            GIT_TAG aosp/master
-            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-            GIT_PROGRESS TRUE
-        )
-        FetchContent_MakeAvailable(aemu_common)
     endif()
 endif()
 
@@ -189,16 +158,6 @@ if(NOT TARGET gfxstream_vulkan_headers)
         target_include_directories(gfxstream_vulkan_headers INTERFACE ${Vulkan_INCLUDE_DIRS})
         target_compile_definitions(gfxstream_vulkan_headers
                                    INTERFACE VK_GFXSTREAM_STRUCTURE_TYPE_EXT)
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
-        FetchContent_Declare(
-            gfxstream_protocols
-            GIT_REPOSITORY https://android.googlesource.com/platform/external/gfxstream-protocols
-            GIT_REMOTE_NAME aosp
-            GIT_TAG aosp/master
-            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-            GIT_PROGRESS TRUE
-        )
-        FetchContent_MakeAvailable(gfxstream_protocols)
     endif()
 endif()
 
@@ -218,16 +177,6 @@ if(NOT TARGET flatbuffers)
         find_program(FLATC flatc NO_CACHE REQUIRED)
         add_executable(flatc IMPORTED GLOBAL)
         set_property(TARGET flatc PROPERTY IMPORTED_LOCATION ${FLATC})
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
-        FetchContent_Declare(
-            flatbuffers
-            GIT_REPOSITORY https://android.googlesource.com/platform/external/flatbuffers
-            GIT_REMOTE_NAME aosp
-            GIT_TAG aosp/master
-            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-            GIT_PROGRESS TRUE
-        )
-        FetchContent_MakeAvailable(flatbuffers)
     endif()
 endif()
 
@@ -249,17 +198,6 @@ if(NOT TARGET gfxstream_egl_headers)
         find_package(PkgConfig REQUIRED)
         pkg_search_module(egl REQUIRED IMPORTED_TARGET GLOBAL egl>=1.5)
         add_library(gfxstream_egl_headers ALIAS PkgConfig::egl)
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
-        FetchContent_Declare(
-            egl
-            GIT_REPOSITORY https://github.com/KhronosGroup/EGL-Registry.git
-            GIT_TAG main
-            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-            GIT_PROGRESS TRUE
-        )
-        FetchContent_MakeAvailable(egl)
-        add_library(gfxstream_egl_headers INTERFACE)
-        target_include_directories(gfxstream_egl_headers INTERFACE ${egl_SOURCE_DIR}/api)
     endif()
 endif()
 
@@ -276,14 +214,6 @@ if(WITH_BENCHMARK)
         endif()
     elseif(DEPENDENCY_RESOLUTION STREQUAL "SYSTEM")
         message(FATAL_ERROR "Not implemented")
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
-        FetchContent_Declare(
-            google_benchmark
-            GIT_REPOSITORY https://github.com/google/benchmark.git
-            GIT_TAG v1.7.0
-            GIT_PROGRESS TRUE
-        )
-        FetchContent_MakeAvailable(google_benchmark)
     endif()
 endif()
 
@@ -299,17 +229,6 @@ if(NOT TARGET libdrm_headers)
         find_package(PkgConfig REQUIRED)
         pkg_search_module(drm REQUIRED IMPORTED_TARGET GLOBAL libdrm)
         add_library(libdrm_headers ALIAS PkgConfig::drm)
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
-        FetchContent_Declare(
-            drm
-            GIT_REPOSITORY https://gitlab.freedesktop.org/mesa/drm.git
-            GIT_TAG main
-            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-            GIT_PROGRESS TRUE
-        )
-        FetchContent_MakeAvailable(drm)
-        add_library(libdrm_headers INTERFACE)
-        target_include_directories(libdrm_headers INTERFACE ${drm_SOURCE_DIR}/include/drm)
     endif()
 endif()
 

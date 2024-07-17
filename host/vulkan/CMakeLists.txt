@@ -1,11 +1,17 @@
 add_subdirectory(cereal)
 add_subdirectory(emulated_textures)
 
+if(CONFIG_AEMU)
+    add_compile_definitions(GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT)
+    add_compile_definitions(CONFIG_AEMU)
+endif()
+
 add_library(gfxstream-vulkan-server
             BorrowedImageVk.cpp
             BufferVk.cpp
             ColorBufferVk.cpp
             CompositorVk.cpp
+            DeviceLostHelper.cpp
             DeviceOpTracker.cpp
             DisplayVk.cpp
             DisplaySurfaceVk.cpp

@@ -710,3 +710,11 @@ bool EglDisplay::nativeTextureDecompressionEnabled() const {
 void EglDisplay::setNativeTextureDecompressionEnabled(bool enabled) {
     m_nativeTextureDecompressionEnabled = enabled;
 }
+
+bool EglDisplay::programBinaryLinkStatusEnabled() const {
+    return m_programBinaryLinkStatusEnabled;
+}
+
+void EglDisplay::setProgramBinaryLinkStatusEnabled(bool enabled) {
+    m_programBinaryLinkStatusEnabled = enabled;
+}
