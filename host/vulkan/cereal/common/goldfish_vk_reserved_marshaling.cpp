@@ -1093,7 +1093,7 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pWaitSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -1114,7 +1114,8 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkCommandBuffer*)forUnmarshaling->pCommandBuffers) + k) =
-                    (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval);
+                    tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -1130,7 +1131,7 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pSignalSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -1346,7 +1347,7 @@ void reservedunmarshal_VkBindSparseInfo(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pWaitSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -1390,7 +1391,7 @@ void reservedunmarshal_VkBindSparseInfo(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pSignalSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -2701,8 +2702,9 @@ void reservedunmarshal_VkPipelineLayoutCreateInfo(VulkanStream* vkStream, VkStru
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkDescriptorSetLayout*)forUnmarshaling->pSetLayouts) + k) =
-                    (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
-                        (VkDescriptorSetLayout)tmpval);
+                    tmpval ? (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
+                                 (VkDescriptorSetLayout)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -2943,8 +2945,9 @@ void reservedunmarshal_VkDescriptorSetAllocateInfo(VulkanStream* vkStream, VkStr
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkDescriptorSetLayout*)forUnmarshaling->pSetLayouts) + k) =
-                    (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
-                        (VkDescriptorSetLayout)tmpval);
+                    tmpval ? (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
+                                 (VkDescriptorSetLayout)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -2977,7 +2980,7 @@ void reservedunmarshal_VkDescriptorSetLayoutBinding(VulkanStream* vkStream,
                     uint64_t tmpval;
                     memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                     *(((VkSampler*)forUnmarshaling->pImmutableSamplers) + k) =
-                        (VkSampler)unbox_VkSampler((VkSampler)tmpval);
+                        tmpval ? (VkSampler)unbox_VkSampler((VkSampler)tmpval) : VK_NULL_HANDLE;
                 }
             }
         }
@@ -3122,7 +3125,8 @@ void reservedunmarshal_VkWriteDescriptorSet(VulkanStream* vkStream, VkStructureT
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_3_0_ptr + k * 8, sizeof(uint64_t));
                         *(((VkBufferView*)forUnmarshaling->pTexelBufferView) + k) =
-                            (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval);
+                            tmpval ? (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
             }
@@ -3213,7 +3217,8 @@ void reservedunmarshal_VkFramebufferCreateInfo(VulkanStream* vkStream, VkStructu
                     uint64_t tmpval;
                     memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                     *(((VkImageView*)forUnmarshaling->pAttachments) + k) =
-                        (VkImageView)unbox_VkImageView((VkImageView)tmpval);
+                        tmpval ? (VkImageView)unbox_VkImageView((VkImageView)tmpval)
+                               : VK_NULL_HANDLE;
                 }
             }
         }
@@ -4232,7 +4237,8 @@ void reservedunmarshal_VkDeviceGroupDeviceCreateInfo(VulkanStream* vkStream,
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkPhysicalDevice*)forUnmarshaling->pPhysicalDevices) + k) =
-                    (VkPhysicalDevice)unbox_VkPhysicalDevice((VkPhysicalDevice)tmpval);
+                    tmpval ? (VkPhysicalDevice)unbox_VkPhysicalDevice((VkPhysicalDevice)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -7537,7 +7543,7 @@ void reservedunmarshal_VkRenderPassAttachmentBeginInfo(
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkImageView*)forUnmarshaling->pAttachments) + k) =
-                    (VkImageView)unbox_VkImageView((VkImageView)tmpval);
+                    tmpval ? (VkImageView)unbox_VkImageView((VkImageView)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -7901,7 +7907,7 @@ void reservedunmarshal_VkSemaphoreWaitInfo(VulkanStream* vkStream, VkStructureTy
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -10424,7 +10430,7 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pWaitSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -10440,7 +10446,8 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSwapchainKHR*)forUnmarshaling->pSwapchains) + k) =
-                    (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)tmpval);
+                    tmpval ? (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -11255,6 +11262,51 @@ void reservedunmarshal_VkPipelineExecutableInternalRepresentationKHR(
                         forUnmarshaling->dataSize * sizeof(uint8_t));
         memcpy((void*)forUnmarshaling->pData, *ptr, forUnmarshaling->dataSize * sizeof(uint8_t));
         *ptr += forUnmarshaling->dataSize * sizeof(uint8_t);
+    }
+}
+
+#endif
+#ifdef VK_KHR_pipeline_library
+void reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineLibraryCreateInfoKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->libraryCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pLibraries,
+                    forUnmarshaling->libraryCount * sizeof(const VkPipeline));
+    if (forUnmarshaling->libraryCount) {
+        uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
+        *ptr += 8 * forUnmarshaling->libraryCount;
+        if (forUnmarshaling) {
+            for (uint32_t k = 0; k < forUnmarshaling->libraryCount; ++k) {
+                uint64_t tmpval;
+                memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
+                *(((VkPipeline*)forUnmarshaling->pLibraries) + k) =
+                    tmpval ? (VkPipeline)unbox_VkPipeline((VkPipeline)tmpval) : VK_NULL_HANDLE;
+            }
+        }
     }
 }
 
@@ -13162,7 +13214,7 @@ void reservedunmarshal_VkSwapchainPresentFenceInfoEXT(
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkFence*)forUnmarshaling->pFences) + k) =
-                    (VkFence)unbox_VkFence((VkFence)tmpval);
+                    tmpval ? (VkFence)unbox_VkFence((VkFence)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -14142,6 +14194,290 @@ void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesE
 }
 
 #endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void reservedunmarshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingShaderGroupCreateInfoKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkRayTracingShaderGroupTypeKHR*)&forUnmarshaling->type, *ptr,
+           sizeof(VkRayTracingShaderGroupTypeKHR));
+    *ptr += sizeof(VkRayTracingShaderGroupTypeKHR);
+    memcpy((uint32_t*)&forUnmarshaling->generalShader, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->closestHitShader, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->anyHitShader, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->intersectionShader, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((void**)&forUnmarshaling->pShaderGroupCaptureReplayHandle, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pShaderGroupCaptureReplayHandle);
+    *ptr += 8;
+    if (forUnmarshaling->pShaderGroupCaptureReplayHandle) {
+        vkStream->alloc((void**)&forUnmarshaling->pShaderGroupCaptureReplayHandle,
+                        sizeof(const uint8_t));
+        memcpy((void*)forUnmarshaling->pShaderGroupCaptureReplayHandle, *ptr,
+               sizeof(const uint8_t));
+        *ptr += sizeof(const uint8_t);
+    }
+}
+
+void reservedunmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->maxPipelineRayPayloadSize, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->maxPipelineRayHitAttributeSize, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedunmarshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineCreateInfoKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkPipelineCreateFlags*)&forUnmarshaling->flags, *ptr, sizeof(VkPipelineCreateFlags));
+    *ptr += sizeof(VkPipelineCreateFlags);
+    memcpy((uint32_t*)&forUnmarshaling->stageCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pStages,
+                    forUnmarshaling->stageCount * sizeof(const VkPipelineShaderStageCreateInfo));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->stageCount; ++i) {
+        reservedunmarshal_VkPipelineShaderStageCreateInfo(
+            vkStream, rootType, (VkPipelineShaderStageCreateInfo*)(forUnmarshaling->pStages + i),
+            ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->groupCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc(
+        (void**)&forUnmarshaling->pGroups,
+        forUnmarshaling->groupCount * sizeof(const VkRayTracingShaderGroupCreateInfoKHR));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->groupCount; ++i) {
+        reservedunmarshal_VkRayTracingShaderGroupCreateInfoKHR(
+            vkStream, rootType,
+            (VkRayTracingShaderGroupCreateInfoKHR*)(forUnmarshaling->pGroups + i), ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->maxPipelineRayRecursionDepth, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((VkPipelineLibraryCreateInfoKHR**)&forUnmarshaling->pLibraryInfo, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pLibraryInfo);
+    *ptr += 8;
+    if (forUnmarshaling->pLibraryInfo) {
+        vkStream->alloc((void**)&forUnmarshaling->pLibraryInfo,
+                        sizeof(const VkPipelineLibraryCreateInfoKHR));
+        reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
+            vkStream, rootType, (VkPipelineLibraryCreateInfoKHR*)(forUnmarshaling->pLibraryInfo),
+            ptr);
+    }
+    // WARNING PTR CHECK
+    memcpy((VkRayTracingPipelineInterfaceCreateInfoKHR**)&forUnmarshaling->pLibraryInterface,
+           (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pLibraryInterface);
+    *ptr += 8;
+    if (forUnmarshaling->pLibraryInterface) {
+        vkStream->alloc((void**)&forUnmarshaling->pLibraryInterface,
+                        sizeof(const VkRayTracingPipelineInterfaceCreateInfoKHR));
+        reservedunmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+            vkStream, rootType,
+            (VkRayTracingPipelineInterfaceCreateInfoKHR*)(forUnmarshaling->pLibraryInterface), ptr);
+    }
+    // WARNING PTR CHECK
+    memcpy((VkPipelineDynamicStateCreateInfo**)&forUnmarshaling->pDynamicState, (*ptr), 8);
+    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDynamicState);
+    *ptr += 8;
+    if (forUnmarshaling->pDynamicState) {
+        vkStream->alloc((void**)&forUnmarshaling->pDynamicState,
+                        sizeof(const VkPipelineDynamicStateCreateInfo));
+        reservedunmarshal_VkPipelineDynamicStateCreateInfo(
+            vkStream, rootType, (VkPipelineDynamicStateCreateInfo*)(forUnmarshaling->pDynamicState),
+            ptr);
+    }
+    uint64_t cgen_var_3;
+    memcpy((uint64_t*)&cgen_var_3, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkPipelineLayout*)&forUnmarshaling->layout =
+        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_3));
+    uint64_t cgen_var_4;
+    memcpy((uint64_t*)&cgen_var_4, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkPipeline*)&forUnmarshaling->basePipelineHandle =
+        (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_4));
+    memcpy((int32_t*)&forUnmarshaling->basePipelineIndex, *ptr, sizeof(int32_t));
+    *ptr += sizeof(int32_t);
+}
+
+void reservedunmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->rayTracingPipeline, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->rayTracingPipelineShaderGroupHandleCaptureReplay, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->rayTracingPipelineShaderGroupHandleCaptureReplayMixed, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->rayTracingPipelineTraceRaysIndirect, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->rayTraversalPrimitiveCulling, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->shaderGroupHandleSize, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->maxRayRecursionDepth, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->maxShaderGroupStride, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->shaderGroupBaseAlignment, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->shaderGroupHandleCaptureReplaySize, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->maxRayDispatchInvocationCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->shaderGroupHandleAlignment, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->maxRayHitAttributeSize, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkStridedDeviceAddressRegionKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkDeviceAddress*)&forUnmarshaling->deviceAddress, *ptr, sizeof(VkDeviceAddress));
+    *ptr += sizeof(VkDeviceAddress);
+    memcpy((VkDeviceSize*)&forUnmarshaling->stride, *ptr, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy((VkDeviceSize*)&forUnmarshaling->size, *ptr, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedunmarshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream,
+                                                     VkStructureType rootType,
+                                                     VkTraceRaysIndirectCommandKHR* forUnmarshaling,
+                                                     uint8_t** ptr) {
+    memcpy((uint32_t*)&forUnmarshaling->width, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->height, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->depth, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+#endif
 void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
                                         void* structExtension_out, uint8_t** ptr) {
     VkInstanceCreateInfo* structAccess = (VkInstanceCreateInfo*)(structExtension_out);
@@ -14965,6 +15301,14 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             break;
         }
 #endif
+#ifdef VK_KHR_pipeline_library
+        case VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR: {
+            reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineLibraryCreateInfoKHR*>(structExtension_out), ptr);
+            break;
+        }
+#endif
 #ifdef VK_KHR_synchronization2
         case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV: {
             reservedunmarshal_VkQueueFamilyCheckpointProperties2NV(
@@ -15535,6 +15879,24 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
                 vkStream, rootType,
                 reinterpret_cast<VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR: {
+            reservedunmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceRayTracingPipelineFeaturesKHR*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR: {
+            reservedunmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceRayTracingPipelinePropertiesKHR*>(
                     structExtension_out),
                 ptr);
             break;
