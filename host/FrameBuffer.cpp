@@ -1127,6 +1127,17 @@ HandleType FrameBuffer::genHandle_locked() {
     return id;
 }
 
+bool FrameBuffer::isFormatSupported(GLenum format) {
+    bool supported = true;
+    if (m_emulationGl) {
+        supported &= m_emulationGl->isFormatSupported(format);
+    }
+    if (m_emulationVk) {
+        supported &= vk::isFormatSupported(format);
+    }
+    return supported;
+}
+
 HandleType FrameBuffer::createColorBuffer(int p_width,
                                           int p_height,
                                           GLenum p_internalFormat,
