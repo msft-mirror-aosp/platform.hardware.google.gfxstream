@@ -52,7 +52,7 @@
 #ifdef VK_VERSION_1_0
 void gfxstream_vk_GetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice,
                                             VkPhysicalDeviceFeatures* pFeatures) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceFeatures");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -63,7 +63,7 @@ void gfxstream_vk_GetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice,
 void gfxstream_vk_GetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDevice,
                                                     VkFormat format,
                                                     VkFormatProperties* pFormatProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceFormatProperties");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -75,7 +75,7 @@ VkResult gfxstream_vk_GetPhysicalDeviceImageFormatProperties(
     VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkImageTiling tiling,
     VkImageUsageFlags usage, VkImageCreateFlags flags,
     VkImageFormatProperties* pImageFormatProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceImageFormatProperties");
     VkResult vkGetPhysicalDeviceImageFormatProperties_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
@@ -89,7 +89,7 @@ VkResult gfxstream_vk_GetPhysicalDeviceImageFormatProperties(
 }
 void gfxstream_vk_GetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice,
                                               VkPhysicalDeviceProperties* pProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceProperties");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -100,7 +100,7 @@ void gfxstream_vk_GetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice,
 void gfxstream_vk_GetPhysicalDeviceQueueFamilyProperties(
     VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties* pQueueFamilyProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceQueueFamilyProperties");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -111,7 +111,7 @@ void gfxstream_vk_GetPhysicalDeviceQueueFamilyProperties(
 }
 void gfxstream_vk_GetPhysicalDeviceMemoryProperties(
     VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceMemoryProperties");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -122,7 +122,7 @@ void gfxstream_vk_GetPhysicalDeviceMemoryProperties(
 VkResult gfxstream_vk_EnumerateDeviceLayerProperties(VkPhysicalDevice physicalDevice,
                                                      uint32_t* pPropertyCount,
                                                      VkLayerProperties* pProperties) {
-    AEMU_SCOPED_TRACE("vkEnumerateDeviceLayerProperties");
+    MESA_TRACE_SCOPE("vkEnumerateDeviceLayerProperties");
     VkResult vkEnumerateDeviceLayerProperties_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
@@ -135,7 +135,7 @@ VkResult gfxstream_vk_EnumerateDeviceLayerProperties(VkPhysicalDevice physicalDe
 }
 VkResult gfxstream_vk_QueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits,
                                   VkFence fence) {
-    AEMU_SCOPED_TRACE("vkQueueSubmit");
+    MESA_TRACE_SCOPE("vkQueueSubmit");
     VkResult vkQueueSubmit_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     VK_FROM_HANDLE(gfxstream_vk_fence, gfxstream_fence, fence);
@@ -184,7 +184,7 @@ VkResult gfxstream_vk_QueueSubmit(VkQueue queue, uint32_t submitCount, const VkS
     return vkQueueSubmit_VkResult_return;
 }
 VkResult gfxstream_vk_QueueWaitIdle(VkQueue queue) {
-    AEMU_SCOPED_TRACE("vkQueueWaitIdle");
+    MESA_TRACE_SCOPE("vkQueueWaitIdle");
     VkResult vkQueueWaitIdle_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     {
@@ -197,7 +197,7 @@ VkResult gfxstream_vk_QueueWaitIdle(VkQueue queue) {
     return vkQueueWaitIdle_VkResult_return;
 }
 VkResult gfxstream_vk_DeviceWaitIdle(VkDevice device) {
-    AEMU_SCOPED_TRACE("vkDeviceWaitIdle");
+    MESA_TRACE_SCOPE("vkDeviceWaitIdle");
     VkResult vkDeviceWaitIdle_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -209,7 +209,7 @@ VkResult gfxstream_vk_DeviceWaitIdle(VkDevice device) {
 }
 void gfxstream_vk_FreeMemory(VkDevice device, VkDeviceMemory memory,
                              const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkFreeMemory");
+    MESA_TRACE_SCOPE("vkFreeMemory");
     if (VK_NULL_HANDLE == memory) {
         return;
     }
@@ -222,7 +222,7 @@ void gfxstream_vk_FreeMemory(VkDevice device, VkDeviceMemory memory,
 }
 VkResult gfxstream_vk_MapMemory(VkDevice device, VkDeviceMemory memory, VkDeviceSize offset,
                                 VkDeviceSize size, VkMemoryMapFlags flags, void** ppData) {
-    AEMU_SCOPED_TRACE("vkMapMemory");
+    MESA_TRACE_SCOPE("vkMapMemory");
     VkResult vkMapMemory_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -234,7 +234,7 @@ VkResult gfxstream_vk_MapMemory(VkDevice device, VkDeviceMemory memory, VkDevice
     return vkMapMemory_VkResult_return;
 }
 void gfxstream_vk_UnmapMemory(VkDevice device, VkDeviceMemory memory) {
-    AEMU_SCOPED_TRACE("vkUnmapMemory");
+    MESA_TRACE_SCOPE("vkUnmapMemory");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -243,7 +243,7 @@ void gfxstream_vk_UnmapMemory(VkDevice device, VkDeviceMemory memory) {
 }
 VkResult gfxstream_vk_FlushMappedMemoryRanges(VkDevice device, uint32_t memoryRangeCount,
                                               const VkMappedMemoryRange* pMemoryRanges) {
-    AEMU_SCOPED_TRACE("vkFlushMappedMemoryRanges");
+    MESA_TRACE_SCOPE("vkFlushMappedMemoryRanges");
     VkResult vkFlushMappedMemoryRanges_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -255,7 +255,7 @@ VkResult gfxstream_vk_FlushMappedMemoryRanges(VkDevice device, uint32_t memoryRa
 }
 VkResult gfxstream_vk_InvalidateMappedMemoryRanges(VkDevice device, uint32_t memoryRangeCount,
                                                    const VkMappedMemoryRange* pMemoryRanges) {
-    AEMU_SCOPED_TRACE("vkInvalidateMappedMemoryRanges");
+    MESA_TRACE_SCOPE("vkInvalidateMappedMemoryRanges");
     VkResult vkInvalidateMappedMemoryRanges_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -267,7 +267,7 @@ VkResult gfxstream_vk_InvalidateMappedMemoryRanges(VkDevice device, uint32_t mem
 }
 void gfxstream_vk_GetDeviceMemoryCommitment(VkDevice device, VkDeviceMemory memory,
                                             VkDeviceSize* pCommittedMemoryInBytes) {
-    AEMU_SCOPED_TRACE("vkGetDeviceMemoryCommitment");
+    MESA_TRACE_SCOPE("vkGetDeviceMemoryCommitment");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -277,7 +277,7 @@ void gfxstream_vk_GetDeviceMemoryCommitment(VkDevice device, VkDeviceMemory memo
 }
 VkResult gfxstream_vk_BindBufferMemory(VkDevice device, VkBuffer buffer, VkDeviceMemory memory,
                                        VkDeviceSize memoryOffset) {
-    AEMU_SCOPED_TRACE("vkBindBufferMemory");
+    MESA_TRACE_SCOPE("vkBindBufferMemory");
     VkResult vkBindBufferMemory_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, buffer);
@@ -292,7 +292,7 @@ VkResult gfxstream_vk_BindBufferMemory(VkDevice device, VkBuffer buffer, VkDevic
 }
 VkResult gfxstream_vk_BindImageMemory(VkDevice device, VkImage image, VkDeviceMemory memory,
                                       VkDeviceSize memoryOffset) {
-    AEMU_SCOPED_TRACE("vkBindImageMemory");
+    MESA_TRACE_SCOPE("vkBindImageMemory");
     VkResult vkBindImageMemory_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -305,7 +305,7 @@ VkResult gfxstream_vk_BindImageMemory(VkDevice device, VkImage image, VkDeviceMe
 }
 void gfxstream_vk_GetBufferMemoryRequirements(VkDevice device, VkBuffer buffer,
                                               VkMemoryRequirements* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements");
+    MESA_TRACE_SCOPE("vkGetBufferMemoryRequirements");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, buffer);
     {
@@ -318,7 +318,7 @@ void gfxstream_vk_GetBufferMemoryRequirements(VkDevice device, VkBuffer buffer,
 }
 void gfxstream_vk_GetImageMemoryRequirements(VkDevice device, VkImage image,
                                              VkMemoryRequirements* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements");
+    MESA_TRACE_SCOPE("vkGetImageMemoryRequirements");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -330,7 +330,7 @@ void gfxstream_vk_GetImageMemoryRequirements(VkDevice device, VkImage image,
 void gfxstream_vk_GetImageSparseMemoryRequirements(
     VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements* pSparseMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements");
+    MESA_TRACE_SCOPE("vkGetImageSparseMemoryRequirements");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -343,7 +343,7 @@ void gfxstream_vk_GetPhysicalDeviceSparseImageFormatProperties(
     VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type,
     VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling,
     uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceSparseImageFormatProperties");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -354,7 +354,7 @@ void gfxstream_vk_GetPhysicalDeviceSparseImageFormatProperties(
 }
 VkResult gfxstream_vk_QueueBindSparse(VkQueue queue, uint32_t bindInfoCount,
                                       const VkBindSparseInfo* pBindInfo, VkFence fence) {
-    AEMU_SCOPED_TRACE("vkQueueBindSparse");
+    MESA_TRACE_SCOPE("vkQueueBindSparse");
     VkResult vkQueueBindSparse_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     VK_FROM_HANDLE(gfxstream_vk_fence, gfxstream_fence, fence);
@@ -409,7 +409,7 @@ VkResult gfxstream_vk_QueueBindSparse(VkQueue queue, uint32_t bindInfoCount,
 }
 VkResult gfxstream_vk_CreateFence(VkDevice device, const VkFenceCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
-    AEMU_SCOPED_TRACE("vkCreateFence");
+    MESA_TRACE_SCOPE("vkCreateFence");
     VkResult vkCreateFence_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     struct gfxstream_vk_fence* gfxstream_pFence = (gfxstream_vk_fence*)vk_object_zalloc(
@@ -427,7 +427,7 @@ VkResult gfxstream_vk_CreateFence(VkDevice device, const VkFenceCreateInfo* pCre
 }
 void gfxstream_vk_DestroyFence(VkDevice device, VkFence fence,
                                const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyFence");
+    MESA_TRACE_SCOPE("vkDestroyFence");
     if (VK_NULL_HANDLE == fence) {
         return;
     }
@@ -442,7 +442,7 @@ void gfxstream_vk_DestroyFence(VkDevice device, VkFence fence,
     vk_object_free(&gfxstream_device->vk, pAllocator, (void*)gfxstream_fence);
 }
 VkResult gfxstream_vk_ResetFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences) {
-    AEMU_SCOPED_TRACE("vkResetFences");
+    MESA_TRACE_SCOPE("vkResetFences");
     VkResult vkResetFences_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -459,7 +459,7 @@ VkResult gfxstream_vk_ResetFences(VkDevice device, uint32_t fenceCount, const Vk
     return vkResetFences_VkResult_return;
 }
 VkResult gfxstream_vk_GetFenceStatus(VkDevice device, VkFence fence) {
-    AEMU_SCOPED_TRACE("vkGetFenceStatus");
+    MESA_TRACE_SCOPE("vkGetFenceStatus");
     VkResult vkGetFenceStatus_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     VK_FROM_HANDLE(gfxstream_vk_fence, gfxstream_fence, fence);
@@ -473,7 +473,7 @@ VkResult gfxstream_vk_GetFenceStatus(VkDevice device, VkFence fence) {
 }
 VkResult gfxstream_vk_WaitForFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences,
                                     VkBool32 waitAll, uint64_t timeout) {
-    AEMU_SCOPED_TRACE("vkWaitForFences");
+    MESA_TRACE_SCOPE("vkWaitForFences");
     VkResult vkWaitForFences_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -492,7 +492,7 @@ VkResult gfxstream_vk_WaitForFences(VkDevice device, uint32_t fenceCount, const 
 VkResult gfxstream_vk_CreateSemaphore(VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator,
                                       VkSemaphore* pSemaphore) {
-    AEMU_SCOPED_TRACE("vkCreateSemaphore");
+    MESA_TRACE_SCOPE("vkCreateSemaphore");
     VkResult vkCreateSemaphore_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     struct gfxstream_vk_semaphore* gfxstream_pSemaphore = (gfxstream_vk_semaphore*)vk_object_zalloc(
@@ -512,7 +512,7 @@ VkResult gfxstream_vk_CreateSemaphore(VkDevice device, const VkSemaphoreCreateIn
 }
 void gfxstream_vk_DestroySemaphore(VkDevice device, VkSemaphore semaphore,
                                    const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroySemaphore");
+    MESA_TRACE_SCOPE("vkDestroySemaphore");
     if (VK_NULL_HANDLE == semaphore) {
         return;
     }
@@ -530,7 +530,7 @@ void gfxstream_vk_DestroySemaphore(VkDevice device, VkSemaphore semaphore,
 }
 VkResult gfxstream_vk_CreateEvent(VkDevice device, const VkEventCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator, VkEvent* pEvent) {
-    AEMU_SCOPED_TRACE("vkCreateEvent");
+    MESA_TRACE_SCOPE("vkCreateEvent");
     VkResult vkCreateEvent_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -542,7 +542,7 @@ VkResult gfxstream_vk_CreateEvent(VkDevice device, const VkEventCreateInfo* pCre
 }
 void gfxstream_vk_DestroyEvent(VkDevice device, VkEvent event,
                                const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyEvent");
+    MESA_TRACE_SCOPE("vkDestroyEvent");
     if (VK_NULL_HANDLE == event) {
         return;
     }
@@ -554,7 +554,7 @@ void gfxstream_vk_DestroyEvent(VkDevice device, VkEvent event,
     }
 }
 VkResult gfxstream_vk_GetEventStatus(VkDevice device, VkEvent event) {
-    AEMU_SCOPED_TRACE("vkGetEventStatus");
+    MESA_TRACE_SCOPE("vkGetEventStatus");
     VkResult vkGetEventStatus_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -565,7 +565,7 @@ VkResult gfxstream_vk_GetEventStatus(VkDevice device, VkEvent event) {
     return vkGetEventStatus_VkResult_return;
 }
 VkResult gfxstream_vk_SetEvent(VkDevice device, VkEvent event) {
-    AEMU_SCOPED_TRACE("vkSetEvent");
+    MESA_TRACE_SCOPE("vkSetEvent");
     VkResult vkSetEvent_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -576,7 +576,7 @@ VkResult gfxstream_vk_SetEvent(VkDevice device, VkEvent event) {
     return vkSetEvent_VkResult_return;
 }
 VkResult gfxstream_vk_ResetEvent(VkDevice device, VkEvent event) {
-    AEMU_SCOPED_TRACE("vkResetEvent");
+    MESA_TRACE_SCOPE("vkResetEvent");
     VkResult vkResetEvent_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -589,7 +589,7 @@ VkResult gfxstream_vk_ResetEvent(VkDevice device, VkEvent event) {
 VkResult gfxstream_vk_CreateQueryPool(VkDevice device, const VkQueryPoolCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator,
                                       VkQueryPool* pQueryPool) {
-    AEMU_SCOPED_TRACE("vkCreateQueryPool");
+    MESA_TRACE_SCOPE("vkCreateQueryPool");
     VkResult vkCreateQueryPool_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -602,7 +602,7 @@ VkResult gfxstream_vk_CreateQueryPool(VkDevice device, const VkQueryPoolCreateIn
 }
 void gfxstream_vk_DestroyQueryPool(VkDevice device, VkQueryPool queryPool,
                                    const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyQueryPool");
+    MESA_TRACE_SCOPE("vkDestroyQueryPool");
     if (VK_NULL_HANDLE == queryPool) {
         return;
     }
@@ -617,7 +617,7 @@ VkResult gfxstream_vk_GetQueryPoolResults(VkDevice device, VkQueryPool queryPool
                                           uint32_t firstQuery, uint32_t queryCount, size_t dataSize,
                                           void* pData, VkDeviceSize stride,
                                           VkQueryResultFlags flags) {
-    AEMU_SCOPED_TRACE("vkGetQueryPoolResults");
+    MESA_TRACE_SCOPE("vkGetQueryPoolResults");
     VkResult vkGetQueryPoolResults_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -630,7 +630,7 @@ VkResult gfxstream_vk_GetQueryPoolResults(VkDevice device, VkQueryPool queryPool
 }
 VkResult gfxstream_vk_CreateBuffer(VkDevice device, const VkBufferCreateInfo* pCreateInfo,
                                    const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer) {
-    AEMU_SCOPED_TRACE("vkCreateBuffer");
+    MESA_TRACE_SCOPE("vkCreateBuffer");
     VkResult vkCreateBuffer_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     struct gfxstream_vk_buffer* gfxstream_pBuffer = (gfxstream_vk_buffer*)vk_object_zalloc(
@@ -648,7 +648,7 @@ VkResult gfxstream_vk_CreateBuffer(VkDevice device, const VkBufferCreateInfo* pC
 }
 void gfxstream_vk_DestroyBuffer(VkDevice device, VkBuffer buffer,
                                 const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyBuffer");
+    MESA_TRACE_SCOPE("vkDestroyBuffer");
     if (VK_NULL_HANDLE == buffer) {
         return;
     }
@@ -666,7 +666,7 @@ void gfxstream_vk_DestroyBuffer(VkDevice device, VkBuffer buffer,
 VkResult gfxstream_vk_CreateBufferView(VkDevice device, const VkBufferViewCreateInfo* pCreateInfo,
                                        const VkAllocationCallbacks* pAllocator,
                                        VkBufferView* pView) {
-    AEMU_SCOPED_TRACE("vkCreateBufferView");
+    MESA_TRACE_SCOPE("vkCreateBufferView");
     VkResult vkCreateBufferView_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -686,7 +686,7 @@ VkResult gfxstream_vk_CreateBufferView(VkDevice device, const VkBufferViewCreate
 }
 void gfxstream_vk_DestroyBufferView(VkDevice device, VkBufferView bufferView,
                                     const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyBufferView");
+    MESA_TRACE_SCOPE("vkDestroyBufferView");
     if (VK_NULL_HANDLE == bufferView) {
         return;
     }
@@ -699,7 +699,7 @@ void gfxstream_vk_DestroyBufferView(VkDevice device, VkBufferView bufferView,
 }
 VkResult gfxstream_vk_CreateImage(VkDevice device, const VkImageCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator, VkImage* pImage) {
-    AEMU_SCOPED_TRACE("vkCreateImage");
+    MESA_TRACE_SCOPE("vkCreateImage");
     VkResult vkCreateImage_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -712,7 +712,7 @@ VkResult gfxstream_vk_CreateImage(VkDevice device, const VkImageCreateInfo* pCre
 }
 void gfxstream_vk_DestroyImage(VkDevice device, VkImage image,
                                const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyImage");
+    MESA_TRACE_SCOPE("vkDestroyImage");
     if (VK_NULL_HANDLE == image) {
         return;
     }
@@ -726,7 +726,7 @@ void gfxstream_vk_DestroyImage(VkDevice device, VkImage image,
 void gfxstream_vk_GetImageSubresourceLayout(VkDevice device, VkImage image,
                                             const VkImageSubresource* pSubresource,
                                             VkSubresourceLayout* pLayout) {
-    AEMU_SCOPED_TRACE("vkGetImageSubresourceLayout");
+    MESA_TRACE_SCOPE("vkGetImageSubresourceLayout");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -737,7 +737,7 @@ void gfxstream_vk_GetImageSubresourceLayout(VkDevice device, VkImage image,
 }
 VkResult gfxstream_vk_CreateImageView(VkDevice device, const VkImageViewCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator, VkImageView* pView) {
-    AEMU_SCOPED_TRACE("vkCreateImageView");
+    MESA_TRACE_SCOPE("vkCreateImageView");
     VkResult vkCreateImageView_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -750,7 +750,7 @@ VkResult gfxstream_vk_CreateImageView(VkDevice device, const VkImageViewCreateIn
 }
 void gfxstream_vk_DestroyImageView(VkDevice device, VkImageView imageView,
                                    const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyImageView");
+    MESA_TRACE_SCOPE("vkDestroyImageView");
     if (VK_NULL_HANDLE == imageView) {
         return;
     }
@@ -765,7 +765,7 @@ VkResult gfxstream_vk_CreateShaderModule(VkDevice device,
                                          const VkShaderModuleCreateInfo* pCreateInfo,
                                          const VkAllocationCallbacks* pAllocator,
                                          VkShaderModule* pShaderModule) {
-    AEMU_SCOPED_TRACE("vkCreateShaderModule");
+    MESA_TRACE_SCOPE("vkCreateShaderModule");
     VkResult vkCreateShaderModule_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -778,7 +778,7 @@ VkResult gfxstream_vk_CreateShaderModule(VkDevice device,
 }
 void gfxstream_vk_DestroyShaderModule(VkDevice device, VkShaderModule shaderModule,
                                       const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyShaderModule");
+    MESA_TRACE_SCOPE("vkDestroyShaderModule");
     if (VK_NULL_HANDLE == shaderModule) {
         return;
     }
@@ -793,7 +793,7 @@ VkResult gfxstream_vk_CreatePipelineCache(VkDevice device,
                                           const VkPipelineCacheCreateInfo* pCreateInfo,
                                           const VkAllocationCallbacks* pAllocator,
                                           VkPipelineCache* pPipelineCache) {
-    AEMU_SCOPED_TRACE("vkCreatePipelineCache");
+    MESA_TRACE_SCOPE("vkCreatePipelineCache");
     VkResult vkCreatePipelineCache_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -806,7 +806,7 @@ VkResult gfxstream_vk_CreatePipelineCache(VkDevice device,
 }
 void gfxstream_vk_DestroyPipelineCache(VkDevice device, VkPipelineCache pipelineCache,
                                        const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyPipelineCache");
+    MESA_TRACE_SCOPE("vkDestroyPipelineCache");
     if (VK_NULL_HANDLE == pipelineCache) {
         return;
     }
@@ -819,7 +819,7 @@ void gfxstream_vk_DestroyPipelineCache(VkDevice device, VkPipelineCache pipeline
 }
 VkResult gfxstream_vk_GetPipelineCacheData(VkDevice device, VkPipelineCache pipelineCache,
                                            size_t* pDataSize, void* pData) {
-    AEMU_SCOPED_TRACE("vkGetPipelineCacheData");
+    MESA_TRACE_SCOPE("vkGetPipelineCacheData");
     VkResult vkGetPipelineCacheData_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -832,7 +832,7 @@ VkResult gfxstream_vk_GetPipelineCacheData(VkDevice device, VkPipelineCache pipe
 VkResult gfxstream_vk_MergePipelineCaches(VkDevice device, VkPipelineCache dstCache,
                                           uint32_t srcCacheCount,
                                           const VkPipelineCache* pSrcCaches) {
-    AEMU_SCOPED_TRACE("vkMergePipelineCaches");
+    MESA_TRACE_SCOPE("vkMergePipelineCaches");
     VkResult vkMergePipelineCaches_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -848,7 +848,7 @@ VkResult gfxstream_vk_CreateGraphicsPipelines(VkDevice device, VkPipelineCache p
                                               const VkGraphicsPipelineCreateInfo* pCreateInfos,
                                               const VkAllocationCallbacks* pAllocator,
                                               VkPipeline* pPipelines) {
-    AEMU_SCOPED_TRACE("vkCreateGraphicsPipelines");
+    MESA_TRACE_SCOPE("vkCreateGraphicsPipelines");
     VkResult vkCreateGraphicsPipelines_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -865,7 +865,7 @@ VkResult gfxstream_vk_CreateComputePipelines(VkDevice device, VkPipelineCache pi
                                              const VkComputePipelineCreateInfo* pCreateInfos,
                                              const VkAllocationCallbacks* pAllocator,
                                              VkPipeline* pPipelines) {
-    AEMU_SCOPED_TRACE("vkCreateComputePipelines");
+    MESA_TRACE_SCOPE("vkCreateComputePipelines");
     VkResult vkCreateComputePipelines_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -878,7 +878,7 @@ VkResult gfxstream_vk_CreateComputePipelines(VkDevice device, VkPipelineCache pi
 }
 void gfxstream_vk_DestroyPipeline(VkDevice device, VkPipeline pipeline,
                                   const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyPipeline");
+    MESA_TRACE_SCOPE("vkDestroyPipeline");
     if (VK_NULL_HANDLE == pipeline) {
         return;
     }
@@ -893,7 +893,7 @@ VkResult gfxstream_vk_CreatePipelineLayout(VkDevice device,
                                            const VkPipelineLayoutCreateInfo* pCreateInfo,
                                            const VkAllocationCallbacks* pAllocator,
                                            VkPipelineLayout* pPipelineLayout) {
-    AEMU_SCOPED_TRACE("vkCreatePipelineLayout");
+    MESA_TRACE_SCOPE("vkCreatePipelineLayout");
     VkResult vkCreatePipelineLayout_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -906,7 +906,7 @@ VkResult gfxstream_vk_CreatePipelineLayout(VkDevice device,
 }
 void gfxstream_vk_DestroyPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout,
                                         const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyPipelineLayout");
+    MESA_TRACE_SCOPE("vkDestroyPipelineLayout");
     if (VK_NULL_HANDLE == pipelineLayout) {
         return;
     }
@@ -919,7 +919,7 @@ void gfxstream_vk_DestroyPipelineLayout(VkDevice device, VkPipelineLayout pipeli
 }
 VkResult gfxstream_vk_CreateSampler(VkDevice device, const VkSamplerCreateInfo* pCreateInfo,
                                     const VkAllocationCallbacks* pAllocator, VkSampler* pSampler) {
-    AEMU_SCOPED_TRACE("vkCreateSampler");
+    MESA_TRACE_SCOPE("vkCreateSampler");
     VkResult vkCreateSampler_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -933,7 +933,7 @@ VkResult gfxstream_vk_CreateSampler(VkDevice device, const VkSamplerCreateInfo* 
 }
 void gfxstream_vk_DestroySampler(VkDevice device, VkSampler sampler,
                                  const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroySampler");
+    MESA_TRACE_SCOPE("vkDestroySampler");
     if (VK_NULL_HANDLE == sampler) {
         return;
     }
@@ -948,7 +948,7 @@ VkResult gfxstream_vk_CreateDescriptorSetLayout(VkDevice device,
                                                 const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                                 const VkAllocationCallbacks* pAllocator,
                                                 VkDescriptorSetLayout* pSetLayout) {
-    AEMU_SCOPED_TRACE("vkCreateDescriptorSetLayout");
+    MESA_TRACE_SCOPE("vkCreateDescriptorSetLayout");
     VkResult vkCreateDescriptorSetLayout_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -963,7 +963,7 @@ VkResult gfxstream_vk_CreateDescriptorSetLayout(VkDevice device,
 void gfxstream_vk_DestroyDescriptorSetLayout(VkDevice device,
                                              VkDescriptorSetLayout descriptorSetLayout,
                                              const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyDescriptorSetLayout");
+    MESA_TRACE_SCOPE("vkDestroyDescriptorSetLayout");
     if (VK_NULL_HANDLE == descriptorSetLayout) {
         return;
     }
@@ -979,7 +979,7 @@ VkResult gfxstream_vk_CreateDescriptorPool(VkDevice device,
                                            const VkDescriptorPoolCreateInfo* pCreateInfo,
                                            const VkAllocationCallbacks* pAllocator,
                                            VkDescriptorPool* pDescriptorPool) {
-    AEMU_SCOPED_TRACE("vkCreateDescriptorPool");
+    MESA_TRACE_SCOPE("vkCreateDescriptorPool");
     VkResult vkCreateDescriptorPool_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -993,7 +993,7 @@ VkResult gfxstream_vk_CreateDescriptorPool(VkDevice device,
 }
 void gfxstream_vk_DestroyDescriptorPool(VkDevice device, VkDescriptorPool descriptorPool,
                                         const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyDescriptorPool");
+    MESA_TRACE_SCOPE("vkDestroyDescriptorPool");
     if (VK_NULL_HANDLE == descriptorPool) {
         return;
     }
@@ -1007,7 +1007,7 @@ void gfxstream_vk_DestroyDescriptorPool(VkDevice device, VkDescriptorPool descri
 }
 VkResult gfxstream_vk_ResetDescriptorPool(VkDevice device, VkDescriptorPool descriptorPool,
                                           VkDescriptorPoolResetFlags flags) {
-    AEMU_SCOPED_TRACE("vkResetDescriptorPool");
+    MESA_TRACE_SCOPE("vkResetDescriptorPool");
     VkResult vkResetDescriptorPool_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -1021,7 +1021,7 @@ VkResult gfxstream_vk_ResetDescriptorPool(VkDevice device, VkDescriptorPool desc
 VkResult gfxstream_vk_AllocateDescriptorSets(VkDevice device,
                                              const VkDescriptorSetAllocateInfo* pAllocateInfo,
                                              VkDescriptorSet* pDescriptorSets) {
-    AEMU_SCOPED_TRACE("vkAllocateDescriptorSets");
+    MESA_TRACE_SCOPE("vkAllocateDescriptorSets");
     VkResult vkAllocateDescriptorSets_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -1035,7 +1035,7 @@ VkResult gfxstream_vk_AllocateDescriptorSets(VkDevice device,
 VkResult gfxstream_vk_FreeDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,
                                          uint32_t descriptorSetCount,
                                          const VkDescriptorSet* pDescriptorSets) {
-    AEMU_SCOPED_TRACE("vkFreeDescriptorSets");
+    MESA_TRACE_SCOPE("vkFreeDescriptorSets");
     VkResult vkFreeDescriptorSets_VkResult_return = (VkResult)0;
     if (VK_NULL_HANDLE == pDescriptorSets) {
         return vkFreeDescriptorSets_VkResult_return;
@@ -1053,7 +1053,7 @@ VkResult gfxstream_vk_FreeDescriptorSets(VkDevice device, VkDescriptorPool descr
 VkResult gfxstream_vk_CreateFramebuffer(VkDevice device, const VkFramebufferCreateInfo* pCreateInfo,
                                         const VkAllocationCallbacks* pAllocator,
                                         VkFramebuffer* pFramebuffer) {
-    AEMU_SCOPED_TRACE("vkCreateFramebuffer");
+    MESA_TRACE_SCOPE("vkCreateFramebuffer");
     VkResult vkCreateFramebuffer_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -1066,7 +1066,7 @@ VkResult gfxstream_vk_CreateFramebuffer(VkDevice device, const VkFramebufferCrea
 }
 void gfxstream_vk_DestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer,
                                      const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyFramebuffer");
+    MESA_TRACE_SCOPE("vkDestroyFramebuffer");
     if (VK_NULL_HANDLE == framebuffer) {
         return;
     }
@@ -1080,7 +1080,7 @@ void gfxstream_vk_DestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer,
 VkResult gfxstream_vk_CreateRenderPass(VkDevice device, const VkRenderPassCreateInfo* pCreateInfo,
                                        const VkAllocationCallbacks* pAllocator,
                                        VkRenderPass* pRenderPass) {
-    AEMU_SCOPED_TRACE("vkCreateRenderPass");
+    MESA_TRACE_SCOPE("vkCreateRenderPass");
     VkResult vkCreateRenderPass_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -1093,7 +1093,7 @@ VkResult gfxstream_vk_CreateRenderPass(VkDevice device, const VkRenderPassCreate
 }
 void gfxstream_vk_DestroyRenderPass(VkDevice device, VkRenderPass renderPass,
                                     const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyRenderPass");
+    MESA_TRACE_SCOPE("vkDestroyRenderPass");
     if (VK_NULL_HANDLE == renderPass) {
         return;
     }
@@ -1106,7 +1106,7 @@ void gfxstream_vk_DestroyRenderPass(VkDevice device, VkRenderPass renderPass,
 }
 void gfxstream_vk_GetRenderAreaGranularity(VkDevice device, VkRenderPass renderPass,
                                            VkExtent2D* pGranularity) {
-    AEMU_SCOPED_TRACE("vkGetRenderAreaGranularity");
+    MESA_TRACE_SCOPE("vkGetRenderAreaGranularity");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1116,7 +1116,7 @@ void gfxstream_vk_GetRenderAreaGranularity(VkDevice device, VkRenderPass renderP
 }
 VkResult gfxstream_vk_BeginCommandBuffer(VkCommandBuffer commandBuffer,
                                          const VkCommandBufferBeginInfo* pBeginInfo) {
-    AEMU_SCOPED_TRACE("vkBeginCommandBuffer");
+    MESA_TRACE_SCOPE("vkBeginCommandBuffer");
     VkResult vkBeginCommandBuffer_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
@@ -1129,7 +1129,7 @@ VkResult gfxstream_vk_BeginCommandBuffer(VkCommandBuffer commandBuffer,
     return vkBeginCommandBuffer_VkResult_return;
 }
 VkResult gfxstream_vk_EndCommandBuffer(VkCommandBuffer commandBuffer) {
-    AEMU_SCOPED_TRACE("vkEndCommandBuffer");
+    MESA_TRACE_SCOPE("vkEndCommandBuffer");
     VkResult vkEndCommandBuffer_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
@@ -1143,7 +1143,7 @@ VkResult gfxstream_vk_EndCommandBuffer(VkCommandBuffer commandBuffer) {
 }
 VkResult gfxstream_vk_ResetCommandBuffer(VkCommandBuffer commandBuffer,
                                          VkCommandBufferResetFlags flags) {
-    AEMU_SCOPED_TRACE("vkResetCommandBuffer");
+    MESA_TRACE_SCOPE("vkResetCommandBuffer");
     VkResult vkResetCommandBuffer_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
@@ -1157,7 +1157,7 @@ VkResult gfxstream_vk_ResetCommandBuffer(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdBindPipeline(VkCommandBuffer commandBuffer,
                                   VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {
-    AEMU_SCOPED_TRACE("vkCmdBindPipeline");
+    MESA_TRACE_SCOPE("vkCmdBindPipeline");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1168,7 +1168,7 @@ void gfxstream_vk_CmdBindPipeline(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstViewport,
                                  uint32_t viewportCount, const VkViewport* pViewports) {
-    AEMU_SCOPED_TRACE("vkCmdSetViewport");
+    MESA_TRACE_SCOPE("vkCmdSetViewport");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1179,7 +1179,7 @@ void gfxstream_vk_CmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstVi
 }
 void gfxstream_vk_CmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstScissor,
                                 uint32_t scissorCount, const VkRect2D* pScissors) {
-    AEMU_SCOPED_TRACE("vkCmdSetScissor");
+    MESA_TRACE_SCOPE("vkCmdSetScissor");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1189,7 +1189,7 @@ void gfxstream_vk_CmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstSci
     }
 }
 void gfxstream_vk_CmdSetLineWidth(VkCommandBuffer commandBuffer, float lineWidth) {
-    AEMU_SCOPED_TRACE("vkCmdSetLineWidth");
+    MESA_TRACE_SCOPE("vkCmdSetLineWidth");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1200,7 +1200,7 @@ void gfxstream_vk_CmdSetLineWidth(VkCommandBuffer commandBuffer, float lineWidth
 }
 void gfxstream_vk_CmdSetDepthBias(VkCommandBuffer commandBuffer, float depthBiasConstantFactor,
                                   float depthBiasClamp, float depthBiasSlopeFactor) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthBias");
+    MESA_TRACE_SCOPE("vkCmdSetDepthBias");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1211,7 +1211,7 @@ void gfxstream_vk_CmdSetDepthBias(VkCommandBuffer commandBuffer, float depthBias
 }
 void gfxstream_vk_CmdSetBlendConstants(VkCommandBuffer commandBuffer,
                                        const float blendConstants[4]) {
-    AEMU_SCOPED_TRACE("vkCmdSetBlendConstants");
+    MESA_TRACE_SCOPE("vkCmdSetBlendConstants");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1222,7 +1222,7 @@ void gfxstream_vk_CmdSetBlendConstants(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetDepthBounds(VkCommandBuffer commandBuffer, float minDepthBounds,
                                     float maxDepthBounds) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthBounds");
+    MESA_TRACE_SCOPE("vkCmdSetDepthBounds");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1233,7 +1233,7 @@ void gfxstream_vk_CmdSetDepthBounds(VkCommandBuffer commandBuffer, float minDept
 }
 void gfxstream_vk_CmdSetStencilCompareMask(VkCommandBuffer commandBuffer,
                                            VkStencilFaceFlags faceMask, uint32_t compareMask) {
-    AEMU_SCOPED_TRACE("vkCmdSetStencilCompareMask");
+    MESA_TRACE_SCOPE("vkCmdSetStencilCompareMask");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1244,7 +1244,7 @@ void gfxstream_vk_CmdSetStencilCompareMask(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetStencilWriteMask(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
                                          uint32_t writeMask) {
-    AEMU_SCOPED_TRACE("vkCmdSetStencilWriteMask");
+    MESA_TRACE_SCOPE("vkCmdSetStencilWriteMask");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1255,7 +1255,7 @@ void gfxstream_vk_CmdSetStencilWriteMask(VkCommandBuffer commandBuffer, VkStenci
 }
 void gfxstream_vk_CmdSetStencilReference(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
                                          uint32_t reference) {
-    AEMU_SCOPED_TRACE("vkCmdSetStencilReference");
+    MESA_TRACE_SCOPE("vkCmdSetStencilReference");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1268,7 +1268,7 @@ void gfxstream_vk_CmdBindDescriptorSets(
     VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
     uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets,
     uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets) {
-    AEMU_SCOPED_TRACE("vkCmdBindDescriptorSets");
+    MESA_TRACE_SCOPE("vkCmdBindDescriptorSets");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1281,7 +1281,7 @@ void gfxstream_vk_CmdBindDescriptorSets(
 }
 void gfxstream_vk_CmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                      VkDeviceSize offset, VkIndexType indexType) {
-    AEMU_SCOPED_TRACE("vkCmdBindIndexBuffer");
+    MESA_TRACE_SCOPE("vkCmdBindIndexBuffer");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, buffer);
     {
@@ -1295,7 +1295,7 @@ void gfxstream_vk_CmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buf
 void gfxstream_vk_CmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t firstBinding,
                                        uint32_t bindingCount, const VkBuffer* pBuffers,
                                        const VkDeviceSize* pOffsets) {
-    AEMU_SCOPED_TRACE("vkCmdBindVertexBuffers");
+    MESA_TRACE_SCOPE("vkCmdBindVertexBuffers");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1314,7 +1314,7 @@ void gfxstream_vk_CmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t f
 }
 void gfxstream_vk_CmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount,
                           uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) {
-    AEMU_SCOPED_TRACE("vkCmdDraw");
+    MESA_TRACE_SCOPE("vkCmdDraw");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1326,7 +1326,7 @@ void gfxstream_vk_CmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount,
 void gfxstream_vk_CmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCount,
                                  uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset,
                                  uint32_t firstInstance) {
-    AEMU_SCOPED_TRACE("vkCmdDrawIndexed");
+    MESA_TRACE_SCOPE("vkCmdDrawIndexed");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1337,7 +1337,7 @@ void gfxstream_vk_CmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCo
 }
 void gfxstream_vk_CmdDrawIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                   VkDeviceSize offset, uint32_t drawCount, uint32_t stride) {
-    AEMU_SCOPED_TRACE("vkCmdDrawIndirect");
+    MESA_TRACE_SCOPE("vkCmdDrawIndirect");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, buffer);
     {
@@ -1350,7 +1350,7 @@ void gfxstream_vk_CmdDrawIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer
 }
 void gfxstream_vk_CmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                          VkDeviceSize offset, uint32_t drawCount, uint32_t stride) {
-    AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirect");
+    MESA_TRACE_SCOPE("vkCmdDrawIndexedIndirect");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, buffer);
     {
@@ -1363,7 +1363,7 @@ void gfxstream_vk_CmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer
 }
 void gfxstream_vk_CmdDispatch(VkCommandBuffer commandBuffer, uint32_t groupCountX,
                               uint32_t groupCountY, uint32_t groupCountZ) {
-    AEMU_SCOPED_TRACE("vkCmdDispatch");
+    MESA_TRACE_SCOPE("vkCmdDispatch");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1374,7 +1374,7 @@ void gfxstream_vk_CmdDispatch(VkCommandBuffer commandBuffer, uint32_t groupCount
 }
 void gfxstream_vk_CmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                       VkDeviceSize offset) {
-    AEMU_SCOPED_TRACE("vkCmdDispatchIndirect");
+    MESA_TRACE_SCOPE("vkCmdDispatchIndirect");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, buffer);
     {
@@ -1387,7 +1387,7 @@ void gfxstream_vk_CmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer bu
 void gfxstream_vk_CmdCopyBuffer(VkCommandBuffer commandBuffer, VkBuffer srcBuffer,
                                 VkBuffer dstBuffer, uint32_t regionCount,
                                 const VkBufferCopy* pRegions) {
-    AEMU_SCOPED_TRACE("vkCmdCopyBuffer");
+    MESA_TRACE_SCOPE("vkCmdCopyBuffer");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_srcBuffer, srcBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_dstBuffer, dstBuffer);
@@ -1403,7 +1403,7 @@ void gfxstream_vk_CmdCopyImage(VkCommandBuffer commandBuffer, VkImage srcImage,
                                VkImageLayout srcImageLayout, VkImage dstImage,
                                VkImageLayout dstImageLayout, uint32_t regionCount,
                                const VkImageCopy* pRegions) {
-    AEMU_SCOPED_TRACE("vkCmdCopyImage");
+    MESA_TRACE_SCOPE("vkCmdCopyImage");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1416,7 +1416,7 @@ void gfxstream_vk_CmdBlitImage(VkCommandBuffer commandBuffer, VkImage srcImage,
                                VkImageLayout srcImageLayout, VkImage dstImage,
                                VkImageLayout dstImageLayout, uint32_t regionCount,
                                const VkImageBlit* pRegions, VkFilter filter) {
-    AEMU_SCOPED_TRACE("vkCmdBlitImage");
+    MESA_TRACE_SCOPE("vkCmdBlitImage");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1429,7 +1429,7 @@ void gfxstream_vk_CmdBlitImage(VkCommandBuffer commandBuffer, VkImage srcImage,
 void gfxstream_vk_CmdCopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer srcBuffer,
                                        VkImage dstImage, VkImageLayout dstImageLayout,
                                        uint32_t regionCount, const VkBufferImageCopy* pRegions) {
-    AEMU_SCOPED_TRACE("vkCmdCopyBufferToImage");
+    MESA_TRACE_SCOPE("vkCmdCopyBufferToImage");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_srcBuffer, srcBuffer);
     {
@@ -1443,7 +1443,7 @@ void gfxstream_vk_CmdCopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer s
 void gfxstream_vk_CmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage srcImage,
                                        VkImageLayout srcImageLayout, VkBuffer dstBuffer,
                                        uint32_t regionCount, const VkBufferImageCopy* pRegions) {
-    AEMU_SCOPED_TRACE("vkCmdCopyImageToBuffer");
+    MESA_TRACE_SCOPE("vkCmdCopyImageToBuffer");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_dstBuffer, dstBuffer);
     {
@@ -1457,7 +1457,7 @@ void gfxstream_vk_CmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage sr
 void gfxstream_vk_CmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
                                   VkDeviceSize dstOffset, VkDeviceSize dataSize,
                                   const void* pData) {
-    AEMU_SCOPED_TRACE("vkCmdUpdateBuffer");
+    MESA_TRACE_SCOPE("vkCmdUpdateBuffer");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_dstBuffer, dstBuffer);
     {
@@ -1470,7 +1470,7 @@ void gfxstream_vk_CmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuf
 }
 void gfxstream_vk_CmdFillBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
                                 VkDeviceSize dstOffset, VkDeviceSize size, uint32_t data) {
-    AEMU_SCOPED_TRACE("vkCmdFillBuffer");
+    MESA_TRACE_SCOPE("vkCmdFillBuffer");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_dstBuffer, dstBuffer);
     {
@@ -1484,7 +1484,7 @@ void gfxstream_vk_CmdFillBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffe
 void gfxstream_vk_CmdClearColorImage(VkCommandBuffer commandBuffer, VkImage image,
                                      VkImageLayout imageLayout, const VkClearColorValue* pColor,
                                      uint32_t rangeCount, const VkImageSubresourceRange* pRanges) {
-    AEMU_SCOPED_TRACE("vkCmdClearColorImage");
+    MESA_TRACE_SCOPE("vkCmdClearColorImage");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1498,7 +1498,7 @@ void gfxstream_vk_CmdClearDepthStencilImage(VkCommandBuffer commandBuffer, VkIma
                                             const VkClearDepthStencilValue* pDepthStencil,
                                             uint32_t rangeCount,
                                             const VkImageSubresourceRange* pRanges) {
-    AEMU_SCOPED_TRACE("vkCmdClearDepthStencilImage");
+    MESA_TRACE_SCOPE("vkCmdClearDepthStencilImage");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1511,7 +1511,7 @@ void gfxstream_vk_CmdClearDepthStencilImage(VkCommandBuffer commandBuffer, VkIma
 void gfxstream_vk_CmdClearAttachments(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
                                       const VkClearAttachment* pAttachments, uint32_t rectCount,
                                       const VkClearRect* pRects) {
-    AEMU_SCOPED_TRACE("vkCmdClearAttachments");
+    MESA_TRACE_SCOPE("vkCmdClearAttachments");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1524,7 +1524,7 @@ void gfxstream_vk_CmdResolveImage(VkCommandBuffer commandBuffer, VkImage srcImag
                                   VkImageLayout srcImageLayout, VkImage dstImage,
                                   VkImageLayout dstImageLayout, uint32_t regionCount,
                                   const VkImageResolve* pRegions) {
-    AEMU_SCOPED_TRACE("vkCmdResolveImage");
+    MESA_TRACE_SCOPE("vkCmdResolveImage");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1536,7 +1536,7 @@ void gfxstream_vk_CmdResolveImage(VkCommandBuffer commandBuffer, VkImage srcImag
 }
 void gfxstream_vk_CmdSetEvent(VkCommandBuffer commandBuffer, VkEvent event,
                               VkPipelineStageFlags stageMask) {
-    AEMU_SCOPED_TRACE("vkCmdSetEvent");
+    MESA_TRACE_SCOPE("vkCmdSetEvent");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1547,7 +1547,7 @@ void gfxstream_vk_CmdSetEvent(VkCommandBuffer commandBuffer, VkEvent event,
 }
 void gfxstream_vk_CmdResetEvent(VkCommandBuffer commandBuffer, VkEvent event,
                                 VkPipelineStageFlags stageMask) {
-    AEMU_SCOPED_TRACE("vkCmdResetEvent");
+    MESA_TRACE_SCOPE("vkCmdResetEvent");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1564,7 +1564,7 @@ void gfxstream_vk_CmdWaitEvents(VkCommandBuffer commandBuffer, uint32_t eventCou
                                 const VkBufferMemoryBarrier* pBufferMemoryBarriers,
                                 uint32_t imageMemoryBarrierCount,
                                 const VkImageMemoryBarrier* pImageMemoryBarriers) {
-    AEMU_SCOPED_TRACE("vkCmdWaitEvents");
+    MESA_TRACE_SCOPE("vkCmdWaitEvents");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1589,7 +1589,7 @@ void gfxstream_vk_CmdPipelineBarrier(
     uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers) {
-    AEMU_SCOPED_TRACE("vkCmdPipelineBarrier");
+    MESA_TRACE_SCOPE("vkCmdPipelineBarrier");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1611,7 +1611,7 @@ void gfxstream_vk_CmdPipelineBarrier(
 }
 void gfxstream_vk_CmdBeginQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                 uint32_t query, VkQueryControlFlags flags) {
-    AEMU_SCOPED_TRACE("vkCmdBeginQuery");
+    MESA_TRACE_SCOPE("vkCmdBeginQuery");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1622,7 +1622,7 @@ void gfxstream_vk_CmdBeginQuery(VkCommandBuffer commandBuffer, VkQueryPool query
 }
 void gfxstream_vk_CmdEndQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                               uint32_t query) {
-    AEMU_SCOPED_TRACE("vkCmdEndQuery");
+    MESA_TRACE_SCOPE("vkCmdEndQuery");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1633,7 +1633,7 @@ void gfxstream_vk_CmdEndQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPo
 }
 void gfxstream_vk_CmdResetQueryPool(VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                     uint32_t firstQuery, uint32_t queryCount) {
-    AEMU_SCOPED_TRACE("vkCmdResetQueryPool");
+    MESA_TRACE_SCOPE("vkCmdResetQueryPool");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1645,7 +1645,7 @@ void gfxstream_vk_CmdResetQueryPool(VkCommandBuffer commandBuffer, VkQueryPool q
 void gfxstream_vk_CmdWriteTimestamp(VkCommandBuffer commandBuffer,
                                     VkPipelineStageFlagBits pipelineStage, VkQueryPool queryPool,
                                     uint32_t query) {
-    AEMU_SCOPED_TRACE("vkCmdWriteTimestamp");
+    MESA_TRACE_SCOPE("vkCmdWriteTimestamp");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1658,7 +1658,7 @@ void gfxstream_vk_CmdCopyQueryPoolResults(VkCommandBuffer commandBuffer, VkQuery
                                           uint32_t firstQuery, uint32_t queryCount,
                                           VkBuffer dstBuffer, VkDeviceSize dstOffset,
                                           VkDeviceSize stride, VkQueryResultFlags flags) {
-    AEMU_SCOPED_TRACE("vkCmdCopyQueryPoolResults");
+    MESA_TRACE_SCOPE("vkCmdCopyQueryPoolResults");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_dstBuffer, dstBuffer);
     {
@@ -1672,7 +1672,7 @@ void gfxstream_vk_CmdCopyQueryPoolResults(VkCommandBuffer commandBuffer, VkQuery
 void gfxstream_vk_CmdPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayout layout,
                                    VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size,
                                    const void* pValues) {
-    AEMU_SCOPED_TRACE("vkCmdPushConstants");
+    MESA_TRACE_SCOPE("vkCmdPushConstants");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1684,7 +1684,7 @@ void gfxstream_vk_CmdPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayo
 void gfxstream_vk_CmdBeginRenderPass(VkCommandBuffer commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin,
                                      VkSubpassContents contents) {
-    AEMU_SCOPED_TRACE("vkCmdBeginRenderPass");
+    MESA_TRACE_SCOPE("vkCmdBeginRenderPass");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1694,7 +1694,7 @@ void gfxstream_vk_CmdBeginRenderPass(VkCommandBuffer commandBuffer,
     }
 }
 void gfxstream_vk_CmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContents contents) {
-    AEMU_SCOPED_TRACE("vkCmdNextSubpass");
+    MESA_TRACE_SCOPE("vkCmdNextSubpass");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1704,7 +1704,7 @@ void gfxstream_vk_CmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContent
     }
 }
 void gfxstream_vk_CmdEndRenderPass(VkCommandBuffer commandBuffer) {
-    AEMU_SCOPED_TRACE("vkCmdEndRenderPass");
+    MESA_TRACE_SCOPE("vkCmdEndRenderPass");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1714,7 +1714,7 @@ void gfxstream_vk_CmdEndRenderPass(VkCommandBuffer commandBuffer) {
 }
 void gfxstream_vk_CmdExecuteCommands(VkCommandBuffer commandBuffer, uint32_t commandBufferCount,
                                      const VkCommandBuffer* pCommandBuffers) {
-    AEMU_SCOPED_TRACE("vkCmdExecuteCommands");
+    MESA_TRACE_SCOPE("vkCmdExecuteCommands");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1734,7 +1734,7 @@ void gfxstream_vk_CmdExecuteCommands(VkCommandBuffer commandBuffer, uint32_t com
 #ifdef VK_VERSION_1_1
 VkResult gfxstream_vk_BindBufferMemory2(VkDevice device, uint32_t bindInfoCount,
                                         const VkBindBufferMemoryInfo* pBindInfos) {
-    AEMU_SCOPED_TRACE("vkBindBufferMemory2");
+    MESA_TRACE_SCOPE("vkBindBufferMemory2");
     VkResult vkBindBufferMemory2_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -1755,7 +1755,7 @@ VkResult gfxstream_vk_BindBufferMemory2(VkDevice device, uint32_t bindInfoCount,
 }
 VkResult gfxstream_vk_BindImageMemory2(VkDevice device, uint32_t bindInfoCount,
                                        const VkBindImageMemoryInfo* pBindInfos) {
-    AEMU_SCOPED_TRACE("vkBindImageMemory2");
+    MESA_TRACE_SCOPE("vkBindImageMemory2");
     VkResult vkBindImageMemory2_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -1770,7 +1770,7 @@ void gfxstream_vk_GetDeviceGroupPeerMemoryFeatures(VkDevice device, uint32_t hea
                                                    uint32_t localDeviceIndex,
                                                    uint32_t remoteDeviceIndex,
                                                    VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) {
-    AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeatures");
+    MESA_TRACE_SCOPE("vkGetDeviceGroupPeerMemoryFeatures");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1780,7 +1780,7 @@ void gfxstream_vk_GetDeviceGroupPeerMemoryFeatures(VkDevice device, uint32_t hea
     }
 }
 void gfxstream_vk_CmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t deviceMask) {
-    AEMU_SCOPED_TRACE("vkCmdSetDeviceMask");
+    MESA_TRACE_SCOPE("vkCmdSetDeviceMask");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1792,7 +1792,7 @@ void gfxstream_vk_CmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t devic
 void gfxstream_vk_CmdDispatchBase(VkCommandBuffer commandBuffer, uint32_t baseGroupX,
                                   uint32_t baseGroupY, uint32_t baseGroupZ, uint32_t groupCountX,
                                   uint32_t groupCountY, uint32_t groupCountZ) {
-    AEMU_SCOPED_TRACE("vkCmdDispatchBase");
+    MESA_TRACE_SCOPE("vkCmdDispatchBase");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -1805,7 +1805,7 @@ void gfxstream_vk_CmdDispatchBase(VkCommandBuffer commandBuffer, uint32_t baseGr
 void gfxstream_vk_GetImageMemoryRequirements2(VkDevice device,
                                               const VkImageMemoryRequirementsInfo2* pInfo,
                                               VkMemoryRequirements2* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements2");
+    MESA_TRACE_SCOPE("vkGetImageMemoryRequirements2");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1817,7 +1817,7 @@ void gfxstream_vk_GetImageMemoryRequirements2(VkDevice device,
 void gfxstream_vk_GetBufferMemoryRequirements2(VkDevice device,
                                                const VkBufferMemoryRequirementsInfo2* pInfo,
                                                VkMemoryRequirements2* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements2");
+    MESA_TRACE_SCOPE("vkGetBufferMemoryRequirements2");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1837,7 +1837,7 @@ void gfxstream_vk_GetImageSparseMemoryRequirements2(
     VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2");
+    MESA_TRACE_SCOPE("vkGetImageSparseMemoryRequirements2");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1848,7 +1848,7 @@ void gfxstream_vk_GetImageSparseMemoryRequirements2(
 }
 void gfxstream_vk_GetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice,
                                              VkPhysicalDeviceFeatures2* pFeatures) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures2");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceFeatures2");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1858,7 +1858,7 @@ void gfxstream_vk_GetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice,
 }
 void gfxstream_vk_GetPhysicalDeviceProperties2(VkPhysicalDevice physicalDevice,
                                                VkPhysicalDeviceProperties2* pProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceProperties2");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1869,7 +1869,7 @@ void gfxstream_vk_GetPhysicalDeviceProperties2(VkPhysicalDevice physicalDevice,
 void gfxstream_vk_GetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDevice,
                                                      VkFormat format,
                                                      VkFormatProperties2* pFormatProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties2");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceFormatProperties2");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1880,7 +1880,7 @@ void gfxstream_vk_GetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDe
 VkResult gfxstream_vk_GetPhysicalDeviceImageFormatProperties2(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties2");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceImageFormatProperties2");
     VkResult vkGetPhysicalDeviceImageFormatProperties2_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
@@ -1896,7 +1896,7 @@ VkResult gfxstream_vk_GetPhysicalDeviceImageFormatProperties2(
 void gfxstream_vk_GetPhysicalDeviceQueueFamilyProperties2(
     VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties2* pQueueFamilyProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties2");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceQueueFamilyProperties2");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1907,7 +1907,7 @@ void gfxstream_vk_GetPhysicalDeviceQueueFamilyProperties2(
 }
 void gfxstream_vk_GetPhysicalDeviceMemoryProperties2(
     VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties2");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceMemoryProperties2");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1918,7 +1918,7 @@ void gfxstream_vk_GetPhysicalDeviceMemoryProperties2(
 void gfxstream_vk_GetPhysicalDeviceSparseImageFormatProperties2(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
     uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties2");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceSparseImageFormatProperties2");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -1929,7 +1929,7 @@ void gfxstream_vk_GetPhysicalDeviceSparseImageFormatProperties2(
 }
 void gfxstream_vk_TrimCommandPool(VkDevice device, VkCommandPool commandPool,
                                   VkCommandPoolTrimFlags flags) {
-    AEMU_SCOPED_TRACE("vkTrimCommandPool");
+    MESA_TRACE_SCOPE("vkTrimCommandPool");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     VK_FROM_HANDLE(gfxstream_vk_command_pool, gfxstream_commandPool, commandPool);
     {
@@ -1941,7 +1941,7 @@ void gfxstream_vk_TrimCommandPool(VkDevice device, VkCommandPool commandPool,
 VkResult gfxstream_vk_CreateSamplerYcbcrConversion(
     VkDevice device, const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkSamplerYcbcrConversion* pYcbcrConversion) {
-    AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversion");
+    MESA_TRACE_SCOPE("vkCreateSamplerYcbcrConversion");
     VkResult vkCreateSamplerYcbcrConversion_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -1957,7 +1957,7 @@ VkResult gfxstream_vk_CreateSamplerYcbcrConversion(
 void gfxstream_vk_DestroySamplerYcbcrConversion(VkDevice device,
                                                 VkSamplerYcbcrConversion ycbcrConversion,
                                                 const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversion");
+    MESA_TRACE_SCOPE("vkDestroySamplerYcbcrConversion");
     if (VK_NULL_HANDLE == ycbcrConversion) {
         return;
     }
@@ -1973,7 +1973,7 @@ VkResult gfxstream_vk_CreateDescriptorUpdateTemplate(
     VkDevice device, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
-    AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplate");
+    MESA_TRACE_SCOPE("vkCreateDescriptorUpdateTemplate");
     VkResult vkCreateDescriptorUpdateTemplate_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -1987,7 +1987,7 @@ VkResult gfxstream_vk_CreateDescriptorUpdateTemplate(
 void gfxstream_vk_DestroyDescriptorUpdateTemplate(
     VkDevice device, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplate");
+    MESA_TRACE_SCOPE("vkDestroyDescriptorUpdateTemplate");
     if (VK_NULL_HANDLE == descriptorUpdateTemplate) {
         return;
     }
@@ -2002,7 +2002,7 @@ void gfxstream_vk_DestroyDescriptorUpdateTemplate(
 void gfxstream_vk_UpdateDescriptorSetWithTemplate(
     VkDevice device, VkDescriptorSet descriptorSet,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, const void* pData) {
-    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplate");
+    MESA_TRACE_SCOPE("vkUpdateDescriptorSetWithTemplate");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2015,7 +2015,7 @@ void gfxstream_vk_UpdateDescriptorSetWithTemplate(
 void gfxstream_vk_GetPhysicalDeviceExternalBufferProperties(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
     VkExternalBufferProperties* pExternalBufferProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceExternalBufferProperties");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2028,7 +2028,7 @@ void gfxstream_vk_GetPhysicalDeviceExternalBufferProperties(
 void gfxstream_vk_GetPhysicalDeviceExternalFenceProperties(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
     VkExternalFenceProperties* pExternalFenceProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalFenceProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceExternalFenceProperties");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2042,7 +2042,7 @@ void gfxstream_vk_GetPhysicalDeviceExternalSemaphoreProperties(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalSemaphoreProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceExternalSemaphoreProperties");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2054,7 +2054,7 @@ void gfxstream_vk_GetPhysicalDeviceExternalSemaphoreProperties(
 void gfxstream_vk_GetDescriptorSetLayoutSupport(VkDevice device,
                                                 const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                                 VkDescriptorSetLayoutSupport* pSupport) {
-    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupport");
+    MESA_TRACE_SCOPE("vkGetDescriptorSetLayoutSupport");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2068,7 +2068,7 @@ void gfxstream_vk_CmdDrawIndirectCount(VkCommandBuffer commandBuffer, VkBuffer b
                                        VkDeviceSize offset, VkBuffer countBuffer,
                                        VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
                                        uint32_t stride) {
-    AEMU_SCOPED_TRACE("vkCmdDrawIndirectCount");
+    MESA_TRACE_SCOPE("vkCmdDrawIndirectCount");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, buffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_countBuffer, countBuffer);
@@ -2085,7 +2085,7 @@ void gfxstream_vk_CmdDrawIndexedIndirectCount(VkCommandBuffer commandBuffer, VkB
                                               VkDeviceSize offset, VkBuffer countBuffer,
                                               VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
                                               uint32_t stride) {
-    AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCount");
+    MESA_TRACE_SCOPE("vkCmdDrawIndexedIndirectCount");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, buffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_countBuffer, countBuffer);
@@ -2101,7 +2101,7 @@ void gfxstream_vk_CmdDrawIndexedIndirectCount(VkCommandBuffer commandBuffer, VkB
 VkResult gfxstream_vk_CreateRenderPass2(VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo,
                                         const VkAllocationCallbacks* pAllocator,
                                         VkRenderPass* pRenderPass) {
-    AEMU_SCOPED_TRACE("vkCreateRenderPass2");
+    MESA_TRACE_SCOPE("vkCreateRenderPass2");
     VkResult vkCreateRenderPass2_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -2115,7 +2115,7 @@ VkResult gfxstream_vk_CreateRenderPass2(VkDevice device, const VkRenderPassCreat
 void gfxstream_vk_CmdBeginRenderPass2(VkCommandBuffer commandBuffer,
                                       const VkRenderPassBeginInfo* pRenderPassBegin,
                                       const VkSubpassBeginInfo* pSubpassBeginInfo) {
-    AEMU_SCOPED_TRACE("vkCmdBeginRenderPass2");
+    MESA_TRACE_SCOPE("vkCmdBeginRenderPass2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2127,7 +2127,7 @@ void gfxstream_vk_CmdBeginRenderPass2(VkCommandBuffer commandBuffer,
 void gfxstream_vk_CmdNextSubpass2(VkCommandBuffer commandBuffer,
                                   const VkSubpassBeginInfo* pSubpassBeginInfo,
                                   const VkSubpassEndInfo* pSubpassEndInfo) {
-    AEMU_SCOPED_TRACE("vkCmdNextSubpass2");
+    MESA_TRACE_SCOPE("vkCmdNextSubpass2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2138,7 +2138,7 @@ void gfxstream_vk_CmdNextSubpass2(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdEndRenderPass2(VkCommandBuffer commandBuffer,
                                     const VkSubpassEndInfo* pSubpassEndInfo) {
-    AEMU_SCOPED_TRACE("vkCmdEndRenderPass2");
+    MESA_TRACE_SCOPE("vkCmdEndRenderPass2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2149,7 +2149,7 @@ void gfxstream_vk_CmdEndRenderPass2(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_ResetQueryPool(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery,
                                  uint32_t queryCount) {
-    AEMU_SCOPED_TRACE("vkResetQueryPool");
+    MESA_TRACE_SCOPE("vkResetQueryPool");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2159,7 +2159,7 @@ void gfxstream_vk_ResetQueryPool(VkDevice device, VkQueryPool queryPool, uint32_
 }
 VkResult gfxstream_vk_GetSemaphoreCounterValue(VkDevice device, VkSemaphore semaphore,
                                                uint64_t* pValue) {
-    AEMU_SCOPED_TRACE("vkGetSemaphoreCounterValue");
+    MESA_TRACE_SCOPE("vkGetSemaphoreCounterValue");
     VkResult vkGetSemaphoreCounterValue_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     VK_FROM_HANDLE(gfxstream_vk_semaphore, gfxstream_semaphore, semaphore);
@@ -2173,7 +2173,7 @@ VkResult gfxstream_vk_GetSemaphoreCounterValue(VkDevice device, VkSemaphore sema
 }
 VkResult gfxstream_vk_WaitSemaphores(VkDevice device, const VkSemaphoreWaitInfo* pWaitInfo,
                                      uint64_t timeout) {
-    AEMU_SCOPED_TRACE("vkWaitSemaphores");
+    MESA_TRACE_SCOPE("vkWaitSemaphores");
     VkResult vkWaitSemaphores_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -2197,7 +2197,7 @@ VkResult gfxstream_vk_WaitSemaphores(VkDevice device, const VkSemaphoreWaitInfo*
     return vkWaitSemaphores_VkResult_return;
 }
 VkResult gfxstream_vk_SignalSemaphore(VkDevice device, const VkSemaphoreSignalInfo* pSignalInfo) {
-    AEMU_SCOPED_TRACE("vkSignalSemaphore");
+    MESA_TRACE_SCOPE("vkSignalSemaphore");
     VkResult vkSignalSemaphore_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -2217,7 +2217,7 @@ VkResult gfxstream_vk_SignalSemaphore(VkDevice device, const VkSemaphoreSignalIn
 }
 VkDeviceAddress gfxstream_vk_GetBufferDeviceAddress(VkDevice device,
                                                     const VkBufferDeviceAddressInfo* pInfo) {
-    AEMU_SCOPED_TRACE("vkGetBufferDeviceAddress");
+    MESA_TRACE_SCOPE("vkGetBufferDeviceAddress");
     VkDeviceAddress vkGetBufferDeviceAddress_VkDeviceAddress_return = (VkDeviceAddress)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -2236,7 +2236,7 @@ VkDeviceAddress gfxstream_vk_GetBufferDeviceAddress(VkDevice device,
 }
 uint64_t gfxstream_vk_GetBufferOpaqueCaptureAddress(VkDevice device,
                                                     const VkBufferDeviceAddressInfo* pInfo) {
-    AEMU_SCOPED_TRACE("vkGetBufferOpaqueCaptureAddress");
+    MESA_TRACE_SCOPE("vkGetBufferOpaqueCaptureAddress");
     uint64_t vkGetBufferOpaqueCaptureAddress_uint64_t_return = (uint64_t)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -2255,7 +2255,7 @@ uint64_t gfxstream_vk_GetBufferOpaqueCaptureAddress(VkDevice device,
 }
 uint64_t gfxstream_vk_GetDeviceMemoryOpaqueCaptureAddress(
     VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
-    AEMU_SCOPED_TRACE("vkGetDeviceMemoryOpaqueCaptureAddress");
+    MESA_TRACE_SCOPE("vkGetDeviceMemoryOpaqueCaptureAddress");
     uint64_t vkGetDeviceMemoryOpaqueCaptureAddress_uint64_t_return = (uint64_t)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -2271,7 +2271,7 @@ uint64_t gfxstream_vk_GetDeviceMemoryOpaqueCaptureAddress(
 VkResult gfxstream_vk_GetPhysicalDeviceToolProperties(
     VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
     VkPhysicalDeviceToolProperties* pToolProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceToolProperties");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceToolProperties");
     VkResult vkGetPhysicalDeviceToolProperties_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
@@ -2287,7 +2287,7 @@ VkResult gfxstream_vk_CreatePrivateDataSlot(VkDevice device,
                                             const VkPrivateDataSlotCreateInfo* pCreateInfo,
                                             const VkAllocationCallbacks* pAllocator,
                                             VkPrivateDataSlot* pPrivateDataSlot) {
-    AEMU_SCOPED_TRACE("vkCreatePrivateDataSlot");
+    MESA_TRACE_SCOPE("vkCreatePrivateDataSlot");
     VkResult vkCreatePrivateDataSlot_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -2300,7 +2300,7 @@ VkResult gfxstream_vk_CreatePrivateDataSlot(VkDevice device,
 }
 void gfxstream_vk_DestroyPrivateDataSlot(VkDevice device, VkPrivateDataSlot privateDataSlot,
                                          const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyPrivateDataSlot");
+    MESA_TRACE_SCOPE("vkDestroyPrivateDataSlot");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2311,7 +2311,7 @@ void gfxstream_vk_DestroyPrivateDataSlot(VkDevice device, VkPrivateDataSlot priv
 VkResult gfxstream_vk_SetPrivateData(VkDevice device, VkObjectType objectType,
                                      uint64_t objectHandle, VkPrivateDataSlot privateDataSlot,
                                      uint64_t data) {
-    AEMU_SCOPED_TRACE("vkSetPrivateData");
+    MESA_TRACE_SCOPE("vkSetPrivateData");
     VkResult vkSetPrivateData_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -2324,7 +2324,7 @@ VkResult gfxstream_vk_SetPrivateData(VkDevice device, VkObjectType objectType,
 }
 void gfxstream_vk_GetPrivateData(VkDevice device, VkObjectType objectType, uint64_t objectHandle,
                                  VkPrivateDataSlot privateDataSlot, uint64_t* pData) {
-    AEMU_SCOPED_TRACE("vkGetPrivateData");
+    MESA_TRACE_SCOPE("vkGetPrivateData");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2334,7 +2334,7 @@ void gfxstream_vk_GetPrivateData(VkDevice device, VkObjectType objectType, uint6
 }
 void gfxstream_vk_CmdSetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
                                const VkDependencyInfo* pDependencyInfo) {
-    AEMU_SCOPED_TRACE("vkCmdSetEvent2");
+    MESA_TRACE_SCOPE("vkCmdSetEvent2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2367,7 +2367,7 @@ void gfxstream_vk_CmdSetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
 }
 void gfxstream_vk_CmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
                                  VkPipelineStageFlags2 stageMask) {
-    AEMU_SCOPED_TRACE("vkCmdResetEvent2");
+    MESA_TRACE_SCOPE("vkCmdResetEvent2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2378,7 +2378,7 @@ void gfxstream_vk_CmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
 }
 void gfxstream_vk_CmdWaitEvents2(VkCommandBuffer commandBuffer, uint32_t eventCount,
                                  const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {
-    AEMU_SCOPED_TRACE("vkCmdWaitEvents2");
+    MESA_TRACE_SCOPE("vkCmdWaitEvents2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2411,7 +2411,7 @@ void gfxstream_vk_CmdWaitEvents2(VkCommandBuffer commandBuffer, uint32_t eventCo
 }
 void gfxstream_vk_CmdPipelineBarrier2(VkCommandBuffer commandBuffer,
                                       const VkDependencyInfo* pDependencyInfo) {
-    AEMU_SCOPED_TRACE("vkCmdPipelineBarrier2");
+    MESA_TRACE_SCOPE("vkCmdPipelineBarrier2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2444,7 +2444,7 @@ void gfxstream_vk_CmdPipelineBarrier2(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdWriteTimestamp2(VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
                                      VkQueryPool queryPool, uint32_t query) {
-    AEMU_SCOPED_TRACE("vkCmdWriteTimestamp2");
+    MESA_TRACE_SCOPE("vkCmdWriteTimestamp2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2455,7 +2455,7 @@ void gfxstream_vk_CmdWriteTimestamp2(VkCommandBuffer commandBuffer, VkPipelineSt
 }
 VkResult gfxstream_vk_QueueSubmit2(VkQueue queue, uint32_t submitCount,
                                    const VkSubmitInfo2* pSubmits, VkFence fence) {
-    AEMU_SCOPED_TRACE("vkQueueSubmit2");
+    MESA_TRACE_SCOPE("vkQueueSubmit2");
     VkResult vkQueueSubmit2_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     VK_FROM_HANDLE(gfxstream_vk_fence, gfxstream_fence, fence);
@@ -2517,7 +2517,7 @@ VkResult gfxstream_vk_QueueSubmit2(VkQueue queue, uint32_t submitCount,
 }
 void gfxstream_vk_CmdCopyBuffer2(VkCommandBuffer commandBuffer,
                                  const VkCopyBufferInfo2* pCopyBufferInfo) {
-    AEMU_SCOPED_TRACE("vkCmdCopyBuffer2");
+    MESA_TRACE_SCOPE("vkCmdCopyBuffer2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2540,7 +2540,7 @@ void gfxstream_vk_CmdCopyBuffer2(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdCopyImage2(VkCommandBuffer commandBuffer,
                                 const VkCopyImageInfo2* pCopyImageInfo) {
-    AEMU_SCOPED_TRACE("vkCmdCopyImage2");
+    MESA_TRACE_SCOPE("vkCmdCopyImage2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2551,7 +2551,7 @@ void gfxstream_vk_CmdCopyImage2(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdCopyBufferToImage2(VkCommandBuffer commandBuffer,
                                         const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
-    AEMU_SCOPED_TRACE("vkCmdCopyBufferToImage2");
+    MESA_TRACE_SCOPE("vkCmdCopyBufferToImage2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2570,7 +2570,7 @@ void gfxstream_vk_CmdCopyBufferToImage2(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdCopyImageToBuffer2(VkCommandBuffer commandBuffer,
                                         const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
-    AEMU_SCOPED_TRACE("vkCmdCopyImageToBuffer2");
+    MESA_TRACE_SCOPE("vkCmdCopyImageToBuffer2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2589,7 +2589,7 @@ void gfxstream_vk_CmdCopyImageToBuffer2(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdBlitImage2(VkCommandBuffer commandBuffer,
                                 const VkBlitImageInfo2* pBlitImageInfo) {
-    AEMU_SCOPED_TRACE("vkCmdBlitImage2");
+    MESA_TRACE_SCOPE("vkCmdBlitImage2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2600,7 +2600,7 @@ void gfxstream_vk_CmdBlitImage2(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdResolveImage2(VkCommandBuffer commandBuffer,
                                    const VkResolveImageInfo2* pResolveImageInfo) {
-    AEMU_SCOPED_TRACE("vkCmdResolveImage2");
+    MESA_TRACE_SCOPE("vkCmdResolveImage2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2611,7 +2611,7 @@ void gfxstream_vk_CmdResolveImage2(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdBeginRendering(VkCommandBuffer commandBuffer,
                                     const VkRenderingInfo* pRenderingInfo) {
-    AEMU_SCOPED_TRACE("vkCmdBeginRendering");
+    MESA_TRACE_SCOPE("vkCmdBeginRendering");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2621,7 +2621,7 @@ void gfxstream_vk_CmdBeginRendering(VkCommandBuffer commandBuffer,
     }
 }
 void gfxstream_vk_CmdEndRendering(VkCommandBuffer commandBuffer) {
-    AEMU_SCOPED_TRACE("vkCmdEndRendering");
+    MESA_TRACE_SCOPE("vkCmdEndRendering");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2630,7 +2630,7 @@ void gfxstream_vk_CmdEndRendering(VkCommandBuffer commandBuffer) {
     }
 }
 void gfxstream_vk_CmdSetCullMode(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
-    AEMU_SCOPED_TRACE("vkCmdSetCullMode");
+    MESA_TRACE_SCOPE("vkCmdSetCullMode");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2640,7 +2640,7 @@ void gfxstream_vk_CmdSetCullMode(VkCommandBuffer commandBuffer, VkCullModeFlags 
     }
 }
 void gfxstream_vk_CmdSetFrontFace(VkCommandBuffer commandBuffer, VkFrontFace frontFace) {
-    AEMU_SCOPED_TRACE("vkCmdSetFrontFace");
+    MESA_TRACE_SCOPE("vkCmdSetFrontFace");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2651,7 +2651,7 @@ void gfxstream_vk_CmdSetFrontFace(VkCommandBuffer commandBuffer, VkFrontFace fro
 }
 void gfxstream_vk_CmdSetPrimitiveTopology(VkCommandBuffer commandBuffer,
                                           VkPrimitiveTopology primitiveTopology) {
-    AEMU_SCOPED_TRACE("vkCmdSetPrimitiveTopology");
+    MESA_TRACE_SCOPE("vkCmdSetPrimitiveTopology");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2662,7 +2662,7 @@ void gfxstream_vk_CmdSetPrimitiveTopology(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetViewportWithCount(VkCommandBuffer commandBuffer, uint32_t viewportCount,
                                           const VkViewport* pViewports) {
-    AEMU_SCOPED_TRACE("vkCmdSetViewportWithCount");
+    MESA_TRACE_SCOPE("vkCmdSetViewportWithCount");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2673,7 +2673,7 @@ void gfxstream_vk_CmdSetViewportWithCount(VkCommandBuffer commandBuffer, uint32_
 }
 void gfxstream_vk_CmdSetScissorWithCount(VkCommandBuffer commandBuffer, uint32_t scissorCount,
                                          const VkRect2D* pScissors) {
-    AEMU_SCOPED_TRACE("vkCmdSetScissorWithCount");
+    MESA_TRACE_SCOPE("vkCmdSetScissorWithCount");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2686,7 +2686,7 @@ void gfxstream_vk_CmdBindVertexBuffers2(VkCommandBuffer commandBuffer, uint32_t 
                                         uint32_t bindingCount, const VkBuffer* pBuffers,
                                         const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
                                         const VkDeviceSize* pStrides) {
-    AEMU_SCOPED_TRACE("vkCmdBindVertexBuffers2");
+    MESA_TRACE_SCOPE("vkCmdBindVertexBuffers2");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2704,7 +2704,7 @@ void gfxstream_vk_CmdBindVertexBuffers2(VkCommandBuffer commandBuffer, uint32_t 
     }
 }
 void gfxstream_vk_CmdSetDepthTestEnable(VkCommandBuffer commandBuffer, VkBool32 depthTestEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthTestEnable");
+    MESA_TRACE_SCOPE("vkCmdSetDepthTestEnable");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2714,7 +2714,7 @@ void gfxstream_vk_CmdSetDepthTestEnable(VkCommandBuffer commandBuffer, VkBool32 
     }
 }
 void gfxstream_vk_CmdSetDepthWriteEnable(VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthWriteEnable");
+    MESA_TRACE_SCOPE("vkCmdSetDepthWriteEnable");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2724,7 +2724,7 @@ void gfxstream_vk_CmdSetDepthWriteEnable(VkCommandBuffer commandBuffer, VkBool32
     }
 }
 void gfxstream_vk_CmdSetDepthCompareOp(VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthCompareOp");
+    MESA_TRACE_SCOPE("vkCmdSetDepthCompareOp");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2735,7 +2735,7 @@ void gfxstream_vk_CmdSetDepthCompareOp(VkCommandBuffer commandBuffer, VkCompareO
 }
 void gfxstream_vk_CmdSetDepthBoundsTestEnable(VkCommandBuffer commandBuffer,
                                               VkBool32 depthBoundsTestEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthBoundsTestEnable");
+    MESA_TRACE_SCOPE("vkCmdSetDepthBoundsTestEnable");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2746,7 +2746,7 @@ void gfxstream_vk_CmdSetDepthBoundsTestEnable(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetStencilTestEnable(VkCommandBuffer commandBuffer,
                                           VkBool32 stencilTestEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetStencilTestEnable");
+    MESA_TRACE_SCOPE("vkCmdSetStencilTestEnable");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2758,7 +2758,7 @@ void gfxstream_vk_CmdSetStencilTestEnable(VkCommandBuffer commandBuffer,
 void gfxstream_vk_CmdSetStencilOp(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
                                   VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp,
                                   VkCompareOp compareOp) {
-    AEMU_SCOPED_TRACE("vkCmdSetStencilOp");
+    MESA_TRACE_SCOPE("vkCmdSetStencilOp");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2769,7 +2769,7 @@ void gfxstream_vk_CmdSetStencilOp(VkCommandBuffer commandBuffer, VkStencilFaceFl
 }
 void gfxstream_vk_CmdSetRasterizerDiscardEnable(VkCommandBuffer commandBuffer,
                                                 VkBool32 rasterizerDiscardEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetRasterizerDiscardEnable");
+    MESA_TRACE_SCOPE("vkCmdSetRasterizerDiscardEnable");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2779,7 +2779,7 @@ void gfxstream_vk_CmdSetRasterizerDiscardEnable(VkCommandBuffer commandBuffer,
     }
 }
 void gfxstream_vk_CmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthBiasEnable");
+    MESA_TRACE_SCOPE("vkCmdSetDepthBiasEnable");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2790,7 +2790,7 @@ void gfxstream_vk_CmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, VkBool32 
 }
 void gfxstream_vk_CmdSetPrimitiveRestartEnable(VkCommandBuffer commandBuffer,
                                                VkBool32 primitiveRestartEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetPrimitiveRestartEnable");
+    MESA_TRACE_SCOPE("vkCmdSetPrimitiveRestartEnable");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2802,7 +2802,7 @@ void gfxstream_vk_CmdSetPrimitiveRestartEnable(VkCommandBuffer commandBuffer,
 void gfxstream_vk_GetDeviceBufferMemoryRequirements(VkDevice device,
                                                     const VkDeviceBufferMemoryRequirements* pInfo,
                                                     VkMemoryRequirements2* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetDeviceBufferMemoryRequirements");
+    MESA_TRACE_SCOPE("vkGetDeviceBufferMemoryRequirements");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2813,7 +2813,7 @@ void gfxstream_vk_GetDeviceBufferMemoryRequirements(VkDevice device,
 void gfxstream_vk_GetDeviceImageMemoryRequirements(VkDevice device,
                                                    const VkDeviceImageMemoryRequirements* pInfo,
                                                    VkMemoryRequirements2* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetDeviceImageMemoryRequirements");
+    MESA_TRACE_SCOPE("vkGetDeviceImageMemoryRequirements");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2825,7 +2825,7 @@ void gfxstream_vk_GetDeviceImageSparseMemoryRequirements(
     VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetDeviceImageSparseMemoryRequirements");
+    MESA_TRACE_SCOPE("vkGetDeviceImageSparseMemoryRequirements");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2840,7 +2840,7 @@ VkResult gfxstream_vk_CreateAndroidSurfaceKHR(VkInstance instance,
                                               const VkAndroidSurfaceCreateInfoKHR* pCreateInfo,
                                               const VkAllocationCallbacks* pAllocator,
                                               VkSurfaceKHR* pSurface) {
-    AEMU_SCOPED_TRACE("vkCreateAndroidSurfaceKHR");
+    MESA_TRACE_SCOPE("vkCreateAndroidSurfaceKHR");
     VkResult vkCreateAndroidSurfaceKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_instance, gfxstream_instance, instance);
     {
@@ -2855,7 +2855,7 @@ VkResult gfxstream_vk_CreateAndroidSurfaceKHR(VkInstance instance,
 #ifdef VK_KHR_dynamic_rendering
 void gfxstream_vk_CmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
                                        const VkRenderingInfo* pRenderingInfo) {
-    AEMU_SCOPED_TRACE("vkCmdBeginRenderingKHR");
+    MESA_TRACE_SCOPE("vkCmdBeginRenderingKHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2865,7 +2865,7 @@ void gfxstream_vk_CmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
     }
 }
 void gfxstream_vk_CmdEndRenderingKHR(VkCommandBuffer commandBuffer) {
-    AEMU_SCOPED_TRACE("vkCmdEndRenderingKHR");
+    MESA_TRACE_SCOPE("vkCmdEndRenderingKHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -2877,7 +2877,7 @@ void gfxstream_vk_CmdEndRenderingKHR(VkCommandBuffer commandBuffer) {
 #ifdef VK_KHR_get_physical_device_properties2
 void gfxstream_vk_GetPhysicalDeviceFeatures2KHR(VkPhysicalDevice physicalDevice,
                                                 VkPhysicalDeviceFeatures2* pFeatures) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures2KHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceFeatures2KHR");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2887,7 +2887,7 @@ void gfxstream_vk_GetPhysicalDeviceFeatures2KHR(VkPhysicalDevice physicalDevice,
 }
 void gfxstream_vk_GetPhysicalDeviceProperties2KHR(VkPhysicalDevice physicalDevice,
                                                   VkPhysicalDeviceProperties2* pProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2KHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceProperties2KHR");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2898,7 +2898,7 @@ void gfxstream_vk_GetPhysicalDeviceProperties2KHR(VkPhysicalDevice physicalDevic
 void gfxstream_vk_GetPhysicalDeviceFormatProperties2KHR(VkPhysicalDevice physicalDevice,
                                                         VkFormat format,
                                                         VkFormatProperties2* pFormatProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties2KHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceFormatProperties2KHR");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2910,7 +2910,7 @@ void gfxstream_vk_GetPhysicalDeviceFormatProperties2KHR(VkPhysicalDevice physica
 VkResult gfxstream_vk_GetPhysicalDeviceImageFormatProperties2KHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties2KHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceImageFormatProperties2KHR");
     VkResult vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
@@ -2926,7 +2926,7 @@ VkResult gfxstream_vk_GetPhysicalDeviceImageFormatProperties2KHR(
 void gfxstream_vk_GetPhysicalDeviceQueueFamilyProperties2KHR(
     VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties2* pQueueFamilyProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties2KHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceQueueFamilyProperties2KHR");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2937,7 +2937,7 @@ void gfxstream_vk_GetPhysicalDeviceQueueFamilyProperties2KHR(
 }
 void gfxstream_vk_GetPhysicalDeviceMemoryProperties2KHR(
     VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties2KHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceMemoryProperties2KHR");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2948,7 +2948,7 @@ void gfxstream_vk_GetPhysicalDeviceMemoryProperties2KHR(
 void gfxstream_vk_GetPhysicalDeviceSparseImageFormatProperties2KHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
     uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties2KHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceSparseImageFormatProperties2KHR");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2961,7 +2961,7 @@ void gfxstream_vk_GetPhysicalDeviceSparseImageFormatProperties2KHR(
 #ifdef VK_KHR_maintenance1
 void gfxstream_vk_TrimCommandPoolKHR(VkDevice device, VkCommandPool commandPool,
                                      VkCommandPoolTrimFlags flags) {
-    AEMU_SCOPED_TRACE("vkTrimCommandPoolKHR");
+    MESA_TRACE_SCOPE("vkTrimCommandPoolKHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     VK_FROM_HANDLE(gfxstream_vk_command_pool, gfxstream_commandPool, commandPool);
     {
@@ -2976,7 +2976,7 @@ void gfxstream_vk_TrimCommandPoolKHR(VkDevice device, VkCommandPool commandPool,
 void gfxstream_vk_GetPhysicalDeviceExternalBufferPropertiesKHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
     VkExternalBufferProperties* pExternalBufferProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferPropertiesKHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceExternalBufferPropertiesKHR");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -2990,7 +2990,7 @@ void gfxstream_vk_GetPhysicalDeviceExternalBufferPropertiesKHR(
 #ifdef VK_KHR_external_memory_fd
 VkResult gfxstream_vk_GetMemoryFdKHR(VkDevice device, const VkMemoryGetFdInfoKHR* pGetFdInfo,
                                      int* pFd) {
-    AEMU_SCOPED_TRACE("vkGetMemoryFdKHR");
+    MESA_TRACE_SCOPE("vkGetMemoryFdKHR");
     VkResult vkGetMemoryFdKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3005,7 +3005,7 @@ VkResult gfxstream_vk_GetMemoryFdPropertiesKHR(VkDevice device,
                                                VkExternalMemoryHandleTypeFlagBits handleType,
                                                int fd,
                                                VkMemoryFdPropertiesKHR* pMemoryFdProperties) {
-    AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR");
+    MESA_TRACE_SCOPE("vkGetMemoryFdPropertiesKHR");
     VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3023,7 +3023,7 @@ void gfxstream_vk_GetPhysicalDeviceExternalSemaphorePropertiesKHR(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalSemaphorePropertiesKHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceExternalSemaphorePropertiesKHR");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3036,7 +3036,7 @@ void gfxstream_vk_GetPhysicalDeviceExternalSemaphorePropertiesKHR(
 #ifdef VK_KHR_external_semaphore_fd
 VkResult gfxstream_vk_ImportSemaphoreFdKHR(
     VkDevice device, const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {
-    AEMU_SCOPED_TRACE("vkImportSemaphoreFdKHR");
+    MESA_TRACE_SCOPE("vkImportSemaphoreFdKHR");
     VkResult vkImportSemaphoreFdKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3058,7 +3058,7 @@ VkResult gfxstream_vk_ImportSemaphoreFdKHR(
 }
 VkResult gfxstream_vk_GetSemaphoreFdKHR(VkDevice device, const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
                                         int* pFd) {
-    AEMU_SCOPED_TRACE("vkGetSemaphoreFdKHR");
+    MESA_TRACE_SCOPE("vkGetSemaphoreFdKHR");
     VkResult vkGetSemaphoreFdKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3083,7 +3083,7 @@ VkResult gfxstream_vk_CreateDescriptorUpdateTemplateKHR(
     VkDevice device, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
-    AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplateKHR");
+    MESA_TRACE_SCOPE("vkCreateDescriptorUpdateTemplateKHR");
     VkResult vkCreateDescriptorUpdateTemplateKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3098,7 +3098,7 @@ VkResult gfxstream_vk_CreateDescriptorUpdateTemplateKHR(
 void gfxstream_vk_DestroyDescriptorUpdateTemplateKHR(
     VkDevice device, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR");
+    MESA_TRACE_SCOPE("vkDestroyDescriptorUpdateTemplateKHR");
     if (VK_NULL_HANDLE == descriptorUpdateTemplate) {
         return;
     }
@@ -3113,7 +3113,7 @@ void gfxstream_vk_DestroyDescriptorUpdateTemplateKHR(
 void gfxstream_vk_UpdateDescriptorSetWithTemplateKHR(
     VkDevice device, VkDescriptorSet descriptorSet,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, const void* pData) {
-    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateKHR");
+    MESA_TRACE_SCOPE("vkUpdateDescriptorSetWithTemplateKHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3129,7 +3129,7 @@ VkResult gfxstream_vk_CreateRenderPass2KHR(VkDevice device,
                                            const VkRenderPassCreateInfo2* pCreateInfo,
                                            const VkAllocationCallbacks* pAllocator,
                                            VkRenderPass* pRenderPass) {
-    AEMU_SCOPED_TRACE("vkCreateRenderPass2KHR");
+    MESA_TRACE_SCOPE("vkCreateRenderPass2KHR");
     VkResult vkCreateRenderPass2KHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3143,7 +3143,7 @@ VkResult gfxstream_vk_CreateRenderPass2KHR(VkDevice device,
 void gfxstream_vk_CmdBeginRenderPass2KHR(VkCommandBuffer commandBuffer,
                                          const VkRenderPassBeginInfo* pRenderPassBegin,
                                          const VkSubpassBeginInfo* pSubpassBeginInfo) {
-    AEMU_SCOPED_TRACE("vkCmdBeginRenderPass2KHR");
+    MESA_TRACE_SCOPE("vkCmdBeginRenderPass2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3155,7 +3155,7 @@ void gfxstream_vk_CmdBeginRenderPass2KHR(VkCommandBuffer commandBuffer,
 void gfxstream_vk_CmdNextSubpass2KHR(VkCommandBuffer commandBuffer,
                                      const VkSubpassBeginInfo* pSubpassBeginInfo,
                                      const VkSubpassEndInfo* pSubpassEndInfo) {
-    AEMU_SCOPED_TRACE("vkCmdNextSubpass2KHR");
+    MESA_TRACE_SCOPE("vkCmdNextSubpass2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3166,7 +3166,7 @@ void gfxstream_vk_CmdNextSubpass2KHR(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdEndRenderPass2KHR(VkCommandBuffer commandBuffer,
                                        const VkSubpassEndInfo* pSubpassEndInfo) {
-    AEMU_SCOPED_TRACE("vkCmdEndRenderPass2KHR");
+    MESA_TRACE_SCOPE("vkCmdEndRenderPass2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3180,7 +3180,7 @@ void gfxstream_vk_CmdEndRenderPass2KHR(VkCommandBuffer commandBuffer,
 void gfxstream_vk_GetPhysicalDeviceExternalFencePropertiesKHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
     VkExternalFenceProperties* pExternalFenceProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalFencePropertiesKHR");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceExternalFencePropertiesKHR");
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3194,7 +3194,7 @@ void gfxstream_vk_GetPhysicalDeviceExternalFencePropertiesKHR(
 #ifdef VK_KHR_external_fence_fd
 VkResult gfxstream_vk_ImportFenceFdKHR(VkDevice device,
                                        const VkImportFenceFdInfoKHR* pImportFenceFdInfo) {
-    AEMU_SCOPED_TRACE("vkImportFenceFdKHR");
+    MESA_TRACE_SCOPE("vkImportFenceFdKHR");
     VkResult vkImportFenceFdKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3216,7 +3216,7 @@ VkResult gfxstream_vk_ImportFenceFdKHR(VkDevice device,
 }
 VkResult gfxstream_vk_GetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* pGetFdInfo,
                                     int* pFd) {
-    AEMU_SCOPED_TRACE("vkGetFenceFdKHR");
+    MESA_TRACE_SCOPE("vkGetFenceFdKHR");
     VkResult vkGetFenceFdKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3239,7 +3239,7 @@ VkResult gfxstream_vk_GetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* 
 void gfxstream_vk_GetImageMemoryRequirements2KHR(VkDevice device,
                                                  const VkImageMemoryRequirementsInfo2* pInfo,
                                                  VkMemoryRequirements2* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements2KHR");
+    MESA_TRACE_SCOPE("vkGetImageMemoryRequirements2KHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3251,7 +3251,7 @@ void gfxstream_vk_GetImageMemoryRequirements2KHR(VkDevice device,
 void gfxstream_vk_GetBufferMemoryRequirements2KHR(VkDevice device,
                                                   const VkBufferMemoryRequirementsInfo2* pInfo,
                                                   VkMemoryRequirements2* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements2KHR");
+    MESA_TRACE_SCOPE("vkGetBufferMemoryRequirements2KHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3271,7 +3271,7 @@ void gfxstream_vk_GetImageSparseMemoryRequirements2KHR(
     VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2KHR");
+    MESA_TRACE_SCOPE("vkGetImageSparseMemoryRequirements2KHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3285,7 +3285,7 @@ void gfxstream_vk_GetImageSparseMemoryRequirements2KHR(
 VkResult gfxstream_vk_CreateSamplerYcbcrConversionKHR(
     VkDevice device, const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkSamplerYcbcrConversion* pYcbcrConversion) {
-    AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversionKHR");
+    MESA_TRACE_SCOPE("vkCreateSamplerYcbcrConversionKHR");
     VkResult vkCreateSamplerYcbcrConversionKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3301,7 +3301,7 @@ VkResult gfxstream_vk_CreateSamplerYcbcrConversionKHR(
 void gfxstream_vk_DestroySamplerYcbcrConversionKHR(VkDevice device,
                                                    VkSamplerYcbcrConversion ycbcrConversion,
                                                    const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversionKHR");
+    MESA_TRACE_SCOPE("vkDestroySamplerYcbcrConversionKHR");
     if (VK_NULL_HANDLE == ycbcrConversion) {
         return;
     }
@@ -3317,7 +3317,7 @@ void gfxstream_vk_DestroySamplerYcbcrConversionKHR(VkDevice device,
 #ifdef VK_KHR_bind_memory2
 VkResult gfxstream_vk_BindBufferMemory2KHR(VkDevice device, uint32_t bindInfoCount,
                                            const VkBindBufferMemoryInfo* pBindInfos) {
-    AEMU_SCOPED_TRACE("vkBindBufferMemory2KHR");
+    MESA_TRACE_SCOPE("vkBindBufferMemory2KHR");
     VkResult vkBindBufferMemory2KHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3338,7 +3338,7 @@ VkResult gfxstream_vk_BindBufferMemory2KHR(VkDevice device, uint32_t bindInfoCou
 }
 VkResult gfxstream_vk_BindImageMemory2KHR(VkDevice device, uint32_t bindInfoCount,
                                           const VkBindImageMemoryInfo* pBindInfos) {
-    AEMU_SCOPED_TRACE("vkBindImageMemory2KHR");
+    MESA_TRACE_SCOPE("vkBindImageMemory2KHR");
     VkResult vkBindImageMemory2KHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3354,7 +3354,7 @@ VkResult gfxstream_vk_BindImageMemory2KHR(VkDevice device, uint32_t bindInfoCoun
 void gfxstream_vk_GetDescriptorSetLayoutSupportKHR(
     VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
     VkDescriptorSetLayoutSupport* pSupport) {
-    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupportKHR");
+    MESA_TRACE_SCOPE("vkGetDescriptorSetLayoutSupportKHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3366,7 +3366,7 @@ void gfxstream_vk_GetDescriptorSetLayoutSupportKHR(
 #ifdef VK_KHR_buffer_device_address
 VkDeviceAddress gfxstream_vk_GetBufferDeviceAddressKHR(VkDevice device,
                                                        const VkBufferDeviceAddressInfo* pInfo) {
-    AEMU_SCOPED_TRACE("vkGetBufferDeviceAddressKHR");
+    MESA_TRACE_SCOPE("vkGetBufferDeviceAddressKHR");
     VkDeviceAddress vkGetBufferDeviceAddressKHR_VkDeviceAddress_return = (VkDeviceAddress)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3385,7 +3385,7 @@ VkDeviceAddress gfxstream_vk_GetBufferDeviceAddressKHR(VkDevice device,
 }
 uint64_t gfxstream_vk_GetBufferOpaqueCaptureAddressKHR(VkDevice device,
                                                        const VkBufferDeviceAddressInfo* pInfo) {
-    AEMU_SCOPED_TRACE("vkGetBufferOpaqueCaptureAddressKHR");
+    MESA_TRACE_SCOPE("vkGetBufferOpaqueCaptureAddressKHR");
     uint64_t vkGetBufferOpaqueCaptureAddressKHR_uint64_t_return = (uint64_t)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3405,7 +3405,7 @@ uint64_t gfxstream_vk_GetBufferOpaqueCaptureAddressKHR(VkDevice device,
 }
 uint64_t gfxstream_vk_GetDeviceMemoryOpaqueCaptureAddressKHR(
     VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
-    AEMU_SCOPED_TRACE("vkGetDeviceMemoryOpaqueCaptureAddressKHR");
+    MESA_TRACE_SCOPE("vkGetDeviceMemoryOpaqueCaptureAddressKHR");
     uint64_t vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return = (uint64_t)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3421,7 +3421,7 @@ uint64_t gfxstream_vk_GetDeviceMemoryOpaqueCaptureAddressKHR(
 VkResult gfxstream_vk_GetPipelineExecutablePropertiesKHR(
     VkDevice device, const VkPipelineInfoKHR* pPipelineInfo, uint32_t* pExecutableCount,
     VkPipelineExecutablePropertiesKHR* pProperties) {
-    AEMU_SCOPED_TRACE("vkGetPipelineExecutablePropertiesKHR");
+    MESA_TRACE_SCOPE("vkGetPipelineExecutablePropertiesKHR");
     VkResult vkGetPipelineExecutablePropertiesKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3436,7 +3436,7 @@ VkResult gfxstream_vk_GetPipelineExecutablePropertiesKHR(
 VkResult gfxstream_vk_GetPipelineExecutableStatisticsKHR(
     VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo, uint32_t* pStatisticCount,
     VkPipelineExecutableStatisticKHR* pStatistics) {
-    AEMU_SCOPED_TRACE("vkGetPipelineExecutableStatisticsKHR");
+    MESA_TRACE_SCOPE("vkGetPipelineExecutableStatisticsKHR");
     VkResult vkGetPipelineExecutableStatisticsKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3452,7 +3452,7 @@ VkResult gfxstream_vk_GetPipelineExecutableInternalRepresentationsKHR(
     VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo,
     uint32_t* pInternalRepresentationCount,
     VkPipelineExecutableInternalRepresentationKHR* pInternalRepresentations) {
-    AEMU_SCOPED_TRACE("vkGetPipelineExecutableInternalRepresentationsKHR");
+    MESA_TRACE_SCOPE("vkGetPipelineExecutableInternalRepresentationsKHR");
     VkResult vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3468,7 +3468,7 @@ VkResult gfxstream_vk_GetPipelineExecutableInternalRepresentationsKHR(
 #ifdef VK_KHR_synchronization2
 void gfxstream_vk_CmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
                                   const VkDependencyInfo* pDependencyInfo) {
-    AEMU_SCOPED_TRACE("vkCmdSetEvent2KHR");
+    MESA_TRACE_SCOPE("vkCmdSetEvent2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3501,7 +3501,7 @@ void gfxstream_vk_CmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
 }
 void gfxstream_vk_CmdResetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
                                     VkPipelineStageFlags2 stageMask) {
-    AEMU_SCOPED_TRACE("vkCmdResetEvent2KHR");
+    MESA_TRACE_SCOPE("vkCmdResetEvent2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3513,7 +3513,7 @@ void gfxstream_vk_CmdResetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event
 void gfxstream_vk_CmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t eventCount,
                                     const VkEvent* pEvents,
                                     const VkDependencyInfo* pDependencyInfos) {
-    AEMU_SCOPED_TRACE("vkCmdWaitEvents2KHR");
+    MESA_TRACE_SCOPE("vkCmdWaitEvents2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3546,7 +3546,7 @@ void gfxstream_vk_CmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t even
 }
 void gfxstream_vk_CmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer,
                                          const VkDependencyInfo* pDependencyInfo) {
-    AEMU_SCOPED_TRACE("vkCmdPipelineBarrier2KHR");
+    MESA_TRACE_SCOPE("vkCmdPipelineBarrier2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3579,7 +3579,7 @@ void gfxstream_vk_CmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdWriteTimestamp2KHR(VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
                                         VkQueryPool queryPool, uint32_t query) {
-    AEMU_SCOPED_TRACE("vkCmdWriteTimestamp2KHR");
+    MESA_TRACE_SCOPE("vkCmdWriteTimestamp2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3590,7 +3590,7 @@ void gfxstream_vk_CmdWriteTimestamp2KHR(VkCommandBuffer commandBuffer, VkPipelin
 }
 VkResult gfxstream_vk_QueueSubmit2KHR(VkQueue queue, uint32_t submitCount,
                                       const VkSubmitInfo2* pSubmits, VkFence fence) {
-    AEMU_SCOPED_TRACE("vkQueueSubmit2KHR");
+    MESA_TRACE_SCOPE("vkQueueSubmit2KHR");
     VkResult vkQueueSubmit2KHR_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     VK_FROM_HANDLE(gfxstream_vk_fence, gfxstream_fence, fence);
@@ -3652,7 +3652,7 @@ VkResult gfxstream_vk_QueueSubmit2KHR(VkQueue queue, uint32_t submitCount,
 void gfxstream_vk_CmdWriteBufferMarker2AMD(VkCommandBuffer commandBuffer,
                                            VkPipelineStageFlags2 stage, VkBuffer dstBuffer,
                                            VkDeviceSize dstOffset, uint32_t marker) {
-    AEMU_SCOPED_TRACE("vkCmdWriteBufferMarker2AMD");
+    MESA_TRACE_SCOPE("vkCmdWriteBufferMarker2AMD");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_dstBuffer, dstBuffer);
     {
@@ -3665,7 +3665,7 @@ void gfxstream_vk_CmdWriteBufferMarker2AMD(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_GetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpointDataCount,
                                             VkCheckpointData2NV* pCheckpointData) {
-    AEMU_SCOPED_TRACE("vkGetQueueCheckpointData2NV");
+    MESA_TRACE_SCOPE("vkGetQueueCheckpointData2NV");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     {
         auto vkEnc =
@@ -3678,7 +3678,7 @@ void gfxstream_vk_GetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpoint
 #ifdef VK_KHR_copy_commands2
 void gfxstream_vk_CmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
                                     const VkCopyBufferInfo2* pCopyBufferInfo) {
-    AEMU_SCOPED_TRACE("vkCmdCopyBuffer2KHR");
+    MESA_TRACE_SCOPE("vkCmdCopyBuffer2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3701,7 +3701,7 @@ void gfxstream_vk_CmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdCopyImage2KHR(VkCommandBuffer commandBuffer,
                                    const VkCopyImageInfo2* pCopyImageInfo) {
-    AEMU_SCOPED_TRACE("vkCmdCopyImage2KHR");
+    MESA_TRACE_SCOPE("vkCmdCopyImage2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3712,7 +3712,7 @@ void gfxstream_vk_CmdCopyImage2KHR(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdCopyBufferToImage2KHR(VkCommandBuffer commandBuffer,
                                            const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
-    AEMU_SCOPED_TRACE("vkCmdCopyBufferToImage2KHR");
+    MESA_TRACE_SCOPE("vkCmdCopyBufferToImage2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3732,7 +3732,7 @@ void gfxstream_vk_CmdCopyBufferToImage2KHR(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdCopyImageToBuffer2KHR(VkCommandBuffer commandBuffer,
                                            const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
-    AEMU_SCOPED_TRACE("vkCmdCopyImageToBuffer2KHR");
+    MESA_TRACE_SCOPE("vkCmdCopyImageToBuffer2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3752,7 +3752,7 @@ void gfxstream_vk_CmdCopyImageToBuffer2KHR(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdBlitImage2KHR(VkCommandBuffer commandBuffer,
                                    const VkBlitImageInfo2* pBlitImageInfo) {
-    AEMU_SCOPED_TRACE("vkCmdBlitImage2KHR");
+    MESA_TRACE_SCOPE("vkCmdBlitImage2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3763,7 +3763,7 @@ void gfxstream_vk_CmdBlitImage2KHR(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdResolveImage2KHR(VkCommandBuffer commandBuffer,
                                       const VkResolveImageInfo2* pResolveImageInfo) {
-    AEMU_SCOPED_TRACE("vkCmdResolveImage2KHR");
+    MESA_TRACE_SCOPE("vkCmdResolveImage2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3777,7 +3777,7 @@ void gfxstream_vk_CmdResolveImage2KHR(VkCommandBuffer commandBuffer,
 void gfxstream_vk_GetDeviceBufferMemoryRequirementsKHR(
     VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetDeviceBufferMemoryRequirementsKHR");
+    MESA_TRACE_SCOPE("vkGetDeviceBufferMemoryRequirementsKHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3788,7 +3788,7 @@ void gfxstream_vk_GetDeviceBufferMemoryRequirementsKHR(
 void gfxstream_vk_GetDeviceImageMemoryRequirementsKHR(VkDevice device,
                                                       const VkDeviceImageMemoryRequirements* pInfo,
                                                       VkMemoryRequirements2* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetDeviceImageMemoryRequirementsKHR");
+    MESA_TRACE_SCOPE("vkGetDeviceImageMemoryRequirementsKHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3800,7 +3800,7 @@ void gfxstream_vk_GetDeviceImageSparseMemoryRequirementsKHR(
     VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkGetDeviceImageSparseMemoryRequirementsKHR");
+    MESA_TRACE_SCOPE("vkGetDeviceImageSparseMemoryRequirementsKHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3814,7 +3814,7 @@ void gfxstream_vk_GetDeviceImageSparseMemoryRequirementsKHR(
 void gfxstream_vk_CmdBindIndexBuffer2KHR(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                          VkDeviceSize offset, VkDeviceSize size,
                                          VkIndexType indexType) {
-    AEMU_SCOPED_TRACE("vkCmdBindIndexBuffer2KHR");
+    MESA_TRACE_SCOPE("vkCmdBindIndexBuffer2KHR");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_buffer, buffer);
     {
@@ -3828,7 +3828,7 @@ void gfxstream_vk_CmdBindIndexBuffer2KHR(VkCommandBuffer commandBuffer, VkBuffer
 void gfxstream_vk_GetRenderingAreaGranularityKHR(VkDevice device,
                                                  const VkRenderingAreaInfoKHR* pRenderingAreaInfo,
                                                  VkExtent2D* pGranularity) {
-    AEMU_SCOPED_TRACE("vkGetRenderingAreaGranularityKHR");
+    MESA_TRACE_SCOPE("vkGetRenderingAreaGranularityKHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3840,7 +3840,7 @@ void gfxstream_vk_GetRenderingAreaGranularityKHR(VkDevice device,
 void gfxstream_vk_GetDeviceImageSubresourceLayoutKHR(VkDevice device,
                                                      const VkDeviceImageSubresourceInfoKHR* pInfo,
                                                      VkSubresourceLayout2KHR* pLayout) {
-    AEMU_SCOPED_TRACE("vkGetDeviceImageSubresourceLayoutKHR");
+    MESA_TRACE_SCOPE("vkGetDeviceImageSubresourceLayoutKHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3851,7 +3851,7 @@ void gfxstream_vk_GetDeviceImageSubresourceLayoutKHR(VkDevice device,
 void gfxstream_vk_GetImageSubresourceLayout2KHR(VkDevice device, VkImage image,
                                                 const VkImageSubresource2KHR* pSubresource,
                                                 VkSubresourceLayout2KHR* pLayout) {
-    AEMU_SCOPED_TRACE("vkGetImageSubresourceLayout2KHR");
+    MESA_TRACE_SCOPE("vkGetImageSubresourceLayout2KHR");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -3864,7 +3864,7 @@ void gfxstream_vk_GetImageSubresourceLayout2KHR(VkDevice device, VkImage image,
 VkResult gfxstream_vk_GetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format,
                                                       VkImageUsageFlags imageUsage,
                                                       int* grallocUsage) {
-    AEMU_SCOPED_TRACE("vkGetSwapchainGrallocUsageANDROID");
+    MESA_TRACE_SCOPE("vkGetSwapchainGrallocUsageANDROID");
     VkResult vkGetSwapchainGrallocUsageANDROID_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3877,7 +3877,7 @@ VkResult gfxstream_vk_GetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat 
 }
 VkResult gfxstream_vk_AcquireImageANDROID(VkDevice device, VkImage image, int nativeFenceFd,
                                           VkSemaphore semaphore, VkFence fence) {
-    AEMU_SCOPED_TRACE("vkAcquireImageANDROID");
+    MESA_TRACE_SCOPE("vkAcquireImageANDROID");
     VkResult vkAcquireImageANDROID_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     VK_FROM_HANDLE(gfxstream_vk_semaphore, gfxstream_semaphore, semaphore);
@@ -3895,7 +3895,7 @@ VkResult gfxstream_vk_AcquireImageANDROID(VkDevice device, VkImage image, int na
 VkResult gfxstream_vk_QueueSignalReleaseImageANDROID(VkQueue queue, uint32_t waitSemaphoreCount,
                                                      const VkSemaphore* pWaitSemaphores,
                                                      VkImage image, int* pNativeFenceFd) {
-    AEMU_SCOPED_TRACE("vkQueueSignalReleaseImageANDROID");
+    MESA_TRACE_SCOPE("vkQueueSignalReleaseImageANDROID");
     VkResult vkQueueSignalReleaseImageANDROID_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     {
@@ -3917,7 +3917,7 @@ VkResult gfxstream_vk_GetSwapchainGrallocUsage2ANDROID(
     VkDevice device, VkFormat format, VkImageUsageFlags imageUsage,
     VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
     uint64_t* grallocProducerUsage) {
-    AEMU_SCOPED_TRACE("vkGetSwapchainGrallocUsage2ANDROID");
+    MESA_TRACE_SCOPE("vkGetSwapchainGrallocUsage2ANDROID");
     VkResult vkGetSwapchainGrallocUsage2ANDROID_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -3936,7 +3936,7 @@ void gfxstream_vk_CmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuff
                                                      const VkBuffer* pBuffers,
                                                      const VkDeviceSize* pOffsets,
                                                      const VkDeviceSize* pSizes) {
-    AEMU_SCOPED_TRACE("vkCmdBindTransformFeedbackBuffersEXT");
+    MESA_TRACE_SCOPE("vkCmdBindTransformFeedbackBuffersEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3951,34 +3951,12 @@ void gfxstream_vk_CmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuff
             internal_pBuffers.data(), pOffsets, pSizes, true /* do lock */);
     }
 }
-void gfxstream_vk_CmdBeginTransformFeedbackEXT(VkCommandBuffer commandBuffer,
-                                               uint32_t firstCounterBuffer,
-                                               uint32_t counterBufferCount,
-                                               const VkBuffer* pCounterBuffers,
-                                               const VkDeviceSize* pCounterBufferOffsets) {
-    AEMU_SCOPED_TRACE("vkCmdBeginTransformFeedbackEXT");
-    VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
-    {
-        auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
-            gfxstream_commandBuffer->internal_object);
-        std::vector<VkBuffer> internal_pCounterBuffers(counterBufferCount);
-        for (uint32_t i = 0; i < counterBufferCount; ++i) {
-            if (pCounterBuffers) {
-                VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_pCounterBuffers, pCounterBuffers[i]);
-                internal_pCounterBuffers[i] = gfxstream_pCounterBuffers->internal_object;
-            }
-        }
-        vkEnc->vkCmdBeginTransformFeedbackEXT(
-            gfxstream_commandBuffer->internal_object, firstCounterBuffer, counterBufferCount,
-            internal_pCounterBuffers.data(), pCounterBufferOffsets, true /* do lock */);
-    }
-}
 void gfxstream_vk_CmdEndTransformFeedbackEXT(VkCommandBuffer commandBuffer,
                                              uint32_t firstCounterBuffer,
                                              uint32_t counterBufferCount,
                                              const VkBuffer* pCounterBuffers,
                                              const VkDeviceSize* pCounterBufferOffsets) {
-    AEMU_SCOPED_TRACE("vkCmdEndTransformFeedbackEXT");
+    MESA_TRACE_SCOPE("vkCmdEndTransformFeedbackEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -3998,7 +3976,7 @@ void gfxstream_vk_CmdEndTransformFeedbackEXT(VkCommandBuffer commandBuffer,
 void gfxstream_vk_CmdBeginQueryIndexedEXT(VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                           uint32_t query, VkQueryControlFlags flags,
                                           uint32_t index) {
-    AEMU_SCOPED_TRACE("vkCmdBeginQueryIndexedEXT");
+    MESA_TRACE_SCOPE("vkCmdBeginQueryIndexedEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4009,7 +3987,7 @@ void gfxstream_vk_CmdBeginQueryIndexedEXT(VkCommandBuffer commandBuffer, VkQuery
 }
 void gfxstream_vk_CmdEndQueryIndexedEXT(VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                         uint32_t query, uint32_t index) {
-    AEMU_SCOPED_TRACE("vkCmdEndQueryIndexedEXT");
+    MESA_TRACE_SCOPE("vkCmdEndQueryIndexedEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4022,7 +4000,7 @@ void gfxstream_vk_CmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
                                               uint32_t firstInstance, VkBuffer counterBuffer,
                                               VkDeviceSize counterBufferOffset,
                                               uint32_t counterOffset, uint32_t vertexStride) {
-    AEMU_SCOPED_TRACE("vkCmdDrawIndirectByteCountEXT");
+    MESA_TRACE_SCOPE("vkCmdDrawIndirectByteCountEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_counterBuffer, counterBuffer);
     {
@@ -4039,7 +4017,7 @@ void gfxstream_vk_CmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
 VkResult gfxstream_vk_GetAndroidHardwareBufferPropertiesANDROID(
     VkDevice device, const AHardwareBuffer* buffer,
     VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
-    AEMU_SCOPED_TRACE("vkGetAndroidHardwareBufferPropertiesANDROID");
+    MESA_TRACE_SCOPE("vkGetAndroidHardwareBufferPropertiesANDROID");
     VkResult vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4054,7 +4032,7 @@ VkResult gfxstream_vk_GetAndroidHardwareBufferPropertiesANDROID(
 VkResult gfxstream_vk_GetMemoryAndroidHardwareBufferANDROID(
     VkDevice device, const VkMemoryGetAndroidHardwareBufferInfoANDROID* pInfo,
     AHardwareBuffer** pBuffer) {
-    AEMU_SCOPED_TRACE("vkGetMemoryAndroidHardwareBufferANDROID");
+    MESA_TRACE_SCOPE("vkGetMemoryAndroidHardwareBufferANDROID");
     VkResult vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4071,7 +4049,7 @@ VkResult gfxstream_vk_GetMemoryAndroidHardwareBufferANDROID(
 VkResult gfxstream_vk_GetPhysicalDeviceToolPropertiesEXT(
     VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
     VkPhysicalDeviceToolProperties* pToolProperties) {
-    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceToolPropertiesEXT");
+    MESA_TRACE_SCOPE("vkGetPhysicalDeviceToolPropertiesEXT");
     VkResult vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_physical_device, gfxstream_physicalDevice, physicalDevice);
     {
@@ -4087,7 +4065,7 @@ VkResult gfxstream_vk_GetPhysicalDeviceToolPropertiesEXT(
 #ifdef VK_EXT_line_rasterization
 void gfxstream_vk_CmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
                                        uint16_t lineStipplePattern) {
-    AEMU_SCOPED_TRACE("vkCmdSetLineStippleEXT");
+    MESA_TRACE_SCOPE("vkCmdSetLineStippleEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4099,7 +4077,7 @@ void gfxstream_vk_CmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t l
 #endif
 #ifdef VK_EXT_extended_dynamic_state
 void gfxstream_vk_CmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
-    AEMU_SCOPED_TRACE("vkCmdSetCullModeEXT");
+    MESA_TRACE_SCOPE("vkCmdSetCullModeEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4109,7 +4087,7 @@ void gfxstream_vk_CmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFla
     }
 }
 void gfxstream_vk_CmdSetFrontFaceEXT(VkCommandBuffer commandBuffer, VkFrontFace frontFace) {
-    AEMU_SCOPED_TRACE("vkCmdSetFrontFaceEXT");
+    MESA_TRACE_SCOPE("vkCmdSetFrontFaceEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4120,7 +4098,7 @@ void gfxstream_vk_CmdSetFrontFaceEXT(VkCommandBuffer commandBuffer, VkFrontFace 
 }
 void gfxstream_vk_CmdSetPrimitiveTopologyEXT(VkCommandBuffer commandBuffer,
                                              VkPrimitiveTopology primitiveTopology) {
-    AEMU_SCOPED_TRACE("vkCmdSetPrimitiveTopologyEXT");
+    MESA_TRACE_SCOPE("vkCmdSetPrimitiveTopologyEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4131,7 +4109,7 @@ void gfxstream_vk_CmdSetPrimitiveTopologyEXT(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetViewportWithCountEXT(VkCommandBuffer commandBuffer, uint32_t viewportCount,
                                              const VkViewport* pViewports) {
-    AEMU_SCOPED_TRACE("vkCmdSetViewportWithCountEXT");
+    MESA_TRACE_SCOPE("vkCmdSetViewportWithCountEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4142,7 +4120,7 @@ void gfxstream_vk_CmdSetViewportWithCountEXT(VkCommandBuffer commandBuffer, uint
 }
 void gfxstream_vk_CmdSetScissorWithCountEXT(VkCommandBuffer commandBuffer, uint32_t scissorCount,
                                             const VkRect2D* pScissors) {
-    AEMU_SCOPED_TRACE("vkCmdSetScissorWithCountEXT");
+    MESA_TRACE_SCOPE("vkCmdSetScissorWithCountEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4155,7 +4133,7 @@ void gfxstream_vk_CmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32
                                            uint32_t bindingCount, const VkBuffer* pBuffers,
                                            const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
                                            const VkDeviceSize* pStrides) {
-    AEMU_SCOPED_TRACE("vkCmdBindVertexBuffers2EXT");
+    MESA_TRACE_SCOPE("vkCmdBindVertexBuffers2EXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4174,7 +4152,7 @@ void gfxstream_vk_CmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32
 }
 void gfxstream_vk_CmdSetDepthTestEnableEXT(VkCommandBuffer commandBuffer,
                                            VkBool32 depthTestEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthTestEnableEXT");
+    MESA_TRACE_SCOPE("vkCmdSetDepthTestEnableEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4185,7 +4163,7 @@ void gfxstream_vk_CmdSetDepthTestEnableEXT(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetDepthWriteEnableEXT(VkCommandBuffer commandBuffer,
                                             VkBool32 depthWriteEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthWriteEnableEXT");
+    MESA_TRACE_SCOPE("vkCmdSetDepthWriteEnableEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4196,7 +4174,7 @@ void gfxstream_vk_CmdSetDepthWriteEnableEXT(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetDepthCompareOpEXT(VkCommandBuffer commandBuffer,
                                           VkCompareOp depthCompareOp) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthCompareOpEXT");
+    MESA_TRACE_SCOPE("vkCmdSetDepthCompareOpEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4207,7 +4185,7 @@ void gfxstream_vk_CmdSetDepthCompareOpEXT(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetDepthBoundsTestEnableEXT(VkCommandBuffer commandBuffer,
                                                  VkBool32 depthBoundsTestEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthBoundsTestEnableEXT");
+    MESA_TRACE_SCOPE("vkCmdSetDepthBoundsTestEnableEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4218,7 +4196,7 @@ void gfxstream_vk_CmdSetDepthBoundsTestEnableEXT(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetStencilTestEnableEXT(VkCommandBuffer commandBuffer,
                                              VkBool32 stencilTestEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetStencilTestEnableEXT");
+    MESA_TRACE_SCOPE("vkCmdSetStencilTestEnableEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4230,7 +4208,7 @@ void gfxstream_vk_CmdSetStencilTestEnableEXT(VkCommandBuffer commandBuffer,
 void gfxstream_vk_CmdSetStencilOpEXT(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
                                      VkStencilOp failOp, VkStencilOp passOp,
                                      VkStencilOp depthFailOp, VkCompareOp compareOp) {
-    AEMU_SCOPED_TRACE("vkCmdSetStencilOpEXT");
+    MESA_TRACE_SCOPE("vkCmdSetStencilOpEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4243,7 +4221,7 @@ void gfxstream_vk_CmdSetStencilOpEXT(VkCommandBuffer commandBuffer, VkStencilFac
 #ifdef VK_EXT_host_image_copy
 VkResult gfxstream_vk_CopyMemoryToImageEXT(
     VkDevice device, const VkCopyMemoryToImageInfoEXT* pCopyMemoryToImageInfo) {
-    AEMU_SCOPED_TRACE("vkCopyMemoryToImageEXT");
+    MESA_TRACE_SCOPE("vkCopyMemoryToImageEXT");
     VkResult vkCopyMemoryToImageEXT_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4255,7 +4233,7 @@ VkResult gfxstream_vk_CopyMemoryToImageEXT(
 }
 VkResult gfxstream_vk_CopyImageToMemoryEXT(
     VkDevice device, const VkCopyImageToMemoryInfoEXT* pCopyImageToMemoryInfo) {
-    AEMU_SCOPED_TRACE("vkCopyImageToMemoryEXT");
+    MESA_TRACE_SCOPE("vkCopyImageToMemoryEXT");
     VkResult vkCopyImageToMemoryEXT_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4267,7 +4245,7 @@ VkResult gfxstream_vk_CopyImageToMemoryEXT(
 }
 VkResult gfxstream_vk_CopyImageToImageEXT(VkDevice device,
                                           const VkCopyImageToImageInfoEXT* pCopyImageToImageInfo) {
-    AEMU_SCOPED_TRACE("vkCopyImageToImageEXT");
+    MESA_TRACE_SCOPE("vkCopyImageToImageEXT");
     VkResult vkCopyImageToImageEXT_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4280,7 +4258,7 @@ VkResult gfxstream_vk_CopyImageToImageEXT(VkDevice device,
 VkResult gfxstream_vk_TransitionImageLayoutEXT(
     VkDevice device, uint32_t transitionCount,
     const VkHostImageLayoutTransitionInfoEXT* pTransitions) {
-    AEMU_SCOPED_TRACE("vkTransitionImageLayoutEXT");
+    MESA_TRACE_SCOPE("vkTransitionImageLayoutEXT");
     VkResult vkTransitionImageLayoutEXT_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4293,7 +4271,7 @@ VkResult gfxstream_vk_TransitionImageLayoutEXT(
 void gfxstream_vk_GetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
                                                 const VkImageSubresource2KHR* pSubresource,
                                                 VkSubresourceLayout2KHR* pLayout) {
-    AEMU_SCOPED_TRACE("vkGetImageSubresourceLayout2EXT");
+    MESA_TRACE_SCOPE("vkGetImageSubresourceLayout2EXT");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -4307,7 +4285,7 @@ VkResult gfxstream_vk_CreatePrivateDataSlotEXT(VkDevice device,
                                                const VkPrivateDataSlotCreateInfo* pCreateInfo,
                                                const VkAllocationCallbacks* pAllocator,
                                                VkPrivateDataSlot* pPrivateDataSlot) {
-    AEMU_SCOPED_TRACE("vkCreatePrivateDataSlotEXT");
+    MESA_TRACE_SCOPE("vkCreatePrivateDataSlotEXT");
     VkResult vkCreatePrivateDataSlotEXT_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4320,7 +4298,7 @@ VkResult gfxstream_vk_CreatePrivateDataSlotEXT(VkDevice device,
 }
 void gfxstream_vk_DestroyPrivateDataSlotEXT(VkDevice device, VkPrivateDataSlot privateDataSlot,
                                             const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkDestroyPrivateDataSlotEXT");
+    MESA_TRACE_SCOPE("vkDestroyPrivateDataSlotEXT");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -4331,7 +4309,7 @@ void gfxstream_vk_DestroyPrivateDataSlotEXT(VkDevice device, VkPrivateDataSlot p
 VkResult gfxstream_vk_SetPrivateDataEXT(VkDevice device, VkObjectType objectType,
                                         uint64_t objectHandle, VkPrivateDataSlot privateDataSlot,
                                         uint64_t data) {
-    AEMU_SCOPED_TRACE("vkSetPrivateDataEXT");
+    MESA_TRACE_SCOPE("vkSetPrivateDataEXT");
     VkResult vkSetPrivateDataEXT_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4344,7 +4322,7 @@ VkResult gfxstream_vk_SetPrivateDataEXT(VkDevice device, VkObjectType objectType
 }
 void gfxstream_vk_GetPrivateDataEXT(VkDevice device, VkObjectType objectType, uint64_t objectHandle,
                                     VkPrivateDataSlot privateDataSlot, uint64_t* pData) {
-    AEMU_SCOPED_TRACE("vkGetPrivateDataEXT");
+    MESA_TRACE_SCOPE("vkGetPrivateDataEXT");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -4356,7 +4334,7 @@ void gfxstream_vk_GetPrivateDataEXT(VkDevice device, VkObjectType objectType, ui
 #ifdef VK_EXT_extended_dynamic_state2
 void gfxstream_vk_CmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
                                               uint32_t patchControlPoints) {
-    AEMU_SCOPED_TRACE("vkCmdSetPatchControlPointsEXT");
+    MESA_TRACE_SCOPE("vkCmdSetPatchControlPointsEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4367,7 +4345,7 @@ void gfxstream_vk_CmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CmdSetRasterizerDiscardEnableEXT(VkCommandBuffer commandBuffer,
                                                    VkBool32 rasterizerDiscardEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetRasterizerDiscardEnableEXT");
+    MESA_TRACE_SCOPE("vkCmdSetRasterizerDiscardEnableEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4378,7 +4356,7 @@ void gfxstream_vk_CmdSetRasterizerDiscardEnableEXT(VkCommandBuffer commandBuffer
 }
 void gfxstream_vk_CmdSetDepthBiasEnableEXT(VkCommandBuffer commandBuffer,
                                            VkBool32 depthBiasEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetDepthBiasEnableEXT");
+    MESA_TRACE_SCOPE("vkCmdSetDepthBiasEnableEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4388,7 +4366,7 @@ void gfxstream_vk_CmdSetDepthBiasEnableEXT(VkCommandBuffer commandBuffer,
     }
 }
 void gfxstream_vk_CmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logicOp) {
-    AEMU_SCOPED_TRACE("vkCmdSetLogicOpEXT");
+    MESA_TRACE_SCOPE("vkCmdSetLogicOpEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4399,7 +4377,7 @@ void gfxstream_vk_CmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logi
 }
 void gfxstream_vk_CmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
                                                   VkBool32 primitiveRestartEnable) {
-    AEMU_SCOPED_TRACE("vkCmdSetPrimitiveRestartEnableEXT");
+    MESA_TRACE_SCOPE("vkCmdSetPrimitiveRestartEnableEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4412,7 +4390,7 @@ void gfxstream_vk_CmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
 #ifdef VK_EXT_color_write_enable
 void gfxstream_vk_CmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
                                             const VkBool32* pColorWriteEnables) {
-    AEMU_SCOPED_TRACE("vkCmdSetColorWriteEnableEXT");
+    MESA_TRACE_SCOPE("vkCmdSetColorWriteEnableEXT");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4425,7 +4403,7 @@ void gfxstream_vk_CmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint3
 #ifdef VK_GOOGLE_gfxstream
 VkResult gfxstream_vk_MapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceMemory memory,
                                                       uint64_t* pAddress) {
-    AEMU_SCOPED_TRACE("vkMapMemoryIntoAddressSpaceGOOGLE");
+    MESA_TRACE_SCOPE("vkMapMemoryIntoAddressSpaceGOOGLE");
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4443,7 +4421,7 @@ void gfxstream_vk_UpdateDescriptorSetWithTemplateSizedGOOGLE(
     const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
     const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
     const VkBufferView* pBufferViews) {
-    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
+    MESA_TRACE_SCOPE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -4468,7 +4446,7 @@ void gfxstream_vk_UpdateDescriptorSetWithTemplateSizedGOOGLE(
 }
 void gfxstream_vk_BeginCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
                                                 const VkCommandBufferBeginInfo* pBeginInfo) {
-    AEMU_SCOPED_TRACE("vkBeginCommandBufferAsyncGOOGLE");
+    MESA_TRACE_SCOPE("vkBeginCommandBufferAsyncGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4478,7 +4456,7 @@ void gfxstream_vk_BeginCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
     }
 }
 void gfxstream_vk_EndCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer) {
-    AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE");
+    MESA_TRACE_SCOPE("vkEndCommandBufferAsyncGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4489,7 +4467,7 @@ void gfxstream_vk_EndCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer) {
 }
 void gfxstream_vk_ResetCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
                                                 VkCommandBufferResetFlags flags) {
-    AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE");
+    MESA_TRACE_SCOPE("vkResetCommandBufferAsyncGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4500,7 +4478,7 @@ void gfxstream_vk_ResetCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
 }
 void gfxstream_vk_CommandBufferHostSyncGOOGLE(VkCommandBuffer commandBuffer, uint32_t needHostSync,
                                               uint32_t sequenceNumber) {
-    AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE");
+    MESA_TRACE_SCOPE("vkCommandBufferHostSyncGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
@@ -4514,7 +4492,7 @@ VkResult gfxstream_vk_CreateImageWithRequirementsGOOGLE(VkDevice device,
                                                         const VkAllocationCallbacks* pAllocator,
                                                         VkImage* pImage,
                                                         VkMemoryRequirements* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE");
+    MESA_TRACE_SCOPE("vkCreateImageWithRequirementsGOOGLE");
     VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4529,7 +4507,7 @@ VkResult gfxstream_vk_CreateImageWithRequirementsGOOGLE(VkDevice device,
 VkResult gfxstream_vk_CreateBufferWithRequirementsGOOGLE(
     VkDevice device, const VkBufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
     VkBuffer* pBuffer, VkMemoryRequirements* pMemoryRequirements) {
-    AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE");
+    MESA_TRACE_SCOPE("vkCreateBufferWithRequirementsGOOGLE");
     VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     struct gfxstream_vk_buffer* gfxstream_pBuffer = (gfxstream_vk_buffer*)vk_object_zalloc(
@@ -4549,7 +4527,7 @@ VkResult gfxstream_vk_CreateBufferWithRequirementsGOOGLE(
 VkResult gfxstream_vk_GetMemoryHostAddressInfoGOOGLE(VkDevice device, VkDeviceMemory memory,
                                                      uint64_t* pAddress, uint64_t* pSize,
                                                      uint64_t* pHostmemId) {
-    AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE");
+    MESA_TRACE_SCOPE("vkGetMemoryHostAddressInfoGOOGLE");
     VkResult vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4562,7 +4540,7 @@ VkResult gfxstream_vk_GetMemoryHostAddressInfoGOOGLE(VkDevice device, VkDeviceMe
 }
 VkResult gfxstream_vk_FreeMemorySyncGOOGLE(VkDevice device, VkDeviceMemory memory,
                                            const VkAllocationCallbacks* pAllocator) {
-    AEMU_SCOPED_TRACE("vkFreeMemorySyncGOOGLE");
+    MESA_TRACE_SCOPE("vkFreeMemorySyncGOOGLE");
     VkResult vkFreeMemorySyncGOOGLE_VkResult_return = (VkResult)0;
     if (VK_NULL_HANDLE == memory) {
         return vkFreeMemorySyncGOOGLE_VkResult_return;
@@ -4577,7 +4555,7 @@ VkResult gfxstream_vk_FreeMemorySyncGOOGLE(VkDevice device, VkDeviceMemory memor
 }
 void gfxstream_vk_QueueHostSyncGOOGLE(VkQueue queue, uint32_t needHostSync,
                                       uint32_t sequenceNumber) {
-    AEMU_SCOPED_TRACE("vkQueueHostSyncGOOGLE");
+    MESA_TRACE_SCOPE("vkQueueHostSyncGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     {
         auto vkEnc =
@@ -4588,7 +4566,7 @@ void gfxstream_vk_QueueHostSyncGOOGLE(VkQueue queue, uint32_t needHostSync,
 }
 void gfxstream_vk_QueueSubmitAsyncGOOGLE(VkQueue queue, uint32_t submitCount,
                                          const VkSubmitInfo* pSubmits, VkFence fence) {
-    AEMU_SCOPED_TRACE("vkQueueSubmitAsyncGOOGLE");
+    MESA_TRACE_SCOPE("vkQueueSubmitAsyncGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     VK_FROM_HANDLE(gfxstream_vk_fence, gfxstream_fence, fence);
     {
@@ -4634,7 +4612,7 @@ void gfxstream_vk_QueueSubmitAsyncGOOGLE(VkQueue queue, uint32_t submitCount,
     }
 }
 void gfxstream_vk_QueueWaitIdleAsyncGOOGLE(VkQueue queue) {
-    AEMU_SCOPED_TRACE("vkQueueWaitIdleAsyncGOOGLE");
+    MESA_TRACE_SCOPE("vkQueueWaitIdleAsyncGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     {
         auto vkEnc =
@@ -4644,7 +4622,7 @@ void gfxstream_vk_QueueWaitIdleAsyncGOOGLE(VkQueue queue) {
 }
 void gfxstream_vk_QueueBindSparseAsyncGOOGLE(VkQueue queue, uint32_t bindInfoCount,
                                              const VkBindSparseInfo* pBindInfo, VkFence fence) {
-    AEMU_SCOPED_TRACE("vkQueueBindSparseAsyncGOOGLE");
+    MESA_TRACE_SCOPE("vkQueueBindSparseAsyncGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     VK_FROM_HANDLE(gfxstream_vk_fence, gfxstream_fence, fence);
     {
@@ -4698,7 +4676,7 @@ void gfxstream_vk_QueueBindSparseAsyncGOOGLE(VkQueue queue, uint32_t bindInfoCou
 void gfxstream_vk_GetLinearImageLayoutGOOGLE(VkDevice device, VkFormat format,
                                              VkDeviceSize* pOffset,
                                              VkDeviceSize* pRowPitchAlignment) {
-    AEMU_SCOPED_TRACE("vkGetLinearImageLayoutGOOGLE");
+    MESA_TRACE_SCOPE("vkGetLinearImageLayoutGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -4709,7 +4687,7 @@ void gfxstream_vk_GetLinearImageLayoutGOOGLE(VkDevice device, VkFormat format,
 void gfxstream_vk_GetLinearImageLayout2GOOGLE(VkDevice device, const VkImageCreateInfo* pCreateInfo,
                                               VkDeviceSize* pOffset,
                                               VkDeviceSize* pRowPitchAlignment) {
-    AEMU_SCOPED_TRACE("vkGetLinearImageLayout2GOOGLE");
+    MESA_TRACE_SCOPE("vkGetLinearImageLayout2GOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -4719,7 +4697,7 @@ void gfxstream_vk_GetLinearImageLayout2GOOGLE(VkDevice device, const VkImageCrea
 }
 void gfxstream_vk_QueueFlushCommandsGOOGLE(VkQueue queue, VkCommandBuffer commandBuffer,
                                            VkDeviceSize dataSize, const void* pData) {
-    AEMU_SCOPED_TRACE("vkQueueFlushCommandsGOOGLE");
+    MESA_TRACE_SCOPE("vkQueueFlushCommandsGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
@@ -4737,7 +4715,7 @@ void gfxstream_vk_QueueCommitDescriptorSetUpdatesGOOGLE(
     const uint32_t* pDescriptorSetPendingAllocation,
     const uint32_t* pDescriptorWriteStartingIndices, uint32_t pendingDescriptorWriteCount,
     const VkWriteDescriptorSet* pPendingDescriptorWrites) {
-    AEMU_SCOPED_TRACE("vkQueueCommitDescriptorSetUpdatesGOOGLE");
+    MESA_TRACE_SCOPE("vkQueueCommitDescriptorSetUpdatesGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     {
         auto vkEnc =
@@ -4778,7 +4756,7 @@ void gfxstream_vk_QueueCommitDescriptorSetUpdatesGOOGLE(
 }
 void gfxstream_vk_CollectDescriptorPoolIdsGOOGLE(VkDevice device, VkDescriptorPool descriptorPool,
                                                  uint32_t* pPoolIdCount, uint64_t* pPoolIds) {
-    AEMU_SCOPED_TRACE("vkCollectDescriptorPoolIdsGOOGLE");
+    MESA_TRACE_SCOPE("vkCollectDescriptorPoolIdsGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -4790,7 +4768,7 @@ void gfxstream_vk_QueueSignalReleaseImageANDROIDAsyncGOOGLE(VkQueue queue,
                                                             uint32_t waitSemaphoreCount,
                                                             const VkSemaphore* pWaitSemaphores,
                                                             VkImage image) {
-    AEMU_SCOPED_TRACE("vkQueueSignalReleaseImageANDROIDAsyncGOOGLE");
+    MESA_TRACE_SCOPE("vkQueueSignalReleaseImageANDROIDAsyncGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     {
         auto vkEnc =
@@ -4809,7 +4787,7 @@ void gfxstream_vk_QueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
                                                         VkDeviceMemory deviceMemory,
                                                         VkDeviceSize dataOffset,
                                                         VkDeviceSize dataSize) {
-    AEMU_SCOPED_TRACE("vkQueueFlushCommandsFromAuxMemoryGOOGLE");
+    MESA_TRACE_SCOPE("vkQueueFlushCommandsFromAuxMemoryGOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
     {
@@ -4821,7 +4799,7 @@ void gfxstream_vk_QueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
     }
 }
 VkResult gfxstream_vk_GetBlobGOOGLE(VkDevice device, VkDeviceMemory memory) {
-    AEMU_SCOPED_TRACE("vkGetBlobGOOGLE");
+    MESA_TRACE_SCOPE("vkGetBlobGOOGLE");
     VkResult vkGetBlobGOOGLE_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
@@ -4839,7 +4817,7 @@ void gfxstream_vk_UpdateDescriptorSetWithTemplateSized2GOOGLE(
     const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
     const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
     const uint8_t* pInlineUniformBlockData) {
-    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
+    MESA_TRACE_SCOPE("vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
@@ -4865,7 +4843,7 @@ void gfxstream_vk_UpdateDescriptorSetWithTemplateSized2GOOGLE(
 }
 void gfxstream_vk_QueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
                                           const VkSubmitInfo2* pSubmits, VkFence fence) {
-    AEMU_SCOPED_TRACE("vkQueueSubmitAsync2GOOGLE");
+    MESA_TRACE_SCOPE("vkQueueSubmitAsync2GOOGLE");
     VK_FROM_HANDLE(gfxstream_vk_queue, gfxstream_queue, queue);
     VK_FROM_HANDLE(gfxstream_vk_fence, gfxstream_fence, fence);
     {
@@ -4923,7 +4901,7 @@ void gfxstream_vk_QueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
     }
 }
 VkResult gfxstream_vk_GetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore, uint64_t syncId) {
-    AEMU_SCOPED_TRACE("vkGetSemaphoreGOOGLE");
+    MESA_TRACE_SCOPE("vkGetSemaphoreGOOGLE");
     VkResult vkGetSemaphoreGOOGLE_VkResult_return = (VkResult)0;
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     VK_FROM_HANDLE(gfxstream_vk_semaphore, gfxstream_semaphore, semaphore);
