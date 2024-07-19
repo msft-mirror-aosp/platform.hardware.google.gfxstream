@@ -123,12 +123,12 @@ cc_library_shared {
         "libgfxstream_guest_vulkan_defaults",
     ],
     shared_libs: [
-        "libgfxstream_platform_rutabaga_server",
+        "libvirtgpu_kumquat_ffi",
     ],
     static_libs: [
         "libgfxstream_guest_android_with_host",
         "libgfxstream_guest_system_common_with_host",
-        "libgfxstream_platform_rutabaga",
+        "libgfxstream_platform_kumquat",
     ],
     cflags: [
         "-DEND2END_TESTS",
