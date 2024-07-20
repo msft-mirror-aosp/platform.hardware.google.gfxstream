@@ -25,8 +25,6 @@
 #endif
 #include "renderControl_types.h"
 
-#include "aemu/base/Process.h"
-
 #define DEBUG_HOSTCONNECTION 0
 
 #if DEBUG_HOSTCONNECTION
