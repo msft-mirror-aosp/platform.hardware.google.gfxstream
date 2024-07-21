@@ -1093,7 +1093,7 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pWaitSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -1114,7 +1114,8 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkCommandBuffer*)forUnmarshaling->pCommandBuffers) + k) =
-                    (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval);
+                    tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -1130,7 +1131,7 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pSignalSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -1346,7 +1347,7 @@ void reservedunmarshal_VkBindSparseInfo(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pWaitSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -1390,7 +1391,7 @@ void reservedunmarshal_VkBindSparseInfo(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pSignalSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -2701,8 +2702,9 @@ void reservedunmarshal_VkPipelineLayoutCreateInfo(VulkanStream* vkStream, VkStru
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkDescriptorSetLayout*)forUnmarshaling->pSetLayouts) + k) =
-                    (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
-                        (VkDescriptorSetLayout)tmpval);
+                    tmpval ? (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
+                                 (VkDescriptorSetLayout)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -2943,8 +2945,9 @@ void reservedunmarshal_VkDescriptorSetAllocateInfo(VulkanStream* vkStream, VkStr
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkDescriptorSetLayout*)forUnmarshaling->pSetLayouts) + k) =
-                    (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
-                        (VkDescriptorSetLayout)tmpval);
+                    tmpval ? (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
+                                 (VkDescriptorSetLayout)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -2977,7 +2980,7 @@ void reservedunmarshal_VkDescriptorSetLayoutBinding(VulkanStream* vkStream,
                     uint64_t tmpval;
                     memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                     *(((VkSampler*)forUnmarshaling->pImmutableSamplers) + k) =
-                        (VkSampler)unbox_VkSampler((VkSampler)tmpval);
+                        tmpval ? (VkSampler)unbox_VkSampler((VkSampler)tmpval) : VK_NULL_HANDLE;
                 }
             }
         }
@@ -3122,7 +3125,8 @@ void reservedunmarshal_VkWriteDescriptorSet(VulkanStream* vkStream, VkStructureT
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_3_0_ptr + k * 8, sizeof(uint64_t));
                         *(((VkBufferView*)forUnmarshaling->pTexelBufferView) + k) =
-                            (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval);
+                            tmpval ? (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
             }
@@ -3213,7 +3217,8 @@ void reservedunmarshal_VkFramebufferCreateInfo(VulkanStream* vkStream, VkStructu
                     uint64_t tmpval;
                     memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                     *(((VkImageView*)forUnmarshaling->pAttachments) + k) =
-                        (VkImageView)unbox_VkImageView((VkImageView)tmpval);
+                        tmpval ? (VkImageView)unbox_VkImageView((VkImageView)tmpval)
+                               : VK_NULL_HANDLE;
                 }
             }
         }
@@ -4232,7 +4237,8 @@ void reservedunmarshal_VkDeviceGroupDeviceCreateInfo(VulkanStream* vkStream,
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkPhysicalDevice*)forUnmarshaling->pPhysicalDevices) + k) =
-                    (VkPhysicalDevice)unbox_VkPhysicalDevice((VkPhysicalDevice)tmpval);
+                    tmpval ? (VkPhysicalDevice)unbox_VkPhysicalDevice((VkPhysicalDevice)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -7537,7 +7543,7 @@ void reservedunmarshal_VkRenderPassAttachmentBeginInfo(
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkImageView*)forUnmarshaling->pAttachments) + k) =
-                    (VkImageView)unbox_VkImageView((VkImageView)tmpval);
+                    tmpval ? (VkImageView)unbox_VkImageView((VkImageView)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -7901,7 +7907,7 @@ void reservedunmarshal_VkSemaphoreWaitInfo(VulkanStream* vkStream, VkStructureTy
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -10424,7 +10430,7 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pWaitSemaphores) + k) =
-                    (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -10440,7 +10446,8 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSwapchainKHR*)forUnmarshaling->pSwapchains) + k) =
-                    (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)tmpval);
+                    tmpval ? (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)tmpval)
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -11297,7 +11304,7 @@ void reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkPipeline*)forUnmarshaling->pLibraries) + k) =
-                    (VkPipeline)unbox_VkPipeline((VkPipeline)tmpval);
+                    tmpval ? (VkPipeline)unbox_VkPipeline((VkPipeline)tmpval) : VK_NULL_HANDLE;
             }
         }
     }
@@ -13207,7 +13214,7 @@ void reservedunmarshal_VkSwapchainPresentFenceInfoEXT(
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkFence*)forUnmarshaling->pFences) + k) =
-                    (VkFence)unbox_VkFence((VkFence)tmpval);
+                    tmpval ? (VkFence)unbox_VkFence((VkFence)tmpval) : VK_NULL_HANDLE;
             }
         }
     }

@@ -304,7 +304,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSet*)pDescriptorSets) + k) =
-                            (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval);
+                            tmpval ? (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((uint32_t*)&dynamicOffsetCount, *readStreamPtrPtr, sizeof(uint32_t));
@@ -366,7 +367,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((bindingCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkBuffer*)pBuffers) + k) = (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                        *(((VkBuffer*)pBuffers) + k) =
+                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -1001,7 +1003,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((VkPipelineStageFlags*)&srcStageMask, *readStreamPtrPtr,
@@ -1359,7 +1362,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                         *(((VkCommandBuffer*)pCommandBuffers) + k) =
-                            (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval);
+                            tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 this->on_vkCmdExecuteCommands(pool, (VkCommandBuffer)(boxed_dispatchHandle),
@@ -1592,7 +1596,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (((eventCount)) <= MAX_STACK_ITEMS) {
@@ -1890,7 +1895,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -2190,7 +2196,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (((eventCount)) <= MAX_STACK_ITEMS) {
@@ -2424,7 +2431,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((bindingCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkBuffer*)pBuffers) + k) = (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                        *(((VkBuffer*)pBuffers) + k) =
+                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -2487,7 +2495,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -2542,7 +2551,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -2812,7 +2822,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
