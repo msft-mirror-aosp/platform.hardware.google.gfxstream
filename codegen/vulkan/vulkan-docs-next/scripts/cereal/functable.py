@@ -122,6 +122,8 @@ HANDWRITTEN_ENTRY_POINTS = [
     "vkResetCommandPool",
     "vkFreeCommandBuffers",
     "vkResetCommandPool",
+    # Transform feedback
+    "vkCmdBeginTransformFeedbackEXT",
     # Special cases to handle struct translations in the pNext chain
     # TODO: Make a codegen module (use deepcopy as reference) to make this more robust
     "vkAllocateMemory",
@@ -516,7 +518,7 @@ class VulkanFuncTable(VulkanWrapperGenerator):
                 cgen.stmt("return %s" % api.getRetVarExpr())
 
         def genGfxstreamEntry(declareResources=True):
-            cgen.stmt("AEMU_SCOPED_TRACE(\"%s\")" % api.name)
+            cgen.stmt("MESA_TRACE_SCOPE(\"%s\")" % api.name)
             # declare returnVar
             retTypeName = api.getRetTypeExpr()
             retVar = api.getRetVarExpr()
