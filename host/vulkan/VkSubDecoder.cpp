@@ -304,7 +304,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSet*)pDescriptorSets) + k) =
-                            (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval);
+                            tmpval ? (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((uint32_t*)&dynamicOffsetCount, *readStreamPtrPtr, sizeof(uint32_t));
@@ -366,7 +367,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((bindingCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkBuffer*)pBuffers) + k) = (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                        *(((VkBuffer*)pBuffers) + k) =
+                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -1001,7 +1003,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((VkPipelineStageFlags*)&srcStageMask, *readStreamPtrPtr,
@@ -1359,7 +1362,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                         *(((VkCommandBuffer*)pCommandBuffers) + k) =
-                            (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval);
+                            tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 this->on_vkCmdExecuteCommands(pool, (VkCommandBuffer)(boxed_dispatchHandle),
@@ -1592,7 +1596,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (((eventCount)) <= MAX_STACK_ITEMS) {
@@ -1890,7 +1895,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -2190,7 +2196,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (((eventCount)) <= MAX_STACK_ITEMS) {
@@ -2424,7 +2431,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     for (uint32_t k = 0; k < ((bindingCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkBuffer*)pBuffers) + k) = (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                        *(((VkBuffer*)pBuffers) + k) =
+                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -2487,7 +2495,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -2542,7 +2551,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -2812,7 +2822,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -3050,6 +3061,142 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 this->on_vkCommandBufferHostSyncGOOGLE(
                     pool, (VkCommandBuffer)(boxed_dispatchHandle), needHostSync, sequenceNumber);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+            case OP_vkCmdTraceRaysKHR: {
+                android::base::beginTrace("vkCmdTraceRaysKHR subdecode");
+                const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable;
+                VkStridedDeviceAddressRegionKHR stack_pRaygenShaderBindingTable[1];
+                const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable;
+                VkStridedDeviceAddressRegionKHR stack_pMissShaderBindingTable[1];
+                const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable;
+                VkStridedDeviceAddressRegionKHR stack_pHitShaderBindingTable[1];
+                const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable;
+                VkStridedDeviceAddressRegionKHR stack_pCallableShaderBindingTable[1];
+                uint32_t width;
+                uint32_t height;
+                uint32_t depth;
+                pRaygenShaderBindingTable =
+                    (VkStridedDeviceAddressRegionKHR*)stack_pRaygenShaderBindingTable;
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pRaygenShaderBindingTable),
+                    readStreamPtrPtr);
+                pMissShaderBindingTable =
+                    (VkStridedDeviceAddressRegionKHR*)stack_pMissShaderBindingTable;
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pMissShaderBindingTable), readStreamPtrPtr);
+                pHitShaderBindingTable =
+                    (VkStridedDeviceAddressRegionKHR*)stack_pHitShaderBindingTable;
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pHitShaderBindingTable), readStreamPtrPtr);
+                pCallableShaderBindingTable =
+                    (VkStridedDeviceAddressRegionKHR*)stack_pCallableShaderBindingTable;
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable),
+                    readStreamPtrPtr);
+                memcpy((uint32_t*)&width, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&height, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&depth, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (pRaygenShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        globalstate, (VkStridedDeviceAddressRegionKHR*)(pRaygenShaderBindingTable));
+                }
+                if (pMissShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        globalstate, (VkStridedDeviceAddressRegionKHR*)(pMissShaderBindingTable));
+                }
+                if (pHitShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        globalstate, (VkStridedDeviceAddressRegionKHR*)(pHitShaderBindingTable));
+                }
+                if (pCallableShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        globalstate,
+                        (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable));
+                }
+                vk->vkCmdTraceRaysKHR((VkCommandBuffer)dispatchHandle, pRaygenShaderBindingTable,
+                                      pMissShaderBindingTable, pHitShaderBindingTable,
+                                      pCallableShaderBindingTable, width, height, depth);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdTraceRaysIndirectKHR: {
+                android::base::beginTrace("vkCmdTraceRaysIndirectKHR subdecode");
+                const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable;
+                VkStridedDeviceAddressRegionKHR stack_pRaygenShaderBindingTable[1];
+                const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable;
+                VkStridedDeviceAddressRegionKHR stack_pMissShaderBindingTable[1];
+                const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable;
+                VkStridedDeviceAddressRegionKHR stack_pHitShaderBindingTable[1];
+                const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable;
+                VkStridedDeviceAddressRegionKHR stack_pCallableShaderBindingTable[1];
+                VkDeviceAddress indirectDeviceAddress;
+                pRaygenShaderBindingTable =
+                    (VkStridedDeviceAddressRegionKHR*)stack_pRaygenShaderBindingTable;
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pRaygenShaderBindingTable),
+                    readStreamPtrPtr);
+                pMissShaderBindingTable =
+                    (VkStridedDeviceAddressRegionKHR*)stack_pMissShaderBindingTable;
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pMissShaderBindingTable), readStreamPtrPtr);
+                pHitShaderBindingTable =
+                    (VkStridedDeviceAddressRegionKHR*)stack_pHitShaderBindingTable;
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pHitShaderBindingTable), readStreamPtrPtr);
+                pCallableShaderBindingTable =
+                    (VkStridedDeviceAddressRegionKHR*)stack_pCallableShaderBindingTable;
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable),
+                    readStreamPtrPtr);
+                memcpy((VkDeviceAddress*)&indirectDeviceAddress, *readStreamPtrPtr,
+                       sizeof(VkDeviceAddress));
+                *readStreamPtrPtr += sizeof(VkDeviceAddress);
+                if (pRaygenShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        globalstate, (VkStridedDeviceAddressRegionKHR*)(pRaygenShaderBindingTable));
+                }
+                if (pMissShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        globalstate, (VkStridedDeviceAddressRegionKHR*)(pMissShaderBindingTable));
+                }
+                if (pHitShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        globalstate, (VkStridedDeviceAddressRegionKHR*)(pHitShaderBindingTable));
+                }
+                if (pCallableShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        globalstate,
+                        (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable));
+                }
+                vk->vkCmdTraceRaysIndirectKHR((VkCommandBuffer)dispatchHandle,
+                                              pRaygenShaderBindingTable, pMissShaderBindingTable,
+                                              pHitShaderBindingTable, pCallableShaderBindingTable,
+                                              indirectDeviceAddress);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetRayTracingPipelineStackSizeKHR: {
+                android::base::beginTrace("vkCmdSetRayTracingPipelineStackSizeKHR subdecode");
+                uint32_t pipelineStackSize;
+                memcpy((uint32_t*)&pipelineStackSize, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vk->vkCmdSetRayTracingPipelineStackSizeKHR((VkCommandBuffer)dispatchHandle,
+                                                           pipelineStackSize);
                 android::base::endTrace();
                 break;
             }

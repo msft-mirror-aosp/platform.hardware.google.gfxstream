@@ -370,7 +370,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                 uint64_t tmpval;
                                 memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                                 *(((VkPhysicalDevice*)pPhysicalDevices) + k) =
-                                    (VkPhysicalDevice)(VkPhysicalDevice)((VkPhysicalDevice)tmpval);
+                                    tmpval ? (VkPhysicalDevice)(VkPhysicalDevice)((
+                                                 VkPhysicalDevice)tmpval)
+                                           : VK_NULL_HANDLE;
                             }
                         }
                     }
@@ -2743,7 +2745,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((fenceCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkFence*)pFences) + k) = (VkFence)unbox_VkFence((VkFence)tmpval);
+                        *(((VkFence*)pFences) + k) =
+                            tmpval ? (VkFence)unbox_VkFence((VkFence)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (m_logCalls) {
@@ -2840,7 +2843,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((fenceCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkFence*)pFences) + k) = (VkFence)unbox_VkFence((VkFence)tmpval);
+                        *(((VkFence*)pFences) + k) =
+                            tmpval ? (VkFence)unbox_VkFence((VkFence)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((VkBool32*)&waitAll, *readStreamPtrPtr, sizeof(VkBool32));
@@ -4479,7 +4483,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipelineCache*)pSrcCaches) + k) =
-                            (VkPipelineCache)unbox_VkPipelineCache((VkPipelineCache)tmpval);
+                            tmpval ? (VkPipelineCache)unbox_VkPipelineCache((VkPipelineCache)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 if (m_logCalls) {
@@ -4561,7 +4566,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_3_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipeline*)pPipelines) + k) =
-                            (VkPipeline)(VkPipeline)((VkPipeline)tmpval);
+                            tmpval ? (VkPipeline)(VkPipeline)((VkPipeline)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (pCreateInfos) {
@@ -4672,7 +4677,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_3_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipeline*)pPipelines) + k) =
-                            (VkPipeline)(VkPipeline)((VkPipeline)tmpval);
+                            tmpval ? (VkPipeline)(VkPipeline)((VkPipeline)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 if (pCreateInfos) {
@@ -5429,7 +5434,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSet*)pDescriptorSets) + k) =
-                            (VkDescriptorSet)(VkDescriptorSet)((VkDescriptorSet)tmpval);
+                            tmpval ? (VkDescriptorSet)(VkDescriptorSet)((VkDescriptorSet)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 if (pAllocateInfo) {
@@ -5518,7 +5524,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkDescriptorSet*)pDescriptorSets) + k) =
-                                (VkDescriptorSet)(VkDescriptorSet)((VkDescriptorSet)tmpval);
+                                tmpval ? (VkDescriptorSet)(VkDescriptorSet)((VkDescriptorSet)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -6164,7 +6171,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkCommandBuffer*)pCommandBuffers) + k) =
-                            (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)tmpval);
+                            tmpval ? (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 if (pAllocateInfo) {
@@ -6249,7 +6257,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkCommandBuffer*)pCommandBuffers) + k) =
-                                (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)tmpval);
+                                tmpval ? (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -6869,7 +6878,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSet*)pDescriptorSets) + k) =
-                            (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval);
+                            tmpval ? (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((uint32_t*)&dynamicOffsetCount, *readStreamPtrPtr, sizeof(uint32_t));
@@ -6981,7 +6991,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((bindingCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkBuffer*)pBuffers) + k) = (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                        *(((VkBuffer*)pBuffers) + k) =
+                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pOffsets,
@@ -8119,7 +8130,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((VkPipelineStageFlags*)&srcStageMask, *readStreamPtrPtr,
@@ -8754,7 +8766,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkCommandBuffer*)pCommandBuffers) + k) =
-                            (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval);
+                            tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 if (m_logCalls) {
@@ -11774,7 +11787,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pDependencyInfos,
@@ -12503,7 +12517,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -13337,7 +13352,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                 uint64_t tmpval;
                                 memcpy(&tmpval, cgen_var_3_0_ptr + k * 8, sizeof(uint64_t));
                                 *(((VkImage*)pSwapchainImages) + k) =
-                                    (VkImage)(VkImage)((VkImage)tmpval);
+                                    tmpval ? (VkImage)(VkImage)((VkImage)tmpval) : VK_NULL_HANDLE;
                             }
                         }
                     }
@@ -16483,7 +16498,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((eventCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) = (VkEvent)unbox_VkEvent((VkEvent)tmpval);
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pDependencyInfos,
@@ -17696,7 +17712,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkSemaphore*)pWaitSemaphores) + k) =
-                                (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                                tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -18060,7 +18077,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     for (uint32_t k = 0; k < ((bindingCount)); ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkBuffer*)pBuffers) + k) = (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                        *(((VkBuffer*)pBuffers) + k) =
+                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pOffsets,
@@ -18139,7 +18157,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -18217,7 +18236,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -19348,7 +19368,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
-                                (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval);
+                                tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -20619,7 +20640,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_8_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBufferView*)pBufferViews) + k) =
-                                (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval);
+                                tmpval ? (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -21529,7 +21551,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorPool*)pDescriptorPools) + k) =
-                            (VkDescriptorPool)unbox_VkDescriptorPool((VkDescriptorPool)tmpval);
+                            tmpval
+                                ? (VkDescriptorPool)unbox_VkDescriptorPool((VkDescriptorPool)tmpval)
+                                : VK_NULL_HANDLE;
                     }
                 }
                 memcpy((uint32_t*)&descriptorSetCount, *readStreamPtrPtr, sizeof(uint32_t));
@@ -21543,8 +21567,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSetLayout*)pSetLayouts) + k) =
-                            (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
-                                (VkDescriptorSetLayout)tmpval);
+                            tmpval ? (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
+                                         (VkDescriptorSetLayout)tmpval)
+                                   : VK_NULL_HANDLE;
                     }
                 }
                 vkReadStream->alloc((void**)&pDescriptorSetPoolIds,
@@ -21715,7 +21740,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkSemaphore*)pWaitSemaphores) + k) =
-                                (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval);
+                                tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -21954,7 +21980,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_8_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBufferView*)pBufferViews) + k) =
-                                (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval);
+                                tmpval ? (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval)
+                                       : VK_NULL_HANDLE;
                         }
                     }
                 }
@@ -22111,6 +22138,466 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     m_state->snapshot()->vkGetSemaphoreGOOGLE(
                         snapshotTraceBegin, snapshotTraceBytes, &m_pool,
                         vkGetSemaphoreGOOGLE_VkResult_return, device, semaphore, syncId);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+            case OP_vkCmdTraceRaysKHR: {
+                android::base::beginTrace("vkCmdTraceRaysKHR decode");
+                VkCommandBuffer commandBuffer;
+                const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable;
+                const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable;
+                const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable;
+                const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable;
+                uint32_t width;
+                uint32_t height;
+                uint32_t depth;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pRaygenShaderBindingTable,
+                                    sizeof(const VkStridedDeviceAddressRegionKHR));
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pRaygenShaderBindingTable),
+                    readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pMissShaderBindingTable,
+                                    sizeof(const VkStridedDeviceAddressRegionKHR));
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pMissShaderBindingTable), readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pHitShaderBindingTable,
+                                    sizeof(const VkStridedDeviceAddressRegionKHR));
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pHitShaderBindingTable), readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pCallableShaderBindingTable,
+                                    sizeof(const VkStridedDeviceAddressRegionKHR));
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable),
+                    readStreamPtrPtr);
+                memcpy((uint32_t*)&width, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&height, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&depth, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (pRaygenShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        m_state, (VkStridedDeviceAddressRegionKHR*)(pRaygenShaderBindingTable));
+                }
+                if (pMissShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        m_state, (VkStridedDeviceAddressRegionKHR*)(pMissShaderBindingTable));
+                }
+                if (pHitShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        m_state, (VkStridedDeviceAddressRegionKHR*)(pHitShaderBindingTable));
+                }
+                if (pCallableShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        m_state, (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdTraceRaysKHR 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pRaygenShaderBindingTable,
+                            (unsigned long long)pMissShaderBindingTable,
+                            (unsigned long long)pHitShaderBindingTable,
+                            (unsigned long long)pCallableShaderBindingTable,
+                            (unsigned long long)width, (unsigned long long)height,
+                            (unsigned long long)depth);
+                }
+                vk->vkCmdTraceRaysKHR(unboxed_commandBuffer, pRaygenShaderBindingTable,
+                                      pMissShaderBindingTable, pHitShaderBindingTable,
+                                      pCallableShaderBindingTable, width, height, depth);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdTraceRaysKHR(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        pRaygenShaderBindingTable, pMissShaderBindingTable, pHitShaderBindingTable,
+                        pCallableShaderBindingTable, width, height, depth);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCreateRayTracingPipelinesKHR: {
+                android::base::beginTrace("vkCreateRayTracingPipelinesKHR decode");
+                VkDevice device;
+                VkDeferredOperationKHR deferredOperation;
+                VkPipelineCache pipelineCache;
+                uint32_t createInfoCount;
+                const VkRayTracingPipelineCreateInfoKHR* pCreateInfos;
+                const VkAllocationCallbacks* pAllocator;
+                VkPipeline* pPipelines;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkDeferredOperationKHR*)&deferredOperation, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&deferredOperation);
+                *readStreamPtrPtr += 8;
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipelineCache*)&pipelineCache =
+                    (VkPipelineCache)unbox_VkPipelineCache((VkPipelineCache)(*&cgen_var_2));
+                memcpy((uint32_t*)&createInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc(
+                    (void**)&pCreateInfos,
+                    ((createInfoCount)) * sizeof(const VkRayTracingPipelineCreateInfoKHR));
+                for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                    reservedunmarshal_VkRayTracingPipelineCreateInfoKHR(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkRayTracingPipelineCreateInfoKHR*)(pCreateInfos + i), readStreamPtrPtr);
+                }
+                // WARNING PTR CHECK
+                memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                *readStreamPtrPtr += 8;
+                if (pAllocator) {
+                    vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
+                    reservedunmarshal_VkAllocationCallbacks(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkAllocationCallbacks*)(pAllocator), readStreamPtrPtr);
+                }
+                // Begin manual dispatchable handle unboxing for pPipelines;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pPipelines, ((createInfoCount)) * sizeof(VkPipeline));
+                if (((createInfoCount))) {
+                    uint8_t* cgen_var_4_ptr = (uint8_t*)(*readStreamPtrPtr);
+                    *readStreamPtrPtr += 8 * ((createInfoCount));
+                    for (uint32_t k = 0; k < ((createInfoCount)); ++k) {
+                        uint64_t tmpval;
+                        memcpy(&tmpval, cgen_var_4_ptr + k * 8, sizeof(uint64_t));
+                        *(((VkPipeline*)pPipelines) + k) =
+                            tmpval ? (VkPipeline)(VkPipeline)((VkPipeline)tmpval) : VK_NULL_HANDLE;
+                    }
+                }
+                if (pCreateInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                        transform_tohost_VkRayTracingPipelineCreateInfoKHR(
+                            m_state, (VkRayTracingPipelineCreateInfoKHR*)(pCreateInfos + i));
+                    }
+                }
+                if (pAllocator) {
+                    transform_tohost_VkAllocationCallbacks(m_state,
+                                                           (VkAllocationCallbacks*)(pAllocator));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCreateRayTracingPipelinesKHR 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device,
+                            (unsigned long long)deferredOperation,
+                            (unsigned long long)pipelineCache, (unsigned long long)createInfoCount,
+                            (unsigned long long)pCreateInfos, (unsigned long long)pAllocator,
+                            (unsigned long long)pPipelines);
+                }
+                VkResult vkCreateRayTracingPipelinesKHR_VkResult_return = (VkResult)0;
+                vkCreateRayTracingPipelinesKHR_VkResult_return = vk->vkCreateRayTracingPipelinesKHR(
+                    unboxed_device, deferredOperation, pipelineCache, createInfoCount, pCreateInfos,
+                    pAllocator, pPipelines);
+                if ((vkCreateRayTracingPipelinesKHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCreateRayTracingPipelinesKHR_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                if (((createInfoCount))) {
+                    uint64_t* cgen_var_5;
+                    vkStream->alloc((void**)&cgen_var_5, ((createInfoCount)) * 8);
+                    vkStream->handleMapping()->mapHandles_VkPipeline_u64(pPipelines, cgen_var_5,
+                                                                         ((createInfoCount)));
+                    vkStream->write((uint64_t*)cgen_var_5, ((createInfoCount)) * 8);
+                }
+                vkStream->write(&vkCreateRayTracingPipelinesKHR_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCreateRayTracingPipelinesKHR(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkCreateRayTracingPipelinesKHR_VkResult_return, device, deferredOperation,
+                        pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR: {
+                android::base::beginTrace(
+                    "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR decode");
+                VkDevice device;
+                VkPipeline pipeline;
+                uint32_t firstGroup;
+                uint32_t groupCount;
+                size_t dataSize;
+                void* pData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipeline*)&pipeline = (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_1));
+                memcpy((uint32_t*)&firstGroup, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((size_t*)&dataSize, (*readStreamPtrPtr), 8);
+                android::base::Stream::fromBe64((uint8_t*)&dataSize);
+                *readStreamPtrPtr += 8;
+                // Begin manual dispatchable handle unboxing for pData;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pData, ((dataSize)) * sizeof(uint8_t));
+                memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(uint8_t));
+                *readStreamPtrPtr += ((dataSize)) * sizeof(uint8_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetRayTracingCaptureReplayShaderGroupHandlesKHR "
+                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pipeline,
+                            (unsigned long long)firstGroup, (unsigned long long)groupCount,
+                            (unsigned long long)dataSize, (unsigned long long)pData);
+                }
+                VkResult vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return =
+                    (VkResult)0;
+                vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return =
+                    vk->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+                        unboxed_device, pipeline, firstGroup, groupCount, dataSize, pData);
+                if ((vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return) ==
+                    VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(
+                    vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return, opcode,
+                    context);
+                vkStream->unsetHandleMapping();
+                vkStream->write((void*)pData, ((dataSize)) * sizeof(uint8_t));
+                vkStream->write(&vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return, device,
+                        pipeline, firstGroup, groupCount, dataSize, pData);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdTraceRaysIndirectKHR: {
+                android::base::beginTrace("vkCmdTraceRaysIndirectKHR decode");
+                VkCommandBuffer commandBuffer;
+                const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable;
+                const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable;
+                const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable;
+                const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable;
+                VkDeviceAddress indirectDeviceAddress;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pRaygenShaderBindingTable,
+                                    sizeof(const VkStridedDeviceAddressRegionKHR));
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pRaygenShaderBindingTable),
+                    readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pMissShaderBindingTable,
+                                    sizeof(const VkStridedDeviceAddressRegionKHR));
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pMissShaderBindingTable), readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pHitShaderBindingTable,
+                                    sizeof(const VkStridedDeviceAddressRegionKHR));
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pHitShaderBindingTable), readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pCallableShaderBindingTable,
+                                    sizeof(const VkStridedDeviceAddressRegionKHR));
+                reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable),
+                    readStreamPtrPtr);
+                memcpy((VkDeviceAddress*)&indirectDeviceAddress, *readStreamPtrPtr,
+                       sizeof(VkDeviceAddress));
+                *readStreamPtrPtr += sizeof(VkDeviceAddress);
+                if (pRaygenShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        m_state, (VkStridedDeviceAddressRegionKHR*)(pRaygenShaderBindingTable));
+                }
+                if (pMissShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        m_state, (VkStridedDeviceAddressRegionKHR*)(pMissShaderBindingTable));
+                }
+                if (pHitShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        m_state, (VkStridedDeviceAddressRegionKHR*)(pHitShaderBindingTable));
+                }
+                if (pCallableShaderBindingTable) {
+                    transform_tohost_VkStridedDeviceAddressRegionKHR(
+                        m_state, (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdTraceRaysIndirectKHR 0x%llx 0x%llx 0x%llx 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)pRaygenShaderBindingTable,
+                            (unsigned long long)pMissShaderBindingTable,
+                            (unsigned long long)pHitShaderBindingTable,
+                            (unsigned long long)pCallableShaderBindingTable,
+                            (unsigned long long)indirectDeviceAddress);
+                }
+                vk->vkCmdTraceRaysIndirectKHR(unboxed_commandBuffer, pRaygenShaderBindingTable,
+                                              pMissShaderBindingTable, pHitShaderBindingTable,
+                                              pCallableShaderBindingTable, indirectDeviceAddress);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdTraceRaysIndirectKHR(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        pRaygenShaderBindingTable, pMissShaderBindingTable, pHitShaderBindingTable,
+                        pCallableShaderBindingTable, indirectDeviceAddress);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkGetRayTracingShaderGroupStackSizeKHR: {
+                android::base::beginTrace("vkGetRayTracingShaderGroupStackSizeKHR decode");
+                VkDevice device;
+                VkPipeline pipeline;
+                uint32_t group;
+                VkShaderGroupShaderKHR groupShader;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipeline*)&pipeline = (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_1));
+                memcpy((uint32_t*)&group, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((VkShaderGroupShaderKHR*)&groupShader, *readStreamPtrPtr,
+                       sizeof(VkShaderGroupShaderKHR));
+                *readStreamPtrPtr += sizeof(VkShaderGroupShaderKHR);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetRayTracingShaderGroupStackSizeKHR 0x%llx 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)pipeline,
+                            (unsigned long long)group, (unsigned long long)groupShader);
+                }
+                VkDeviceSize vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return =
+                    (VkDeviceSize)0;
+                vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return =
+                    vk->vkGetRayTracingShaderGroupStackSizeKHR(unboxed_device, pipeline, group,
+                                                               groupShader);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return,
+                                sizeof(VkDeviceSize));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetRayTracingShaderGroupStackSizeKHR(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return, device,
+                        pipeline, group, groupShader);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+            case OP_vkCmdSetRayTracingPipelineStackSizeKHR: {
+                android::base::beginTrace("vkCmdSetRayTracingPipelineStackSizeKHR decode");
+                VkCommandBuffer commandBuffer;
+                uint32_t pipelineStackSize;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&pipelineStackSize, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (m_logCalls) {
+                    fprintf(
+                        stderr,
+                        "stream %p: call vkCmdSetRayTracingPipelineStackSizeKHR 0x%llx 0x%llx \n",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)pipelineStackSize);
+                }
+                vk->vkCmdSetRayTracingPipelineStackSizeKHR(unboxed_commandBuffer,
+                                                           pipelineStackSize);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetRayTracingPipelineStackSizeKHR(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        pipelineStackSize);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
