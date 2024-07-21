@@ -30,6 +30,7 @@
 #include "virtgpu_gfxstream_protocol.h"
 #include "vulkan/vk_enum_string_helper.h"
 #include "vulkan/vulkan_core.h"
+
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include "vk_format_info.h"
 #endif
@@ -2912,6 +2913,9 @@ static uint32_t getVirglFormat(VkFormat vkFormat) {
         case VK_FORMAT_B8G8R8A8_SSCALED:
         case VK_FORMAT_B8G8R8A8_USCALED:
             virglFormat = VIRGL_FORMAT_B8G8R8A8_UNORM;
+            break;
+        case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+            virglFormat = VIRGL_FORMAT_R10G10B10A2_UNORM;
             break;
         default:
             break;
@@ -5981,7 +5985,36 @@ void ResourceTracker::flushStagingStreams(void* context, VkQueue queue, uint32_t
 VkResult ResourceTracker::on_vkQueueSubmit(void* context, VkResult input_result, VkQueue queue,
                                            uint32_t submitCount, const VkSubmitInfo* pSubmits,
                                            VkFence fence) {
-    AEMU_SCOPED_TRACE("on_vkQueueSubmit");
+    MESA_TRACE_SCOPE("on_vkQueueSubmit");
+
+    /* From the Vulkan 1.3.204 spec:
+     *
+     *    VUID-VkSubmitInfo-pNext-03240
+     *
+     *    "If the pNext chain of this structure includes a VkTimelineSemaphoreSubmitInfo structure
+     *    and any element of pSignalSemaphores was created with a VkSemaphoreType of
+     *    VK_SEMAPHORE_TYPE_TIMELINE, then its signalSemaphoreValueCount member must equal
+     *    signalSemaphoreCount"
+     *
+     * Internally, Mesa WSI creates placeholder semaphores/fences (see transformVkSemaphore functions
+     * in in gfxstream_vk_private.cpp).  We don't want to forward that to the host, since there is
+     * no host side Vulkan object associated with the placeholder sync objects.
+     *
+     * The way to test this behavior is Zink + glxgears, on Linux hosts.  It should fail without
+     * this check.
+     */
+    for (uint32_t i = 0; i < submitCount; i++) {
+        VkTimelineSemaphoreSubmitInfo* tssi = const_cast<VkTimelineSemaphoreSubmitInfo*>(
+            vk_find_struct<VkTimelineSemaphoreSubmitInfo>(&pSubmits[i]));
+
+        if (tssi) {
+            uint32_t count = getSignalSemaphoreCount(pSubmits[i]);
+            if (count != tssi->signalSemaphoreValueCount) {
+                tssi->signalSemaphoreValueCount = count;
+            }
+        }
+    }
+
     return on_vkQueueSubmitTemplate<VkSubmitInfo>(context, input_result, queue, submitCount,
                                                   pSubmits, fence);
 }
@@ -5989,7 +6022,7 @@ VkResult ResourceTracker::on_vkQueueSubmit(void* context, VkResult input_result,
 VkResult ResourceTracker::on_vkQueueSubmit2(void* context, VkResult input_result, VkQueue queue,
                                             uint32_t submitCount, const VkSubmitInfo2* pSubmits,
                                             VkFence fence) {
-    AEMU_SCOPED_TRACE("on_vkQueueSubmit2");
+    MESA_TRACE_SCOPE("on_vkQueueSubmit2");
     return on_vkQueueSubmitTemplate<VkSubmitInfo2>(context, input_result, queue, submitCount,
                                                    pSubmits, fence);
 }
@@ -6149,7 +6182,7 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
             auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
             auto waitIdleRes = vkEncoder->vkQueueWaitIdle(queue, true /* do lock */);
 #ifdef VK_USE_PLATFORM_FUCHSIA
-            AEMU_SCOPED_TRACE("on_vkQueueSubmit::SignalSemaphores");
+            MESA_TRACE_SCOPE("on_vkQueueSubmit::SignalSemaphores");
             (void)externalFenceFdToSignal;
             for (auto& [event, koid] : post_wait_events) {
 #ifndef FUCHSIA_NO_TRACE
@@ -6254,7 +6287,7 @@ void ResourceTracker::unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     (void)fd_out;
     if (fd != -1) {
-        AEMU_SCOPED_TRACE("waitNativeFenceInAcquire");
+        MESA_TRACE_SCOPE("waitNativeFenceInAcquire");
         // Implicit Synchronization
         auto* syncHelper =
             ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();

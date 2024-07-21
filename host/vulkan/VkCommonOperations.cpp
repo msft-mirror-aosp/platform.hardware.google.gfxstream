@@ -2490,13 +2490,17 @@ std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorB
     AutoLock lock(sVkEmulationLock);
 
     const auto& deviceInfo = sVkEmulation->deviceInfo;
-    if ((!(deviceInfo.supportsExternalMemoryExport || !deviceInfo.supportsExternalMemoryImport)) ||
-        (!deviceInfo.glInteropSupported)) {
+    if (!deviceInfo.supportsExternalMemoryExport && deviceInfo.supportsExternalMemoryImport) {
         return std::nullopt;
     }
 
     auto info = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
     if (!info) {
+        return std::nullopt;
+    }
+
+    if ((info->vulkanMode != VkEmulation::VulkanMode::VulkanOnly) &&
+        !deviceInfo.glInteropSupported) {
         return std::nullopt;
     }
 
