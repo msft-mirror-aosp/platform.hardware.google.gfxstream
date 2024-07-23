@@ -4796,6 +4796,37 @@ class VkDecoderGlobalState::Impl {
                 .pNext = NULL,
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
                 .pHostPointer = mappedPtr};
+
+            VkMemoryHostPointerPropertiesEXT pMemoryHostPointerProperties = {
+                .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
+                .pNext = NULL,
+                .memoryTypeBits = 0,
+            };
+            vk->vkGetMemoryHostPointerPropertiesEXT(device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr, &pMemoryHostPointerProperties);
+
+            if (pMemoryHostPointerProperties.memoryTypeBits == 0) {
+                // Memory import operation not supported by the driver.
+                return VK_ERROR_INCOMPATIBLE_DRIVER;
+            }
+
+            if (((1u << localAllocInfo.memoryTypeIndex) & pMemoryHostPointerProperties.memoryTypeBits) == 0) {
+
+                // TODO Consider assigning the correct memory index earlier, instead of switching right before allocation.
+
+                // Look for the first available supported memory index and assign it.
+                for(uint32_t i =0; i<= 31; ++i) {
+                    if ((pMemoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
+                        continue;
+                    }
+                    localAllocInfo.memoryTypeIndex = i;
+                    break;
+                }
+                VERBOSE(
+                    "Detected memoryTypeIndex violation on requested host memory import. Switching "
+                    "to a supported memory index %d",
+                    localAllocInfo.memoryTypeIndex);
+            }
+
             vk_append_struct(&structChainIter, &importHostInfoPrivate);
         }
 
@@ -5296,11 +5327,7 @@ class VkDecoderGlobalState::Impl {
 
         if (info->needUnmap) {
             uint64_t hva = (uint64_t)(uintptr_t)(info->ptr);
-            uint64_t size = (uint64_t)(uintptr_t)(info->size);
-
             uint64_t alignedHva = hva & kPageMaskForBlob;
-            uint64_t alignedSize =
-                kPageSizeforBlob * ((size + kPageSizeforBlob - 1) / kPageSizeforBlob);
 
             if (hva != alignedHva) {
                 ERR("Mapping non page-size (0x%" PRIx64
