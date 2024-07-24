@@ -1096,29 +1096,30 @@ class VkDecoderGlobalState::Impl {
         fb->unregisterProcessCleanupCallback(instance);
     }
 
-    VkResult on_vkEnumeratePhysicalDevices(android::base::BumpPool* pool, VkInstance boxed_instance,
-                                           uint32_t* physicalDeviceCount,
-                                           VkPhysicalDevice* physicalDevices) {
-        auto instance = unbox_VkInstance(boxed_instance);
-        auto vk = dispatch_VkInstance(boxed_instance);
-
-        uint32_t physicalDevicesSize = 0;
-        if (physicalDeviceCount) {
-            physicalDevicesSize = *physicalDeviceCount;
-        }
-
-        uint32_t actualPhysicalDeviceCount;
-        auto res = vk->vkEnumeratePhysicalDevices(instance, &actualPhysicalDeviceCount, nullptr);
+    VkResult GetPhysicalDevices(VkInstance instance, VulkanDispatch* vk,
+                                std::vector<VkPhysicalDevice>& outPhysicalDevices) {
+        uint32_t physicalDevicesCount = 0;
+        auto res = vk->vkEnumeratePhysicalDevices(instance, &physicalDevicesCount, nullptr);
         if (res != VK_SUCCESS) {
             return res;
         }
-        std::vector<VkPhysicalDevice> validPhysicalDevices(actualPhysicalDeviceCount);
-        res = vk->vkEnumeratePhysicalDevices(instance, &actualPhysicalDeviceCount,
-                                             validPhysicalDevices.data());
-        if (res != VK_SUCCESS) return res;
 
-        std::lock_guard<std::recursive_mutex> lock(mLock);
+        outPhysicalDevices.resize(physicalDevicesCount);
 
+        res = vk->vkEnumeratePhysicalDevices(instance, &physicalDevicesCount,
+                                             outPhysicalDevices.data());
+        if (res != VK_SUCCESS) {
+            outPhysicalDevices.clear();
+            return res;
+        }
+
+        outPhysicalDevices.resize(physicalDevicesCount);
+
+        return VK_SUCCESS;
+    }
+
+    void FilterPhysicalDevicesLocked(VkInstance instance, VulkanDispatch* vk,
+                                     std::vector<VkPhysicalDevice>& toFilterPhysicalDevices) {
         if (m_emu->instanceSupportsExternalMemoryCapabilities) {
             PFN_vkGetPhysicalDeviceProperties2KHR getPhysdevProps2Func =
                 vk_util::getVkInstanceProcAddrWithFallback<
@@ -1130,8 +1131,9 @@ class VkDecoderGlobalState::Impl {
                     instance);
 
             if (getPhysdevProps2Func) {
-                validPhysicalDevices.erase(
-                    std::remove_if(validPhysicalDevices.begin(), validPhysicalDevices.end(),
+                // Remove those devices whose UUIDs don't match the one in VkCommonOperations.
+                toFilterPhysicalDevices.erase(
+                    std::remove_if(toFilterPhysicalDevices.begin(), toFilterPhysicalDevices.end(),
                                    [getPhysdevProps2Func, this](VkPhysicalDevice physicalDevice) {
                                        // We can get the device UUID.
                                        VkPhysicalDeviceIDPropertiesKHR idProps = {
@@ -1144,54 +1146,65 @@ class VkDecoderGlobalState::Impl {
                                        };
                                        getPhysdevProps2Func(physicalDevice, &propsWithId);
 
-                                       // Remove those devices whose UUIDs don't match the one
-                                       // in VkCommonOperations.
                                        return memcmp(m_emu->deviceInfo.idProps.deviceUUID,
                                                      idProps.deviceUUID, VK_UUID_SIZE) != 0;
                                    }),
-                    validPhysicalDevices.end());
+                    toFilterPhysicalDevices.end());
             } else {
-                fprintf(stderr,
-                        "%s: warning: failed to "
-                        "vkGetPhysicalDeviceProperties2KHR\n",
-                        __func__);
+                ERR("Failed to vkGetPhysicalDeviceProperties2KHR().");
             }
         } else {
             // If we don't support ID properties then just advertise only the
             // first physical device.
-            fprintf(stderr,
-                    "%s: device id properties not supported, using first "
-                    "physical device\n",
-                    __func__);
+            WARN("Device ID not available, returning first physical device.");
         }
-        if (!validPhysicalDevices.empty()) {
-            validPhysicalDevices.erase(std::next(validPhysicalDevices.begin()),
-                                       validPhysicalDevices.end());
+        if (!toFilterPhysicalDevices.empty()) {
+            toFilterPhysicalDevices.erase(std::next(toFilterPhysicalDevices.begin()),
+                                          toFilterPhysicalDevices.end());
+        }
+    }
+
+    VkResult on_vkEnumeratePhysicalDevices(android::base::BumpPool* pool, VkInstance boxed_instance,
+                                           uint32_t* pPhysicalDeviceCount,
+                                           VkPhysicalDevice* pPhysicalDevices) {
+        auto instance = unbox_VkInstance(boxed_instance);
+        auto vk = dispatch_VkInstance(boxed_instance);
+
+        std::vector<VkPhysicalDevice> physicalDevices;
+        auto res = GetPhysicalDevices(instance, vk, physicalDevices);
+        if (res != VK_SUCCESS) {
+            return res;
         }
 
-        if (physicalDeviceCount) {
-            *physicalDeviceCount = validPhysicalDevices.size();
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        FilterPhysicalDevicesLocked(instance, vk, physicalDevices);
+
+        const uint32_t requestedCount = pPhysicalDeviceCount ? *pPhysicalDeviceCount : 0;
+        const uint32_t availableCount = static_cast<uint32_t>(physicalDevices.size());
+
+        if (pPhysicalDeviceCount) {
+            *pPhysicalDeviceCount = availableCount;
         }
 
-        if (physicalDeviceCount && physicalDevices) {
+        if (pPhysicalDeviceCount && pPhysicalDevices) {
             // Box them up
-            for (uint32_t i = 0; i < std::min(*physicalDeviceCount, physicalDevicesSize); ++i) {
-                mPhysicalDeviceToInstance[validPhysicalDevices[i]] = instance;
+            for (uint32_t i = 0; i < std::min(requestedCount, availableCount); ++i) {
+                mPhysicalDeviceToInstance[physicalDevices[i]] = instance;
 
-                auto& physdevInfo = mPhysdevInfo[validPhysicalDevices[i]];
+                auto& physdevInfo = mPhysdevInfo[physicalDevices[i]];
                 physdevInfo.instance = instance;
-                physdevInfo.boxed = new_boxed_VkPhysicalDevice(validPhysicalDevices[i], vk,
+                physdevInfo.boxed = new_boxed_VkPhysicalDevice(physicalDevices[i], vk,
                                                                false /* does not own dispatch */);
 
-                vk->vkGetPhysicalDeviceProperties(validPhysicalDevices[i], &physdevInfo.props);
+                vk->vkGetPhysicalDeviceProperties(physicalDevices[i], &physdevInfo.props);
 
                 if (physdevInfo.props.apiVersion > kMaxSafeVersion) {
                     physdevInfo.props.apiVersion = kMaxSafeVersion;
                 }
 
                 VkPhysicalDeviceMemoryProperties hostMemoryProperties;
-                vk->vkGetPhysicalDeviceMemoryProperties(validPhysicalDevices[i],
-                                                        &hostMemoryProperties);
+                vk->vkGetPhysicalDeviceMemoryProperties(physicalDevices[i], &hostMemoryProperties);
 
                 physdevInfo.memoryPropertiesHelper =
                     std::make_unique<EmulatedPhysicalDeviceMemoryProperties>(
@@ -1201,18 +1214,18 @@ class VkDecoderGlobalState::Impl {
 
                 uint32_t queueFamilyPropCount = 0;
 
-                vk->vkGetPhysicalDeviceQueueFamilyProperties(validPhysicalDevices[i],
+                vk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevices[i],
                                                              &queueFamilyPropCount, nullptr);
 
                 physdevInfo.queueFamilyProperties.resize((size_t)queueFamilyPropCount);
 
                 vk->vkGetPhysicalDeviceQueueFamilyProperties(
-                    validPhysicalDevices[i], &queueFamilyPropCount,
+                    physicalDevices[i], &queueFamilyPropCount,
                     physdevInfo.queueFamilyProperties.data());
 
-                physicalDevices[i] = (VkPhysicalDevice)physdevInfo.boxed;
+                pPhysicalDevices[i] = (VkPhysicalDevice)physdevInfo.boxed;
             }
-            if (physicalDevicesSize < *physicalDeviceCount) {
+            if (requestedCount < availableCount) {
                 res = VK_INCOMPLETE;
             }
         }
@@ -1758,6 +1771,9 @@ class VkDecoderGlobalState::Impl {
 
         // Filter device memory report as callbacks can not be passed between guest and host.
         vk_struct_chain_filter<VkDeviceDeviceMemoryReportCreateInfoEXT>(&createInfoFiltered);
+
+        // Filter device groups as they are effectively disabled.
+        vk_struct_chain_filter<VkDeviceGroupDeviceCreateInfo>(&createInfoFiltered);
 
         createInfoFiltered.enabledExtensionCount = (uint32_t)updatedDeviceExtensions.size();
         createInfoFiltered.ppEnabledExtensionNames = updatedDeviceExtensions.data();
@@ -6699,6 +6715,51 @@ class VkDecoderGlobalState::Impl {
         return;
     }
 
+    VkResult on_vkEnumeratePhysicalDeviceGroups(
+        android::base::BumpPool* pool, VkInstance boxed_instance,
+        uint32_t* pPhysicalDeviceGroupCount,
+        VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
+        auto instance = unbox_VkInstance(boxed_instance);
+        auto vk = dispatch_VkInstance(boxed_instance);
+
+        std::vector<VkPhysicalDevice> physicalDevices;
+        auto res = GetPhysicalDevices(instance, vk, physicalDevices);
+        if (res != VK_SUCCESS) {
+            return res;
+        }
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            FilterPhysicalDevicesLocked(instance, vk, physicalDevices);
+        }
+
+        const uint32_t requestedCount = pPhysicalDeviceGroupCount ? *pPhysicalDeviceGroupCount : 0;
+        const uint32_t availableCount = static_cast<uint32_t>(physicalDevices.size());
+
+        if (pPhysicalDeviceGroupCount) {
+            *pPhysicalDeviceGroupCount = availableCount;
+        }
+        if (pPhysicalDeviceGroupCount && pPhysicalDeviceGroupProperties) {
+            for (uint32_t i = 0; i < std::min(requestedCount, availableCount); ++i) {
+                pPhysicalDeviceGroupProperties[i] = VkPhysicalDeviceGroupProperties{
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES,
+                    .pNext = nullptr,
+                    .physicalDeviceCount = 1,
+                    .physicalDevices =
+                        {
+                            unboxed_to_boxed_VkPhysicalDevice(physicalDevices[i]),
+                        },
+                    .subsetAllocation = VK_FALSE,
+                };
+            }
+            if (requestedCount < availableCount) {
+                return VK_INCOMPLETE;
+            }
+        }
+
+        return VK_SUCCESS;
+    }
+
     void on_DeviceLost() {
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
@@ -9303,6 +9364,20 @@ void VkDecoderGlobalState::on_vkDestroySamplerYcbcrConversionKHR(
     android::base::BumpPool* pool, VkDevice device, VkSamplerYcbcrConversion ycbcrConversion,
     const VkAllocationCallbacks* pAllocator) {
     mImpl->on_vkDestroySamplerYcbcrConversion(pool, device, ycbcrConversion, pAllocator);
+}
+
+VkResult VkDecoderGlobalState::on_vkEnumeratePhysicalDeviceGroups(
+    android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+    VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
+    return mImpl->on_vkEnumeratePhysicalDeviceGroups(pool, instance, pPhysicalDeviceGroupCount,
+                                                     pPhysicalDeviceGroupProperties);
+}
+
+VkResult VkDecoderGlobalState::on_vkEnumeratePhysicalDeviceGroupsKHR(
+    android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+    VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
+    return mImpl->on_vkEnumeratePhysicalDeviceGroups(pool, instance, pPhysicalDeviceGroupCount,
+                                                     pPhysicalDeviceGroupProperties);
 }
 
 void VkDecoderGlobalState::on_DeviceLost() { mImpl->on_DeviceLost(); }
