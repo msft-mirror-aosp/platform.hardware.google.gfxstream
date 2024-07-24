@@ -47,6 +47,7 @@
 #include "VulkanStreamGuest.h"
 #include "aemu/base/AlignedBuf.h"
 #include "aemu/base/BumpPool.h"
+#include "aemu/base/synchronization/AndroidLock.h"
 #include "gfxstream/guest/IOStream.h"
 #include "goldfish_vk_counting_guest.h"
 #include "goldfish_vk_deepcopy_guest.h"
