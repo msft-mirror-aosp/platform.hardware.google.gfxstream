@@ -2166,8 +2166,6 @@ void unmarshal_VkDeviceImageMemoryRequirements(VulkanStream* vkStream, VkStructu
 #define OP_vkGetDeviceImageMemoryRequirements 282480635
 #define OP_vkGetDeviceImageSparseMemoryRequirements 233707261
 #endif
-#ifdef VK_KHR_surface
-#endif
 #ifdef VK_KHR_swapchain
 void marshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
                                       const VkSwapchainCreateInfoKHR* forMarshaling);
@@ -2232,12 +2230,6 @@ void unmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
 #define OP_vkGetDeviceGroupSurfacePresentModesKHR 20176
 #define OP_vkGetPhysicalDevicePresentRectanglesKHR 20177
 #define OP_vkAcquireNextImage2KHR 20178
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
 #endif
 #ifdef VK_KHR_dynamic_rendering
 DEFINE_ALIAS_FUNCTION(marshal_VkRenderingInfo, marshal_VkRenderingInfoKHR)
@@ -2413,10 +2405,6 @@ DEFINE_ALIAS_FUNCTION(marshal_VkExportMemoryAllocateInfo, marshal_VkExportMemory
 DEFINE_ALIAS_FUNCTION(unmarshal_VkExportMemoryAllocateInfo, unmarshal_VkExportMemoryAllocateInfoKHR)
 
 #endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
 #ifdef VK_KHR_external_semaphore_capabilities
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceExternalSemaphoreInfo,
                       marshal_VkPhysicalDeviceExternalSemaphoreInfoKHR)
@@ -2438,8 +2426,6 @@ DEFINE_ALIAS_FUNCTION(marshal_VkExportSemaphoreCreateInfo, marshal_VkExportSemap
 DEFINE_ALIAS_FUNCTION(unmarshal_VkExportSemaphoreCreateInfo,
                       unmarshal_VkExportSemaphoreCreateInfoKHR)
 
-#endif
-#ifdef VK_KHR_external_semaphore_win32
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 void marshal_VkImportSemaphoreFdInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
@@ -2646,8 +2632,6 @@ DEFINE_ALIAS_FUNCTION(marshal_VkMemoryDedicatedAllocateInfo,
 DEFINE_ALIAS_FUNCTION(unmarshal_VkMemoryDedicatedAllocateInfo,
                       unmarshal_VkMemoryDedicatedAllocateInfoKHR)
 
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 DEFINE_ALIAS_FUNCTION(marshal_VkBufferMemoryRequirementsInfo2,
@@ -2879,7 +2863,13 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderIntegerDotProductPropertie
                       unmarshal_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
 #endif
-#ifdef VK_KHR_shader_non_semantic_info
+#ifdef VK_KHR_pipeline_library
+void marshal_VkPipelineLibraryCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkPipelineLibraryCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkPipelineLibraryCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkPipelineLibraryCreateInfoKHR* forUnmarshaling);
+
 #endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(marshal_VkMemoryBarrier2, marshal_VkMemoryBarrier2KHR)
@@ -3129,6 +3119,19 @@ void unmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
 #define OP_vkQueueSignalReleaseImageANDROID 20253
 #define OP_vkGetSwapchainGrallocUsage2ANDROID 287960452
 #endif
+#ifdef VK_EXT_debug_report
+void marshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugReportCallbackCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugReportCallbackCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugReportCallbackCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCreateDebugReportCallbackEXT 20254
+#define OP_vkDestroyDebugReportCallbackEXT 20255
+#define OP_vkDebugReportMessageEXT 20256
+#endif
 #ifdef VK_EXT_transform_feedback
 void marshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -3161,8 +3164,6 @@ void unmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
 #define OP_vkCmdEndQueryIndexedEXT 279821337
 #define OP_vkCmdDrawIndirectByteCountEXT 285235943
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceTextureCompressionASTCHDRFeatures,
                       marshal_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
@@ -3189,13 +3190,52 @@ void unmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     VkPipelineRasterizationDepthClipStateCreateInfoEXT* forUnmarshaling);
 
 #endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
 #ifdef VK_EXT_debug_utils
-#endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
+void marshal_VkDebugUtilsLabelEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                  const VkDebugUtilsLabelEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsLabelEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                    VkDebugUtilsLabelEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkDebugUtilsObjectNameInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkDebugUtilsObjectNameInfoEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsMessengerCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugUtilsMessengerCallbackDataEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsMessengerCallbackDataEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCallbackDataEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsMessengerCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugUtilsMessengerCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsMessengerCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugUtilsMessengerCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          const VkDebugUtilsObjectTagInfoEXT* forMarshaling);
+
+void unmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkDebugUtilsObjectTagInfoEXT* forUnmarshaling);
+
+#define OP_vkSetDebugUtilsObjectNameEXT 20294
+#define OP_vkSetDebugUtilsObjectTagEXT 20295
+#define OP_vkQueueBeginDebugUtilsLabelEXT 20296
+#define OP_vkQueueEndDebugUtilsLabelEXT 20297
+#define OP_vkQueueInsertDebugUtilsLabelEXT 20298
+#define OP_vkCmdBeginDebugUtilsLabelEXT 20299
+#define OP_vkCmdEndDebugUtilsLabelEXT 20300
+#define OP_vkCmdInsertDebugUtilsLabelEXT 20301
+#define OP_vkCreateDebugUtilsMessengerEXT 20302
+#define OP_vkDestroyDebugUtilsMessengerEXT 20303
+#define OP_vkSubmitDebugUtilsMessageEXT 20304
 #endif
 #ifdef VK_EXT_inline_uniform_block
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceInlineUniformBlockFeatures,
@@ -3222,8 +3262,6 @@ DEFINE_ALIAS_FUNCTION(marshal_VkDescriptorPoolInlineUniformBlockCreateInfo,
 DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
-#endif
-#ifdef VK_EXT_shader_stencil_export
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
@@ -3270,10 +3308,6 @@ DEFINE_ALIAS_FUNCTION(marshal_VkPipelineCreationFeedback, marshal_VkPipelineCrea
 
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineCreationFeedback, unmarshal_VkPipelineCreationFeedbackEXT)
 
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
 #endif
 #ifdef VK_EXT_fragment_density_map
 void marshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
@@ -3337,6 +3371,14 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceToolProperties,
                       unmarshal_VkPhysicalDeviceToolPropertiesEXT)
 
 #define OP_vkGetPhysicalDeviceToolPropertiesEXT 282247593
+#endif
+#ifdef VK_EXT_validation_features
+void marshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                     const VkValidationFeaturesEXT* forMarshaling);
+
+void unmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkValidationFeaturesEXT* forUnmarshaling);
+
 #endif
 #ifdef VK_EXT_provoking_vertex
 void marshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -3601,6 +3643,24 @@ void unmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     VkDeviceDeviceMemoryReportCreateInfoEXT* forUnmarshaling);
 
 #endif
+#ifdef VK_EXT_robustness2
+void marshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2FeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2PropertiesEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_custom_border_color
 void marshal_VkSamplerCustomBorderColorCreateInfoEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -3759,6 +3819,25 @@ void unmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
 #define OP_vkCmdSetLogicOpEXT 267481927
 #define OP_vkCmdSetPrimitiveRestartEnableEXT 299567883
 #endif
+#ifdef VK_EXT_color_write_enable
+void marshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceColorWriteEnableFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineColorWriteCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineColorWriteCreateInfoEXT* forUnmarshaling);
+
+#define OP_vkCmdSetColorWriteEnableEXT 202223297
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void marshal_VkImportColorBufferGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                        const VkImportColorBufferGOOGLE* forMarshaling);
@@ -3802,8 +3881,7 @@ void unmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureType rootTy
 #define OP_vkGetBlobGOOGLE 20341
 #define OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE 244782974
 #define OP_vkQueueSubmitAsync2GOOGLE 292092830
-#endif
-#ifdef VK_EXT_load_store_op_none
+#define OP_vkGetSemaphoreGOOGLE 20342
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void marshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
@@ -3815,7 +3893,65 @@ void unmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forUnmarshaling);
 
 #endif
-#ifdef VK_QNX_external_memory_screen_buffer
+#ifdef VK_KHR_ray_tracing_pipeline
+void marshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingShaderGroupCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingShaderGroupCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineInterfaceCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkRayTracingPipelineCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineCreateInfoKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forUnmarshaling);
+
+void marshal_VkStridedDeviceAddressRegionKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             const VkStridedDeviceAddressRegionKHR* forMarshaling);
+
+void unmarshal_VkStridedDeviceAddressRegionKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkStridedDeviceAddressRegionKHR* forUnmarshaling);
+
+void marshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                           const VkTraceRaysIndirectCommandKHR* forMarshaling);
+
+void unmarshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkTraceRaysIndirectCommandKHR* forUnmarshaling);
+
+#define OP_vkCmdTraceRaysKHR 213680716
+#define OP_vkCreateRayTracingPipelinesKHR 247628685
+#define OP_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR 221334934
+#define OP_vkCmdTraceRaysIndirectKHR 211788517
+#define OP_vkGetRayTracingShaderGroupStackSizeKHR 205271933
+#define OP_vkCmdSetRayTracingPipelineStackSizeKHR 260219604
 #endif
 const char* api_opcode_to_string(const uint32_t opcode);
 

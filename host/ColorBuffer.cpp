@@ -53,15 +53,26 @@ ColorBuffer::ColorBuffer(HandleType handle, uint32_t width, uint32_t height, GLe
 std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
                                                  vk::VkEmulation* emulationVk, uint32_t width,
                                                  uint32_t height, GLenum format,
-                                                 FrameworkFormat frameworkFormat,
-                                                 HandleType handle) {
+                                                 FrameworkFormat frameworkFormat, HandleType handle,
+                                                 android::base::Stream* stream, bool linear) {
     std::shared_ptr<ColorBuffer> colorBuffer(
         new ColorBuffer(handle, width, height, format, frameworkFormat));
 
+    if (stream) {
+        // When vk snapshot enabled, mNeedRestore will be touched and set to false immediately.
+        colorBuffer->mNeedRestore = true;
+    }
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (emulationGl) {
-        colorBuffer->mColorBufferGl =
-            emulationGl->createColorBuffer(width, height, format, frameworkFormat, handle);
+        if (stream) {
+            colorBuffer->mColorBufferGl = emulationGl->loadColorBuffer(stream);
+            assert(width == colorBuffer->mColorBufferGl->getWidth());
+            assert(height == colorBuffer->mColorBufferGl->getHeight());
+            assert(frameworkFormat == colorBuffer->mColorBufferGl->getFrameworkFormat());
+        } else {
+            colorBuffer->mColorBufferGl =
+                emulationGl->createColorBuffer(width, height, format, frameworkFormat, handle);
+        }
         if (!colorBuffer->mColorBufferGl) {
             ERR("Failed to initialize ColorBufferGl.");
             return nullptr;
@@ -71,10 +82,12 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
 
     if (emulationVk && emulationVk->live) {
         const bool vulkanOnly = colorBuffer->mColorBufferGl == nullptr;
-
-        colorBuffer->mColorBufferVk =
-            vk::ColorBufferVk::create(handle, width, height, format, frameworkFormat, vulkanOnly,
-                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        uint32_t memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        if (vulkanOnly && linear) {
+            memoryProperty |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        }
+        colorBuffer->mColorBufferVk = vk::ColorBufferVk::create(
+            handle, width, height, format, frameworkFormat, vulkanOnly, memoryProperty, stream);
         if (!colorBuffer->mColorBufferVk) {
             if (emulationGl) {
                 // Historically, ColorBufferVk setup was deferred until the first actual Vulkan
@@ -88,9 +101,11 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     bool b271028352Workaround = emulationGl && strstr(emulationGl->getGlesRenderer().c_str(), "Intel");
+    bool vkSnapshotEnabled = emulationVk && emulationVk->features.VulkanSnapshots.enabled;
 
-    if (colorBuffer->mColorBufferGl && colorBuffer->mColorBufferVk &&
+    if ((!stream || vkSnapshotEnabled) && colorBuffer->mColorBufferGl && colorBuffer->mColorBufferVk &&
         !b271028352Workaround && shouldAttemptExternalMemorySharing(frameworkFormat)) {
+        colorBuffer->touch();
         auto memoryExport = vk::exportColorBufferMemory(handle);
         if (memoryExport) {
             if (colorBuffer->mColorBufferGl->importMemory(
@@ -108,7 +123,8 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
 }
 
 /*static*/
-std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl, vk::VkEmulation*,
+std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl,
+                                                 vk::VkEmulation* emulationVk,
                                                  android::base::Stream* stream) {
     const auto handle = static_cast<HandleType>(stream->getBe32());
     const auto width = static_cast<uint32_t>(stream->getBe32());
@@ -116,20 +132,8 @@ std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl, v
     const auto format = static_cast<GLenum>(stream->getBe32());
     const auto frameworkFormat = static_cast<FrameworkFormat>(stream->getBe32());
 
-    std::shared_ptr<ColorBuffer> colorBuffer(
-        new ColorBuffer(handle, width, height, format, frameworkFormat));
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-    if (emulationGl) {
-        colorBuffer->mColorBufferGl = emulationGl->loadColorBuffer(stream);
-        if (!colorBuffer->mColorBufferGl) {
-            ERR("Failed to load ColorBufferGl.");
-            return nullptr;
-        }
-    }
-#endif
-
-    colorBuffer->mNeedRestore = true;
+    std::shared_ptr<ColorBuffer> colorBuffer = ColorBuffer::create(
+        emulationGl, emulationVk, width, height, format, frameworkFormat, handle, stream);
 
     return colorBuffer;
 }
@@ -146,6 +150,9 @@ void ColorBuffer::onSave(android::base::Stream* stream) {
         mColorBufferGl->onSave(stream);
     }
 #endif
+    if (mColorBufferVk) {
+        mColorBufferVk->onSave(stream);
+    }
 }
 
 void ColorBuffer::restore() {
@@ -434,6 +441,26 @@ bool ColorBuffer::importNativeResource(void* nativeResource, uint32_t type, bool
                 << "Unrecognized type for ColorBuffer::importNativeResource.";
             return false;
     }
+}
+
+int ColorBuffer::waitSync() {
+    if (mColorBufferGl) {
+        return -1;
+    }
+
+    if (!mColorBufferVk) {
+        return -1;
+    }
+
+    return mColorBufferVk->waitSync();
+}
+
+std::optional<BlobDescriptorInfo> ColorBuffer::exportBlob() {
+    if (!mColorBufferVk) {
+        return std::nullopt;
+    }
+
+    return mColorBufferVk->exportBlob();
 }
 
 #if GFXSTREAM_ENABLE_HOST_GLES

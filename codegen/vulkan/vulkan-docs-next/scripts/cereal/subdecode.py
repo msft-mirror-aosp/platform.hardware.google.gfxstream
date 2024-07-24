@@ -303,6 +303,7 @@ custom_decodes = {
     "vkEndCommandBuffer": emit_global_state_wrapped_decoding_with_context,
     "vkResetCommandBuffer": emit_global_state_wrapped_decoding,
     "vkCmdPipelineBarrier": emit_global_state_wrapped_decoding,
+    "vkCmdPipelineBarrier2": emit_global_state_wrapped_decoding,
     "vkCmdBindPipeline": emit_global_state_wrapped_decoding,
     "vkCmdBindDescriptorSets": emit_global_state_wrapped_decoding,
     "vkCmdCopyQueryPoolResults": emit_global_state_wrapped_decoding,
@@ -310,6 +311,9 @@ custom_decodes = {
     "vkEndCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding_with_context,
     "vkResetCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding,
     "vkCommandBufferHostSyncGOOGLE": emit_global_state_wrapped_decoding,
+    "vkCmdBeginRenderPass" : emit_global_state_wrapped_decoding,
+    "vkCmdBeginRenderPass2" : emit_global_state_wrapped_decoding,
+    "vkCmdBeginRenderPass2KHR" : emit_global_state_wrapped_decoding,
 }
 
 

@@ -75,7 +75,7 @@ extern "C" {
 
 //decleration
 static void initGLESx(bool isGles2Gles);
-static void initContext(GLEScontext* ctx,ShareGroupPtr grp);
+static void initContext(GLEScontext* ctx, ShareGroupPtr grp, bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled);
 static void setMaxGlesVersion(GLESVersion version);
 static void deleteGLESContext(GLEScontext* ctx);
 static void setShareGroup(GLEScontext* ctx,ShareGroupPtr grp);
@@ -164,7 +164,7 @@ GL_APICALL void GL_APIENTRY glGetUnsignedBytei_vEXT(GLenum target, GLuint index,
 // GL_EXT_memory_object
 GL_APICALL void GL_APIENTRY glImportMemoryFdEXT(GLuint memory, GLuint64 size, GLenum handleType, GLint fd);
 GL_APICALL void GL_APIENTRY glImportMemoryWin32HandleEXT(GLuint memory, GLuint64 size, GLenum handleType, void* handle);
-GL_APICALL void GL_APIENTRY glDeleteMemoryObjectsEXT(GLsizei n, const GLuint *memoryObjects); 
+GL_APICALL void GL_APIENTRY glDeleteMemoryObjectsEXT(GLsizei n, const GLuint *memoryObjects);
 GL_APICALL GLboolean GL_APIENTRY glIsMemoryObjectEXT(GLuint memoryObject);
 GL_APICALL void GL_APIENTRY glCreateMemoryObjectsEXT(GLsizei n, GLuint *memoryObjects);
 GL_APICALL void GL_APIENTRY glMemoryObjectParameterivEXT(GLuint memoryObject, GLenum pname, const GLint *params);
@@ -241,7 +241,7 @@ static void setMaxGlesVersion(GLESVersion version) {
     GLESv2Context::setMaxGlesVersion(version);
 }
 
-static void initContext(GLEScontext* ctx,ShareGroupPtr grp) {
+static void initContext(GLEScontext* ctx, ShareGroupPtr grp, bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled) {
     setCoreProfile(ctx->isCoreProfile());
     GLESv2Context::initGlobal(s_eglIface);
 
@@ -249,7 +249,7 @@ static void initContext(GLEScontext* ctx,ShareGroupPtr grp) {
         ctx->setShareGroup(grp);
     }
     if (!ctx->isInitialized()) {
-        ctx->init();
+        ctx->init(nativeTextureDecompressionEnabled, programBinaryLinkStatusEnabled);
         translator::gles2::glBindTexture(GL_TEXTURE_2D,0);
         translator::gles2::glBindTexture(GL_TEXTURE_CUBE_MAP,0);
     }

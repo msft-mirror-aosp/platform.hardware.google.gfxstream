@@ -31,6 +31,7 @@
 #include "Compositor.h"
 #include "Display.h"
 #include "DisplaySurface.h"
+#include "ExternalObjectManager.h"
 #include "Hwc2.h"
 #include "PostCommands.h"
 #include "PostWorker.h"
@@ -47,6 +48,7 @@
 #include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/threads/Thread.h"
 #include "aemu/base/threads/WorkerThread.h"
+#include "gfxstream/host/Features.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 
@@ -134,8 +136,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // own sub-windows. If false, this means the caller will use
     // setPostCallback() instead to retrieve the content.
     // Returns true on success, false otherwise.
-    static bool initialize(int width, int height, bool useSubWindow,
-                           bool egl2egl);
+    static bool initialize(int width, int height, gfxstream::host::FeatureSet features,
+                           bool useSubWindow, bool egl2egl);
 
     // Finalize the instance.
     static void finalize();
@@ -203,7 +205,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // handle already assigned. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl.
     void createColorBufferWithHandle(int p_width, int p_height, GLenum p_internalFormat,
-                                     FrameworkFormat p_frameworkFormat, HandleType handle);
+                                     FrameworkFormat p_frameworkFormat, HandleType handle,
+                                     bool linear = false);
 
     // Create a new data Buffer instance from this display instance.
     // The buffer will be backed by a VkBuffer and VkDeviceMemory (if Vulkan
@@ -479,6 +482,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
         return *m_logger;
     }
 
+    void logVulkanDeviceLost();
     void logVulkanOutOfMemory(VkResult result, const char* function, int line,
                               std::optional<uint64_t> allocationSize = std::nullopt);
 
@@ -494,6 +498,10 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     bool flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes,
                                      size_t bytesSize);
     bool invalidateColorBufferForVk(HandleType colorBufferHandle);
+
+    int waitSyncColorBuffer(HandleType colorBufferHandle);
+    std::optional<BlobDescriptorInfo> exportColorBuffer(HandleType colorBufferHandle);
+    std::optional<BlobDescriptorInfo> exportBuffer(HandleType bufferHandle);
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     // Retrieves the color buffer handle associated with |p_surface|.
@@ -667,8 +675,10 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     const gl::GLESv2Dispatch* getGles2Dispatch();
 #endif
 
+    const gfxstream::host::FeatureSet& getFeatures() const { return m_features; }
+
    private:
-    FrameBuffer(int p_width, int p_height, bool useSubWindow);
+    FrameBuffer(int p_width, int p_height, gfxstream::host::FeatureSet features, bool useSubWindow);
     // Requires the caller to hold the m_colorBufferMapLock until the new handle is inserted into of
     // the object handle maps.
     HandleType genHandle_locked();
@@ -700,7 +710,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     }
     HandleType createColorBufferWithHandleLocked(int p_width, int p_height, GLenum p_internalFormat,
                                                  FrameworkFormat p_frameworkFormat,
-                                                 HandleType handle);
+                                                 HandleType handle, bool linear = false);
     HandleType createBufferWithHandleLocked(int p_size, HandleType handle, uint32_t memoryProperty);
 
     void recomputeLayout();
@@ -713,6 +723,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
 
     static FrameBuffer* s_theFrameBuffer;
     static HandleType s_nextHandle;
+
+    gfxstream::host::FeatureSet m_features;
     int m_x = 0;
     int m_y = 0;
     int m_framebufferWidth = 0;
@@ -837,7 +849,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
 
     bool m_vulkanInteropSupported = false;
     bool m_vulkanEnabled = false;
-    bool m_guestUsesAngle = false;
     // Whether the guest manages ColorBuffer lifetime
     // so we don't need refcounting on the host side.
     bool m_guestManagedColorBufferLifetime = false;

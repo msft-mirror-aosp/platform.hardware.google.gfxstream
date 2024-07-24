@@ -67,14 +67,15 @@
     GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(f) \
     GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(f)
 
+// Need to sort by snapshot load dependency order
 #define GOLDFISH_VK_LIST_HANDLE_TYPES_BY_STAGE(f) \
     f(VkInstance)                                 \
     f(VkPhysicalDevice)                           \
     f(VkDevice)                                   \
     f(VkQueue)                                    \
+    f(VkDeviceMemory)                             \
     f(VkBuffer)                                   \
     f(VkImage)                                    \
-    f(VkDeviceMemory)                             \
     f(VkBufferView)                               \
     f(VkImageView)                                \
     f(VkShaderModule)                             \

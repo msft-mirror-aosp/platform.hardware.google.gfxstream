@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "host/vulkan/VkDecoderGlobalState.h"
+#include "vulkan/VkDecoderGlobalState.h"
 #include "goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"
 
@@ -99,6 +99,11 @@ class VkDecoderTestDispatch {
                                       dependencyFlags, memoryBarrierCount, pMemoryBarriers,
                                       bufferMemoryBarrierCount, pBufferMemoryBarriers,
                                       imageMemoryBarrierCount, pImageMemoryBarriers);
+    }
+
+    void vkCmdPipelineBarrier2(VkCommandBuffer commandBuffer,
+                               const VkDependencyInfo* pDependencyInfo) {
+        mDgs->on_vkCmdPipelineBarrier2(mBp, commandBuffer, pDependencyInfo);
     }
 
     void vkCmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage srcImage,

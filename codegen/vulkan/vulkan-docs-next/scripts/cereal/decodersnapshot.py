@@ -9,6 +9,7 @@ from .wrapperdefs import API_PREFIX_UNMARSHAL
 from .wrapperdefs import VULKAN_STREAM_TYPE
 
 from copy import copy
+from dataclasses import dataclass
 
 decoder_snapshot_decl_preamble = """
 
@@ -27,6 +28,7 @@ public:
     void save(android::base::Stream* stream);
     void load(android::base::Stream* stream, emugl::GfxApiLogger& gfx_logger,
               emugl::HealthMonitor<>* healthMonitor);
+    void createExtraHandlesForNextApi(const uint64_t* created, uint32_t count);
 """
 
 decoder_snapshot_decl_postamble = """
@@ -56,6 +58,10 @@ public:
         mReconstruction.load(stream, gfx_logger, healthMonitor);
     }
 
+    void createExtraHandlesForNextApi(const uint64_t* created, uint32_t count) {
+        mLock.lock();
+        mReconstruction.createExtraHandlesForNextApi(created, count);
+    }
 """
 
 decoder_snapshot_impl_postamble = """
@@ -74,6 +80,10 @@ void VkDecoderSnapshot::save(android::base::Stream* stream) {
 void VkDecoderSnapshot::load(android::base::Stream* stream, GfxApiLogger& gfx_logger,
                              HealthMonitor<>* healthMonitor) {
     mImpl->load(stream, gfx_logger, healthMonitor);
+}
+
+void VkDecoderSnapshot::createExtraHandlesForNextApi(const uint64_t* created, uint32_t count) {
+    mImpl->createExtraHandlesForNextApi(created, count);
 }
 
 VkDecoderSnapshot::~VkDecoderSnapshot() = default;
@@ -98,31 +108,172 @@ SNAPSHOT_HANDLE_DEPENDENCIES = [
 
 handleDependenciesDict = dict(SNAPSHOT_HANDLE_DEPENDENCIES)
 
+def extract_deps_vkAllocateMemory(param, access, lenExpr, api, cgen):
+    cgen.stmt("const VkMemoryDedicatedAllocateInfo* dedicatedAllocateInfo = vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo)");
+    cgen.beginIf("dedicatedAllocateInfo");
+    cgen.beginIf("dedicatedAllocateInfo->image")
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s)" % \
+              (access, lenExpr, "unboxed_to_boxed_non_dispatchable_VkImage(dedicatedAllocateInfo->image)"))
+    cgen.endIf()
+    cgen.beginIf("dedicatedAllocateInfo->buffer")
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s)" % \
+              (access, lenExpr, "unboxed_to_boxed_non_dispatchable_VkBuffer(dedicatedAllocateInfo->buffer)"))
+    cgen.endIf()
+    cgen.endIf()
+
 def extract_deps_vkAllocateCommandBuffers(param, access, lenExpr, api, cgen):
     cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s)" % \
               (access, lenExpr, "unboxed_to_boxed_non_dispatchable_VkCommandPool(pAllocateInfo->commandPool)"))
 
+def extract_deps_vkCreateImageView(param, access, lenExpr, api, cgen):
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s, VkReconstruction::CREATED, VkReconstruction::BOUND_MEMORY)" % \
+              (access, lenExpr, "unboxed_to_boxed_non_dispatchable_VkImage(pCreateInfo->image)"))
+
+def extract_deps_vkCreateGraphicsPipelines(param, access, lenExpr, api, cgen):
+    cgen.beginFor("uint32_t i = 0", "i < createInfoCount", "++i")
+    cgen.beginFor("uint32_t j = 0", "j < pCreateInfos[i].stageCount", "++j")
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)(%s + i), %s, (uint64_t)(uintptr_t)%s)" % \
+              (access, 1, "unboxed_to_boxed_non_dispatchable_VkShaderModule(pCreateInfos[i].pStages[j].module)"))
+    cgen.endFor()
+    cgen.endFor()
+
+def extract_deps_vkCreateFramebuffer(param, access, lenExpr, api, cgen):
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s)" % \
+              (access, lenExpr, "unboxed_to_boxed_non_dispatchable_VkRenderPass(pCreateInfo->renderPass)"))
+    cgen.beginFor("uint32_t i = 0", "i < pCreateInfo->attachmentCount" , "++i")
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s)" % \
+              (access, lenExpr, "unboxed_to_boxed_non_dispatchable_VkImageView(pCreateInfo->pAttachments[i])"))
+    cgen.endFor()
+
+def extract_deps_vkBindImageMemory(param, access, lenExpr, api, cgen):
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s, VkReconstruction::BOUND_MEMORY)" % \
+              (access, lenExpr, "unboxed_to_boxed_non_dispatchable_VkDeviceMemory(memory)"))
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)((%s)[0]), VkReconstruction::BOUND_MEMORY)" % \
+              (access, lenExpr, access))
+
+def extract_deps_vkBindBufferMemory(param, access, lenExpr, api, cgen):
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s, VkReconstruction::BOUND_MEMORY)" % \
+              (access, lenExpr, "unboxed_to_boxed_non_dispatchable_VkDeviceMemory(memory)"))
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)((%s)[0]), VkReconstruction::BOUND_MEMORY)" % \
+              (access, lenExpr, access))
+
 specialCaseDependencyExtractors = {
     "vkAllocateCommandBuffers" : extract_deps_vkAllocateCommandBuffers,
+    "vkAllocateMemory" : extract_deps_vkAllocateMemory,
+    "vkCreateImageView" : extract_deps_vkCreateImageView,
+    "vkCreateGraphicsPipelines" : extract_deps_vkCreateGraphicsPipelines,
+    "vkCreateFramebuffer" : extract_deps_vkCreateFramebuffer,
+    "vkBindImageMemory": extract_deps_vkBindImageMemory,
+    "vkBindBufferMemory": extract_deps_vkBindBufferMemory,
 }
 
 apiSequences = {
     "vkAllocateMemory" : ["vkAllocateMemory", "vkMapMemoryIntoAddressSpaceGOOGLE"]
 }
 
+apiCrreateExtraHandles = [
+    "vkCreateDevice",
+    "vkCreateDescriptorPool",
+]
+
+@dataclass(frozen=True)
+class VkObjectState:
+    vk_object : str
+    state : str = "VkReconstruction::CREATED"
+
+# TODO: add vkBindImageMemory2 and vkBindBufferMemory2 into this list
+apiChangeState = {
+    "vkBindImageMemory": VkObjectState("image", "VkReconstruction::BOUND_MEMORY"),
+    "vkBindBufferMemory": VkObjectState("buffer", "VkReconstruction::BOUND_MEMORY"),
+}
+
+def api_special_implementation_vkBindImageMemory2(api, cgen):
+    childType = "VkImage"
+    parentType = "VkDeviceMemory"
+    childObj = "boxed_%s" % childType
+    parentObj = "boxed_%s" % parentType
+    cgen.stmt("android::base::AutoLock lock(mLock)")
+    cgen.beginFor("uint32_t i = 0", "i < bindInfoCount", "++i")
+    cgen.stmt("%s boxed_%s = unboxed_to_boxed_non_dispatchable_%s(pBindInfos[i].image)"
+              % (childType, childType, childType))
+    cgen.stmt("%s boxed_%s = unboxed_to_boxed_non_dispatchable_%s(pBindInfos[i].memory)"
+              % (parentType, parentType, parentType))
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)&%s, %s, (uint64_t)(uintptr_t)%s, VkReconstruction::BOUND_MEMORY)" % \
+              (childObj, "1", parentObj))
+    cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)&%s, %s, (uint64_t)(uintptr_t)%s, VkReconstruction::BOUND_MEMORY)" % \
+              (childObj, "1", childObj))
+    cgen.endFor()
+
+    cgen.stmt("auto apiHandle = mReconstruction.createApiInfo()")
+    cgen.stmt("auto apiInfo = mReconstruction.getApiInfo(apiHandle)")
+    cgen.stmt("mReconstruction.setApiTrace(apiInfo, OP_%s, snapshotTraceBegin, snapshotTraceBytes)" % api.name)
+    cgen.line("// Note: the implementation does not work with bindInfoCount > 1");
+    cgen.beginFor("uint32_t i = 0", "i < bindInfoCount", "++i")
+    cgen.stmt("%s boxed_%s = unboxed_to_boxed_non_dispatchable_%s(pBindInfos[i].image)"
+              % (childType, childType, childType))
+    cgen.stmt(f"mReconstruction.forEachHandleAddApi((const uint64_t*)&{childObj}, {1}, apiHandle, VkReconstruction::BOUND_MEMORY)")
+    cgen.endFor()
+
+apiSpecialImplementation = {
+    "vkBindImageMemory2": api_special_implementation_vkBindImageMemory2,
+    "vkBindImageMemory2KHR": api_special_implementation_vkBindImageMemory2,
+}
+
 apiModifies = {
     "vkMapMemoryIntoAddressSpaceGOOGLE" : ["memory"],
     "vkGetBlobGOOGLE" : ["memory"],
-    "vkBindImageMemory": ["image"],
+    "vkBeginCommandBuffer" : ["commandBuffer"],
+    "vkEndCommandBuffer" : ["commandBuffer"],
 }
+
+apiClearModifiers = {
+    "vkResetCommandBuffer" : ["commandBuffer"],
+}
+
+delayedDestroys = [
+    "vkDestroyShaderModule",
+]
+
+# The following types are created and cached by other commands.
+# Thus we should not snapshot their "create" commands.
+skipCreatorSnapshotTypes = [
+    "VkQueue", # created by vkCreateDevice
+    "VkDescriptorSet", # created by vkCreateDescriptorPool
+]
+
+def is_state_change_operation(api, param):
+    if param.isCreatedBy(api) and param.typeName not in skipCreatorSnapshotTypes:
+        return True
+    if api.name in apiChangeState:
+        if param.paramName == apiChangeState[api.name].vk_object:
+            return True
+    return False
+
+def get_target_state(api, param):
+    if param.isCreatedBy(api):
+        return "VkReconstruction::CREATED"
+    if api.name in apiChangeState:
+        if param.paramName == apiChangeState[api.name].vk_object:
+            return apiChangeState[api.name].state
+    return None
 
 def is_modify_operation(api, param):
     if api.name in apiModifies:
         if param.paramName in apiModifies[api.name]:
             return True
+    if api.name.startswith('vkCmd') and param.paramName == 'commandBuffer':
+        return True
     return False
 
+def is_clear_modifier_operation(api, param):
+    if api.name in apiClearModifiers:
+        if param.paramName in apiClearModifiers[api.name]:
+            return True
+
+
 def emit_impl(typeInfo, api, cgen):
+    if api.name in apiSpecialImplementation:
+        apiSpecialImplementation[api.name](api, cgen)
     for p in api.parameters:
         if not (p.isHandleType):
             continue
@@ -133,45 +284,60 @@ def emit_impl(typeInfo, api, cgen):
         if lenExpr is None:
             lenExpr = "1"
 
+        # Note that in vkCreate*, the last parameter (the output) is boxed. But all input parameters are unboxed.
+
         if p.pointerIndirectionLevels > 0:
             access = p.paramName
         else:
             access = "(&%s)" % p.paramName
 
-        if p.isCreatedBy(api):
-            cgen.stmt("android::base::AutoLock lock(mLock)")
+        if is_state_change_operation(api, p):
+            if p.isCreatedBy(api):
+                boxed_access = access
+            else:
+                cgen.stmt("%s boxed_%s = unboxed_to_boxed_non_dispatchable_%s(%s[0])" % (p.typeName, p.typeName, p.typeName, access))
+                boxed_access = "&boxed_%s" % p.typeName
+            if p.pointerIndirectionLevels > 0:
+                cgen.stmt("if (!%s) return" % access)
+            isCreateExtraHandleApi = api.name in apiCrreateExtraHandles
+            if not isCreateExtraHandleApi:
+                cgen.stmt("android::base::AutoLock lock(mLock)")
             cgen.line("// %s create" % p.paramName)
-            cgen.stmt("mReconstruction.addHandles((const uint64_t*)%s, %s)" % (access, lenExpr));
+            if p.isCreatedBy(api):
+                cgen.stmt("mReconstruction.addHandles((const uint64_t*)%s, %s)" % (boxed_access, lenExpr));
 
-            if p.typeName in handleDependenciesDict:
+            if p.isCreatedBy(api) and p.typeName in handleDependenciesDict:
                 dependsOnType = handleDependenciesDict[p.typeName];
                 for p2 in api.parameters:
                     if p2.typeName == dependsOnType:
-                        cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s)" % (access, lenExpr, p2.paramName))
-                if api.name in specialCaseDependencyExtractors:
-                    specialCaseDependencyExtractors[api.name](p, access, lenExpr, api, cgen)
+                        cgen.stmt("mReconstruction.addHandleDependency((const uint64_t*)%s, %s, (uint64_t)(uintptr_t)%s)" % (boxed_access, lenExpr, p2.paramName))
+            if api.name in specialCaseDependencyExtractors:
+                specialCaseDependencyExtractors[api.name](p, boxed_access, lenExpr, api, cgen)
 
-            cgen.stmt("if (!%s) return" % access)
             cgen.stmt("auto apiHandle = mReconstruction.createApiInfo()")
             cgen.stmt("auto apiInfo = mReconstruction.getApiInfo(apiHandle)")
             cgen.stmt("mReconstruction.setApiTrace(apiInfo, OP_%s, snapshotTraceBegin, snapshotTraceBytes)" % api.name)
             if lenAccessGuard is not None:
                 cgen.beginIf(lenAccessGuard)
-            cgen.stmt("mReconstruction.forEachHandleAddApi((const uint64_t*)%s, %s, apiHandle)" % (access, lenExpr))
-            cgen.stmt("mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)%s, %s)" % (access, lenExpr))
+            cgen.stmt(f"mReconstruction.forEachHandleAddApi((const uint64_t*){boxed_access}, {lenExpr}, apiHandle, {get_target_state(api, p)})")
+            if p.isCreatedBy(api):
+                cgen.stmt("mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)%s, %s)" % (boxed_access, lenExpr))
             if lenAccessGuard is not None:
                 cgen.endIf()
+            if isCreateExtraHandleApi:
+                cgen.stmt("mLock.unlock()")
 
         if p.isDestroyedBy(api):
             cgen.stmt("android::base::AutoLock lock(mLock)")
             cgen.line("// %s destroy" % p.paramName)
             if lenAccessGuard is not None:
                 cgen.beginIf(lenAccessGuard)
-            cgen.stmt("mReconstruction.removeHandles((const uint64_t*)%s, %s)" % (access, lenExpr));
+            shouldRecursiveDestroy = "false" if api.name in delayedDestroys else "true"
+            cgen.stmt("mReconstruction.removeHandles((const uint64_t*)%s, %s, %s)" % (access, lenExpr, shouldRecursiveDestroy));
             if lenAccessGuard is not None:
                 cgen.endIf()
 
-        if is_modify_operation(api, p):
+        if is_modify_operation(api, p) or is_clear_modifier_operation(api, p):
             cgen.stmt("android::base::AutoLock lock(mLock)")
             cgen.line("// %s modify" % p.paramName)
             cgen.stmt("auto apiHandle = mReconstruction.createApiInfo()")
@@ -184,7 +350,10 @@ def emit_impl(typeInfo, api, cgen):
                 cgen.stmt("%s boxed = unboxed_to_boxed_non_dispatchable_%s(%s[i])" % (p.typeName, p.typeName, access))
             else:
                 cgen.stmt("%s boxed = unboxed_to_boxed_%s(%s[i])" % (p.typeName, p.typeName, access))
-            cgen.stmt("mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle)")
+            if is_modify_operation(api, p):
+                cgen.stmt("mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle)")
+            else: # is clear modifier operation
+                cgen.stmt("mReconstruction.forEachHandleClearModifyApi((const uint64_t*)(&boxed), 1)")
             cgen.endFor()
             if lenAccessGuard is not None:
                 cgen.endIf()

@@ -15,9 +15,9 @@
 #include "CompressedImageInfo.h"
 
 #include "aemu/base/ArraySize.h"
-#include "host/vulkan/VkFormatUtils.h"
-#include "host/vulkan/emulated_textures/shaders/DecompressionShaders.h"
-#include "host/vulkan/VkFormatUtils.h"
+#include "vulkan/VkFormatUtils.h"
+#include "vulkan/emulated_textures/shaders/DecompressionShaders.h"
+#include "vulkan/VkFormatUtils.h"
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {

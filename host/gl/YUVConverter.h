@@ -28,7 +28,7 @@
 namespace gfxstream {
 namespace gl {
 
-enum class YUVPlane {
+enum class YUVPlane : int {
     Y = 0,
     U = 1,
     V = 2,
@@ -59,7 +59,8 @@ class YUVConverter {
 public:
     // call ctor when creating a gralloc buffer
     // with YUV format
-    YUVConverter(int width, int height, FrameworkFormat format);
+    YUVConverter(int width, int height, FrameworkFormat format,
+                 bool yuv420888ToNv21);
     // destroy when ColorBuffer is destroyed
     ~YUVConverter();
     // call when gralloc_unlock updates
@@ -81,6 +82,7 @@ public:
                                GLsizei width,
                                GLsizei height,
                                FrameworkFormat format,
+                               bool yuv420888ToNv21,
                                YUVPlane plane,
                                GLuint* outTextureName);
 private:
@@ -118,6 +120,7 @@ private:
     float mYWidthCutoff = 1.0;
     float mUVWidthCutoff = 1.0;
     bool mHasGlsl3Support = false;
+    bool mYuv420888ToNv21 = false;
 
     // YUVConverter can end up being used
     // in a TextureDraw / subwindow context, and subsequently

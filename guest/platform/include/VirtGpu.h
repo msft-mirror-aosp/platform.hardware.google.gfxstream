@@ -22,14 +22,23 @@
 #include "virtgpu_gfxstream_protocol.h"
 
 // See virgl_hw.h and p_defines.h
-#define VIRGL_FORMAT_R8_UNORM 64
 #define VIRGL_FORMAT_B8G8R8A8_UNORM 1
 #define VIRGL_FORMAT_B5G6R5_UNORM 7
+#define VIRGL_FORMAT_R10G10B10A2_UNORM 8
+#define VIRGL_FORMAT_R8_UNORM 64
 #define VIRGL_FORMAT_R8G8B8_UNORM 66
 #define VIRGL_FORMAT_R8G8B8A8_UNORM 67
+#define VIRGL_FORMAT_R16G16B16A16_FLOAT 94
+#define VIRGL_FORMAT_YV12 163
+#define VIRGL_FORMAT_YV16 164
+#define VIRGL_FORMAT_IYUV 165
+#define VIRGL_FORMAT_NV12 166
+#define VIRGL_FORMAT_NV21 167
 
 #define VIRGL_BIND_RENDER_TARGET (1 << 1)
 #define VIRGL_BIND_CUSTOM (1 << 17)
+#define VIRGL_BIND_LINEAR (1 << 22)
+
 #define PIPE_BUFFER 0
 #define PIPE_TEXTURE_2D 2
 
@@ -42,14 +51,18 @@ enum VirtGpuParamId : uint32_t {
     kParamContextInit = 5,
     kParamSupportedCapsetIds = 6,
     kParamExplicitDebugName = 7,
-    kParamCreateGuestHandle = 8,
-    kParamMax = 9,
+    // Experimental, not in upstream Linux
+    kParamFencePassing = 8,
+    kParamCreateGuestHandle = 9,
+    kParamMax = 10,
 };
 
 enum VirtGpuExecBufferFlags : uint32_t {
     kFenceIn = 0x0001,
     kFenceOut = 0x0002,
     kRingIdx = 0x0004,
+    kShareableIn = 0x0008,
+    kShareableOut = 0x0010,
 };
 
 enum VirtGpuCapset {
@@ -78,14 +91,14 @@ enum VirtGpuHandleType {
     kFenceHandleZircon = 0x0080,
 };
 
-enum VirtGpuBlobFlags : uint32_t {
+enum VirtGpuResourceFlags : uint32_t {
     kBlobFlagMappable = 0x0001,
     kBlobFlagShareable = 0x0002,
     kBlobFlagCrossDevice = 0x0004,
     kBlobFlagCreateGuestHandle = 0x0008,
 };
 
-enum VirtGpuBlobMem {
+enum VirtGpuResourceMem {
     kBlobMemGuest = 0x0001,
     kBlobMemHost3d = 0x0002,
     kBlobMemHost3dGuest = 0x0003,
@@ -112,9 +125,12 @@ struct VirtGpuParam {
 
 struct VirtGpuCreateBlob {
     uint64_t size;
-    enum VirtGpuBlobFlags flags;
-    enum VirtGpuBlobMem blobMem;
+    enum VirtGpuResourceFlags flags;
+    enum VirtGpuResourceMem blobMem;
     uint64_t blobId;
+
+    uint8_t* blobCmd;
+    uint32_t blobCmdSize;
 };
 
 struct VirtGpuCaps {
@@ -125,29 +141,36 @@ struct VirtGpuCaps {
     struct composerCapset composerCapset;
 };
 
-class VirtGpuBlobMapping;
-class VirtGpuBlob;
-using VirtGpuBlobPtr = std::shared_ptr<VirtGpuBlob>;
-using VirtGpuBlobMappingPtr = std::shared_ptr<VirtGpuBlobMapping>;
+class VirtGpuResourceMapping;
+class VirtGpuResource;
+using VirtGpuResourcePtr = std::shared_ptr<VirtGpuResource>;
+using VirtGpuResourceMappingPtr = std::shared_ptr<VirtGpuResourceMapping>;
 
-class VirtGpuBlob {
-  public:
-    virtual ~VirtGpuBlob() {}
+class VirtGpuResource {
+   public:
+    virtual ~VirtGpuResource() {}
 
     virtual uint32_t getResourceHandle() const = 0;
     virtual uint32_t getBlobHandle() const = 0;
     virtual int wait() = 0;
 
-    virtual VirtGpuBlobMappingPtr createMapping(void) = 0;
+    virtual VirtGpuResourceMappingPtr createMapping(void) = 0;
     virtual int exportBlob(struct VirtGpuExternalHandle& handle) = 0;
 
-    virtual int transferFromHost(uint32_t offset, uint32_t size) = 0;
-    virtual int transferToHost(uint32_t offset, uint32_t size) = 0;
+    virtual int transferFromHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) = 0;
+    virtual int transferFromHost(uint32_t offset, uint32_t size) {
+        return transferFromHost(offset, 0, size, 1);
+    }
+
+    virtual int transferToHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) = 0;
+    virtual int transferToHost(uint32_t offset, uint32_t size) {
+        return transferToHost(offset, 0, size, 1);
+    }
 };
 
-class VirtGpuBlobMapping {
-  public:
-    virtual ~VirtGpuBlobMapping(void) {}
+class VirtGpuResourceMapping {
+   public:
+    virtual ~VirtGpuResourceMapping(void) {}
 
     virtual uint8_t* asRawPtr(void) = 0;
 };
@@ -168,11 +191,13 @@ class VirtGpuDevice {
 
     virtual struct VirtGpuCaps getCaps(void) = 0;
 
-    virtual VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate) = 0;
-    virtual VirtGpuBlobPtr createVirglBlob(uint32_t width, uint32_t height, uint32_t virglFormat) = 0;
-    virtual VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle) = 0;
+    virtual VirtGpuResourcePtr createBlob(const struct VirtGpuCreateBlob& blobCreate) = 0;
+    virtual VirtGpuResourcePtr createResource(uint32_t width, uint32_t height, uint32_t stride,
+                                              uint32_t size, uint32_t virglFormat, uint32_t target,
+                                              uint32_t bind) = 0;
+    virtual VirtGpuResourcePtr importBlob(const struct VirtGpuExternalHandle& handle) = 0;
 
-    virtual int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuBlob* blob) = 0;
+    virtual int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuResource* blob) = 0;
 
    private:
     enum VirtGpuCapset mCapset;
@@ -183,9 +208,9 @@ VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset = kCapsetNo
 // HACK: We can use gfxstream::guest::EnumFlags, but we'll have to do more guest
 // refactorings to figure out our end goal.  We can either depend more on base or
 // try to transition to something else (b:202552093) [atleast for guests].
-constexpr enum VirtGpuBlobFlags operator |(const enum VirtGpuBlobFlags self,
-                                           const enum VirtGpuBlobFlags other) {
-    return (enum VirtGpuBlobFlags)(uint32_t(self) | uint32_t(other));
+constexpr enum VirtGpuResourceFlags operator|(const enum VirtGpuResourceFlags self,
+                                              const enum VirtGpuResourceFlags other) {
+    return (enum VirtGpuResourceFlags)(uint32_t(self) | uint32_t(other));
 }
 
 constexpr enum  VirtGpuExecBufferFlags operator |(const enum VirtGpuExecBufferFlags self,

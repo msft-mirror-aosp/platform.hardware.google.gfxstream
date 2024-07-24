@@ -6,6 +6,7 @@
 #===============#
 gfxstream_host_args = [
   '-D_FILE_OFFSET_BITS=64',
+  '-DGFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL=1',
   '-Wno-unused-parameter',
   '-Wno-unused-function',
   '-Wno-unused-variable',
@@ -76,6 +77,8 @@ else
   aemu_snapshot_dep = dependency('aemu_snapshot')
   dl_dep = dependency('dl')
   thread_dep = dependency('threads')
+  gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC=1'
+  gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS=1'
 endif
 
 if log_level == 'error'
@@ -98,18 +101,12 @@ if use_auto
 endif
 
 gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=@0@'.format(use_gles ? '1' : '0')
-if use_magma
-  gfxstream_host_args += '-DUSE_MAGMA=1'
-  drm_dep = dependency('libdrm')
-else
-  gfxstream_host_args += '-DUSE_MAGMA=0'
-endif
 
 if use_magma
-  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=1'
+  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_MAGMA=1'
   drm_dep = dependency('libdrm', fallback: ['libdrm', 'libdrm_dep'])
 else
-  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=0'
+  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_MAGMA=0'
 endif
 
 #===============#
@@ -123,7 +120,13 @@ gfxstream_headers = files(
 inc_root = include_directories('../')
 inc_gfxstream_include = include_directories('../include')
 inc_include = include_directories('../guest/mesa/include')
+# Included by all host component builds. Leave empty for future build updates.
+inc_include = include_directories()
 inc_utils = include_directories('../utils/include')
+
+if host_machine.system() == 'qnx'
+  inc_gfxstream_include = [inc_qnx_headers, inc_gfxstream_include]
+endif
 
 if use_vulkan
   inc_vulkan_headers = include_directories('../common/vulkan/include')
@@ -149,17 +152,19 @@ endif
 inc_stream_servers = include_directories('.')
 inc_host_include = include_directories('include')
 
+subdir('features')
+
 subdir('apigen-codec-common')
 subdir('gl/gl-host-common')
 
 inc_gfxstream_backend = [inc_root, inc_gfxstream_include, inc_include, inc_apigen_codec, inc_utils,
-                         inc_gl_host_common, inc_host_include, inc_common_utils]
+                         inc_gl_host_common, inc_host_include, inc_common_utils, inc_host_features]
 
-link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils]
+link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils, lib_host_features]
 
 files_lib_gfxstream_backend = files(
   'Buffer.cpp',
-  'BlobManager.cpp',
+  'ExternalObjectManager.cpp',
   'ChannelStream.cpp',
   'ColorBuffer.cpp',
   'DisplaySurface.cpp',
@@ -220,7 +225,7 @@ endif
 if not use_gles
   files_lib_gfxstream_backend += files('NativeSubWindow_stub.cpp')
 elif host_machine.system() == 'darwin'
-  files_lib_gfxstream_backend += files('NativeSubWindow_cocoa.m')
+  files_lib_gfxstream_backend += files('NativeSubWindow_cocoa.mm')
 elif host_machine.system() == 'windows'
   files_lib_gfxstream_backend += files('NativeSubWindow_win32.cpp')
 elif host_machine.system() == 'linux' and use_gles

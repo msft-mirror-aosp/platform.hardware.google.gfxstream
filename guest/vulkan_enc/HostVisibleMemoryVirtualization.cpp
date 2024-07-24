@@ -14,8 +14,6 @@
 // limitations under the License.
 #include "HostVisibleMemoryVirtualization.h"
 
-#include <log/log.h>
-
 #include <set>
 
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
@@ -33,8 +31,8 @@ bool isHostVisible(const VkPhysicalDeviceMemoryProperties* memoryProps, uint32_t
     return memoryProps->memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 }
 
-CoherentMemory::CoherentMemory(VirtGpuBlobMappingPtr blobMapping, uint64_t size, VkDevice device,
-                               VkDeviceMemory memory)
+CoherentMemory::CoherentMemory(VirtGpuResourceMappingPtr blobMapping, uint64_t size,
+                               VkDevice device, VkDeviceMemory memory)
     : mSize(size), mBlobMapping(blobMapping), mDevice(device), mMemory(memory) {
     mAllocator =
         std::make_unique<gfxstream::guest::SubAllocator>(blobMapping->asRawPtr(), mSize, 4096);

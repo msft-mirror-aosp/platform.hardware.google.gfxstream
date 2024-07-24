@@ -20,11 +20,21 @@
 #include <algorithm>
 #endif
 
-// We haven't updated our Vulkan headers with the version 8 of VK_ANDROID_native_buffer, but we have
-// implemented vkGetSwapchainGrallocUsage2ANDROID introduced in version 8 on the host which needs
-// this type. We should remove this definition once our Vulkan headers are updated to support that
-// version.
-typedef VkFlags VkSwapchainImageUsageFlagsANDROID;
+// TODO(b/349066492): this is used as a placeholder extension to inform guest side
+// that host is using MoltenVK, it should be removed after external_memory_metal
+// extension is implemented.
+#ifndef VK_MVK_moltenvk
+#define VK_MVK_moltenvk 1
+#define VK_MVK_MOLTENVK_SPEC_VERSION 3
+#define VK_MVK_MOLTENVK_EXTENSION_NAME "VK_MVK_moltenvk"
+#endif  // VK_MVK_moltenvk
+
+// These are internally defined MoltenVK flags for external memory usage
+// TODO(b/349066492): They should be removed after being ratified and put under the headers
+static const VkExternalMemoryHandleTypeFlagBits VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR =
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_FLAG_BITS_MAX_ENUM;
+static const VkExternalMemoryHandleTypeFlagBits VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_KHR =
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_FLAG_BITS_MAX_ENUM;
 
 // VulkanStream features
 #define VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT (1 << 0)

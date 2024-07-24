@@ -16,12 +16,14 @@
 #ifndef _GL2_ENCODER_H_
 #define _GL2_ENCODER_H_
 
-#include "gl2_enc.h"
-#include "gfxstream/guest/GLClientState.h"
-#include "gfxstream/guest/GLSharedGroup.h"
-
+#include <optional>
 #include <string>
 #include <vector>
+
+#include "ProgramBinary.pb.h"
+#include "gfxstream/guest/GLClientState.h"
+#include "gfxstream/guest/GLSharedGroup.h"
+#include "gl2_enc.h"
 
 struct Extensions
 {
@@ -43,32 +45,20 @@ struct Extensions
 
 class GL2Encoder : public gl2_encoder_context_t {
 public:
-    GL2Encoder(gfxstream::guest::IOStream *stream, 
-               gfxstream::guest::ChecksumCalculator* protocol);
-    virtual ~GL2Encoder();
-    const Extensions& getExtensions() const { return m_extensions; }
-    void setDrawCallFlushInterval(uint32_t interval) {
-        m_drawCallFlushInterval = interval;
-    }
-    void setHasAsyncUnmapBuffer(int version) {
-        m_hasAsyncUnmapBuffer = version;
-    }
-    void setHasSyncBufferData(bool value) {
-        m_hasSyncBufferData = value;
-    }
-    void setNoHostError(bool noHostError) {
-        m_noHostError = noHostError;
-    }
-    void setClientState(gfxstream::guest::GLClientState *state) {
-        m_state = state;
-    }
-    void setVersion(int major, int minor,
-                    int deviceMajor, int deviceMinor) {
-        m_currMajorVersion = major;
-        m_currMinorVersion = minor;
-        m_deviceMajorVersion = deviceMajor;
-        m_deviceMinorVersion = deviceMinor;
-    }
+ GL2Encoder(gfxstream::guest::IOStream* stream, gfxstream::guest::ChecksumCalculator* protocol);
+ virtual ~GL2Encoder();
+ const Extensions& getExtensions() const { return m_extensions; }
+ void setDrawCallFlushInterval(uint32_t interval) { m_drawCallFlushInterval = interval; }
+ void setHasAsyncUnmapBuffer(int version) { m_hasAsyncUnmapBuffer = version; }
+ void setHasSyncBufferData(bool value) { m_hasSyncBufferData = value; }
+ void setNoHostError(bool noHostError) { m_noHostError = noHostError; }
+ void setClientState(gfxstream::guest::GLClientState* state) { m_state = state; }
+ void setVersion(int major, int minor, int deviceMajor, int deviceMinor) {
+     m_currMajorVersion = major;
+     m_currMinorVersion = minor;
+     m_deviceMajorVersion = deviceMajor;
+     m_deviceMinorVersion = deviceMinor;
+ }
     void setClientStateMakeCurrent(gfxstream::guest::GLClientState *state,
                                    int majorVersion,
                                    int minorVersion,
@@ -129,7 +119,10 @@ public:
     bool isBufferMapped(GLuint buffer) const;
     bool isBufferTargetMapped(GLenum target) const;
 
-private:
+    std::optional<gfxstream::guest::gles2::ProgramBinaryInfo> getProgramBinary(GLuint program);
+    void getProgramBinaryLength(GLuint program, GLint* outLength);
+
+   private:
 
     int m_currMajorVersion;
     int m_currMinorVersion;
@@ -201,6 +194,8 @@ private:
     bool updateHostTexture2DBinding(GLenum texUnit, GLenum newTarget);
     void updateHostTexture2DBindingsFromProgramData(GLuint program);
     bool texture2DNeedsOverride(GLenum target) const;
+
+    void updateProgramInfoAfterLink(GLuint program);
 
     // Utility classes for safe queries that
     // need access to private class members

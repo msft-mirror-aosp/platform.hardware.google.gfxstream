@@ -17,8 +17,38 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_library_shared {
-    name: "libgfxstream_backend",
+gfxstream_backend_static_deps = [
+    "gfxstream_base",
+    "gfxstream_host_common",
+    "libgfxstream_common_utils",
+    "libgfxstream_host_features",
+    "libgfxstream_etc",
+    "libgfxstream_glestranslator_egl",
+    "libgfxstream_glestranslator_glescm",
+    "libgfxstream_glestranslator_glesv2",
+    "libgfxstream_host_apigen_codec_common",
+    "libgfxstream_host_compressedtextures",
+    "libgfxstream_host_dispatch",
+    "libgfxstream_host_gl_host_common",
+    "libgfxstream_host_gl_server",
+    "libgfxstream_host_gles1_dec",
+    "libgfxstream_host_gles2_dec",
+    "libgfxstream_host_glestranslator_glcommon",
+    "libgfxstream_host_glsnapshot",
+    "libgfxstream_host_rendercontrol_dec",
+    "libgfxstream_host_vulkan_cereal",
+    "libgfxstream_host_vulkan_emulatedtextures",
+    "libgfxstream_host_vulkan_server",
+    "libgfxstream_thirdparty_glm",
+]
+
+gfxstream_backend_magma_static_deps = [
+    "libgfxstream_host_magma_dec",
+    "libgfxstream_host_magma_server",
+]
+
+cc_defaults {
+    name: "libgfxstream_backend_defaults",
     defaults: ["gfxstream_defaults"],
     vendor_available: true,
     cflags: [
@@ -31,37 +61,21 @@ cc_library_shared {
         "gfxstream_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
     ],
-    static_libs: [
-        "gfxstream_base",
-        "gfxstream_host_common",
-        "libgfxstream_common_utils",
-        "libgfxstream_etc",
-        "libgfxstream_glestranslator_egl",
-        "libgfxstream_glestranslator_glescm",
-        "libgfxstream_glestranslator_glesv2",
-        "libgfxstream_host_apigen_codec_common",
-        "libgfxstream_host_compressedtextures",
-        "libgfxstream_host_dispatch",
-        "libgfxstream_host_gl_host_common",
-        "libgfxstream_host_gl_server",
-        "libgfxstream_host_gles1_dec",
-        "libgfxstream_host_gles2_dec",
-        "libgfxstream_host_glestranslator_glcommon",
-        "libgfxstream_host_glsnapshot",
-        "libgfxstream_host_magma_dec",
-        "libgfxstream_host_magma_server",
-        "libgfxstream_host_rendercontrol_dec",
-        "libgfxstream_host_vulkan_cereal",
-        "libgfxstream_host_vulkan_emulatedtextures",
-        "libgfxstream_host_vulkan_server",
-        "libgfxstream_thirdparty_glm",
-    ],
+    // When this lib is build as a static lib, these static dependencies have
+    // to be included as a whole, because otherwise they are dropped from the
+    // built archive.
+    static: {
+        whole_static_libs: gfxstream_backend_static_deps,
+    },
+    shared: {
+        static_libs: gfxstream_backend_static_deps,
+    },
     export_static_lib_headers: [
         "gfxstream_base",
+        "libgfxstream_host_features",
         "libgfxstream_host_gl_host_common",
         "libgfxstream_host_gles2_dec",
         "libgfxstream_host_glsnapshot",
-        "libgfxstream_host_magma_server",
         "libgfxstream_host_vulkan_cereal",
     ],
     shared_libs: [
@@ -72,7 +86,7 @@ cc_library_shared {
     ],
     srcs: [
         "Buffer.cpp",
-        "BlobManager.cpp",
+        "ExternalObjectManager.cpp",
         "ChannelStream.cpp",
         "ColorBuffer.cpp",
         "DisplaySurface.cpp",
@@ -86,7 +100,6 @@ cc_library_shared {
         "RenderThread.cpp",
         "RenderThreadInfo.cpp",
         "RenderThreadInfoGl.cpp",
-        "RenderThreadInfoMagma.cpp",
         "RingStream.cpp",
         "SyncThread.cpp",
         "RenderControl.cpp",
@@ -111,6 +124,23 @@ cc_library_shared {
             srcs: ["NativeSubWindow_android.cpp"],
         },
     },
+}
+
+cc_library {
+    name: "libgfxstream_backend",
+    defaults: ["libgfxstream_backend_defaults"],
+}
+
+cc_library {
+    name: "libgfxstream_backend_magma",
+    defaults: ["libgfxstream_backend_defaults"],
+    static: {
+        whole_static_libs: gfxstream_backend_magma_static_deps,
+    },
+    shared: {
+        static_libs: gfxstream_backend_magma_static_deps,
+    },
+    export_static_lib_headers: gfxstream_backend_magma_static_deps,
 }
 
 cc_test_library {
@@ -147,20 +177,6 @@ cc_test_library {
         "liblz4",
     ],
     export_include_dirs: ["tests"],
-}
-
-cc_library {
-    name: "libgfxstream_test_image_utils",
-    defaults: ["gfxstream_defaults"],
-    shared_libs: [
-        "libbase",
-    ],
-    static_libs: [
-        "libgfxstream_thirdparty_stb",
-    ],
-    srcs: [
-        "tests/ImageUtils.cpp",
-    ],
 }
 
 // Run with `atest --host gfxstream_compositorvk_test`
@@ -205,12 +221,11 @@ cc_test_host {
     shared_libs: [
         "libbase",
         "libgfxstream_backend",
-        "libgfxstream_test_image_utils",
+        "libgfxstream_common_image",
     ],
     static_libs: [
         "libgfxstream_host_vulkan_server",
         "libgfxstream_thirdparty_glm",
-        "libc++fs",
     ],
     test_options: {
         // Disabled by default as requires Vulkan.
@@ -234,17 +249,17 @@ cc_test_host {
     shared_libs: [
         "libbase",
         "libgfxstream_backend",
-        "libgfxstream_test_image_utils",
     ],
     static_libs: [
         "gfxstream_backend_test_support",
-        "gfxstream_base",
         "gfxstream_base_test_support",
-        "libgfxstream_thirdparty_glm",
+        "gfxstream_base",
         "gfxstream_host_common_test_support",
-        "libgfxstream_oswindow_test_support",
         "gfxstream_snapshot",
+        "libgfxstream_common_image",
         "libgfxstream_host_vulkan_server",
+        "libgfxstream_oswindow_test_support",
+        "libgfxstream_thirdparty_glm",
         "libgmock",
         "liblz4",
     ],
@@ -265,7 +280,7 @@ cc_test_host {
     ],
     shared_libs: [
         "libbase",
-        "libgfxstream_backend",
+        "libgfxstream_backend_magma",
     ],
     test_suites: [
         "general-tests",

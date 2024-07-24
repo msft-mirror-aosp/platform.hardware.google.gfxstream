@@ -43,8 +43,26 @@ void GoldfishGralloc::acquire(AHardwareBuffer* ahb) { AHardwareBuffer_acquire(ah
 
 void GoldfishGralloc::release(AHardwareBuffer* ahb) { AHardwareBuffer_release(ahb); }
 
+int GoldfishGralloc::lock(AHardwareBuffer* ahb, uint8_t** ptr) {
+    return AHardwareBuffer_lock(ahb, AHARDWAREBUFFER_USAGE_CPU_READ_RARELY, -1, nullptr,
+                                reinterpret_cast<void**>(ptr));
+}
+
+int GoldfishGralloc::lockPlanes(AHardwareBuffer* ahb, std::vector<LockedPlane>* ahbPlanes) {
+    return -1;
+}
+
+int GoldfishGralloc::unlock(AHardwareBuffer* ahb) { return AHardwareBuffer_unlock(ahb, nullptr); }
+
 uint32_t GoldfishGralloc::getHostHandle(native_handle_t const* handle) {
-    return cb_handle_t::from(handle)->hostHandle;
+    const uint32_t INVALID_HOST_HANDLE = 0;
+
+    const cb_handle_t* cb = cb_handle_t::from(handle);
+    if (cb) {
+        return cb->hostHandle;
+    } else {
+        return INVALID_HOST_HANDLE;
+    }
 }
 
 uint32_t GoldfishGralloc::getHostHandle(const AHardwareBuffer* ahb) {
@@ -63,6 +81,27 @@ int GoldfishGralloc::getFormat(const native_handle_t* handle) {
 int GoldfishGralloc::getFormat(const AHardwareBuffer* ahb) {
     const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
     return getFormat(handle);
+}
+
+uint32_t GoldfishGralloc::getFormatDrmFourcc(const native_handle_t* handle) {
+    return cb_handle_t::from(handle)->drmformat;
+}
+
+uint32_t GoldfishGralloc::getFormatDrmFourcc(const AHardwareBuffer* ahb) {
+    const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
+    return getFormatDrmFourcc(handle);
+}
+
+uint32_t GoldfishGralloc::getWidth(const AHardwareBuffer* ahb) {
+    AHardwareBuffer_Desc desc = {};
+    AHardwareBuffer_describe(ahb, &desc);
+    return desc.width;
+}
+
+uint32_t GoldfishGralloc::getHeight(const AHardwareBuffer* ahb) {
+    AHardwareBuffer_Desc desc = {};
+    AHardwareBuffer_describe(ahb, &desc);
+    return desc.height;
 }
 
 size_t GoldfishGralloc::getAllocatedSize(const native_handle_t* handle) {

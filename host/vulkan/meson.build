@@ -13,6 +13,8 @@ files_lib_vulkan_server = files(
   'BufferVk.cpp',
   'ColorBufferVk.cpp',
   'CompositorVk.cpp',
+  'DeviceLostHelper.cpp',
+  'DeviceOpTracker.cpp',
   'DisplayVk.cpp',
   'DisplaySurfaceVk.cpp',
   'PostWorkerVk.cpp',
@@ -22,6 +24,7 @@ files_lib_vulkan_server = files(
   'VkAndroidNativeBuffer.cpp',
   'VkCommonOperations.cpp',
   'VkDecoder.cpp',
+  'VkEmulatedPhysicalDeviceMemory.cpp',
   'VkDecoderGlobalState.cpp',
   'VkDecoderSnapshot.cpp',
   'VkDecoderSnapshotUtils.cpp',
@@ -59,7 +62,7 @@ lib_vulkan_server = static_library(
   include_directories: [inc_root, inc_gfxstream_include, inc_include, inc_utils, inc_apigen_codec,
                         inc_cereal, inc_cereal_common, inc_stream_servers,
                         inc_vulkan_server, inc_renderdoc_external,
-                        inc_gl_host_common, inc_vulkan_headers, inc_glm],
-  link_with: [lib_vulkan_cereal, lib_emulated_textures],
+                        inc_gl_host_common, inc_vulkan_headers, inc_glm, inc_host_features],
+  link_with: [lib_vulkan_cereal, lib_emulated_textures, lib_host_features],
   dependencies: [aemu_base_dep, aemu_common_dep, aemu_snapshot_dep]
 )

@@ -24,7 +24,7 @@ class GfxstreamEnd2EndVkSnapshotBasicTest : public GfxstreamEnd2EndTest {};
 
 TEST_P(GfxstreamEnd2EndVkSnapshotBasicTest, BasicSaveLoad) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     SnapshotSaveAndLoad();
 }
 
@@ -33,7 +33,7 @@ INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotBasicTe
                             TestParams{
                                 .with_gl = false,
                                 .with_vk = true,
-                                .with_vk_snapshot = true,
+                                .with_features = {"VulkanSnapshots"},
                             },
                         }),
                         &GetTestName);

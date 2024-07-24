@@ -702,3 +702,19 @@ void EglDisplay::onLoadAllImages(android::base::Stream* stream,
 void EglDisplay::postLoadAllImages(android::base::Stream* stream) {
     m_globalNameSpace.postLoad(stream);
 }
+
+bool EglDisplay::nativeTextureDecompressionEnabled() const {
+    return m_nativeTextureDecompressionEnabled;
+}
+
+void EglDisplay::setNativeTextureDecompressionEnabled(bool enabled) {
+    m_nativeTextureDecompressionEnabled = enabled;
+}
+
+bool EglDisplay::programBinaryLinkStatusEnabled() const {
+    return m_programBinaryLinkStatusEnabled;
+}
+
+void EglDisplay::setProgramBinaryLinkStatusEnabled(bool enabled) {
+    m_programBinaryLinkStatusEnabled = enabled;
+}

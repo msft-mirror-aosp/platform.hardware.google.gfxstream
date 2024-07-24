@@ -248,7 +248,7 @@ public:
     GLEScontext();
     GLEScontext(GlobalNameSpace* globalNameSpace, android::base::Stream* stream,
             GlLibrary* glLib);
-    virtual void init();
+    virtual void init(bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled);
     static void initGlobal(EGLiface* eglIface);
     GLenum getGLerror();
     void setGLerror(GLenum err);
@@ -509,6 +509,8 @@ public:
                                             GLint internalFormat, GLenum format, GLenum type);
     void blitFromReadBufferToEGLImage(EGLImage image, GLint internalFormat, int width, int height);
 
+    bool programBinaryLinkStatusEnabled() const { return m_programBinaryLinkStatusEnabled; }
+
 protected:
     void initDefaultFboImpl(
         GLint width, GLint height,
@@ -531,7 +533,7 @@ protected:
     void convertDirectVBO(GLESConversionArrays& fArrs,GLint first,GLsizei count,GLenum array_id,GLESpointer* p);
     void convertIndirect(GLESConversionArrays& fArrs,GLsizei count,GLenum type,const GLvoid* indices,GLenum array_id,GLESpointer* p);
     void convertIndirectVBO(GLESConversionArrays& fArrs,GLsizei count,GLenum indices_type,const GLvoid* indices,GLenum array_id,GLESpointer* p);
-    static void initCapsLocked(const GLubyte * extensionString, GLSupport& glSupport);
+    static void initCapsLocked(const GLubyte * extensionString, bool nativeTextureDecompressionEnabled, GLSupport& glSupport);
     virtual void initExtensionString() =0;
 
     bool                  m_needRestoreFromSnapshot = false;
@@ -672,6 +674,9 @@ protected:
             };
 
     GLuint m_useProgram = 0;
+
+    bool m_nativeTextureDecompressionEnabled = false;
+    bool m_programBinaryLinkStatusEnabled = false;
 
 private:
 

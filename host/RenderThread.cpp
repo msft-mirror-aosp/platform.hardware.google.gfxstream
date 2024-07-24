@@ -29,7 +29,6 @@
 #include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/system/System.h"
 #include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
-#include "host-common/feature_control.h"
 #include "host-common/logging.h"
 #include "vulkan/VkCommonOperations.h"
 
@@ -274,7 +273,7 @@ intptr_t RenderThread::main() {
     //
     // initialize decoders
 #if GFXSTREAM_ENABLE_HOST_GLES
-    if (!feature_is_enabled(kFeature_GuestUsesAngle)) {
+    if (!FrameBuffer::getFB()->getFeatures().GuestVulkanOnly.enabled) {
         tInfo.initGl();
     }
 
@@ -466,13 +465,11 @@ intptr_t RenderThread::main() {
                                 .setAnnotations(std::move(renderThreadData))
                                 .build();
 
-#ifndef AEMU_BUILD
             if (!tInfo.m_puid) {
                 tInfo.m_puid = mContextId;
             }
-#endif
 
-            if (!processResources && tInfo.m_puid) {
+            if (!processResources && tInfo.m_puid && tInfo.m_puid != INVALID_CONTEXT_ID) {
                 processResources = FrameBuffer::getFB()->getProcessResources(tInfo.m_puid);
             }
 

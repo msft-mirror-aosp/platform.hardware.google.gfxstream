@@ -19,6 +19,7 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <set>
 #include <unordered_map>
@@ -28,16 +29,10 @@
 #include "VirtGpu.h"
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
-#include "aemu/base/Optional.h"
-#include "aemu/base/Tracing.h"
-#include "aemu/base/synchronization/AndroidLock.h"
 #include "aemu/base/threads/AndroidWorkPool.h"
 #include "goldfish_vk_transform_guest.h"
+#include "util/perf/cpu_trace.h"
 
-using gfxstream::guest::AutoLock;
-using gfxstream::guest::Lock;
-using gfxstream::guest::Optional;
-using gfxstream::guest::RecursiveLock;
 using gfxstream::guest::WorkPool;
 
 /// Use installed headers or locally defined Fuchsia-specific bits
@@ -209,6 +204,9 @@ class ResourceTracker {
     void on_vkGetImageMemoryRequirements2KHR(void* context, VkDevice device,
                                              const VkImageMemoryRequirementsInfo2* pInfo,
                                              VkMemoryRequirements2* pMemoryRequirements);
+    void on_vkGetImageSubresourceLayout(void* context, VkDevice device, VkImage image,
+                                        const VkImageSubresource* pSubresource,
+                                        VkSubresourceLayout* pLayout);
 
     VkResult on_vkBindImageMemory(void* context, VkResult input_result, VkDevice device,
                                   VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset);
@@ -272,6 +270,9 @@ class ResourceTracker {
 
     VkResult on_vkGetMemoryFdKHR(void* context, VkResult input_result, VkDevice device,
                                  const VkMemoryGetFdInfoKHR* pGetFdInfo, int* pFd);
+    VkResult on_vkGetMemoryFdPropertiesKHR(void* context, VkResult input_result, VkDevice device,
+                                           VkExternalMemoryHandleTypeFlagBits handleType, int fd,
+                                           VkMemoryFdPropertiesKHR* pMemoryFdProperties);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     VkResult on_vkGetMemoryZirconHandleFUCHSIA(void* context, VkResult input_result,
@@ -527,7 +528,7 @@ class ResourceTracker {
     uint8_t* getMappedPointer(VkDeviceMemory memory);
     VkDeviceSize getMappedSize(VkDeviceMemory memory);
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
-    bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
+    bool isValidMemoryRange(const VkMappedMemoryRange& range);
 
     void setupFeatures(const EmulatorFeatureInfo* features);
     void setupCaps(uint32_t& noRenderControlEnc);
@@ -536,10 +537,10 @@ class ResourceTracker {
     bool hostSupportsVulkan() const;
     bool usingDirectMapping() const;
     uint32_t getStreamFeatures() const;
-    uint32_t getApiVersionFromInstance(VkInstance instance) const;
-    uint32_t getApiVersionFromDevice(VkDevice device) const;
-    bool hasInstanceExtension(VkInstance instance, const std::string& name) const;
-    bool hasDeviceExtension(VkDevice instance, const std::string& name) const;
+    uint32_t getApiVersionFromInstance(VkInstance instance);
+    uint32_t getApiVersionFromDevice(VkDevice device);
+    bool hasInstanceExtension(VkInstance instance, const std::string& name);
+    bool hasDeviceExtension(VkDevice instance, const std::string& name);
     VkDevice getDevice(VkCommandBuffer commandBuffer) const;
     void addToCommandPool(VkCommandPool commandPool, uint32_t commandBufferCount,
                           VkCommandBuffer* pCommandBuffers);
@@ -619,7 +620,7 @@ class ResourceTracker {
 
     void setDeviceMemoryInfo(VkDevice device, VkDeviceMemory memory, VkDeviceSize allocationSize,
                              uint8_t* ptr, uint32_t memoryTypeIndex, AHardwareBuffer* ahw,
-                             bool imported, zx_handle_t vmoHandle, VirtGpuBlobPtr blobPtr);
+                             bool imported, zx_handle_t vmoHandle, VirtGpuResourcePtr blobPtr);
 
     void setImageInfo(VkImage image, VkDevice device, const VkImageCreateInfo* pCreateInfo);
 
@@ -748,7 +749,7 @@ class ResourceTracker {
         GoldfishAddressSpaceBlockPtr goldfishBlock = nullptr;
 #endif  // defined(__ANDROID__)
         CoherentMemoryPtr coherentMemory = nullptr;
-        VirtGpuBlobPtr blobPtr = nullptr;
+        VirtGpuResourcePtr blobPtr = nullptr;
     };
 
     struct VkCommandBuffer_Info {
@@ -772,13 +773,16 @@ class ResourceTracker {
         VkMemoryRequirements baseRequirements;
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         bool hasExternalFormat = false;
-        unsigned androidFormat = 0;
+        unsigned externalFourccFormat = 0;
         std::vector<int> pendingQsriSyncFds;
 #endif
 #ifdef VK_USE_PLATFORM_FUCHSIA
         bool isSysmemBackedMemory = false;
 #endif
-        bool isWsiImage = false;
+#ifdef LINUX_GUEST_BUILD
+        bool isDmaBufImage = false;
+        VkImage linearPeerImage = VK_NULL_HANDLE;
+#endif
     };
 
     struct VkBuffer_Info {
@@ -852,8 +856,8 @@ class ResourceTracker {
 
     struct VkBufferCollectionFUCHSIA_Info {
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        gfxstream::guest::Optional<fuchsia_sysmem::wire::BufferCollectionConstraints> constraints;
-        gfxstream::guest::Optional<VkBufferCollectionPropertiesFUCHSIA> properties;
+        std::optional<fuchsia_sysmem::wire::BufferCollectionConstraints> constraints;
+        std::optional<VkBufferCollectionPropertiesFUCHSIA> properties;
 
         // the index of corresponding createInfo for each image format
         // constraints in |constraints|.
@@ -870,7 +874,7 @@ class ResourceTracker {
     void transformImageMemoryRequirementsForGuestLocked(VkImage image, VkMemoryRequirements* reqs);
     CoherentMemoryPtr freeCoherentMemoryLocked(VkDeviceMemory memory, VkDeviceMemory_Info& info);
 
-    mutable RecursiveLock mLock;
+    std::recursive_mutex mLock;
 
     std::optional<const VkPhysicalDeviceMemoryProperties> mCachedPhysicalDeviceMemoryProps;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
@@ -883,7 +887,7 @@ class ResourceTracker {
     std::vector<VkExtensionProperties> mHostDeviceExtensions;
 
     // 32 bits only for now, upper bits may be used later.
-    std::atomic<uint32_t> mBlobId = 0;
+    std::atomic<uint32_t> mAtomicId = 0;
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
     int mSyncDeviceFd = -1;
 #endif

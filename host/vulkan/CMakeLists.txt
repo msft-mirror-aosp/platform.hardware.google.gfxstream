@@ -1,11 +1,18 @@
 add_subdirectory(cereal)
 add_subdirectory(emulated_textures)
 
+if(CONFIG_AEMU)
+    add_compile_definitions(GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT)
+    add_compile_definitions(CONFIG_AEMU)
+endif()
+
 add_library(gfxstream-vulkan-server
             BorrowedImageVk.cpp
             BufferVk.cpp
             ColorBufferVk.cpp
             CompositorVk.cpp
+            DeviceLostHelper.cpp
+            DeviceOpTracker.cpp
             DisplayVk.cpp
             DisplaySurfaceVk.cpp
             DebugUtilsHelper.cpp
@@ -18,6 +25,7 @@ add_library(gfxstream-vulkan-server
             VkDecoderGlobalState.cpp
             VkDecoderSnapshot.cpp
             VkDecoderSnapshotUtils.cpp
+            VkEmulatedPhysicalDeviceMemory.cpp
             VkFormatUtils.cpp
             VkReconstruction.cpp
             VulkanDispatch.cpp
@@ -32,6 +40,7 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         emulated_textures
         apigen-codec-common
         aemu-base.headers
+        gfxstream_features
         gfxstream-snapshot.headers
         gfxstream_utils
         gfxstream_vulkan_headers

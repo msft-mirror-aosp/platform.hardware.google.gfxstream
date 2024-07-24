@@ -93,15 +93,14 @@ static bool sTryContextCreation(EGLDisplay dpy, GLESDispatchMaxVersion ver) {
     }
 }
 
-GLESDispatchMaxVersion calcMaxVersionFromDispatch(EGLDisplay dpy) {
-
+GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::FeatureSet& features,
+                                                  EGLDisplay dpy) {
     // TODO: 3.1 is the highest
     GLESDispatchMaxVersion maxVersion =
        GLES_DISPATCH_MAX_VERSION_3_1;
 
     // TODO: CTS conformance for OpenGL ES 3.1
-    bool playStoreImage = feature_is_enabled(
-            kFeature_PlayStoreImage);
+    bool playStoreImage = features.PlayStoreImage.enabled;
 
     if (emugl::getRenderer() == SELECTED_RENDERER_HOST
         || emugl::getRenderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT
@@ -226,15 +225,14 @@ WHITELIST(GL_EXT_texture_compression_s3tc)
     return false;
 }
 
-std::string filterExtensionsBasedOnMaxVersion(GLESDispatchMaxVersion ver,
+std::string filterExtensionsBasedOnMaxVersion(const gfxstream::host::FeatureSet& features,
+                                              GLESDispatchMaxVersion ver,
                                               const std::string& exts) {
     // We need to advertise ES 2 extensions if:
     // a. the dispatch version on the host is ES 2
     // b. the guest image is not updated for ES 3+
     // (GLESDynamicVersion is disabled)
-    if (ver > GLES_DISPATCH_MAX_VERSION_2 &&
-        feature_is_enabled(
-            kFeature_GLESDynamicVersion)) {
+    if (ver > GLES_DISPATCH_MAX_VERSION_2 && features.GlesDynamicVersion.enabled) {
         return exts;
     }
 

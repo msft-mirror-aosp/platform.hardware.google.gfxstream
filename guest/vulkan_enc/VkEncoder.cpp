@@ -47,7 +47,6 @@
 #include "VulkanStreamGuest.h"
 #include "aemu/base/AlignedBuf.h"
 #include "aemu/base/BumpPool.h"
-#include "aemu/base/synchronization/AndroidLock.h"
 #include "gfxstream/guest/IOStream.h"
 #include "goldfish_vk_counting_guest.h"
 #include "goldfish_vk_deepcopy_guest.h"
@@ -202,7 +201,6 @@ VkResult VkEncoder::vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo,
     sResourceTracker->on_vkCreateInstance(this, vkCreateInstance_VkResult_return, pCreateInfo,
                                           pAllocator, pInstance);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -314,7 +312,6 @@ void VkEncoder::vkDestroyInstance(VkInstance instance, const VkAllocationCallbac
     sResourceTracker->destroyMapping()->mapHandles_VkInstance((VkInstance*)&instance);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -466,7 +463,6 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(VkInstance instance, uint32_t* pP
     VkResult vkEnumeratePhysicalDevices_VkResult_return = (VkResult)0;
     stream->read(&vkEnumeratePhysicalDevices_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -559,7 +555,6 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice,
                                                     (VkPhysicalDeviceFeatures*)(pFeatures));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -661,7 +656,6 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDev
                                               (VkFormatProperties*)(pFormatProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -788,7 +782,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     VkResult vkGetPhysicalDeviceImageFormatProperties_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -885,7 +878,6 @@ void VkEncoder::vkGetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice,
     }
     sResourceTracker->on_vkGetPhysicalDeviceProperties(this, physicalDevice, pProperties);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -1043,7 +1035,6 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -1141,7 +1132,6 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
             sResourceTracker, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -1236,7 +1226,6 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(VkInstance instance, const c
     PFN_vkVoidFunction vkGetInstanceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
     stream->read(&vkGetInstanceProcAddr_PFN_vkVoidFunction_return, sizeof(PFN_vkVoidFunction));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -1332,7 +1321,6 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(VkDevice device, const char* p
     PFN_vkVoidFunction vkGetDeviceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
     stream->read(&vkGetDeviceProcAddr_PFN_vkVoidFunction_return, sizeof(PFN_vkVoidFunction));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -1477,7 +1465,6 @@ VkResult VkEncoder::vkCreateDevice(VkPhysicalDevice physicalDevice,
     sResourceTracker->on_vkCreateDevice(this, vkCreateDevice_VkResult_return, physicalDevice,
                                         pCreateInfo, pAllocator, pDevice);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -1589,7 +1576,6 @@ void VkEncoder::vkDestroyDevice(VkDevice device, const VkAllocationCallbacks* pA
     sResourceTracker->destroyMapping()->mapHandles_VkDevice((VkDevice*)&device);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -1777,7 +1763,6 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(const char* pLayerNam
     VkResult vkEnumerateInstanceExtensionProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateInstanceExtensionProperties_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -1975,7 +1960,6 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physic
     VkResult vkEnumerateDeviceExtensionProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateDeviceExtensionProperties_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -2120,7 +2104,6 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(uint32_t* pPropertyCount,
     VkResult vkEnumerateInstanceLayerProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateInstanceLayerProperties_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -2275,7 +2258,6 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(VkPhysicalDevice physicalDe
     VkResult vkEnumerateDeviceLayerProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateDeviceLayerProperties_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -2381,7 +2363,6 @@ void VkEncoder::vkGetDeviceQueue(VkDevice device, uint32_t queueFamilyIndex, uin
     stream->unsetHandleMapping();
     sResourceTracker->on_vkGetDeviceQueue(this, device, queueFamilyIndex, queueIndex, pQueue);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -2499,7 +2480,6 @@ VkResult VkEncoder::vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkS
     VkResult vkQueueSubmit_VkResult_return = (VkResult)0;
     stream->read(&vkQueueSubmit_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -2581,7 +2561,6 @@ VkResult VkEncoder::vkQueueWaitIdle(VkQueue queue, uint32_t doLock) {
     VkResult vkQueueWaitIdle_VkResult_return = (VkResult)0;
     stream->read(&vkQueueWaitIdle_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -2663,7 +2642,6 @@ VkResult VkEncoder::vkDeviceWaitIdle(VkDevice device, uint32_t doLock) {
     VkResult vkDeviceWaitIdle_VkResult_return = (VkResult)0;
     stream->read(&vkDeviceWaitIdle_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -2807,7 +2785,6 @@ VkResult VkEncoder::vkAllocateMemory(VkDevice device, const VkMemoryAllocateInfo
     VkResult vkAllocateMemory_VkResult_return = (VkResult)0;
     stream->read(&vkAllocateMemory_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -2926,7 +2903,6 @@ void VkEncoder::vkFreeMemory(VkDevice device, VkDeviceMemory memory,
     sResourceTracker->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -3135,7 +3111,6 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(VkDevice device, uint32_t memoryRa
     VkResult vkFlushMappedMemoryRanges_VkResult_return = (VkResult)0;
     stream->read(&vkFlushMappedMemoryRanges_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -3277,7 +3252,6 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(VkDevice device, uint32_t mem
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -3377,7 +3351,6 @@ void VkEncoder::vkGetDeviceMemoryCommitment(VkDevice device, VkDeviceMemory memo
     }
     stream->read((VkDeviceSize*)pCommittedMemoryInBytes, sizeof(VkDeviceSize));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -3485,7 +3458,6 @@ VkResult VkEncoder::vkBindBufferMemory(VkDevice device, VkBuffer buffer, VkDevic
     VkResult vkBindBufferMemory_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -3594,7 +3566,6 @@ VkResult VkEncoder::vkBindImageMemory(VkDevice device, VkImage image, VkDeviceMe
     VkResult vkBindImageMemory_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -3698,7 +3669,6 @@ void VkEncoder::vkGetBufferMemoryRequirements(VkDevice device, VkBuffer buffer,
                                                 (VkMemoryRequirements*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -3801,7 +3771,6 @@ void VkEncoder::vkGetImageMemoryRequirements(VkDevice device, VkImage image,
                                                 (VkMemoryRequirements*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -3969,7 +3938,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -4153,7 +4121,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -4275,7 +4242,6 @@ VkResult VkEncoder::vkQueueBindSparse(VkQueue queue, uint32_t bindInfoCount,
     VkResult vkQueueBindSparse_VkResult_return = (VkResult)0;
     stream->read(&vkQueueBindSparse_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -4416,7 +4382,6 @@ VkResult VkEncoder::vkCreateFence(VkDevice device, const VkFenceCreateInfo* pCre
     VkResult vkCreateFence_VkResult_return = (VkResult)0;
     stream->read(&vkCreateFence_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -4536,7 +4501,6 @@ void VkEncoder::vkDestroyFence(VkDevice device, VkFence fence,
     sResourceTracker->destroyMapping()->mapHandles_VkFence((VkFence*)&fence);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -4638,7 +4602,6 @@ VkResult VkEncoder::vkResetFences(VkDevice device, uint32_t fenceCount, const Vk
     VkResult vkResetFences_VkResult_return = (VkResult)0;
     stream->read(&vkResetFences_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -4728,7 +4691,6 @@ VkResult VkEncoder::vkGetFenceStatus(VkDevice device, VkFence fence, uint32_t do
     VkResult vkGetFenceStatus_VkResult_return = (VkResult)0;
     stream->read(&vkGetFenceStatus_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -4842,7 +4804,6 @@ VkResult VkEncoder::vkWaitForFences(VkDevice device, uint32_t fenceCount, const 
     VkResult vkWaitForFences_VkResult_return = (VkResult)0;
     stream->read(&vkWaitForFences_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -4986,7 +4947,6 @@ VkResult VkEncoder::vkCreateSemaphore(VkDevice device, const VkSemaphoreCreateIn
     VkResult vkCreateSemaphore_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSemaphore_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -5107,7 +5067,6 @@ void VkEncoder::vkDestroySemaphore(VkDevice device, VkSemaphore semaphore,
     sResourceTracker->destroyMapping()->mapHandles_VkSemaphore((VkSemaphore*)&semaphore);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -5247,7 +5206,6 @@ VkResult VkEncoder::vkCreateEvent(VkDevice device, const VkEventCreateInfo* pCre
     VkResult vkCreateEvent_VkResult_return = (VkResult)0;
     stream->read(&vkCreateEvent_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -5367,7 +5325,6 @@ void VkEncoder::vkDestroyEvent(VkDevice device, VkEvent event,
     sResourceTracker->destroyMapping()->mapHandles_VkEvent((VkEvent*)&event);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -5456,7 +5413,6 @@ VkResult VkEncoder::vkGetEventStatus(VkDevice device, VkEvent event, uint32_t do
     VkResult vkGetEventStatus_VkResult_return = (VkResult)0;
     stream->read(&vkGetEventStatus_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -5546,7 +5502,6 @@ VkResult VkEncoder::vkSetEvent(VkDevice device, VkEvent event, uint32_t doLock) 
     VkResult vkSetEvent_VkResult_return = (VkResult)0;
     stream->read(&vkSetEvent_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -5636,7 +5591,6 @@ VkResult VkEncoder::vkResetEvent(VkDevice device, VkEvent event, uint32_t doLock
     VkResult vkResetEvent_VkResult_return = (VkResult)0;
     stream->read(&vkResetEvent_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -5780,7 +5734,6 @@ VkResult VkEncoder::vkCreateQueryPool(VkDevice device, const VkQueryPoolCreateIn
     VkResult vkCreateQueryPool_VkResult_return = (VkResult)0;
     stream->read(&vkCreateQueryPool_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -5901,7 +5854,6 @@ void VkEncoder::vkDestroyQueryPool(VkDevice device, VkQueryPool queryPool,
     sResourceTracker->destroyMapping()->mapHandles_VkQueryPool((VkQueryPool*)&queryPool);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -6028,7 +5980,6 @@ VkResult VkEncoder::vkGetQueryPoolResults(VkDevice device, VkQueryPool queryPool
     VkResult vkGetQueryPoolResults_VkResult_return = (VkResult)0;
     stream->read(&vkGetQueryPoolResults_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -6169,7 +6120,6 @@ VkResult VkEncoder::vkCreateBuffer(VkDevice device, const VkBufferCreateInfo* pC
     VkResult vkCreateBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkCreateBuffer_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -6289,7 +6239,6 @@ void VkEncoder::vkDestroyBuffer(VkDevice device, VkBuffer buffer,
     sResourceTracker->destroyMapping()->mapHandles_VkBuffer((VkBuffer*)&buffer);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -6432,7 +6381,6 @@ VkResult VkEncoder::vkCreateBufferView(VkDevice device, const VkBufferViewCreate
     VkResult vkCreateBufferView_VkResult_return = (VkResult)0;
     stream->read(&vkCreateBufferView_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -6553,7 +6501,6 @@ void VkEncoder::vkDestroyBufferView(VkDevice device, VkBufferView bufferView,
     sResourceTracker->destroyMapping()->mapHandles_VkBufferView((VkBufferView*)&bufferView);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -6693,7 +6640,6 @@ VkResult VkEncoder::vkCreateImage(VkDevice device, const VkImageCreateInfo* pCre
     VkResult vkCreateImage_VkResult_return = (VkResult)0;
     stream->read(&vkCreateImage_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -6813,7 +6759,6 @@ void VkEncoder::vkDestroyImage(VkDevice device, VkImage image,
     sResourceTracker->destroyMapping()->mapHandles_VkImage((VkImage*)&image);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -6929,7 +6874,6 @@ void VkEncoder::vkGetImageSubresourceLayout(VkDevice device, VkImage image,
         transform_fromhost_VkSubresourceLayout(sResourceTracker, (VkSubresourceLayout*)(pLayout));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -7072,7 +7016,6 @@ VkResult VkEncoder::vkCreateImageView(VkDevice device, const VkImageViewCreateIn
     VkResult vkCreateImageView_VkResult_return = (VkResult)0;
     stream->read(&vkCreateImageView_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -7193,7 +7136,6 @@ void VkEncoder::vkDestroyImageView(VkDevice device, VkImageView imageView,
     sResourceTracker->destroyMapping()->mapHandles_VkImageView((VkImageView*)&imageView);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -7339,7 +7281,6 @@ VkResult VkEncoder::vkCreateShaderModule(VkDevice device,
     VkResult vkCreateShaderModule_VkResult_return = (VkResult)0;
     stream->read(&vkCreateShaderModule_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -7460,7 +7401,6 @@ void VkEncoder::vkDestroyShaderModule(VkDevice device, VkShaderModule shaderModu
     sResourceTracker->destroyMapping()->mapHandles_VkShaderModule((VkShaderModule*)&shaderModule);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -7606,7 +7546,6 @@ VkResult VkEncoder::vkCreatePipelineCache(VkDevice device,
     VkResult vkCreatePipelineCache_VkResult_return = (VkResult)0;
     stream->read(&vkCreatePipelineCache_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -7728,7 +7667,6 @@ void VkEncoder::vkDestroyPipelineCache(VkDevice device, VkPipelineCache pipeline
         (VkPipelineCache*)&pipelineCache);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -7870,7 +7808,6 @@ VkResult VkEncoder::vkGetPipelineCacheData(VkDevice device, VkPipelineCache pipe
     VkResult vkGetPipelineCacheData_VkResult_return = (VkResult)0;
     stream->read(&vkGetPipelineCacheData_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -7984,7 +7921,6 @@ VkResult VkEncoder::vkMergePipelineCaches(VkDevice device, VkPipelineCache dstCa
     VkResult vkMergePipelineCaches_VkResult_return = (VkResult)0;
     stream->read(&vkMergePipelineCaches_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -8164,7 +8100,6 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache p
     VkResult vkCreateGraphicsPipelines_VkResult_return = (VkResult)0;
     stream->read(&vkCreateGraphicsPipelines_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -8344,7 +8279,6 @@ VkResult VkEncoder::vkCreateComputePipelines(VkDevice device, VkPipelineCache pi
     VkResult vkCreateComputePipelines_VkResult_return = (VkResult)0;
     stream->read(&vkCreateComputePipelines_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -8465,7 +8399,6 @@ void VkEncoder::vkDestroyPipeline(VkDevice device, VkPipeline pipeline,
     sResourceTracker->destroyMapping()->mapHandles_VkPipeline((VkPipeline*)&pipeline);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -8612,7 +8545,6 @@ VkResult VkEncoder::vkCreatePipelineLayout(VkDevice device,
     VkResult vkCreatePipelineLayout_VkResult_return = (VkResult)0;
     stream->read(&vkCreatePipelineLayout_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -8734,7 +8666,6 @@ void VkEncoder::vkDestroyPipelineLayout(VkDevice device, VkPipelineLayout pipeli
         (VkPipelineLayout*)&pipelineLayout);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -8874,7 +8805,6 @@ VkResult VkEncoder::vkCreateSampler(VkDevice device, const VkSamplerCreateInfo* 
     VkResult vkCreateSampler_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSampler_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -8994,7 +8924,6 @@ void VkEncoder::vkDestroySampler(VkDevice device, VkSampler sampler,
     sResourceTracker->destroyMapping()->mapHandles_VkSampler((VkSampler*)&sampler);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -9143,7 +9072,6 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(VkDevice device,
     VkResult vkCreateDescriptorSetLayout_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDescriptorSetLayout_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -9269,7 +9197,6 @@ void VkEncoder::vkDestroyDescriptorSetLayout(VkDevice device,
         (VkDescriptorSetLayout*)&descriptorSetLayout);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -9416,7 +9343,6 @@ VkResult VkEncoder::vkCreateDescriptorPool(VkDevice device,
     VkResult vkCreateDescriptorPool_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDescriptorPool_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -9538,7 +9464,6 @@ void VkEncoder::vkDestroyDescriptorPool(VkDevice device, VkDescriptorPool descri
         (VkDescriptorPool*)&descriptorPool);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -9636,7 +9561,6 @@ VkResult VkEncoder::vkResetDescriptorPool(VkDevice device, VkDescriptorPool desc
     VkResult vkResetDescriptorPool_VkResult_return = (VkResult)0;
     stream->read(&vkResetDescriptorPool_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -9762,7 +9686,6 @@ VkResult VkEncoder::vkAllocateDescriptorSets(VkDevice device,
     VkResult vkAllocateDescriptorSets_VkResult_return = (VkResult)0;
     stream->read(&vkAllocateDescriptorSets_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -9892,7 +9815,6 @@ VkResult VkEncoder::vkFreeDescriptorSets(VkDevice device, VkDescriptorPool descr
             (VkDescriptorSet*)pDescriptorSets, ((descriptorSetCount)));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -10043,7 +9965,6 @@ void VkEncoder::vkUpdateDescriptorSets(VkDevice device, uint32_t descriptorWrite
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -10188,7 +10109,6 @@ VkResult VkEncoder::vkCreateFramebuffer(VkDevice device, const VkFramebufferCrea
     VkResult vkCreateFramebuffer_VkResult_return = (VkResult)0;
     stream->read(&vkCreateFramebuffer_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -10309,7 +10229,6 @@ void VkEncoder::vkDestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer,
     sResourceTracker->destroyMapping()->mapHandles_VkFramebuffer((VkFramebuffer*)&framebuffer);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -10454,7 +10373,6 @@ VkResult VkEncoder::vkCreateRenderPass(VkDevice device, const VkRenderPassCreate
     VkResult vkCreateRenderPass_VkResult_return = (VkResult)0;
     stream->read(&vkCreateRenderPass_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -10575,7 +10493,6 @@ void VkEncoder::vkDestroyRenderPass(VkDevice device, VkRenderPass renderPass,
     sResourceTracker->destroyMapping()->mapHandles_VkRenderPass((VkRenderPass*)&renderPass);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -10673,7 +10590,6 @@ void VkEncoder::vkGetRenderAreaGranularity(VkDevice device, VkRenderPass renderP
         transform_fromhost_VkExtent2D(sResourceTracker, (VkExtent2D*)(pGranularity));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -10818,7 +10734,6 @@ VkResult VkEncoder::vkCreateCommandPool(VkDevice device, const VkCommandPoolCrea
     VkResult vkCreateCommandPool_VkResult_return = (VkResult)0;
     stream->read(&vkCreateCommandPool_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -10939,7 +10854,6 @@ void VkEncoder::vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool,
     sResourceTracker->destroyMapping()->mapHandles_VkCommandPool((VkCommandPool*)&commandPool);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11036,7 +10950,6 @@ VkResult VkEncoder::vkResetCommandPool(VkDevice device, VkCommandPool commandPoo
     VkResult vkResetCommandPool_VkResult_return = (VkResult)0;
     stream->read(&vkResetCommandPool_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11162,7 +11075,6 @@ VkResult VkEncoder::vkAllocateCommandBuffers(VkDevice device,
     VkResult vkAllocateCommandBuffers_VkResult_return = (VkResult)0;
     stream->read(&vkAllocateCommandBuffers_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11291,7 +11203,6 @@ void VkEncoder::vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool,
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11388,7 +11299,6 @@ VkResult VkEncoder::vkBeginCommandBuffer(VkCommandBuffer commandBuffer,
     VkResult vkBeginCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkBeginCommandBuffer_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11466,7 +11376,6 @@ VkResult VkEncoder::vkEndCommandBuffer(VkCommandBuffer commandBuffer, uint32_t d
     VkResult vkEndCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkEndCommandBuffer_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11551,7 +11460,6 @@ VkResult VkEncoder::vkResetCommandBuffer(VkCommandBuffer commandBuffer,
     VkResult vkResetCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkResetCommandBuffer_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11643,7 +11551,6 @@ void VkEncoder::vkCmdBindPipeline(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11754,7 +11661,6 @@ void VkEncoder::vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstVi
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11864,7 +11770,6 @@ void VkEncoder::vkCmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstSci
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -11945,7 +11850,6 @@ void VkEncoder::vkCmdSetLineWidth(VkCommandBuffer commandBuffer, float lineWidth
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12040,7 +11944,6 @@ void VkEncoder::vkCmdSetDepthBias(VkCommandBuffer commandBuffer, float depthBias
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12122,7 +12025,6 @@ void VkEncoder::vkCmdSetBlendConstants(VkCommandBuffer commandBuffer, const floa
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12209,7 +12111,6 @@ void VkEncoder::vkCmdSetDepthBounds(VkCommandBuffer commandBuffer, float minDept
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12297,7 +12198,6 @@ void VkEncoder::vkCmdSetStencilCompareMask(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12384,7 +12284,6 @@ void VkEncoder::vkCmdSetStencilWriteMask(VkCommandBuffer commandBuffer, VkStenci
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12471,7 +12370,6 @@ void VkEncoder::vkCmdSetStencilReference(VkCommandBuffer commandBuffer, VkStenci
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12603,7 +12501,6 @@ void VkEncoder::vkCmdBindDescriptorSets(
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12698,7 +12595,6 @@ void VkEncoder::vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buf
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12808,7 +12704,6 @@ void VkEncoder::vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t f
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -12908,7 +12803,6 @@ void VkEncoder::vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -13013,7 +12907,6 @@ void VkEncoder::vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCo
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -13115,7 +13008,6 @@ void VkEncoder::vkCmdDrawIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -13218,7 +13110,6 @@ void VkEncoder::vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -13311,7 +13202,6 @@ void VkEncoder::vkCmdDispatch(VkCommandBuffer commandBuffer, uint32_t groupCount
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -13401,7 +13291,6 @@ void VkEncoder::vkCmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer bu
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -13524,7 +13413,6 @@ void VkEncoder::vkCmdCopyBuffer(VkCommandBuffer commandBuffer, VkBuffer srcBuffe
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -13658,7 +13546,6 @@ void VkEncoder::vkCmdCopyImage(VkCommandBuffer commandBuffer, VkImage srcImage,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -13797,7 +13684,6 @@ void VkEncoder::vkCmdBlitImage(VkCommandBuffer commandBuffer, VkImage srcImage,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -13928,7 +13814,6 @@ void VkEncoder::vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer s
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -14059,7 +13944,6 @@ void VkEncoder::vkCmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage sr
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -14162,7 +14046,6 @@ void VkEncoder::vkCmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuf
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -14264,7 +14147,6 @@ void VkEncoder::vkCmdFillBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffe
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -14402,7 +14284,6 @@ void VkEncoder::vkCmdClearColorImage(VkCommandBuffer commandBuffer, VkImage imag
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -14545,7 +14426,6 @@ void VkEncoder::vkCmdClearDepthStencilImage(VkCommandBuffer commandBuffer, VkIma
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -14682,7 +14562,6 @@ void VkEncoder::vkCmdClearAttachments(VkCommandBuffer commandBuffer, uint32_t at
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -14818,7 +14697,6 @@ void VkEncoder::vkCmdResolveImage(VkCommandBuffer commandBuffer, VkImage srcImag
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -14908,7 +14786,6 @@ void VkEncoder::vkCmdSetEvent(VkCommandBuffer commandBuffer, VkEvent event,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -14998,7 +14875,6 @@ void VkEncoder::vkCmdResetEvent(VkCommandBuffer commandBuffer, VkEvent event,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -15209,7 +15085,6 @@ void VkEncoder::vkCmdWaitEvents(VkCommandBuffer commandBuffer, uint32_t eventCou
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -15406,7 +15281,6 @@ void VkEncoder::vkCmdPipelineBarrier(
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -15501,7 +15375,6 @@ void VkEncoder::vkCmdBeginQuery(VkCommandBuffer commandBuffer, VkQueryPool query
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -15591,7 +15464,6 @@ void VkEncoder::vkCmdEndQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPo
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -15687,7 +15559,6 @@ void VkEncoder::vkCmdResetQueryPool(VkCommandBuffer commandBuffer, VkQueryPool q
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -15784,7 +15655,6 @@ void VkEncoder::vkCmdWriteTimestamp(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -15907,7 +15777,6 @@ void VkEncoder::vkCmdCopyQueryPoolResults(VkCommandBuffer commandBuffer, VkQuery
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16016,7 +15885,6 @@ void VkEncoder::vkCmdPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayo
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16116,7 +15984,6 @@ void VkEncoder::vkCmdBeginRenderPass(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16197,7 +16064,6 @@ void VkEncoder::vkCmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContent
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16272,7 +16138,6 @@ void VkEncoder::vkCmdEndRenderPass(VkCommandBuffer commandBuffer, uint32_t doLoc
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16369,7 +16234,6 @@ void VkEncoder::vkCmdExecuteCommands(VkCommandBuffer commandBuffer, uint32_t com
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16447,7 +16311,6 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(uint32_t* pApiVersion, uint32_t d
     VkResult vkEnumerateInstanceVersion_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateInstanceVersion_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16562,7 +16425,6 @@ VkResult VkEncoder::vkBindBufferMemory2(VkDevice device, uint32_t bindInfoCount,
     VkResult vkBindBufferMemory2_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory2_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16677,7 +16539,6 @@ VkResult VkEncoder::vkBindImageMemory2(VkDevice device, uint32_t bindInfoCount,
     VkResult vkBindImageMemory2_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory2_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16786,7 +16647,6 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(VkDevice device, uint32_t hea
     }
     stream->read((VkPeerMemoryFeatureFlags*)pPeerMemoryFeatures, sizeof(VkPeerMemoryFeatureFlags));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16868,7 +16728,6 @@ void VkEncoder::vkCmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t devic
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -16978,7 +16837,6 @@ void VkEncoder::vkCmdDispatchBase(VkCommandBuffer commandBuffer, uint32_t baseGr
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -17141,7 +16999,6 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     VkResult vkEnumeratePhysicalDeviceGroups_VkResult_return = (VkResult)0;
     stream->read(&vkEnumeratePhysicalDeviceGroups_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -17256,7 +17113,6 @@ void VkEncoder::vkGetImageMemoryRequirements2(VkDevice device,
                                                  (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -17370,7 +17226,6 @@ void VkEncoder::vkGetBufferMemoryRequirements2(VkDevice device,
                                                  (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -17551,7 +17406,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -17646,7 +17500,6 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice,
     }
     sResourceTracker->on_vkGetPhysicalDeviceFeatures2(this, physicalDevice, pFeatures);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -17742,7 +17595,6 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(VkPhysicalDevice physicalDevice,
     }
     sResourceTracker->on_vkGetPhysicalDeviceProperties2(this, physicalDevice, pProperties);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -17844,7 +17696,6 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDe
                                                (VkFormatProperties2*)(pFormatProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -17965,7 +17816,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     VkResult vkGetPhysicalDeviceImageFormatProperties2_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties2_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -18124,7 +17974,6 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -18223,7 +18072,6 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
             sResourceTracker, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -18402,7 +18250,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -18498,7 +18345,6 @@ void VkEncoder::vkTrimCommandPool(VkDevice device, VkCommandPool commandPool,
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -18609,7 +18455,6 @@ void VkEncoder::vkGetDeviceQueue2(VkDevice device, const VkDeviceQueueInfo2* pQu
     stream->unsetHandleMapping();
     sResourceTracker->on_vkGetDeviceQueue2(this, device, pQueueInfo, pQueue);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -18759,7 +18604,6 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     VkResult vkCreateSamplerYcbcrConversion_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSamplerYcbcrConversion_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -18885,7 +18729,6 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(VkDevice device,
         (VkSamplerYcbcrConversion*)&ycbcrConversion);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -19038,7 +18881,6 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
         this, vkCreateDescriptorUpdateTemplate_VkResult_return, device, pCreateInfo, pAllocator,
         pDescriptorUpdateTemplate);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -19163,7 +19005,6 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
         (VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -19283,7 +19124,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -19406,7 +19246,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
             sResourceTracker, (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -19525,7 +19364,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
             sResourceTracker, (VkExternalFenceProperties*)(pExternalFenceProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -19650,7 +19488,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     sResourceTracker->on_vkGetPhysicalDeviceExternalSemaphoreProperties(
         this, physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -19765,7 +19602,6 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(VkDevice device,
                                                         (VkDescriptorSetLayoutSupport*)(pSupport));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -19884,7 +19720,6 @@ void VkEncoder::vkCmdDrawIndirectCount(VkCommandBuffer commandBuffer, VkBuffer b
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20002,7 +19837,6 @@ void VkEncoder::vkCmdDrawIndexedIndirectCount(VkCommandBuffer commandBuffer, VkB
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20147,7 +19981,6 @@ VkResult VkEncoder::vkCreateRenderPass2(VkDevice device, const VkRenderPassCreat
     VkResult vkCreateRenderPass2_VkResult_return = (VkResult)0;
     stream->read(&vkCreateRenderPass2_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20262,7 +20095,6 @@ void VkEncoder::vkCmdBeginRenderPass2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20373,7 +20205,6 @@ void VkEncoder::vkCmdNextSubpass2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20465,7 +20296,6 @@ void VkEncoder::vkCmdEndRenderPass2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20565,7 +20395,6 @@ void VkEncoder::vkResetQueryPool(VkDevice device, VkQueryPool queryPool, uint32_
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20661,7 +20490,6 @@ VkResult VkEncoder::vkGetSemaphoreCounterValue(VkDevice device, VkSemaphore sema
     VkResult vkGetSemaphoreCounterValue_VkResult_return = (VkResult)0;
     stream->read(&vkGetSemaphoreCounterValue_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20765,7 +20593,6 @@ VkResult VkEncoder::vkWaitSemaphores(VkDevice device, const VkSemaphoreWaitInfo*
     VkResult vkWaitSemaphores_VkResult_return = (VkResult)0;
     stream->read(&vkWaitSemaphores_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20866,7 +20693,6 @@ VkResult VkEncoder::vkSignalSemaphore(VkDevice device, const VkSemaphoreSignalIn
     VkResult vkSignalSemaphore_VkResult_return = (VkResult)0;
     stream->read(&vkSignalSemaphore_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -20968,7 +20794,6 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddress(VkDevice device,
     VkDeviceAddress vkGetBufferDeviceAddress_VkDeviceAddress_return = (VkDeviceAddress)0;
     stream->read(&vkGetBufferDeviceAddress_VkDeviceAddress_return, sizeof(VkDeviceAddress));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -21071,7 +20896,6 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddress(VkDevice device,
     uint64_t vkGetBufferOpaqueCaptureAddress_uint64_t_return = (uint64_t)0;
     stream->read(&vkGetBufferOpaqueCaptureAddress_uint64_t_return, sizeof(uint64_t));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -21177,7 +21001,6 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddress(
     uint64_t vkGetDeviceMemoryOpaqueCaptureAddress_uint64_t_return = (uint64_t)0;
     stream->read(&vkGetDeviceMemoryOpaqueCaptureAddress_uint64_t_return, sizeof(uint64_t));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -21336,7 +21159,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolProperties(
     VkResult vkGetPhysicalDeviceToolProperties_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceToolProperties_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -21476,7 +21298,6 @@ VkResult VkEncoder::vkCreatePrivateDataSlot(VkDevice device,
     VkResult vkCreatePrivateDataSlot_VkResult_return = (VkResult)0;
     stream->read(&vkCreatePrivateDataSlot_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -21594,7 +21415,6 @@ void VkEncoder::vkDestroyPrivateDataSlot(VkDevice device, VkPrivateDataSlot priv
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -21700,7 +21520,6 @@ VkResult VkEncoder::vkSetPrivateData(VkDevice device, VkObjectType objectType,
     VkResult vkSetPrivateData_VkResult_return = (VkResult)0;
     stream->read(&vkSetPrivateData_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -21804,7 +21623,6 @@ void VkEncoder::vkGetPrivateData(VkDevice device, VkObjectType objectType, uint6
     }
     stream->read((uint64_t*)pData, sizeof(uint64_t));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -21904,7 +21722,6 @@ void VkEncoder::vkCmdSetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -21993,7 +21810,6 @@ void VkEncoder::vkCmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22116,7 +21932,6 @@ void VkEncoder::vkCmdWaitEvents2(VkCommandBuffer commandBuffer, uint32_t eventCo
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22208,7 +22023,6 @@ void VkEncoder::vkCmdPipelineBarrier2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22303,7 +22117,6 @@ void VkEncoder::vkCmdWriteTimestamp2(VkCommandBuffer commandBuffer, VkPipelineSt
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22421,7 +22234,6 @@ VkResult VkEncoder::vkQueueSubmit2(VkQueue queue, uint32_t submitCount,
     VkResult vkQueueSubmit2_VkResult_return = (VkResult)0;
     stream->read(&vkQueueSubmit2_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22514,7 +22326,6 @@ void VkEncoder::vkCmdCopyBuffer2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22606,7 +22417,6 @@ void VkEncoder::vkCmdCopyImage2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22703,7 +22513,6 @@ void VkEncoder::vkCmdCopyBufferToImage2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22800,7 +22609,6 @@ void VkEncoder::vkCmdCopyImageToBuffer2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22892,7 +22700,6 @@ void VkEncoder::vkCmdBlitImage2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -22986,7 +22793,6 @@ void VkEncoder::vkCmdResolveImage2(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23078,7 +22884,6 @@ void VkEncoder::vkCmdBeginRendering(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23153,7 +22958,6 @@ void VkEncoder::vkCmdEndRendering(VkCommandBuffer commandBuffer, uint32_t doLock
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23234,7 +23038,6 @@ void VkEncoder::vkCmdSetCullMode(VkCommandBuffer commandBuffer, VkCullModeFlags 
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23315,7 +23118,6 @@ void VkEncoder::vkCmdSetFrontFace(VkCommandBuffer commandBuffer, VkFrontFace fro
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23397,7 +23199,6 @@ void VkEncoder::vkCmdSetPrimitiveTopology(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23502,7 +23303,6 @@ void VkEncoder::vkCmdSetViewportWithCount(VkCommandBuffer commandBuffer, uint32_
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23606,7 +23406,6 @@ void VkEncoder::vkCmdSetScissorWithCount(VkCommandBuffer commandBuffer, uint32_t
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23763,7 +23562,6 @@ void VkEncoder::vkCmdBindVertexBuffers2(VkCommandBuffer commandBuffer, uint32_t 
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23845,7 +23643,6 @@ void VkEncoder::vkCmdSetDepthTestEnable(VkCommandBuffer commandBuffer, VkBool32 
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -23927,7 +23724,6 @@ void VkEncoder::vkCmdSetDepthWriteEnable(VkCommandBuffer commandBuffer, VkBool32
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24008,7 +23804,6 @@ void VkEncoder::vkCmdSetDepthCompareOp(VkCommandBuffer commandBuffer, VkCompareO
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24091,7 +23886,6 @@ void VkEncoder::vkCmdSetDepthBoundsTestEnable(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24173,7 +23967,6 @@ void VkEncoder::vkCmdSetStencilTestEnable(VkCommandBuffer commandBuffer, VkBool3
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24275,7 +24068,6 @@ void VkEncoder::vkCmdSetStencilOp(VkCommandBuffer commandBuffer, VkStencilFaceFl
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24359,7 +24151,6 @@ void VkEncoder::vkCmdSetRasterizerDiscardEnable(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24441,7 +24232,6 @@ void VkEncoder::vkCmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, VkBool32 
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24524,7 +24314,6 @@ void VkEncoder::vkCmdSetPrimitiveRestartEnable(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24640,7 +24429,6 @@ void VkEncoder::vkGetDeviceBufferMemoryRequirements(VkDevice device,
                                                  (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24755,7 +24543,6 @@ void VkEncoder::vkGetDeviceImageMemoryRequirements(VkDevice device,
                                                  (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24936,7 +24723,6 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirements(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -24944,16 +24730,6 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirements(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
 #endif
 #ifdef VK_KHR_dynamic_rendering
 void VkEncoder::vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
@@ -25040,7 +24816,6 @@ void VkEncoder::vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -25115,7 +24890,6 @@ void VkEncoder::vkCmdEndRenderingKHR(VkCommandBuffer commandBuffer, uint32_t doL
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -25212,7 +24986,6 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(VkPhysicalDevice physicalDevice,
     }
     sResourceTracker->on_vkGetPhysicalDeviceFeatures2KHR(this, physicalDevice, pFeatures);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -25308,7 +25081,6 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(VkPhysicalDevice physicalDevic
     }
     sResourceTracker->on_vkGetPhysicalDeviceProperties2KHR(this, physicalDevice, pProperties);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -25412,7 +25184,6 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(VkPhysicalDevice physica
                                                (VkFormatProperties2*)(pFormatProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -25534,7 +25305,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     VkResult vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -25694,7 +25464,6 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -25794,7 +25563,6 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
             sResourceTracker, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -25973,7 +25741,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -26071,7 +25838,6 @@ void VkEncoder::vkTrimCommandPoolKHR(VkDevice device, VkCommandPool commandPool,
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -26197,7 +25963,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
             sResourceTracker, (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -26205,12 +25970,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
 void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
@@ -26332,7 +26091,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     sResourceTracker->on_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
         this, physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -26340,10 +26098,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 VkResult VkEncoder::vkImportSemaphoreFdKHR(VkDevice device,
@@ -26442,7 +26196,6 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(VkDevice device,
     VkResult vkImportSemaphoreFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportSemaphoreFdKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -26548,7 +26301,6 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(VkDevice device, const VkSemaphoreGetFdI
     VkResult vkGetSemaphoreFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetSemaphoreFdKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -26557,10 +26309,6 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(VkDevice device, const VkSemaphoreGetFdI
     return vkGetSemaphoreFdKHR_VkResult_return;
 }
 
-#endif
-#ifdef VK_KHR_shader_float16_int8
-#endif
-#ifdef VK_KHR_incremental_present
 #endif
 #ifdef VK_KHR_descriptor_update_template
 VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
@@ -26709,7 +26457,6 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
         this, vkCreateDescriptorUpdateTemplateKHR_VkResult_return, device, pCreateInfo, pAllocator,
         pDescriptorUpdateTemplate);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -26836,7 +26583,6 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
         (VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -26957,7 +26703,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -26965,8 +26710,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_imageless_framebuffer
 #endif
 #ifdef VK_KHR_create_renderpass2
 VkResult VkEncoder::vkCreateRenderPass2KHR(VkDevice device,
@@ -27107,7 +26850,6 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(VkDevice device,
     VkResult vkCreateRenderPass2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateRenderPass2KHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -27222,7 +26964,6 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -27333,7 +27074,6 @@ void VkEncoder::vkCmdNextSubpass2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -27425,7 +27165,6 @@ void VkEncoder::vkCmdEndRenderPass2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -27547,7 +27286,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
             sResourceTracker, (VkExternalFenceProperties*)(pExternalFenceProperties));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -27555,8 +27293,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_external_fence
 #endif
 #ifdef VK_KHR_external_fence_fd
 VkResult VkEncoder::vkImportFenceFdKHR(VkDevice device,
@@ -27653,7 +27389,6 @@ VkResult VkEncoder::vkImportFenceFdKHR(VkDevice device,
     VkResult vkImportFenceFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportFenceFdKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -27755,7 +27490,6 @@ VkResult VkEncoder::vkGetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* 
     VkResult vkGetFenceFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetFenceFdKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -27764,12 +27498,6 @@ VkResult VkEncoder::vkGetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* 
     return vkGetFenceFdKHR_VkResult_return;
 }
 
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 void VkEncoder::vkGetImageMemoryRequirements2KHR(VkDevice device,
@@ -27879,7 +27607,6 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(VkDevice device,
                                                  (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -27994,7 +27721,6 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(VkDevice device,
                                                  (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -28176,7 +27902,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -28184,8 +27909,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_image_format_list
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
 VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
@@ -28330,7 +28053,6 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     VkResult vkCreateSamplerYcbcrConversionKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSamplerYcbcrConversionKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -28456,7 +28178,6 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(VkDevice device,
         (VkSamplerYcbcrConversion*)&ycbcrConversion);
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -28573,7 +28294,6 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(VkDevice device, uint32_t bindInfoCou
     VkResult vkBindBufferMemory2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory2KHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -28689,7 +28409,6 @@ VkResult VkEncoder::vkBindImageMemory2KHR(VkDevice device, uint32_t bindInfoCoun
     VkResult vkBindImageMemory2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory2KHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -28806,7 +28525,6 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
                                                         (VkDescriptorSetLayoutSupport*)(pSupport));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -28814,12 +28532,6 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
 #endif
 #ifdef VK_KHR_buffer_device_address
 VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressKHR(VkDevice device,
@@ -28915,7 +28627,6 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressKHR(VkDevice device,
     VkDeviceAddress vkGetBufferDeviceAddressKHR_VkDeviceAddress_return = (VkDeviceAddress)0;
     stream->read(&vkGetBufferDeviceAddressKHR_VkDeviceAddress_return, sizeof(VkDeviceAddress));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -29018,7 +28729,6 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddressKHR(VkDevice device,
     uint64_t vkGetBufferOpaqueCaptureAddressKHR_uint64_t_return = (uint64_t)0;
     stream->read(&vkGetBufferOpaqueCaptureAddressKHR_uint64_t_return, sizeof(uint64_t));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -29125,7 +28835,6 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddressKHR(
     uint64_t vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return = (uint64_t)0;
     stream->read(&vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return, sizeof(uint64_t));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -29301,7 +29010,6 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
     VkResult vkGetPipelineExecutablePropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPipelineExecutablePropertiesKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -29478,7 +29186,6 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
     VkResult vkGetPipelineExecutableStatisticsKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPipelineExecutableStatisticsKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -29668,7 +29375,6 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     stream->read(&vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return,
                  sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -29677,10 +29383,6 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     return vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return;
 }
 
-#endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
 #endif
 #ifdef VK_KHR_synchronization2
 void VkEncoder::vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
@@ -29775,7 +29477,6 @@ void VkEncoder::vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -29864,7 +29565,6 @@ void VkEncoder::vkCmdResetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -29987,7 +29687,6 @@ void VkEncoder::vkCmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t even
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -30079,7 +29778,6 @@ void VkEncoder::vkCmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -30174,7 +29872,6 @@ void VkEncoder::vkCmdWriteTimestamp2KHR(VkCommandBuffer commandBuffer, VkPipelin
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -30294,7 +29991,6 @@ VkResult VkEncoder::vkQueueSubmit2KHR(VkQueue queue, uint32_t submitCount,
     VkResult vkQueueSubmit2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkQueueSubmit2KHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -30398,7 +30094,6 @@ void VkEncoder::vkCmdWriteBufferMarker2AMD(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -30549,7 +30244,6 @@ void VkEncoder::vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpoint
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -30557,8 +30251,6 @@ void VkEncoder::vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpoint
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
 #endif
 #ifdef VK_KHR_copy_commands2
 void VkEncoder::vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
@@ -30645,7 +30337,6 @@ void VkEncoder::vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -30737,7 +30428,6 @@ void VkEncoder::vkCmdCopyImage2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -30834,7 +30524,6 @@ void VkEncoder::vkCmdCopyBufferToImage2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -30931,7 +30620,6 @@ void VkEncoder::vkCmdCopyImageToBuffer2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -31023,7 +30711,6 @@ void VkEncoder::vkCmdBlitImage2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -31118,7 +30805,6 @@ void VkEncoder::vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -31126,8 +30812,6 @@ void VkEncoder::vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer,
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_KHR_format_feature_flags2
 #endif
 #ifdef VK_KHR_maintenance4
 void VkEncoder::vkGetDeviceBufferMemoryRequirementsKHR(
@@ -31238,7 +30922,6 @@ void VkEncoder::vkGetDeviceBufferMemoryRequirementsKHR(
                                                  (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -31355,7 +31038,6 @@ void VkEncoder::vkGetDeviceImageMemoryRequirementsKHR(VkDevice device,
                                                  (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -31536,7 +31218,6 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirementsKHR(
         }
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -31639,7 +31320,6 @@ void VkEncoder::vkCmdBindIndexBuffer2KHR(VkCommandBuffer commandBuffer, VkBuffer
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -31749,7 +31429,6 @@ void VkEncoder::vkGetRenderingAreaGranularityKHR(VkDevice device,
         transform_fromhost_VkExtent2D(sResourceTracker, (VkExtent2D*)(pGranularity));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -31863,7 +31542,6 @@ void VkEncoder::vkGetDeviceImageSubresourceLayoutKHR(VkDevice device,
                                                    (VkSubresourceLayout2KHR*)(pLayout));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -31983,7 +31661,6 @@ void VkEncoder::vkGetImageSubresourceLayout2KHR(VkDevice device, VkImage image,
                                                    (VkSubresourceLayout2KHR*)(pLayout));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -32086,7 +31763,6 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat 
     VkResult vkGetSwapchainGrallocUsageANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainGrallocUsageANDROID_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -32200,7 +31876,6 @@ VkResult VkEncoder::vkAcquireImageANDROID(VkDevice device, VkImage image, int na
     VkResult vkAcquireImageANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireImageANDROID_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -32333,7 +32008,6 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(VkQueue queue, uint32_t wai
     stream->read(&vkQueueSignalReleaseImageANDROID_VkResult_return, sizeof(VkResult));
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -32447,7 +32121,6 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsage2ANDROID(
     VkResult vkGetSwapchainGrallocUsage2ANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainGrallocUsage2ANDROID_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -32581,7 +32254,6 @@ void VkEncoder::vkCmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuff
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -32716,7 +32388,6 @@ void VkEncoder::vkCmdBeginTransformFeedbackEXT(
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -32851,7 +32522,6 @@ void VkEncoder::vkCmdEndTransformFeedbackEXT(
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -32953,7 +32623,6 @@ void VkEncoder::vkCmdBeginQueryIndexedEXT(VkCommandBuffer commandBuffer, VkQuery
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -33048,7 +32717,6 @@ void VkEncoder::vkCmdEndQueryIndexedEXT(VkCommandBuffer commandBuffer, VkQueryPo
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -33165,7 +32833,6 @@ void VkEncoder::vkCmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -33173,38 +32840,6 @@ void VkEncoder::vkCmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
-#ifdef VK_EXT_depth_clip_enable
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
-#endif
-#ifdef VK_EXT_vertex_attribute_divisor
-#endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
-#ifdef VK_EXT_fragment_density_map
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
 #endif
 #ifdef VK_EXT_tooling_info
 VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
@@ -33357,7 +32992,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
     VkResult vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -33366,8 +33000,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
     return vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return;
 }
 
-#endif
-#ifdef VK_EXT_provoking_vertex
 #endif
 #ifdef VK_EXT_line_rasterization
 void VkEncoder::vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
@@ -33450,7 +33082,6 @@ void VkEncoder::vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t l
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -33458,8 +33089,6 @@ void VkEncoder::vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t l
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_EXT_index_type_uint8
 #endif
 #ifdef VK_EXT_extended_dynamic_state
 void VkEncoder::vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode,
@@ -33536,7 +33165,6 @@ void VkEncoder::vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFla
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -33617,7 +33245,6 @@ void VkEncoder::vkCmdSetFrontFaceEXT(VkCommandBuffer commandBuffer, VkFrontFace 
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -33701,7 +33328,6 @@ void VkEncoder::vkCmdSetPrimitiveTopologyEXT(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -33807,7 +33433,6 @@ void VkEncoder::vkCmdSetViewportWithCountEXT(VkCommandBuffer commandBuffer, uint
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -33912,7 +33537,6 @@ void VkEncoder::vkCmdSetScissorWithCountEXT(VkCommandBuffer commandBuffer, uint3
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34069,7 +33693,6 @@ void VkEncoder::vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34151,7 +33774,6 @@ void VkEncoder::vkCmdSetDepthTestEnableEXT(VkCommandBuffer commandBuffer, VkBool
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34233,7 +33855,6 @@ void VkEncoder::vkCmdSetDepthWriteEnableEXT(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34314,7 +33935,6 @@ void VkEncoder::vkCmdSetDepthCompareOpEXT(VkCommandBuffer commandBuffer, VkCompa
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34398,7 +34018,6 @@ void VkEncoder::vkCmdSetDepthBoundsTestEnableEXT(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34481,7 +34100,6 @@ void VkEncoder::vkCmdSetStencilTestEnableEXT(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34585,7 +34203,6 @@ void VkEncoder::vkCmdSetStencilOpEXT(VkCommandBuffer commandBuffer, VkStencilFac
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34691,7 +34308,6 @@ VkResult VkEncoder::vkCopyMemoryToImageEXT(VkDevice device,
     VkResult vkCopyMemoryToImageEXT_VkResult_return = (VkResult)0;
     stream->read(&vkCopyMemoryToImageEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34796,7 +34412,6 @@ VkResult VkEncoder::vkCopyImageToMemoryEXT(VkDevice device,
     VkResult vkCopyImageToMemoryEXT_VkResult_return = (VkResult)0;
     stream->read(&vkCopyImageToMemoryEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -34901,7 +34516,6 @@ VkResult VkEncoder::vkCopyImageToImageEXT(VkDevice device,
     VkResult vkCopyImageToImageEXT_VkResult_return = (VkResult)0;
     stream->read(&vkCopyImageToImageEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35019,7 +34633,6 @@ VkResult VkEncoder::vkTransitionImageLayoutEXT(
     VkResult vkTransitionImageLayoutEXT_VkResult_return = (VkResult)0;
     stream->read(&vkTransitionImageLayoutEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35140,7 +34753,6 @@ void VkEncoder::vkGetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
                                                    (VkSubresourceLayout2KHR*)(pLayout));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35148,16 +34760,6 @@ void VkEncoder::vkGetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
-#ifdef VK_EXT_texel_buffer_alignment
-#endif
-#ifdef VK_EXT_device_memory_report
-#endif
-#ifdef VK_EXT_custom_border_color
 #endif
 #ifdef VK_EXT_private_data
 VkResult VkEncoder::vkCreatePrivateDataSlotEXT(VkDevice device,
@@ -35292,7 +34894,6 @@ VkResult VkEncoder::vkCreatePrivateDataSlotEXT(VkDevice device,
     VkResult vkCreatePrivateDataSlotEXT_VkResult_return = (VkResult)0;
     stream->read(&vkCreatePrivateDataSlotEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35411,7 +35012,6 @@ void VkEncoder::vkDestroyPrivateDataSlotEXT(VkDevice device, VkPrivateDataSlot p
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35518,7 +35118,6 @@ VkResult VkEncoder::vkSetPrivateDataEXT(VkDevice device, VkObjectType objectType
     VkResult vkSetPrivateDataEXT_VkResult_return = (VkResult)0;
     stream->read(&vkSetPrivateDataEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35623,7 +35222,6 @@ void VkEncoder::vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType, ui
     }
     stream->read((uint64_t*)pData, sizeof(uint64_t));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35631,20 +35229,6 @@ void VkEncoder::vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType, ui
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_graphics_pipeline_library
-#endif
-#ifdef VK_EXT_ycbcr_2plane_444_formats
-#endif
-#ifdef VK_EXT_image_robustness
-#endif
-#ifdef VK_EXT_image_compression_control
-#endif
-#ifdef VK_EXT_4444_formats
-#endif
-#ifdef VK_EXT_primitive_topology_list_restart
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
 void VkEncoder::vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
@@ -35722,7 +35306,6 @@ void VkEncoder::vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35807,7 +35390,6 @@ void VkEncoder::vkCmdSetRasterizerDiscardEnableEXT(VkCommandBuffer commandBuffer
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35889,7 +35471,6 @@ void VkEncoder::vkCmdSetDepthBiasEnableEXT(VkCommandBuffer commandBuffer, VkBool
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -35970,7 +35551,6 @@ void VkEncoder::vkCmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logi
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -36055,7 +35635,97 @@ void VkEncoder::vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void VkEncoder::vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                            const VkBool32* pColorWriteEnables, uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
+
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkCmdSetColorWriteEnableEXT in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG(
+        "vkCmdSetColorWriteEnableEXT(commandBuffer:%p, attachmentCount:%d, pColorWriteEnables:%p)",
+        commandBuffer, attachmentCount, pColorWriteEnables);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkCommandBuffer local_commandBuffer;
+    uint32_t local_attachmentCount;
+    VkBool32* local_pColorWriteEnables;
+    local_commandBuffer = commandBuffer;
+    local_attachmentCount = attachmentCount;
+    // Avoiding deepcopy for pColorWriteEnables
+    local_pColorWriteEnables = (VkBool32*)pColorWriteEnables;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+        *countPtr += ((attachmentCount)) * sizeof(VkBool32);
+    }
+    uint32_t packetSize_vkCmdSetColorWriteEnableEXT = 4 + 4 + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkCmdSetColorWriteEnableEXT);
+    if (queueSubmitWithCommandsEnabled) packetSize_vkCmdSetColorWriteEnableEXT -= 8;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetColorWriteEnableEXT);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkCmdSetColorWriteEnableEXT = OP_vkCmdSetColorWriteEnableEXT;
+    memcpy(streamPtr, &opcode_vkCmdSetColorWriteEnableEXT, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkCmdSetColorWriteEnableEXT, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (!queueSubmitWithCommandsEnabled) {
+        uint64_t cgen_var_0;
+        *&cgen_var_0 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
+        memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+        *streamPtrPtr += 1 * 8;
+    }
+    memcpy(*streamPtrPtr, (uint32_t*)&local_attachmentCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (VkBool32*)local_pColorWriteEnables,
+           ((attachmentCount)) * sizeof(VkBool32));
+    *streamPtrPtr += ((attachmentCount)) * sizeof(VkBool32);
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkCmdSetColorWriteEnableEXT), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    ++encodeCount;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -36180,7 +35850,6 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceM
     sResourceTracker->on_vkMapMemoryIntoAddressSpaceGOOGLE(
         this, vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, device, memory, pAddress);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -36463,7 +36132,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -36559,7 +36227,6 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -36636,7 +36303,6 @@ void VkEncoder::vkEndCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer, uin
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -36720,7 +36386,6 @@ void VkEncoder::vkResetCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -36809,7 +36474,6 @@ void VkEncoder::vkCommandBufferHostSyncGOOGLE(VkCommandBuffer commandBuffer, uin
         memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -36963,7 +36627,6 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkCreateImageWithRequirementsGOOGLE_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -37120,7 +36783,6 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkCreateBufferWithRequirementsGOOGLE_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -37289,7 +36951,6 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(VkDevice device, VkDeviceMe
     VkResult vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryHostAddressInfoGOOGLE_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -37411,7 +37072,6 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(VkDevice device, VkDeviceMemory memor
     stream->read(&vkFreeMemorySyncGOOGLE_VkResult_return, sizeof(VkResult));
     sResourceTracker->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -37505,7 +37165,6 @@ void VkEncoder::vkQueueHostSyncGOOGLE(VkQueue queue, uint32_t needHostSync, uint
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -37624,7 +37283,6 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(VkQueue queue, uint32_t submitCount,
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -37705,7 +37363,6 @@ void VkEncoder::vkQueueWaitIdleAsyncGOOGLE(VkQueue queue, uint32_t doLock) {
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -37828,7 +37485,6 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(VkQueue queue, uint32_t bindInfoCou
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -37926,7 +37582,6 @@ void VkEncoder::vkGetLinearImageLayoutGOOGLE(VkDevice device, VkFormat format,
     stream->read((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
     stream->read((VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -38036,7 +37691,6 @@ void VkEncoder::vkGetLinearImageLayout2GOOGLE(VkDevice device, const VkImageCrea
     stream->read((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
     stream->read((VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -38265,7 +37919,6 @@ void VkEncoder::vkQueueCommitDescriptorSetUpdatesGOOGLE(
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -38388,7 +38041,6 @@ void VkEncoder::vkCollectDescriptorPoolIdsGOOGLE(VkDevice device, VkDescriptorPo
         stream->read((uint64_t*)pPoolIds, (*(pPoolIdCount)) * sizeof(uint64_t));
     }
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -38516,7 +38168,6 @@ void VkEncoder::vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(VkQueue queue,
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -38633,7 +38284,6 @@ void VkEncoder::vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -38725,7 +38375,6 @@ VkResult VkEncoder::vkGetBlobGOOGLE(VkDevice device, VkDeviceMemory memory, uint
     VkResult vkGetBlobGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkGetBlobGOOGLE_VkResult_return, sizeof(VkResult));
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -39033,7 +38682,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -39152,7 +38800,6 @@ void VkEncoder::vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
     }
     stream->flush();
     ++encodeCount;
-    ;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
         pool->freeAll();
         stream->clearPool();
@@ -39160,13 +38807,103 @@ void VkEncoder::vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_EXT_load_store_op_none
-#endif
-#ifdef VK_EXT_image_compression_control_swapchain
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
-#endif
+VkResult VkEncoder::vkGetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore, uint64_t syncId,
+                                         uint32_t doLock) {
+    std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
+    std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt;
+    std::vector<uint8_t> healthMonitorAnnotation_packetContents;
 
+    auto watchdog =
+        WATCHDOG_BUILDER(mHealthMonitor, "vkGetSemaphoreGOOGLE in VkEncoder")
+            .setOnHangCallback([&]() {
+                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                if (healthMonitorAnnotation_seqno) {
+                    annotations->insert(
+                        {{"seqno", std::to_string(healthMonitorAnnotation_seqno.value())}});
+                }
+                if (healthMonitorAnnotation_packetSize) {
+                    annotations->insert(
+                        {{"packetSize",
+                          std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                }
+                if (!healthMonitorAnnotation_packetContents.empty()) {
+                    annotations->insert(
+                        {{"packetContents",
+                          getPacketContents(&healthMonitorAnnotation_packetContents[0],
+                                            healthMonitorAnnotation_packetContents.size())}});
+                }
+                return std::move(annotations);
+            })
+            .build();
+
+    ENCODER_DEBUG_LOG("vkGetSemaphoreGOOGLE(device:%p, semaphore:%p, syncId:%ld)", device,
+                      semaphore, syncId);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkSemaphore local_semaphore;
+    uint64_t local_syncId;
+    local_device = device;
+    local_semaphore = semaphore;
+    local_syncId = syncId;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint64_t);
+    }
+    uint32_t packetSize_vkGetSemaphoreGOOGLE =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    healthMonitorAnnotation_packetSize = std::make_optional(packetSize_vkGetSemaphoreGOOGLE);
+    uint8_t* streamPtr = stream->reserve(packetSize_vkGetSemaphoreGOOGLE);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkGetSemaphoreGOOGLE = OP_vkGetSemaphoreGOOGLE;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    healthMonitorAnnotation_seqno = std::make_optional(seqno);
+    memcpy(streamPtr, &opcode_vkGetSemaphoreGOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkGetSemaphoreGOOGLE, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkSemaphore((*&local_semaphore));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint64_t*)&local_syncId, sizeof(uint64_t));
+    *streamPtrPtr += sizeof(uint64_t);
+    if (watchdog) {
+        size_t watchdogBufSize = std::min<size_t>(
+            static_cast<size_t>(packetSize_vkGetSemaphoreGOOGLE), kWatchdogBufferMax);
+        healthMonitorAnnotation_packetContents.resize(watchdogBufSize);
+        memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize);
+    }
+    VkResult vkGetSemaphoreGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkGetSemaphoreGOOGLE_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkGetSemaphoreGOOGLE_VkResult_return;
+}
+
+#endif
 }  // namespace vk
 }  // namespace gfxstream

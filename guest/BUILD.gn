@@ -31,6 +31,7 @@ config("common_config") {
 
   include_dirs = [
     "../common/opengl/include",
+    "../common/vulkan/include",
     "android-emu",
     "GoldfishAddressSpace/include",
     "iostream/include",
@@ -280,6 +281,7 @@ loadable_module("libvulkan_gfxstream") {
       "platform/fuchsia/FuchsiaVirtGpuBlob.cpp",
       "platform/fuchsia/FuchsiaVirtGpuBlobMapping.cpp",
       "platform/fuchsia/FuchsiaVirtGpuDevice.cpp",
+      "platform/fuchsia/os_dirent_fuchsia.cpp",
     ]
 
     include_dirs = [
@@ -292,6 +294,7 @@ loadable_module("libvulkan_gfxstream") {
       ":goldfish_srcs",
       "//sdk/fidl/fuchsia.logger:fuchsia.logger_cpp",
       "//sdk/fidl/fuchsia.sysmem:fuchsia.sysmem_cpp",
+      "//src/graphics/lib/magma/src/libmagma",
       "//src/zircon/lib/zircon",
       "//zircon/system/ulib/trace:trace-with-static-engine",
       "//zircon/system/ulib/zx",

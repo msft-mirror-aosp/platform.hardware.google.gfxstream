@@ -86,6 +86,7 @@ void RenderLibImpl::setDmaOps(emugl_dma_ops ops) {
 
 void RenderLibImpl::setVmOps(const QAndroidVmOperations &vm_operations) {
     set_emugl_vm_operations(vm_operations);
+    address_space_set_vm_operations(&get_emugl_vm_operations());
 }
 
 void RenderLibImpl::setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) {
@@ -123,13 +124,14 @@ bool RenderLibImpl::getOpt(RenderOpt* opt) {
 }
 
 RendererPtr RenderLibImpl::initRenderer(int width, int height,
+                                        gfxstream::host::FeatureSet features,
                                         bool useSubWindow, bool egl2egl) {
     if (!mRenderer.expired()) {
         return nullptr;
     }
 
     const auto res = std::make_shared<RendererImpl>();
-    if (!res->initialize(width, height, useSubWindow, egl2egl)) {
+    if (!res->initialize(width, height, features, useSubWindow, egl2egl)) {
         return nullptr;
     }
     mRenderer = res;

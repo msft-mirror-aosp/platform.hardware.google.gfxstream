@@ -1033,16 +1033,6 @@ void count_VkDeviceImageMemoryRequirements(uint32_t featureBits, VkStructureType
                                            size_t* count);
 
 #endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
-#endif
 #ifdef VK_KHR_dynamic_rendering
 DEFINE_ALIAS_FUNCTION(count_VkRenderingInfo, count_VkRenderingInfoKHR)
 
@@ -1098,8 +1088,6 @@ DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceSparseImageFormatInfo2,
                       count_VkPhysicalDeviceSparseImageFormatInfo2KHR)
 
 #endif
-#ifdef VK_KHR_maintenance1
-#endif
 #ifdef VK_KHR_external_memory_capabilities
 DEFINE_ALIAS_FUNCTION(count_VkExternalMemoryProperties, count_VkExternalMemoryPropertiesKHR)
 
@@ -1127,10 +1115,6 @@ DEFINE_ALIAS_FUNCTION(count_VkExternalMemoryBufferCreateInfo,
 DEFINE_ALIAS_FUNCTION(count_VkExportMemoryAllocateInfo, count_VkExportMemoryAllocateInfoKHR)
 
 #endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
 #ifdef VK_KHR_external_semaphore_capabilities
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceExternalSemaphoreInfo,
                       count_VkPhysicalDeviceExternalSemaphoreInfoKHR)
@@ -1141,8 +1125,6 @@ DEFINE_ALIAS_FUNCTION(count_VkExternalSemaphoreProperties, count_VkExternalSemap
 #ifdef VK_KHR_external_semaphore
 DEFINE_ALIAS_FUNCTION(count_VkExportSemaphoreCreateInfo, count_VkExportSemaphoreCreateInfoKHR)
 
-#endif
-#ifdef VK_KHR_external_semaphore_win32
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 void count_VkImportSemaphoreFdInfoKHR(uint32_t featureBits, VkStructureType rootType,
@@ -1249,8 +1231,6 @@ DEFINE_ALIAS_FUNCTION(count_VkMemoryDedicatedRequirements, count_VkMemoryDedicat
 
 DEFINE_ALIAS_FUNCTION(count_VkMemoryDedicatedAllocateInfo, count_VkMemoryDedicatedAllocateInfoKHR)
 
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 DEFINE_ALIAS_FUNCTION(count_VkBufferMemoryRequirementsInfo2,
@@ -1368,8 +1348,6 @@ DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceShaderIntegerDotProductFeatures,
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceShaderIntegerDotProductProperties,
                       count_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
 #endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(count_VkMemoryBarrier2, count_VkMemoryBarrier2KHR)
@@ -1505,8 +1483,6 @@ void count_VkPipelineRasterizationStateStreamCreateInfoEXT(
     const VkPipelineRasterizationStateStreamCreateInfoEXT* toCount, size_t* count);
 
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceTextureCompressionASTCHDRFeatures,
                       count_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
@@ -1522,14 +1498,6 @@ void count_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     const VkPipelineRasterizationDepthClipStateCreateInfoEXT* toCount, size_t* count);
 
 #endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
 #ifdef VK_EXT_inline_uniform_block
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceInlineUniformBlockFeatures,
                       count_VkPhysicalDeviceInlineUniformBlockFeaturesEXT)
@@ -1543,8 +1511,6 @@ DEFINE_ALIAS_FUNCTION(count_VkWriteDescriptorSetInlineUniformBlock,
 DEFINE_ALIAS_FUNCTION(count_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       count_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
-#endif
-#ifdef VK_EXT_shader_stencil_export
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void count_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
@@ -1570,10 +1536,6 @@ DEFINE_ALIAS_FUNCTION(count_VkPipelineCreationFeedbackCreateInfo,
 
 DEFINE_ALIAS_FUNCTION(count_VkPipelineCreationFeedback, count_VkPipelineCreationFeedbackEXT)
 
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
 #endif
 #ifdef VK_EXT_fragment_density_map
 void count_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
@@ -1690,8 +1652,6 @@ DEFINE_ALIAS_FUNCTION(count_VkSubresourceLayout2KHR, count_VkSubresourceLayout2E
 DEFINE_ALIAS_FUNCTION(count_VkImageSubresource2KHR, count_VkImageSubresource2EXT)
 
 #endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures,
                       count_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT)
@@ -1718,6 +1678,16 @@ void count_VkDeviceMemoryReportCallbackDataEXT(uint32_t featureBits, VkStructure
 void count_VkDeviceDeviceMemoryReportCreateInfoEXT(
     uint32_t featureBits, VkStructureType rootType,
     const VkDeviceDeviceMemoryReportCreateInfoEXT* toCount, size_t* count);
+
+#endif
+#ifdef VK_EXT_robustness2
+void count_VkPhysicalDeviceRobustness2FeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2FeaturesEXT* toCount, size_t* count);
+
+void count_VkPhysicalDeviceRobustness2PropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesEXT* toCount, size_t* count);
 
 #endif
 #ifdef VK_EXT_custom_border_color
@@ -1804,6 +1774,16 @@ void count_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* toCount, size_t* count);
 
 #endif
+#ifdef VK_EXT_color_write_enable
+void count_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* toCount, size_t* count);
+
+void count_VkPipelineColorWriteCreateInfoEXT(uint32_t featureBits, VkStructureType rootType,
+                                             const VkPipelineColorWriteCreateInfoEXT* toCount,
+                                             size_t* count);
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void count_VkImportColorBufferGOOGLE(uint32_t featureBits, VkStructureType rootType,
                                      const VkImportColorBufferGOOGLE* toCount, size_t* count);
@@ -1815,16 +1795,11 @@ void count_VkCreateBlobGOOGLE(uint32_t featureBits, VkStructureType rootType,
                               const VkCreateBlobGOOGLE* toCount, size_t* count);
 
 #endif
-#ifdef VK_EXT_load_store_op_none
-#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void count_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     uint32_t featureBits, VkStructureType rootType,
     const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* toCount, size_t* count);
 
 #endif
-#ifdef VK_QNX_external_memory_screen_buffer
-#endif
-
 }  // namespace vk
 }  // namespace gfxstream

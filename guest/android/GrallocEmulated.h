@@ -14,10 +14,11 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <vector>
 
-#include "gfxstream/guest/Gralloc.h"
 #include "VirtGpu.h"
+#include "gfxstream/guest/Gralloc.h"
 
 namespace gfxstream {
 
@@ -25,7 +26,8 @@ using EGLClientBuffer = void*;
 
 class EmulatedAHardwareBuffer {
    public:
-    EmulatedAHardwareBuffer(uint32_t width, uint32_t height, VirtGpuBlobPtr resource);
+    EmulatedAHardwareBuffer(uint32_t width, uint32_t height, uint32_t drmFormat,
+                            VirtGpuResourcePtr resource);
 
     ~EmulatedAHardwareBuffer();
 
@@ -48,11 +50,17 @@ class EmulatedAHardwareBuffer {
     void acquire();
     void release();
 
+    int lock(uint8_t** ptr);
+    int lockPlanes(std::vector<Gralloc::LockedPlane>* ahbPlanes);
+    int unlock();
+
    private:
     uint32_t mRefCount;
     uint32_t mWidth;
     uint32_t mHeight;
-    VirtGpuBlobPtr mResource;
+    uint32_t mDrmFormat;
+    VirtGpuResourcePtr mResource;
+    std::optional<VirtGpuResourceMappingPtr> mMapped;
 };
 
 class EmulatedGralloc : public Gralloc {
@@ -69,6 +77,10 @@ class EmulatedGralloc : public Gralloc {
     void acquire(AHardwareBuffer* ahb) override;
     void release(AHardwareBuffer* ahb) override;
 
+    int lock(AHardwareBuffer* ahb, uint8_t** ptr) override;
+    int lockPlanes(AHardwareBuffer* ahb, std::vector<LockedPlane>* ahbPlanes) override;
+    int unlock(AHardwareBuffer* ahb) override;
+
     uint32_t getHostHandle(const native_handle_t* handle) override;
     uint32_t getHostHandle(const AHardwareBuffer* handle) override;
 
@@ -78,6 +90,9 @@ class EmulatedGralloc : public Gralloc {
     int getFormat(const AHardwareBuffer* handle) override;
 
     uint32_t getFormatDrmFourcc(const AHardwareBuffer* handle) override;
+
+    uint32_t getWidth(const AHardwareBuffer* ahb) override;
+    uint32_t getHeight(const AHardwareBuffer* ahb) override;
 
     size_t getAllocatedSize(const native_handle_t*) override;
     size_t getAllocatedSize(const AHardwareBuffer*) override;

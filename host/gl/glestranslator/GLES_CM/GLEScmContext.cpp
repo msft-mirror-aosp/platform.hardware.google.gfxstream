@@ -39,10 +39,10 @@ void GLEScmContext::setMaxGlesVersion(GLESVersion version) {
     s_maxGlesVersion = version;
 }
 
-void GLEScmContext::init() {
+void GLEScmContext::init(bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled) {
     android::base::AutoLock mutex(s_lock);
     if(!m_initialized) {
-        GLEScontext::init();
+        GLEScontext::init(nativeTextureDecompressionEnabled, programBinaryLinkStatusEnabled);
 
         addVertexArrayObject(0);
         setVertexArrayObject(0);
@@ -719,7 +719,7 @@ const GLESpointer* GLEScmContext::getPointer(GLenum arrType) {
 void GLEScmContext::initExtensionString() {
     if (s_glExtensionsGles1Initialized) return;
     initCapsLocked((const GLubyte*)getHostExtensionsString(&s_glDispatch).c_str(),
-                   s_glSupportGles1);
+                   m_nativeTextureDecompressionEnabled, s_glSupportGles1);
     *s_glExtensionsGles1 = "GL_OES_blend_func_separate GL_OES_blend_equation_separate GL_OES_blend_subtract "
                       "GL_OES_byte_coordinates GL_OES_compressed_paletted_texture GL_OES_point_size_array "
                       "GL_OES_point_sprite GL_OES_single_precision GL_OES_stencil_wrap GL_OES_texture_env_crossbar "

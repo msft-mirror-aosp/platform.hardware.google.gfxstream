@@ -28,6 +28,10 @@ class MinigbmGralloc : public Gralloc {
     void acquire(AHardwareBuffer* ahb) override;
     void release(AHardwareBuffer* ahb) override;
 
+    int lock(AHardwareBuffer* ahb, uint8_t** ptr) override;
+    int lockPlanes(AHardwareBuffer* ahb, std::vector<LockedPlane>* ahbPlanes) override;
+    int unlock(AHardwareBuffer* ahb) override;
+
     uint32_t getHostHandle(native_handle_t const* handle) override;
     uint32_t getHostHandle(const AHardwareBuffer* handle) override;
 
@@ -38,6 +42,9 @@ class MinigbmGralloc : public Gralloc {
 
     uint32_t getFormatDrmFourcc(const native_handle_t* handle) override;
     uint32_t getFormatDrmFourcc(const AHardwareBuffer* handle) override;
+
+    uint32_t getWidth(const AHardwareBuffer* ahb) override;
+    uint32_t getHeight(const AHardwareBuffer* ahb) override;
 
     size_t getAllocatedSize(const native_handle_t* handle) override;
     size_t getAllocatedSize(const AHardwareBuffer* handle) override;

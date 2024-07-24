@@ -10,7 +10,10 @@ package {
 cc_library_static {
     name: "libgfxstream_host_vulkan_cereal",
     defaults: ["gfxstream_defaults"],
-    static_libs: ["gfxstream_base"],
+    static_libs: [
+        "gfxstream_base",
+        "libgfxstream_host_features",
+    ],
     srcs: [
         "common/goldfish_vk_extension_structs.cpp",
         "common/goldfish_vk_marshaling.cpp",

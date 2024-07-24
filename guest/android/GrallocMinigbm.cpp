@@ -176,10 +176,22 @@ void MinigbmGralloc::acquire(AHardwareBuffer* ahb) { AHardwareBuffer_acquire(ahb
 
 void MinigbmGralloc::release(AHardwareBuffer* ahb) { AHardwareBuffer_release(ahb); }
 
+int MinigbmGralloc::lock(AHardwareBuffer* ahb, uint8_t** ptr) {
+    return AHardwareBuffer_lock(ahb, AHARDWAREBUFFER_USAGE_CPU_READ_RARELY, -1, nullptr,
+                                reinterpret_cast<void**>(ptr));
+}
+
+int MinigbmGralloc::lockPlanes(AHardwareBuffer* ahb, std::vector<LockedPlane>* ahbPlanes) {
+    ALOGE("%s: unimplemented", __func__);
+    return -1;
+}
+
+int MinigbmGralloc::unlock(AHardwareBuffer* ahb) { return AHardwareBuffer_unlock(ahb, nullptr); }
+
 uint32_t MinigbmGralloc::getHostHandle(const native_handle_t* handle) {
     struct drm_virtgpu_resource_info info;
     if (!getVirtioGpuResourceInfo(m_fd, handle, &info)) {
-        ALOGE("%s: failed to get resource info\n", __func__);
+        ALOGE("%s: failed to get resource info", __func__);
         return 0;
     }
 
@@ -212,6 +224,18 @@ uint32_t MinigbmGralloc::getFormatDrmFourcc(const native_handle_t* handle) {
 uint32_t MinigbmGralloc::getFormatDrmFourcc(const AHardwareBuffer* ahb) {
     const native_handle_t* handle = AHardwareBuffer_getNativeHandle(ahb);
     return getFormatDrmFourcc(handle);
+}
+
+uint32_t MinigbmGralloc::getWidth(const AHardwareBuffer* ahb) {
+    AHardwareBuffer_Desc desc = {};
+    AHardwareBuffer_describe(ahb, &desc);
+    return desc.width;
+}
+
+uint32_t MinigbmGralloc::getHeight(const AHardwareBuffer* ahb) {
+    AHardwareBuffer_Desc desc = {};
+    AHardwareBuffer_describe(ahb, &desc);
+    return desc.height;
 }
 
 size_t MinigbmGralloc::getAllocatedSize(const native_handle_t* handle) {

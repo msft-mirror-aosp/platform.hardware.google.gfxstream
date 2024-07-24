@@ -203,6 +203,38 @@ static bool sGetFormatParameters(GLint* internalFormat,
             *bytesPerPixel = 2;
             *sizedInternalFormat = GL_RG8;
             return true;
+        case GL_DEPTH_COMPONENT:
+        case GL_DEPTH_COMPONENT16:
+            *texFormat = GL_DEPTH_COMPONENT;
+            *pixelType = GL_UNSIGNED_SHORT;
+            *bytesPerPixel = 2;
+            *sizedInternalFormat = GL_DEPTH_COMPONENT16;
+            return true;
+        case GL_DEPTH_COMPONENT24:
+            *texFormat = GL_DEPTH_COMPONENT;
+            *pixelType = GL_UNSIGNED_INT;
+            *bytesPerPixel = 4;
+            *sizedInternalFormat = GL_DEPTH_COMPONENT24;
+            return true;
+        case GL_DEPTH_COMPONENT32F:
+            *texFormat = GL_DEPTH_COMPONENT;
+            *pixelType = GL_FLOAT;
+            *bytesPerPixel = 4;
+            *sizedInternalFormat = GL_DEPTH_COMPONENT32F;
+            return true;
+        case GL_DEPTH_STENCIL:
+        case GL_DEPTH24_STENCIL8:
+            *texFormat = GL_DEPTH_STENCIL;
+            *pixelType = GL_UNSIGNED_INT_24_8;
+            *bytesPerPixel = 4;
+            *sizedInternalFormat = GL_DEPTH24_STENCIL8;
+            return true;
+        case GL_DEPTH32F_STENCIL8:
+            *texFormat = GL_DEPTH_STENCIL;
+            *pixelType = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+            *bytesPerPixel = 8;
+            *sizedInternalFormat = GL_DEPTH32F_STENCIL8;
+            return true;
         default:
             fprintf(stderr, "%s: Unknown format 0x%x\n", __func__,
                     *internalFormat);
@@ -216,7 +248,8 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
                                                      FrameworkFormat p_frameworkFormat,
                                                      HandleType hndl, ContextHelper* helper,
                                                      TextureDraw* textureDraw,
-                                                     bool fastBlitSupported) {
+                                                     bool fastBlitSupported,
+                                                     const gfxstream::host::FeatureSet& features) {
     GLenum texFormat = 0;
     GLenum pixelType = GL_UNSIGNED_BYTE;
     int bytesPerPixel = 4;
@@ -240,6 +273,7 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
     cb->m_format = texFormat;
     cb->m_type = pixelType;
     cb->m_frameworkFormat = p_frameworkFormat;
+    cb->m_yuv420888ToNv21 = features.Yuv420888ToNv21.enabled;
     cb->m_fastBlitSupported = fastBlitSupported;
     cb->m_numBytes = (size_t)bufsize;
 
@@ -305,7 +339,7 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
             break;
         default: // Any YUV format
             cb->m_yuv_converter.reset(
-                    new YUVConverter(p_width, p_height, cb->m_frameworkFormat));
+                    new YUVConverter(p_width, p_height, cb->m_frameworkFormat, cb->m_yuv420888ToNv21));
             break;
     }
 
@@ -955,7 +989,8 @@ void ColorBufferGl::onSave(android::base::Stream* stream) {
 std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(android::base::Stream* stream,
                                                      EGLDisplay p_display, ContextHelper* helper,
                                                      TextureDraw* textureDraw,
-                                                     bool fastBlitSupported) {
+                                                     bool fastBlitSupported,
+                                                     const gfxstream::host::FeatureSet& features) {
     HandleType hndl = static_cast<HandleType>(stream->getBe32());
     GLuint width = static_cast<GLuint>(stream->getBe32());
     GLuint height = static_cast<GLuint>(stream->getBe32());
@@ -968,7 +1003,7 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(android::base::Stream* stre
 
     if (!eglImage) {
         return create(p_display, width, height, internalFormat, frameworkFormat,
-                      hndl, helper, textureDraw, fastBlitSupported);
+                      hndl, helper, textureDraw, fastBlitSupported, features);
     }
     std::unique_ptr<ColorBufferGl> cb(
         new ColorBufferGl(p_display, hndl, width, height, helper, textureDraw));
@@ -979,6 +1014,19 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(android::base::Stream* stre
     cb->m_frameworkFormat = frameworkFormat;
     cb->m_fastBlitSupported = fastBlitSupported;
     cb->m_needFormatCheck = needFormatCheck;
+
+    GLenum texFormat;
+    GLenum pixelType;
+    int bytesPerPixel = 1;
+    GLint sizedInternalFormat;
+    bool isBlob;
+    sGetFormatParameters(&cb->m_internalFormat, &texFormat, &pixelType, &bytesPerPixel,
+                         &sizedInternalFormat, &isBlob);
+    cb->m_type = pixelType;
+    cb->m_format = texFormat;
+    cb->m_sizedInternalFormat = sizedInternalFormat;
+    // TODO: set m_BRSwizzle properly
+    cb->m_numBytes = ((unsigned long)bytesPerPixel) * width * height;
     return cb;
 }
 
@@ -998,7 +1046,7 @@ void ColorBufferGl::restore() {
             break;
         default: // any YUV format
             m_yuv_converter.reset(
-                    new YUVConverter(m_width, m_height, m_frameworkFormat));
+                    new YUVConverter(m_width, m_height, m_frameworkFormat, m_yuv420888ToNv21));
             break;
     }
 }

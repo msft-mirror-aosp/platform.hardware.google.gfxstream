@@ -26,25 +26,26 @@ namespace gfxstream {
 
 class RutabagaVirtGpuDevice;
 
-class RutabagaVirtGpuBlobMapping : public VirtGpuBlobMapping {
-  public:
-   RutabagaVirtGpuBlobMapping(std::shared_ptr<EmulatedVirtioGpu> emulation, VirtGpuBlobPtr blob,
-                              uint8_t* mapped);
-   ~RutabagaVirtGpuBlobMapping();
+class RutabagaVirtGpuResourceMapping : public VirtGpuResourceMapping {
+   public:
+    RutabagaVirtGpuResourceMapping(std::shared_ptr<EmulatedVirtioGpu> emulation,
+                                   VirtGpuResourcePtr blob, uint8_t* mapped);
+    ~RutabagaVirtGpuResourceMapping();
 
-   uint8_t* asRawPtr(void) override;
+    uint8_t* asRawPtr(void) override;
 
-  private:
-   const std::shared_ptr<EmulatedVirtioGpu> mEmulation;
-   const VirtGpuBlobPtr mBlob;
-   uint8_t* mMapped = nullptr;
+   private:
+    const std::shared_ptr<EmulatedVirtioGpu> mEmulation;
+    const VirtGpuResourcePtr mBlob;
+    uint8_t* mMapped = nullptr;
 };
 
-class RutabagaVirtGpuResource : public std::enable_shared_from_this<RutabagaVirtGpuResource>, public VirtGpuBlob {
-  public:
+class RutabagaVirtGpuResource : public std::enable_shared_from_this<RutabagaVirtGpuResource>,
+                                public VirtGpuResource {
+   public:
     ~RutabagaVirtGpuResource();
 
-    VirtGpuBlobMappingPtr createMapping(void) override;
+    VirtGpuResourceMappingPtr createMapping(void) override;
 
     uint32_t getResourceHandle() const override;
     uint32_t getBlobHandle() const override;
@@ -53,9 +54,12 @@ class RutabagaVirtGpuResource : public std::enable_shared_from_this<RutabagaVirt
     int wait() override;
 
     int transferFromHost(uint32_t offset, uint32_t size) override;
-    int transferToHost(uint32_t offset, uint32_t size) override;
+    int transferFromHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) override;
 
-  private:
+    int transferToHost(uint32_t offset, uint32_t size) override;
+    int transferToHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) override;
+
+   private:
     friend class RutabagaVirtGpuDevice;
 
     enum class ResourceType {
@@ -83,13 +87,15 @@ class RutabagaVirtGpuDevice : public std::enable_shared_from_this<RutabagaVirtGp
 
    VirtGpuCaps getCaps() override;
 
-   VirtGpuBlobPtr createBlob(const struct VirtGpuCreateBlob& blobCreate) override;
+   VirtGpuResourcePtr createBlob(const struct VirtGpuCreateBlob& blobCreate) override;
 
-   VirtGpuBlobPtr createVirglBlob(uint32_t width, uint32_t height, uint32_t virglFormat) override;
+   VirtGpuResourcePtr createResource(uint32_t width, uint32_t height, uint32_t stride,
+                                     uint32_t size, uint32_t virglFormat, uint32_t target,
+                                     uint32_t bind) override;
 
-   VirtGpuBlobPtr importBlob(const struct VirtGpuExternalHandle& handle) override;
+   VirtGpuResourcePtr importBlob(const struct VirtGpuExternalHandle& handle) override;
 
-   int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuBlob* blob) override;
+   int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuResource* blob) override;
 
   private:
    const std::shared_ptr<EmulatedVirtioGpu> mEmulation;

@@ -1,0 +1,35 @@
+# File: BUILD
+
+# Interface Library
+cc_library(
+    name = "gfxstream_utils_headers",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//hardware/google/aemu/base:aemu-base-headers",
+        "//hardware/google/aemu/host-common:aemu-host-common-headers",
+        "//hardware/google/gfxstream/common/vulkan:gfxstream_vulkan_headers",
+        "//hardware/google/gfxstream/third-party/renderdoc",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_utils",
+    srcs = ["GfxApiLogger.cpp"],
+    visibility = ["//visibility:public"],
+    deps = [":gfxstream_utils_headers"],
+)
+
+# Conditional Executable (Test target)
+cc_test(
+    name = "gfxstream_utils_unittests",
+    srcs = [
+        "GfxApiLogger_unittest.cpp",
+        "RenderDoc_unittest.cpp",
+    ],
+    deps = [
+        ":gfxstream_utils",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

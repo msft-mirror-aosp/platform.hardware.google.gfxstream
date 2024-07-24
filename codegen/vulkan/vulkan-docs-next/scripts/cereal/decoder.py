@@ -22,6 +22,10 @@ DELAYED_DECODER_DELETES = [
     "vkDestroyPipelineLayout",
 ]
 
+DELAYED_DECODER_DELETE_DICT_ENTRIES = [
+    "vkDestroyShaderModule",
+]
+
 global_state_prefix = "m_state->on_"
 
 decoder_decl_preamble = """
@@ -62,12 +66,15 @@ public:
     Impl() : m_logCalls(android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOG_CALLS") == "1"),
              m_vk(vkDispatch()),
              m_state(VkDecoderGlobalState::get()),
+             m_vkStream(nullptr, m_state->getFeatures()),
+             m_vkMemReadingStream(nullptr, m_state->getFeatures()),
              m_boxedHandleUnwrapMapping(m_state),
              m_boxedHandleCreateMapping(m_state),
              m_boxedHandleDestroyMapping(m_state),
              m_boxedHandleUnwrapAndDeleteMapping(m_state),
              m_boxedHandleUnwrapAndDeletePreserveBoxedMapping(m_state),
-             m_prevSeqno(std::nullopt) {}
+             m_prevSeqno(std::nullopt),
+             m_queueSubmitWithCommandsEnabled(m_state->getFeatures().VulkanQueueSubmitWithCommands.enabled) {}
     %s* stream() { return &m_vkStream; }
     VulkanMemReadingStream* readStream() { return &m_vkMemReadingStream; }
 
@@ -83,8 +90,8 @@ private:
     bool m_forSnapshotLoad = false;
     VulkanDispatch* m_vk;
     VkDecoderGlobalState* m_state;
-    %s m_vkStream { nullptr };
-    VulkanMemReadingStream m_vkMemReadingStream { nullptr };
+    %s m_vkStream;
+    VulkanMemReadingStream m_vkMemReadingStream;
     BoxedHandleUnwrapMapping m_boxedHandleUnwrapMapping;
     BoxedHandleCreateMapping m_boxedHandleCreateMapping;
     BoxedHandleDestroyMapping m_boxedHandleDestroyMapping;
@@ -92,6 +99,7 @@ private:
     android::base::BumpPool m_pool;
     BoxedHandleUnwrapAndDeletePreserveBoxedMapping m_boxedHandleUnwrapAndDeletePreserveBoxedMapping;
     std::optional<uint32_t> m_prevSeqno;
+    bool m_queueSubmitWithCommandsEnabled = false;
 };
 
 VkDecoder::VkDecoder() :
@@ -278,7 +286,10 @@ def emit_decode_parameters(typeInfo: VulkanTypeInfo, api: VulkanAPI, cgen, globa
         lenAccess = cgen.generalLengthAccess(p)
 
         if p.dispatchHandle:
-            emit_dispatch_unmarshal(typeInfo, p, cgen, globalWrapped)
+            if api.name in DELAYED_DECODER_DELETE_DICT_ENTRIES:
+                emit_dispatch_unmarshal(typeInfo, p, cgen, False)
+            else:
+                emit_dispatch_unmarshal(typeInfo, p, cgen, globalWrapped)
         else:
             destroy = p.nonDispatchableHandleDestroy or p.dispatchableHandleDestroy
             noUnbox = api.name in ["vkQueueFlushCommandsGOOGLE", "vkQueueFlushCommandsFromAuxMemoryGOOGLE"] and p.paramName == "commandBuffer"
@@ -423,6 +434,8 @@ def emit_destroyed_handle_cleanup(api, cgen):
                 if None == lenAccess or "1" == lenAccess:
                     if api.name in DELAYED_DECODER_DELETES:
                         cgen.stmt("delayed_delete_%s(boxed_%s_preserve, unboxed_device, delayed_remove_callback)" % (p.typeName, p.paramName))
+                    elif api.name in DELAYED_DECODER_DELETE_DICT_ENTRIES:
+                        cgen.stmt("delayed_delete_%s(boxed_%s_preserve, unboxed_device, nullptr)" % (p.typeName, p.paramName))
                     else:
                         cgen.stmt("delete_%s(boxed_%s_preserve)" % (p.typeName, p.paramName))
                 else:
@@ -441,7 +454,7 @@ def emit_pool_free(cgen):
     cgen.stmt("%s->clearPool()" % READ_STREAM)
 
 def emit_seqno_incr(api, cgen):
-    cgen.stmt("if (queueSubmitWithCommandsEnabled) seqnoPtr->fetch_add(1, std::memory_order_seq_cst)")
+    cgen.stmt("if (m_queueSubmitWithCommandsEnabled) seqnoPtr->fetch_add(1, std::memory_order_seq_cst)")
 
 def emit_snapshot(typeInfo, api, cgen):
 
@@ -691,6 +704,7 @@ custom_decodes = {
     "vkDestroyCommandPool" : emit_global_state_wrapped_decoding,
     "vkResetCommandPool" : emit_global_state_wrapped_decoding,
     "vkCmdPipelineBarrier" : emit_global_state_wrapped_decoding,
+    "vkCmdPipelineBarrier2" : emit_global_state_wrapped_decoding,
     "vkCmdBindPipeline" : emit_global_state_wrapped_decoding,
     "vkCmdBindDescriptorSets" : emit_global_state_wrapped_decoding,
 
@@ -700,6 +714,10 @@ custom_decodes = {
     "vkDestroyRenderPass" : emit_global_state_wrapped_decoding,
     "vkCreateFramebuffer" : emit_global_state_wrapped_decoding,
     "vkDestroyFramebuffer" : emit_global_state_wrapped_decoding,
+    "vkDestroyFramebuffer" : emit_global_state_wrapped_decoding,
+    "vkCmdBeginRenderPass" : emit_global_state_wrapped_decoding,
+    "vkCmdBeginRenderPass2" : emit_global_state_wrapped_decoding,
+    "vkCmdBeginRenderPass2KHR" : emit_global_state_wrapped_decoding,
 
     "vkCreateSamplerYcbcrConversion": emit_global_state_wrapped_decoding,
     "vkDestroySamplerYcbcrConversion": emit_global_state_wrapped_decoding,
@@ -724,6 +742,7 @@ custom_decodes = {
     "vkMapMemoryIntoAddressSpaceGOOGLE" : emit_global_state_wrapped_decoding,
     "vkGetMemoryHostAddressInfoGOOGLE" : emit_global_state_wrapped_decoding,
     "vkGetBlobGOOGLE" : emit_global_state_wrapped_decoding,
+    "vkGetSemaphoreGOOGLE" : emit_global_state_wrapped_decoding,
 
     # Descriptor update templates
     "vkCreateDescriptorUpdateTemplate" : emit_global_state_wrapped_decoding,
@@ -798,7 +817,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
         self.cgen.stmt("auto* healthMonitor = context.healthMonitor")
         self.cgen.stmt("auto& metricsLogger = *context.metricsLogger")
         self.cgen.stmt("if (len < 8) return 0")
-        self.cgen.stmt("bool queueSubmitWithCommandsEnabled = feature_is_enabled(kFeature_VulkanQueueSubmitWithCommands)")
         self.cgen.stmt("unsigned char *ptr = (unsigned char *)buf")
         self.cgen.stmt("const unsigned char* const end = (const unsigned char*)buf + len")
 
@@ -846,7 +864,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
         std::atomic<uint32_t>* seqnoPtr = processResources ?
                 processResources->getSequenceNumberPtr() : nullptr;
 
-        if (queueSubmitWithCommandsEnabled && ((opcode >= OP_vkFirst && opcode < OP_vkLast) || (opcode >= OP_vkFirst_old && opcode < OP_vkLast_old))) {
+        if (m_queueSubmitWithCommandsEnabled && ((opcode >= OP_vkFirst && opcode < OP_vkLast) || (opcode >= OP_vkFirst_old && opcode < OP_vkLast_old))) {
             uint32_t seqno;
             memcpy(&seqno, *readStreamPtrPtr, sizeof(uint32_t)); *readStreamPtrPtr += sizeof(uint32_t);
             if (healthMonitor) executionData->insert({{"seqno", std::to_string(seqno)}});
