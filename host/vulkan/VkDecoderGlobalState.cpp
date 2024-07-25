@@ -4805,10 +4805,16 @@ class VkDecoderGlobalState::Impl {
         VkImportMemoryHostPointerInfoEXT importHostInfoPrivate{};
         if (hostVisible && m_emu->features.VulkanAllocateHostMemory.enabled &&
             localAllocInfo.pNext == nullptr) {
-            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
+            if (!m_emu || !m_emu->deviceInfo.supportsExternalMemoryHostProps) {
+                ERR("VK_EXT_EXTERNAL_MEMORY_HOST is not supported, cannot use "
+                    "VulkanAllocateHostMemory");
+                return VK_ERROR_INCOMPATIBLE_DRIVER;
+            }
+            VkDeviceSize alignmentSize = m_emu->deviceInfo.externalMemoryHostProps.minImportedHostPointerAlignment;
+            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, alignmentSize);
             localAllocInfo.allocationSize = alignedSize;
             privateMemory =
-                std::make_shared<PrivateMemory>(kPageSizeforBlob, localAllocInfo.allocationSize);
+                std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
             mappedPtr = privateMemory->getAddr();
             importHostInfoPrivate = {
                 .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
@@ -4816,25 +4822,28 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
                 .pHostPointer = mappedPtr};
 
-            VkMemoryHostPointerPropertiesEXT pMemoryHostPointerProperties = {
+            VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
                 .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
                 .pNext = NULL,
                 .memoryTypeBits = 0,
             };
-            vk->vkGetMemoryHostPointerPropertiesEXT(device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr, &pMemoryHostPointerProperties);
 
-            if (pMemoryHostPointerProperties.memoryTypeBits == 0) {
-                // Memory import operation not supported by the driver.
+            vk->vkGetMemoryHostPointerPropertiesEXT(
+                device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr,
+                &memoryHostPointerProperties);
+
+            if (memoryHostPointerProperties.memoryTypeBits == 0) {
+                ERR("Cannot find suitable memory type for VulkanAllocateHostMemory");
                 return VK_ERROR_INCOMPATIBLE_DRIVER;
             }
 
-            if (((1u << localAllocInfo.memoryTypeIndex) & pMemoryHostPointerProperties.memoryTypeBits) == 0) {
+            if (((1u << localAllocInfo.memoryTypeIndex) & memoryHostPointerProperties.memoryTypeBits) == 0) {
 
                 // TODO Consider assigning the correct memory index earlier, instead of switching right before allocation.
 
                 // Look for the first available supported memory index and assign it.
                 for(uint32_t i =0; i<= 31; ++i) {
-                    if ((pMemoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
+                    if ((memoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
                         continue;
                     }
                     localAllocInfo.memoryTypeIndex = i;
