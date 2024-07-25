@@ -705,6 +705,13 @@ class VkDecoderGlobalState {
                                                VkSamplerYcbcrConversion ycbcrConversion,
                                                const VkAllocationCallbacks* pAllocator);
 
+    VkResult on_vkEnumeratePhysicalDeviceGroups(
+        android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+        VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties);
+    VkResult on_vkEnumeratePhysicalDeviceGroupsKHR(
+        android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+        VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties);
+
     void on_DeviceLost();
 
     void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,

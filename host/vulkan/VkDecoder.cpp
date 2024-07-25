@@ -9089,14 +9089,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkInstance instance;
                 uint32_t* pPhysicalDeviceGroupCount;
                 VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties;
-                // Begin non wrapped dispatchable handle unboxing for instance;
+                // Begin global wrapped dispatchable handle unboxing for instance;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkInstance*)&instance = (VkInstance)(VkInstance)((VkInstance)(*&cgen_var_0));
-                auto unboxed_instance = unbox_VkInstance(instance);
-                auto vk = dispatch_VkInstance(instance);
-                // End manual dispatchable handle unboxing for instance;
                 // Begin manual dispatchable handle unboxing for pPhysicalDeviceGroupCount;
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
@@ -9147,8 +9144,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkEnumeratePhysicalDeviceGroups_VkResult_return = (VkResult)0;
                 vkEnumeratePhysicalDeviceGroups_VkResult_return =
-                    vk->vkEnumeratePhysicalDeviceGroups(unboxed_instance, pPhysicalDeviceGroupCount,
-                                                        pPhysicalDeviceGroupProperties);
+                    m_state->on_vkEnumeratePhysicalDeviceGroups(&m_pool, instance,
+                                                                pPhysicalDeviceGroupCount,
+                                                                pPhysicalDeviceGroupProperties);
                 if ((vkEnumeratePhysicalDeviceGroups_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkEnumeratePhysicalDeviceGroups_VkResult_return,
