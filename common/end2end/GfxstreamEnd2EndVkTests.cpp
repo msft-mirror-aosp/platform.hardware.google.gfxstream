@@ -1801,6 +1801,30 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
     }
 }
 
+TEST_P(GfxstreamEnd2EndVkTest, DeviceCreateWithDeviceGroup) {
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    const vkhpp::DeviceGroupDeviceCreateInfo deviceGroupDeviceCreateInfo = {
+        .physicalDeviceCount = 1,
+        .pPhysicalDevices = &physicalDevice,
+    };
+
+    const float queuePriority = 1.0f;
+    const vkhpp::DeviceQueueCreateInfo deviceQueueCreateInfo = {
+        .queueFamilyIndex = 0,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority,
+    };
+    const vkhpp::DeviceCreateInfo deviceCreateInfo = {
+        .pNext = &deviceGroupDeviceCreateInfo,
+        .pQueueCreateInfos = &deviceQueueCreateInfo,
+        .queueCreateInfoCount = 1,
+    };
+    auto device2 = GFXSTREAM_ASSERT_VKHPP_RV(physicalDevice.createDeviceUnique(deviceCreateInfo));
+    ASSERT_THAT(device2, IsValidHandle());
+}
+
 TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFence) {
     DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/false);
 }
