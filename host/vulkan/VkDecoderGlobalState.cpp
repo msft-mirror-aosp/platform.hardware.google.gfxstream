@@ -1033,6 +1033,9 @@ class VkDecoderGlobalState::Impl {
 
         if (vkCleanupEnabled()) {
             fb->registerProcessCleanupCallback(unbox_VkInstance(boxed), [this, boxed] {
+                if (snapshotsEnabled()) {
+                    snapshot()->vkDestroyInstance(nullptr, 0, nullptr, boxed, nullptr);
+                }
                 vkDestroyInstanceImpl(unbox_VkInstance(boxed), nullptr);
             });
         }
