@@ -18970,6 +18970,82 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_EXT_external_memory_host
+            case OP_vkGetMemoryHostPointerPropertiesEXT: {
+                android::base::beginTrace("vkGetMemoryHostPointerPropertiesEXT decode");
+                VkDevice device;
+                VkExternalMemoryHandleTypeFlagBits handleType;
+                const void* pHostPointer;
+                VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((VkExternalMemoryHandleTypeFlagBits*)&handleType, *readStreamPtrPtr,
+                       sizeof(VkExternalMemoryHandleTypeFlagBits));
+                *readStreamPtrPtr += sizeof(VkExternalMemoryHandleTypeFlagBits);
+                vkReadStream->alloc((void**)&pHostPointer, sizeof(const uint8_t));
+                memcpy((void*)pHostPointer, *readStreamPtrPtr, sizeof(const uint8_t));
+                *readStreamPtrPtr += sizeof(const uint8_t);
+                // Begin manual dispatchable handle unboxing for pMemoryHostPointerProperties;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pMemoryHostPointerProperties,
+                                    sizeof(VkMemoryHostPointerPropertiesEXT));
+                reservedunmarshal_VkMemoryHostPointerPropertiesEXT(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties),
+                    readStreamPtrPtr);
+                if (pMemoryHostPointerProperties) {
+                    transform_tohost_VkMemoryHostPointerPropertiesEXT(
+                        m_state, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
+                }
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkGetMemoryHostPointerPropertiesEXT 0x%llx 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)device, (unsigned long long)handleType,
+                            (unsigned long long)pHostPointer,
+                            (unsigned long long)pMemoryHostPointerProperties);
+                }
+                VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
+                vkGetMemoryHostPointerPropertiesEXT_VkResult_return =
+                    vk->vkGetMemoryHostPointerPropertiesEXT(
+                        unboxed_device, handleType, pHostPointer, pMemoryHostPointerProperties);
+                if ((vkGetMemoryHostPointerPropertiesEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkGetMemoryHostPointerPropertiesEXT_VkResult_return,
+                                             opcode, context);
+                vkStream->unsetHandleMapping();
+                if (pMemoryHostPointerProperties) {
+                    transform_fromhost_VkMemoryHostPointerPropertiesEXT(
+                        m_state, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
+                }
+                marshal_VkMemoryHostPointerPropertiesEXT(
+                    vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
+                vkStream->write(&vkGetMemoryHostPointerPropertiesEXT_VkResult_return,
+                                sizeof(VkResult));
+                vkStream->commitWrite();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkGetMemoryHostPointerPropertiesEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        vkGetMemoryHostPointerPropertiesEXT_VkResult_return, device, handleType,
+                        pHostPointer, pMemoryHostPointerProperties);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                android::base::endTrace();
+                break;
+            }
+#endif
 #ifdef VK_EXT_tooling_info
             case OP_vkGetPhysicalDeviceToolPropertiesEXT: {
                 android::base::beginTrace("vkGetPhysicalDeviceToolPropertiesEXT decode");
