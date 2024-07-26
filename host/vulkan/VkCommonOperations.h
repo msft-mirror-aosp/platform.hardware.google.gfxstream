@@ -26,6 +26,7 @@
 #include "BorrowedImageVk.h"
 #include "CompositorVk.h"
 #include "DebugUtilsHelper.h"
+#include "DeviceLostHelper.h"
 #include "DeviceOpTracker.h"
 #include "DisplayVk.h"
 #include "FrameworkFormats.h"
@@ -125,7 +126,7 @@ struct VkEmulation {
     // conversion or not.
     bool enableYcbcrEmulation = false;
 
-    bool guestUsesAngle = false;
+    bool guestVulkanOnly = false;
 
     bool useDedicatedAllocations = false;
 
@@ -144,21 +145,23 @@ struct VkEmulation {
 
     bool instanceSupportsExternalMemoryCapabilities = false;
     bool instanceSupportsExternalSemaphoreCapabilities = false;
+    bool instanceSupportsExternalFenceCapabilities = false;
     bool instanceSupportsSurface = false;
     PFN_vkGetPhysicalDeviceImageFormatProperties2KHR getImageFormatProperties2Func = nullptr;
     PFN_vkGetPhysicalDeviceProperties2KHR getPhysicalDeviceProperties2Func = nullptr;
     PFN_vkGetPhysicalDeviceFeatures2 getPhysicalDeviceFeatures2Func = nullptr;
 
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+#if defined(__APPLE__)
     bool instanceSupportsMoltenVK = false;
-    PFN_vkSetMTLTextureMVK setMTLTextureFunc = nullptr;
-    PFN_vkGetMTLTextureMVK getMTLTextureFunc = nullptr;
 #else
     static const bool instanceSupportsMoltenVK = false;
 #endif
 
     bool debugUtilsAvailableAndRequested = false;
     DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
+
+    bool commandBufferCheckpointsSupportedAndRequested = false;
+    DeviceLostHelper deviceLostHelper{};
 
     // Queue, command pool, and command buffer
     // for running commands to sync stuff system-wide.
@@ -200,11 +203,14 @@ struct VkEmulation {
         bool hasComputeQueueFamily = false;
         bool supportsExternalMemoryImport = false;
         bool supportsExternalMemoryExport = false;
+        bool supportsDmaBuf = false;
         bool supportsIdProperties = false;
         bool supportsDriverProperties = false;
         bool hasSamplerYcbcrConversionExtension = false;
         bool supportsSamplerYcbcrConversion = false;
         bool glInteropSupported = false;
+        bool hasNvidiaDeviceDiagnosticCheckpointsExtension = false;
+        bool supportsNvidiaDeviceDiagnosticCheckpoints = false;
 
         std::vector<VkExtensionProperties> extensions;
 
@@ -256,6 +262,7 @@ struct VkEmulation {
         // This is used as an external handle when MoltenVK is enabled
         MTLBufferRef externalMetalHandle = nullptr;
 #endif
+        uint32_t streamHandleType;
 
         bool dedicatedAllocation = false;
     };
@@ -445,13 +452,15 @@ struct VkEmulationFeatures {
     AstcEmulationMode astcLdrEmulationMode = AstcEmulationMode::Disabled;
     bool enableEtc2Emulation = false;
     bool enableYcbcrEmulation = false;
-    bool guestUsesAngle = false;
+    bool guestVulkanOnly = false;
     bool useDedicatedAllocations = false;
 };
 void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures>);
 
 VkEmulation* getGlobalVkEmulation();
 void teardownGlobalVkEmulation();
+
+void onVkDeviceLost();
 
 std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowType window,
                                                                 uint32_t width, uint32_t height);
@@ -503,6 +512,7 @@ VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
 struct VkColorBufferMemoryExport {
     android::base::ManagedDescriptor descriptor;
     uint64_t size = 0;
+    uint32_t streamHandleType = 0;
     bool linearTiling = false;
     bool dedicatedAllocation = false;
 };
@@ -530,7 +540,8 @@ bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
 bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly = false,
                    uint32_t memoryProperty = 0);
 bool teardownVkBuffer(uint32_t bufferHandle);
-VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle);
+
+VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle, uint32_t* outStreamHandleType);
 #ifdef __APPLE__
 MTLBufferRef getBufferMetalMemoryHandle(uint32_t bufferHandle);
 #endif

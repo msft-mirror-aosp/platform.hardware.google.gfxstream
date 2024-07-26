@@ -57,6 +57,7 @@ uint32_t bytes_per_pixel(VkFormat format) {
         case VK_FORMAT_R8G8_UINT:
         case VK_FORMAT_R8G8_SINT:
         case VK_FORMAT_R8G8_SRGB:
+        case VK_FORMAT_D16_UNORM:
             return 2;
         case VK_FORMAT_R8G8B8_UNORM:
         case VK_FORMAT_R8G8B8_SNORM:
@@ -95,8 +96,30 @@ uint32_t bytes_per_pixel(VkFormat format) {
         case VK_FORMAT_A8B8G8R8_UINT_PACK32:
         case VK_FORMAT_A8B8G8R8_SINT_PACK32:
         case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+        case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+        case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
+        case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
+        case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
+        case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+        case VK_FORMAT_A2R10G10B10_SINT_PACK32:
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+        case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
+        case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
+        case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
+        case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+        case VK_FORMAT_A2B10G10R10_SINT_PACK32:
         case VK_FORMAT_D24_UNORM_S8_UINT:
+        case VK_FORMAT_R16G16_SFLOAT:
+        case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+        case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+        case VK_FORMAT_X8_D24_UNORM_PACK32:
             return 4;
+        case VK_FORMAT_R16G16B16A16_SINT:
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            return 8;
+        case VK_FORMAT_R32G32B32A32_SINT:
+        case VK_FORMAT_R32G32B32A32_SFLOAT:
+            return 16;
         default:
             GFXSTREAM_ABORT(emugl::FatalError(emugl::ABORT_REASON_OTHER))
                 << "Unsupported VkFormat on snapshot save " << format << " " << __func__ << " ("
@@ -106,8 +129,8 @@ uint32_t bytes_per_pixel(VkFormat format) {
 
 VkExtent3D getMipmapExtent(VkExtent3D baseExtent, uint32_t mipLevel) {
     return VkExtent3D{
-        .width = (baseExtent.width + (1 << mipLevel) - 1) >> mipLevel,
-        .height = (baseExtent.height + (1 << mipLevel) - 1) >> mipLevel,
+        .width = baseExtent.width >> mipLevel,
+        .height = baseExtent.height >> mipLevel,
         .depth = baseExtent.depth,
     };
 }

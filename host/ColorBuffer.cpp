@@ -455,6 +455,14 @@ int ColorBuffer::waitSync() {
     return mColorBufferVk->waitSync();
 }
 
+std::optional<BlobDescriptorInfo> ColorBuffer::exportBlob() {
+    if (!mColorBufferVk) {
+        return std::nullopt;
+    }
+
+    return mColorBufferVk->exportBlob();
+}
+
 #if GFXSTREAM_ENABLE_HOST_GLES
 bool ColorBuffer::glOpBlitFromCurrentReadBuffer() {
     if (!mColorBufferGl) {
