@@ -1321,6 +1321,12 @@ class VkDecoderSnapshot {
                                       VkDebugUtilsMessageTypeFlagsEXT messageTypes,
                                       const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData);
 #endif
+#ifdef VK_EXT_external_memory_host
+    void vkGetMemoryHostPointerPropertiesEXT(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType,
+        const void* pHostPointer, VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties);
+#endif
 #ifdef VK_EXT_tooling_info
     void vkGetPhysicalDeviceToolPropertiesEXT(const uint8_t* snapshotTraceBegin,
                                               size_t snapshotTraceBytes,
