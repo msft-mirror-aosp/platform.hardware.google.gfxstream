@@ -1865,35 +1865,38 @@ TEST_P(GfxstreamEnd2EndVkTest, DeviceMemoryReport) {
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
-    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
+    auto vk = GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
+    auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = vk;
 
-    const vkhpp::BufferCreateInfo bufferCreateInfo = {
-        .size = 1024,
-        .usage = vkhpp::BufferUsageFlagBits::eUniformBuffer,
-    };
-    auto buffer = GFXSTREAM_ASSERT_VKHPP_RV(device->createBufferUnique(bufferCreateInfo));
+    const VkDeviceSize kBufferSize = 1024;
+    auto buffer = GFXSTREAM_ASSERT(CreateBuffer(
+            vk, kBufferSize,
+            vkhpp::BufferUsageFlagBits::eTransferDst |
+                vkhpp::BufferUsageFlagBits::eTransferSrc |
+                vkhpp::BufferUsageFlagBits::eUniformBuffer,
+            vkhpp::MemoryPropertyFlagBits::eHostVisible |
+                vkhpp::MemoryPropertyFlagBits::eHostCoherent));
 
     const std::vector<VkDescriptorBufferInfo> descriptorInfo = {
         VkDescriptorBufferInfo{
-            .buffer = *buffer,
+            .buffer = *buffer.buffer,
             .offset = 0,
-            .range = 1024,
+            .range = kBufferSize,
         },
         VkDescriptorBufferInfo{
-            .buffer = *buffer,
+            .buffer = *buffer.buffer,
             .offset = 0,
-            .range = 1024,
+            .range = kBufferSize,
         },
         VkDescriptorBufferInfo{
-            .buffer = *buffer,
+            .buffer = *buffer.buffer,
             .offset = 0,
-            .range = 1024,
+            .range = kBufferSize,
         },
         VkDescriptorBufferInfo{
-            .buffer = *buffer,
+            .buffer = *buffer.buffer,
             .offset = 0,
-            .range = 1024,
+            .range = kBufferSize,
         },
     };
 
@@ -1984,7 +1987,18 @@ TEST_P(GfxstreamEnd2EndVkTest, DescriptorUpdateTemplateWithWrapping) {
         device->createDescriptorUpdateTemplateUnique(descriptorUpdateTemplateCreateInfo));
 
     device->updateDescriptorSetWithTemplate(*descriptorSet, *descriptorUpdateTemplate,
-                                            descriptorInfo.data());
+                                            (const void*)descriptorInfo.data());
+
+    // Gfxstream optimizes descriptor set updates by batching updates until there is an
+    // actual use in a command buffer. Try to force that flush by binding the descriptor
+    // set here:
+    GFXSTREAM_ASSERT(DoCommandsImmediate(vk,
+        [&](vkhpp::UniqueCommandBuffer& cmd) {
+            cmd->bindDescriptorSets(vkhpp::PipelineBindPoint::eGraphics, *pipelineLayout,
+                                    /*firstSet=*/0, {*descriptorSet},
+                                    /*dynamicOffsets=*/{});
+            return Ok{};
+        }));
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedVkMapMemory) {
