@@ -466,6 +466,9 @@ struct VulkanDispatch {
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
     PFN_vkSubmitDebugUtilsMessageEXT vkSubmitDebugUtilsMessageEXT;
 #endif
+#ifdef VK_EXT_external_memory_host
+    PFN_vkGetMemoryHostPointerPropertiesEXT vkGetMemoryHostPointerPropertiesEXT;
+#endif
 #ifdef VK_NV_device_diagnostic_checkpoints
     PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
