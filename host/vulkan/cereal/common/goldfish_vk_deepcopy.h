@@ -1714,6 +1714,21 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       deepcopy_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_external_memory_host
+void deepcopy_VkImportMemoryHostPointerInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                               const VkImportMemoryHostPointerInfoEXT* from,
+                                               VkImportMemoryHostPointerInfoEXT* to);
+
+void deepcopy_VkMemoryHostPointerPropertiesEXT(Allocator* alloc, VkStructureType rootType,
+                                               const VkMemoryHostPointerPropertiesEXT* from,
+                                               VkMemoryHostPointerPropertiesEXT* to);
+
+void deepcopy_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceExternalMemoryHostPropertiesEXT* from,
+    VkPhysicalDeviceExternalMemoryHostPropertiesEXT* to);
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void deepcopy_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     Allocator* alloc, VkStructureType rootType,

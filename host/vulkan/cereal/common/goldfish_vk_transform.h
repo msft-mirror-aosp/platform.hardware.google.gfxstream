@@ -2850,6 +2850,28 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkDescriptorPoolInlineUniformBlockCreat
                       transform_fromhost_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_external_memory_host
+void transform_tohost_VkImportMemoryHostPointerInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkImportMemoryHostPointerInfoEXT* toTransform);
+
+void transform_fromhost_VkImportMemoryHostPointerInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkImportMemoryHostPointerInfoEXT* toTransform);
+
+void transform_tohost_VkMemoryHostPointerPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker, VkMemoryHostPointerPropertiesEXT* toTransform);
+
+void transform_fromhost_VkMemoryHostPointerPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker, VkMemoryHostPointerPropertiesEXT* toTransform);
+
+void transform_tohost_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceExternalMemoryHostPropertiesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceExternalMemoryHostPropertiesEXT* toTransform);
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     VkDecoderGlobalState* resourceTracker,
