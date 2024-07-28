@@ -7222,6 +7222,70 @@ void transform_fromhost_VkDebugUtilsObjectTagInfoEXT(VkDecoderGlobalState* resou
 }
 
 #endif
+#ifdef VK_EXT_external_memory_host
+void transform_tohost_VkImportMemoryHostPointerInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkImportMemoryHostPointerInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkImportMemoryHostPointerInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkImportMemoryHostPointerInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkMemoryHostPointerPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker, VkMemoryHostPointerPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    resourceTracker->deviceMemoryTransform_tohost(
+        (VkDeviceMemory*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0,
+        (uint32_t*)nullptr, 0, (uint32_t*)&toTransform->memoryTypeBits, 1);
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkMemoryHostPointerPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker, VkMemoryHostPointerPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    resourceTracker->deviceMemoryTransform_fromhost(
+        (VkDeviceMemory*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0,
+        (uint32_t*)nullptr, 0, (uint32_t*)&toTransform->memoryTypeBits, 1);
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceExternalMemoryHostPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceExternalMemoryHostPropertiesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -9473,6 +9537,20 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_external_memory_host
+        case VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT: {
+            transform_tohost_VkImportMemoryHostPointerInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkImportMemoryHostPointerInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT: {
+            transform_tohost_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceExternalMemoryHostPropertiesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
             transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
@@ -10674,6 +10752,20 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
             transform_fromhost_VkDebugUtilsMessengerCreateInfoEXT(
                 resourceTracker,
                 reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_external_memory_host
+        case VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT: {
+            transform_fromhost_VkImportMemoryHostPointerInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkImportMemoryHostPointerInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT: {
+            transform_fromhost_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceExternalMemoryHostPropertiesEXT*>(
+                                     structExtension_out));
             break;
         }
 #endif
