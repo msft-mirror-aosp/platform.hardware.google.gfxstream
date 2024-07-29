@@ -6822,15 +6822,13 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult waitForFence(VkFence boxed_fence, uint64_t timeout) {
-        VkFence fence;
+        VkFence fence = unbox_VkFence(boxed_fence);
         VkDevice device;
         VulkanDispatch* vk;
         StaticLock* fenceLock;
         ConditionVariable* cv;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            fence = unbox_VkFence(boxed_fence);
             if (fence == VK_NULL_HANDLE || mFenceInfo.find(fence) == mFenceInfo.end()) {
                 // No fence, could be a semaphore.
                 // TODO: Async wait for semaphores
@@ -6878,13 +6876,11 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult getFenceStatus(VkFence boxed_fence) {
+        VkFence fence = unbox_VkFence(boxed_fence);
         VkDevice device;
-        VkFence fence;
         VulkanDispatch* vk;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            fence = unbox_VkFence(boxed_fence);
             if (fence == VK_NULL_HANDLE || mFenceInfo.find(fence) == mFenceInfo.end()) {
                 // No fence, could be a semaphore.
                 // TODO: Async get status for semaphores
