@@ -30,6 +30,7 @@
 #include "virtgpu_gfxstream_protocol.h"
 #include "vulkan/vk_enum_string_helper.h"
 #include "vulkan/vulkan_core.h"
+
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include "vk_format_info.h"
 #endif
@@ -129,7 +130,7 @@ uint32_t ResourceTracker::streamFeatureBits = 0;
 ResourceTracker::ThreadingCallbacks ResourceTracker::threadingCallbacks;
 
 struct StagingInfo {
-    Lock mLock;
+    std::mutex mLock;
     std::vector<CommandBufferStagingStream*> streams;
     std::vector<VkEncoder*> encoders;
     /// \brief sets alloc and free callbacks for memory allocation for CommandBufferStagingStream(s)
@@ -152,14 +153,14 @@ struct StagingInfo {
     }
 
     void pushStaging(CommandBufferStagingStream* stream, VkEncoder* encoder) {
-        AutoLock<Lock> lock(mLock);
+        std::lock_guard<std::mutex> lock(mLock);
         stream->reset();
         streams.push_back(stream);
         encoders.push_back(encoder);
     }
 
     void popStaging(CommandBufferStagingStream** streamOut, VkEncoder** encoderOut) {
-        AutoLock<Lock> lock(mLock);
+        std::lock_guard<std::mutex> lock(mLock);
         CommandBufferStagingStream* stream;
         VkEncoder* encoder;
         if (streams.empty()) {
@@ -191,16 +192,16 @@ struct CommandBufferPendingDescriptorSets {
     std::unordered_set<VkDescriptorSet> sets;
 };
 
-#define HANDLE_REGISTER_IMPL_IMPL(type)               \
-    void ResourceTracker::register_##type(type obj) { \
-        AutoLock<RecursiveLock> lock(mLock);          \
-        info_##type[obj] = type##_Info();             \
+#define HANDLE_REGISTER_IMPL_IMPL(type)                    \
+    void ResourceTracker::register_##type(type obj) {      \
+        std::lock_guard<std::recursive_mutex> lock(mLock); \
+        info_##type[obj] = type##_Info();                  \
     }
 
-#define HANDLE_UNREGISTER_IMPL_IMPL(type)               \
-    void ResourceTracker::unregister_##type(type obj) { \
-        AutoLock<RecursiveLock> lock(mLock);            \
-        info_##type.erase(obj);                         \
+#define HANDLE_UNREGISTER_IMPL_IMPL(type)                  \
+    void ResourceTracker::unregister_##type(type obj) {    \
+        std::lock_guard<std::recursive_mutex> lock(mLock); \
+        info_##type.erase(obj);                            \
     }
 
 GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_IMPL_IMPL)
@@ -753,6 +754,24 @@ CoherentMemoryPtr ResourceTracker::freeCoherentMemoryLocked(VkDeviceMemory memor
     return nullptr;
 }
 
+VkResult acquireSync(uint64_t syncId, int64_t& osHandle) {
+    struct VirtGpuExecBuffer exec = {};
+    struct gfxstreamAcquireSync acquireSync = {};
+    VirtGpuDevice* instance = VirtGpuDevice::getInstance();
+
+    acquireSync.hdr.opCode = GFXSTREAM_ACQUIRE_SYNC;
+    acquireSync.syncId = syncId;
+
+    exec.command = static_cast<void*>(&acquireSync);
+    exec.command_size = sizeof(acquireSync);
+    exec.flags = kFenceOut | kRingIdx | kShareableOut;
+
+    if (instance->execBuffer(exec, nullptr)) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+    osHandle = exec.handle.osHandle;
+    return VK_SUCCESS;
+}
+
 VkResult createFence(VkDevice device, uint64_t hostFenceHandle, int64_t& osHandle) {
     struct VirtGpuExecBuffer exec = {};
     struct gfxstreamCreateExportSyncVK exportSync = {};
@@ -1000,23 +1019,21 @@ void ResourceTracker::ensureSyncDeviceFd() {
 }
 
 void ResourceTracker::unregister_VkInstance(VkInstance instance) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkInstance.find(instance);
     if (it == info_VkInstance.end()) return;
     auto info = it->second;
     info_VkInstance.erase(instance);
-    lock.unlock();
 }
 
 void ResourceTracker::unregister_VkDevice(VkDevice device) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkDevice.find(device);
     if (it == info_VkDevice.end()) return;
     auto info = it->second;
     info_VkDevice.erase(device);
-    lock.unlock();
 }
 
 void ResourceTracker::unregister_VkCommandPool(VkCommandPool pool) {
@@ -1024,14 +1041,14 @@ void ResourceTracker::unregister_VkCommandPool(VkCommandPool pool) {
 
     clearCommandPool(pool);
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     info_VkCommandPool.erase(pool);
 }
 
 void ResourceTracker::unregister_VkSampler(VkSampler sampler) {
     if (!sampler) return;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     info_VkSampler.erase(sampler);
 }
 
@@ -1057,7 +1074,7 @@ void ResourceTracker::unregister_VkCommandBuffer(VkCommandBuffer commandBuffer) 
         delete pendingSets;
     }
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     info_VkCommandBuffer.erase(commandBuffer);
 }
 
@@ -1068,12 +1085,12 @@ void ResourceTracker::unregister_VkQueue(VkQueue queue) {
         q->lastUsedEncoder->decRef();
     }
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     info_VkQueue.erase(queue);
 }
 
 void ResourceTracker::unregister_VkDeviceMemory(VkDeviceMemory mem) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkDeviceMemory.find(mem);
     if (it == info_VkDeviceMemory.end()) return;
@@ -1096,7 +1113,7 @@ void ResourceTracker::unregister_VkDeviceMemory(VkDeviceMemory mem) {
 }
 
 void ResourceTracker::unregister_VkImage(VkImage img) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkImage.find(img);
     if (it == info_VkImage.end()) return;
@@ -1107,7 +1124,7 @@ void ResourceTracker::unregister_VkImage(VkImage img) {
 }
 
 void ResourceTracker::unregister_VkBuffer(VkBuffer buf) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkBuffer.find(buf);
     if (it == info_VkBuffer.end()) return;
@@ -1116,7 +1133,7 @@ void ResourceTracker::unregister_VkBuffer(VkBuffer buf) {
 }
 
 void ResourceTracker::unregister_VkSemaphore(VkSemaphore sem) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkSemaphore.find(sem);
     if (it == info_VkSemaphore.end()) return;
@@ -1139,7 +1156,7 @@ void ResourceTracker::unregister_VkSemaphore(VkSemaphore sem) {
 }
 
 void ResourceTracker::unregister_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate templ) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto it = info_VkDescriptorUpdateTemplate.find(templ);
     if (it == info_VkDescriptorUpdateTemplate.end()) return;
 
@@ -1161,7 +1178,7 @@ void ResourceTracker::unregister_VkDescriptorUpdateTemplate(VkDescriptorUpdateTe
 }
 
 void ResourceTracker::unregister_VkFence(VkFence fence) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto it = info_VkFence.find(fence);
     if (it == info_VkFence.end()) return;
 
@@ -1181,7 +1198,7 @@ void ResourceTracker::unregister_VkFence(VkFence fence) {
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
 void ResourceTracker::unregister_VkBufferCollectionFUCHSIA(VkBufferCollectionFUCHSIA collection) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     info_VkBufferCollectionFUCHSIA.erase(collection);
 }
 #endif
@@ -1195,14 +1212,14 @@ void ResourceTracker::unregister_VkDescriptorSet_locked(VkDescriptorSet set) {
 void ResourceTracker::unregister_VkDescriptorSet(VkDescriptorSet set) {
     if (!set) return;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     unregister_VkDescriptorSet_locked(set);
 }
 
 void ResourceTracker::unregister_VkDescriptorSetLayout(VkDescriptorSetLayout setLayout) {
     if (!setLayout) return;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     delete as_goldfish_VkDescriptorSetLayout(setLayout)->layoutInfo;
     info_VkDescriptorSetLayout.erase(setLayout);
 }
@@ -1239,7 +1256,7 @@ void ResourceTracker::clearDescriptorPoolAndUnregisterDescriptorSets(void* conte
 void ResourceTracker::unregister_VkDescriptorPool(VkDescriptorPool pool) {
     if (!pool) return;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     struct goldfish_VkDescriptorPool* dp = as_goldfish_VkDescriptorPool(pool);
     delete dp->allocInfo;
@@ -1283,7 +1300,7 @@ void ResourceTracker::transformImpl_VkExternalMemoryProperties_fromhost(
 void ResourceTracker::setInstanceInfo(VkInstance instance, uint32_t enabledExtensionCount,
                                       const char* const* ppEnabledExtensionNames,
                                       uint32_t apiVersion) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto& info = info_VkInstance[instance];
     info.highestApiVersion = apiVersion;
 
@@ -1299,7 +1316,7 @@ void ResourceTracker::setDeviceInfo(VkDevice device, VkPhysicalDevice physdev,
                                     VkPhysicalDeviceMemoryProperties memProps,
                                     uint32_t enabledExtensionCount,
                                     const char* const* ppEnabledExtensionNames, const void* pNext) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto& info = info_VkDevice[device];
     info.physdev = physdev;
     info.props = props;
@@ -1335,7 +1352,7 @@ void ResourceTracker::setDeviceMemoryInfo(VkDevice device, VkDeviceMemory memory
                                           uint32_t memoryTypeIndex, AHardwareBuffer* ahw,
                                           bool imported, zx_handle_t vmoHandle,
                                           VirtGpuResourcePtr blobPtr) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto& info = info_VkDeviceMemory[memory];
 
     info.device = device;
@@ -1352,7 +1369,7 @@ void ResourceTracker::setDeviceMemoryInfo(VkDevice device, VkDeviceMemory memory
 
 void ResourceTracker::setImageInfo(VkImage image, VkDevice device,
                                    const VkImageCreateInfo* pCreateInfo) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto& info = info_VkImage[image];
 
     info.device = device;
@@ -1360,7 +1377,7 @@ void ResourceTracker::setImageInfo(VkImage image, VkDevice device,
 }
 
 uint8_t* ResourceTracker::getMappedPointer(VkDeviceMemory memory) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     const auto it = info_VkDeviceMemory.find(memory);
     if (it == info_VkDeviceMemory.end()) return nullptr;
 
@@ -1369,7 +1386,7 @@ uint8_t* ResourceTracker::getMappedPointer(VkDeviceMemory memory) {
 }
 
 VkDeviceSize ResourceTracker::getMappedSize(VkDeviceMemory memory) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     const auto it = info_VkDeviceMemory.find(memory);
     if (it == info_VkDeviceMemory.end()) return 0;
 
@@ -1377,8 +1394,8 @@ VkDeviceSize ResourceTracker::getMappedSize(VkDeviceMemory memory) {
     return info.allocationSize;
 }
 
-bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) const {
-    AutoLock<RecursiveLock> lock(mLock);
+bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) {
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     const auto it = info_VkDeviceMemory.find(range.memory);
     if (it == info_VkDeviceMemory.end()) return false;
     const auto& info = it->second;
@@ -1552,7 +1569,7 @@ void ResourceTracker::deviceMemoryTransform_tohost(VkDeviceMemory* memory, uint3
     (void)typeBitsCount;
 
     if (memory) {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
 
         for (uint32_t i = 0; i < memoryCount; ++i) {
             VkDeviceMemory mem = memory[i];
@@ -1954,7 +1971,7 @@ VkResult ResourceTracker::on_vkEnumeratePhysicalDevices(void* context, VkResult,
 
     if (!pPhysicalDeviceCount) return VK_ERROR_INITIALIZATION_FAILED;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
 
     // When this function is called, we actually need to do two things:
     // - Get full information about physical devices from the host,
@@ -2104,13 +2121,13 @@ void ResourceTracker::on_vkGetPhysicalDeviceMemoryProperties2(
 
 void ResourceTracker::on_vkGetDeviceQueue(void*, VkDevice device, uint32_t, uint32_t,
                                           VkQueue* pQueue) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     info_VkQueue[*pQueue].device = device;
 }
 
 void ResourceTracker::on_vkGetDeviceQueue2(void*, VkDevice device, const VkDeviceQueueInfo2*,
                                            VkQueue* pQueue) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     info_VkQueue[*pQueue].device = device;
 }
 
@@ -2153,7 +2170,7 @@ VkResult ResourceTracker::on_vkCreateDevice(void* context, VkResult input_result
 void ResourceTracker::on_vkDestroyDevice_pre(void* context, VkDevice device,
                                              const VkAllocationCallbacks*) {
     (void)context;
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkDevice.find(device);
     if (it == info_VkDevice.end()) return;
@@ -2198,7 +2215,7 @@ VkResult ResourceTracker::on_vkGetMemoryAndroidHardwareBufferANDROID(
     if (!pInfo) return VK_ERROR_INITIALIZATION_FAILED;
     if (!pInfo->memory) return VK_ERROR_INITIALIZATION_FAILED;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto deviceIt = info_VkDevice.find(device);
 
@@ -2232,7 +2249,7 @@ VkResult ResourceTracker::on_vkGetMemoryZirconHandleFUCHSIA(
     if (!pInfo) return VK_ERROR_INITIALIZATION_FAILED;
     if (!pInfo->memory) return VK_ERROR_INITIALIZATION_FAILED;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto deviceIt = info_VkDevice.find(device);
 
@@ -2275,7 +2292,7 @@ VkResult ResourceTracker::on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto deviceIt = info_VkDevice.find(device);
 
@@ -2349,7 +2366,7 @@ VkResult ResourceTracker::on_vkImportSemaphoreZirconHandleFUCHSIA(
     if (!pInfo) return VK_ERROR_INITIALIZATION_FAILED;
     if (!pInfo->semaphore) return VK_ERROR_INITIALIZATION_FAILED;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto deviceIt = info_VkDevice.find(device);
 
@@ -2386,7 +2403,7 @@ VkResult ResourceTracker::on_vkGetSemaphoreZirconHandleFUCHSIA(
     if (!pInfo) return VK_ERROR_INITIALIZATION_FAILED;
     if (!pInfo->semaphore) return VK_ERROR_INITIALIZATION_FAILED;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto deviceIt = info_VkDevice.find(device);
 
@@ -2498,7 +2515,7 @@ SetBufferCollectionImageConstraintsResult ResourceTracker::setBufferCollectionIm
 
     VkPhysicalDevice physicalDevice;
     {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         auto deviceIt = info_VkDevice.find(device);
         if (deviceIt == info_VkDevice.end()) {
             return {VK_ERROR_INITIALIZATION_FAILED};
@@ -2611,13 +2628,14 @@ VkResult ResourceTracker::setBufferCollectionImageConstraintsFUCHSIA(
 
     // copy constraints to info_VkBufferCollectionFUCHSIA if
     // |collection| is a valid VkBufferCollectionFUCHSIA handle.
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     VkBufferCollectionFUCHSIA buffer_collection =
         reinterpret_cast<VkBufferCollectionFUCHSIA>(pCollection);
     if (info_VkBufferCollectionFUCHSIA.find(buffer_collection) !=
         info_VkBufferCollectionFUCHSIA.end()) {
         info_VkBufferCollectionFUCHSIA[buffer_collection].constraints =
-            gfxstream::guest::makeOptional(std::move(setConstraintsResult.constraints));
+            std::make_optional<fuchsia_sysmem::wire::BufferCollectionConstraints>(
+                std::move(setConstraintsResult.constraints));
         info_VkBufferCollectionFUCHSIA[buffer_collection].createInfoIndex =
             std::move(setConstraintsResult.createInfoIndex);
     }
@@ -2636,13 +2654,14 @@ VkResult ResourceTracker::setBufferCollectionBufferConstraintsFUCHSIA(
 
     // copy constraints to info_VkBufferCollectionFUCHSIA if
     // |collection| is a valid VkBufferCollectionFUCHSIA handle.
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     VkBufferCollectionFUCHSIA buffer_collection =
         reinterpret_cast<VkBufferCollectionFUCHSIA>(pCollection);
     if (info_VkBufferCollectionFUCHSIA.find(buffer_collection) !=
         info_VkBufferCollectionFUCHSIA.end()) {
         info_VkBufferCollectionFUCHSIA[buffer_collection].constraints =
-            gfxstream::guest::makeOptional(setConstraintsResult.constraints);
+            std::make_optional<fuchsia_sysmem::wire::BufferCollectionConstraints>(
+                setConstraintsResult.constraints);
     }
 
     return VK_SUCCESS;
@@ -2669,7 +2688,7 @@ VkResult ResourceTracker::on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
 VkResult ResourceTracker::getBufferCollectionImageCreateInfoIndexLocked(
     VkBufferCollectionFUCHSIA collection, fuchsia_sysmem::wire::BufferCollectionInfo2& info,
     uint32_t* outCreateInfoIndex) {
-    if (!info_VkBufferCollectionFUCHSIA[collection].constraints.hasValue()) {
+    if (!info_VkBufferCollectionFUCHSIA[collection].constraints.has_value()) {
         mesa_loge("%s: constraints not set", __func__);
         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
     }
@@ -2757,7 +2776,7 @@ VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
     // memoryTypeBits
     // ====================================================================
     {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         auto deviceIt = info_VkDevice.find(device);
         if (deviceIt == info_VkDevice.end()) {
             return VK_ERROR_INITIALIZATION_FAILED;
@@ -2782,14 +2801,14 @@ VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
 
     auto storeProperties = [this, collection, pProperties]() -> VkResult {
         // store properties to storage
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         if (info_VkBufferCollectionFUCHSIA.find(collection) ==
             info_VkBufferCollectionFUCHSIA.end()) {
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
 
         info_VkBufferCollectionFUCHSIA[collection].properties =
-            gfxstream::guest::makeOptional(*pProperties);
+            std::make_optional<VkBufferCollectionPropertiesFUCHSIA>(*pProperties);
 
         // We only do a shallow copy so we should remove all pNext pointers.
         info_VkBufferCollectionFUCHSIA[collection].properties->pNext = nullptr;
@@ -2826,7 +2845,7 @@ VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
     // createInfoIndex
     // ====================================================================
     {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         auto getIndexResult = getBufferCollectionImageCreateInfoIndexLocked(
             collection, info, &pProperties->createInfoIndex);
         if (getIndexResult != VK_SUCCESS) {
@@ -2838,7 +2857,7 @@ VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
     // ====================================================================
     VkPhysicalDevice physicalDevice;
     {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         auto deviceIt = info_VkDevice.find(device);
         if (deviceIt == info_VkDevice.end()) {
             return VK_ERROR_INITIALIZATION_FAILED;
@@ -2895,6 +2914,9 @@ static uint32_t getVirglFormat(VkFormat vkFormat) {
         case VK_FORMAT_B8G8R8A8_USCALED:
             virglFormat = VIRGL_FORMAT_B8G8R8A8_UNORM;
             break;
+        case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+            virglFormat = VIRGL_FORMAT_R10G10B10A2_UNORM;
+            break;
         default:
             break;
     }
@@ -2920,7 +2942,7 @@ CoherentMemoryPtr ResourceTracker::createCoherentMemory(
             return coherentMemory;
         }
         {
-            AutoLock<RecursiveLock> lock(mLock);
+            std::lock_guard<std::recursive_mutex> lock(mLock);
             auto it = info_VkDeviceMemory.find(mem);
             if (it == info_VkDeviceMemory.end()) {
                 mesa_loge("Failed to create coherent memory: failed to find device memory.");
@@ -2949,7 +2971,7 @@ CoherentMemoryPtr ResourceTracker::createCoherentMemory(
                 return coherentMemory;
             }
             {
-                AutoLock<RecursiveLock> lock(mLock);
+                std::lock_guard<std::recursive_mutex> lock(mLock);
                 VirtGpuDevice* instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
                 createBlob.blobMem = kBlobMemHost3d;
                 createBlob.flags = kBlobFlagMappable;
@@ -3027,13 +3049,13 @@ VkResult ResourceTracker::allocateCoherentMemory(VkDevice device,
     // Support device address capture/replay allocations
     if (deviceAddressMemoryAllocation) {
         if (allocFlagsInfoPtr) {
-            mesa_logi("%s: has alloc flags\n", __func__);
+            mesa_logd("%s: has alloc flags\n", __func__);
             allocFlagsInfo = *allocFlagsInfoPtr;
             vk_append_struct(&structChainIter, &allocFlagsInfo);
         }
 
         if (opaqueCaptureAddressAllocInfoPtr) {
-            mesa_logi("%s: has opaque capture address\n", __func__);
+            mesa_logd("%s: has opaque capture address\n", __func__);
             opaqueCaptureAddressAllocInfo = *opaqueCaptureAddressAllocInfoPtr;
             vk_append_struct(&structChainIter, &opaqueCaptureAddressAllocInfo);
         }
@@ -3045,7 +3067,7 @@ VkResult ResourceTracker::allocateCoherentMemory(VkDevice device,
         VirtGpuDevice* instance = VirtGpuDevice::getInstance();
         struct gfxstreamPlaceholderCommandVk placeholderCmd = {};
 
-        createBlobInfo.blobId = ++mBlobId;
+        createBlobInfo.blobId = ++mAtomicId;
         createBlobInfo.blobMem = kBlobMemGuest;
         createBlobInfo.blobFlags = kBlobFlagCreateGuestHandle;
         vk_append_struct(&structChainIter, &createBlobInfo);
@@ -3073,7 +3095,7 @@ VkResult ResourceTracker::allocateCoherentMemory(VkDevice device,
 
         guestBlob->wait();
     } else if (mCaps.vulkanCapset.deferredMapping) {
-        createBlobInfo.blobId = ++mBlobId;
+        createBlobInfo.blobId = ++mAtomicId;
         createBlobInfo.blobMem = kBlobMemHost3d;
         vk_append_struct(&structChainIter, &createBlobInfo);
     }
@@ -3116,7 +3138,7 @@ VkResult ResourceTracker::allocateCoherentMemory(VkDevice device,
     {
         // createCoherentMemory inside need to access info_VkDeviceMemory
         // information. set it before use.
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         info_VkDeviceMemory[mem] = info;
     }
 
@@ -3127,7 +3149,7 @@ VkResult ResourceTracker::allocateCoherentMemory(VkDevice device,
 
     auto coherentMemory = createCoherentMemory(device, mem, hostAllocationInfo, enc, host_res);
     if (coherentMemory) {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         coherentMemory->subAllocate(pAllocateInfo->allocationSize, &ptr, offset);
         info.allocationSize = pAllocateInfo->allocationSize;
         info.coherentMemoryOffset = offset;
@@ -3137,7 +3159,7 @@ VkResult ResourceTracker::allocateCoherentMemory(VkDevice device,
         *pMemory = mem;
     } else {
         enc->vkFreeMemory(device, mem, nullptr, true);
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         info_VkDeviceMemory.erase(mem);
     }
     return host_res;
@@ -3165,7 +3187,7 @@ VkResult ResourceTracker::getCoherentMemory(const VkMemoryAllocateInfo* pAllocat
     uint8_t* ptr = nullptr;
     uint64_t offset = 0;
     {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         for (const auto& [memory, info] : info_VkDeviceMemory) {
             if (info.device != device) continue;
 
@@ -3252,13 +3274,13 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
         vk_find_struct<VkMemoryOpaqueCaptureAddressAllocateInfo>(pAllocateInfo);
 
     if (allocFlagsInfoPtr) {
-        mesa_logi("%s: has alloc flags\n", __func__);
+        mesa_logd("%s: has alloc flags\n", __func__);
         allocFlagsInfo = *allocFlagsInfoPtr;
         vk_append_struct(&structChainIter, &allocFlagsInfo);
     }
 
     if (opaqueCaptureAddressAllocInfoPtr) {
-        mesa_logi("%s: has opaque capture address\n", __func__);
+        mesa_logd("%s: has opaque capture address\n", __func__);
         opaqueCaptureAddressAllocInfo = *opaqueCaptureAddressAllocInfoPtr;
         vk_append_struct(&structChainIter, &opaqueCaptureAddressAllocInfo);
     }
@@ -3398,7 +3420,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
         VkDeviceSize allocationInfoAllocSize = finalAllocInfo.allocationSize;
 
         if (hasDedicatedImage) {
-            AutoLock<RecursiveLock> lock(mLock);
+            std::lock_guard<std::recursive_mutex> lock(mLock);
 
             auto it = info_VkImage.find(dedicatedAllocInfoPtr->image);
             if (it == info_VkImage.end())
@@ -3414,7 +3436,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
         }
 
         if (hasDedicatedBuffer) {
-            AutoLock<RecursiveLock> lock(mLock);
+            std::lock_guard<std::recursive_mutex> lock(mLock);
 
             auto it = info_VkBuffer.find(dedicatedAllocInfoPtr->buffer);
             if (it == info_VkBuffer.end())
@@ -3474,7 +3496,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
         fuchsia_sysmem::wire::BufferCollectionInfo2& info = result->buffer_collection_info;
         uint32_t index = importBufferCollectionInfoPtr->index;
         if (info.buffer_count < index) {
-            mesa_loge("Invalid buffer index: %d %d", index);
+            mesa_loge("Invalid buffer index: %d", index);
             _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_INITIALIZATION_FAILED);
         }
         vmo_handle = info.buffers[index].vmo.release();
@@ -3518,7 +3540,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
         const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo = nullptr;
 
         if (hasDedicatedImage) {
-            AutoLock<RecursiveLock> lock(mLock);
+            std::lock_guard<std::recursive_mutex> lock(mLock);
 
             auto it = info_VkImage.find(dedicatedAllocInfoPtr->image);
             if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -3528,7 +3550,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
         }
 
         if (hasDedicatedBuffer) {
-            AutoLock<RecursiveLock> lock(mLock);
+            std::lock_guard<std::recursive_mutex> lock(mLock);
 
             auto it = info_VkBuffer.find(dedicatedAllocInfoPtr->buffer);
             if (it == info_VkBuffer.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -3769,7 +3791,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
             VkImageCreateInfo imageCreateInfo;
             bool isDmaBufImage = false;
             {
-                AutoLock<RecursiveLock> lock(mLock);
+                std::lock_guard<std::recursive_mutex> lock(mLock);
 
                 auto it = info_VkImage.find(dedicatedAllocInfoPtr->image);
                 if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -3819,7 +3841,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
                     create3d.format = virglFormat;
                     create3d.width = imageCreateInfo.extent.width;
                     create3d.height = imageCreateInfo.extent.height;
-                    create3d.blobId = ++mBlobId;
+                    create3d.blobId = ++mAtomicId;
 
                     createBlob.blobCmd = reinterpret_cast<uint8_t*>(&create3d);
                     createBlob.blobCmdSize = sizeof(create3d);
@@ -3848,12 +3870,14 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
                 } else {
                     bufferBlob = instance->createResource(
                         imageCreateInfo.extent.width, imageCreateInfo.extent.height,
-                        subResourceLayout.rowPitch, virglFormat, target, bind);
+                        subResourceLayout.rowPitch,
+                        subResourceLayout.rowPitch * imageCreateInfo.extent.height, virglFormat,
+                        target, bind);
                     if (!bufferBlob) {
                         mesa_loge("Failed to create colorBuffer resource for Image memory");
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
-                    if (!bufferBlob->wait()) {
+                    if (bufferBlob->wait()) {
                         mesa_loge("Failed to wait for colorBuffer resource for Image memory");
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
@@ -3883,7 +3907,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
                 create3d.format = virglFormat;
                 create3d.width = width;
                 create3d.height = height;
-                create3d.blobId = ++mBlobId;
+                create3d.blobId = ++mAtomicId;
 
                 createBlob.blobCmd = reinterpret_cast<uint8_t*>(&create3d);
                 createBlob.blobCmdSize = sizeof(create3d);
@@ -3907,13 +3931,13 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
 
                 bufferBlob->wait();
             } else {
-                bufferBlob =
-                    instance->createResource(width, height, width, virglFormat, target, bind);
+                bufferBlob = instance->createResource(width, height, width, width * height,
+                                                      virglFormat, target, bind);
                 if (!bufferBlob) {
                     mesa_loge("Failed to create colorBuffer resource for Image memory");
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
-                if (!bufferBlob->wait()) {
+                if (bufferBlob->wait()) {
                     mesa_loge("Failed to wait for colorBuffer resource for Image memory");
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
@@ -4006,7 +4030,7 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
 
 void ResourceTracker::on_vkFreeMemory(void* context, VkDevice device, VkDeviceMemory memory,
                                       const VkAllocationCallbacks* pAllocateInfo) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkDeviceMemory.find(memory);
     if (it == info_VkDeviceMemory.end()) return;
@@ -4029,7 +4053,7 @@ void ResourceTracker::on_vkFreeMemory(void* context, VkDevice device, VkDeviceMe
         zx_status_t status = zx_vmar_unmap(
             zx_vmar_root_self(), reinterpret_cast<zx_paddr_t>(info.ptr), info.allocationSize);
         if (status != ZX_OK) {
-            mesa_loge("%s: Cannot unmap ptr: status %d", status);
+            mesa_loge("%s: Cannot unmap ptr: status %d", __func__, status);
         }
         info.ptr = nullptr;
     }
@@ -4059,7 +4083,7 @@ VkResult ResourceTracker::on_vkMapMemory(void* context, VkResult host_result, Vk
         return host_result;
     }
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
 
     auto deviceMemoryInfoIt = info_VkDeviceMemory.find(memory);
     if (deviceMemoryInfoIt == info_VkDeviceMemory.end()) {
@@ -4132,7 +4156,7 @@ void ResourceTracker::on_vkUnmapMemory(void*, VkDevice, VkDeviceMemory) {
 
 void ResourceTracker::transformImageMemoryRequirements2ForGuest(VkImage image,
                                                                 VkMemoryRequirements2* reqs2) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkImage.find(image);
     if (it == info_VkImage.end()) return;
@@ -4156,7 +4180,7 @@ void ResourceTracker::transformImageMemoryRequirements2ForGuest(VkImage image,
 
 void ResourceTracker::transformBufferMemoryRequirements2ForGuest(VkBuffer buffer,
                                                                  VkMemoryRequirements2* reqs2) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkBuffer.find(buffer);
     if (it == info_VkBuffer.end()) return;
@@ -4364,7 +4388,7 @@ VkResult ResourceTracker::on_vkCreateImage(void* context, VkResult, VkDevice dev
 
     if (res != VK_SUCCESS) return res;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkImage.find(*pImage);
     if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -4633,12 +4657,12 @@ VkResult ResourceTracker::on_vkCreateFence(void* context, VkResult input_result,
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
     if (exportSyncFd) {
         if (!mFeatureInfo->hasVirtioGpuNativeSync) {
-            mesa_logi("%s: ensure sync device\n", __func__);
+            mesa_logd("%s: ensure sync device\n", __func__);
             ensureSyncDeviceFd();
         }
 
-        mesa_logi("%s: getting fence info\n", __func__);
-        AutoLock<RecursiveLock> lock(mLock);
+        mesa_logd("%s: getting fence info\n", __func__);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         auto it = info_VkFence.find(*pFence);
 
         if (it == info_VkFence.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -4647,7 +4671,7 @@ VkResult ResourceTracker::on_vkCreateFence(void* context, VkResult input_result,
 
         info.external = true;
         info.exportFenceCreateInfo = *exportFenceInfoPtr;
-        mesa_logi("%s: info set (fence still -1). fence: %p\n", __func__, (void*)(*pFence));
+        mesa_logd("%s: info set (fence still -1). fence: %p\n", __func__, (void*)(*pFence));
         // syncFd is still -1 because we expect user to explicitly
         // export it via vkGetFenceFdKHR
     }
@@ -4674,7 +4698,7 @@ VkResult ResourceTracker::on_vkResetFences(void* context, VkResult, VkDevice dev
     // Permanence: temporary
     // on fence reset, close the fence fd
     // and act like we need to GetFenceFdKHR/ImportFenceFdKHR again
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     for (uint32_t i = 0; i < fenceCount; ++i) {
         VkFence fence = pFences[i];
         auto it = info_VkFence.find(fence);
@@ -4683,7 +4707,7 @@ VkResult ResourceTracker::on_vkResetFences(void* context, VkResult, VkDevice dev
 
 #if GFXSTREAM_ENABLE_GUEST_GOLDFISH
         if (info.syncFd >= 0) {
-            mesa_logi("%s: resetting fence. make fd -1\n", __func__);
+            mesa_logd("%s: resetting fence. make fd -1\n", __func__);
             goldfish_sync_signal(info.syncFd);
             auto* syncHelper =
                 ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
@@ -4716,14 +4740,14 @@ VkResult ResourceTracker::on_vkImportFenceFdKHR(void* context, VkResult, VkDevic
     bool syncFdImport = pImportFenceFdInfo->handleType & VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
 
     if (!syncFdImport) {
-        mesa_logi("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no sync fd import\n", __func__);
+        mesa_loge("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no sync fd import\n", __func__);
         return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto it = info_VkFence.find(pImportFenceFdInfo->fence);
     if (it == info_VkFence.end()) {
-        mesa_logi("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence info\n", __func__);
+        mesa_loge("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence info\n", __func__);
         return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
@@ -4732,17 +4756,17 @@ VkResult ResourceTracker::on_vkImportFenceFdKHR(void* context, VkResult, VkDevic
     auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
 #if GFXSTREAM_ENABLE_GUEST_GOLDFISH
     if (info.syncFd >= 0) {
-        mesa_logi("%s: previous sync fd exists, close it\n", __func__);
+        mesa_logd("%s: previous sync fd exists, close it\n", __func__);
         goldfish_sync_signal(info.syncFd);
         syncHelper->close(info.syncFd);
     }
 #endif
 
     if (pImportFenceFdInfo->fd < 0) {
-        mesa_logi("%s: import -1, set to -1 and exit\n", __func__);
+        mesa_logd("%s: import -1, set to -1 and exit\n", __func__);
         info.syncFd = -1;
     } else {
-        mesa_logi("%s: import actual fd, dup and close()\n", __func__);
+        mesa_logd("%s: import actual fd, dup and close()\n", __func__);
         info.syncFd = syncHelper->dup(pImportFenceFdInfo->fd);
         syncHelper->close(pImportFenceFdInfo->fd);
     }
@@ -4764,7 +4788,7 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
     bool hasFence = pGetFdInfo->fence != VK_NULL_HANDLE;
 
     if (!hasFence) {
-        mesa_logi("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence\n", __func__);
+        mesa_loge("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence\n", __func__);
         return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
@@ -4772,7 +4796,7 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
     bool syncFdExport = pGetFdInfo->handleType & VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
 
     if (!syncFdExport) {
-        mesa_logi("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no sync fd fence\n", __func__);
+        mesa_loge("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no sync fd fence\n", __func__);
         return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
@@ -4780,7 +4804,7 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
         enc->vkGetFenceStatus(device, pGetFdInfo->fence, true /* do lock */);
 
     if (VK_ERROR_DEVICE_LOST == currentFenceStatus) {  // Other error
-        mesa_logi("%s: VK_ERROR_DEVICE_LOST: Other error\n", __func__);
+        mesa_loge("%s: VK_ERROR_DEVICE_LOST: Other error\n", __func__);
         *pFd = -1;
         return VK_ERROR_DEVICE_LOST;
     }
@@ -4790,11 +4814,11 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
         // fence, because ANGLE will use the returned fd directly to
         // implement eglDupNativeFenceFDANDROID, where -1 is only returned
         // when error occurs.
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
 
         auto it = info_VkFence.find(pGetFdInfo->fence);
         if (it == info_VkFence.end()) {
-            mesa_logi("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence info\n", __func__);
+            mesa_loge("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence info\n", __func__);
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
@@ -4804,7 +4828,7 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
                                                VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT);
 
         if (!syncFdCreated) {
-            mesa_logi("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no sync fd created\n", __func__);
+            mesa_loge("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no sync fd created\n", __func__);
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
@@ -4828,7 +4852,7 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
 
         // relinquish ownership
         info.syncFd = -1;
-        mesa_logi("%s: got fd: %d\n", __func__, *pFd);
+        mesa_logd("%s: got fd: %d\n", __func__, *pFd);
         return VK_SUCCESS;
     }
     return VK_ERROR_DEVICE_LOST;
@@ -4847,7 +4871,7 @@ VkResult ResourceTracker::on_vkWaitForFences(void* context, VkResult, VkDevice d
     std::vector<int> fencesExternalWaitFds;
     std::vector<VkFence> fencesNonExternal;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
 
     for (uint32_t i = 0; i < fenceCount; ++i) {
         auto it = info_VkFence.find(pFences[i]);
@@ -4872,15 +4896,15 @@ VkResult ResourceTracker::on_vkWaitForFences(void* context, VkResult, VkDevice d
         // schedule a wait group with waitAny/waitAll
         std::vector<WorkPool::Task> tasks;
 
-        mesa_logi("%s: scheduling ext waits\n", __func__);
+        mesa_logd("%s: scheduling ext waits\n", __func__);
 
         for (auto fd : fencesExternalWaitFds) {
-            mesa_logi("%s: wait on %d\n", __func__, fd);
+            mesa_logd("%s: wait on %d\n", __func__, fd);
             tasks.push_back([fd] {
                 auto* syncHelper =
                     ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
                 syncHelper->wait(fd, 3000);
-                mesa_logi("done waiting on fd %d\n", fd);
+                mesa_logd("done waiting on fd %d\n", fd);
             });
         }
 
@@ -4889,7 +4913,7 @@ VkResult ResourceTracker::on_vkWaitForFences(void* context, VkResult, VkDevice d
                 [this, fencesNonExternal /* copy of vector */, device, waitAll, timeout] {
                     auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
                     auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
-                    mesa_logi("%s: vkWaitForFences to host\n", __func__);
+                    mesa_logd("%s: vkWaitForFences to host\n", __func__);
                     vkEncoder->vkWaitForFences(device, fencesNonExternal.size(),
                                                fencesNonExternal.data(), waitAll, timeout,
                                                true /* do lock */);
@@ -4907,10 +4931,10 @@ VkResult ResourceTracker::on_vkWaitForFences(void* context, VkResult, VkDevice d
         }
 
         if (waitRes) {
-            mesa_logi("%s: VK_SUCCESS\n", __func__);
+            mesa_logd("%s: VK_SUCCESS\n", __func__);
             return VK_SUCCESS;
         } else {
-            mesa_logi("%s: VK_TIMEOUT\n", __func__);
+            mesa_loge("%s: VK_TIMEOUT\n", __func__);
             return VK_TIMEOUT;
         }
     }
@@ -5036,7 +5060,7 @@ VkResult ResourceTracker::on_vkFreeDescriptorSets(void* context, VkResult, VkDev
     // (people expect VK_SUCCESS to always be returned by vkFreeDescriptorSets)
     std::vector<VkDescriptorSet> toActuallyFree;
     {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
 
         // Pool was destroyed
         if (info_VkDescriptorPool.find(descriptorPool) == info_VkDescriptorPool.end()) {
@@ -5055,7 +5079,7 @@ VkResult ResourceTracker::on_vkFreeDescriptorSets(void* context, VkResult, VkDev
 
             for (uint32_t i = 0; i < descriptorSetCount; ++i) {
                 if (allocedSets.end() == allocedSets.find(pDescriptorSets[i])) {
-                    mesa_logi(
+                    mesa_loge(
                         "%s: Warning: descriptor set %p not found in pool. Was this "
                         "double-freed?\n",
                         __func__, (void*)pDescriptorSets[i]);
@@ -5156,7 +5180,7 @@ void ResourceTracker::on_vkUpdateDescriptorSets(void* context, VkDevice device,
 
     {
         // Validate and filter samplers
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         size_t imageInfoIndex = 0;
         for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
             if (!isDescriptorTypeImageInfo(transformedWrites[i].descriptorType)) continue;
@@ -5200,8 +5224,8 @@ void ResourceTracker::on_vkDestroyImage(void* context, VkDevice device, VkImage 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     auto* syncHelper = ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
     {
-        AutoLock<RecursiveLock> lock(mLock);  // do not guard encoder may cause
-                                              // deadlock b/243339973
+        std::lock_guard<std::recursive_mutex> lock(mLock);  // do not guard encoder may cause
+                                                            // deadlock b/243339973
 
         // Wait for any pending QSRIs to prevent a race between the Gfxstream host
         // potentially processing the below `vkDestroyImage()` from the VK encoder
@@ -5238,7 +5262,7 @@ void ResourceTracker::on_vkDestroyImage(void* context, VkDevice device, VkImage 
 
 void ResourceTracker::on_vkGetImageMemoryRequirements(void* context, VkDevice device, VkImage image,
                                                       VkMemoryRequirements* pMemoryRequirements) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkImage.find(image);
     if (it == info_VkImage.end()) return;
@@ -5377,7 +5401,7 @@ VkResult ResourceTracker::on_vkCreateBuffer(void* context, VkResult, VkDevice de
     }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-    Optional<zx::vmo> vmo;
+    std::optional<zx::vmo> vmo;
     bool isSysmemBackedMemory = false;
 
     if (extBufCiPtr &&
@@ -5398,7 +5422,7 @@ VkResult ResourceTracker::on_vkCreateBuffer(void* context, VkResult, VkDevice de
         if (result.ok() && result->status == ZX_OK) {
             auto& info = result->buffer_collection_info;
             if (index < info.buffer_count) {
-                vmo = gfxstream::guest::makeOptional(std::move(info.buffers[index].vmo));
+                vmo = std::make_optional<zx::vmo>(std::move(info.buffers[index].vmo));
             }
         } else {
             mesa_loge("WaitForBuffersAllocated failed: %d %d", result.status(),
@@ -5447,7 +5471,7 @@ VkResult ResourceTracker::on_vkCreateBuffer(void* context, VkResult, VkDevice de
     }
 #endif
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkBuffer.find(*pBuffer);
     if (it == info_VkBuffer.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -5485,7 +5509,7 @@ void ResourceTracker::on_vkDestroyBuffer(void* context, VkDevice device, VkBuffe
 void ResourceTracker::on_vkGetBufferMemoryRequirements(void* context, VkDevice device,
                                                        VkBuffer buffer,
                                                        VkMemoryRequirements* pMemoryRequirements) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkBuffer.find(buffer);
     if (it == info_VkBuffer.end()) return;
@@ -5595,7 +5619,7 @@ VkResult ResourceTracker::on_vkCreateSemaphore(void* context, VkResult input_res
     }
 #endif
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkSemaphore.find(*pSemaphore);
     if (it == info_VkSemaphore.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -5610,7 +5634,8 @@ VkResult ResourceTracker::on_vkCreateSemaphore(void* context, VkResult input_res
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
     if (exportSyncFd) {
-        if (mFeatureInfo->hasVirtioGpuNativeSync) {
+        if (mFeatureInfo->hasVirtioGpuNativeSync &&
+            !(mCaps.params[kParamFencePassing] && mCaps.vulkanCapset.externalSync)) {
             VkResult result;
             int64_t osHandle;
             uint64_t hostFenceHandle = get_host_u64_VkSemaphore(*pSemaphore);
@@ -5658,15 +5683,39 @@ VkResult ResourceTracker::on_vkGetSemaphoreFdKHR(void* context, VkResult, VkDevi
     bool getSyncFd = pGetFdInfo->handleType & VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
 
     if (getSyncFd) {
-        AutoLock<RecursiveLock> lock(mLock);
-        auto it = info_VkSemaphore.find(pGetFdInfo->semaphore);
-        if (it == info_VkSemaphore.end()) return VK_ERROR_OUT_OF_HOST_MEMORY;
-        auto& semInfo = it->second;
-        // syncFd is supposed to have value.
-        auto* syncHelper =
-            ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
-        *pFd = syncHelper->dup(semInfo.syncFd.value_or(-1));
-        return VK_SUCCESS;
+        if (mCaps.params[kParamFencePassing] && mCaps.vulkanCapset.externalSync) {
+            uint64_t syncId = ++mAtomicId;
+            int64_t osHandle = -1;
+
+            VkResult result = enc->vkGetSemaphoreGOOGLE(device, pGetFdInfo->semaphore, syncId,
+                                                        true /* do lock */);
+            if (result != VK_SUCCESS) {
+                ALOGE("unable to get the semaphore");
+                return result;
+            }
+
+            result = acquireSync(syncId, osHandle);
+            if (result != VK_SUCCESS) {
+                ALOGE("unable to create host sync object");
+                return result;
+            }
+
+            *pFd = (int)osHandle;
+            return VK_SUCCESS;
+        } else {
+            // Doesn't this assume that sync file descriptor generated via the non-fence
+            // passing path during "on_vkCreateSemaphore" is the same one that would be
+            // generated via guest's "okGetSemaphoreFdKHR" call?
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            auto it = info_VkSemaphore.find(pGetFdInfo->semaphore);
+            if (it == info_VkSemaphore.end()) return VK_ERROR_OUT_OF_HOST_MEMORY;
+            auto& semInfo = it->second;
+            // syncFd is supposed to have value.
+            auto* syncHelper =
+                ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
+            *pFd = syncHelper->dup(semInfo.syncFd.value_or(-1));
+            return VK_SUCCESS;
+        }
     } else {
         // opaque fd
         int hostFd = 0;
@@ -5701,7 +5750,7 @@ VkResult ResourceTracker::on_vkImportSemaphoreFdKHR(
     if (pImportSemaphoreFdInfo->handleType & VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
         VkImportSemaphoreFdInfoKHR tmpInfo = *pImportSemaphoreFdInfo;
 
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
 
         auto semaphoreIt = info_VkSemaphore.find(pImportSemaphoreFdInfo->semaphore);
         auto& info = semaphoreIt->second;
@@ -5746,7 +5795,7 @@ VkResult ResourceTracker::on_vkGetMemoryFdPropertiesKHR(
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
     // Sanity-check device
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto deviceIt = info_VkDevice.find(device);
     if (deviceIt == info_VkDevice.end()) {
         return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -5785,7 +5834,7 @@ VkResult ResourceTracker::on_vkGetMemoryFdKHR(void* context, VkResult, VkDevice 
         return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
     // Sanity-check device
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto deviceIt = info_VkDevice.find(device);
     if (deviceIt == info_VkDevice.end()) {
         return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -5936,7 +5985,36 @@ void ResourceTracker::flushStagingStreams(void* context, VkQueue queue, uint32_t
 VkResult ResourceTracker::on_vkQueueSubmit(void* context, VkResult input_result, VkQueue queue,
                                            uint32_t submitCount, const VkSubmitInfo* pSubmits,
                                            VkFence fence) {
-    AEMU_SCOPED_TRACE("on_vkQueueSubmit");
+    MESA_TRACE_SCOPE("on_vkQueueSubmit");
+
+    /* From the Vulkan 1.3.204 spec:
+     *
+     *    VUID-VkSubmitInfo-pNext-03240
+     *
+     *    "If the pNext chain of this structure includes a VkTimelineSemaphoreSubmitInfo structure
+     *    and any element of pSignalSemaphores was created with a VkSemaphoreType of
+     *    VK_SEMAPHORE_TYPE_TIMELINE, then its signalSemaphoreValueCount member must equal
+     *    signalSemaphoreCount"
+     *
+     * Internally, Mesa WSI creates placeholder semaphores/fences (see transformVkSemaphore functions
+     * in in gfxstream_vk_private.cpp).  We don't want to forward that to the host, since there is
+     * no host side Vulkan object associated with the placeholder sync objects.
+     *
+     * The way to test this behavior is Zink + glxgears, on Linux hosts.  It should fail without
+     * this check.
+     */
+    for (uint32_t i = 0; i < submitCount; i++) {
+        VkTimelineSemaphoreSubmitInfo* tssi = const_cast<VkTimelineSemaphoreSubmitInfo*>(
+            vk_find_struct<VkTimelineSemaphoreSubmitInfo>(&pSubmits[i]));
+
+        if (tssi) {
+            uint32_t count = getSignalSemaphoreCount(pSubmits[i]);
+            if (count != tssi->signalSemaphoreValueCount) {
+                tssi->signalSemaphoreValueCount = count;
+            }
+        }
+    }
+
     return on_vkQueueSubmitTemplate<VkSubmitInfo>(context, input_result, queue, submitCount,
                                                   pSubmits, fence);
 }
@@ -5944,7 +6022,7 @@ VkResult ResourceTracker::on_vkQueueSubmit(void* context, VkResult input_result,
 VkResult ResourceTracker::on_vkQueueSubmit2(void* context, VkResult input_result, VkQueue queue,
                                             uint32_t submitCount, const VkSubmitInfo2* pSubmits,
                                             VkFence fence) {
-    AEMU_SCOPED_TRACE("on_vkQueueSubmit2");
+    MESA_TRACE_SCOPE("on_vkQueueSubmit2");
     return on_vkQueueSubmitTemplate<VkSubmitInfo2>(context, input_result, queue, submitCount,
                                                    pSubmits, fence);
 }
@@ -5984,7 +6062,7 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
 
     VkEncoder* enc = (VkEncoder*)context;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
 
     for (uint32_t i = 0; i < submitCount; ++i) {
         for (uint32_t j = 0; j < getWaitSemaphoreCount(pSubmits[i]); ++j) {
@@ -6104,7 +6182,7 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
             auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
             auto waitIdleRes = vkEncoder->vkQueueWaitIdle(queue, true /* do lock */);
 #ifdef VK_USE_PLATFORM_FUCHSIA
-            AEMU_SCOPED_TRACE("on_vkQueueSubmit::SignalSemaphores");
+            MESA_TRACE_SCOPE("on_vkQueueSubmit::SignalSemaphores");
             (void)externalFenceFdToSignal;
             for (auto& [event, koid] : post_wait_events) {
 #ifndef FUCHSIA_NO_TRACE
@@ -6122,7 +6200,8 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
             }
 
             if (externalFenceFdToSignal >= 0) {
-                mesa_logi("%s: external fence real signal: %d\n", __func__, externalFenceFdToSignal);
+                mesa_logd("%s: external fence real signal: %d\n", __func__,
+                          externalFenceFdToSignal);
                 goldfish_sync_signal(externalFenceFdToSignal);
             }
 #endif
@@ -6137,18 +6216,18 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
 VkResult ResourceTracker::on_vkQueueWaitIdle(void* context, VkResult, VkQueue queue) {
     VkEncoder* enc = (VkEncoder*)context;
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
     std::vector<WorkPool::WaitGroupHandle> toWait = mQueueSensitiveWorkPoolItems[queue];
     mQueueSensitiveWorkPoolItems[queue].clear();
     lock.unlock();
 
     if (toWait.empty()) {
-        mesa_logi("%s: No queue-specific work pool items\n", __func__);
+        mesa_logd("%s: No queue-specific work pool items\n", __func__);
         return enc->vkQueueWaitIdle(queue, true /* do lock */);
     }
 
     for (auto handle : toWait) {
-        mesa_logi("%s: waiting on work group item: %llu\n", __func__, (unsigned long long)handle);
+        mesa_logd("%s: waiting on work group item: %llu\n", __func__, (unsigned long long)handle);
         mWorkPool.waitAll(handle);
     }
 
@@ -6208,7 +6287,7 @@ void ResourceTracker::unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     (void)fd_out;
     if (fd != -1) {
-        AEMU_SCOPED_TRACE("waitNativeFenceInAcquire");
+        MESA_TRACE_SCOPE("waitNativeFenceInAcquire");
         // Implicit Synchronization
         auto* syncHelper =
             ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->syncHelper();
@@ -6273,7 +6352,7 @@ void ResourceTracker::unwrap_VkBindImageMemory2_pBindInfos(
 VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(void*, VkResult, VkDevice,
                                                                    VkDeviceMemory memory,
                                                                    uint64_t* pAddress) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkDeviceMemory.find(memory);
     if (it == info_VkDeviceMemory.end()) {
@@ -6312,7 +6391,7 @@ VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE(void*, VkResult i
 VkResult ResourceTracker::initDescriptorUpdateTemplateBuffers(
     const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
     if (it == info_VkDescriptorUpdateTemplate.end()) {
@@ -6443,7 +6522,7 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
     if (!userBuffer) return;
 
     // TODO: Make this thread safe
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
     if (it == info_VkDescriptorUpdateTemplate.end()) {
@@ -6523,7 +6602,9 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
 
                 memcpy(((uint8_t*)bufferInfos) + currBufferInfoOffset, user,
                        sizeof(VkDescriptorBufferInfo));
-#if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
+
+                // TODO(b/355497683): move this into gfxstream_vk_UpdateDescriptorSetWithTemplate().
+#if defined(__linux__) || defined(VK_USE_PLATFORM_ANDROID_KHR)
                 // Convert mesa to internal for objects in the user buffer
                 VkDescriptorBufferInfo* internalBufferInfo =
                     (VkDescriptorBufferInfo*)(((uint8_t*)bufferInfos) + currBufferInfoOffset);
@@ -6817,18 +6898,18 @@ void ResourceTracker::on_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
 
 void ResourceTracker::registerEncoderCleanupCallback(const VkEncoder* encoder, void* object,
                                                      CleanupCallback callback) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     auto& callbacks = mEncoderCleanupCallbacks[encoder];
     callbacks[object] = callback;
 }
 
 void ResourceTracker::unregisterEncoderCleanupCallback(const VkEncoder* encoder, void* object) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     mEncoderCleanupCallbacks[encoder].erase(object);
 }
 
 void ResourceTracker::onEncoderDeleted(const VkEncoder* encoder) {
-    AutoLock<RecursiveLock> lock(mLock);
+    std::unique_lock<std::recursive_mutex> lock(mLock);
     if (mEncoderCleanupCallbacks.find(encoder) == mEncoderCleanupCallbacks.end()) return;
 
     std::unordered_map<void*, CleanupCallback> callbackCopies = mEncoderCleanupCallbacks[encoder];
@@ -6865,7 +6946,7 @@ CommandBufferStagingStream::Alloc ResourceTracker::getAlloc() {
             // VkDeviceMemory filled in by getCoherentMemory()
             // scope of mLock
             {
-                AutoLock<RecursiveLock> lock(mLock);
+                std::lock_guard<std::recursive_mutex> lock(mLock);
                 const auto it = info_VkDeviceMemory.find(vkDeviceMem);
                 if (it == info_VkDeviceMemory.end()) {
                     mesa_loge("Coherent memory allocated %u not found", result);
@@ -6887,7 +6968,7 @@ CommandBufferStagingStream::Free ResourceTracker::getFree() {
             // for suballocations, deviceMemory is a alias VkDeviceMemory hand;
             // freeCoherentMemoryLocked maps the alias to the backing VkDeviceMemory
             VkDeviceMemory deviceMemory = memory.deviceMemory;
-            AutoLock<RecursiveLock> lock(mLock);
+            std::unique_lock<std::recursive_mutex> lock(mLock);
             auto it = info_VkDeviceMemory.find(deviceMemory);
             if (it == info_VkDeviceMemory.end()) {
                 mesa_loge("Device memory to free not found");
@@ -6981,7 +7062,7 @@ VkResult ResourceTracker::on_vkCreateImageView(void* context, VkResult input_res
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     if (pCreateInfo->format == VK_FORMAT_UNDEFINED) {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
 
         auto it = info_VkImage.find(pCreateInfo->image);
         if (it != info_VkImage.end() && it->second.hasExternalFormat) {
@@ -7113,8 +7194,8 @@ VkResult ResourceTracker::on_vkAllocateCommandBuffers(
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 VkResult ResourceTracker::exportSyncFdForQSRILocked(VkImage image, int* fd) {
-    mesa_logi("%s: call for image %p hos timage handle 0x%llx\n", __func__, (void*)image,
-          (unsigned long long)get_host_u64_VkImage(image));
+    mesa_logd("%s: call for image %p hos timage handle 0x%llx\n", __func__, (void*)image,
+              (unsigned long long)get_host_u64_VkImage(image));
 
     if (mFeatureInfo->hasVirtioGpuNativeSync) {
         struct VirtGpuExecBuffer exec = {};
@@ -7142,7 +7223,7 @@ VkResult ResourceTracker::exportSyncFdForQSRILocked(VkImage image, int* fd) {
 #endif
     }
 
-    mesa_logi("%s: got fd: %d\n", __func__, *fd);
+    mesa_logd("%s: got fd: %d\n", __func__, *fd);
     auto imageInfoIt = info_VkImage.find(image);
     if (imageInfoIt != info_VkImage.end()) {
         auto& imageInfo = imageInfoIt->second;
@@ -7195,7 +7276,7 @@ VkResult ResourceTracker::on_vkQueueSignalReleaseImageANDROID(void* context, VkR
     }
 
     {
-        AutoLock<RecursiveLock> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         auto it = info_VkImage.find(image);
         if (it == info_VkImage.end()) {
             if (pNativeFenceFd) *pNativeFenceFd = -1;
@@ -7206,7 +7287,7 @@ VkResult ResourceTracker::on_vkQueueSignalReleaseImageANDROID(void* context, VkR
     enc->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(queue, waitSemaphoreCount, pWaitSemaphores,
                                                      image, true /* lock */);
 
-    AutoLock<RecursiveLock> lock(mLock);
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     VkResult result;
     if (pNativeFenceFd) {
         result = exportSyncFdForQSRILocked(image, pNativeFenceFd);
@@ -7297,8 +7378,8 @@ VkResult ResourceTracker::on_vkCreateGraphicsPipelines(
                                           true /* do lock */);
 }
 
-uint32_t ResourceTracker::getApiVersionFromInstance(VkInstance instance) const {
-    AutoLock<RecursiveLock> lock(mLock);
+uint32_t ResourceTracker::getApiVersionFromInstance(VkInstance instance) {
+    std::lock_guard<std::recursive_mutex> lock(mLock);
     uint32_t api = kDefaultApiVersion;
 
     auto it = info_VkInstance.find(instance);
@@ -7309,8 +7390,8 @@ uint32_t ResourceTracker::getApiVersionFromInstance(VkInstance instance) const {
     return api;
 }
 
-uint32_t ResourceTracker::getApiVersionFromDevice(VkDevice device) const {
-    AutoLock<RecursiveLock> lock(mLock);
+uint32_t ResourceTracker::getApiVersionFromDevice(VkDevice device) {
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     uint32_t api = kDefaultApiVersion;
 
@@ -7322,8 +7403,8 @@ uint32_t ResourceTracker::getApiVersionFromDevice(VkDevice device) const {
     return api;
 }
 
-bool ResourceTracker::hasInstanceExtension(VkInstance instance, const std::string& name) const {
-    AutoLock<RecursiveLock> lock(mLock);
+bool ResourceTracker::hasInstanceExtension(VkInstance instance, const std::string& name) {
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkInstance.find(instance);
     if (it == info_VkInstance.end()) return false;
@@ -7331,8 +7412,8 @@ bool ResourceTracker::hasInstanceExtension(VkInstance instance, const std::strin
     return it->second.enabledExtensions.find(name) != it->second.enabledExtensions.end();
 }
 
-bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string& name) const {
-    AutoLock<RecursiveLock> lock(mLock);
+bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string& name) {
+    std::lock_guard<std::recursive_mutex> lock(mLock);
 
     auto it = info_VkDevice.find(device);
     if (it == info_VkDevice.end()) return false;
@@ -7448,7 +7529,7 @@ const VkPhysicalDeviceMemoryProperties& ResourceTracker::getPhysicalDeviceMemory
     void* context, VkDevice device, VkPhysicalDevice physicalDevice) {
     if (!mCachedPhysicalDeviceMemoryProps) {
         if (physicalDevice == VK_NULL_HANDLE) {
-            AutoLock<RecursiveLock> lock(mLock);
+            std::lock_guard<std::recursive_mutex> lock(mLock);
 
             auto deviceInfoIt = info_VkDevice.find(device);
             if (deviceInfoIt == info_VkDevice.end()) {

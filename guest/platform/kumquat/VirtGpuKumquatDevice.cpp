@@ -44,6 +44,7 @@ VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
         PARAM(VIRTGPU_KUMQUAT_PARAM_CONTEXT_INIT),
         PARAM(VIRTGPU_KUMQUAT_PARAM_SUPPORTED_CAPSET_IDs),
         PARAM(VIRTGPU_KUMQUAT_PARAM_EXPLICIT_DEBUG_NAME),
+        PARAM(VIRTGPU_KUMQUAT_PARAM_FENCE_PASSING),
         PARAM(VIRTGPU_KUMQUAT_PARAM_CREATE_GUEST_HANDLE),
     };
 
@@ -68,7 +69,6 @@ VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
     for (uint32_t i = 0; i < kParamMax; i++) {
         struct drm_kumquat_getparam get_param = {0};
         get_param.param = params[i].param;
-        get_param.value = (uint64_t)(uintptr_t)&params[i].value;
 
         ret = virtgpu_kumquat_get_param(mVirtGpu, &get_param);
         if (ret) {
@@ -76,7 +76,7 @@ VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
             continue;
         }
 
-        mCaps.params[i] = params[i].value;
+        mCaps.params[i] = get_param.value;
     }
 
     get_caps.cap_set_id = static_cast<uint32_t>(capset);
@@ -145,8 +145,9 @@ struct VirtGpuCaps VirtGpuKumquatDevice::getCaps(void) { return mCaps; }
 int64_t VirtGpuKumquatDevice::getDeviceHandle(void) { return -1; }
 
 VirtGpuResourcePtr VirtGpuKumquatDevice::createResource(uint32_t width, uint32_t height,
+                                                        uint32_t stride, uint32_t size,
                                                         uint32_t virglFormat, uint32_t target,
-                                                        uint32_t bind, uint32_t bpp) {
+                                                        uint32_t bind) {
     struct drm_kumquat_resource_create_3d create = {
         .target = target,
         .format = virglFormat,
@@ -157,8 +158,8 @@ VirtGpuResourcePtr VirtGpuKumquatDevice::createResource(uint32_t width, uint32_t
         .array_size = 1U,
         .last_level = 0,
         .nr_samples = 0,
-        .size = width * height * bpp,
-        .stride = width * bpp,
+        .size = size,
+        .stride = stride,
     };
 
     int ret = virtgpu_kumquat_resource_create_3d(mVirtGpu, &create);
@@ -207,7 +208,6 @@ VirtGpuResourcePtr VirtGpuKumquatDevice::importBlob(const struct VirtGpuExternal
 
     return std::make_shared<VirtGpuKumquatResource>(
         mVirtGpu, resource_import.bo_handle, resource_import.res_handle, resource_import.size);
-    return nullptr;
 }
 
 int VirtGpuKumquatDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,

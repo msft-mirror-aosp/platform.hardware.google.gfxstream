@@ -2849,6 +2849,13 @@ std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForDisplay(
     return colorBufferPtr->borrowForDisplay(api);
 }
 
+void FrameBuffer::logVulkanDeviceLost() {
+    if (!m_emulationVk) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Device lost without VkEmulation?";
+    }
+    vk::onVkDeviceLost();
+}
+
 void FrameBuffer::logVulkanOutOfMemory(VkResult result, const char* function, int line,
                                        std::optional<uint64_t> allocationSize) {
     m_logger->logMetricEvent(MetricEventVulkanOutOfMemory{
@@ -2980,7 +2987,7 @@ int FrameBuffer::waitSyncColorBuffer(HandleType colorBufferHandle) {
     return colorBuffer->waitSync();
 }
 
-std::optional<ManagedDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType colorBufferHandle) {
+std::optional<BlobDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType colorBufferHandle) {
     AutoLock mutex(m_lock);
 
     ColorBufferPtr colorBuffer = findColorBuffer(colorBufferHandle);
@@ -2991,7 +2998,7 @@ std::optional<ManagedDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType c
     return colorBuffer->exportBlob();
 }
 
-std::optional<ManagedDescriptorInfo> FrameBuffer::exportBuffer(HandleType bufferHandle) {
+std::optional<BlobDescriptorInfo> FrameBuffer::exportBuffer(HandleType bufferHandle) {
     AutoLock mutex(m_lock);
 
     BufferPtr buffer = findBuffer(bufferHandle);
