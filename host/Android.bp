@@ -86,7 +86,7 @@ cc_defaults {
     ],
     srcs: [
         "Buffer.cpp",
-        "BlobManager.cpp",
+        "ExternalObjectManager.cpp",
         "ChannelStream.cpp",
         "ColorBuffer.cpp",
         "DisplaySurface.cpp",

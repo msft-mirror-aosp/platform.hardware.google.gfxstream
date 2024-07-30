@@ -42,8 +42,10 @@ SUPPORTED_FEATURES = [
     "VK_KHR_external_memory_capabilities",
     "VK_KHR_external_fence_capabilities",
     "VK_EXT_debug_utils",
+    "VK_EXT_debug_report",
     "VK_EXT_validation_features",
     # Device extensions
+    "VK_EXT_external_memory_host",
     "VK_KHR_storage_buffer_storage_class",
     "VK_KHR_vulkan_memory_model",
     "VK_KHR_buffer_device_address",
@@ -119,10 +121,12 @@ SUPPORTED_FEATURES = [
     "VK_KHR_xcb_surface",
     "VK_KHR_win32_surface",
     "VK_EXT_metal_surface",
-    "VK_MVK_moltenvk",
     "VK_EXT_metal_objects",
     "VK_KHR_external_semaphore_win32",
     "VK_KHR_external_memory_win32",
+    "VK_NV_device_diagnostic_checkpoints",
+    "VK_KHR_ray_tracing_pipeline",
+    "VK_KHR_pipeline_library",
     # Android
     "VK_ANDROID_native_buffer",
     "VK_ANDROID_external_memory_android_hardware_buffer",
@@ -139,6 +143,8 @@ SUPPORTED_FEATURES = [
     "VK_QNX_external_memory_screen_buffer",
     # b/320855472 Chrome
     "VK_EXT_fragment_density_map",
+    # b/349122558 Zink
+    "VK_EXT_color_write_enable",
 ]
 
 HOST_MODULES = ["goldfish_vk_extension_structs", "goldfish_vk_marshaling",
@@ -150,15 +156,14 @@ HOST_MODULES = ["goldfish_vk_extension_structs", "goldfish_vk_marshaling",
 # we wish run wrappers when the module requires it. For example, `VK_GOOGLE_gfxstream`
 # shouldn't generate a function table entry since it's an internal interface.
 SUPPORTED_MODULES = {
+    "VK_EXT_external_memory_host": HOST_MODULES,
     "VK_EXT_debug_utils": HOST_MODULES,
+    "VK_EXT_debug_report": HOST_MODULES,
     "VK_EXT_validation_features": HOST_MODULES,
     "VK_KHR_surface": ["goldfish_vk_dispatch"],
     "VK_KHR_xcb_surface": ["goldfish_vk_dispatch"],
     "VK_KHR_win32_surface": ["goldfish_vk_dispatch"],
     "VK_EXT_metal_surface": ["goldfish_vk_dispatch"],
-    # VK_MVK_moltenvk doesn't generate a generate dispatch entry for some reason, but should. The
-    # lack of this extension doesn't cause any build failures though.
-    "VK_MVK_moltenvk": ["goldfish_vk_dispatch"],
     "VK_EXT_metal_objects": ["goldfish_vk_dispatch"],
     "VK_KHR_external_semaphore_win32" : ["goldfish_vk_dispatch"],
     "VK_KHR_external_memory_win32" : ["goldfish_vk_dispatch"],
@@ -169,7 +174,17 @@ SUPPORTED_MODULES = {
     "VK_KHR_android_surface": ["func_table"],
     "VK_EXT_swapchain_maintenance1" : HOST_MODULES,
     "VK_KHR_swapchain" : HOST_MODULES,
+    "VK_NV_device_diagnostic_checkpoints": ["goldfish_vk_dispatch"],
+    "VK_KHR_ray_tracing_pipeline": HOST_MODULES,
+    "VK_KHR_pipeline_library": HOST_MODULES,
 }
+
+# These modules will be used when the feature is not supported.
+# This is necessary to cover all extensions where needed.
+UNSUPPORTED_FEATURE_MODULES = {
+    "goldfish_vk_extension_structs",
+}
+
 
 REQUIRED_TYPES = {
     "int",
@@ -447,6 +462,7 @@ using DlSymFunc = void* (void*, const char*);
 {self.hostCommonExtraVulkanHeaders}
 #include "goldfish_vk_private_defs.h"
 #include "host-common/GfxstreamFatalError.h"
+#include "vulkan/vk_enum_string_helper.h"
 """
 
         extensionStructsIncludeGuest = """
@@ -788,10 +804,14 @@ class BumpPool;
             if self.featureName == supportedFeature:
                 self.featureSupported = True
 
-        if self.featureSupported == False:
+        if self.featureSupported == False and UNSUPPORTED_FEATURE_MODULES:
+            self.featureSupported = True
+            self.supportedModules = UNSUPPORTED_FEATURE_MODULES
+        elif self.featureSupported == False:
             return
+        else:
+            self.supportedModules = SUPPORTED_MODULES.get(self.featureName)
 
-        self.supportedModules = SUPPORTED_MODULES.get(self.featureName)
         self.typeInfo.onBeginFeature(self.featureName, self.featureType)
 
         self.forEachModule(

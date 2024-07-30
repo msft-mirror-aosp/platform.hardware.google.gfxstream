@@ -39,10 +39,10 @@ void GLEScmContext::setMaxGlesVersion(GLESVersion version) {
     s_maxGlesVersion = version;
 }
 
-void GLEScmContext::init(bool nativeTextureDecompressionEnabled) {
+void GLEScmContext::init(bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled) {
     android::base::AutoLock mutex(s_lock);
     if(!m_initialized) {
-        GLEScontext::init(nativeTextureDecompressionEnabled);
+        GLEScontext::init(nativeTextureDecompressionEnabled, programBinaryLinkStatusEnabled);
 
         addVertexArrayObject(0);
         setVertexArrayObject(0);

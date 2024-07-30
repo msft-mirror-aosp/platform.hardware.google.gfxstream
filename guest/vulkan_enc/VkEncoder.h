@@ -617,16 +617,6 @@ class VkEncoder {
         uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements, uint32_t doLock);
 #endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
-#endif
 #ifdef VK_KHR_dynamic_rendering
     void vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
                                 const VkRenderingInfo* pRenderingInfo, uint32_t doLock);
@@ -664,21 +654,11 @@ class VkEncoder {
         const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
         VkExternalBufferProperties* pExternalBufferProperties, uint32_t doLock);
 #endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
 #ifdef VK_KHR_external_semaphore_capabilities
     void vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
         VkPhysicalDevice physicalDevice,
         const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
         VkExternalSemaphoreProperties* pExternalSemaphoreProperties, uint32_t doLock);
-#endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
 #endif
 #ifdef VK_KHR_external_semaphore_fd
     VkResult vkImportSemaphoreFdKHR(VkDevice device,
@@ -686,10 +666,6 @@ class VkEncoder {
                                     uint32_t doLock);
     VkResult vkGetSemaphoreFdKHR(VkDevice device, const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
                                  int* pFd, uint32_t doLock);
-#endif
-#ifdef VK_KHR_shader_float16_int8
-#endif
-#ifdef VK_KHR_incremental_present
 #endif
 #ifdef VK_KHR_descriptor_update_template
     VkResult vkCreateDescriptorUpdateTemplateKHR(
@@ -703,8 +679,6 @@ class VkEncoder {
     void vkUpdateDescriptorSetWithTemplateKHR(VkDevice device, VkDescriptorSet descriptorSet,
                                               VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                               const void* pData, uint32_t doLock);
-#endif
-#ifdef VK_KHR_imageless_framebuffer
 #endif
 #ifdef VK_KHR_create_renderpass2
     VkResult vkCreateRenderPass2KHR(VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo,
@@ -725,19 +699,11 @@ class VkEncoder {
         const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
         VkExternalFenceProperties* pExternalFenceProperties, uint32_t doLock);
 #endif
-#ifdef VK_KHR_external_fence
-#endif
 #ifdef VK_KHR_external_fence_fd
     VkResult vkImportFenceFdKHR(VkDevice device, const VkImportFenceFdInfoKHR* pImportFenceFdInfo,
                                 uint32_t doLock);
     VkResult vkGetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* pGetFdInfo, int* pFd,
                              uint32_t doLock);
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
     void vkGetImageMemoryRequirements2KHR(VkDevice device,
@@ -752,8 +718,6 @@ class VkEncoder {
         VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
         uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements, uint32_t doLock);
-#endif
-#ifdef VK_KHR_image_format_list
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
     VkResult vkCreateSamplerYcbcrConversionKHR(
@@ -776,12 +740,6 @@ class VkEncoder {
                                             const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                             VkDescriptorSetLayoutSupport* pSupport,
                                             uint32_t doLock);
-#endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
 #endif
 #ifdef VK_KHR_buffer_device_address
     VkDeviceAddress vkGetBufferDeviceAddressKHR(VkDevice device,
@@ -807,10 +765,6 @@ class VkEncoder {
         uint32_t* pInternalRepresentationCount,
         VkPipelineExecutableInternalRepresentationKHR* pInternalRepresentations, uint32_t doLock);
 #endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
-#endif
 #ifdef VK_KHR_synchronization2
     void vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
                            const VkDependencyInfo* pDependencyInfo, uint32_t doLock);
@@ -831,8 +785,6 @@ class VkEncoder {
     void vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpointDataCount,
                                      VkCheckpointData2NV* pCheckpointData, uint32_t doLock);
 #endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
-#endif
 #ifdef VK_KHR_copy_commands2
     void vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
                              const VkCopyBufferInfo2* pCopyBufferInfo, uint32_t doLock);
@@ -848,8 +800,6 @@ class VkEncoder {
                             uint32_t doLock);
     void vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer,
                                const VkResolveImageInfo2* pResolveImageInfo, uint32_t doLock);
-#endif
-#ifdef VK_KHR_format_feature_flags2
 #endif
 #ifdef VK_KHR_maintenance4
     void vkGetDeviceBufferMemoryRequirementsKHR(VkDevice device,
@@ -915,55 +865,15 @@ class VkEncoder {
                                        VkDeviceSize counterBufferOffset, uint32_t counterOffset,
                                        uint32_t vertexStride, uint32_t doLock);
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
-#ifdef VK_EXT_depth_clip_enable
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
-#endif
-#ifdef VK_EXT_vertex_attribute_divisor
-#endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
-#ifdef VK_EXT_fragment_density_map
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
-#endif
 #ifdef VK_EXT_tooling_info
     VkResult vkGetPhysicalDeviceToolPropertiesEXT(VkPhysicalDevice physicalDevice,
                                                   uint32_t* pToolCount,
                                                   VkPhysicalDeviceToolProperties* pToolProperties,
                                                   uint32_t doLock);
 #endif
-#ifdef VK_EXT_validation_features
-#endif
-#ifdef VK_EXT_provoking_vertex
-#endif
 #ifdef VK_EXT_line_rasterization
     void vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
                                 uint16_t lineStipplePattern, uint32_t doLock);
-#endif
-#ifdef VK_EXT_index_type_uint8
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     void vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode,
@@ -1011,18 +921,6 @@ class VkEncoder {
                                          const VkImageSubresource2KHR* pSubresource,
                                          VkSubresourceLayout2KHR* pLayout, uint32_t doLock);
 #endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
-#ifdef VK_EXT_texel_buffer_alignment
-#endif
-#ifdef VK_EXT_device_memory_report
-#endif
-#ifdef VK_EXT_robustness2
-#endif
-#ifdef VK_EXT_custom_border_color
-#endif
 #ifdef VK_EXT_private_data
     VkResult vkCreatePrivateDataSlotEXT(VkDevice device,
                                         const VkPrivateDataSlotCreateInfo* pCreateInfo,
@@ -1035,22 +933,6 @@ class VkEncoder {
     void vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType, uint64_t objectHandle,
                              VkPrivateDataSlot privateDataSlot, uint64_t* pData, uint32_t doLock);
 #endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_metal_objects
-#endif
-#ifdef VK_EXT_graphics_pipeline_library
-#endif
-#ifdef VK_EXT_ycbcr_2plane_444_formats
-#endif
-#ifdef VK_EXT_image_robustness
-#endif
-#ifdef VK_EXT_image_compression_control
-#endif
-#ifdef VK_EXT_4444_formats
-#endif
-#ifdef VK_EXT_primitive_topology_list_restart
-#endif
 #ifdef VK_EXT_extended_dynamic_state2
     void vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer, uint32_t patchControlPoints,
                                        uint32_t doLock);
@@ -1061,6 +943,10 @@ class VkEncoder {
     void vkCmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logicOp, uint32_t doLock);
     void vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
                                            VkBool32 primitiveRestartEnable, uint32_t doLock);
+#endif
+#ifdef VK_EXT_color_write_enable
+    void vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                     const VkBool32* pColorWriteEnables, uint32_t doLock);
 #endif
 #ifdef VK_GOOGLE_gfxstream
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceMemory memory,
@@ -1140,14 +1026,9 @@ class VkEncoder {
         const uint8_t* pInlineUniformBlockData, uint32_t doLock);
     void vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
                                    const VkSubmitInfo2* pSubmits, VkFence fence, uint32_t doLock);
+    VkResult vkGetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore, uint64_t syncId,
+                                  uint32_t doLock);
 #endif
-#ifdef VK_EXT_load_store_op_none
-#endif
-#ifdef VK_EXT_image_compression_control_swapchain
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
-#endif
-
    private:
     class Impl;
     std::unique_ptr<Impl> mImpl;

@@ -226,7 +226,6 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height,
     if (mColorBufferGl) {
         mColorBufferGl->subUpdateFromFrameworkFormat(x, y, width, height, frameworkFormat,
                                                      pixelsFormat, pixelsType, pixels, metadata);
-        return true;
     }
 #endif
 
@@ -234,8 +233,7 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height,
         return mColorBufferVk->updateFromBytes(x, y, width, height, pixels);
     }
 
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "No ColorBuffer impl?";
-    return false;
+    return true;
 }
 
 bool ColorBuffer::updateFromBytes(int x, int y, int width, int height, GLenum pixelsFormat,
@@ -441,6 +439,26 @@ bool ColorBuffer::importNativeResource(void* nativeResource, uint32_t type, bool
                 << "Unrecognized type for ColorBuffer::importNativeResource.";
             return false;
     }
+}
+
+int ColorBuffer::waitSync() {
+    if (mColorBufferGl) {
+        return -1;
+    }
+
+    if (!mColorBufferVk) {
+        return -1;
+    }
+
+    return mColorBufferVk->waitSync();
+}
+
+std::optional<BlobDescriptorInfo> ColorBuffer::exportBlob() {
+    if (!mColorBufferVk) {
+        return std::nullopt;
+    }
+
+    return mColorBufferVk->exportBlob();
 }
 
 #if GFXSTREAM_ENABLE_HOST_GLES

@@ -994,23 +994,25 @@ GL_APICALL void GL_APIENTRY glProgramBinary(GLuint program, GLenum binaryFormat,
 
         ctx->dispatcher().glProgramBinary(globalProgramName, binaryFormat, binary, length);
 
-        GLint linkStatus = GL_FALSE;
-        ctx->dispatcher().glGetProgramiv(globalProgramName, GL_LINK_STATUS, &linkStatus);
+        if (ctx->programBinaryLinkStatusEnabled()) {
+            GLint linkStatus = GL_FALSE;
+            ctx->dispatcher().glGetProgramiv(globalProgramName, GL_LINK_STATUS, &linkStatus);
 
-        programData->setHostLinkStatus(linkStatus);
-        programData->setLinkStatus(linkStatus);
+            programData->setHostLinkStatus(linkStatus);
+            programData->setLinkStatus(linkStatus);
 
-        GLsizei infoLogLength = 0;
-        ctx->dispatcher().glGetProgramiv(globalProgramName, GL_INFO_LOG_LENGTH, &infoLogLength);
+            GLsizei infoLogLength = 0;
+            ctx->dispatcher().glGetProgramiv(globalProgramName, GL_INFO_LOG_LENGTH, &infoLogLength);
 
-        if (infoLogLength > 0) {
-            std::vector<GLchar> infoLog(infoLogLength);
-            ctx->dispatcher().glGetProgramInfoLog(globalProgramName, infoLogLength, &infoLogLength,
-                                                  infoLog.data());
+            if (infoLogLength > 0) {
+                std::vector<GLchar> infoLog(infoLogLength);
+                ctx->dispatcher().glGetProgramInfoLog(globalProgramName, infoLogLength, &infoLogLength,
+                                                    infoLog.data());
 
-            if (infoLogLength) {
-                infoLog.resize(infoLogLength);
-                programData->setInfoLog(infoLog.data());
+                if (infoLogLength) {
+                    infoLog.resize(infoLogLength);
+                    programData->setInfoLog(infoLog.data());
+                }
             }
         }
     }
