@@ -194,6 +194,7 @@ static uint64_t hostBlobId = 0;
 static uint32_t kTemporaryContextIdForSnapshotLoading = 1;
 
 static std::unordered_set<std::string> kSnapshotAppAllowList = {"Chromium"};
+static std::unordered_set<std::string> kSnapshotEngineAllowList = {"ANGLE"};
 
 #define DEFINE_BOXED_HANDLE_TYPE_TAG(type) Tag_##type,
 
@@ -676,6 +677,22 @@ class VkDecoderGlobalState::Impl {
                 }
             }
         }
+
+        // Fences
+        std::vector<VkFence> unsignaledFencesBoxed;
+        for (const auto& fence : mFenceInfo) {
+            if (!fence.second.boxed) {
+                continue;
+            }
+            const auto& device = fence.second.device;
+            const auto& deviceInfo = android::base::find(mDeviceInfo, device);
+            VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
+            if (VK_NOT_READY == dvk->vkGetFenceStatus(device, fence.first)) {
+                unsignaledFencesBoxed.push_back(fence.second.boxed);
+            }
+        }
+        stream->putBe64(unsignaledFencesBoxed.size());
+        stream->write(unsignaledFencesBoxed.data(), unsignaledFencesBoxed.size() * sizeof(VkFence));
         mSnapshotState = SnapshotState::Normal;
     }
 
@@ -857,7 +874,22 @@ class VkDecoderGlobalState::Impl {
                 poolIds.data(), whichPool.data(), pendingAlloc.data(), writeStartingIndices.data(),
                 writeDescriptorSets.size(), writeDescriptorSets.data());
         }
-
+        // Fences
+        uint64_t fenceCount = stream->getBe64();
+        std::vector<VkFence> unsignaledFencesBoxed(fenceCount);
+        stream->read(unsignaledFencesBoxed.data(), fenceCount * sizeof(VkFence));
+        for (VkFence boxedFence : unsignaledFencesBoxed) {
+            VkFence unboxedFence = unbox_VkFence(boxedFence);
+            auto it = mFenceInfo.find(unboxedFence);
+            if (it == mFenceInfo.end()) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Snapshot load failure: unrecognized VkFence";
+            }
+            const auto& device = it->second.device;
+            const auto& deviceInfo = android::base::find(mDeviceInfo, device);
+            VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
+            dvk->vkResetFences(device, 1, &unboxedFence);
+        }
 #ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
         if (!mInstanceInfo.empty()) {
             get_emugl_vm_operations().setStatSnapshotUseVulkan();
@@ -1009,9 +1041,9 @@ class VkDecoderGlobalState::Impl {
 
 #ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
         // TODO: bug 129484301
-        if (!m_emu->features.VulkanSnapshots.enabled
-                || kSnapshotAppAllowList.find(info.applicationName)
-                        == kSnapshotAppAllowList.end()) {
+        if (!m_emu->features.VulkanSnapshots.enabled ||
+            (kSnapshotAppAllowList.find(info.applicationName) == kSnapshotAppAllowList.end() &&
+             kSnapshotEngineAllowList.find(info.engineName) == kSnapshotEngineAllowList.end())) {
             get_emugl_vm_operations().setSkipSnapshotSave(true);
             get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_APP);
         }
@@ -2681,6 +2713,13 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkCreateFence(android::base::BumpPool* pool, VkDevice boxed_device,
                               const VkFenceCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
+        VkFenceCreateInfo localCreateInfo;
+        if (mSnapshotState == SnapshotState::Loading) {
+            // On snapshot load we create all fences as signaled then reset those that are not.
+            localCreateInfo = *pCreateInfo;
+            pCreateInfo = &localCreateInfo;
+            localCreateInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
+        }
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -4805,10 +4844,16 @@ class VkDecoderGlobalState::Impl {
         VkImportMemoryHostPointerInfoEXT importHostInfoPrivate{};
         if (hostVisible && m_emu->features.VulkanAllocateHostMemory.enabled &&
             localAllocInfo.pNext == nullptr) {
-            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
+            if (!m_emu || !m_emu->deviceInfo.supportsExternalMemoryHostProps) {
+                ERR("VK_EXT_EXTERNAL_MEMORY_HOST is not supported, cannot use "
+                    "VulkanAllocateHostMemory");
+                return VK_ERROR_INCOMPATIBLE_DRIVER;
+            }
+            VkDeviceSize alignmentSize = m_emu->deviceInfo.externalMemoryHostProps.minImportedHostPointerAlignment;
+            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, alignmentSize);
             localAllocInfo.allocationSize = alignedSize;
             privateMemory =
-                std::make_shared<PrivateMemory>(kPageSizeforBlob, localAllocInfo.allocationSize);
+                std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
             mappedPtr = privateMemory->getAddr();
             importHostInfoPrivate = {
                 .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
@@ -4816,25 +4861,28 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
                 .pHostPointer = mappedPtr};
 
-            VkMemoryHostPointerPropertiesEXT pMemoryHostPointerProperties = {
+            VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
                 .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
                 .pNext = NULL,
                 .memoryTypeBits = 0,
             };
-            vk->vkGetMemoryHostPointerPropertiesEXT(device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr, &pMemoryHostPointerProperties);
 
-            if (pMemoryHostPointerProperties.memoryTypeBits == 0) {
-                // Memory import operation not supported by the driver.
+            vk->vkGetMemoryHostPointerPropertiesEXT(
+                device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr,
+                &memoryHostPointerProperties);
+
+            if (memoryHostPointerProperties.memoryTypeBits == 0) {
+                ERR("Cannot find suitable memory type for VulkanAllocateHostMemory");
                 return VK_ERROR_INCOMPATIBLE_DRIVER;
             }
 
-            if (((1u << localAllocInfo.memoryTypeIndex) & pMemoryHostPointerProperties.memoryTypeBits) == 0) {
+            if (((1u << localAllocInfo.memoryTypeIndex) & memoryHostPointerProperties.memoryTypeBits) == 0) {
 
                 // TODO Consider assigning the correct memory index earlier, instead of switching right before allocation.
 
                 // Look for the first available supported memory index and assign it.
                 for(uint32_t i =0; i<= 31; ++i) {
-                    if ((pMemoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
+                    if ((memoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
                         continue;
                     }
                     localAllocInfo.memoryTypeIndex = i;
