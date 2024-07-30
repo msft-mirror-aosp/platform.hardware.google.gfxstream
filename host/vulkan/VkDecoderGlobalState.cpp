@@ -2064,6 +2064,21 @@ class VkDecoderGlobalState::Impl {
             pCreateInfo = &localCreateInfo;
         }
 
+        VkExternalMemoryBufferCreateInfo externalCI = {
+            VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO};
+        if (m_emu->features.VulkanAllocateHostMemory.enabled) {
+            localCreateInfo = *pCreateInfo;
+            // Hint that we 'may' use host allocation for this buffer. This will only be used for
+            // host visible memory.
+            externalCI.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
+
+            // Insert the new struct to the chain
+            externalCI.pNext = localCreateInfo.pNext;
+            localCreateInfo.pNext = &externalCI;
+
+            pCreateInfo = &localCreateInfo;
+        }
+
         VkResult result = vk->vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
 
         if (result == VK_SUCCESS) {
