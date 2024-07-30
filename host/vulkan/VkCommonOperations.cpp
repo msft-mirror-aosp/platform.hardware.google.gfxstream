@@ -826,16 +826,20 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
             deviceInfos[i].supportsDriverProperties =
                 extensionsSupported(deviceExts, {VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME}) ||
                 (deviceInfos[i].physdevProps.apiVersion >= VK_API_VERSION_1_2);
+            deviceInfos[i].supportsExternalMemoryHostProps = extensionsSupported(deviceExts, {VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME});
 
             if (!sVkEmulation->getPhysicalDeviceProperties2Func) {
                 ERR("Warning: device claims to support ID properties "
                     "but vkGetPhysicalDeviceProperties2 could not be found");
             }
         }
-
         if (sVkEmulation->getPhysicalDeviceProperties2Func) {
+            VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProps = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT,
+            };
             VkPhysicalDeviceProperties2 deviceProps = {
-                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
+
             };
             VkPhysicalDeviceIDProperties idProps = {
                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR,
@@ -854,9 +858,12 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
                 vk_append_struct(&devicePropsChain, &driverProps);
             }
 
+            if(deviceInfos[i].supportsExternalMemoryHostProps) {
+                vk_append_struct(&devicePropsChain, &externalMemoryHostProps);
+            }
             sVkEmulation->getPhysicalDeviceProperties2Func(physdevs[i], &deviceProps);
-
             deviceInfos[i].idProps = vk_make_orphan_copy(idProps);
+            deviceInfos[i].externalMemoryHostProps = vk_make_orphan_copy(externalMemoryHostProps);
 
             std::stringstream driverVendorBuilder;
             driverVendorBuilder << "Vendor " << std::hex << std::setfill('0') << std::showbase
@@ -990,7 +997,6 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     // in use cases that make sense, if/when they come up.
 
     std::vector<uint32_t> deviceScores(physdevCount, 0);
-
     for (uint32_t i = 0; i < physdevCount; ++i) {
         uint32_t deviceScore = 0;
         if (deviceInfos[i].hasGraphicsQueueFamily) deviceScore += 10000;
