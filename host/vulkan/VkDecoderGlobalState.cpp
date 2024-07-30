@@ -1980,14 +1980,15 @@ class VkDecoderGlobalState::Impl {
             destroyFenceLocked(device, deviceDispatch, fence, nullptr, false);
         }
 
+        // Should happen before destroying fences
+        deviceInfo->deviceOpTracker->OnDestroyDevice();
+
         // Destroy pooled external fences
         auto deviceFences = deviceInfo->externalFencePool->popAll();
         for (auto fence : deviceFences) {
             deviceDispatch->vkDestroyFence(device, fence, pAllocator);
             mFenceInfo.erase(fence);
         }
-
-        deviceInfo->deviceOpTracker->OnDestroyDevice();
 
         // Run the underlying API call.
         m_vk->vkDestroyDevice(device, pAllocator);
