@@ -27,10 +27,10 @@ class GfxstreamEnd2EndCompositionTest : public GfxstreamEnd2EndTest {};
 TEST_P(GfxstreamEnd2EndCompositionTest, BasicComposition) {
     ScopedRenderControlDevice rcDevice(*mRc);
 
-    auto layer1Ahb = GL_ASSERT(CreateAHBFromImage("256x256_android.png"));
-    auto layer2Ahb = GL_ASSERT(CreateAHBFromImage("256x256_android_with_transparency.png"));
-    auto resultAhb =
-        GL_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    auto layer1Ahb = GFXSTREAM_ASSERT(CreateAHBFromImage("256x256_android.png"));
+    auto layer2Ahb = GFXSTREAM_ASSERT(CreateAHBFromImage("256x256_android_with_transparency.png"));
+    auto resultAhb = GFXSTREAM_ASSERT(
+        ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const RenderControlComposition composition = {
         .displayId = 0,
@@ -97,15 +97,15 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BasicComposition) {
 
     ASSERT_THAT(mRc->rcCompose(rcDevice, &composition, 2, compositionLayers), Eq(0));
 
-    GL_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_basic_composition.png"));
+    GFXSTREAM_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_basic_composition.png"));
 }
 
 TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionBGRA) {
     ScopedRenderControlDevice rcDevice(*mRc);
 
-    auto layer1Ahb = GL_ASSERT(CreateAHBFromImage("256x256_android.png"));
-    auto layer2Ahb = GL_ASSERT(CreateAHBFromImage("256x256_android_with_transparency.png"));
-    auto resultAhb = GL_ASSERT(
+    auto layer1Ahb = GFXSTREAM_ASSERT(CreateAHBFromImage("256x256_android.png"));
+    auto layer2Ahb = GFXSTREAM_ASSERT(CreateAHBFromImage("256x256_android_with_transparency.png"));
+    auto resultAhb = GFXSTREAM_ASSERT(
         ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM));
 
     const RenderControlComposition composition = {
@@ -173,7 +173,7 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionBGRA) {
 
     ASSERT_THAT(mRc->rcCompose(rcDevice, &composition, 2, compositionLayers), Eq(0));
 
-    GL_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_basic_composition.png"));
+    GFXSTREAM_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_basic_composition.png"));
 }
 
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndCompositionTest,
