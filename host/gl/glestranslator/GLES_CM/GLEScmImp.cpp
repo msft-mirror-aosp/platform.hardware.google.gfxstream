@@ -64,7 +64,7 @@ extern "C" {
 
 //decleration
 static void initGLESx(bool isGles2Gles);
-static void initContext(GLEScontext* ctx, ShareGroupPtr grp, bool nativeTextureDecompressionEnabled);
+static void initContext(GLEScontext* ctx, ShareGroupPtr grp, bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled);
 static void setMaxGlesVersion(GLESVersion version);
 static void deleteGLESContext(GLEScontext* ctx);
 static void setShareGroup(GLEScontext* ctx,ShareGroupPtr grp);
@@ -203,7 +203,7 @@ static void initGLESx(bool isGles2Gles) {
     return;
 }
 
-static void initContext(GLEScontext* ctx, ShareGroupPtr grp, bool nativeTextureDecompressionEnabled) {
+static void initContext(GLEScontext* ctx, ShareGroupPtr grp, bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled) {
     setCoreProfile(ctx->isCoreProfile());
     GLEScmContext::initGlobal(s_eglIface);
 
@@ -220,7 +220,7 @@ static void initContext(GLEScontext* ctx, ShareGroupPtr grp, bool nativeTextureD
         ctx->setShareGroup(grp);
     }
     if (!ctx->isInitialized()) {
-        ctx->init(nativeTextureDecompressionEnabled);
+        ctx->init(nativeTextureDecompressionEnabled, programBinaryLinkStatusEnabled);
         translator::gles1::glBindTexture(GL_TEXTURE_2D,0);
         translator::gles1::glBindTexture(GL_TEXTURE_CUBE_MAP_OES,0);
     }
