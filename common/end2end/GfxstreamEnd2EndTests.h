@@ -361,7 +361,7 @@ class ScopedAHardwareBuffer {
     }
 
     ScopedAHardwareBuffer& operator=(ScopedAHardwareBuffer&& rhs) {
-        mGralloc = rhs.mGralloc;
+        std::swap(mGralloc, rhs.mGralloc);
         std::swap(mHandle, rhs.mHandle);
         return *this;
     }
