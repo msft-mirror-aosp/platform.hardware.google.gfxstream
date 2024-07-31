@@ -50,6 +50,21 @@ std::string GetTestDataPath(const std::string& basename) {
 
 }  // namespace
 
+Image ImageFromColor(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel) {
+    uint32_t rgba = 0;
+    uint8_t* rgbaParts = reinterpret_cast<uint8_t*>(&rgba);
+    rgbaParts[0] = pixel.r;
+    rgbaParts[1] = pixel.g;
+    rgbaParts[2] = pixel.b;
+    rgbaParts[3] = pixel.a;
+
+    Image ret;
+    ret.width = w;
+    ret.height = h;
+    ret.pixels.resize(w * h, rgba);
+    return ret;
+}
+
 std::string GfxstreamTransportToEnvVar(GfxstreamTransport transport) {
     switch (transport) {
         case GfxstreamTransport::kVirtioGpuAsg: {
@@ -357,11 +372,11 @@ void GfxstreamEnd2EndTest::TearDownEglContextAndSurface(
     ASSERT_THAT(mGl->eglDestroySurface(display, surface), IsTrue());
 }
 
-GlExpected<ScopedGlShader> ScopedGlShader::MakeShader(GlDispatch& dispatch, GLenum type,
-                                                      const std::string& source) {
+Result<ScopedGlShader> ScopedGlShader::MakeShader(GlDispatch& dispatch, GLenum type,
+                                                  const std::string& source) {
     GLuint shader = dispatch.glCreateShader(type);
     if (!shader) {
-        return android::base::unexpected("Failed to create shader.");
+        return gfxstream::unexpected("Failed to create shader.");
     }
 
     const GLchar* sourceTyped = (const GLchar*)source.c_str();
@@ -386,18 +401,19 @@ GlExpected<ScopedGlShader> ScopedGlShader::MakeShader(GlDispatch& dispatch, GLen
         ALOGE("Shader compilation failed with: \"%s\"", errorString.c_str());
 
         dispatch.glDeleteShader(shader);
-        return android::base::unexpected(errorString);
+        return gfxstream::unexpected(errorString);
     }
 
     return ScopedGlShader(dispatch, shader);
 }
 
-GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(GlDispatch& dispatch,
-                                                         const std::string& vertSource,
-                                                         const std::string& fragSource) {
-    auto vertShader = GL_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_VERTEX_SHADER, vertSource));
+Result<ScopedGlProgram> ScopedGlProgram::MakeProgram(GlDispatch& dispatch,
+                                                     const std::string& vertSource,
+                                                     const std::string& fragSource) {
+    auto vertShader =
+        GFXSTREAM_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_VERTEX_SHADER, vertSource));
     auto fragShader =
-        GL_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_FRAGMENT_SHADER, fragSource));
+        GFXSTREAM_EXPECT(ScopedGlShader::MakeShader(dispatch, GL_FRAGMENT_SHADER, fragSource));
 
     GLuint program = dispatch.glCreateProgram();
     dispatch.glAttachShader(program, vertShader);
@@ -420,13 +436,13 @@ GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(GlDispatch& dispatch,
         ALOGE("Program link failed with: \"%s\"", errorString.c_str());
 
         dispatch.glDeleteProgram(program);
-        return android::base::unexpected(errorString);
+        return gfxstream::unexpected(errorString);
     }
 
     return ScopedGlProgram(dispatch, program);
 }
 
-GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(
+Result<ScopedGlProgram> ScopedGlProgram::MakeProgram(
     GlDispatch& dispatch, GLenum programBinaryFormat,
     const std::vector<uint8_t>& programBinaryData) {
     GLuint program = dispatch.glCreateProgram();
@@ -449,19 +465,18 @@ GlExpected<ScopedGlProgram> ScopedGlProgram::MakeProgram(
         ALOGE("Program link failed with: \"%s\"", errorString.c_str());
 
         dispatch.glDeleteProgram(program);
-        return android::base::unexpected(errorString);
+        return gfxstream::unexpected(errorString);
     }
 
     return ScopedGlProgram(dispatch, program);
 }
 
-GlExpected<ScopedAHardwareBuffer> ScopedAHardwareBuffer::Allocate(Gralloc& gralloc, uint32_t width,
-                                                                  uint32_t height,
-                                                                  uint32_t format) {
+Result<ScopedAHardwareBuffer> ScopedAHardwareBuffer::Allocate(Gralloc& gralloc, uint32_t width,
+                                                              uint32_t height, uint32_t format) {
     AHardwareBuffer* ahb = nullptr;
     int status = gralloc.allocate(width, height, format, -1, &ahb);
     if (status != 0) {
-        return android::base::unexpected(std::string("Failed to allocate AHB with width:") +
+        return gfxstream::unexpected(std::string("Failed to allocate AHB with width:") +
                                          std::to_string(width) + std::string(" height:") +
                                          std::to_string(height) + std::string(" format:") +
                                          std::to_string(format));
@@ -470,34 +485,33 @@ GlExpected<ScopedAHardwareBuffer> ScopedAHardwareBuffer::Allocate(Gralloc& grall
     return ScopedAHardwareBuffer(gralloc, ahb);
 }
 
-GlExpected<ScopedGlShader> GfxstreamEnd2EndTest::SetUpShader(GLenum type,
-                                                             const std::string& source) {
+Result<ScopedGlShader> GfxstreamEnd2EndTest::SetUpShader(GLenum type, const std::string& source) {
     if (!mGl) {
-        return android::base::unexpected("Gl not enabled for this test.");
+        return gfxstream::unexpected("Gl not enabled for this test.");
     }
 
     return ScopedGlShader::MakeShader(*mGl, type, source);
 }
 
-GlExpected<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(const std::string& vertSource,
-                                                               const std::string& fragSource) {
+Result<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(const std::string& vertSource,
+                                                           const std::string& fragSource) {
     if (!mGl) {
-        return android::base::unexpected("Gl not enabled for this test.");
+        return gfxstream::unexpected("Gl not enabled for this test.");
     }
 
     return ScopedGlProgram::MakeProgram(*mGl, vertSource, fragSource);
 }
 
-GlExpected<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(
+Result<ScopedGlProgram> GfxstreamEnd2EndTest::SetUpProgram(
     GLenum programBinaryFormat, const std::vector<uint8_t>& programBinaryData) {
     if (!mGl) {
-        return android::base::unexpected("Gl not enabled for this test.");
+        return gfxstream::unexpected("Gl not enabled for this test.");
     }
 
     return ScopedGlProgram::MakeProgram(*mGl, programBinaryFormat, programBinaryData);
 }
 
-VkExpected<GfxstreamEnd2EndTest::TypicalVkTestEnvironment>
+Result<GfxstreamEnd2EndTest::TypicalVkTestEnvironment>
 GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironmentOptions& opts) {
     const auto availableInstanceLayers = vkhpp::enumerateInstanceLayerProperties().value;
     ALOGV("Available instance layers:");
@@ -529,11 +543,11 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
         .ppEnabledExtensionNames = requestedInstanceExtensions.data(),
     };
 
-    auto instance = VK_EXPECT_RV(vkhpp::createInstanceUnique(instanceCreateInfo));
+    auto instance = GFXSTREAM_EXPECT_VKHPP_RV(vkhpp::createInstanceUnique(instanceCreateInfo));
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 
-    auto physicalDevices = VK_EXPECT_RV(instance->enumeratePhysicalDevices());
+    auto physicalDevices = GFXSTREAM_EXPECT_VKHPP_RV(instance->enumeratePhysicalDevices());
     ALOGV("Available physical devices:");
     for (const auto& physicalDevice : physicalDevices) {
         const auto physicalDeviceProps = physicalDevice.getProperties();
@@ -541,8 +555,8 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
     }
 
     if (physicalDevices.empty()) {
-        ALOGE("No physical devices available?");
-        return android::base::unexpected(vkhpp::Result::eErrorUnknown);
+        return gfxstream::unexpected(
+            "Failed to set up typical VK env: no physical devices available.");
     }
 
     auto physicalDevice = std::move(physicalDevices[0]);
@@ -551,7 +565,8 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
         ALOGV("Selected physical device: %s", physicalDeviceProps.deviceName.data());
     }
     {
-        const auto exts = VK_EXPECT_RV(physicalDevice.enumerateDeviceExtensionProperties());
+        const auto exts =
+            GFXSTREAM_EXPECT_VKHPP_RV(physicalDevice.enumerateDeviceExtensionProperties());
         ALOGV("Available physical device extensions:");
         for (const auto& ext : exts) {
             ALOGV(" - %s", ext.extensionName.data());
@@ -570,8 +585,7 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
         }
     }
     if (graphicsQueueFamilyIndex == -1) {
-        ALOGE("Failed to find graphics queue.");
-        return android::base::unexpected(vkhpp::Result::eErrorUnknown);
+        return gfxstream::unexpected("Failed to set up typical VK env: no graphics queue.");
     }
 
     const float queuePriority = 1.0f;
@@ -598,7 +612,7 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
         .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
         .ppEnabledExtensionNames = deviceExtensions.data(),
     };
-    auto device = VK_EXPECT_RV(physicalDevice.createDeviceUnique(deviceCreateInfo));
+    auto device = GFXSTREAM_EXPECT_VKHPP_RV(physicalDevice.createDeviceUnique(deviceCreateInfo));
 
     auto queue = device->getQueue(graphicsQueueFamilyIndex, 0);
 
@@ -620,13 +634,13 @@ void GfxstreamEnd2EndTest::SnapshotSaveAndLoad() {
     emulation->SnapshotRestore(directory);
 }
 
-GlExpected<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
+Result<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
     const std::string filepath = GetTestDataPath(basename);
     if (!std::filesystem::exists(filepath)) {
-        return android::base::unexpected("File " + filepath + " does not exist.");
+        return gfxstream::unexpected("File " + filepath + " does not exist.");
     }
     if (!std::filesystem::is_regular_file(filepath)) {
-        return android::base::unexpected("File " + filepath + " is not a regular file.");
+        return gfxstream::unexpected("File " + filepath + " is not a regular file.");
     }
 
     Image image;
@@ -635,32 +649,32 @@ GlExpected<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
     uint32_t sourceHeight = 0;
     std::vector<uint32_t> sourcePixels;
     if (!LoadRGBAFromPng(filepath, &image.width, &image.height, &image.pixels)) {
-        return android::base::unexpected("Failed to load " + filepath + " as RGBA PNG.");
+        return gfxstream::unexpected("Failed to load " + filepath + " as RGBA PNG.");
     }
 
     return image;
 }
 
-GlExpected<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
+Result<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
     Image actual;
     actual.width = ahb.GetWidth();
     if (actual.width == 0) {
-        return android::base::unexpected("Failed to query AHB width.");
+        return gfxstream::unexpected("Failed to query AHB width.");
     }
     actual.height = ahb.GetHeight();
     if (actual.height == 0) {
-        return android::base::unexpected("Failed to query AHB height.");
+        return gfxstream::unexpected("Failed to query AHB height.");
     }
     actual.pixels.resize(actual.width * actual.height);
 
     const uint32_t ahbFormat = ahb.GetAHBFormat();
     if (ahbFormat != GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM &&
         ahbFormat != GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM) {
-        return android::base::unexpected("Unhandled AHB format " + std::to_string(ahbFormat));
+        return gfxstream::unexpected("Unhandled AHB format " + std::to_string(ahbFormat));
     }
 
     {
-        uint8_t* ahbPixels = GL_EXPECT(ahb.Lock());
+        uint8_t* ahbPixels = GFXSTREAM_EXPECT(ahb.Lock());
         std::memcpy(actual.pixels.data(), ahbPixels, actual.pixels.size() * sizeof(uint32_t));
         ahb.Unlock();
     }
@@ -675,15 +689,73 @@ GlExpected<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
     return actual;
 }
 
-GlExpected<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
-    const std::string& basename) {
-    auto image = GL_EXPECT(LoadImage(basename));
+Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8A8 color) {
+    const uint32_t drmFormat = ahb.GetDrmFormat();
 
-    auto ahb = GL_EXPECT(
-        ScopedAHardwareBuffer::Allocate(*mGralloc, image.width, image.height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    const uint32_t ahbWidth = ahb.GetWidth();
+    const uint32_t ahbHeight = ahb.GetHeight();
+
+    std::vector<Gralloc::LockedPlane> planes = GFXSTREAM_EXPECT(ahb.LockPlanes());
+    if (drmFormat == DRM_FORMAT_ABGR8888) {
+        const Gralloc::LockedPlane& plane = planes[0];
+
+        std::vector<uint8_t> srcRow;
+        for (uint32_t x = 0; x < ahbWidth; x++) {
+            srcRow.push_back(color.r);
+            srcRow.push_back(color.g);
+            srcRow.push_back(color.b);
+            srcRow.push_back(color.a);
+        }
+
+        for (uint32_t y = 0; y < ahbHeight; y++) {
+            uint8_t* dstRow = plane.data + (y * plane.rowStrideBytes);
+            std::memcpy(dstRow, srcRow.data(), srcRow.size());
+        }
+    } else if (drmFormat == DRM_FORMAT_NV12 || drmFormat == DRM_FORMAT_YVU420) {
+        uint8_t colorY;
+        uint8_t colorU;
+        uint8_t colorV;
+        RGBToYUV(color.r, color.g, color.b, &colorY, &colorU, &colorV);
+
+        const Gralloc::LockedPlane& yPlane = planes[0];
+        const Gralloc::LockedPlane& uPlane = planes[1];
+        const Gralloc::LockedPlane& vPlane = planes[2];
+
+        colorY = 178;
+        colorU = 171;
+        colorV = 0;
+
+        for (uint32_t y = 0; y < ahbHeight; y++) {
+            for (uint32_t x = 0; x < ahbWidth; x++) {
+                uint8_t* dstY =
+                    yPlane.data + (y * yPlane.rowStrideBytes) + (x * yPlane.pixelStrideBytes);
+                uint8_t* dstU = uPlane.data + ((y / 2) * uPlane.rowStrideBytes) +
+                                ((x / 2) * uPlane.pixelStrideBytes);
+                uint8_t* dstV = vPlane.data + ((y / 2) * vPlane.rowStrideBytes) +
+                                ((x / 2) * vPlane.pixelStrideBytes);
+                *dstY = colorY;
+                *dstU = colorU;
+                *dstV = colorV;
+            }
+        }
+    } else {
+        return gfxstream::unexpected("Unhandled DRM format: " + std::to_string(drmFormat));
+    }
+
+    ahb.Unlock();
+
+    return Ok{};
+}
+
+Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
+    const std::string& basename) {
+    auto image = GFXSTREAM_EXPECT(LoadImage(basename));
+
+    auto ahb = GFXSTREAM_EXPECT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, image.width, image.height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     {
-        uint8_t* ahbPixels = GL_EXPECT(ahb.Lock());
+        uint8_t* ahbPixels = GFXSTREAM_EXPECT(ahb.Lock());
         std::memcpy(ahbPixels, image.pixels.data(), image.pixels.size() * sizeof(uint32_t));
         ahb.Unlock();
     }
@@ -760,10 +832,10 @@ bool GfxstreamEnd2EndTest::AreImagesSimilar(const Image& expected, const Image& 
     return imagesSimilar;
 }
 
-GlExpected<Ok> GfxstreamEnd2EndTest::CompareAHBWithGolden(ScopedAHardwareBuffer& ahb,
-                                                          const std::string& goldenBasename) {
-    Image actual = GL_EXPECT(AsImage(ahb));
-    GlExpected<Image> expected = LoadImage(goldenBasename);
+Result<Ok> GfxstreamEnd2EndTest::CompareAHBWithGolden(ScopedAHardwareBuffer& ahb,
+                                                      const std::string& goldenBasename) {
+    Image actual = GFXSTREAM_EXPECT(AsImage(ahb));
+    Result<Image> expected = LoadImage(goldenBasename);
 
     bool imagesAreSimilar = false;
     if (expected.ok()) {
@@ -782,12 +854,53 @@ GlExpected<Ok> GfxstreamEnd2EndTest::CompareAHBWithGolden(ScopedAHardwareBuffer&
     }
 
     if (!imagesAreSimilar) {
-        return android::base::unexpected(
+        return gfxstream::unexpected(
             "Image comparison failed (consider setting kSaveImagesIfComparisonFailed to true to "
             "see the actual image generated).");
     }
 
     return {};
+}
+
+namespace {
+
+static constexpr uint8_t ClampToU8(int x) {
+    if (x < 0) return 0;
+    if (x > 255) return 255;
+    return static_cast<uint8_t>(x);
+}
+
+static constexpr int SaturateToInt(float x) {
+    constexpr int kMaxS32FitsInFloat = 2147483520;
+    constexpr int kMinS32FitsInFloat = -kMaxS32FitsInFloat;
+    x = x < kMaxS32FitsInFloat ? x : kMaxS32FitsInFloat;
+    x = x > kMinS32FitsInFloat ? x : kMinS32FitsInFloat;
+    return (int)x;
+}
+
+static constexpr float Round(float x) { return (float)((double)x); }
+
+}  // namespace
+
+void RGBToYUV(uint8_t r, uint8_t g, uint8_t b, uint8_t* outY, uint8_t* outU, uint8_t* outV) {
+    static const float kRGBToYUVBT601FullRange[] = {
+        // clang-format off
+         0.299000f,  0.587000f,  0.114000f,  0.000000f,  0.000000f,
+        -0.168736f, -0.331264f,  0.500000f,  0.000000f,  0.501961f,
+         0.500000f, -0.418688f, -0.081312f,  0.000000f,  0.501961f,
+         0.000000f,  0.000000f,  0.000000f,  1.000000f,  0.000000f,
+        // clang-format on
+    };
+
+    *outY = ClampToU8(SaturateToInt(
+        Round((kRGBToYUVBT601FullRange[0] * r) + (kRGBToYUVBT601FullRange[1] * g) +
+              (kRGBToYUVBT601FullRange[2] * b) + (kRGBToYUVBT601FullRange[4] * 255))));
+    *outU = ClampToU8(SaturateToInt(
+        Round((kRGBToYUVBT601FullRange[5] * r) + (kRGBToYUVBT601FullRange[6] * g) +
+              (kRGBToYUVBT601FullRange[7] * b) + (kRGBToYUVBT601FullRange[9] * 255))));
+    *outV = ClampToU8(SaturateToInt(
+        Round((kRGBToYUVBT601FullRange[10] * r) + (kRGBToYUVBT601FullRange[11] * g) +
+              (kRGBToYUVBT601FullRange[12] * b) + (kRGBToYUVBT601FullRange[14] * 255))));
 }
 
 }  // namespace tests
