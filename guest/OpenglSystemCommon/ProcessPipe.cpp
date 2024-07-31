@@ -189,12 +189,6 @@ void processPipeRestart() {
     sNeedInit = true;
 }
 
-void refreshHostConnection() {
-    HostConnection* hostConn = HostConnection::get();
-    ExtendedRCEncoderContext* rcEnc = hostConn->rcEncoder();
-    rcEnc->rcSetPuid(rcEnc, sProcUID);
-}
-
 uint32_t* getSeqnoPtrForProcess() {
     // It's assumed process pipe state has already been initialized.
     return sSeqnoPtr;
