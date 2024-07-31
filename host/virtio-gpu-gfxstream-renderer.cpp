@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <variant>
 
-#include "BlobManager.h"
+#include "ExternalObjectManager.h"
 #include "FrameBuffer.h"
 #include "GfxStreamAgents.h"
 #include "VirtioGpuTimelines.h"
@@ -220,8 +220,9 @@ using android::base::MetricsLogger;
 using android::base::SharedMemory;
 
 using emugl::FatalError;
-using gfxstream::BlobManager;
-using gfxstream::ManagedDescriptorInfo;
+using gfxstream::BlobDescriptorInfo;
+using gfxstream::ExternalObjectManager;
+using gfxstream::SyncDescriptorInfo;
 
 using VirtioGpuResId = uint32_t;
 
@@ -242,6 +243,8 @@ struct PipeCtxEntry {
     uint32_t addressSpaceHandle;
     bool hasAddressSpaceHandle;
     std::unordered_map<VirtioGpuResId, uint32_t> addressSpaceHandles;
+    std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
+    std::shared_ptr<gfxstream::SyncDescriptorInfo> latestFence;
 };
 
 enum class ResType {
@@ -252,6 +255,8 @@ enum class ResType {
     BUFFER,
     // Used as a GPU texture.
     COLOR_BUFFER,
+    // Used as a blob and not known to FrameBuffer.
+    BLOB,
 };
 
 struct AlignedMemory {
@@ -312,7 +317,7 @@ struct PipeResEntry {
     ResType type;
     std::shared_ptr<RingBlob> ringBlob;
     bool externalAddr = false;
-    std::shared_ptr<ManagedDescriptorInfo> descriptorInfo = nullptr;
+    std::shared_ptr<BlobDescriptorInfo> descriptorInfo = nullptr;
 };
 
 static inline uint32_t align_up(uint32_t n, uint32_t a) { return ((n + a - 1) / a) * a; }
@@ -782,6 +787,7 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
         std::unordered_map<uint32_t, uint32_t> map;
+        std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
 
         PipeCtxEntry res = {
             std::move(contextName),  // contextName
@@ -792,6 +798,7 @@ class PipeVirglRenderer {
             0,                       // AS handle
             false,                   // does not have an AS handle
             map,                     // resourceId --> ASG handle map
+            blobMap,                 // blobId -> resource create args
         };
 
         stream_renderer_debug("initial host pipe for ctxid %u: %p", ctx_id, hostPipe);
@@ -1023,6 +1030,63 @@ class PipeVirglRenderer {
                     [this, taskId] { mVirtioGpuTimelines->notifyTaskCompletion(taskId); });
                 break;
             }
+            case GFXSTREAM_RESOURCE_CREATE_3D: {
+                DECODE(create3d, gfxstream::gfxstreamResourceCreate3d, buffer)
+                struct stream_renderer_resource_create_args rc3d = {0};
+
+                rc3d.target = create3d.target;
+                rc3d.format = create3d.format;
+                rc3d.bind = create3d.bind;
+                rc3d.width = create3d.width;
+                rc3d.height = create3d.height;
+                rc3d.depth = create3d.depth;
+                rc3d.array_size = create3d.arraySize;
+                rc3d.last_level = create3d.lastLevel;
+                rc3d.nr_samples = create3d.nrSamples;
+                rc3d.flags = create3d.flags;
+
+                auto ctxIt = mContexts.find(cmd->ctx_id);
+                if (ctxIt == mContexts.end()) {
+                    stream_renderer_error("ctx id %u is not found", cmd->ctx_id);
+                    return -EINVAL;
+                }
+
+                auto& ctxEntry = ctxIt->second;
+                if (ctxEntry.blobMap.count(create3d.blobId)) {
+                    stream_renderer_error("blob ID already in use");
+                    return -EINVAL;
+                }
+
+                ctxEntry.blobMap[create3d.blobId] = rc3d;
+                break;
+            }
+            case GFXSTREAM_ACQUIRE_SYNC: {
+                DECODE(acquireSync, gfxstream::gfxstreamAcquireSync, buffer);
+
+                auto ctxIt = mContexts.find(cmd->ctx_id);
+                if (ctxIt == mContexts.end()) {
+                    stream_renderer_error("ctx id %u is not found", cmd->ctx_id);
+                    return -EINVAL;
+                }
+
+                auto& ctxEntry = ctxIt->second;
+                if (ctxEntry.latestFence) {
+                    stream_renderer_error("expected latest fence to empty");
+                    return -EINVAL;
+                }
+
+                auto syncDescriptorInfoOpt = ExternalObjectManager::get()->removeSyncDescriptorInfo(
+                    cmd->ctx_id, acquireSync.syncId);
+                if (syncDescriptorInfoOpt) {
+                    ctxEntry.latestFence = std::make_shared<gfxstream::SyncDescriptorInfo>(
+                        std::move(*syncDescriptorInfoOpt));
+                } else {
+                    stream_renderer_error("failed to get sync descriptor info");
+                    return -EINVAL;
+                }
+
+                break;
+            }
             case GFXSTREAM_PLACEHOLDER_COMMAND_VK: {
                 // Do nothing, this is a placeholder command
                 break;
@@ -1069,6 +1133,25 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
         mVirtioGpuTimelines->enqueueFence(ring, fence_id, std::move(callback));
+
+        return 0;
+    }
+
+    int acquireContextFence(uint32_t ctx_id, uint64_t fenceId) {
+        auto ctxIt = mContexts.find(ctx_id);
+        if (ctxIt == mContexts.end()) {
+            stream_renderer_error("ctx id %u is not found", ctx_id);
+            return -EINVAL;
+        }
+
+        auto& ctxEntry = ctxIt->second;
+        if (ctxEntry.latestFence) {
+            mSyncMap[fenceId] = ctxEntry.latestFence;
+            ctxEntry.latestFence = nullptr;
+        } else {
+            stream_renderer_error("Failed to acquire sync descriptor");
+            return -EINVAL;
+        }
 
         return 0;
     }
@@ -1150,7 +1233,13 @@ class PipeVirglRenderer {
 
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const uint32_t fwkformat = virgl_format_to_fwk_format(args->format);
-        const bool linear = !!(args->bind & VIRGL_BIND_LINEAR);
+
+        const bool linear =
+#ifdef GFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL
+            !!(args->bind & VIRGL_BIND_LINEAR);
+#else
+            false;
+#endif
         gfxstream::FrameBuffer::getFB()->createColorBufferWithHandle(
             args->width, args->height, glformat, (gfxstream::FrameworkFormat)fwkformat,
             args->handle, linear);
@@ -1165,6 +1254,8 @@ class PipeVirglRenderer {
 
         const auto resType = getResourceType(*args);
         switch (resType) {
+            case ResType::BLOB:
+                return -EINVAL;
             case ResType::PIPE:
                 break;
             case ResType::BUFFER:
@@ -1207,6 +1298,7 @@ class PipeVirglRenderer {
 
         auto& entry = it->second;
         switch (entry.type) {
+            case ResType::BLOB:
             case ResType::PIPE:
                 break;
             case ResType::BUFFER:
@@ -1434,6 +1526,8 @@ class PipeVirglRenderer {
 
         auto& entry = it->second;
         switch (entry.type) {
+            case ResType::BLOB:
+                return -EINVAL;
             case ResType::PIPE:
                 ret = handleTransferReadPipe(&entry, offset, box);
                 break;
@@ -1483,6 +1577,8 @@ class PipeVirglRenderer {
         }
 
         switch (entry.type) {
+            case ResType::BLOB:
+                return -EINVAL;
             case ResType::PIPE:
                 ret = handleTransferWritePipe(&entry, offset, box);
                 break;
@@ -1539,6 +1635,14 @@ class PipeVirglRenderer {
                 if (vk_emu && vk_emu->live) {
                     capset->deferredMapping = 1;
                 }
+
+#if GFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS
+                capset->alwaysBlob = 1;
+#endif
+
+#if GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC
+                capset->externalSync = 1;
+#endif
                 break;
             }
             case VIRTGPU_CAPSET_GFXSTREAM_MAGMA: {
@@ -1717,8 +1821,47 @@ class PipeVirglRenderer {
 
         PipeResEntry e;
         struct stream_renderer_resource_create_args args = {0};
+        std::optional<BlobDescriptorInfo> descriptorInfoOpt = std::nullopt;
         e.args = args;
         e.hostPipe = 0;
+
+        auto ctxIt = mContexts.find(ctx_id);
+        if (ctxIt == mContexts.end()) {
+            stream_renderer_error("ctx id %u is not found", ctx_id);
+            return -EINVAL;
+        }
+
+        auto& ctxEntry = ctxIt->second;
+
+        ResType blobType = ResType::BLOB;
+
+        auto blobIt = ctxEntry.blobMap.find(create_blob->blob_id);
+        if (blobIt != ctxEntry.blobMap.end()) {
+            auto& create3d = blobIt->second;
+            create3d.handle = res_handle;
+
+            const auto resType = getResourceType(create3d);
+            switch (resType) {
+                case ResType::BLOB:
+                    return -EINVAL;
+                case ResType::PIPE:
+                    // Fallthrough for pipe is intended for blob buffers.
+                case ResType::BUFFER:
+                    blobType = ResType::BUFFER;
+                    handleCreateResourceBuffer(&create3d);
+                    descriptorInfoOpt = gfxstream::FrameBuffer::getFB()->exportBuffer(res_handle);
+                    break;
+                case ResType::COLOR_BUFFER:
+                    blobType = ResType::COLOR_BUFFER;
+                    handleCreateResourceColorBuffer(&create3d);
+                    descriptorInfoOpt =
+                        gfxstream::FrameBuffer::getFB()->exportColorBuffer(res_handle);
+                    break;
+            }
+
+            e.args = create3d;
+            ctxEntry.blobMap.erase(create_blob->blob_id);
+        }
 
         if (create_blob->blob_id == 0) {
             int ret = createRingBlob(e, res_handle, create_blob, handle);
@@ -1730,20 +1873,23 @@ class PipeVirglRenderer {
                 (create_blob->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
 #if defined(__linux__) || defined(__QNX__)
                 ManagedDescriptor managedHandle(handle->os_handle);
-                BlobManager::get()->addDescriptorInfo(ctx_id, create_blob->blob_id,
-                                                      std::move(managedHandle), handle->handle_type,
-                                                      0, std::nullopt);
+                ExternalObjectManager::get()->addBlobDescriptorInfo(
+                    ctx_id, create_blob->blob_id, std::move(managedHandle), handle->handle_type, 0,
+                    std::nullopt);
 
                 e.caching = STREAM_RENDERER_MAP_CACHE_CACHED;
 #else
                 return -EINVAL;
 #endif
             } else {
-                auto descriptorInfoOpt =
-                    BlobManager::get()->removeDescriptorInfo(ctx_id, create_blob->blob_id);
+                if (!descriptorInfoOpt) {
+                    descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
+                        ctx_id, create_blob->blob_id);
+                }
+
                 if (descriptorInfoOpt) {
                     e.descriptorInfo =
-                        std::make_shared<ManagedDescriptorInfo>(std::move(*descriptorInfoOpt));
+                        std::make_shared<BlobDescriptorInfo>(std::move(*descriptorInfoOpt));
                 } else {
                     return -EINVAL;
                 }
@@ -1751,7 +1897,8 @@ class PipeVirglRenderer {
                 e.caching = e.descriptorInfo->caching;
             }
         } else {
-            auto entryOpt = BlobManager::get()->removeMapping(ctx_id, create_blob->blob_id);
+            auto entryOpt =
+                ExternalObjectManager::get()->removeMapping(ctx_id, create_blob->blob_id);
             if (entryOpt) {
                 e.hva = entryOpt->addr;
                 e.caching = entryOpt->caching;
@@ -1764,6 +1911,7 @@ class PipeVirglRenderer {
         e.blobId = create_blob->blob_id;
         e.blobMem = create_blob->blob_mem;
         e.blobFlags = create_blob->blob_flags;
+        e.type = blobType;
         e.iov = nullptr;
         e.numIovs = 0;
         e.linear = 0;
@@ -1880,22 +2028,12 @@ class PipeVirglRenderer {
         }
 
         if (entry.descriptorInfo) {
-            bool shareable = entry.blobFlags &
-                             (STREAM_BLOB_FLAG_USE_SHAREABLE | STREAM_BLOB_FLAG_USE_CROSS_DEVICE);
-
-            DescriptorType rawDescriptor;
-            if (shareable) {
-                // TODO: Add ManagedDescriptor::{clone, dup} method and use it;
-                // This should have no affect since gfxstream allocates mappable-only buffers
-                // currently
+	    DescriptorType rawDescriptor;
+            auto rawDescriptorOpt = entry.descriptorInfo->descriptor.release();
+            if (rawDescriptorOpt)
+                rawDescriptor = *rawDescriptorOpt;
+            else
                 return -EINVAL;
-            } else {
-                auto rawDescriptorOpt = entry.descriptorInfo->descriptor.release();
-                if (rawDescriptorOpt)
-                    rawDescriptor = *rawDescriptorOpt;
-                else
-                    return -EINVAL;
-            }
 
             handle->handle_type = entry.descriptorInfo->handleType;
 
@@ -1909,6 +2047,31 @@ class PipeVirglRenderer {
         }
 
         return -EINVAL;
+    }
+
+    int exportFence(uint64_t fenceId, struct stream_renderer_handle* handle) {
+        auto it = mSyncMap.find(fenceId);
+        if (it == mSyncMap.end()) {
+            return -EINVAL;
+        }
+
+        auto& entry = it->second;
+        DescriptorType rawDescriptor;
+        auto rawDescriptorOpt = entry->descriptor.release();
+        if (rawDescriptorOpt)
+            rawDescriptor = *rawDescriptorOpt;
+        else
+            return -EINVAL;
+
+        handle->handle_type = entry->handleType;
+
+#ifdef _WIN32
+        handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
+#else
+        handle->os_handle = static_cast<int64_t>(rawDescriptor);
+#endif
+
+        return 0;
     }
 
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info) {
@@ -2014,6 +2177,7 @@ class PipeVirglRenderer {
     std::unordered_map<VirtioGpuResId, PipeResEntry> mResources;
     std::unordered_map<VirtioGpuCtxId, std::vector<VirtioGpuResId>> mContextResources;
     std::unordered_map<VirtioGpuResId, std::vector<VirtioGpuCtxId>> mResourceContexts;
+    std::unordered_map<uint64_t, std::shared_ptr<SyncDescriptorInfo>> mSyncMap;
 
     // When we wait for gpu or wait for gpu vulkan, the next (and subsequent)
     // fences created for that context should not be signaled immediately.
@@ -2124,6 +2288,13 @@ VG_EXPORT int stream_renderer_context_create(uint32_t ctx_id, uint32_t nlen, con
 }
 
 VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* fence) {
+    if (fence->flags & STREAM_RENDERER_FLAG_FENCE_SHAREABLE) {
+        int ret = sRenderer()->acquireContextFence(fence->ctx_id, fence->fence_id);
+        if (ret) {
+            return ret;
+        }
+    }
+
     if (fence->flags & STREAM_RENDERER_FLAG_FENCE_RING_IDX) {
         sRenderer()->createFence(fence->fence_id, VirtioGpuRingContextSpecific{
                                                       .mCtxId = fence->ctx_id,
@@ -2134,6 +2305,11 @@ VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* f
     }
 
     return 0;
+}
+
+VG_EXPORT int stream_renderer_export_fence(uint64_t fence_id,
+                                           struct stream_renderer_handle* handle) {
+    return sRenderer()->exportFence(fence_id, handle);
 }
 
 VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
@@ -2422,6 +2598,8 @@ int parseGfxstreamFeatures(const int renderer_flags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, ExternalBlob,
         renderer_flags & STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, VulkanExternalSync,
+                                       renderer_flags & STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, GlAsyncSwap, false);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
@@ -2433,7 +2611,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, GlPipeChecksum, false);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
-        &features, GuestUsesAngle,
+        &features, GuestVulkanOnly,
         (renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT) &&
         !(renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT));
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
@@ -2699,6 +2877,10 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
         return -EINVAL;
     }
 
+#if GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC
+    renderer_flags |= STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC;
+#endif
+
     gfxstream::host::FeatureSet features;
     int ret = parseGfxstreamFeatures(renderer_flags, renderer_features_str, features);
     if (ret) {
@@ -2716,6 +2898,15 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     gfxstream::vk::vk_util::setVkCheckCallbacks(
         std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
             gfxstream::vk::vk_util::VkCheckCallbacks{
+                .onVkErrorDeviceLost =
+                    []() {
+                        auto fb = gfxstream::FrameBuffer::getFB();
+                        if (!fb) {
+                            ERR("FrameBuffer not yet initialized. Dropping device lost event");
+                            return;
+                        }
+                        fb->logVulkanDeviceLost();
+                    },
                 .onVkErrorOutOfMemory =
                     [](VkResult result, const char* function, int line) {
                         auto fb = gfxstream::FrameBuffer::getFB();
