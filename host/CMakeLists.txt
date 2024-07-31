@@ -24,7 +24,7 @@ endif()
 # Stream server core
 set(stream-server-core-sources
     Buffer.cpp
-    BlobManager.cpp
+    ExternalObjectManager.cpp
     ColorBuffer.cpp
     GfxStreamAgents.cpp
     VirtioGpuTimelines.cpp

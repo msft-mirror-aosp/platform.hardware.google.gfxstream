@@ -24,6 +24,10 @@ using android::base::AutoLock;
 using android::base::Lock;
 using android::base::pj;
 
+#ifndef VERBOSE
+#define VERBOSE INFO
+#endif
+
 namespace gfxstream {
 namespace vk {
 
@@ -90,7 +94,7 @@ static void initIcdPaths(bool forTesting) {
         // 4: Log errors, warnings, infos and debug messages.
         const bool verboseLogs =
             (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
-        const char* logLevelValue = verboseLogs ? "4" : "2";
+        const char* logLevelValue = verboseLogs ? "4" : "1";
         android::base::setEnvironmentVariable("MVK_CONFIG_LOG_LEVEL", logLevelValue);
 
         //  Limit MoltenVK to use single queue, as some older ANGLE versions
@@ -100,6 +104,14 @@ static void initIcdPaths(bool forTesting) {
         //  submitted to a queue will give the same result as if they had been run in
         //  submission order.
         android::base::setEnvironmentVariable("MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE", "0");
+
+        // TODO(b/351765838): VVL won't work with MoltenVK due to the current
+        //  way of external memory handling, add it into disable list to
+        //  avoid users enabling it implicitly (i.e. via vkconfig).
+        //  It can be enabled with VK_LOADER_LAYERS_ALLOW=VK_LAYER_KHRONOS_validation
+        INFO("Vulkan Validation Layers won't be enabled with MoltenVK");
+        android::base::setEnvironmentVariable("VK_LOADER_LAYERS_DISABLE",
+                                              "VK_LAYER_KHRONOS_validation");
 #else
         // By default, on other platforms, just use whatever the system
         // is packing.
@@ -115,17 +127,18 @@ class SharedLibraries {
 
     bool addLibrary(const std::string& path) {
         if (size() >= mSizeLimit) {
-            fprintf(stderr, "cannot add library %s: full\n", path.c_str());
+            WARN("Cannot add library %s due to size limit(%d)", path.c_str(), mSizeLimit);
             return false;
         }
 
         auto library = android::base::SharedLibrary::open(path.c_str());
         if (library) {
             mLibs.push_back(library);
-            fprintf(stderr, "added library %s\n", path.c_str());
+            INFO("Added library: %s", path.c_str());
             return true;
         } else {
-            fprintf(stderr, "cannot add library %s: failed\n", path.c_str());
+            // This is expected when searching for a valid library path
+            VERBOSE("Library cannot be added: %s", path.c_str());
             return false;
         }
     }
@@ -271,7 +284,11 @@ class VulkanDispatchImpl {
 
     void* dlopen() {
         if (mVulkanLibs.size() == 0) {
-            mVulkanLibs.addFirstAvailableLibrary(getPossibleLoaderPaths());
+            const std::vector<std::string> possiblePaths = getPossibleLoaderPaths();
+            if (!mVulkanLibs.addFirstAvailableLibrary(possiblePaths)) {
+                ERR("Cannot add any library for Vulkan loader from the list of %d items",
+                    possiblePaths.size());
+            }
         }
         return static_cast<void*>(&mVulkanLibs);
     }
