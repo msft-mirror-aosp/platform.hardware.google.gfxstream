@@ -130,6 +130,9 @@ bool RendererImpl::initialize(int width, int height, gfxstream::host::FeatureSet
     if (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1") {
         set_gfxstream_enable_verbose_logs();
     }
+    if (android::base::getEnvironmentVariable("ANDROID_EMUGL_LOG_COLORS") == "1") {
+        set_gfxstream_enable_log_colors();
+    }
 #endif
 
     if (mRenderWindow) {
