@@ -206,6 +206,7 @@ struct VkEmulation {
         bool supportsDmaBuf = false;
         bool supportsIdProperties = false;
         bool supportsDriverProperties = false;
+        bool supportsExternalMemoryHostProps = false;
         bool hasSamplerYcbcrConversionExtension = false;
         bool supportsSamplerYcbcrConversion = false;
         bool glInteropSupported = false;
@@ -220,6 +221,7 @@ struct VkEmulation {
         VkPhysicalDeviceProperties physdevProps;
         VkPhysicalDeviceMemoryProperties memProps;
         VkPhysicalDeviceIDPropertiesKHR idProps;
+        VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProps;
 
         std::string driverVendor;
         std::string driverVersion;
