@@ -189,6 +189,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void setPostCallback(Renderer::OnPostCallback onPost, void* onPostContext, uint32_t displayId,
                          bool useBgraReadback = false);
 
+    // Tests and reports if the host supports the format through the allocator
+    bool isFormatSupported(GLenum format);
+
     // Create a new ColorBuffer instance from this display instance.
     // |p_width| and |p_height| are its dimensions in pixels.
     // |p_internalFormat| is the OpenGL format of this color buffer.
