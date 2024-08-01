@@ -634,6 +634,20 @@ std::unique_ptr<BufferGl> EmulationGl::loadBuffer(android::base::Stream* stream)
     return BufferGl::onLoad(stream, getColorBufferContextHelper());
 }
 
+bool EmulationGl::isFormatSupported(GLenum format) {
+    const std::vector<GLenum> kUnhandledFormats = {
+        GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, GL_DEPTH24_STENCIL8,
+        GL_DEPTH_COMPONENT32F, GL_DEPTH32F_STENCIL8
+    };
+
+    if (std::find(kUnhandledFormats.begin(), kUnhandledFormats.end(), format) !=
+            kUnhandledFormats.end()) {
+        return false;
+    }
+    // TODO(b/356603558): add proper GL querying, for now preserve existing assumption
+    return true;
+}
+
 std::unique_ptr<ColorBufferGl> EmulationGl::createColorBuffer(uint32_t width, uint32_t height,
                                                               GLenum internalFormat,
                                                               FrameworkFormat frameworkFormat,
