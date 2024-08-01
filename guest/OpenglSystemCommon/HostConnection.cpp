@@ -185,9 +185,9 @@ HostConnection::~HostConnection()
     }
 }
 
-
 // static
-std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset) {
+std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset,
+                                                        int32_t descriptor) {
     const enum HostConnectionType connType = getConnectionTypeFromProperty(capset);
     uint32_t noRenderControlEnc = 0;
 
@@ -244,7 +244,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
             // Use kCapsetGfxStreamVulkan for now, Ranchu HWC needs to be modified to pass in
             // right capset.
-            auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
+            auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan, descriptor);
             auto deviceHandle = device->getDeviceHandle();
             auto stream =
                 createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan, getGlobalHealthMonitor());
@@ -290,8 +290,12 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
         noRenderControlEnc = caps.vulkanCapset.noRenderControlEnc;
     }
 
-    auto fd = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
-    processPipeInit(fd, connType, noRenderControlEnc);
+    auto handle = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
+    if (descriptor >= 0) {
+        handle = descriptor;
+    }
+
+    processPipeInit(handle, connType, noRenderControlEnc);
     if (!noRenderControlEnc && capset == kCapsetGfxStreamVulkan) {
         con->rcEncoder();
     }
@@ -299,20 +303,27 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     return con;
 }
 
-HostConnection* HostConnection::get() { return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone); }
-
-HostConnection* HostConnection::getOrCreate(enum VirtGpuCapset capset) {
-    return getWithThreadInfo(getEGLThreadInfo(), capset);
+HostConnection* HostConnection::get() {
+    return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone, INVALID_DESCRIPTOR);
 }
 
-HostConnection* HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo, enum VirtGpuCapset capset) {
+HostConnection* HostConnection::getOrCreate(enum VirtGpuCapset capset) {
+    return getWithThreadInfo(getEGLThreadInfo(), capset, INVALID_DESCRIPTOR);
+}
+
+HostConnection* HostConnection::getWithDescriptor(enum VirtGpuCapset capset, int32_t descriptor) {
+    return getWithThreadInfo(getEGLThreadInfo(), capset, descriptor);
+}
+
+HostConnection* HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo, enum VirtGpuCapset capset,
+                                                  int32_t descriptor) {
     // Get thread info
     if (!tinfo) {
         return NULL;
     }
 
     if (tinfo->hostConn == NULL) {
-        tinfo->hostConn = HostConnection::createUnique(capset);
+        tinfo->hostConn = HostConnection::createUnique(capset, descriptor);
     }
 
     return tinfo->hostConn.get();
@@ -338,8 +349,9 @@ void HostConnection::exitUnclean() {
 }
 
 // static
-std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset capset) {
-    return connect(capset);
+std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset capset,
+                                                             int32_t descriptor) {
+    return connect(capset, descriptor);
 }
 
 GLEncoder *HostConnection::glEncoder()
