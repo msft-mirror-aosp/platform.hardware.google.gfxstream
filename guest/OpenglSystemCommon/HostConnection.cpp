@@ -25,14 +25,6 @@
 #endif
 #include "renderControl_types.h"
 
-#define DEBUG_HOSTCONNECTION 0
-
-#if DEBUG_HOSTCONNECTION
-#define DPRINT(fmt,...) ALOGD("%s: " fmt, __FUNCTION__, ##__VA_ARGS__);
-#else
-#define DPRINT(...)
-#endif
-
 using gfxstream::guest::ChecksumCalculator;
 using gfxstream::guest::CreateHealthMonitor;
 using gfxstream::guest::HealthMonitor;
@@ -474,7 +466,6 @@ const std::string& HostConnection::queryHostExtensions(ExtendedRCEncoderContext 
 
 void HostConnection::queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc) {
     const std::string& hostExtensions = queryHostExtensions(rcEnc);
-    DPRINT("HostComposition ext %s", hostExtensions.c_str());
     // make sure V2 is checked first before V1, as host may declare supporting both
     if (hostExtensions.find(kHostCompositionV2) != std::string::npos) {
         rcEnc->setHostComposition(HOST_COMPOSITION_V2);
