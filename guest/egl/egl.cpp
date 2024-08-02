@@ -2609,3 +2609,13 @@ EGLint eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags) {
 
     return EGL_TRUE;
 }
+
+EGLBoolean eglInitializeKumquat(EGLint descriptor) {
+    HostConnection* hostCon = HostConnection::getWithDescriptor(kCapsetNone, descriptor);
+    if (!hostCon) {
+        ALOGE("egl: Failed to get kumquat connection");
+        return EGL_FALSE;
+    }
+
+    return EGL_TRUE;
+}
