@@ -3320,128 +3320,129 @@ class VkDecoderGlobalState::Impl {
                                        const VkWriteDescriptorSet* pDescriptorWrites,
                                        uint32_t descriptorCopyCount,
                                        const VkCopyDescriptorSet* pDescriptorCopies) {
-        if (snapshotsEnabled()) {
-            for (uint32_t writeIdx = 0; writeIdx < descriptorWriteCount; writeIdx++) {
-                const VkWriteDescriptorSet& descriptorWrite = pDescriptorWrites[writeIdx];
-                auto ite = mDescriptorSetInfo.find(descriptorWrite.dstSet);
-                if (ite == mDescriptorSetInfo.end()) {
-                    continue;
-                }
-                DescriptorSetInfo& descriptorSetInfo = ite->second;
-                auto& table = descriptorSetInfo.allWrites;
-                VkDescriptorType descType = descriptorWrite.descriptorType;
-                uint32_t dstBinding = descriptorWrite.dstBinding;
-                uint32_t dstArrayElement = descriptorWrite.dstArrayElement;
-                uint32_t descriptorCount = descriptorWrite.descriptorCount;
+        for (uint32_t writeIdx = 0; writeIdx < descriptorWriteCount; writeIdx++) {
+            const VkWriteDescriptorSet& descriptorWrite = pDescriptorWrites[writeIdx];
+            auto ite = mDescriptorSetInfo.find(descriptorWrite.dstSet);
+            if (ite == mDescriptorSetInfo.end()) {
+                continue;
+            }
+            DescriptorSetInfo& descriptorSetInfo = ite->second;
+            auto& table = descriptorSetInfo.allWrites;
+            VkDescriptorType descType = descriptorWrite.descriptorType;
+            uint32_t dstBinding = descriptorWrite.dstBinding;
+            uint32_t dstArrayElement = descriptorWrite.dstArrayElement;
+            uint32_t descriptorCount = descriptorWrite.descriptorCount;
 
-                uint32_t arrOffset = dstArrayElement;
+            uint32_t arrOffset = dstArrayElement;
 
-                if (isDescriptorTypeImageInfo(descType)) {
-                    for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
-                         ++writeElemIdx, ++arrOffset) {
-                        // Descriptor writes wrap to the next binding. See
-                        // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkWriteDescriptorSet.html
-                        if (arrOffset >= table[dstBinding].size()) {
-                            ++dstBinding;
-                            arrOffset = 0;
-                        }
-                        auto& entry = table[dstBinding][arrOffset];
-                        entry.imageInfo = descriptorWrite.pImageInfo[writeElemIdx];
-                        entry.writeType = DescriptorSetInfo::DescriptorWriteType::ImageInfo;
-                        entry.descriptorType = descType;
-                        entry.alives.clear();
-                        if (descriptorTypeContainsImage(descType)) {
-                            auto* imageViewInfo =
-                                android::base::find(mImageViewInfo, entry.imageInfo.imageView);
-                            if (imageViewInfo) {
-                                entry.alives.push_back(imageViewInfo->alive);
-                            }
-                        }
-                        if (descriptorTypeContainsSampler(descType)) {
-                            auto* samplerInfo =
-                                android::base::find(mSamplerInfo, entry.imageInfo.sampler);
-                            if (samplerInfo) {
-                                entry.alives.push_back(samplerInfo->alive);
-                            }
-                        }
+            if (isDescriptorTypeImageInfo(descType)) {
+                for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
+                     ++writeElemIdx, ++arrOffset) {
+                    // Descriptor writes wrap to the next binding. See
+                    // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkWriteDescriptorSet.html
+                    if (arrOffset >= table[dstBinding].size()) {
+                        ++dstBinding;
+                        arrOffset = 0;
                     }
-                } else if (isDescriptorTypeBufferInfo(descType)) {
-                    for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
-                         ++writeElemIdx, ++arrOffset) {
-                        if (arrOffset >= table[dstBinding].size()) {
-                            ++dstBinding;
-                            arrOffset = 0;
-                        }
-                        auto& entry = table[dstBinding][arrOffset];
-                        entry.bufferInfo = descriptorWrite.pBufferInfo[writeElemIdx];
-                        entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferInfo;
-                        entry.descriptorType = descType;
-                        entry.alives.clear();
-                        auto* bufferInfo =
-                            android::base::find(mBufferInfo, entry.bufferInfo.buffer);
-                        if (bufferInfo) {
-                            entry.alives.push_back(bufferInfo->alive);
-                        }
-                    }
-                } else if (isDescriptorTypeBufferView(descType)) {
-                    for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
-                         ++writeElemIdx, ++arrOffset) {
-                        if (arrOffset >= table[dstBinding].size()) {
-                            ++dstBinding;
-                            arrOffset = 0;
-                        }
-                        auto& entry = table[dstBinding][arrOffset];
-                        entry.bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
-                        entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
-                        entry.descriptorType = descType;
-                        // TODO: check alive
-                        ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
-                    }
-                } else if (isDescriptorTypeInlineUniformBlock(descType)) {
-                    const VkWriteDescriptorSetInlineUniformBlock* descInlineUniformBlock =
-                        static_cast<const VkWriteDescriptorSetInlineUniformBlock*>(
-                            descriptorWrite.pNext);
-                    while (descInlineUniformBlock &&
-                           descInlineUniformBlock->sType !=
-                               VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK) {
-                        descInlineUniformBlock =
-                            static_cast<const VkWriteDescriptorSetInlineUniformBlock*>(
-                                descInlineUniformBlock->pNext);
-                    }
-                    if (!descInlineUniformBlock) {
-                        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                            << __func__ << ": did not find inline uniform block";
-                        return;
-                    }
-                    auto& entry = table[dstBinding][0];
-                    entry.inlineUniformBlock = *descInlineUniformBlock;
-                    entry.inlineUniformBlockBuffer.assign(
-                        static_cast<const uint8_t*>(descInlineUniformBlock->pData),
-                        static_cast<const uint8_t*>(descInlineUniformBlock->pData) +
-                            descInlineUniformBlock->dataSize);
-                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock;
+                    auto& entry = table[dstBinding][arrOffset];
+                    entry.imageInfo = descriptorWrite.pImageInfo[writeElemIdx];
+                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::ImageInfo;
                     entry.descriptorType = descType;
-                    entry.dstArrayElement = dstArrayElement;
-                } else if (isDescriptorTypeAccelerationStructure(descType)) {
-                    // TODO
-                    // Look for pNext inline uniform block or acceleration structure.
-                    // Append new DescriptorWrite entry that holds the buffer
-                    ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n",
-                        __func__, descType);
+                    entry.alives.clear();
+                    entry.boundColorBuffer.reset();
+                    if (descriptorTypeContainsImage(descType)) {
+                        auto* imageViewInfo =
+                            android::base::find(mImageViewInfo, entry.imageInfo.imageView);
+                        if (imageViewInfo) {
+                            entry.alives.push_back(imageViewInfo->alive);
+                            entry.boundColorBuffer = imageViewInfo->boundColorBuffer;
+                        }
+                    }
+                    if (descriptorTypeContainsSampler(descType)) {
+                        auto* samplerInfo =
+                            android::base::find(mSamplerInfo, entry.imageInfo.sampler);
+                        if (samplerInfo) {
+                            entry.alives.push_back(samplerInfo->alive);
+                        }
+                    }
                 }
+            } else if (isDescriptorTypeBufferInfo(descType)) {
+                for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
+                     ++writeElemIdx, ++arrOffset) {
+                    if (arrOffset >= table[dstBinding].size()) {
+                        ++dstBinding;
+                        arrOffset = 0;
+                    }
+                    auto& entry = table[dstBinding][arrOffset];
+                    entry.bufferInfo = descriptorWrite.pBufferInfo[writeElemIdx];
+                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferInfo;
+                    entry.descriptorType = descType;
+                    entry.alives.clear();
+                    auto* bufferInfo = android::base::find(mBufferInfo, entry.bufferInfo.buffer);
+                    if (bufferInfo) {
+                        entry.alives.push_back(bufferInfo->alive);
+                    }
+                }
+            } else if (isDescriptorTypeBufferView(descType)) {
+                for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
+                     ++writeElemIdx, ++arrOffset) {
+                    if (arrOffset >= table[dstBinding].size()) {
+                        ++dstBinding;
+                        arrOffset = 0;
+                    }
+                    auto& entry = table[dstBinding][arrOffset];
+                    entry.bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
+                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
+                    entry.descriptorType = descType;
+                    // TODO: check alive
+                    ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
+                }
+            } else if (isDescriptorTypeInlineUniformBlock(descType)) {
+                const VkWriteDescriptorSetInlineUniformBlock* descInlineUniformBlock =
+                    static_cast<const VkWriteDescriptorSetInlineUniformBlock*>(
+                        descriptorWrite.pNext);
+                while (descInlineUniformBlock &&
+                       descInlineUniformBlock->sType !=
+                           VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK) {
+                    descInlineUniformBlock =
+                        static_cast<const VkWriteDescriptorSetInlineUniformBlock*>(
+                            descInlineUniformBlock->pNext);
+                }
+                if (!descInlineUniformBlock) {
+                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                        << __func__ << ": did not find inline uniform block";
+                    return;
+                }
+                auto& entry = table[dstBinding][0];
+                entry.inlineUniformBlock = *descInlineUniformBlock;
+                entry.inlineUniformBlockBuffer.assign(
+                    static_cast<const uint8_t*>(descInlineUniformBlock->pData),
+                    static_cast<const uint8_t*>(descInlineUniformBlock->pData) +
+                        descInlineUniformBlock->dataSize);
+                entry.writeType = DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock;
+                entry.descriptorType = descType;
+                entry.dstArrayElement = dstArrayElement;
+            } else if (isDescriptorTypeAccelerationStructure(descType)) {
+                // TODO
+                // Look for pNext inline uniform block or acceleration structure.
+                // Append new DescriptorWrite entry that holds the buffer
+                ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n", __func__,
+                    descType);
             }
-            // TODO: bookkeep pDescriptorCopies
-            // Our primary use case vkQueueCommitDescriptorSetUpdatesGOOGLE does not use
-            // pDescriptorCopies. Thus skip its implementation for now.
-            if (descriptorCopyCount) {
-                ERR("%s: Snapshot does not support descriptor copy yet\n");
-            }
+        }
+        // TODO: bookkeep pDescriptorCopies
+        // Our primary use case vkQueueCommitDescriptorSetUpdatesGOOGLE does not use
+        // pDescriptorCopies. Thus skip its implementation for now.
+        if (descriptorCopyCount && snapshotsEnabled()) {
+            ERR("%s: Snapshot does not support descriptor copy yet\n");
         }
         bool needEmulateWriteDescriptor = false;
         // c++ seems to allow for 0-size array allocation
         std::unique_ptr<bool[]> descriptorWritesNeedDeepCopy(new bool[descriptorWriteCount]);
         for (uint32_t i = 0; i < descriptorWriteCount; i++) {
             const VkWriteDescriptorSet& descriptorWrite = pDescriptorWrites[i];
+            auto descriptorSetInfo =
+                android::base::find(mDescriptorSetInfo, descriptorWrite.dstSet);
             descriptorWritesNeedDeepCopy[i] = false;
             if (!vk_util::vk_descriptor_type_has_image_view(descriptorWrite.descriptorType)) {
                 continue;
@@ -3451,14 +3452,6 @@ class VkDecoderGlobalState::Impl {
                 const auto* imgViewInfo = android::base::find(mImageViewInfo, imageInfo.imageView);
                 if (!imgViewInfo) {
                     continue;
-                }
-                if (imgViewInfo->boundColorBuffer) {
-                    // TODO(igorc): Move this to vkQueueSubmit time.
-                    // Likely can be removed after b/323596143
-                    auto fb = FrameBuffer::getFB();
-                    if (fb) {
-                        fb->invalidateColorBufferForVk(*imgViewInfo->boundColorBuffer);
-                    }
                 }
                 if (descriptorWrite.descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
                     continue;
@@ -4330,12 +4323,12 @@ class VkDecoderGlobalState::Impl {
             // decompress, could we do it once before calling vkCmdDispatch?
             vk->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                                   cmdBufferInfo->computePipeline);
-            if (!cmdBufferInfo->descriptorSets.empty()) {
+            if (!cmdBufferInfo->currentDescriptorSets.empty()) {
                 vk->vkCmdBindDescriptorSets(
                     commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, cmdBufferInfo->descriptorLayout,
-                    cmdBufferInfo->firstSet, cmdBufferInfo->descriptorSets.size(),
-                    cmdBufferInfo->descriptorSets.data(), cmdBufferInfo->dynamicOffsets.size(),
-                    cmdBufferInfo->dynamicOffsets.data());
+                    cmdBufferInfo->firstSet, cmdBufferInfo->currentDescriptorSets.size(),
+                    cmdBufferInfo->currentDescriptorSets.data(),
+                    cmdBufferInfo->dynamicOffsets.size(), cmdBufferInfo->dynamicOffsets.data());
             }
         }
 
@@ -5614,6 +5607,25 @@ class VkDecoderGlobalState::Impl {
                         if (!cmdBufferInfo) {
                             continue;
                         }
+                        for (auto descriptorSet : cmdBufferInfo->allDescriptorSets) {
+                            auto descriptorSetInfo =
+                                android::base::find(mDescriptorSetInfo, descriptorSet);
+                            if (!descriptorSetInfo) {
+                                continue;
+                            }
+                            for (auto& writes : descriptorSetInfo->allWrites) {
+                                for (const auto& write : writes) {
+                                    bool isValid = true;
+                                    for (const auto& alive : write.alives) {
+                                        isValid &= !alive.expired();
+                                    }
+                                    if (isValid && write.boundColorBuffer.has_value()) {
+                                        acquiredColorBuffers.insert(write.boundColorBuffer.value());
+                                    }
+                                }
+                            }
+                        }
+
                         acquiredColorBuffers.merge(cmdBufferInfo->acquiredColorBuffers);
                         releasedColorBuffers.merge(cmdBufferInfo->releasedColorBuffers);
                         for (const auto& ite : cmdBufferInfo->cbLayouts) {
@@ -6205,19 +6217,19 @@ class VkDecoderGlobalState::Impl {
         vk->vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet,
                                     descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
                                     pDynamicOffsets);
-        if (pipelineBindPoint == VK_PIPELINE_BIND_POINT_COMPUTE) {
+        if (descriptorSetCount) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
             if (cmdBufferInfo) {
                 cmdBufferInfo->descriptorLayout = layout;
 
-                if (descriptorSetCount) {
-                    cmdBufferInfo->firstSet = firstSet;
-                    cmdBufferInfo->descriptorSets.assign(pDescriptorSets,
-                                                         pDescriptorSets + descriptorSetCount);
-                    cmdBufferInfo->dynamicOffsets.assign(pDynamicOffsets,
-                                                         pDynamicOffsets + dynamicOffsetCount);
-                }
+                cmdBufferInfo->allDescriptorSets.insert(pDescriptorSets,
+                                                        pDescriptorSets + descriptorSetCount);
+                cmdBufferInfo->firstSet = firstSet;
+                cmdBufferInfo->currentDescriptorSets.assign(pDescriptorSets,
+                                                            pDescriptorSets + descriptorSetCount);
+                cmdBufferInfo->dynamicOffsets.assign(pDynamicOffsets,
+                                                     pDynamicOffsets + dynamicOffsetCount);
             }
         }
     }
@@ -7945,7 +7957,8 @@ class VkDecoderGlobalState::Impl {
         VkPipeline computePipeline = VK_NULL_HANDLE;
         uint32_t firstSet = 0;
         VkPipelineLayout descriptorLayout = VK_NULL_HANDLE;
-        std::vector<VkDescriptorSet> descriptorSets;
+        std::vector<VkDescriptorSet> currentDescriptorSets;
+        std::unordered_set<VkDescriptorSet> allDescriptorSets;
         std::vector<uint32_t> dynamicOffsets;
         std::unordered_set<HandleType> acquiredColorBuffers;
         std::unordered_set<HandleType> releasedColorBuffers;
@@ -7959,7 +7972,8 @@ class VkDecoderGlobalState::Impl {
             computePipeline = VK_NULL_HANDLE;
             firstSet = 0;
             descriptorLayout = VK_NULL_HANDLE;
-            descriptorSets.clear();
+            currentDescriptorSets.clear();
+            allDescriptorSets.clear();
             dynamicOffsets.clear();
             acquiredColorBuffers.clear();
             releasedColorBuffers.clear();
