@@ -299,7 +299,6 @@ class RingBlob : public std::variant<std::unique_ptr<AlignedMemory>,
     }
 };
 
-
 struct PipeResEntry {
     stream_renderer_resource_create_args args;
     iovec* iov;
@@ -341,12 +340,13 @@ const uint32_t kGlRg8 = 0x822b;
 const uint32_t kGlLuminance = 0x1909;
 const uint32_t kGlLuminanceAlpha = 0x190a;
 const uint32_t kGlUnsignedByte = 0x1401;
+const uint32_t kGlUnsignedShort = 0x1403;
 const uint32_t kGlUnsignedShort565 = 0x8363;
 const uint32_t kGlDepth16 = 0x81A5;
 const uint32_t kGlDepth24 = 0x81A6;
 const uint32_t kGlDepth24Stencil8 = 0x88F0;
 const uint32_t kGlDepth32f = 0x8CAC;
-const uint32_t kGlDepth32fStencil78 = 0x8CAD;
+const uint32_t kGlDepth32fStencil8 = 0x8CAD;
 
 constexpr uint32_t kFwkFormatGlCompat = 0;
 constexpr uint32_t kFwkFormatYV12 = 1;
@@ -416,7 +416,7 @@ static inline uint32_t virgl_format_to_gl(uint32_t virgl_format) {
         case VIRGL_FORMAT_Z32_FLOAT:
             return kGlDepth32f;
         case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
-            return  kGlDepth32fStencil78;
+            return kGlDepth32fStencil8;
         default:
             return kGlRgba;
     }
@@ -459,9 +459,59 @@ static inline uint32_t gl_format_to_natural_type(uint32_t format) {
             return kGlUnsignedByte;
         case kGlRgb565:
             return kGlUnsignedShort565;
+        case kGlDepth16:
+            return kGlUnsignedShort;
         default:
             return kGlUnsignedByte;
     }
+}
+
+#ifndef DRM_FORMAT_DEPTH16
+#define DRM_FORMAT_DEPTH16 fourcc_code('D', '1', '6', ' ')
+#define DRM_FORMAT_DEPTH24 fourcc_code('D', '2', '4', 'X')
+#define DRM_FORMAT_DEPTH24_STENCIL8 fourcc_code('D', '2', '4', 'S')
+#define DRM_FORMAT_DEPTH32 fourcc_code('D', '3', '2', 'F')
+#define DRM_FORMAT_DEPTH32_STENCIL8 fourcc_code('D', 'F', 'S', '8')
+#endif
+
+static uint32_t drm_format_to_virgl_format(uint32_t format) {
+    switch (format) {
+        case DRM_FORMAT_DEPTH16:
+            return VIRGL_FORMAT_Z16_UNORM;
+        case DRM_FORMAT_DEPTH24:
+            return VIRGL_FORMAT_Z24X8_UNORM;
+        case DRM_FORMAT_DEPTH24_STENCIL8:
+            return VIRGL_FORMAT_Z24_UNORM_S8_UINT;
+        case DRM_FORMAT_DEPTH32:
+            return VIRGL_FORMAT_Z32_FLOAT;
+        case DRM_FORMAT_DEPTH32_STENCIL8:
+            return VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT;
+        default:
+            stream_renderer_error("Unknown drm format for virgl conversion 0x%x", format);
+            return 0;
+    }
+}
+
+static void set_virgl_format_supported(uint32_t* mask, uint32_t virgl_format, bool supported) {
+    uint32_t index = virgl_format / 32;
+    uint32_t bit_offset = 1 << (virgl_format & 31);
+    if (supported) {
+        mask[index] |= bit_offset;
+    } else {
+        mask[index] &= ~bit_offset;
+    }
+}
+
+static void set_drm_format_supported(uint32_t* mask, uint32_t drm_format, bool supported) {
+    uint32_t virgl_format = drm_format_to_virgl_format(drm_format);
+    set_virgl_format_supported(mask, virgl_format, supported);
+}
+
+static bool is_drm_format_supported(uint32_t* mask, uint32_t drm_format) {
+    uint32_t virgl_format = drm_format_to_virgl_format(drm_format);
+    uint32_t index = virgl_format / 32;
+    uint32_t bit_offset = 1 << (virgl_format & 31);
+    return (mask[index] & bit_offset) ? true : false;
 }
 
 static inline size_t virgl_format_to_linear_base(uint32_t format, uint32_t totalWidth,
@@ -473,6 +523,7 @@ static inline size_t virgl_format_to_linear_base(uint32_t format, uint32_t total
         uint32_t bpp = 4;
         switch (format) {
             case VIRGL_FORMAT_R16G16B16A16_FLOAT:
+            case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
                 bpp = 8;
                 break;
             case VIRGL_FORMAT_B8G8R8X8_UNORM:
@@ -480,11 +531,15 @@ static inline size_t virgl_format_to_linear_base(uint32_t format, uint32_t total
             case VIRGL_FORMAT_R8G8B8X8_UNORM:
             case VIRGL_FORMAT_R8G8B8A8_UNORM:
             case VIRGL_FORMAT_R10G10B10A2_UNORM:
+            case VIRGL_FORMAT_Z24X8_UNORM:
+            case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+            case VIRGL_FORMAT_Z32_FLOAT:
                 bpp = 4;
                 break;
             case VIRGL_FORMAT_B5G6R5_UNORM:
             case VIRGL_FORMAT_R8G8_UNORM:
             case VIRGL_FORMAT_R16_UNORM:
+            case VIRGL_FORMAT_Z16_UNORM:
                 bpp = 2;
                 break;
             case VIRGL_FORMAT_R8_UNORM:
@@ -548,6 +603,7 @@ static inline size_t virgl_format_to_total_xfer_len(uint32_t format, uint32_t to
         uint32_t bpp = 4;
         switch (format) {
             case VIRGL_FORMAT_R16G16B16A16_FLOAT:
+            case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
                 bpp = 8;
                 break;
             case VIRGL_FORMAT_B8G8R8X8_UNORM:
@@ -555,11 +611,15 @@ static inline size_t virgl_format_to_total_xfer_len(uint32_t format, uint32_t to
             case VIRGL_FORMAT_R8G8B8X8_UNORM:
             case VIRGL_FORMAT_R8G8B8A8_UNORM:
             case VIRGL_FORMAT_R10G10B10A2_UNORM:
+            case VIRGL_FORMAT_Z24X8_UNORM:
+            case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+            case VIRGL_FORMAT_Z32_FLOAT:
                 bpp = 4;
                 break;
             case VIRGL_FORMAT_B5G6R5_UNORM:
             case VIRGL_FORMAT_R16_UNORM:
             case VIRGL_FORMAT_R8G8_UNORM:
+            case VIRGL_FORMAT_Z16_UNORM:
                 bpp = 2;
                 break;
             case VIRGL_FORMAT_R8_UNORM:
@@ -691,9 +751,7 @@ class CleanupThread {
     CleanupThread(CleanupThread&& other) = delete;
     CleanupThread& operator=(CleanupThread&& other) = delete;
 
-    void enqueueCleanup(GenericCleanup command) {
-        mWorker.enqueue(std::move(command));
-    }
+    void enqueueCleanup(GenericCleanup command) { mWorker.enqueue(std::move(command)); }
 
     void stop() {
         mWorker.enqueue(Exit{});
@@ -710,7 +768,8 @@ class PipeVirglRenderer {
    public:
     PipeVirglRenderer() = default;
 
-    int init(void* cookie, gfxstream::host::FeatureSet features, stream_renderer_fence_callback fence_callback) {
+    int init(void* cookie, gfxstream::host::FeatureSet features,
+             stream_renderer_fence_callback fence_callback) {
         stream_renderer_debug("cookie: %p", cookie);
         mCookie = cookie;
         mFeatures = features;
@@ -732,9 +791,7 @@ class PipeVirglRenderer {
         return 0;
     }
 
-    void teardown() {
-        mCleanupThread.reset();
-    }
+    void teardown() { mCleanupThread.reset(); }
 
     int resetPipe(GoldfishHwPipe* hwPipe, GoldfishHostPipe* hostPipe) {
         stream_renderer_debug("Want to reset hwpipe %p to hostpipe %p", hwPipe, hostPipe);
@@ -1643,6 +1700,26 @@ class PipeVirglRenderer {
 #if GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC
                 capset->externalSync = 1;
 #endif
+
+                const std::vector<uint32_t> kVirglPossibleFormats = {
+                    VIRGL_FORMAT_B8G8R8X8_UNORM, VIRGL_FORMAT_B8G8R8A8_UNORM,
+                    VIRGL_FORMAT_R8G8B8X8_UNORM, VIRGL_FORMAT_R8G8B8A8_UNORM,
+                    VIRGL_FORMAT_B5G6R5_UNORM, VIRGL_FORMAT_R16_UNORM,
+                    VIRGL_FORMAT_R16G16B16A16_FLOAT, VIRGL_FORMAT_R8_UNORM,
+                    VIRGL_FORMAT_R8G8_UNORM, VIRGL_FORMAT_NV12,
+                    VIRGL_FORMAT_P010, VIRGL_FORMAT_YV12,
+                    VIRGL_FORMAT_R10G10B10A2_UNORM, VIRGL_FORMAT_Z16_UNORM,
+                    VIRGL_FORMAT_Z24X8_UNORM, VIRGL_FORMAT_Z24_UNORM_S8_UINT,
+                    VIRGL_FORMAT_Z32_FLOAT, VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT,
+                };
+
+                memset(capset->virglSupportedFormats, 0, sizeof(capset->virglSupportedFormats));
+
+                for (uint32_t possibleFormat : kVirglPossibleFormats) {
+                    GLenum possibleFormatGl = virgl_format_to_gl(possibleFormat);
+                    const bool supported =  gfxstream::FrameBuffer::getFB()->isFormatSupported(possibleFormatGl);
+                    set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat, supported);
+                }
                 break;
             }
             case VIRTGPU_CAPSET_GFXSTREAM_MAGMA: {
@@ -2028,7 +2105,7 @@ class PipeVirglRenderer {
         }
 
         if (entry.descriptorInfo) {
-	    DescriptorType rawDescriptor;
+            DescriptorType rawDescriptor;
             auto rawDescriptorOpt = entry.descriptorInfo->descriptor.release();
             if (rawDescriptorOpt)
                 rawDescriptor = *rawDescriptorOpt;
@@ -2150,7 +2227,7 @@ class PipeVirglRenderer {
             if (ctxEntry.addressSpaceHandles.count(toUnrefId)) {
                 uint32_t asgHandle = ctxEntry.addressSpaceHandles[toUnrefId];
 
-                mCleanupThread->enqueueCleanup([this, asgBlob = resource.ringBlob, asgHandle](){
+                mCleanupThread->enqueueCleanup([this, asgBlob = resource.ringBlob, asgHandle]() {
                     mAddressSpaceDeviceControlOps->destroy_handle(asgHandle);
                 });
 
@@ -2459,9 +2536,7 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
                                        numBuffers);
     },
     // wait_guest_recv()
-    [](GoldfishHostPipe* hostPipe) {
-        android_pipe_wait_guest_recv(hostPipe);
-    },
+    [](GoldfishHostPipe* hostPipe) { android_pipe_wait_guest_recv(hostPipe); },
     // guest_send()
     [](GoldfishHostPipe** hostPipe, const GoldfishPipeBuffer* buffers, int numBuffers) -> int {
         return android_pipe_guest_send(reinterpret_cast<void**>(hostPipe),
@@ -2469,9 +2544,7 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
                                        numBuffers);
     },
     // wait_guest_send()
-    [](GoldfishHostPipe* hostPipe) {
-        android_pipe_wait_guest_send(hostPipe);
-    },
+    [](GoldfishHostPipe* hostPipe) { android_pipe_wait_guest_send(hostPipe); },
     // guest_wake_on()
     [](GoldfishHostPipe* hostPipe, GoldfishPipeWakeFlags wakeFlags) {
         android_pipe_guest_wake_on(hostPipe, static_cast<int>(wakeFlags));
@@ -2625,7 +2698,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
         !(renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT));
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, RefCountPipe,
-        /*Resources are ref counted via guest file objects.*/false);
+        /*Resources are ref counted via guest file objects.*/ false);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, SystemBlob,
         renderer_flags & STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB);
@@ -2689,7 +2762,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
     }
 
     if (features.SystemBlob.enabled) {
-        if(!features.ExternalBlob.enabled) {
+        if (!features.ExternalBlob.enabled) {
             stream_renderer_error("The SystemBlob features requires the ExternalBlob feature.");
             return -EINVAL;
         }
@@ -2891,7 +2964,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     stream_renderer_info("Gfxstream features:");
     for (const auto& [_, featureInfo] : features.map) {
         stream_renderer_info("    %s: %s (%s)", featureInfo->name.c_str(),
-                             (featureInfo->enabled ? "enabled" : "disabled"), featureInfo->reason.c_str());
+                             (featureInfo->enabled ? "enabled" : "disabled"),
+                             featureInfo->reason.c_str());
     }
 
     // Set non product-specific callbacks
@@ -2932,7 +3006,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     if (!skip_opengles) {
         // aemu currently does its own opengles initialization in
         // qemu/android/android-emu/android/opengles.cpp.
-        int ret = stream_renderer_opengles_init(display_width, display_height, renderer_flags, features);
+        int ret =
+            stream_renderer_opengles_init(display_width, display_height, renderer_flags, features);
         if (ret) {
             return ret;
         }

@@ -94,7 +94,7 @@ static void initIcdPaths(bool forTesting) {
         // 4: Log errors, warnings, infos and debug messages.
         const bool verboseLogs =
             (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
-        const char* logLevelValue = verboseLogs ? "4" : "2";
+        const char* logLevelValue = verboseLogs ? "4" : "1";
         android::base::setEnvironmentVariable("MVK_CONFIG_LOG_LEVEL", logLevelValue);
 
         //  Limit MoltenVK to use single queue, as some older ANGLE versions
