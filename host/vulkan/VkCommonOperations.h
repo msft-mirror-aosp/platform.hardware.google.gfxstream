@@ -206,6 +206,7 @@ struct VkEmulation {
         bool supportsDmaBuf = false;
         bool supportsIdProperties = false;
         bool supportsDriverProperties = false;
+        bool supportsExternalMemoryHostProps = false;
         bool hasSamplerYcbcrConversionExtension = false;
         bool supportsSamplerYcbcrConversion = false;
         bool glInteropSupported = false;
@@ -220,6 +221,7 @@ struct VkEmulation {
         VkPhysicalDeviceProperties physdevProps;
         VkPhysicalDeviceMemoryProperties memProps;
         VkPhysicalDeviceIDPropertiesKHR idProps;
+        VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProps;
 
         std::string driverVendor;
         std::string driverVersion;
@@ -491,6 +493,8 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
                                                                         uint32_t width,
                                                                         uint32_t height,
                                                                         VkImageTiling tiling);
+
+bool isFormatSupported(GLenum format);
 
 bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
                          FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
