@@ -484,7 +484,6 @@ static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList() {
         {VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM},
         {VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM},
         {VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16},
-
     };
 
     std::vector<VkImageType> types = {
@@ -517,6 +516,36 @@ static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList() {
                     info.createFlags = combo.createFlags;
                     res.push_back(info);
                 }
+            }
+        }
+    }
+
+    // Add depth attachment cases
+    std::vector<ImageFeatureCombo> depthCombos = {
+        // Depth formats
+        {VK_FORMAT_D16_UNORM},
+        {VK_FORMAT_X8_D24_UNORM_PACK32},
+        {VK_FORMAT_D24_UNORM_S8_UINT},
+        {VK_FORMAT_D32_SFLOAT},
+        {VK_FORMAT_D32_SFLOAT_S8_UINT},
+    };
+
+    std::vector<VkImageUsageFlags> depthUsageFlags = {
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+        VK_IMAGE_USAGE_SAMPLED_BIT,          VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+    };
+
+    for (auto combo : depthCombos) {
+        for (auto t : types) {
+            for (auto u : depthUsageFlags) {
+                VkEmulation::ImageSupportInfo info;
+                info.format = combo.format;
+                info.type = t;
+                info.tiling = VK_IMAGE_TILING_OPTIMAL;
+                info.usageFlags = u;
+                info.createFlags = combo.createFlags;
+                res.push_back(info);
             }
         }
     }
@@ -826,16 +855,20 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
             deviceInfos[i].supportsDriverProperties =
                 extensionsSupported(deviceExts, {VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME}) ||
                 (deviceInfos[i].physdevProps.apiVersion >= VK_API_VERSION_1_2);
+            deviceInfos[i].supportsExternalMemoryHostProps = extensionsSupported(deviceExts, {VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME});
 
             if (!sVkEmulation->getPhysicalDeviceProperties2Func) {
                 ERR("Warning: device claims to support ID properties "
                     "but vkGetPhysicalDeviceProperties2 could not be found");
             }
         }
-
         if (sVkEmulation->getPhysicalDeviceProperties2Func) {
+            VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProps = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT,
+            };
             VkPhysicalDeviceProperties2 deviceProps = {
-                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
+
             };
             VkPhysicalDeviceIDProperties idProps = {
                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR,
@@ -854,9 +887,12 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
                 vk_append_struct(&devicePropsChain, &driverProps);
             }
 
+            if(deviceInfos[i].supportsExternalMemoryHostProps) {
+                vk_append_struct(&devicePropsChain, &externalMemoryHostProps);
+            }
             sVkEmulation->getPhysicalDeviceProperties2Func(physdevs[i], &deviceProps);
-
             deviceInfos[i].idProps = vk_make_orphan_copy(idProps);
+            deviceInfos[i].externalMemoryHostProps = vk_make_orphan_copy(externalMemoryHostProps);
 
             std::stringstream driverVendorBuilder;
             driverVendorBuilder << "Vendor " << std::hex << std::setfill('0') << std::showbase
@@ -990,7 +1026,6 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     // in use cases that make sense, if/when they come up.
 
     std::vector<uint32_t> deviceScores(physdevCount, 0);
-
     for (uint32_t i = 0; i < physdevCount; ++i) {
         uint32_t deviceScore = 0;
         if (deviceInfos[i].hasGraphicsQueueFamily) deviceScore += 10000;
@@ -1948,6 +1983,16 @@ static VkFormat glFormat2VkFormat(GLint internalFormat) {
             return VK_FORMAT_R16_UNORM;
         case GL_RG8_EXT:
             return VK_FORMAT_R8G8_UNORM;
+        case GL_DEPTH_COMPONENT16:
+            return VK_FORMAT_D16_UNORM;
+        case GL_DEPTH_COMPONENT24:
+            return VK_FORMAT_X8_D24_UNORM_PACK32;
+        case GL_DEPTH24_STENCIL8:
+            return VK_FORMAT_D24_UNORM_S8_UINT;
+        case GL_DEPTH_COMPONENT32F:
+            return VK_FORMAT_D32_SFLOAT;
+        case GL_DEPTH32F_STENCIL8:
+            return VK_FORMAT_D32_SFLOAT_S8_UINT;
         default:
             ERR("Unhandled format %d, falling back to VK_FORMAT_R8G8B8A8_UNORM", internalFormat);
             return VK_FORMAT_R8G8B8A8_UNORM;
@@ -2087,6 +2132,8 @@ static std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo_l
     constexpr std::pair<VkFormatFeatureFlags, VkImageUsageFlags> formatUsagePairs[] = {
         {VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT,
          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT},
+        {VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT},
         {VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT, VK_IMAGE_USAGE_SAMPLED_BIT},
         {VK_FORMAT_FEATURE_TRANSFER_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_SRC_BIT},
         {VK_FORMAT_FEATURE_TRANSFER_DST_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT},
@@ -2454,6 +2501,27 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
 
     sVkEmulation->colorBuffers[colorBufferHandle] = res;
     return true;
+}
+
+bool isFormatSupported(GLenum format) {
+    VkFormat vkFormat = glFormat2VkFormat(format);
+    bool supported = !gfxstream::vk::formatIsDepthOrStencil(vkFormat);
+    // TODO(b/356603558): add proper Vulkan querying, for now preserve existing assumption
+    if (!supported) {
+        for (size_t i = 0; i < sVkEmulation->imageSupportInfo.size(); ++i) {
+            // Only enable depth/stencil if it is usable as an attachment
+            if (sVkEmulation->imageSupportInfo[i].format == vkFormat &&
+                gfxstream::vk::formatIsDepthOrStencil(
+                    sVkEmulation->imageSupportInfo[i].format) &&
+                sVkEmulation->imageSupportInfo[i].supported &&
+                sVkEmulation->imageSupportInfo[i]
+                        .formatProps2.formatProperties.optimalTilingFeatures &
+                    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+                supported = true;
+            }
+        }
+    }
+    return supported;
 }
 
 bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
