@@ -99,6 +99,8 @@ REGISTER_VK_STRUCT_ID(VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT,
                       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT)
 REGISTER_VK_STRUCT_ID(VkPhysicalDeviceProtectedMemoryFeatures,
                       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES);
+REGISTER_VK_STRUCT_ID(VkPhysicalDeviceExternalMemoryHostPropertiesEXT,
+                      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT);
 
 #if defined(VK_USE_PLATFORM_SCREEN_QNX)
 REGISTER_VK_STRUCT_ID(VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX,
