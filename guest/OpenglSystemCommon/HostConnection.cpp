@@ -162,17 +162,13 @@ static uint32_t getDrawCallFlushIntervalFromProperty() {
 }
 
 HostConnection::HostConnection()
-    : exitUncleanly(false),
-      m_checksumHelper(),
-      m_hostExtensions(),
-      m_noHostError(true),
-      m_rendernodeFd(-1) { }
+    : m_checksumHelper(), m_hostExtensions(), m_noHostError(true), m_rendernodeFd(-1) {}
 
 HostConnection::~HostConnection()
 {
     // round-trip to ensure that queued commands have been processed
     // before process pipe closure is detected.
-    if (m_rcEnc && !exitUncleanly) {
+    if (m_rcEnc) {
         (void)m_rcEnc->rcGetRendererVersion(m_rcEnc.get());
     }
 
@@ -335,16 +331,6 @@ void HostConnection::exit() {
         return;
     }
 
-    tinfo->hostConn.reset();
-}
-
-void HostConnection::exitUnclean() {
-    EGLThreadInfo *tinfo = getEGLThreadInfo();
-    if (!tinfo) {
-        return;
-    }
-
-    tinfo->hostConn->exitUncleanly = true;
     tinfo->hostConn.reset();
 }
 
