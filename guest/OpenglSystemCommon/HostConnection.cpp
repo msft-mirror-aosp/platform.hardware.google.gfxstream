@@ -17,8 +17,6 @@
 
 #include "GoldfishAddressSpaceStream.h"
 #include "VirtioGpuAddressSpaceStream.h"
-#include "aemu/base/AndroidHealthMonitor.h"
-#include "aemu/base/AndroidHealthMonitorConsumerBasic.h"
 #include "aemu/base/threads/AndroidThread.h"
 #if defined(__ANDROID__)
 #include "android-base/properties.h"
@@ -26,9 +24,6 @@
 #include "renderControl_types.h"
 
 using gfxstream::guest::ChecksumCalculator;
-using gfxstream::guest::CreateHealthMonitor;
-using gfxstream::guest::HealthMonitor;
-using gfxstream::guest::HealthMonitorConsumerBasic;
 using gfxstream::guest::IOStream;
 
 #ifdef GOLDFISH_NO_GL
@@ -92,15 +87,6 @@ constexpr size_t kPageSize = PAGE_SIZE;
 #define STREAM_PORT_NUM     22468
 
 constexpr const auto kEglProp = "ro.hardware.egl";
-
-HealthMonitor<>* getGlobalHealthMonitor() {
-    // Initialize HealthMonitor
-    // Rather than inject as a construct arg, we keep it as a static variable in the .cpp
-    // to avoid setting up dependencies in other repos (external/qemu)
-    static HealthMonitorConsumerBasic sHealthMonitorConsumerBasic;
-    static std::unique_ptr<HealthMonitor<>> sHealthMonitor = CreateHealthMonitor(sHealthMonitorConsumerBasic);
-    return sHealthMonitor.get();
-}
 
 static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capset) {
 #if defined(__Fuchsia__) || defined(LINUX_GUEST_BUILD)
@@ -194,7 +180,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
 #if defined(__ANDROID__)
-            auto stream = createGoldfishAddressSpaceStream(STREAM_BUFFER_SIZE, getGlobalHealthMonitor());
+            auto stream = createGoldfishAddressSpaceStream(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create AddressSpaceStream for host connection\n");
                 return nullptr;
@@ -242,8 +228,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
             // right capset.
             auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan, descriptor);
             auto deviceHandle = device->getDeviceHandle();
-            auto stream =
-                createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan, getGlobalHealthMonitor());
+            auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan);
             if (!stream) {
                 ALOGE("Failed to create virtgpu AddressSpaceStream\n");
                 return nullptr;
@@ -368,7 +353,7 @@ GL2Encoder *HostConnection::gl2Encoder()
 
 VkEncoder* HostConnection::vkEncoder() {
     if (!m_vkEnc) {
-        m_vkEnc = new VkEncoder(m_stream, getGlobalHealthMonitor());
+        m_vkEnc = new VkEncoder(m_stream);
     }
     return m_vkEnc;
 }
