@@ -5855,28 +5855,31 @@ class VkDecoderGlobalState::Impl {
         if (!physicalDevice) {
             return;
         }
-        // Cannot forward this call to driver because nVidia linux driver crahses on it.
-        switch (pExternalSemaphoreInfo->handleType) {
-            case VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT:
-                pExternalSemaphoreProperties->exportFromImportedHandleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
-                pExternalSemaphoreProperties->compatibleHandleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
-                pExternalSemaphoreProperties->externalSemaphoreFeatures =
-                    VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
-                    VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
-                return;
-            case VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT:
-                pExternalSemaphoreProperties->exportFromImportedHandleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
-                pExternalSemaphoreProperties->compatibleHandleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
-                pExternalSemaphoreProperties->externalSemaphoreFeatures =
-                    VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
-                    VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
-                return;
-            default:
-                break;
+
+        if (m_emu->features.VulkanExternalSync.enabled) {
+            // Cannot forward this call to driver because nVidia linux driver crahses on it.
+            switch (pExternalSemaphoreInfo->handleType) {
+                case VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT:
+                    pExternalSemaphoreProperties->exportFromImportedHandleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+                    pExternalSemaphoreProperties->compatibleHandleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+                    pExternalSemaphoreProperties->externalSemaphoreFeatures =
+                        VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
+                        VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
+                    return;
+                case VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT:
+                    pExternalSemaphoreProperties->exportFromImportedHandleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+                    pExternalSemaphoreProperties->compatibleHandleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+                    pExternalSemaphoreProperties->externalSemaphoreFeatures =
+                        VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
+                        VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
+                    return;
+                default:
+                    break;
+            }
         }
 
         pExternalSemaphoreProperties->exportFromImportedHandleTypes = 0;
