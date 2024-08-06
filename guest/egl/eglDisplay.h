@@ -128,4 +128,5 @@ private:
     HostDriverCaps m_hostDriverCaps;
 };
 
+EGLBoolean eglInitializeKumquat(EGLint descriptor);
 #endif
