@@ -15,9 +15,8 @@
 //
 #pragma once
 
-#include "EmulatorFeatureInfo.h"
-
 #include <stdint.h>
+#include "HostConnection.h"
 
 // The process pipe is used to notify the host about process exits,
 // also associate all process-owned host GL resources with a process unique ID
@@ -31,8 +30,6 @@
 //
 // This is called when creating rcEncoder.
 
-struct renderControl_encoder_context_t;
-
 extern bool processPipeInit(int stream_handle, HostConnectionType connType,
                             uint32_t noRenderControlEnc);
 extern uint64_t getPuid();
@@ -40,7 +37,6 @@ extern uint64_t getPuid();
 // For testing purposes; this will close the current process pipe if opened, reset the state to
 // initial, and open it again with the same parameters.
 extern void processPipeRestart();
-extern void refreshHostConnection();
 
 // Each process gets a sequence number field.
 uint32_t* getSeqnoPtrForProcess();
