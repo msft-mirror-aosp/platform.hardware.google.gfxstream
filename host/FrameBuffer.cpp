@@ -327,7 +327,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
         if (fb->m_features.VulkanNativeSwapchain.enabled) {
             fb->m_vkInstance = vkEmu->instance;
         }
-        if (vkEmu->deviceInfo.supportsIdProperties) {
+        if (vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
             GL_LOG("Supports id properties, got a vulkan device UUID");
             fprintf(stderr, "%s: Supports id properties, got a vulkan device UUID\n", __func__);
             memcpy(fb->m_vulkanUUID.data(), vkEmu->deviceInfo.idProps.deviceUUID, VK_UUID_SIZE);
@@ -436,7 +436,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     bool vulkanInteropSupported = true;
     // First, if the VkEmulation instance doesn't support ext memory capabilities,
     // it won't support uuids.
-    if (!vkEmu || !vkEmu->deviceInfo.supportsIdProperties) {
+    if (!vkEmu || !vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
         vulkanInteropSupported = false;
     }
     if (!fb->m_emulationGl) {
