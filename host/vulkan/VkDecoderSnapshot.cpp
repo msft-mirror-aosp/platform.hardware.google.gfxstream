@@ -143,6 +143,7 @@ class VkDecoderSnapshot::Impl {
                         VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreateInfo,
                         const VkAllocationCallbacks* pAllocator, VkDevice* pDevice) {
         if (!pDevice) return;
+        mLock.tryLock();
         // pDevice create
         mReconstruction.addHandles((const uint64_t*)pDevice, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pDevice, 1,
@@ -751,6 +752,7 @@ class VkDecoderSnapshot::Impl {
                                 const VkAllocationCallbacks* pAllocator,
                                 VkDescriptorPool* pDescriptorPool) {
         if (!pDescriptorPool) return;
+        mLock.tryLock();
         // pDescriptorPool create
         mReconstruction.addHandles((const uint64_t*)pDescriptorPool, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pDescriptorPool, 1,
