@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package {
-    // See: http://go/android-license-faq
-    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+#include <cutils/log.h>
+
+#include "Sync.h"
+#include "VirtGpu.h"
+
+VirtGpuDevice* kumquatCreateVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor) {
+    ALOGE("Using stub implementation of kumquat");
+    return nullptr;
 }
 
-cc_library_headers {
-    name: "libgfxstream_guest_graphics_headers",
-    defaults: [
-        "libgfxstream_guest_cc_defaults",
-    ],
-    export_include_dirs: [
-        ".",
-    ],
-}
+namespace gfxstream {
+
+SyncHelper* kumquatCreateSyncHelper() { return nullptr; }
+
+}  // namespace gfxstream
