@@ -129,7 +129,6 @@ public:
     static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo, enum VirtGpuCapset capset,
                                              int32_t descriptor);
     static void exit();
-    static void exitUnclean(); // for testing purposes
 
     static std::unique_ptr<HostConnection> createUnique(enum VirtGpuCapset capset,
                                                         int32_t descriptor);
@@ -167,8 +166,6 @@ public:
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
-
-    bool exitUncleanly; // for testing purposes
 
 private:
     // If the connection failed, |conn| is deleted.
