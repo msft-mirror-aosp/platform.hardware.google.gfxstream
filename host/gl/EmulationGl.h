@@ -105,6 +105,8 @@ class EmulationGl {
 
     std::unique_ptr<BufferGl> loadBuffer(android::base::Stream* stream);
 
+    bool isFormatSupported(GLenum format);
+
     std::unique_ptr<ColorBufferGl> createColorBuffer(uint32_t width, uint32_t height,
                                                      GLenum internalFormat,
                                                      FrameworkFormat frameworkFormat,
