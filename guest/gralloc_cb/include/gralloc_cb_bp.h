@@ -17,10 +17,8 @@
 #ifndef __GRALLOC_CB_H__
 #define __GRALLOC_CB_H__
 
-#include <cutils/native_handle.h>
-#include <qemu_pipe_types_bp.h>
-
 #include <cinttypes>
+#include <cutils/native_handle.h>
 
 const uint32_t CB_HANDLE_MAGIC_MASK = 0xFFFFFFF0;
 const uint32_t CB_HANDLE_MAGIC_BASE = 0xABFABFA0;
@@ -32,6 +30,7 @@ struct cb_handle_t : public native_handle_t {
     cb_handle_t(uint32_t p_magic,
                 uint32_t p_hostHandle,
                 int32_t p_format,
+                uint32_t p_usage,
                 uint32_t p_drmformat,
                 uint32_t p_stride,
                 uint32_t p_bufSize,
@@ -39,6 +38,7 @@ struct cb_handle_t : public native_handle_t {
         : magic(p_magic),
           hostHandle(p_hostHandle),
           format(p_format),
+          usage(p_usage),
           drmformat(p_drmformat),
           bufferSize(p_bufSize),
           stride(p_stride),
@@ -80,6 +80,7 @@ struct cb_handle_t : public native_handle_t {
     uint32_t magic;         // magic number in order to validate a pointer
     uint32_t hostHandle;    // the host reference to this buffer
     uint32_t format;        // real internal pixel format format
+    uint32_t usage;         // allocation usage
     uint32_t drmformat;     // drm format
     uint32_t bufferSize;
     uint32_t stride;
