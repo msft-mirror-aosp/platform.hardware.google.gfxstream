@@ -1701,24 +1701,47 @@ class PipeVirglRenderer {
                 capset->externalSync = 1;
 #endif
 
-                const std::vector<uint32_t> kVirglPossibleFormats = {
-                    VIRGL_FORMAT_B8G8R8X8_UNORM, VIRGL_FORMAT_B8G8R8A8_UNORM,
-                    VIRGL_FORMAT_R8G8B8X8_UNORM, VIRGL_FORMAT_R8G8B8A8_UNORM,
-                    VIRGL_FORMAT_B5G6R5_UNORM, VIRGL_FORMAT_R16_UNORM,
-                    VIRGL_FORMAT_R16G16B16A16_FLOAT, VIRGL_FORMAT_R8_UNORM,
-                    VIRGL_FORMAT_R8G8_UNORM, VIRGL_FORMAT_NV12,
-                    VIRGL_FORMAT_P010, VIRGL_FORMAT_YV12,
-                    VIRGL_FORMAT_R10G10B10A2_UNORM, VIRGL_FORMAT_Z16_UNORM,
-                    VIRGL_FORMAT_Z24X8_UNORM, VIRGL_FORMAT_Z24_UNORM_S8_UINT,
-                    VIRGL_FORMAT_Z32_FLOAT, VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT,
-                };
-
                 memset(capset->virglSupportedFormats, 0, sizeof(capset->virglSupportedFormats));
 
-                for (uint32_t possibleFormat : kVirglPossibleFormats) {
-                    GLenum possibleFormatGl = virgl_format_to_gl(possibleFormat);
+                struct FormatWithName {
+                    uint32_t format;
+                    const char* name;
+                };
+#define MAKE_FORMAT_AND_NAME(x) \
+    { x, #x }
+                static const FormatWithName kPossibleFormats[] = {
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_B5G6R5_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_B8G8R8A8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_B8G8R8X8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_NV12),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_P010),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R10G10B10A2_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R16_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R16G16B16A16_FLOAT),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8B8A8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8B8X8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_YV12),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z16_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z24_UNORM_S8_UINT),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z24X8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z32_FLOAT),
+                };
+#undef MAKE_FORMAT_AND_NAME
+
+                stream_renderer_info("Format support:");
+                for (std::size_t i = 0; i < std::size(kPossibleFormats); i++) {
+                    const FormatWithName& possibleFormat = kPossibleFormats[i];
+
+                    GLenum possibleFormatGl = virgl_format_to_gl(possibleFormat.format);
                     const bool supported =  gfxstream::FrameBuffer::getFB()->isFormatSupported(possibleFormatGl);
-                    set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat, supported);
+
+                    stream_renderer_info(" %s: %s", possibleFormat.name,
+                                         (supported ? "supported" : "unsupported"));
+                    set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat.format,
+                                               supported);
                 }
                 break;
             }
