@@ -3233,6 +3233,12 @@ class VkDecoderSnapshot::Impl {
                                       VkDebugUtilsMessageTypeFlagsEXT messageTypes,
                                       const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData) {}
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+    void vkGetImageDrmFormatModifierPropertiesEXT(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkDevice device, VkImage image,
+        VkImageDrmFormatModifierPropertiesEXT* pProperties) {}
+#endif
 #ifdef VK_EXT_external_memory_host
     void vkGetMemoryHostPointerPropertiesEXT(
         const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -6803,6 +6809,15 @@ void VkDecoderSnapshot::vkSubmitDebugUtilsMessageEXT(
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData) {
     mImpl->vkSubmitDebugUtilsMessageEXT(snapshotTraceBegin, snapshotTraceBytes, pool, instance,
                                         messageSeverity, messageTypes, pCallbackData);
+}
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+void VkDecoderSnapshot::vkGetImageDrmFormatModifierPropertiesEXT(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkResult input_result, VkDevice device, VkImage image,
+    VkImageDrmFormatModifierPropertiesEXT* pProperties) {
+    mImpl->vkGetImageDrmFormatModifierPropertiesEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+                                                    input_result, device, image, pProperties);
 }
 #endif
 #ifdef VK_EXT_external_memory_host

@@ -1685,6 +1685,40 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkDescriptorPoolInlineUniformBlockCreateIn
                       reservedmarshal_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+void reservedmarshal_VkDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesListEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierPropertiesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierProperties2EXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesList2EXT* forMarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void reservedmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
