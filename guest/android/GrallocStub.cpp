@@ -16,6 +16,6 @@
 
 namespace gfxstream {
 
-Gralloc* createPlatformGralloc(int) { return nullptr; }
+Gralloc* createPlatformGralloc(int32_t) { return nullptr; }
 
 }  // namespace gfxstream
