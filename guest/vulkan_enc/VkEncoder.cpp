@@ -22888,6 +22888,80 @@ void VkEncoder::vkCmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
 }
 
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+VkResult VkEncoder::vkGetImageDrmFormatModifierPropertiesEXT(
+    VkDevice device, VkImage image, VkImageDrmFormatModifierPropertiesEXT* pProperties,
+    uint32_t doLock) {
+    ENCODER_DEBUG_LOG(
+        "vkGetImageDrmFormatModifierPropertiesEXT(device:%p, image:%p, pProperties:%p)", device,
+        image, pProperties);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkImage local_image;
+    local_device = device;
+    local_image = image;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        count_VkImageDrmFormatModifierPropertiesEXT(
+            sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM,
+            (VkImageDrmFormatModifierPropertiesEXT*)(pProperties), countPtr);
+    }
+    uint32_t packetSize_vkGetImageDrmFormatModifierPropertiesEXT =
+        4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageDrmFormatModifierPropertiesEXT);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkGetImageDrmFormatModifierPropertiesEXT =
+        OP_vkGetImageDrmFormatModifierPropertiesEXT;
+    uint32_t seqno;
+    if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    memcpy(streamPtr, &opcode_vkGetImageDrmFormatModifierPropertiesEXT, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkGetImageDrmFormatModifierPropertiesEXT, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) {
+        memcpy(streamPtr, &seqno, sizeof(uint32_t));
+        streamPtr += sizeof(uint32_t);
+    }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkImage((*&local_image));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    reservedmarshal_VkImageDrmFormatModifierPropertiesEXT(
+        stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties),
+        streamPtrPtr);
+    unmarshal_VkImageDrmFormatModifierPropertiesEXT(
+        stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties));
+    if (pProperties) {
+        transform_fromhost_VkImageDrmFormatModifierPropertiesEXT(
+            sResourceTracker, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties));
+    }
+    VkResult vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return = (VkResult)0;
+    stream->read(&vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return, sizeof(VkResult));
+    ++encodeCount;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return;
+}
+
+#endif
 #ifdef VK_EXT_tooling_info
 VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
     VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
