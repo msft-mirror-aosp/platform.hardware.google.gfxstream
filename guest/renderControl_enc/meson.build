@@ -4,6 +4,8 @@
 files_lib_render_control_enc = files(
   'renderControl_enc.cpp',
   'ExtendedRenderControl.cpp',
+  'GfxStreamRenderControl.cpp',
+  'GfxStreamRenderControlConnection.cpp',
 )
 
 lib_render_control_enc = static_library(
@@ -12,5 +14,6 @@ lib_render_control_enc = static_library(
    cpp_args: gfxstream_guest_args,
    include_directories: [inc_guest_iostream, inc_opengl_codec, inc_android_emu,
                          inc_android_compat, inc_system, inc_opengl_headers,
-                         inc_codec_common],
+                         inc_codec_common, inc_render_enc, inc_connection_manager,
+                         inc_platform_virtgpu, inc_src],
 )
