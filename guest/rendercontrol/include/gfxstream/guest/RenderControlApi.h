@@ -17,6 +17,7 @@
 struct RenderControlDevice;
 
 typedef RenderControlDevice* (*PFN_rcCreateDevice)();
+typedef RenderControlDevice* (*PFN_rcCreateDeviceKumquat)(int32_t descriptor);
 
 typedef void (*PFN_rcDestroyDevice)(RenderControlDevice*);
 

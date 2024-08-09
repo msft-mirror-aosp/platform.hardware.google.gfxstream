@@ -1512,6 +1512,40 @@ DEFINE_ALIAS_FUNCTION(count_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       count_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+void count_VkDrmFormatModifierPropertiesEXT(uint32_t featureBits, VkStructureType rootType,
+                                            const VkDrmFormatModifierPropertiesEXT* toCount,
+                                            size_t* count);
+
+void count_VkDrmFormatModifierPropertiesListEXT(uint32_t featureBits, VkStructureType rootType,
+                                                const VkDrmFormatModifierPropertiesListEXT* toCount,
+                                                size_t* count);
+
+void count_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* toCount, size_t* count);
+
+void count_VkImageDrmFormatModifierListCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* toCount, size_t* count);
+
+void count_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* toCount, size_t* count);
+
+void count_VkImageDrmFormatModifierPropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkImageDrmFormatModifierPropertiesEXT* toCount, size_t* count);
+
+void count_VkDrmFormatModifierProperties2EXT(uint32_t featureBits, VkStructureType rootType,
+                                             const VkDrmFormatModifierProperties2EXT* toCount,
+                                             size_t* count);
+
+void count_VkDrmFormatModifierPropertiesList2EXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesList2EXT* toCount, size_t* count);
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void count_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     uint32_t featureBits, VkStructureType rootType,
