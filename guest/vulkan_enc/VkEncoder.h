@@ -863,6 +863,11 @@ class VkEncoder {
                                        VkDeviceSize counterBufferOffset, uint32_t counterOffset,
                                        uint32_t vertexStride, uint32_t doLock);
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+    VkResult vkGetImageDrmFormatModifierPropertiesEXT(
+        VkDevice device, VkImage image, VkImageDrmFormatModifierPropertiesEXT* pProperties,
+        uint32_t doLock);
+#endif
 #ifdef VK_EXT_tooling_info
     VkResult vkGetPhysicalDeviceToolPropertiesEXT(VkPhysicalDevice physicalDevice,
                                                   uint32_t* pToolCount,

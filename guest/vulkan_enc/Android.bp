@@ -110,6 +110,7 @@ cc_defaults {
     vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults_for_platform",
     ],
     header_libs: [
         "libgfxstream_vulkan_headers",
@@ -148,7 +149,6 @@ cc_defaults {
         "-DVK_EXT_device_memory_report",
         "-DVK_GOOGLE_gfxstream",
         "-DVK_NO_PROTOTYPES",
-        "-DVK_USE_PLATFORM_ANDROID_KHR",
         "-fstrict-aliasing",
         "-Werror",
         "-Wno-missing-field-initializers",
