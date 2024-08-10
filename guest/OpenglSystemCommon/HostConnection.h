@@ -123,13 +123,15 @@ class HostConnection
 public:
     static HostConnection *get();
     static HostConnection* getOrCreate(enum VirtGpuCapset capset = kCapsetNone);
+    static HostConnection* getWithDescriptor(enum VirtGpuCapset capset,
+                                             int32_t descriptor);  // For testing purposes
 
-    static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo,
-                                             enum VirtGpuCapset capset = kCapsetNone);
+    static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo, enum VirtGpuCapset capset,
+                                             int32_t descriptor);
     static void exit();
-    static void exitUnclean(); // for testing purposes
 
-    static std::unique_ptr<HostConnection> createUnique(enum VirtGpuCapset capset = kCapsetNone);
+    static std::unique_ptr<HostConnection> createUnique(enum VirtGpuCapset capset,
+                                                        int32_t descriptor);
     HostConnection(const HostConnection&) = delete;
 
     ~HostConnection();
@@ -165,12 +167,10 @@ public:
 #pragma clang diagnostic pop
 #endif
 
-    bool exitUncleanly; // for testing purposes
-
 private:
     // If the connection failed, |conn| is deleted.
     // Returns NULL if connection failed.
- static std::unique_ptr<HostConnection> connect(enum VirtGpuCapset capset);
+ static std::unique_ptr<HostConnection> connect(enum VirtGpuCapset capset, int32_t descriptor);
 
  HostConnection();
  static gl_client_context_t* s_getGLContext();

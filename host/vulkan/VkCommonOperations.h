@@ -143,6 +143,8 @@ struct VkEmulation {
     VulkanDispatch* ivk = nullptr;
     VulkanDispatch* dvk = nullptr;
 
+    bool instanceSupportsPhysicalDeviceIDProperties = false;
+    bool instanceSupportsGetPhysicalDeviceProperties2 = false;
     bool instanceSupportsExternalMemoryCapabilities = false;
     bool instanceSupportsExternalSemaphoreCapabilities = false;
     bool instanceSupportsExternalFenceCapabilities = false;
@@ -204,7 +206,6 @@ struct VkEmulation {
         bool supportsExternalMemoryImport = false;
         bool supportsExternalMemoryExport = false;
         bool supportsDmaBuf = false;
-        bool supportsIdProperties = false;
         bool supportsDriverProperties = false;
         bool supportsExternalMemoryHostProps = false;
         bool hasSamplerYcbcrConversionExtension = false;
