@@ -10,6 +10,7 @@ cc_library(
 cc_library(
     name = "gfxstream_common_utils",
     srcs = ["Strings.cpp"],
+    copts = ["-fno-exceptions"],
     visibility = ["//visibility:public"],
     deps = [":gfxstream_common_utils_headers"],
 )
