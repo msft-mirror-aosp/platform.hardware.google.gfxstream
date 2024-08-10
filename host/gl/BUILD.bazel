@@ -5,6 +5,7 @@ cc_library(
         "gles1_dec/gles1_dec.cpp",
         "gles1_dec/gles1_server_context.cpp",
     ] + glob(["gles1_dec/*.h"]),
+    copts = ["-fno-exceptions"],
     defines = ["EMUGL_BUILD"],
     visibility = ["//visibility:public"],
     deps = [
@@ -30,6 +31,7 @@ objc_library(
 cc_library(
     name = "gl-common-headers",
     hdrs = glob(["glestranslator/include/**/*.h"]),
+    copts = ["-fno-exceptions"],
     includes = ["glestranslator/include"],
     visibility = ["//visibility:public"],
     deps = ["//hardware/google/gfxstream/host/apigen-codec-common"],
@@ -46,6 +48,8 @@ objc_library(
     sdk_frameworks = [
         "IOSurface",
         "AppKit",
+        "CoreGraphics",
+        "OpenGL",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -89,6 +93,7 @@ cc_library(
     hdrs =
         ["glestranslator/EGL/ClientAPIExts.in"],
     copts = [
+        "-fno-exceptions",
         "-Wno-extern-c-compat",
         "-Wno-inconsistent-missing-override",
         "-Wno-return-type-c-linkage",
@@ -137,7 +142,10 @@ cc_library(
         "glestranslator/GLcommon/TextureUtils.cpp",
         "glestranslator/GLcommon/rgtc.cpp",
     ],
-    copts = ["-Wno-extern-c-compat"],
+    copts = [
+        "-Wno-extern-c-compat",
+        "-fno-exceptions",
+    ],
     defines = [
         "EMUGL_BUILD",
         "BUILDING_EMUGL_COMMON_SHARED",
@@ -175,6 +183,7 @@ cc_library(
     }) + glob(["gl-host-common/include/**/*.h"]),
     copts = [
         "-Wno-return-type-c-linkage",
+        "-fno-exceptions",
         "-Wno-extern-c-compat",
     ],
     defines = ["EMUGL_BUILD"],
@@ -205,6 +214,7 @@ cc_library(
         "gles2_dec/gles2_dec.cpp",
         "gles2_dec/gles2_server_context.cpp",
     ] + glob(["gles2_dec/*.h"]),
+    copts = ["-fno-exceptions"],
     defines = ["EMUGL_BUILD"],
     visibility = ["//visibility:public"],
     deps = [
@@ -219,7 +229,10 @@ cc_library(
     name = "GLSnapshot",
     srcs = ["glsnapshot/GLSnapshot.cpp"],
     hdrs = ["glsnapshot/GLSnapshot.h"],
-    copts = ["-Wno-extern-c-compat"],
+    copts = [
+        "-fno-exceptions",
+        "-Wno-extern-c-compat",
+    ],
     defines = ["EMUGL_BUILD"],
     includes = ["glsnapshot"],
     visibility = ["//visibility:public"],
@@ -237,7 +250,10 @@ cc_library(
         "OpenGLESDispatch/gles1_stubbed_in_translator_namespace.cpp",
         "OpenGLESDispatch/gles2_stubbed_in_translator_namespace.cpp",
     ] + glob(["OpenGLESDispatch/*.h"]),
-    copts = ["-Wno-extern-c-compat"],
+    copts = [
+        "-fno-exceptions",
+        "-Wno-extern-c-compat",
+    ],
     defines = ["EMUGL_BUILD"],
     visibility = ["//visibility:public"],
     deps = [
@@ -275,7 +291,10 @@ cc_library(
         "glestranslator/include/**/*.h",
     ]),
     hdrs = [],
-    copts = ["-Wno-extern-c-compat"],
+    copts = [
+        "-fno-exceptions",
+        "-Wno-extern-c-compat",
+    ],
     defines = [
         "GFXSTREAM_ENABLE_HOST_GLES=1",
         "EMUGL_BUILD",
