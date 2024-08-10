@@ -34,7 +34,6 @@
 
 #include <memory>
 
-#include "aemu/base/AndroidHealthMonitor.h"
 #include "goldfish_vk_private_defs.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan_gfxstream.h"
@@ -50,8 +49,7 @@ namespace vk {
 
 class VkEncoder {
    public:
-    VkEncoder(gfxstream::guest::IOStream* stream,
-              gfxstream::guest::HealthMonitor<>* healthMonitor = nullptr);
+    VkEncoder(gfxstream::guest::IOStream* stream);
     ~VkEncoder();
 
 #include "VkEncoder.h.inl"
@@ -865,6 +863,11 @@ class VkEncoder {
                                        VkDeviceSize counterBufferOffset, uint32_t counterOffset,
                                        uint32_t vertexStride, uint32_t doLock);
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+    VkResult vkGetImageDrmFormatModifierPropertiesEXT(
+        VkDevice device, VkImage image, VkImageDrmFormatModifierPropertiesEXT* pProperties,
+        uint32_t doLock);
+#endif
 #ifdef VK_EXT_tooling_info
     VkResult vkGetPhysicalDeviceToolPropertiesEXT(VkPhysicalDevice physicalDevice,
                                                   uint32_t* pToolCount,
@@ -1032,7 +1035,6 @@ class VkEncoder {
    private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
-    gfxstream::guest::HealthMonitor<>* mHealthMonitor;
 };
 
 }  // namespace vk
