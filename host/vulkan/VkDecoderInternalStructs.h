@@ -366,6 +366,7 @@ struct DescriptorSetInfo {
         std::vector<uint8_t> inlineUniformBlockBuffer;
         // Weak pointer(s) to detect if all objects on dependency chain are alive.
         std::vector<std::weak_ptr<bool>> alives;
+        std::optional<HandleType> boundColorBuffer;
     };
 
     VkDescriptorPool pool;

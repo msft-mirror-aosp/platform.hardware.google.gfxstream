@@ -150,7 +150,7 @@ VirtGpuResourcePtr RutabagaVirtGpuDevice::importBlob(const struct VirtGpuExterna
 
 }  // namespace gfxstream
 
-VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int) {
+VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int32_t) {
     std::shared_ptr<gfxstream::EmulatedVirtioGpu> emulation = gfxstream::EmulatedVirtioGpu::Get();
     if (!emulation) {
         ALOGE("Failed to create RutabagaVirtGpuDevice: failed to get emulation layer.");
