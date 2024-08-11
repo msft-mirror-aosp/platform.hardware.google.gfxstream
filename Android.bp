@@ -100,10 +100,53 @@ cc_defaults {
     ],
 }
 
+soong_config_module_type {
+    name: "gfxstream_cc_defaults_config_for_platform",
+    module_type: "cc_defaults",
+    config_namespace: "gfxstream",
+    variables: ["mesa3d_platforms"],
+    properties: [
+        "cflags",
+        "target.android.srcs",
+    ],
+}
+
+soong_config_string_variable {
+    name: "mesa3d_platforms",
+    values: [
+        // Android surfaceless build
+        "none",
+        // The default when variable is not set is Android
+    ],
+}
+
+gfxstream_cc_defaults_config_for_platform {
+    name: "gfxstream_guest_cc_defaults_for_platform",
+    soong_config_variables: {
+        mesa3d_platforms: {
+            // Android surfaceless build
+            none: {
+                cflags: [
+                    "-UANDROID",
+                    "-U__ANDROID__",
+                    "-DLINUX_GUEST_BUILD",
+                ],
+            },
+            // The default when variable is not set is Android
+            conditions_default: {
+                cflags: [
+                    "-DVK_USE_PLATFORM_ANDROID_KHR",
+                ],
+            },
+        },
+    },
+}
+
 cc_defaults {
     name: "gfxstream_guest_cc_defaults",
     defaults: [
         "gfxstream_cc_defaults",
+        "gfxstream_guest_cc_defaults_for_platform",
     ],
 }
 

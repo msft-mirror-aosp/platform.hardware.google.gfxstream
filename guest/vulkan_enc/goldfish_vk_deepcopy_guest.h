@@ -1655,6 +1655,43 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       deepcopy_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+void deepcopy_VkDrmFormatModifierPropertiesEXT(Allocator* alloc, VkStructureType rootType,
+                                               const VkDrmFormatModifierPropertiesEXT* from,
+                                               VkDrmFormatModifierPropertiesEXT* to);
+
+void deepcopy_VkDrmFormatModifierPropertiesListEXT(Allocator* alloc, VkStructureType rootType,
+                                                   const VkDrmFormatModifierPropertiesListEXT* from,
+                                                   VkDrmFormatModifierPropertiesListEXT* to);
+
+void deepcopy_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* from,
+    VkPhysicalDeviceImageDrmFormatModifierInfoEXT* to);
+
+void deepcopy_VkImageDrmFormatModifierListCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* from,
+    VkImageDrmFormatModifierListCreateInfoEXT* to);
+
+void deepcopy_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* from,
+    VkImageDrmFormatModifierExplicitCreateInfoEXT* to);
+
+void deepcopy_VkImageDrmFormatModifierPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType, const VkImageDrmFormatModifierPropertiesEXT* from,
+    VkImageDrmFormatModifierPropertiesEXT* to);
+
+void deepcopy_VkDrmFormatModifierProperties2EXT(Allocator* alloc, VkStructureType rootType,
+                                                const VkDrmFormatModifierProperties2EXT* from,
+                                                VkDrmFormatModifierProperties2EXT* to);
+
+void deepcopy_VkDrmFormatModifierPropertiesList2EXT(
+    Allocator* alloc, VkStructureType rootType, const VkDrmFormatModifierPropertiesList2EXT* from,
+    VkDrmFormatModifierPropertiesList2EXT* to);
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void deepcopy_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     Allocator* alloc, VkStructureType rootType,

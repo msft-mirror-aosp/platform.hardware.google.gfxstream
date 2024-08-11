@@ -17,8 +17,6 @@
 
 #include "GoldfishAddressSpaceStream.h"
 #include "VirtioGpuAddressSpaceStream.h"
-#include "aemu/base/AndroidHealthMonitor.h"
-#include "aemu/base/AndroidHealthMonitorConsumerBasic.h"
 #include "aemu/base/threads/AndroidThread.h"
 #if defined(__ANDROID__)
 #include "android-base/properties.h"
@@ -26,9 +24,6 @@
 #include "renderControl_types.h"
 
 using gfxstream::guest::ChecksumCalculator;
-using gfxstream::guest::CreateHealthMonitor;
-using gfxstream::guest::HealthMonitor;
-using gfxstream::guest::HealthMonitorConsumerBasic;
 using gfxstream::guest::IOStream;
 
 #ifdef GOLDFISH_NO_GL
@@ -93,15 +88,6 @@ constexpr size_t kPageSize = PAGE_SIZE;
 
 constexpr const auto kEglProp = "ro.hardware.egl";
 
-HealthMonitor<>* getGlobalHealthMonitor() {
-    // Initialize HealthMonitor
-    // Rather than inject as a construct arg, we keep it as a static variable in the .cpp
-    // to avoid setting up dependencies in other repos (external/qemu)
-    static HealthMonitorConsumerBasic sHealthMonitorConsumerBasic;
-    static std::unique_ptr<HealthMonitor<>> sHealthMonitor = CreateHealthMonitor(sHealthMonitorConsumerBasic);
-    return sHealthMonitor.get();
-}
-
 static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capset) {
 #if defined(__Fuchsia__) || defined(LINUX_GUEST_BUILD)
     return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
@@ -162,17 +148,13 @@ static uint32_t getDrawCallFlushIntervalFromProperty() {
 }
 
 HostConnection::HostConnection()
-    : exitUncleanly(false),
-      m_checksumHelper(),
-      m_hostExtensions(),
-      m_noHostError(true),
-      m_rendernodeFd(-1) { }
+    : m_checksumHelper(), m_hostExtensions(), m_noHostError(true), m_rendernodeFd(-1) {}
 
 HostConnection::~HostConnection()
 {
     // round-trip to ensure that queued commands have been processed
     // before process pipe closure is detected.
-    if (m_rcEnc && !exitUncleanly) {
+    if (m_rcEnc) {
         (void)m_rcEnc->rcGetRendererVersion(m_rcEnc.get());
     }
 
@@ -198,7 +180,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
 #if defined(__ANDROID__)
-            auto stream = createGoldfishAddressSpaceStream(STREAM_BUFFER_SIZE, getGlobalHealthMonitor());
+            auto stream = createGoldfishAddressSpaceStream(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create AddressSpaceStream for host connection\n");
                 return nullptr;
@@ -227,7 +209,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
         }
 #endif
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
-            auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE);
+            auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE, descriptor);
             if (!stream) {
                 ALOGE("Failed to create VirtioGpu for host connection\n");
                 return nullptr;
@@ -246,8 +228,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
             // right capset.
             auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan, descriptor);
             auto deviceHandle = device->getDeviceHandle();
-            auto stream =
-                createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan, getGlobalHealthMonitor());
+            auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan);
             if (!stream) {
                 ALOGE("Failed to create virtgpu AddressSpaceStream\n");
                 return nullptr;
@@ -261,7 +242,8 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     }
 
 #if defined(ANDROID)
-    con->m_grallocHelper.reset(gfxstream::createPlatformGralloc(con->m_rendernodeFd));
+    int32_t grallocDescriptor = (con->m_rendernodeFd >= 0) ? con->m_rendernodeFd : descriptor;
+    con->m_grallocHelper.reset(gfxstream::createPlatformGralloc(grallocDescriptor));
     if (!con->m_grallocHelper) {
         ALOGE("Failed to create platform Gralloc!");
         abort();
@@ -338,16 +320,6 @@ void HostConnection::exit() {
     tinfo->hostConn.reset();
 }
 
-void HostConnection::exitUnclean() {
-    EGLThreadInfo *tinfo = getEGLThreadInfo();
-    if (!tinfo) {
-        return;
-    }
-
-    tinfo->hostConn->exitUncleanly = true;
-    tinfo->hostConn.reset();
-}
-
 // static
 std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset capset,
                                                              int32_t descriptor) {
@@ -382,7 +354,7 @@ GL2Encoder *HostConnection::gl2Encoder()
 
 VkEncoder* HostConnection::vkEncoder() {
     if (!m_vkEnc) {
-        m_vkEnc = new VkEncoder(m_stream, getGlobalHealthMonitor());
+        m_vkEnc = new VkEncoder(m_stream);
     }
     return m_vkEnc;
 }
