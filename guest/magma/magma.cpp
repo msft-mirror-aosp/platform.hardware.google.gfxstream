@@ -15,6 +15,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <lib/magma/magma_common_defs.h>
+#include <log/log.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
@@ -28,8 +29,8 @@
 #include <thread>
 #include <unordered_map>
 
-#include "VirtioGpuAddressSpaceStream.h"
 #include "EncoderDebug.h"
+#include "VirtioGpuAddressSpaceStream.h"
 #include "magma_enc.h"
 
 static uint64_t get_ns_monotonic(bool raw) {
@@ -376,7 +377,7 @@ MagmaClientContext* GetMagmaContext() {
     static std::once_flag once_flag;
 
     std::call_once(once_flag, []() {
-        auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamMagma, nullptr);
+        auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamMagma);
         assert(stream);
 
         // RenderThread expects flags: send zero 'clientFlags' to the host.
