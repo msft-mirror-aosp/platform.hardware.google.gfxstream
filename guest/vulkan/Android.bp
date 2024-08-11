@@ -65,7 +65,6 @@ cc_defaults {
     cflags: [
         "-DLOG_TAG=\"goldfish_vulkan\"",
         "-DVK_NO_PROTOTYPES",
-        "-DVK_USE_PLATFORM_ANDROID_KHR",
         "-fstrict-aliasing",
         "-fvisibility=hidden",
         "-Wno-missing-field-initializers",
