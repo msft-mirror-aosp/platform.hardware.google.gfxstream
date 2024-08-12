@@ -48,11 +48,7 @@ typedef struct compose_device_v2 {
 
 class RenderControlDeviceImpl {
    public:
-    RenderControlDeviceImpl()
-        : mHostConnection(HostConnection::createUnique(kCapsetNone, INVALID_DESCRIPTOR)) {}
-
-    RenderControlDeviceImpl(int32_t descriptor)
-        : mHostConnection(HostConnection::createUnique(kCapsetNone, descriptor)) {}
+    RenderControlDeviceImpl() : mHostConnection(HostConnection::createUnique(kCapsetNone)) {}
 
     RenderControlDeviceImpl(const RenderControlDeviceImpl& rhs) = delete;
     RenderControlDeviceImpl& operator=(const RenderControlDeviceImpl& rhs) = delete;
@@ -94,11 +90,6 @@ RenderControlDeviceImpl* ToImpl(RenderControlDevice* device) {
 
 extern "C" __attribute__((visibility("default"))) RenderControlDevice* rcCreateDevice() {
     return ToHandle(new RenderControlDeviceImpl());
-}
-
-extern "C" __attribute__((visibility("default"))) RenderControlDevice* rcCreateDeviceKumquat(
-    int32_t descriptor) {
-    return ToHandle(new RenderControlDeviceImpl(descriptor));
 }
 
 extern "C" __attribute__((visibility("default"))) void rcDestroyDevice(
