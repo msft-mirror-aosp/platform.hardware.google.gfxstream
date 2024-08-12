@@ -34,13 +34,13 @@ cc_defaults {
         "libgfxstream_guest_graphics_headers",
     ],
     shared_libs: [
-        "libandroidemu",
         "libcutils",
         "libdrm",
         "liblog",
         "libOpenglCodecCommon",
     ],
     static_libs: [
+        "libgfxstream_androidemu_static",
         "libarect",
         "libqemupipe.ranchu",
     ],

@@ -38,12 +38,12 @@ cc_test_host {
         "libGLESv2_emulation_with_host",
     ],
     shared_libs: [
-        "libandroidemu",
         "libOpenglSystemCommonWithHost",
         "liblog",
         "libvirtgpu_kumquat_ffi",
     ],
     static_libs: [
+        "libgfxstream_androidemu_static",
         "libgfxstream_common_image",
         "libgfxstream_common_utils",
         "libgfxstream_guest_android_with_host",
