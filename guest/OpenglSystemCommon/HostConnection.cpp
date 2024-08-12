@@ -168,8 +168,7 @@ HostConnection::~HostConnection()
 }
 
 // static
-std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset,
-                                                        int32_t descriptor) {
+std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset) {
     const enum HostConnectionType connType = getConnectionTypeFromProperty(capset);
     uint32_t noRenderControlEnc = 0;
 
@@ -209,7 +208,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
         }
 #endif
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
-            auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE, descriptor);
+            auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE, INVALID_DESCRIPTOR);
             if (!stream) {
                 ALOGE("Failed to create VirtioGpu for host connection\n");
                 return nullptr;
@@ -218,7 +217,9 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to connect to host (VirtioGpu)\n");
                 return nullptr;
             }
+
             auto rendernodeFd = stream->getRendernodeFd();
+            auto device = VirtGpuDevice::getInstance(capset);
             con->m_stream = stream;
             con->m_rendernodeFd = rendernodeFd;
             break;
@@ -226,7 +227,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
             // Use kCapsetGfxStreamVulkan for now, Ranchu HWC needs to be modified to pass in
             // right capset.
-            auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan, descriptor);
+            auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
             auto deviceHandle = device->getDeviceHandle();
             auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan);
             if (!stream) {
@@ -242,8 +243,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     }
 
 #if defined(ANDROID)
-    int32_t grallocDescriptor = (con->m_rendernodeFd >= 0) ? con->m_rendernodeFd : descriptor;
-    con->m_grallocHelper.reset(gfxstream::createPlatformGralloc(grallocDescriptor));
+    con->m_grallocHelper.reset(gfxstream::createPlatformGralloc(con->m_rendernodeFd));
     if (!con->m_grallocHelper) {
         ALOGE("Failed to create platform Gralloc!");
         abort();
@@ -273,10 +273,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     }
 
     auto handle = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
-    if (descriptor >= 0) {
-        handle = descriptor;
-    }
-
     processPipeInit(handle, connType, noRenderControlEnc);
     if (!noRenderControlEnc && capset == kCapsetGfxStreamVulkan) {
         con->rcEncoder();
@@ -285,27 +281,20 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     return con;
 }
 
-HostConnection* HostConnection::get() {
-    return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone, INVALID_DESCRIPTOR);
-}
+HostConnection* HostConnection::get() { return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone); }
 
 HostConnection* HostConnection::getOrCreate(enum VirtGpuCapset capset) {
-    return getWithThreadInfo(getEGLThreadInfo(), capset, INVALID_DESCRIPTOR);
+    return getWithThreadInfo(getEGLThreadInfo(), capset);
 }
 
-HostConnection* HostConnection::getWithDescriptor(enum VirtGpuCapset capset, int32_t descriptor) {
-    return getWithThreadInfo(getEGLThreadInfo(), capset, descriptor);
-}
-
-HostConnection* HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo, enum VirtGpuCapset capset,
-                                                  int32_t descriptor) {
+HostConnection* HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo, enum VirtGpuCapset capset) {
     // Get thread info
     if (!tinfo) {
         return NULL;
     }
 
     if (tinfo->hostConn == NULL) {
-        tinfo->hostConn = HostConnection::createUnique(capset, descriptor);
+        tinfo->hostConn = HostConnection::createUnique(capset);
     }
 
     return tinfo->hostConn.get();
@@ -317,13 +306,18 @@ void HostConnection::exit() {
         return;
     }
 
+#if defined(ANDROID)
+    if (tinfo->hostConn) {
+        tinfo->hostConn->m_grallocHelper = nullptr;
+    }
+#endif
+
     tinfo->hostConn.reset();
 }
 
 // static
-std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset capset,
-                                                             int32_t descriptor) {
-    return connect(capset, descriptor);
+std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset capset) {
+    return connect(capset);
 }
 
 GLEncoder *HostConnection::glEncoder()
