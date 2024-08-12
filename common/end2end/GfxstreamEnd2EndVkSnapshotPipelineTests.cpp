@@ -16,7 +16,6 @@
 
 #include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
-#include "gfxstream/RutabagaLayerTestUtils.h"
 #include "shaders/simple_shader_frag.h"
 #include "shaders/simple_shader_vert.h"
 
