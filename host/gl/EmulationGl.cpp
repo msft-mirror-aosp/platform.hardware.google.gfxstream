@@ -529,8 +529,8 @@ EmulationGl::~EmulationGl() {
 std::unique_ptr<gfxstream::DisplaySurface> EmulationGl::createFakeWindowSurface() {
     return std::make_unique<gfxstream::DisplaySurface>(
         mWidth, mHeight,
-        std::move(DisplaySurfaceGl::createPbufferSurface(
-            mEglDisplay, mEglConfig, mEglContext, getGlesMaxContextAttribs(), mWidth, mHeight)));
+        DisplaySurfaceGl::createPbufferSurface(
+            mEglDisplay, mEglConfig, mEglContext, getGlesMaxContextAttribs(), mWidth, mHeight));
 }
 
 /*static*/ const GLint* EmulationGl::getGlesMaxContextAttribs() {
