@@ -77,15 +77,15 @@ struct cb_handle_t : public native_handle_t {
     int32_t fds[2];
 
     // ints
-    uint32_t magic;         // magic number in order to validate a pointer
-    uint32_t hostHandle;    // the host reference to this buffer
-    uint32_t format;        // real internal pixel format format
-    uint32_t usage;         // allocation usage
-    uint32_t drmformat;     // drm format
-    uint32_t bufferSize;
-    uint32_t stride;
-    uint32_t mmapedOffsetLo;
-    uint32_t mmapedOffsetHi;
+    const uint32_t magic;         // magic number in order to validate a pointer
+    const uint32_t hostHandle;    // the host reference to this buffer
+    const uint32_t format;        // real internal pixel format format
+    const uint32_t usage;         // allocation usage
+    const uint32_t drmformat;     // drm format
+    const uint32_t bufferSize;
+    const uint32_t stride;
+    const uint32_t mmapedOffsetLo;
+    const uint32_t mmapedOffsetHi;
 };
 
 #endif //__GRALLOC_CB_H__
