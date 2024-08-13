@@ -31,35 +31,18 @@ namespace gfxstream {
 namespace guest {
 
 bool isTracingEnabled() {
-#if defined(__ANDROID__)
-    return atrace_is_tag_enabled(TRACE_TAG);
-#else
     // TODO: Fuchsia + Linux
     return false;
-#endif
 }
 
 void ScopedTraceGuest::beginTraceImpl(const char* name) {
-#if defined(__ANDROID__)
-    atrace_begin(TRACE_TAG, name);
-#elif defined(__Fuchsia__) && !defined(FUCHSIA_NO_TRACE)
-    TRACE_DURATION_BEGIN(TRACE_TAG, name);
-#else
     // No-op
     (void)name;
-#endif
 }
 
 void ScopedTraceGuest::endTraceImpl(const char* name) {
-#if defined(__ANDROID__)
-    (void)name;
-    atrace_end(TRACE_TAG);
-#elif defined(__Fuchsia__) && !defined(FUCHSIA_NO_TRACE)
-    TRACE_DURATION_END(TRACE_TAG, name);
-#else
     // No-op
     (void)name;
-#endif
 }
 
 } // namespace base
