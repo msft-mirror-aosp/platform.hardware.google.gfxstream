@@ -36,19 +36,18 @@ struct cb_handle_t : public native_handle_t {
                 uint32_t p_bufSize,
                 uint64_t p_mmapedOffset)
         : usage(p_usage),
+          mmapedOffset(p_mmapedOffset),
           magic(p_magic),
           hostHandle(p_hostHandle),
           format(p_format),
           drmformat(p_drmformat),
           bufferSize(p_bufSize),
-          stride(p_stride),
-          mmapedOffsetLo(static_cast<uint32_t>(p_mmapedOffset)),
-          mmapedOffsetHi(static_cast<uint32_t>(p_mmapedOffset >> 32)) {
+          stride(p_stride) {
         version = sizeof(native_handle);
     }
 
     uint64_t getMmapedOffset() const {
-        return (uint64_t(mmapedOffsetHi) << 32) | mmapedOffsetLo;
+        return mmapedOffset;
     }
 
     uint32_t allocatedSize() const {
@@ -78,14 +77,13 @@ struct cb_handle_t : public native_handle_t {
 
     // ints
     const uint64_t usage;         // allocation usage
+    const uint64_t mmapedOffset;
     const uint32_t magic;         // magic number in order to validate a pointer
     const uint32_t hostHandle;    // the host reference to this buffer
     const uint32_t format;        // real internal pixel format format
     const uint32_t drmformat;     // drm format
     const uint32_t bufferSize;
     const uint32_t stride;
-    const uint32_t mmapedOffsetLo;
-    const uint32_t mmapedOffsetHi;
 };
 
 #endif //__GRALLOC_CB_H__
