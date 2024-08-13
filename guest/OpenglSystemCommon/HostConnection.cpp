@@ -69,14 +69,9 @@ using gfxstream::guest::getCurrentThreadId;
 #include "VirtioGpuPipeStream.h"
 
 #if defined(__linux__) || defined(__ANDROID__)
-#include "virtgpu_drm.h"
 #include <fstream>
 #include <string>
 #include <unistd.h>
-
-static const size_t kPageSize = getpagesize();
-#else
-constexpr size_t kPageSize = PAGE_SIZE;
 #endif
 
 #undef LOG_TAG
@@ -84,7 +79,6 @@ constexpr size_t kPageSize = PAGE_SIZE;
 #include <cutils/log.h>
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
-#define STREAM_PORT_NUM     22468
 
 constexpr const auto kEglProp = "ro.hardware.egl";
 
@@ -168,8 +162,7 @@ HostConnection::~HostConnection()
 }
 
 // static
-std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset,
-                                                        int32_t descriptor) {
+std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset) {
     const enum HostConnectionType connType = getConnectionTypeFromProperty(capset);
     uint32_t noRenderControlEnc = 0;
 
@@ -209,7 +202,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
         }
 #endif
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
-            auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE);
+            auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE, INVALID_DESCRIPTOR);
             if (!stream) {
                 ALOGE("Failed to create VirtioGpu for host connection\n");
                 return nullptr;
@@ -218,7 +211,9 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to connect to host (VirtioGpu)\n");
                 return nullptr;
             }
+
             auto rendernodeFd = stream->getRendernodeFd();
+            auto device = VirtGpuDevice::getInstance(capset);
             con->m_stream = stream;
             con->m_rendernodeFd = rendernodeFd;
             break;
@@ -226,7 +221,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
             // Use kCapsetGfxStreamVulkan for now, Ranchu HWC needs to be modified to pass in
             // right capset.
-            auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan, descriptor);
+            auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
             auto deviceHandle = device->getDeviceHandle();
             auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan);
             if (!stream) {
@@ -272,10 +267,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     }
 
     auto handle = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
-    if (descriptor >= 0) {
-        handle = descriptor;
-    }
-
     processPipeInit(handle, connType, noRenderControlEnc);
     if (!noRenderControlEnc && capset == kCapsetGfxStreamVulkan) {
         con->rcEncoder();
@@ -284,27 +275,20 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     return con;
 }
 
-HostConnection* HostConnection::get() {
-    return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone, INVALID_DESCRIPTOR);
-}
+HostConnection* HostConnection::get() { return getWithThreadInfo(getEGLThreadInfo(), kCapsetNone); }
 
 HostConnection* HostConnection::getOrCreate(enum VirtGpuCapset capset) {
-    return getWithThreadInfo(getEGLThreadInfo(), capset, INVALID_DESCRIPTOR);
+    return getWithThreadInfo(getEGLThreadInfo(), capset);
 }
 
-HostConnection* HostConnection::getWithDescriptor(enum VirtGpuCapset capset, int32_t descriptor) {
-    return getWithThreadInfo(getEGLThreadInfo(), capset, descriptor);
-}
-
-HostConnection* HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo, enum VirtGpuCapset capset,
-                                                  int32_t descriptor) {
+HostConnection* HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo, enum VirtGpuCapset capset) {
     // Get thread info
     if (!tinfo) {
         return NULL;
     }
 
     if (tinfo->hostConn == NULL) {
-        tinfo->hostConn = HostConnection::createUnique(capset, descriptor);
+        tinfo->hostConn = HostConnection::createUnique(capset);
     }
 
     return tinfo->hostConn.get();
@@ -316,19 +300,24 @@ void HostConnection::exit() {
         return;
     }
 
+#if defined(ANDROID)
+    if (tinfo->hostConn) {
+        tinfo->hostConn->m_grallocHelper = nullptr;
+    }
+#endif
+
     tinfo->hostConn.reset();
 }
 
 // static
-std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset capset,
-                                                             int32_t descriptor) {
-    return connect(capset, descriptor);
+std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset capset) {
+    return connect(capset);
 }
 
 GLEncoder *HostConnection::glEncoder()
 {
     if (!m_glEnc) {
-        m_glEnc = std::make_unique<GLEncoder>(m_stream, checksumHelper());
+        m_glEnc = std::make_unique<GLEncoder>(m_stream, &m_checksumHelper);
         DBG("HostConnection::glEncoder new encoder %p, tid %lu", m_glEnc, getCurrentThreadId());
         m_glEnc->setContextAccessor(s_getGLContext);
     }
@@ -338,8 +327,7 @@ GLEncoder *HostConnection::glEncoder()
 GL2Encoder *HostConnection::gl2Encoder()
 {
     if (!m_gl2Enc) {
-        m_gl2Enc =
-            std::make_unique<GL2Encoder>(m_stream, checksumHelper());
+        m_gl2Enc = std::make_unique<GL2Encoder>(m_stream, &m_checksumHelper);
         DBG("HostConnection::gl2Encoder new encoder %p, tid %lu", m_gl2Enc, getCurrentThreadId());
         m_gl2Enc->setContextAccessor(s_getGL2Context);
         m_gl2Enc->setNoHostError(m_noHostError);
@@ -361,8 +349,7 @@ VkEncoder* HostConnection::vkEncoder() {
 ExtendedRCEncoderContext *HostConnection::rcEncoder()
 {
     if (!m_rcEnc) {
-        m_rcEnc = std::make_unique<ExtendedRCEncoderContext>(m_stream,
-                                                             checksumHelper());
+        m_rcEnc = std::make_unique<ExtendedRCEncoderContext>(m_stream, &m_checksumHelper);
 
         ExtendedRCEncoderContext* rcEnc = m_rcEnc.get();
         setChecksumHelper(rcEnc);
