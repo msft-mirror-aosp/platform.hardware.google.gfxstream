@@ -198,10 +198,10 @@ cc_library_static {
         "libgfxstream_guest_vulkan_encoder_defaults",
     ],
     static_libs: [
-        "libgfxstream_platform_rutabaga",
+        "libgfxstream_platform_kumquat",
     ],
     export_static_lib_headers: [
-        "libgfxstream_platform_rutabaga",
+        "libgfxstream_platform_kumquat",
     ],
     target: {
         host: {

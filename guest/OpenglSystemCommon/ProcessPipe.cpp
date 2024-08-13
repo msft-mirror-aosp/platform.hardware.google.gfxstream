@@ -148,44 +148,7 @@ uint64_t getPuid() {
 
 void processPipeRestart() {
     std::lock_guard<std::mutex> lock(sNeedInitMutex);
-
-    ALOGW("%s: restarting process pipe\n", __func__);
-    bool isPipe = false;
-
-    switch (sConnType) {
-        // TODO: Move those over too
-        case HOST_CONNECTION_QEMU_PIPE:
-        case HOST_CONNECTION_ADDRESS_SPACE:
-            isPipe = true;
-            break;
-        case HOST_CONNECTION_VIRTIO_GPU_PIPE:
-        case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
-            isPipe = false;
-            break;
-        }
-    }
-
-    sProcUID = 0;
-
-    if (isPipe) {
-        if (qemu_pipe_valid(sProcPipe)) {
-            qemu_pipe_close(sProcPipe);
-            sProcPipe = 0;
-        }
-    } else {
-#ifndef __Fuchsia__
-        if (sVirtioGpuPipeStream) {
-            delete sVirtioGpuPipeStream;
-            sVirtioGpuPipeStream = nullptr;
-        }
-#endif
-    }
-
-    if (sConnType == HOST_CONNECTION_VIRTIO_GPU_PIPE ||
-        sConnType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) {
-        VirtGpuDevice::resetInstance();
-    }
-
+    VirtGpuDevice::resetInstance();
     sNeedInit = true;
 }
 
