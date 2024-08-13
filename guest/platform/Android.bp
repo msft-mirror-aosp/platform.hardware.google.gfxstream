@@ -60,72 +60,34 @@ cc_library_static {
     },
 }
 
-cc_library_shared {
-    name: "libgfxstream_platform_rutabaga_server",
-    host_supported: true,
-    vendor_available: true,
-    srcs: [
-        "rutabaga/RutabagaLayer.cpp",
-    ],
-    header_libs: [
-        "rutabaga_gfx_ffi_headers",
-    ],
-    shared_libs: [
-        "libcutils",
-        "librutabaga_gfx_ffi",
-        "libgfxstream_backend",
-        "liblog",
-        "libutils",
-    ],
-    export_include_dirs: [
-        // TODO: restrict to just RutabagaLayer.h
-        "rutabaga/include",
-        "rutabaga",
-    ],
-    target: {
-        host: {
-            compile_multilib: "64",
-        },
-        android: {
-            compile_multilib: "64",
-        },
-    },
-}
-
 cc_library_static {
-    name: "libgfxstream_platform_rutabaga",
+    name: "libgfxstream_platform_kumquat",
     host_supported: true,
     vendor_available: true,
     srcs: [
         "VirtGpu.cpp",
-        "rutabaga/RutabagaVirtGpuBlob.cpp",
-        "rutabaga/RutabagaVirtGpuBlobMapping.cpp",
-        "rutabaga/RutabagaVirtGpuDevice.cpp",
-        "rutabaga/RutabagaVirtGpuSyncHelper.cpp",
+        "kumquat/VirtGpuKumquatBlob.cpp",
+        "kumquat/VirtGpuKumquatBlobMapping.cpp",
+        "kumquat/VirtGpuKumquatDevice.cpp",
+        "kumquat/VirtGpuKumquatSync.cpp",
+    ],
+    header_libs: [
+        "virtgpu_kumquat_ffi_headers",
     ],
     shared_libs: [
         "libcutils",
-        "libdrm",
-        "libgfxstream_platform_rutabaga_server",
         "liblog",
         "libutils",
-    ],
-    export_shared_lib_headers: [
-        "libdrm",
+        "libvirtgpu_kumquat_ffi",
     ],
     export_include_dirs: [
         "include",
-        "rutabaga/include",
     ],
     cflags: [
         "-DLOG_TAG=\"platform\"",
         "-Wno-missing-field-initializers",
         "-fvisibility=default",
         "-fstrict-aliasing",
-    ],
-    local_include_dirs: [
-        "include",
-        "rutabaga/include",
     ],
     target: {
         host: {
