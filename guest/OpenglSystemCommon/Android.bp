@@ -116,10 +116,8 @@ cc_library_shared {
     defaults: [
         "libOpenglSystemCommonDefaults",
     ],
-    shared_libs: [
-        "libandroidemu",
-    ],
     static_libs: [
+        "libgfxstream_androidemu_static",
         "libgfxstream_guest_android",
         "libmesa_util_gfxstream",
         "libmesa_util_c11_gfxstream",
@@ -146,10 +144,10 @@ cc_library_shared {
         "libOpenglSystemCommonDefaults",
     ],
     shared_libs: [
-        "libandroidemu",
         "libvirtgpu_kumquat_ffi",
     ],
     static_libs: [
+        "libgfxstream_androidemu_static",
         "libgfxstream_guest_android_with_host",
         "libgfxstream_guest_vulkan_encoder_with_host",
         "libmesa_util_gfxstream",

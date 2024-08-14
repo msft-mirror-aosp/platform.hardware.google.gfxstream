@@ -69,14 +69,9 @@ using gfxstream::guest::getCurrentThreadId;
 #include "VirtioGpuPipeStream.h"
 
 #if defined(__linux__) || defined(__ANDROID__)
-#include "virtgpu_drm.h"
 #include <fstream>
 #include <string>
 #include <unistd.h>
-
-static const size_t kPageSize = getpagesize();
-#else
-constexpr size_t kPageSize = PAGE_SIZE;
 #endif
 
 #undef LOG_TAG
@@ -84,7 +79,6 @@ constexpr size_t kPageSize = PAGE_SIZE;
 #include <cutils/log.h>
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
-#define STREAM_PORT_NUM     22468
 
 constexpr const auto kEglProp = "ro.hardware.egl";
 
@@ -323,7 +317,7 @@ std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset 
 GLEncoder *HostConnection::glEncoder()
 {
     if (!m_glEnc) {
-        m_glEnc = std::make_unique<GLEncoder>(m_stream, checksumHelper());
+        m_glEnc = std::make_unique<GLEncoder>(m_stream, &m_checksumHelper);
         DBG("HostConnection::glEncoder new encoder %p, tid %lu", m_glEnc, getCurrentThreadId());
         m_glEnc->setContextAccessor(s_getGLContext);
     }
@@ -333,8 +327,7 @@ GLEncoder *HostConnection::glEncoder()
 GL2Encoder *HostConnection::gl2Encoder()
 {
     if (!m_gl2Enc) {
-        m_gl2Enc =
-            std::make_unique<GL2Encoder>(m_stream, checksumHelper());
+        m_gl2Enc = std::make_unique<GL2Encoder>(m_stream, &m_checksumHelper);
         DBG("HostConnection::gl2Encoder new encoder %p, tid %lu", m_gl2Enc, getCurrentThreadId());
         m_gl2Enc->setContextAccessor(s_getGL2Context);
         m_gl2Enc->setNoHostError(m_noHostError);
@@ -356,8 +349,7 @@ VkEncoder* HostConnection::vkEncoder() {
 ExtendedRCEncoderContext *HostConnection::rcEncoder()
 {
     if (!m_rcEnc) {
-        m_rcEnc = std::make_unique<ExtendedRCEncoderContext>(m_stream,
-                                                             checksumHelper());
+        m_rcEnc = std::make_unique<ExtendedRCEncoderContext>(m_stream, &m_checksumHelper);
 
         ExtendedRCEncoderContext* rcEnc = m_rcEnc.get();
         setChecksumHelper(rcEnc);

@@ -136,10 +136,6 @@ public:
     gfxstream::vk::VkEncoder *vkEncoder();
     ExtendedRCEncoderContext *rcEncoder();
 
-    int getRendernodeFd() { return m_rendernodeFd; }
-
-    gfxstream::guest::ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
-
 #if defined(ANDROID)
     gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper.get(); }
     gfxstream::Gralloc* grallocHelper() { return m_grallocHelper.get(); }
