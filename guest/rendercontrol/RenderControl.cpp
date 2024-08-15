@@ -48,8 +48,7 @@ typedef struct compose_device_v2 {
 
 class RenderControlDeviceImpl {
    public:
-    RenderControlDeviceImpl()
-        : mHostConnection(HostConnection::createUnique(kCapsetNone, INVALID_DESCRIPTOR)) {}
+    RenderControlDeviceImpl() : mHostConnection(HostConnection::createUnique(kCapsetNone)) {}
 
     RenderControlDeviceImpl(const RenderControlDeviceImpl& rhs) = delete;
     RenderControlDeviceImpl& operator=(const RenderControlDeviceImpl& rhs) = delete;

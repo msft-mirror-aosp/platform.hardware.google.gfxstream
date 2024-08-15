@@ -46,8 +46,10 @@ cc_library_shared {
         "libgfxstream_guest_graphics_headers",
         "libgfxstream_guest_iostream",
     ],
+    static_libs: [
+        "libgfxstream_androidemu_static",
+    ],
     shared_libs: [
-        "libandroidemu",
         "liblog",
         "libOpenglCodecCommon",
     ],

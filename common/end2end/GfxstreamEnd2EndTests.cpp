@@ -22,11 +22,8 @@
 
 #include <filesystem>
 
-#include "ProcessPipe.h"
-#include "RutabagaLayer.h"
 #include "aemu/base/Path.h"
 #include "gfxstream/ImageUtils.h"
-#include "gfxstream/RutabagaLayerTestUtils.h"
 #include "gfxstream/Strings.h"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
@@ -226,25 +223,21 @@ std::unique_ptr<vkhpp::DynamicLoader> GfxstreamEnd2EndTest::SetupGuestVk() {
 
 void GfxstreamEnd2EndTest::SetUp() {
     const TestParams params = GetParam();
-
     const std::string transportValue = GfxstreamTransportToEnvVar(params.with_transport);
-    ASSERT_THAT(setenv("GFXSTREAM_TRANSPORT", transportValue.c_str(), /*overwrite=*/1), Eq(0));
-
-    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_GL",
-                       params.with_gl ? "Y" : "N", /*overwrite=*/1), Eq(0));
-    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_WITH_VK", params.with_vk ? "Y" : "N",
-                       /*overwrite=*/1),
-                Eq(0));
-
     std::vector<std::string> featureEnables;
     for (const std::string& feature : params.with_features) {
         featureEnables.push_back(feature + ":enabled");
     }
-    const std::string features = Join(featureEnables, ",");
-    ASSERT_THAT(setenv("GFXSTREAM_EMULATED_VIRTIO_GPU_RENDERER_FEATURES", features.c_str(),
-                        /*overwrite=*/1),
-                Eq(0));
 
+    ASSERT_THAT(setenv("GFXSTREAM_TRANSPORT", transportValue.c_str(), /*overwrite=*/1), Eq(0));
+
+    const std::string features = Join(featureEnables, ",");
+
+    // We probably don't need to create a Kumquat Server instance for every test.  GTest provides
+    // SetUpTestSuite + TearDownTestSuite for common resources that can be shared across a test
+    // suite.
+    mKumquatInstance = std::make_unique<KumquatInstance>();
+    mKumquatInstance->SetUp(params.with_gl, params.with_vk, features);
 
     if (params.with_gl) {
         mGl = SetupGuestGl();
@@ -279,25 +272,11 @@ void GfxstreamEnd2EndTest::TearDownGuest() {
     mAnwHelper.reset();
     mGralloc.reset();
     mSync.reset();
-
-    processPipeRestart();
-}
-
-void GfxstreamEnd2EndTest::TearDownHost() {
-    const uint32_t users = GetNumActiveEmulatedVirtioGpuUsers();
-    if (users != 0) {
-        ALOGE("The EmulationVirtioGpu was found to still be active by %" PRIu32
-              " after the "
-              "end of the test. Please ensure you have fully destroyed all objects created "
-              "during the test (Gralloc allocations, ANW allocations, etc).",
-              users);
-        abort();
-    }
 }
 
 void GfxstreamEnd2EndTest::TearDown() {
     TearDownGuest();
-    TearDownHost();
+    mKumquatInstance.reset();
 }
 
 void GfxstreamEnd2EndTest::SetUpEglContextAndSurface(
@@ -626,12 +605,8 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
 }
 
 void GfxstreamEnd2EndTest::SnapshotSaveAndLoad() {
-    auto directory = testing::TempDir();
-
-    std::shared_ptr<gfxstream::EmulatedVirtioGpu> emulation = gfxstream::EmulatedVirtioGpu::Get();
-
-    emulation->SnapshotSave(directory);
-    emulation->SnapshotRestore(directory);
+    mKumquatInstance->Snapshot();
+    mKumquatInstance->Restore();
 }
 
 Result<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
