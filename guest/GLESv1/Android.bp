@@ -26,6 +26,9 @@ cc_defaults {
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
+    header_libs: [
+        "libgfxstream_egl_headers",
+    ],
     shared_libs: [
         "liblog",
         "lib_renderControl_enc",

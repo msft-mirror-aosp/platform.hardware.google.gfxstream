@@ -156,7 +156,6 @@ struct MemoryInfo {
     uint64_t sizeToPage = 0;
     uint64_t hostmemId = 0;
     VkDevice device = VK_NULL_HANDLE;
-    MTLTextureRef mtlTexture = nullptr;
     uint32_t memoryIndex = 0;
     // Set if the memory is backed by shared memory.
     std::optional<android::base::SharedMemory> sharedMemory;
@@ -188,19 +187,26 @@ struct PhysicalDeviceInfo {
     VkPhysicalDevice boxed = nullptr;
 };
 
+struct ExternalFenceInfo {
+    VkExternalSemaphoreHandleTypeFlagBits supportedBinarySemaphoreHandleTypes;
+    VkExternalFenceHandleTypeFlagBits supportedFenceHandleTypes;
+};
+
 struct DeviceInfo {
     std::unordered_map<uint32_t, std::vector<VkQueue>> queues;
     std::vector<std::string> enabledExtensionNames;
     bool emulateTextureEtc2 = false;
     bool emulateTextureAstc = false;
     bool useAstcCpuDecompression = false;
+
+    ExternalFenceInfo externalFenceInfo;
     VkPhysicalDevice physicalDevice;
     VkDevice boxed = nullptr;
     DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
     std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
-    std::optional<DeviceOpTracker> deviceOpTracker;
+    DeviceOpTrackerPtr deviceOpTracker = nullptr;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)
@@ -360,6 +366,7 @@ struct DescriptorSetInfo {
         std::vector<uint8_t> inlineUniformBlockBuffer;
         // Weak pointer(s) to detect if all objects on dependency chain are alive.
         std::vector<std::weak_ptr<bool>> alives;
+        std::optional<HandleType> boundColorBuffer;
     };
 
     VkDescriptorPool pool;

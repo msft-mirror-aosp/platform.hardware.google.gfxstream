@@ -17,10 +17,8 @@
 #ifndef __GRALLOC_CB_H__
 #define __GRALLOC_CB_H__
 
-#include <cutils/native_handle.h>
-#include <qemu_pipe_types_bp.h>
-
 #include <cinttypes>
+#include <cutils/native_handle.h>
 
 const uint32_t CB_HANDLE_MAGIC_MASK = 0xFFFFFFF0;
 const uint32_t CB_HANDLE_MAGIC_BASE = 0xABFABFA0;
@@ -32,23 +30,24 @@ struct cb_handle_t : public native_handle_t {
     cb_handle_t(uint32_t p_magic,
                 uint32_t p_hostHandle,
                 int32_t p_format,
+                uint64_t p_usage,
                 uint32_t p_drmformat,
                 uint32_t p_stride,
                 uint32_t p_bufSize,
                 uint64_t p_mmapedOffset)
-        : magic(p_magic),
+        : usage(p_usage),
+          mmapedOffset(p_mmapedOffset),
+          magic(p_magic),
           hostHandle(p_hostHandle),
           format(p_format),
           drmformat(p_drmformat),
           bufferSize(p_bufSize),
-          stride(p_stride),
-          mmapedOffsetLo(static_cast<uint32_t>(p_mmapedOffset)),
-          mmapedOffsetHi(static_cast<uint32_t>(p_mmapedOffset >> 32)) {
+          stride(p_stride) {
         version = sizeof(native_handle);
     }
 
     uint64_t getMmapedOffset() const {
-        return (uint64_t(mmapedOffsetHi) << 32) | mmapedOffsetLo;
+        return mmapedOffset;
     }
 
     uint32_t allocatedSize() const {
@@ -77,14 +76,14 @@ struct cb_handle_t : public native_handle_t {
     int32_t fds[2];
 
     // ints
-    uint32_t magic;         // magic number in order to validate a pointer
-    uint32_t hostHandle;    // the host reference to this buffer
-    uint32_t format;        // real internal pixel format format
-    uint32_t drmformat;     // drm format
-    uint32_t bufferSize;
-    uint32_t stride;
-    uint32_t mmapedOffsetLo;
-    uint32_t mmapedOffsetHi;
+    const uint64_t usage;         // allocation usage
+    const uint64_t mmapedOffset;
+    const uint32_t magic;         // magic number in order to validate a pointer
+    const uint32_t hostHandle;    // the host reference to this buffer
+    const uint32_t format;        // real internal pixel format format
+    const uint32_t drmformat;     // drm format
+    const uint32_t bufferSize;
+    const uint32_t stride;
 };
 
 #endif //__GRALLOC_CB_H__

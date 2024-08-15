@@ -31,17 +31,22 @@
 #include "virtgpu_drm.h"
 #include "virtgpu_gfxstream_protocol.h"
 
+#define VIRTGPU_PARAM_CREATE_FENCE_PASSING 9  /* Fence passing */
+#define VIRTGPU_PARAM_CREATE_GUEST_HANDLE 10  /* Host OS handle can be created from guest memory. */
+
 #define PARAM(x) \
     (struct VirtGpuParam) { x, #x, 0 }
 
 static inline uint32_t align_up(uint32_t n, uint32_t a) { return ((n + a - 1) / a) * a; }
 
-LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : VirtGpuDevice(capset) {
+LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor)
+    : VirtGpuDevice(capset) {
     struct VirtGpuParam params[] = {
         PARAM(VIRTGPU_PARAM_3D_FEATURES),          PARAM(VIRTGPU_PARAM_CAPSET_QUERY_FIX),
         PARAM(VIRTGPU_PARAM_RESOURCE_BLOB),        PARAM(VIRTGPU_PARAM_HOST_VISIBLE),
         PARAM(VIRTGPU_PARAM_CROSS_DEVICE),         PARAM(VIRTGPU_PARAM_CONTEXT_INIT),
         PARAM(VIRTGPU_PARAM_SUPPORTED_CAPSET_IDs), PARAM(VIRTGPU_PARAM_EXPLICIT_DEBUG_NAME),
+        PARAM(VIRTGPU_PARAM_CREATE_FENCE_PASSING),
         PARAM(VIRTGPU_PARAM_CREATE_GUEST_HANDLE),
     };
 
@@ -57,14 +62,14 @@ LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : Virt
     processName = getprogname();
 #endif
 
-    if (fd < 0) {
+    if (descriptor < 0) {
         mDeviceHandle = static_cast<int64_t>(drmOpenRender(128));
         if (mDeviceHandle < 0) {
             ALOGE("Failed to open rendernode: %s", strerror(errno));
             return;
         }
     } else {
-        mDeviceHandle = dup(fd);
+        mDeviceHandle = dup(descriptor);
         if (mDeviceHandle < 0) {
             ALOGE("Failed to dup rendernode: %s", strerror(errno));
             return;
@@ -150,8 +155,9 @@ struct VirtGpuCaps LinuxVirtGpuDevice::getCaps(void) { return mCaps; }
 int64_t LinuxVirtGpuDevice::getDeviceHandle(void) { return mDeviceHandle; }
 
 VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t height,
-                                                      uint32_t stride, uint32_t virglFormat,
-                                                      uint32_t target, uint32_t bind) {
+                                                      uint32_t stride, uint32_t size,
+                                                      uint32_t virglFormat, uint32_t target,
+                                                      uint32_t bind) {
     drm_virtgpu_resource_create create = {
         .target = target,
         .format = virglFormat,
@@ -162,7 +168,7 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t h
         .array_size = 1U,
         .last_level = 0,
         .nr_samples = 0,
-        .size = stride * height,
+        .size = size,
         .stride = stride,
     };
 
@@ -184,6 +190,8 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob
     create.blob_mem = blobCreate.blobMem;
     create.blob_flags = blobCreate.flags;
     create.blob_id = blobCreate.blobId;
+    create.cmd = (uint64_t)(uintptr_t)blobCreate.blobCmd;
+    create.cmd_size = blobCreate.blobCmdSize;
 
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB, &create);
     if (ret < 0) {
@@ -250,6 +258,6 @@ int LinuxVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
     return 0;
 }
 
-VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int fd) {
-    return new LinuxVirtGpuDevice(capset, fd);
+VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor) {
+    return new LinuxVirtGpuDevice(capset, descriptor);
 }

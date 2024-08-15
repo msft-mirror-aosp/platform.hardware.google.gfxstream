@@ -238,6 +238,8 @@ struct stream_renderer_vulkan_info {
 VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
                                           struct stream_renderer_vulkan_info* vulkan_info);
 
+VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
@@ -253,6 +255,8 @@ enum RendererFlags {
     STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB = 1 << 6,
     STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB = 1 << 7,
     STREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT = 1 << 8,
+    // Unstable: do not use until a release greater than 0.1.2
+    STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC = 1 << 31,
 };
 
 #endif

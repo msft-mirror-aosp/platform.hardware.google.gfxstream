@@ -16,7 +16,6 @@
 
 #include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
-#include "gfxstream/RutabagaLayerTestUtils.h"
 
 namespace gfxstream {
 namespace tests {
@@ -39,7 +38,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, DeviceLocalBufferContent) {
         srcBufferContent[i] = static_cast<uint8_t>(i & 0xff);
     }
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     // Staging buffer
     const vkhpp::BufferCreateInfo stagingBufferCreateInfo = {
@@ -224,7 +223,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, HostVisibleBufferContent) {
         srcBufferContent[i] = static_cast<uint8_t>(i & 0xff);
     }
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     // Vertex buffer
     const vkhpp::BufferCreateInfo uniformBufferCreateInfo = {

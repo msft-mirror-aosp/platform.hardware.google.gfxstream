@@ -138,6 +138,14 @@ bool ProgramData::isValidUniformLocation(GLint location) {
     return false;
 }
 
+void ProgramData::getExternalSamplerUniformIndices(std::vector<GLuint>* outIndices) {
+    for (GLuint i = 0; i < m_numIndexes; ++i) {
+        if (m_Indexes[i].flags & INDEX_FLAG_SAMPLER_EXTERNAL) {
+            outIndices->push_back(i);
+        }
+    }
+}
+
 GLint ProgramData::getNextSamplerUniform(
     GLint index, GLint* val, GLenum* target) {
 
@@ -559,6 +567,15 @@ void GLSharedGroup::setProgramIndexInfo(
     }
 }
 
+void GLSharedGroup::setProgramIndexFlag(GLuint program, GLuint index, GLuint flags) {
+    AutoLock<Lock> _lock(m_lock);
+
+    ProgramData* pData = findObjectOrDefault(m_programs, program);
+    if (pData) {
+        pData->setIndexFlags(index, flags);
+    }
+}
+
 void GLSharedGroup::setProgramAttribInfo(
     GLuint program, GLuint index, GLint attribLoc,
     GLint size, GLenum type, __attribute__((unused)) const char* name) {
@@ -670,6 +687,19 @@ bool GLSharedGroup::isProgramUniformLocationValid(GLuint program, GLint location
     if (!pData) return false;
 
     return pData->isValidUniformLocation(location);
+}
+
+bool GLSharedGroup::getExternalSamplerUniformIndices(GLuint program,
+                                                     std::vector<GLuint>* outIndices) {
+    AutoLock<Lock> _lock(m_lock);
+
+    ProgramData* pData = findObjectOrDefault(m_programs, program);
+
+    if (!pData) return false;
+
+    pData->getExternalSamplerUniformIndices(outIndices);
+
+    return true;
 }
 
 bool GLSharedGroup::isShader(GLuint shader) {

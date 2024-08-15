@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "BorrowedImage.h"
+#include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
 #include "Handle.h"
 #include "Hwc2.h"
@@ -93,6 +94,9 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool invalidateForVk();
     bool importNativeResource(void* nativeResource, uint32_t type, bool preserveContent);
 
+    int waitSync();
+    std::optional<BlobDescriptorInfo> exportBlob();
+
 #if GFXSTREAM_ENABLE_HOST_GLES
     GLuint glOpGetTexture();
     bool glOpBlitFromCurrentReadBuffer();
@@ -132,6 +136,7 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     std::unique_ptr<vk::ColorBufferVk> mColorBufferVk;
 
     bool mGlAndVkAreSharingExternalMemory = false;
+    bool mGlTexDirty = false;
 };
 
 typedef std::shared_ptr<ColorBuffer> ColorBufferPtr;

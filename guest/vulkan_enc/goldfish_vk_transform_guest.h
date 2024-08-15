@@ -1759,16 +1759,6 @@ void transform_fromhost_VkDeviceImageMemoryRequirements(
     ResourceTracker* resourceTracker, VkDeviceImageMemoryRequirements* toTransform);
 
 #endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
-#endif
 #ifdef VK_KHR_dynamic_rendering
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkRenderingInfo, transform_tohost_VkRenderingInfoKHR)
 
@@ -1884,8 +1874,6 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceSparseImageFormatInfo2,
                       transform_fromhost_VkPhysicalDeviceSparseImageFormatInfo2KHR)
 
 #endif
-#ifdef VK_KHR_maintenance1
-#endif
 #ifdef VK_KHR_external_memory_capabilities
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkExternalMemoryProperties,
                       transform_tohost_VkExternalMemoryPropertiesKHR)
@@ -1944,10 +1932,6 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkExportMemoryAllocateInfo,
                       transform_fromhost_VkExportMemoryAllocateInfoKHR)
 
 #endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
 #ifdef VK_KHR_external_semaphore_capabilities
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceExternalSemaphoreInfo,
                       transform_tohost_VkPhysicalDeviceExternalSemaphoreInfoKHR)
@@ -1969,8 +1953,6 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkExportSemaphoreCreateInfo,
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkExportSemaphoreCreateInfo,
                       transform_fromhost_VkExportSemaphoreCreateInfoKHR)
 
-#endif
-#ifdef VK_KHR_external_semaphore_win32
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 void transform_tohost_VkImportSemaphoreFdInfoKHR(ResourceTracker* resourceTracker,
@@ -2181,8 +2163,6 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkMemoryDedicatedAllocateInfo,
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkMemoryDedicatedAllocateInfo,
                       transform_fromhost_VkMemoryDedicatedAllocateInfoKHR)
 
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkBufferMemoryRequirementsInfo2,
@@ -2405,8 +2385,6 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceShaderIntegerDotProductPr
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceShaderIntegerDotProductProperties,
                       transform_fromhost_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
 #endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkMemoryBarrier2, transform_tohost_VkMemoryBarrier2KHR)
@@ -2653,8 +2631,6 @@ void transform_fromhost_VkPipelineRasterizationStateStreamCreateInfoEXT(
     ResourceTracker* resourceTracker, VkPipelineRasterizationStateStreamCreateInfoEXT* toTransform);
 
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceTextureCompressionASTCHDRFeatures,
                       transform_tohost_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
@@ -2678,16 +2654,6 @@ void transform_fromhost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     ResourceTracker* resourceTracker,
     VkPipelineRasterizationDepthClipStateCreateInfoEXT* toTransform);
 
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
 #endif
 #ifdef VK_EXT_inline_uniform_block
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceInlineUniformBlockFeatures,
@@ -2715,7 +2681,55 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkDescriptorPoolInlineUniformBlockCreat
                       transform_fromhost_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
-#ifdef VK_EXT_shader_stencil_export
+#ifdef VK_EXT_image_drm_format_modifier
+void transform_tohost_VkDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesEXT* toTransform);
+
+void transform_fromhost_VkDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesEXT* toTransform);
+
+void transform_tohost_VkDrmFormatModifierPropertiesListEXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesListEXT* toTransform);
+
+void transform_fromhost_VkDrmFormatModifierPropertiesListEXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesListEXT* toTransform);
+
+void transform_tohost_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceImageDrmFormatModifierInfoEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceImageDrmFormatModifierInfoEXT* toTransform);
+
+void transform_tohost_VkImageDrmFormatModifierListCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierListCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkImageDrmFormatModifierListCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierListCreateInfoEXT* toTransform);
+
+void transform_tohost_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierExplicitCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierExplicitCreateInfoEXT* toTransform);
+
+void transform_tohost_VkImageDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierPropertiesEXT* toTransform);
+
+void transform_fromhost_VkImageDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierPropertiesEXT* toTransform);
+
+void transform_tohost_VkDrmFormatModifierProperties2EXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierProperties2EXT* toTransform);
+
+void transform_fromhost_VkDrmFormatModifierProperties2EXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierProperties2EXT* toTransform);
+
+void transform_tohost_VkDrmFormatModifierPropertiesList2EXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesList2EXT* toTransform);
+
+void transform_fromhost_VkDrmFormatModifierPropertiesList2EXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesList2EXT* toTransform);
+
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
@@ -2760,10 +2774,6 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkPipelineCreationFeedback,
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPipelineCreationFeedback,
                       transform_fromhost_VkPipelineCreationFeedbackEXT)
 
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
 #endif
 #ifdef VK_EXT_fragment_density_map
 void transform_tohost_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
@@ -2820,8 +2830,6 @@ DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceToolProperties,
 DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceToolProperties,
                       transform_fromhost_VkPhysicalDeviceToolPropertiesEXT)
 
-#endif
-#ifdef VK_EXT_validation_features
 #endif
 #ifdef VK_EXT_provoking_vertex
 void transform_tohost_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -2955,8 +2963,6 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkImageSubresource2KHR,
                       transform_fromhost_VkImageSubresource2EXT)
 
 #endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures,
                       transform_tohost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT)
@@ -3061,8 +3067,6 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDevicePipelineCreationCacheCo
                       transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
 #endif
-#ifdef VK_EXT_metal_objects
-#endif
 #ifdef VK_EXT_graphics_pipeline_library
 void transform_tohost_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
     ResourceTracker* resourceTracker,
@@ -3155,6 +3159,20 @@ void transform_fromhost_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* toTransform);
 
 #endif
+#ifdef VK_EXT_color_write_enable
+void transform_tohost_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceColorWriteEnableFeaturesEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceColorWriteEnableFeaturesEXT* toTransform);
+
+void transform_tohost_VkPipelineColorWriteCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkPipelineColorWriteCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkPipelineColorWriteCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkPipelineColorWriteCreateInfoEXT* toTransform);
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void transform_tohost_VkImportColorBufferGOOGLE(ResourceTracker* resourceTracker,
                                                 VkImportColorBufferGOOGLE* toTransform);
@@ -3175,8 +3193,6 @@ void transform_fromhost_VkCreateBlobGOOGLE(ResourceTracker* resourceTracker,
                                            VkCreateBlobGOOGLE* toTransform);
 
 #endif
-#ifdef VK_EXT_load_store_op_none
-#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void transform_tohost_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     ResourceTracker* resourceTracker,
@@ -3187,8 +3203,5 @@ void transform_fromhost_VkPhysicalDeviceImageCompressionControlSwapchainFeatures
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* toTransform);
 
 #endif
-#ifdef VK_QNX_external_memory_screen_buffer
-#endif
-
 }  // namespace vk
 }  // namespace gfxstream
