@@ -560,6 +560,8 @@ void EglOsEglDisplay::queryConfigs(int renderableType,
                                        &configInfo.blue_size);
         mDispatcher.eglGetConfigAttrib(mDisplay, cfg, EGL_ALPHA_SIZE,
                                        &configInfo.alpha_size);
+        mDispatcher.eglGetConfigAttrib(mDisplay, cfg, EGL_ALPHA_MASK_SIZE,
+                                       &configInfo.alpha_mask_size);
 
         mDispatcher.eglGetConfigAttrib(mDisplay, cfg, EGL_CONFIG_CAVEAT,
                                        (EGLint*)&configInfo.caveat);
