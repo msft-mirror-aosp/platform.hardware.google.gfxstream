@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <variant>
 
-#include "BlobManager.h"
+#include "ExternalObjectManager.h"
 #include "FrameBuffer.h"
 #include "GfxStreamAgents.h"
 #include "VirtioGpuTimelines.h"
@@ -220,8 +220,9 @@ using android::base::MetricsLogger;
 using android::base::SharedMemory;
 
 using emugl::FatalError;
-using gfxstream::BlobManager;
-using gfxstream::ManagedDescriptorInfo;
+using gfxstream::BlobDescriptorInfo;
+using gfxstream::ExternalObjectManager;
+using gfxstream::SyncDescriptorInfo;
 
 using VirtioGpuResId = uint32_t;
 
@@ -242,6 +243,8 @@ struct PipeCtxEntry {
     uint32_t addressSpaceHandle;
     bool hasAddressSpaceHandle;
     std::unordered_map<VirtioGpuResId, uint32_t> addressSpaceHandles;
+    std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
+    std::shared_ptr<gfxstream::SyncDescriptorInfo> latestFence;
 };
 
 enum class ResType {
@@ -252,6 +255,8 @@ enum class ResType {
     BUFFER,
     // Used as a GPU texture.
     COLOR_BUFFER,
+    // Used as a blob and not known to FrameBuffer.
+    BLOB,
 };
 
 struct AlignedMemory {
@@ -294,7 +299,6 @@ class RingBlob : public std::variant<std::unique_ptr<AlignedMemory>,
     }
 };
 
-
 struct PipeResEntry {
     stream_renderer_resource_create_args args;
     iovec* iov;
@@ -312,7 +316,7 @@ struct PipeResEntry {
     ResType type;
     std::shared_ptr<RingBlob> ringBlob;
     bool externalAddr = false;
-    std::shared_ptr<ManagedDescriptorInfo> descriptorInfo = nullptr;
+    std::shared_ptr<BlobDescriptorInfo> descriptorInfo = nullptr;
 };
 
 static inline uint32_t align_up(uint32_t n, uint32_t a) { return ((n + a - 1) / a) * a; }
@@ -336,7 +340,13 @@ const uint32_t kGlRg8 = 0x822b;
 const uint32_t kGlLuminance = 0x1909;
 const uint32_t kGlLuminanceAlpha = 0x190a;
 const uint32_t kGlUnsignedByte = 0x1401;
+const uint32_t kGlUnsignedShort = 0x1403;
 const uint32_t kGlUnsignedShort565 = 0x8363;
+const uint32_t kGlDepth16 = 0x81A5;
+const uint32_t kGlDepth24 = 0x81A6;
+const uint32_t kGlDepth24Stencil8 = 0x88F0;
+const uint32_t kGlDepth32f = 0x8CAC;
+const uint32_t kGlDepth32fStencil8 = 0x8CAD;
 
 constexpr uint32_t kFwkFormatGlCompat = 0;
 constexpr uint32_t kFwkFormatYV12 = 1;
@@ -356,6 +366,11 @@ static inline bool virgl_format_is_yuv(uint32_t format) {
         case VIRGL_FORMAT_R16G16B16A16_FLOAT:
         case VIRGL_FORMAT_R8G8_UNORM:
         case VIRGL_FORMAT_R10G10B10A2_UNORM:
+        case VIRGL_FORMAT_Z16_UNORM:
+        case VIRGL_FORMAT_Z24X8_UNORM:
+        case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+        case VIRGL_FORMAT_Z32_FLOAT:
+        case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
             return false;
         case VIRGL_FORMAT_NV12:
         case VIRGL_FORMAT_P010:
@@ -392,6 +407,16 @@ static inline uint32_t virgl_format_to_gl(uint32_t virgl_format) {
             return kGlRgba;
         case VIRGL_FORMAT_R10G10B10A2_UNORM:
             return kGlRgba1010102;
+        case VIRGL_FORMAT_Z16_UNORM:
+            return kGlDepth16;
+        case VIRGL_FORMAT_Z24X8_UNORM:
+            return kGlDepth24;
+        case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+            return kGlDepth24Stencil8;
+        case VIRGL_FORMAT_Z32_FLOAT:
+            return kGlDepth32f;
+        case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
+            return kGlDepth32fStencil8;
         default:
             return kGlRgba;
     }
@@ -415,6 +440,11 @@ static inline uint32_t virgl_format_to_fwk_format(uint32_t virgl_format) {
         case VIRGL_FORMAT_R8G8B8A8_UNORM:
         case VIRGL_FORMAT_B5G6R5_UNORM:
         case VIRGL_FORMAT_R10G10B10A2_UNORM:
+        case VIRGL_FORMAT_Z16_UNORM:
+        case VIRGL_FORMAT_Z24X8_UNORM:
+        case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+        case VIRGL_FORMAT_Z32_FLOAT:
+        case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
         default:  // kFwkFormatGlCompat: No extra conversions needed
             return kFwkFormatGlCompat;
     }
@@ -429,9 +459,59 @@ static inline uint32_t gl_format_to_natural_type(uint32_t format) {
             return kGlUnsignedByte;
         case kGlRgb565:
             return kGlUnsignedShort565;
+        case kGlDepth16:
+            return kGlUnsignedShort;
         default:
             return kGlUnsignedByte;
     }
+}
+
+#ifndef DRM_FORMAT_DEPTH16
+#define DRM_FORMAT_DEPTH16 fourcc_code('D', '1', '6', ' ')
+#define DRM_FORMAT_DEPTH24 fourcc_code('D', '2', '4', 'X')
+#define DRM_FORMAT_DEPTH24_STENCIL8 fourcc_code('D', '2', '4', 'S')
+#define DRM_FORMAT_DEPTH32 fourcc_code('D', '3', '2', 'F')
+#define DRM_FORMAT_DEPTH32_STENCIL8 fourcc_code('D', 'F', 'S', '8')
+#endif
+
+static uint32_t drm_format_to_virgl_format(uint32_t format) {
+    switch (format) {
+        case DRM_FORMAT_DEPTH16:
+            return VIRGL_FORMAT_Z16_UNORM;
+        case DRM_FORMAT_DEPTH24:
+            return VIRGL_FORMAT_Z24X8_UNORM;
+        case DRM_FORMAT_DEPTH24_STENCIL8:
+            return VIRGL_FORMAT_Z24_UNORM_S8_UINT;
+        case DRM_FORMAT_DEPTH32:
+            return VIRGL_FORMAT_Z32_FLOAT;
+        case DRM_FORMAT_DEPTH32_STENCIL8:
+            return VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT;
+        default:
+            stream_renderer_error("Unknown drm format for virgl conversion 0x%x", format);
+            return 0;
+    }
+}
+
+static void set_virgl_format_supported(uint32_t* mask, uint32_t virgl_format, bool supported) {
+    uint32_t index = virgl_format / 32;
+    uint32_t bit_offset = 1 << (virgl_format & 31);
+    if (supported) {
+        mask[index] |= bit_offset;
+    } else {
+        mask[index] &= ~bit_offset;
+    }
+}
+
+static void set_drm_format_supported(uint32_t* mask, uint32_t drm_format, bool supported) {
+    uint32_t virgl_format = drm_format_to_virgl_format(drm_format);
+    set_virgl_format_supported(mask, virgl_format, supported);
+}
+
+static bool is_drm_format_supported(uint32_t* mask, uint32_t drm_format) {
+    uint32_t virgl_format = drm_format_to_virgl_format(drm_format);
+    uint32_t index = virgl_format / 32;
+    uint32_t bit_offset = 1 << (virgl_format & 31);
+    return (mask[index] & bit_offset) ? true : false;
 }
 
 static inline size_t virgl_format_to_linear_base(uint32_t format, uint32_t totalWidth,
@@ -443,6 +523,7 @@ static inline size_t virgl_format_to_linear_base(uint32_t format, uint32_t total
         uint32_t bpp = 4;
         switch (format) {
             case VIRGL_FORMAT_R16G16B16A16_FLOAT:
+            case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
                 bpp = 8;
                 break;
             case VIRGL_FORMAT_B8G8R8X8_UNORM:
@@ -450,11 +531,15 @@ static inline size_t virgl_format_to_linear_base(uint32_t format, uint32_t total
             case VIRGL_FORMAT_R8G8B8X8_UNORM:
             case VIRGL_FORMAT_R8G8B8A8_UNORM:
             case VIRGL_FORMAT_R10G10B10A2_UNORM:
+            case VIRGL_FORMAT_Z24X8_UNORM:
+            case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+            case VIRGL_FORMAT_Z32_FLOAT:
                 bpp = 4;
                 break;
             case VIRGL_FORMAT_B5G6R5_UNORM:
             case VIRGL_FORMAT_R8G8_UNORM:
             case VIRGL_FORMAT_R16_UNORM:
+            case VIRGL_FORMAT_Z16_UNORM:
                 bpp = 2;
                 break;
             case VIRGL_FORMAT_R8_UNORM:
@@ -518,6 +603,7 @@ static inline size_t virgl_format_to_total_xfer_len(uint32_t format, uint32_t to
         uint32_t bpp = 4;
         switch (format) {
             case VIRGL_FORMAT_R16G16B16A16_FLOAT:
+            case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
                 bpp = 8;
                 break;
             case VIRGL_FORMAT_B8G8R8X8_UNORM:
@@ -525,11 +611,15 @@ static inline size_t virgl_format_to_total_xfer_len(uint32_t format, uint32_t to
             case VIRGL_FORMAT_R8G8B8X8_UNORM:
             case VIRGL_FORMAT_R8G8B8A8_UNORM:
             case VIRGL_FORMAT_R10G10B10A2_UNORM:
+            case VIRGL_FORMAT_Z24X8_UNORM:
+            case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
+            case VIRGL_FORMAT_Z32_FLOAT:
                 bpp = 4;
                 break;
             case VIRGL_FORMAT_B5G6R5_UNORM:
             case VIRGL_FORMAT_R16_UNORM:
             case VIRGL_FORMAT_R8G8_UNORM:
+            case VIRGL_FORMAT_Z16_UNORM:
                 bpp = 2;
                 break;
             case VIRGL_FORMAT_R8_UNORM:
@@ -661,9 +751,7 @@ class CleanupThread {
     CleanupThread(CleanupThread&& other) = delete;
     CleanupThread& operator=(CleanupThread&& other) = delete;
 
-    void enqueueCleanup(GenericCleanup command) {
-        mWorker.enqueue(std::move(command));
-    }
+    void enqueueCleanup(GenericCleanup command) { mWorker.enqueue(std::move(command)); }
 
     void stop() {
         mWorker.enqueue(Exit{});
@@ -680,16 +768,12 @@ class PipeVirglRenderer {
    public:
     PipeVirglRenderer() = default;
 
-    int init(void* cookie, gfxstream::host::FeatureSet features, stream_renderer_fence_callback fence_callback) {
+    int init(void* cookie, gfxstream::host::FeatureSet features,
+             stream_renderer_fence_callback fence_callback) {
         stream_renderer_debug("cookie: %p", cookie);
         mCookie = cookie;
         mFeatures = features;
         mFenceCallback = fence_callback;
-        mVirtioGpuOps = android_getVirtioGpuOps();
-        if (!mVirtioGpuOps) {
-            stream_renderer_error("Could not get virtio gpu ops!");
-            return -EINVAL;
-        }
         mAddressSpaceDeviceControlOps = get_address_space_device_control_ops();
         if (!mAddressSpaceDeviceControlOps) {
             stream_renderer_error("Could not get address space device control ops!");
@@ -707,9 +791,7 @@ class PipeVirglRenderer {
         return 0;
     }
 
-    void teardown() {
-        mCleanupThread.reset();
-    }
+    void teardown() { mCleanupThread.reset(); }
 
     int resetPipe(GoldfishHwPipe* hwPipe, GoldfishHostPipe* hostPipe) {
         stream_renderer_debug("Want to reset hwpipe %p to hostpipe %p", hwPipe, hostPipe);
@@ -762,6 +844,7 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
         std::unordered_map<uint32_t, uint32_t> map;
+        std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
 
         PipeCtxEntry res = {
             std::move(contextName),  // contextName
@@ -772,6 +855,7 @@ class PipeVirglRenderer {
             0,                       // AS handle
             false,                   // does not have an AS handle
             map,                     // resourceId --> ASG handle map
+            blobMap,                 // blobId -> resource create args
         };
 
         stream_renderer_debug("initial host pipe for ctxid %u: %p", ctx_id, hostPipe);
@@ -947,9 +1031,11 @@ class PipeVirglRenderer {
 
                 stream_renderer_debug("wait for gpu ring %s", to_string(ring).c_str());
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
-                mVirtioGpuOps->async_wait_for_gpu_with_cb(sync_handle, [this, taskId] {
+#if GFXSTREAM_ENABLE_HOST_GLES
+                gfxstream::FrameBuffer::getFB()->asyncWaitForGpuWithCb(sync_handle, [this, taskId] {
                     mVirtioGpuTimelines->notifyTaskCompletion(taskId);
                 });
+#endif
                 break;
             }
             case GFXSTREAM_CREATE_EXPORT_SYNC_VK:
@@ -973,7 +1059,7 @@ class PipeVirglRenderer {
 
                 stream_renderer_debug("wait for gpu ring %s", to_string(ring).c_str());
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
-                mVirtioGpuOps->async_wait_for_gpu_vulkan_with_cb(
+                gfxstream::FrameBuffer::getFB()->asyncWaitForGpuVulkanWithCb(
                     device_handle, fence_handle,
                     [this, taskId] { mVirtioGpuTimelines->notifyTaskCompletion(taskId); });
                 break;
@@ -996,9 +1082,66 @@ class PipeVirglRenderer {
                 stream_renderer_debug("wait for gpu vk qsri ring %u image 0x%llx",
                                       to_string(ring).c_str(), (unsigned long long)image_handle);
                 auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
-                mVirtioGpuOps->async_wait_for_gpu_vulkan_qsri_with_cb(image_handle, [this, taskId] {
-                    mVirtioGpuTimelines->notifyTaskCompletion(taskId);
-                });
+                gfxstream::FrameBuffer::getFB()->asyncWaitForGpuVulkanQsriWithCb(
+                    image_handle,
+                    [this, taskId] { mVirtioGpuTimelines->notifyTaskCompletion(taskId); });
+                break;
+            }
+            case GFXSTREAM_RESOURCE_CREATE_3D: {
+                DECODE(create3d, gfxstream::gfxstreamResourceCreate3d, buffer)
+                struct stream_renderer_resource_create_args rc3d = {0};
+
+                rc3d.target = create3d.target;
+                rc3d.format = create3d.format;
+                rc3d.bind = create3d.bind;
+                rc3d.width = create3d.width;
+                rc3d.height = create3d.height;
+                rc3d.depth = create3d.depth;
+                rc3d.array_size = create3d.arraySize;
+                rc3d.last_level = create3d.lastLevel;
+                rc3d.nr_samples = create3d.nrSamples;
+                rc3d.flags = create3d.flags;
+
+                auto ctxIt = mContexts.find(cmd->ctx_id);
+                if (ctxIt == mContexts.end()) {
+                    stream_renderer_error("ctx id %u is not found", cmd->ctx_id);
+                    return -EINVAL;
+                }
+
+                auto& ctxEntry = ctxIt->second;
+                if (ctxEntry.blobMap.count(create3d.blobId)) {
+                    stream_renderer_error("blob ID already in use");
+                    return -EINVAL;
+                }
+
+                ctxEntry.blobMap[create3d.blobId] = rc3d;
+                break;
+            }
+            case GFXSTREAM_ACQUIRE_SYNC: {
+                DECODE(acquireSync, gfxstream::gfxstreamAcquireSync, buffer);
+
+                auto ctxIt = mContexts.find(cmd->ctx_id);
+                if (ctxIt == mContexts.end()) {
+                    stream_renderer_error("ctx id %u is not found", cmd->ctx_id);
+                    return -EINVAL;
+                }
+
+                auto& ctxEntry = ctxIt->second;
+                if (ctxEntry.latestFence) {
+                    stream_renderer_error("expected latest fence to empty");
+                    return -EINVAL;
+                }
+
+                auto syncDescriptorInfoOpt = ExternalObjectManager::get()->removeSyncDescriptorInfo(
+                    cmd->ctx_id, acquireSync.syncId);
+                if (syncDescriptorInfoOpt) {
+                    ctxEntry.latestFence = std::make_shared<gfxstream::SyncDescriptorInfo>(
+                        std::move(*syncDescriptorInfoOpt));
+                } else {
+                    stream_renderer_error("failed to get sync descriptor info");
+                    return -EINVAL;
+                }
+
                 break;
             }
             case GFXSTREAM_PLACEHOLDER_COMMAND_VK: {
@@ -1047,6 +1190,25 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
         mVirtioGpuTimelines->enqueueFence(ring, fence_id, std::move(callback));
+
+        return 0;
+    }
+
+    int acquireContextFence(uint32_t ctx_id, uint64_t fenceId) {
+        auto ctxIt = mContexts.find(ctx_id);
+        if (ctxIt == mContexts.end()) {
+            stream_renderer_error("ctx id %u is not found", ctx_id);
+            return -EINVAL;
+        }
+
+        auto& ctxEntry = ctxIt->second;
+        if (ctxEntry.latestFence) {
+            mSyncMap[fenceId] = ctxEntry.latestFence;
+            ctxEntry.latestFence = nullptr;
+        } else {
+            stream_renderer_error("Failed to acquire sync descriptor");
+            return -EINVAL;
+        }
 
         return 0;
     }
@@ -1118,7 +1280,8 @@ class PipeVirglRenderer {
 
     void handleCreateResourceBuffer(struct stream_renderer_resource_create_args* args) {
         stream_renderer_debug("w:%u h:%u handle:%u", args->handle, args->width, args->height);
-        mVirtioGpuOps->create_buffer_with_handle(args->width * args->height, args->handle);
+        gfxstream::FrameBuffer::getFB()->createBufferWithHandle(args->width * args->height,
+                                                                args->handle);
     }
 
     void handleCreateResourceColorBuffer(struct stream_renderer_resource_create_args* args) {
@@ -1127,10 +1290,19 @@ class PipeVirglRenderer {
 
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const uint32_t fwkformat = virgl_format_to_fwk_format(args->format);
-        mVirtioGpuOps->create_color_buffer_with_handle(args->width, args->height, glformat,
-                                                       fwkformat, args->handle);
-        mVirtioGpuOps->set_guest_managed_color_buffer_lifetime(true /* guest manages lifetime */);
-        mVirtioGpuOps->open_color_buffer(args->handle);
+
+        const bool linear =
+#ifdef GFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL
+            !!(args->bind & VIRGL_BIND_LINEAR);
+#else
+            false;
+#endif
+        gfxstream::FrameBuffer::getFB()->createColorBufferWithHandle(
+            args->width, args->height, glformat, (gfxstream::FrameworkFormat)fwkformat,
+            args->handle, linear);
+        gfxstream::FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(
+            true /* guest manages lifetime */);
+        gfxstream::FrameBuffer::getFB()->openColorBuffer(args->handle);
     }
 
     int createResource(struct stream_renderer_resource_create_args* args, struct iovec* iov,
@@ -1139,6 +1311,8 @@ class PipeVirglRenderer {
 
         const auto resType = getResourceType(*args);
         switch (resType) {
+            case ResType::BLOB:
+                return -EINVAL;
             case ResType::PIPE:
                 break;
             case ResType::BUFFER:
@@ -1181,13 +1355,14 @@ class PipeVirglRenderer {
 
         auto& entry = it->second;
         switch (entry.type) {
+            case ResType::BLOB:
             case ResType::PIPE:
                 break;
             case ResType::BUFFER:
-                mVirtioGpuOps->close_buffer(toUnrefId);
+                gfxstream::FrameBuffer::getFB()->closeBuffer(toUnrefId);
                 break;
             case ResType::COLOR_BUFFER:
-                mVirtioGpuOps->close_color_buffer(toUnrefId);
+                gfxstream::FrameBuffer::getFB()->closeColorBuffer(toUnrefId);
                 break;
         }
 
@@ -1340,8 +1515,8 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
 
-        mVirtioGpuOps->read_buffer(res->args.handle, 0, res->args.width * res->args.height,
-                                   res->linear);
+        gfxstream::FrameBuffer::getFB()->readBuffer(
+            res->args.handle, 0, res->args.width * res->args.height, res->linear);
         return 0;
     }
 
@@ -1351,8 +1526,8 @@ class PipeVirglRenderer {
             return -EINVAL;
         }
 
-        mVirtioGpuOps->update_buffer(res->args.handle, 0, res->args.width * res->args.height,
-                                     res->linear);
+        gfxstream::FrameBuffer::getFB()->updateBuffer(
+            res->args.handle, 0, res->args.width * res->args.height, res->linear);
         return 0;
     }
 
@@ -1369,11 +1544,13 @@ class PipeVirglRenderer {
         // We always xfer the whole thing again from GL
         // since it's fiddly to calc / copy-out subregions
         if (virgl_format_is_yuv(res->args.format)) {
-            mVirtioGpuOps->read_color_buffer_yuv(res->args.handle, 0, 0, res->args.width,
-                                                 res->args.height, res->linear, res->linearSize);
+            gfxstream::FrameBuffer::getFB()->readColorBufferYUV(res->args.handle, 0, 0,
+                                                                res->args.width, res->args.height,
+                                                                res->linear, res->linearSize);
         } else {
-            mVirtioGpuOps->read_color_buffer(res->args.handle, 0, 0, res->args.width,
-                                             res->args.height, glformat, gltype, res->linear);
+            gfxstream::FrameBuffer::getFB()->readColorBuffer(res->args.handle, 0, 0,
+                                                             res->args.width, res->args.height,
+                                                             glformat, gltype, res->linear);
         }
 
         return 0;
@@ -1391,8 +1568,9 @@ class PipeVirglRenderer {
 
         // We always xfer the whole thing again to GL
         // since it's fiddly to calc / copy-out subregions
-        mVirtioGpuOps->update_color_buffer(res->args.handle, 0, 0, res->args.width,
-                                           res->args.height, glformat, gltype, res->linear);
+        gfxstream::FrameBuffer::getFB()->updateColorBuffer(res->args.handle, 0, 0, res->args.width,
+                                                           res->args.height, glformat, gltype,
+                                                           res->linear);
         return 0;
     }
 
@@ -1405,6 +1583,8 @@ class PipeVirglRenderer {
 
         auto& entry = it->second;
         switch (entry.type) {
+            case ResType::BLOB:
+                return -EINVAL;
             case ResType::PIPE:
                 ret = handleTransferReadPipe(&entry, offset, box);
                 break;
@@ -1454,6 +1634,8 @@ class PipeVirglRenderer {
         }
 
         switch (entry.type) {
+            case ResType::BLOB:
+                return -EINVAL;
             case ResType::PIPE:
                 ret = handleTransferWritePipe(&entry, offset, box);
                 break;
@@ -1483,7 +1665,7 @@ class PipeVirglRenderer {
                 *max_size = sizeof(struct gfxstream::composerCapset);
                 break;
             default:
-                stream_renderer_error("Incorrect capability set specified");
+                stream_renderer_error("Incorrect capability set specified (%u)", set);
         }
     }
 
@@ -1509,6 +1691,57 @@ class PipeVirglRenderer {
                 capset->blobAlignment = mPageSize;
                 if (vk_emu && vk_emu->live) {
                     capset->deferredMapping = 1;
+                }
+
+#if GFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS
+                capset->alwaysBlob = 1;
+#endif
+
+#if GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC
+                capset->externalSync = 1;
+#endif
+
+                memset(capset->virglSupportedFormats, 0, sizeof(capset->virglSupportedFormats));
+
+                struct FormatWithName {
+                    uint32_t format;
+                    const char* name;
+                };
+#define MAKE_FORMAT_AND_NAME(x) \
+    { x, #x }
+                static const FormatWithName kPossibleFormats[] = {
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_B5G6R5_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_B8G8R8A8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_B8G8R8X8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_NV12),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_P010),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R10G10B10A2_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R16_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R16G16B16A16_FLOAT),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8B8A8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8B8X8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_YV12),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z16_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z24_UNORM_S8_UINT),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z24X8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z32_FLOAT),
+                };
+#undef MAKE_FORMAT_AND_NAME
+
+                stream_renderer_info("Format support:");
+                for (std::size_t i = 0; i < std::size(kPossibleFormats); i++) {
+                    const FormatWithName& possibleFormat = kPossibleFormats[i];
+
+                    GLenum possibleFormatGl = virgl_format_to_gl(possibleFormat.format);
+                    const bool supported =  gfxstream::FrameBuffer::getFB()->isFormatSupported(possibleFormatGl);
+
+                    stream_renderer_info(" %s: %s", possibleFormat.name,
+                                         (supported ? "supported" : "unsupported"));
+                    set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat.format,
+                                               supported);
                 }
                 break;
             }
@@ -1606,6 +1839,9 @@ class PipeVirglRenderer {
             case VIRGL_FORMAT_B8G8R8A8_UNORM:
                 info->drm_fourcc = DRM_FORMAT_ARGB8888;
                 break;
+            case VIRGL_FORMAT_B8G8R8X8_UNORM:
+                info->drm_fourcc = DRM_FORMAT_XRGB8888;
+                break;
             case VIRGL_FORMAT_B5G6R5_UNORM:
                 info->drm_fourcc = DRM_FORMAT_RGB565;
                 bpp = 2U;
@@ -1637,7 +1873,7 @@ class PipeVirglRenderer {
 
     void flushResource(uint32_t res_handle) {
         auto taskId = mVirtioGpuTimelines->enqueueTask(VirtioGpuRingGlobal{});
-        mVirtioGpuOps->async_post_color_buffer(
+        gfxstream::FrameBuffer::getFB()->postWithCallback(
             res_handle, [this, taskId](std::shared_future<void> waitForGpu) {
                 waitForGpu.wait();
                 mVirtioGpuTimelines->notifyTaskCompletion(taskId);
@@ -1685,8 +1921,47 @@ class PipeVirglRenderer {
 
         PipeResEntry e;
         struct stream_renderer_resource_create_args args = {0};
+        std::optional<BlobDescriptorInfo> descriptorInfoOpt = std::nullopt;
         e.args = args;
         e.hostPipe = 0;
+
+        auto ctxIt = mContexts.find(ctx_id);
+        if (ctxIt == mContexts.end()) {
+            stream_renderer_error("ctx id %u is not found", ctx_id);
+            return -EINVAL;
+        }
+
+        auto& ctxEntry = ctxIt->second;
+
+        ResType blobType = ResType::BLOB;
+
+        auto blobIt = ctxEntry.blobMap.find(create_blob->blob_id);
+        if (blobIt != ctxEntry.blobMap.end()) {
+            auto& create3d = blobIt->second;
+            create3d.handle = res_handle;
+
+            const auto resType = getResourceType(create3d);
+            switch (resType) {
+                case ResType::BLOB:
+                    return -EINVAL;
+                case ResType::PIPE:
+                    // Fallthrough for pipe is intended for blob buffers.
+                case ResType::BUFFER:
+                    blobType = ResType::BUFFER;
+                    handleCreateResourceBuffer(&create3d);
+                    descriptorInfoOpt = gfxstream::FrameBuffer::getFB()->exportBuffer(res_handle);
+                    break;
+                case ResType::COLOR_BUFFER:
+                    blobType = ResType::COLOR_BUFFER;
+                    handleCreateResourceColorBuffer(&create3d);
+                    descriptorInfoOpt =
+                        gfxstream::FrameBuffer::getFB()->exportColorBuffer(res_handle);
+                    break;
+            }
+
+            e.args = create3d;
+            ctxEntry.blobMap.erase(create_blob->blob_id);
+        }
 
         if (create_blob->blob_id == 0) {
             int ret = createRingBlob(e, res_handle, create_blob, handle);
@@ -1698,20 +1973,23 @@ class PipeVirglRenderer {
                 (create_blob->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
 #if defined(__linux__) || defined(__QNX__)
                 ManagedDescriptor managedHandle(handle->os_handle);
-                BlobManager::get()->addDescriptorInfo(ctx_id, create_blob->blob_id,
-                                                      std::move(managedHandle), handle->handle_type,
-                                                      0, std::nullopt);
+                ExternalObjectManager::get()->addBlobDescriptorInfo(
+                    ctx_id, create_blob->blob_id, std::move(managedHandle), handle->handle_type, 0,
+                    std::nullopt);
 
                 e.caching = STREAM_RENDERER_MAP_CACHE_CACHED;
 #else
                 return -EINVAL;
 #endif
             } else {
-                auto descriptorInfoOpt =
-                    BlobManager::get()->removeDescriptorInfo(ctx_id, create_blob->blob_id);
+                if (!descriptorInfoOpt) {
+                    descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
+                        ctx_id, create_blob->blob_id);
+                }
+
                 if (descriptorInfoOpt) {
                     e.descriptorInfo =
-                        std::make_shared<ManagedDescriptorInfo>(std::move(*descriptorInfoOpt));
+                        std::make_shared<BlobDescriptorInfo>(std::move(*descriptorInfoOpt));
                 } else {
                     return -EINVAL;
                 }
@@ -1719,7 +1997,8 @@ class PipeVirglRenderer {
                 e.caching = e.descriptorInfo->caching;
             }
         } else {
-            auto entryOpt = BlobManager::get()->removeMapping(ctx_id, create_blob->blob_id);
+            auto entryOpt =
+                ExternalObjectManager::get()->removeMapping(ctx_id, create_blob->blob_id);
             if (entryOpt) {
                 e.hva = entryOpt->addr;
                 e.caching = entryOpt->caching;
@@ -1732,6 +2011,7 @@ class PipeVirglRenderer {
         e.blobId = create_blob->blob_id;
         e.blobMem = create_blob->blob_mem;
         e.blobFlags = create_blob->blob_flags;
+        e.type = blobType;
         e.iov = nullptr;
         e.numIovs = 0;
         e.linear = 0;
@@ -1772,25 +2052,51 @@ class PipeVirglRenderer {
     int platformImportResource(int res_handle, int res_info, void* resource) {
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -EINVAL;
-        bool success = mVirtioGpuOps->platform_import_resource(res_handle, res_info, resource);
+        bool success =
+            gfxstream::FrameBuffer::getFB()->platformImportResource(res_handle, res_info, resource);
         return success ? 0 : -1;
     }
 
     int platformResourceInfo(int res_handle, int* width, int* height, int* internal_format) {
+        bool success = false;
         auto it = mResources.find(res_handle);
         if (it == mResources.end()) return -EINVAL;
-        bool success =
-            mVirtioGpuOps->platform_resource_info(res_handle, width, height, internal_format);
+#if GFXSTREAM_ENABLE_HOST_GLES
+        success = gfxstream::FrameBuffer::getFB()->getColorBufferInfo(res_handle, width, height,
+                                                                      internal_format);
+#endif
         return success ? 0 : -1;
     }
 
     void* platformCreateSharedEglContext() {
-        return mVirtioGpuOps->platform_create_shared_egl_context();
+        void* ptr = nullptr;
+#if GFXSTREAM_ENABLE_HOST_GLES
+        ptr = gfxstream::FrameBuffer::getFB()->platformCreateSharedEglContext();
+#endif
+        return ptr;
     }
 
     int platformDestroySharedEglContext(void* context) {
-        bool success = mVirtioGpuOps->platform_destroy_shared_egl_context(context);
+        bool success = false;
+#if GFXSTREAM_ENABLE_HOST_GLES
+        success = gfxstream::FrameBuffer::getFB()->platformDestroySharedEglContext(context);
+#endif
         return success ? 0 : -1;
+    }
+
+    int waitSyncResource(uint32_t res_handle) {
+        auto it = mResources.find(res_handle);
+        if (it == mResources.end()) {
+            stream_renderer_error("waitSyncResource could not find resource: %d", res_handle);
+            return -EINVAL;
+        }
+        auto& entry = it->second;
+        if (ResType::COLOR_BUFFER != entry.type) {
+            stream_renderer_error("waitSyncResource is undefined for non-ColorBuffer resource.");
+            return -EINVAL;
+        }
+
+        return gfxstream::FrameBuffer::getFB()->waitSyncColorBuffer(res_handle);
     }
 
     int resourceMapInfo(uint32_t res_handle, uint32_t* map_info) {
@@ -1822,22 +2128,12 @@ class PipeVirglRenderer {
         }
 
         if (entry.descriptorInfo) {
-            bool shareable = entry.blobFlags &
-                             (STREAM_BLOB_FLAG_USE_SHAREABLE | STREAM_BLOB_FLAG_USE_CROSS_DEVICE);
-
             DescriptorType rawDescriptor;
-            if (shareable) {
-                // TODO: Add ManagedDescriptor::{clone, dup} method and use it;
-                // This should have no affect since gfxstream allocates mappable-only buffers
-                // currently
+            auto rawDescriptorOpt = entry.descriptorInfo->descriptor.release();
+            if (rawDescriptorOpt)
+                rawDescriptor = *rawDescriptorOpt;
+            else
                 return -EINVAL;
-            } else {
-                auto rawDescriptorOpt = entry.descriptorInfo->descriptor.release();
-                if (rawDescriptorOpt)
-                    rawDescriptor = *rawDescriptorOpt;
-                else
-                    return -EINVAL;
-            }
 
             handle->handle_type = entry.descriptorInfo->handleType;
 
@@ -1851,6 +2147,31 @@ class PipeVirglRenderer {
         }
 
         return -EINVAL;
+    }
+
+    int exportFence(uint64_t fenceId, struct stream_renderer_handle* handle) {
+        auto it = mSyncMap.find(fenceId);
+        if (it == mSyncMap.end()) {
+            return -EINVAL;
+        }
+
+        auto& entry = it->second;
+        DescriptorType rawDescriptor;
+        auto rawDescriptorOpt = entry->descriptor.release();
+        if (rawDescriptorOpt)
+            rawDescriptor = *rawDescriptorOpt;
+        else
+            return -EINVAL;
+
+        handle->handle_type = entry->handleType;
+
+#ifdef _WIN32
+        handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
+#else
+        handle->os_handle = static_cast<int64_t>(rawDescriptor);
+#endif
+
+        return 0;
     }
 
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info) {
@@ -1893,9 +2214,11 @@ class PipeVirglRenderer {
 
         if (linearSize) linear = malloc(linearSize);
 
-        entry.iov = (iovec*)malloc(sizeof(*iov) * num_iovs);
         entry.numIovs = num_iovs;
-        memcpy(entry.iov, iov, num_iovs * sizeof(*iov));
+        entry.iov = (iovec*)malloc(sizeof(*iov) * num_iovs);
+        if (entry.numIovs > 0) {
+            memcpy(entry.iov, iov, num_iovs * sizeof(*iov));
+        }
         entry.linear = linear;
         entry.linearSize = linearSize;
     }
@@ -1927,7 +2250,7 @@ class PipeVirglRenderer {
             if (ctxEntry.addressSpaceHandles.count(toUnrefId)) {
                 uint32_t asgHandle = ctxEntry.addressSpaceHandles[toUnrefId];
 
-                mCleanupThread->enqueueCleanup([this, asgBlob = resource.ringBlob, asgHandle](){
+                mCleanupThread->enqueueCleanup([this, asgBlob = resource.ringBlob, asgHandle]() {
                     mAddressSpaceDeviceControlOps->destroy_handle(asgHandle);
                 });
 
@@ -1945,7 +2268,6 @@ class PipeVirglRenderer {
     void* mCookie = nullptr;
     gfxstream::host::FeatureSet mFeatures;
     stream_renderer_fence_callback mFenceCallback;
-    AndroidVirtioGpuOps* mVirtioGpuOps = nullptr;
     uint32_t mPageSize = 4096;
     struct address_space_device_control_ops* mAddressSpaceDeviceControlOps = nullptr;
 
@@ -1955,6 +2277,7 @@ class PipeVirglRenderer {
     std::unordered_map<VirtioGpuResId, PipeResEntry> mResources;
     std::unordered_map<VirtioGpuCtxId, std::vector<VirtioGpuResId>> mContextResources;
     std::unordered_map<VirtioGpuResId, std::vector<VirtioGpuCtxId>> mResourceContexts;
+    std::unordered_map<uint64_t, std::shared_ptr<SyncDescriptorInfo>> mSyncMap;
 
     // When we wait for gpu or wait for gpu vulkan, the next (and subsequent)
     // fences created for that context should not be signaled immediately.
@@ -2065,6 +2388,13 @@ VG_EXPORT int stream_renderer_context_create(uint32_t ctx_id, uint32_t nlen, con
 }
 
 VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* fence) {
+    if (fence->flags & STREAM_RENDERER_FLAG_FENCE_SHAREABLE) {
+        int ret = sRenderer()->acquireContextFence(fence->ctx_id, fence->fence_id);
+        if (ret) {
+            return ret;
+        }
+    }
+
     if (fence->flags & STREAM_RENDERER_FLAG_FENCE_RING_IDX) {
         sRenderer()->createFence(fence->fence_id, VirtioGpuRingContextSpecific{
                                                       .mCtxId = fence->ctx_id,
@@ -2075,6 +2405,11 @@ VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* f
     }
 
     return 0;
+}
+
+VG_EXPORT int stream_renderer_export_fence(uint64_t fence_id,
+                                           struct stream_renderer_handle* handle) {
+    return sRenderer()->exportFence(fence_id, handle);
 }
 
 VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
@@ -2093,6 +2428,10 @@ VG_EXPORT void* stream_renderer_platform_create_shared_egl_context() {
 
 VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void* context) {
     return sRenderer()->platformDestroySharedEglContext(context);
+}
+
+VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle) {
+    return sRenderer()->waitSyncResource(res_handle);
 }
 
 VG_EXPORT int stream_renderer_resource_map_info(uint32_t res_handle, uint32_t* map_info) {
@@ -2220,9 +2559,7 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
                                        numBuffers);
     },
     // wait_guest_recv()
-    [](GoldfishHostPipe* hostPipe) {
-        android_pipe_wait_guest_recv(hostPipe);
-    },
+    [](GoldfishHostPipe* hostPipe) { android_pipe_wait_guest_recv(hostPipe); },
     // guest_send()
     [](GoldfishHostPipe** hostPipe, const GoldfishPipeBuffer* buffers, int numBuffers) -> int {
         return android_pipe_guest_send(reinterpret_cast<void**>(hostPipe),
@@ -2230,9 +2567,7 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
                                        numBuffers);
     },
     // wait_guest_send()
-    [](GoldfishHostPipe* hostPipe) {
-        android_pipe_wait_guest_send(hostPipe);
-    },
+    [](GoldfishHostPipe* hostPipe) { android_pipe_wait_guest_send(hostPipe); },
     // guest_wake_on()
     [](GoldfishHostPipe* hostPipe, GoldfishPipeWakeFlags wakeFlags) {
         android_pipe_guest_wake_on(hostPipe, static_cast<int>(wakeFlags));
@@ -2359,6 +2694,8 @@ int parseGfxstreamFeatures(const int renderer_flags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, ExternalBlob,
         renderer_flags & STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, VulkanExternalSync,
+                                       renderer_flags & STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, GlAsyncSwap, false);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
@@ -2370,7 +2707,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, GlPipeChecksum, false);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
-        &features, GuestUsesAngle,
+        &features, GuestVulkanOnly,
         (renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT) &&
         !(renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT));
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
@@ -2384,7 +2721,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
         !(renderer_flags & STREAM_RENDERER_FLAGS_USE_GLES_BIT));
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, RefCountPipe,
-        /*Resources are ref counted via guest file objects.*/false);
+        /*Resources are ref counted via guest file objects.*/ false);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, SystemBlob,
         renderer_flags & STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB);
@@ -2448,7 +2785,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
     }
 
     if (features.SystemBlob.enabled) {
-        if(!features.ExternalBlob.enabled) {
+        if (!features.ExternalBlob.enabled) {
             stream_renderer_error("The SystemBlob features requires the ExternalBlob feature.");
             return -EINVAL;
         }
@@ -2636,6 +2973,10 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
         return -EINVAL;
     }
 
+#if GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC
+    renderer_flags |= STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC;
+#endif
+
     gfxstream::host::FeatureSet features;
     int ret = parseGfxstreamFeatures(renderer_flags, renderer_features_str, features);
     if (ret) {
@@ -2646,13 +2987,23 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     stream_renderer_info("Gfxstream features:");
     for (const auto& [_, featureInfo] : features.map) {
         stream_renderer_info("    %s: %s (%s)", featureInfo->name.c_str(),
-                             (featureInfo->enabled ? "enabled" : "disabled"), featureInfo->reason.c_str());
+                             (featureInfo->enabled ? "enabled" : "disabled"),
+                             featureInfo->reason.c_str());
     }
 
     // Set non product-specific callbacks
     gfxstream::vk::vk_util::setVkCheckCallbacks(
         std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
             gfxstream::vk::vk_util::VkCheckCallbacks{
+                .onVkErrorDeviceLost =
+                    []() {
+                        auto fb = gfxstream::FrameBuffer::getFB();
+                        if (!fb) {
+                            ERR("FrameBuffer not yet initialized. Dropping device lost event");
+                            return;
+                        }
+                        fb->logVulkanDeviceLost();
+                    },
                 .onVkErrorOutOfMemory =
                     [](VkResult result, const char* function, int line) {
                         auto fb = gfxstream::FrameBuffer::getFB();
@@ -2678,7 +3029,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     if (!skip_opengles) {
         // aemu currently does its own opengles initialization in
         // qemu/android/android-emu/android/opengles.cpp.
-        int ret = stream_renderer_opengles_init(display_width, display_height, renderer_flags, features);
+        int ret =
+            stream_renderer_opengles_init(display_width, display_height, renderer_flags, features);
         if (ret) {
             return ret;
         }

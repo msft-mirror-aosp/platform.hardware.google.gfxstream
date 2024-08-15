@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "BlobManager.h"
+#include "ExternalObjectManager.h"
 #include "FrameBuffer.h"
 #include "RenderThreadInfoVk.h"
 #include "VkAndroidNativeBuffer.h"
@@ -71,6 +71,12 @@
 #include <vulkan/vulkan_beta.h> // for MoltenVK portability extensions
 #endif
 
+#ifndef VERBOSE
+#define VERBOSE(fmt, ...)        \
+    if (android::base::isVerboseLogging()) \
+        fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#endif
+
 #include <climits>
 
 namespace gfxstream {
@@ -87,11 +93,10 @@ using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Optional;
 using android::base::SharedMemory;
 using android::base::StaticLock;
-using android::emulation::ManagedDescriptorInfo;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 using emugl::GfxApiLogger;
-using gfxstream::BlobManager;
+using gfxstream::ExternalObjectManager;
 using gfxstream::VulkanInfo;
 
 // TODO(b/261477138): Move to a shared aemu definition
@@ -187,6 +192,9 @@ static uint64_t hostBlobId = 0;
 // fake context ID. We will eventually need to fix it once we start using
 // snapshot with virtio.
 static uint32_t kTemporaryContextIdForSnapshotLoading = 1;
+
+static std::unordered_set<std::string> kSnapshotAppAllowList = {"Chromium"};
+static std::unordered_set<std::string> kSnapshotEngineAllowList = {"ANGLE"};
 
 #define DEFINE_BOXED_HANDLE_TYPE_TAG(type) Tag_##type,
 
@@ -364,7 +372,6 @@ class VkDecoderGlobalState::Impl {
                                                 .control_get_hw_funcs()
                                                 ->getPhysAddrStartLocked();
         }
-        mGuestUsesAngle = m_emu->features.GuestUsesAngle.enabled;
     }
 
     ~Impl() = default;
@@ -463,6 +470,13 @@ class VkDecoderGlobalState::Impl {
 
     void save(android::base::Stream* stream) {
         mSnapshotState = SnapshotState::Saving;
+
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+        if (!mInstanceInfo.empty()) {
+            get_emugl_vm_operations().setStatSnapshotUseVulkan();
+        }
+#endif
+
         snapshot()->save(stream);
         // Save mapped memory
         uint32_t memoryCount = 0;
@@ -663,6 +677,22 @@ class VkDecoderGlobalState::Impl {
                 }
             }
         }
+
+        // Fences
+        std::vector<VkFence> unsignaledFencesBoxed;
+        for (const auto& fence : mFenceInfo) {
+            if (!fence.second.boxed) {
+                continue;
+            }
+            const auto& device = fence.second.device;
+            const auto& deviceInfo = android::base::find(mDeviceInfo, device);
+            VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
+            if (VK_NOT_READY == dvk->vkGetFenceStatus(device, fence.first)) {
+                unsignaledFencesBoxed.push_back(fence.second.boxed);
+            }
+        }
+        stream->putBe64(unsignaledFencesBoxed.size());
+        stream->write(unsignaledFencesBoxed.data(), unsignaledFencesBoxed.size() * sizeof(VkFence));
         mSnapshotState = SnapshotState::Normal;
     }
 
@@ -844,6 +874,28 @@ class VkDecoderGlobalState::Impl {
                 poolIds.data(), whichPool.data(), pendingAlloc.data(), writeStartingIndices.data(),
                 writeDescriptorSets.size(), writeDescriptorSets.data());
         }
+        // Fences
+        uint64_t fenceCount = stream->getBe64();
+        std::vector<VkFence> unsignaledFencesBoxed(fenceCount);
+        stream->read(unsignaledFencesBoxed.data(), fenceCount * sizeof(VkFence));
+        for (VkFence boxedFence : unsignaledFencesBoxed) {
+            VkFence unboxedFence = unbox_VkFence(boxedFence);
+            auto it = mFenceInfo.find(unboxedFence);
+            if (it == mFenceInfo.end()) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Snapshot load failure: unrecognized VkFence";
+            }
+            const auto& device = it->second.device;
+            const auto& deviceInfo = android::base::find(mDeviceInfo, device);
+            VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
+            dvk->vkResetFences(device, 1, &unboxedFence);
+        }
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+        if (!mInstanceInfo.empty()) {
+            get_emugl_vm_operations().setStatSnapshotUseVulkan();
+        }
+#endif
+
         mSnapshotState = SnapshotState::Normal;
     }
 
@@ -940,7 +992,7 @@ class VkDecoderGlobalState::Impl {
             curr = curr->pNext;
         }
 
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+#if defined(__APPLE__)
         if (m_emu->instanceSupportsMoltenVK) {
             createInfoFiltered.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         }
@@ -970,9 +1022,6 @@ class VkDecoderGlobalState::Impl {
             lock = std::make_unique<std::lock_guard<std::recursive_mutex>>(mLock);
         }
 
-        // TODO: bug 129484301
-        get_emugl_vm_operations().setSkipSnapshotSave(!m_emu->features.VulkanSnapshots.enabled);
-
         InstanceInfo info;
         info.apiVersion = apiVersion;
         if (pCreateInfo->pApplicationInfo) {
@@ -990,18 +1039,19 @@ class VkDecoderGlobalState::Impl {
         INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
              info.applicationName.c_str(), info.engineName.c_str());
 
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+        // TODO: bug 129484301
+        if (!m_emu->features.VulkanSnapshots.enabled ||
+            (kSnapshotAppAllowList.find(info.applicationName) == kSnapshotAppAllowList.end() &&
+             kSnapshotEngineAllowList.find(info.engineName) == kSnapshotEngineAllowList.end())) {
+            get_emugl_vm_operations().setSkipSnapshotSave(true);
+            get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_APP);
+        }
+#endif
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
         init_vulkan_dispatch_from_instance(m_vk, *pInstance, dispatch_VkInstance(boxed));
         info.boxed = boxed;
-
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
-        if (m_emu->instanceSupportsMoltenVK) {
-            if (!m_vk->vkSetMTLTextureMVK) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Cannot find vkSetMTLTextureMVK";
-            }
-        }
-#endif
 
         std::string_view engineName = appInfo.pEngineName ? appInfo.pEngineName : "";
         info.isAngle = (engineName == "ANGLE");
@@ -1015,6 +1065,9 @@ class VkDecoderGlobalState::Impl {
 
         if (vkCleanupEnabled()) {
             fb->registerProcessCleanupCallback(unbox_VkInstance(boxed), [this, boxed] {
+                if (snapshotsEnabled()) {
+                    snapshot()->vkDestroyInstance(nullptr, 0, nullptr, boxed, nullptr);
+                }
                 vkDestroyInstanceImpl(unbox_VkInstance(boxed), nullptr);
             });
         }
@@ -1078,30 +1131,31 @@ class VkDecoderGlobalState::Impl {
         fb->unregisterProcessCleanupCallback(instance);
     }
 
-    VkResult on_vkEnumeratePhysicalDevices(android::base::BumpPool* pool, VkInstance boxed_instance,
-                                           uint32_t* physicalDeviceCount,
-                                           VkPhysicalDevice* physicalDevices) {
-        auto instance = unbox_VkInstance(boxed_instance);
-        auto vk = dispatch_VkInstance(boxed_instance);
-
-        uint32_t physicalDevicesSize = 0;
-        if (physicalDeviceCount) {
-            physicalDevicesSize = *physicalDeviceCount;
-        }
-
-        uint32_t actualPhysicalDeviceCount;
-        auto res = vk->vkEnumeratePhysicalDevices(instance, &actualPhysicalDeviceCount, nullptr);
+    VkResult GetPhysicalDevices(VkInstance instance, VulkanDispatch* vk,
+                                std::vector<VkPhysicalDevice>& outPhysicalDevices) {
+        uint32_t physicalDevicesCount = 0;
+        auto res = vk->vkEnumeratePhysicalDevices(instance, &physicalDevicesCount, nullptr);
         if (res != VK_SUCCESS) {
             return res;
         }
-        std::vector<VkPhysicalDevice> validPhysicalDevices(actualPhysicalDeviceCount);
-        res = vk->vkEnumeratePhysicalDevices(instance, &actualPhysicalDeviceCount,
-                                             validPhysicalDevices.data());
-        if (res != VK_SUCCESS) return res;
 
-        std::lock_guard<std::recursive_mutex> lock(mLock);
+        outPhysicalDevices.resize(physicalDevicesCount);
 
-        if (m_emu->instanceSupportsExternalMemoryCapabilities) {
+        res = vk->vkEnumeratePhysicalDevices(instance, &physicalDevicesCount,
+                                             outPhysicalDevices.data());
+        if (res != VK_SUCCESS) {
+            outPhysicalDevices.clear();
+            return res;
+        }
+
+        outPhysicalDevices.resize(physicalDevicesCount);
+
+        return VK_SUCCESS;
+    }
+
+    void FilterPhysicalDevicesLocked(VkInstance instance, VulkanDispatch* vk,
+                                     std::vector<VkPhysicalDevice>& toFilterPhysicalDevices) {
+        if (m_emu->instanceSupportsGetPhysicalDeviceProperties2) {
             PFN_vkGetPhysicalDeviceProperties2KHR getPhysdevProps2Func =
                 vk_util::getVkInstanceProcAddrWithFallback<
                     vk_util::vk_fn_info::GetPhysicalDeviceProperties2>(
@@ -1112,8 +1166,9 @@ class VkDecoderGlobalState::Impl {
                     instance);
 
             if (getPhysdevProps2Func) {
-                validPhysicalDevices.erase(
-                    std::remove_if(validPhysicalDevices.begin(), validPhysicalDevices.end(),
+                // Remove those devices whose UUIDs don't match the one in VkCommonOperations.
+                toFilterPhysicalDevices.erase(
+                    std::remove_if(toFilterPhysicalDevices.begin(), toFilterPhysicalDevices.end(),
                                    [getPhysdevProps2Func, this](VkPhysicalDevice physicalDevice) {
                                        // We can get the device UUID.
                                        VkPhysicalDeviceIDPropertiesKHR idProps = {
@@ -1126,54 +1181,65 @@ class VkDecoderGlobalState::Impl {
                                        };
                                        getPhysdevProps2Func(physicalDevice, &propsWithId);
 
-                                       // Remove those devices whose UUIDs don't match the one
-                                       // in VkCommonOperations.
                                        return memcmp(m_emu->deviceInfo.idProps.deviceUUID,
                                                      idProps.deviceUUID, VK_UUID_SIZE) != 0;
                                    }),
-                    validPhysicalDevices.end());
+                    toFilterPhysicalDevices.end());
             } else {
-                fprintf(stderr,
-                        "%s: warning: failed to "
-                        "vkGetPhysicalDeviceProperties2KHR\n",
-                        __func__);
+                ERR("Failed to vkGetPhysicalDeviceProperties2KHR().");
             }
         } else {
             // If we don't support ID properties then just advertise only the
             // first physical device.
-            fprintf(stderr,
-                    "%s: device id properties not supported, using first "
-                    "physical device\n",
-                    __func__);
+            WARN("Device ID not available, returning first physical device.");
         }
-        if (!validPhysicalDevices.empty()) {
-            validPhysicalDevices.erase(std::next(validPhysicalDevices.begin()),
-                                       validPhysicalDevices.end());
+        if (!toFilterPhysicalDevices.empty()) {
+            toFilterPhysicalDevices.erase(std::next(toFilterPhysicalDevices.begin()),
+                                          toFilterPhysicalDevices.end());
+        }
+    }
+
+    VkResult on_vkEnumeratePhysicalDevices(android::base::BumpPool* pool, VkInstance boxed_instance,
+                                           uint32_t* pPhysicalDeviceCount,
+                                           VkPhysicalDevice* pPhysicalDevices) {
+        auto instance = unbox_VkInstance(boxed_instance);
+        auto vk = dispatch_VkInstance(boxed_instance);
+
+        std::vector<VkPhysicalDevice> physicalDevices;
+        auto res = GetPhysicalDevices(instance, vk, physicalDevices);
+        if (res != VK_SUCCESS) {
+            return res;
         }
 
-        if (physicalDeviceCount) {
-            *physicalDeviceCount = validPhysicalDevices.size();
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        FilterPhysicalDevicesLocked(instance, vk, physicalDevices);
+
+        const uint32_t requestedCount = pPhysicalDeviceCount ? *pPhysicalDeviceCount : 0;
+        const uint32_t availableCount = static_cast<uint32_t>(physicalDevices.size());
+
+        if (pPhysicalDeviceCount) {
+            *pPhysicalDeviceCount = availableCount;
         }
 
-        if (physicalDeviceCount && physicalDevices) {
+        if (pPhysicalDeviceCount && pPhysicalDevices) {
             // Box them up
-            for (uint32_t i = 0; i < std::min(*physicalDeviceCount, physicalDevicesSize); ++i) {
-                mPhysicalDeviceToInstance[validPhysicalDevices[i]] = instance;
+            for (uint32_t i = 0; i < std::min(requestedCount, availableCount); ++i) {
+                mPhysicalDeviceToInstance[physicalDevices[i]] = instance;
 
-                auto& physdevInfo = mPhysdevInfo[validPhysicalDevices[i]];
+                auto& physdevInfo = mPhysdevInfo[physicalDevices[i]];
                 physdevInfo.instance = instance;
-                physdevInfo.boxed = new_boxed_VkPhysicalDevice(validPhysicalDevices[i], vk,
+                physdevInfo.boxed = new_boxed_VkPhysicalDevice(physicalDevices[i], vk,
                                                                false /* does not own dispatch */);
 
-                vk->vkGetPhysicalDeviceProperties(validPhysicalDevices[i], &physdevInfo.props);
+                vk->vkGetPhysicalDeviceProperties(physicalDevices[i], &physdevInfo.props);
 
                 if (physdevInfo.props.apiVersion > kMaxSafeVersion) {
                     physdevInfo.props.apiVersion = kMaxSafeVersion;
                 }
 
                 VkPhysicalDeviceMemoryProperties hostMemoryProperties;
-                vk->vkGetPhysicalDeviceMemoryProperties(validPhysicalDevices[i],
-                                                        &hostMemoryProperties);
+                vk->vkGetPhysicalDeviceMemoryProperties(physicalDevices[i], &hostMemoryProperties);
 
                 physdevInfo.memoryPropertiesHelper =
                     std::make_unique<EmulatedPhysicalDeviceMemoryProperties>(
@@ -1183,18 +1249,18 @@ class VkDecoderGlobalState::Impl {
 
                 uint32_t queueFamilyPropCount = 0;
 
-                vk->vkGetPhysicalDeviceQueueFamilyProperties(validPhysicalDevices[i],
+                vk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevices[i],
                                                              &queueFamilyPropCount, nullptr);
 
                 physdevInfo.queueFamilyProperties.resize((size_t)queueFamilyPropCount);
 
                 vk->vkGetPhysicalDeviceQueueFamilyProperties(
-                    validPhysicalDevices[i], &queueFamilyPropCount,
+                    physicalDevices[i], &queueFamilyPropCount,
                     physdevInfo.queueFamilyProperties.data());
 
-                physicalDevices[i] = (VkPhysicalDevice)physdevInfo.boxed;
+                pPhysicalDevices[i] = (VkPhysicalDevice)physdevInfo.boxed;
             }
-            if (physicalDevicesSize < *physicalDeviceCount) {
+            if (requestedCount < availableCount) {
                 res = VK_INCOMPLETE;
             }
         }
@@ -1240,7 +1306,7 @@ class VkDecoderGlobalState::Impl {
                 fprintf(stderr,
                         "%s: Warning: Trying to use extension struct in "
                         "VkPhysicalDeviceFeatures2 without having enabled "
-                        "the extension!!!!11111\n",
+                        "the extension!\n",
                         __func__);
             }
             *pFeatures = {
@@ -1572,7 +1638,7 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
         bool shouldPassthrough = !m_emu->enableYcbcrEmulation;
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+#if defined(__APPLE__)
         shouldPassthrough = shouldPassthrough && !m_emu->instanceSupportsMoltenVK;
 #endif
         if (shouldPassthrough) {
@@ -1590,6 +1656,7 @@ class VkDecoderGlobalState::Impl {
         }
 
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
+        // Guest will check for VK_MVK_moltenvk extension for enabling AHB support
         if (m_emu->instanceSupportsMoltenVK &&
             !hasDeviceExtension(properties, VK_MVK_MOLTENVK_EXTENSION_NAME)) {
             VkExtensionProperties mvk_props;
@@ -1624,10 +1691,14 @@ class VkDecoderGlobalState::Impl {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        const std::vector<const char*> finalExts =
+        std::vector<const char*> updatedDeviceExtensions =
             filteredDeviceExtensionNames(vk, physicalDevice, pCreateInfo->enabledExtensionCount,
                                          pCreateInfo->ppEnabledExtensionNames);
 
+        m_emu->deviceLostHelper.addNeededDeviceExtensions(&updatedDeviceExtensions);
+
+        uint32_t supportedFenceHandleTypes = 0;
+        uint32_t supportedBinarySemaphoreHandleTypes = 0;
         // Run the underlying API call, filtering extensions.
         VkDeviceCreateInfo createInfoFiltered = *pCreateInfo;
         // According to the spec, it seems that the application can use compressed texture formats
@@ -1678,8 +1749,8 @@ class VkDecoderGlobalState::Impl {
 
 #ifdef __APPLE__
 #ifndef VK_ENABLE_BETA_EXTENSIONS
-        // TODO: Update Vulkan headers, stringhelpers and compilation parameters to use
-        // this directly from beta extensions and use regular chain append commands
+        // TODO(b/349066492): Update Vulkan headers, stringhelpers and compilation parameters
+        // to use this directly from beta extensions and use regular chain append commands
         const VkStructureType VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR =
             (VkStructureType)1000163000;
 #endif
@@ -1737,8 +1808,11 @@ class VkDecoderGlobalState::Impl {
         // Filter device memory report as callbacks can not be passed between guest and host.
         vk_struct_chain_filter<VkDeviceDeviceMemoryReportCreateInfoEXT>(&createInfoFiltered);
 
-        createInfoFiltered.enabledExtensionCount = (uint32_t)finalExts.size();
-        createInfoFiltered.ppEnabledExtensionNames = finalExts.data();
+        // Filter device groups as they are effectively disabled.
+        vk_struct_chain_filter<VkDeviceGroupDeviceCreateInfo>(&createInfoFiltered);
+
+        createInfoFiltered.enabledExtensionCount = (uint32_t)updatedDeviceExtensions.size();
+        createInfoFiltered.ppEnabledExtensionNames = updatedDeviceExtensions.data();
 
         // bug: 155795731
         bool swiftshader =
@@ -1780,6 +1854,13 @@ class VkDecoderGlobalState::Impl {
             AstcCpuDecompressor::get().available();
         deviceInfo.decompPipelines =
             std::make_unique<GpuDecompressionPipelineManager>(m_vk, *pDevice);
+        getSupportedFenceHandleTypes(vk, physicalDevice, &supportedFenceHandleTypes);
+        getSupportedSemaphoreHandleTypes(vk, physicalDevice, &supportedBinarySemaphoreHandleTypes);
+
+        deviceInfo.externalFenceInfo.supportedFenceHandleTypes =
+            static_cast<VkExternalFenceHandleTypeFlagBits>(supportedFenceHandleTypes);
+        deviceInfo.externalFenceInfo.supportedBinarySemaphoreHandleTypes =
+            static_cast<VkExternalSemaphoreHandleTypeFlagBits>(supportedBinarySemaphoreHandleTypes);
 
         INFO("Created VkDevice:%p for application:%s engine:%s ASTC emulation:%s CPU decoding:%s.",
              *pDevice, instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
@@ -1807,7 +1888,7 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.externalFencePool =
             std::make_unique<ExternalFencePool<VulkanDispatch>>(dispatch, *pDevice);
 
-        deviceInfo.deviceOpTracker.emplace(*pDevice, dispatch);
+        deviceInfo.deviceOpTracker = std::make_shared<DeviceOpTracker>(*pDevice, dispatch);
 
         if (mLogging) {
             fprintf(stderr, "%s: init vulkan dispatch from device (end)\n", __func__);
@@ -1827,6 +1908,7 @@ class VkDecoderGlobalState::Impl {
             queueFamilyIndexCounts[queueFamilyIndex] = queueCount;
         }
 
+        std::vector<uint64_t> extraHandles;
         for (auto it : queueFamilyIndexCounts) {
             auto index = it.first;
             auto count = it.second;
@@ -1849,9 +1931,13 @@ class VkDecoderGlobalState::Impl {
 
                 auto boxed = new_boxed_VkQueue(queueOut, dispatch_VkDevice(deviceInfo.boxed),
                                                false /* does not own dispatch */);
+                extraHandles.push_back((uint64_t)boxed);
                 mQueueInfo[queueOut].boxed = boxed;
                 mQueueInfo[queueOut].lock = new Lock;
             }
+        }
+        if (snapshotsEnabled()) {
+            snapshot()->createExtraHandlesForNextApi(extraHandles.data(), extraHandles.size());
         }
 
         // Box the device.
@@ -1923,19 +2009,19 @@ class VkDecoderGlobalState::Impl {
 
         VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo->boxed);
 
+        for (auto fence : findDeviceObjects(device, mFenceInfo)) {
+            destroyFenceLocked(device, deviceDispatch, fence, nullptr, false);
+        }
+
+        // Should happen before destroying fences
+        deviceInfo->deviceOpTracker->OnDestroyDevice();
+
         // Destroy pooled external fences
         auto deviceFences = deviceInfo->externalFencePool->popAll();
         for (auto fence : deviceFences) {
             deviceDispatch->vkDestroyFence(device, fence, pAllocator);
             mFenceInfo.erase(fence);
         }
-
-        for (auto fence : findDeviceObjects(device, mFenceInfo)) {
-            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
-            mFenceInfo.erase(fence);
-        }
-
-        deviceInfo->deviceOpTracker->OnDestroyDevice();
 
         // Run the underlying API call.
         m_vk->vkDestroyDevice(device, pAllocator);
@@ -1964,8 +2050,34 @@ class VkDecoderGlobalState::Impl {
         VkBufferCreateInfo localCreateInfo;
         if (snapshotsEnabled()) {
             localCreateInfo = *pCreateInfo;
-            localCreateInfo.usage |=
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+            // Add transfer src bit for potential device local memories.
+            //
+            // There are 3 ways to populate buffer content:
+            //   a) use host coherent memory and memory mapping;
+            //   b) use transfer_dst and vkcmdcopy* (for device local memories);
+            //   c) use storage and compute shaders.
+            //
+            // (a) is covered by memory snapshot. (b) requires an extra vkCmdCopyBuffer
+            // command on snapshot, thuse we need to add transfer_src for (b) so that
+            // they could be loaded back on snapshot save. (c) is still future work.
+            if (localCreateInfo.usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
+                localCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            }
+            pCreateInfo = &localCreateInfo;
+        }
+
+        VkExternalMemoryBufferCreateInfo externalCI = {
+            VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO};
+        if (m_emu->features.VulkanAllocateHostMemory.enabled) {
+            localCreateInfo = *pCreateInfo;
+            // Hint that we 'may' use host allocation for this buffer. This will only be used for
+            // host visible memory.
+            externalCI.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
+
+            // Insert the new struct to the chain
+            externalCI.pNext = localCreateInfo.pNext;
+            localCreateInfo.pNext = &externalCI;
+
             pCreateInfo = &localCreateInfo;
         }
 
@@ -1975,6 +2087,7 @@ class VkDecoderGlobalState::Impl {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto& bufInfo = mBufferInfo[*pBuffer];
             bufInfo.device = device;
+            bufInfo.usage = pCreateInfo->usage;
             bufInfo.size = pCreateInfo->size;
             *pBuffer = new_boxed_non_dispatchable_VkBuffer(*pBuffer);
         }
@@ -2072,7 +2185,8 @@ class VkDecoderGlobalState::Impl {
 
     VkResult on_vkCreateImage(android::base::BumpPool* pool, VkDevice boxed_device,
                               const VkImageCreateInfo* pCreateInfo,
-                              const VkAllocationCallbacks* pAllocator, VkImage* pImage) {
+                              const VkAllocationCallbacks* pAllocator, VkImage* pImage,
+                              bool boxImage = true) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -2084,7 +2198,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (deviceInfo->imageFormats.find(pCreateInfo->format) == deviceInfo->imageFormats.end()) {
-            INFO("gfxstream_texture_format_manifest: %s", string_VkFormat(pCreateInfo->format));
+            VERBOSE("gfxstream_texture_format_manifest: %s", string_VkFormat(pCreateInfo->format));
             deviceInfo->imageFormats.insert(pCreateInfo->format);
         }
 
@@ -2099,9 +2213,27 @@ class VkDecoderGlobalState::Impl {
             pCreateInfo = &decompInfo;
         }
 
-        auto anbInfo = std::make_unique<AndroidNativeBufferInfo>();
+        std::unique_ptr<AndroidNativeBufferInfo> anbInfo = nullptr;
         const VkNativeBufferANDROID* nativeBufferANDROID =
             vk_find_struct<VkNativeBufferANDROID>(pCreateInfo);
+
+#if defined(__APPLE__)
+        VkExportMetalObjectCreateInfoEXT metalImageExportCI = {
+            VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECT_CREATE_INFO_EXT, nullptr,
+            VK_EXPORT_METAL_OBJECT_TYPE_METAL_TEXTURE_BIT_EXT};
+
+        // Add VkExportMetalObjectCreateInfoEXT on MoltenVK
+        if (m_emu->instanceSupportsMoltenVK) {
+            const VkExternalMemoryImageCreateInfo* externalMemCI =
+                vk_find_struct<VkExternalMemoryImageCreateInfo>(pCreateInfo);
+            if (externalMemCI) {
+                // Insert metalImageExportCI to the chain
+                metalImageExportCI.pNext = externalMemCI->pNext;
+                const_cast<VkExternalMemoryImageCreateInfo*>(externalMemCI)->pNext =
+                    &metalImageExportCI;
+            }
+        }
+#endif
 
         VkResult createRes = VK_SUCCESS;
 
@@ -2119,6 +2251,7 @@ class VkDecoderGlobalState::Impl {
             const VkPhysicalDeviceMemoryProperties& memoryProperties =
                 physicalDeviceInfo->memoryPropertiesHelper->getHostMemoryProperties();
 
+            anbInfo = std::make_unique<AndroidNativeBufferInfo>();
             createRes =
                 prepareAndroidNativeBufferImage(vk, device, *pool, pCreateInfo, nativeBufferANDROID,
                                                 pAllocator, &memoryProperties, anbInfo.get());
@@ -2149,7 +2282,9 @@ class VkDecoderGlobalState::Impl {
         imageInfo.layout = pCreateInfo->initialLayout;
         if (nativeBufferANDROID) imageInfo.anbInfo = std::move(anbInfo);
 
-        *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
+        if (boxImage) {
+            *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
+        }
         return createRes;
     }
 
@@ -2204,8 +2339,9 @@ class VkDecoderGlobalState::Impl {
                 << "Missing VkNativeBufferANDROID for deferred AHB bind.";
         }
 
-        VkImage boxed_replacement_image = VK_NULL_HANDLE;
-        VkResult result = on_vkCreateImage(pool, boxed_device, &ici, nullptr, &boxed_replacement_image);
+        VkImage underlying_replacement_image = VK_NULL_HANDLE;
+        VkResult result = on_vkCreateImage(pool, boxed_device, &ici, nullptr,
+                                           &underlying_replacement_image, false);
         if (result != VK_SUCCESS) {
             ERR("Failed to create image for deferred AHB bind.");
             return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -2216,9 +2352,9 @@ class VkDecoderGlobalState::Impl {
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
 
-            auto underlying_replacement_image = unbox_VkImage(boxed_replacement_image);
-            delete_VkImage(boxed_replacement_image);
             set_boxed_non_dispatchable_VkImage(original_boxed_image, underlying_replacement_image);
+            const_cast<VkBindImageMemoryInfo*>(bimi)->image = underlying_replacement_image;
+            const_cast<VkBindImageMemoryInfo*>(bimi)->memory = nullptr;
         }
 
         return VK_SUCCESS;
@@ -2251,16 +2387,6 @@ class VkDecoderGlobalState::Impl {
 
         auto* memoryInfo = android::base::find(mMemoryInfo, memory);
         if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
-
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
-        if (memoryInfo->mtlTexture) {
-            result = m_vk->vkSetMTLTextureMVK(image, memoryInfo->mtlTexture);
-            if (result != VK_SUCCESS) {
-                fprintf(stderr, "vkSetMTLTexture failed\n");
-                return VK_ERROR_OUT_OF_HOST_MEMORY;
-            }
-        }
-#endif
 
         auto* imageInfo = android::base::find(mImageInfo, image);
         if (!imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -2297,6 +2423,17 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkBindImageMemory2(android::base::BumpPool* pool, VkDevice boxed_device,
                                    uint32_t bindInfoCount,
                                    const VkBindImageMemoryInfo* pBindInfos) {
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+        if (bindInfoCount > 1 && snapshotsEnabled()) {
+            if (mVerbosePrints) {
+                fprintf(stderr,
+                    "vkBindImageMemory2 with more than 1 bindInfoCount not supporting snapshot");
+            }
+            get_emugl_vm_operations().setSkipSnapshotSave(true);
+            get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_API);
+        }
+#endif
+
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
         bool needEmulation = false;
@@ -2470,6 +2607,45 @@ class VkDecoderGlobalState::Impl {
         destroySamplerLocked(device, deviceDispatch, sampler, pAllocator);
     }
 
+    VkResult exportSemaphore(
+        VulkanDispatch* vk, VkDevice device, VkSemaphore semaphore, VK_EXT_SYNC_HANDLE* outHandle,
+        std::optional<VkExternalSemaphoreHandleTypeFlagBits> handleType = std::nullopt) {
+#if defined(_WIN32)
+        VkSemaphoreGetWin32HandleInfoKHR getWin32 = {
+            VK_STRUCTURE_TYPE_SEMAPHORE_GET_WIN32_HANDLE_INFO_KHR,
+            0,
+            semaphore,
+            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT,
+        };
+
+        return vk->vkGetSemaphoreWin32HandleKHR(device, &getWin32, outHandle);
+#elif defined(__linux__)
+        VkExternalSemaphoreHandleTypeFlagBits handleTypeBits =
+            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+        if (handleType) {
+            handleTypeBits = *handleType;
+        }
+
+        VkSemaphoreGetFdInfoKHR getFd = {
+            VK_STRUCTURE_TYPE_SEMAPHORE_GET_FD_INFO_KHR,
+            0,
+            semaphore,
+            handleTypeBits,
+        };
+
+        if (!hasDeviceExtension(device, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
+            // Note: VK_KHR_external_semaphore_fd might be advertised in the guest,
+            // because SYNC_FD handling is performed guest-side only. But still need
+            // need to error out here when handling a non-sync, opaque FD.
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        return vk->vkGetSemaphoreFdKHR(device, &getFd, outHandle);
+#else
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+#endif
+    }
+
     VkResult on_vkCreateSemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
                                   const VkSemaphoreCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator,
@@ -2480,29 +2656,61 @@ class VkDecoderGlobalState::Impl {
         VkSemaphoreCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localCreateInfo);
 
+        bool timelineSemaphore = false;
+
         VkSemaphoreTypeCreateInfoKHR localSemaphoreTypeCreateInfo;
         if (const VkSemaphoreTypeCreateInfoKHR* semaphoreTypeCiPtr =
                 vk_find_struct<VkSemaphoreTypeCreateInfoKHR>(pCreateInfo);
             semaphoreTypeCiPtr) {
             localSemaphoreTypeCreateInfo = vk_make_orphan_copy(*semaphoreTypeCiPtr);
             vk_append_struct(&structChainIter, &localSemaphoreTypeCreateInfo);
+
+            if (localSemaphoreTypeCreateInfo.semaphoreType == VK_SEMAPHORE_TYPE_TIMELINE) {
+                timelineSemaphore = true;
+            }
         }
 
-        const VkExportSemaphoreCreateInfoKHR* exportCiPtr =
-            vk_find_struct<VkExportSemaphoreCreateInfoKHR>(pCreateInfo);
-        VkExportSemaphoreCreateInfoKHR localSemaphoreCreateInfo;
+        VkExportSemaphoreCreateInfoKHR localExportSemaphoreCi = {};
 
-        if (exportCiPtr) {
-            localSemaphoreCreateInfo = vk_make_orphan_copy(*exportCiPtr);
+        /* Timeline semaphores are exportable:
+         *
+         * "Timeline semaphore specific external sharing capabilities can be queried using
+         *  vkGetPhysicalDeviceExternalSemaphoreProperties by chaining the new
+         *  VkSemaphoreTypeCreateInfoKHR structure to its pExternalSemaphoreInfo structure.
+         *  This allows having a different set of external semaphore handle types supported
+         *  for timeline semaphores vs. binary semaphores."
+         *
+         *  We just don't support this here since neither Android or Zink use this feature
+         *  with timeline semaphores yet.
+         */
+        if (m_emu->features.VulkanExternalSync.enabled && !timelineSemaphore) {
+            localExportSemaphoreCi.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
+            localExportSemaphoreCi.pNext = nullptr;
 
-#ifdef _WIN32
-            if (localSemaphoreCreateInfo.handleTypes) {
-                localSemaphoreCreateInfo.handleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR;
+            {
+                std::lock_guard<std::recursive_mutex> lock(mLock);
+                auto* deviceInfo = android::base::find(mDeviceInfo, device);
+
+                if (!deviceInfo) {
+                    return VK_ERROR_DEVICE_LOST;
+                }
+
+                if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT) {
+                    localExportSemaphoreCi.handleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+                } else if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                           VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
+                    localExportSemaphoreCi.handleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+                } else if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                           VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT) {
+                    localExportSemaphoreCi.handleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+                }
             }
-#endif
 
-            vk_append_struct(&structChainIter, &localSemaphoreCreateInfo);
+            vk_append_struct(&structChainIter, &localExportSemaphoreCi);
         }
 
         VkResult res = vk->vkCreateSemaphore(device, &localCreateInfo, pAllocator, pSemaphore);
@@ -2522,6 +2730,13 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkCreateFence(android::base::BumpPool* pool, VkDevice boxed_device,
                               const VkFenceCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
+        VkFenceCreateInfo localCreateInfo;
+        if (mSnapshotState == SnapshotState::Loading) {
+            // On snapshot load we create all fences as signaled then reset those that are not.
+            localCreateInfo = *pCreateInfo;
+            pCreateInfo = &localCreateInfo;
+            localCreateInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
+        }
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -2684,42 +2899,71 @@ class VkDecoderGlobalState::Impl {
                                     const VkSemaphoreGetFdInfoKHR* pGetFdInfo, int* pFd) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
-#ifdef _WIN32
-        VkSemaphoreGetWin32HandleInfoKHR getWin32 = {
-            VK_STRUCTURE_TYPE_SEMAPHORE_GET_WIN32_HANDLE_INFO_KHR,
-            0,
-            pGetFdInfo->semaphore,
-            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT,
-        };
         VK_EXT_SYNC_HANDLE handle;
-        VkResult result = vk->vkGetSemaphoreWin32HandleKHR(device, &getWin32, &handle);
+
+        VkResult result = exportSemaphore(vk, device, pGetFdInfo->semaphore, &handle);
         if (result != VK_SUCCESS) {
             return result;
         }
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
         mSemaphoreInfo[pGetFdInfo->semaphore].externalHandle = handle;
+#ifdef _WIN32
         int nextId = genSemaphoreId();
         mExternalSemaphoresById[nextId] = pGetFdInfo->semaphore;
         *pFd = nextId;
 #else
-        if (!hasDeviceExtension(device, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
-            // Note: VK_KHR_external_semaphore_fd might be advertised in the guest,
-            // because SYNC_FD handling is performed guest-side only. But still need
-            // need to error out here when handling a non-sync, opaque FD.
-            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        // No next id; its already an fd
+        mSemaphoreInfo[pGetFdInfo->semaphore].externalHandle = handle;
+#endif
+        return result;
+    }
+
+    VkResult on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
+                                     VkSemaphore semaphore, uint64_t syncId) {
+        VK_EXT_SYNC_HANDLE handle;
+        uint32_t streamHandleType = 0;
+        auto* tInfo = RenderThreadInfoVk::get();
+        auto vk = dispatch_VkDevice(boxed_device);
+        auto device = unbox_VkDevice(boxed_device);
+        VkExternalSemaphoreHandleTypeFlagBits flagBits =
+            static_cast<VkExternalSemaphoreHandleTypeFlagBits>(0);
+
+        if (!m_emu->features.VulkanExternalSync.enabled) {
+            return VK_ERROR_FEATURE_NOT_PRESENT;
         }
 
-        VkResult result = vk->vkGetSemaphoreFdKHR(device, pGetFdInfo, pFd);
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+
+            if (!deviceInfo) {
+                return VK_ERROR_DEVICE_LOST;
+            }
+
+            if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT) {
+                flagBits = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+            } else if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                       VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
+                flagBits = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+            } else if (deviceInfo->externalFenceInfo.supportedBinarySemaphoreHandleTypes &
+                       VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT) {
+                flagBits = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+            }
+        }
+
+        VkResult result =
+            exportSemaphore(vk, device, semaphore, &handle,
+                            std::make_optional<VkExternalSemaphoreHandleTypeFlagBits>(flagBits));
         if (result != VK_SUCCESS) {
             return result;
         }
 
-        std::lock_guard<std::recursive_mutex> lock(mLock);
-
-        mSemaphoreInfo[pGetFdInfo->semaphore].externalHandle = *pFd;
-        // No next id; its already an fd
-#endif
-        return result;
+        ManagedDescriptor descriptor(handle);
+        ExternalObjectManager::get()->addSyncDescriptorInfo(
+            tInfo->ctx_id, syncId, std::move(descriptor), streamHandleType);
+        return VK_SUCCESS;
     }
 
     void destroySemaphoreLocked(VkDevice device, VulkanDispatch* deviceDispatch,
@@ -2757,51 +3001,56 @@ class VkDecoderGlobalState::Impl {
         destroySemaphoreLocked(device, deviceDispatch, semaphore, pAllocator);
     }
 
+    void destroyFenceLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkFence fence,
+                            const VkAllocationCallbacks* pAllocator,
+                            bool allowExternalFenceRecycling) {
+        if (VK_NULL_HANDLE == fence) {
+            return;
+        }
+
+        auto fenceInfoIt = mFenceInfo.find(fence);
+        if (fenceInfoIt == mFenceInfo.end()) {
+            ERR("Failed to find fence info for VkFence:%p. Leaking fence!", fence);
+            return;
+        }
+        auto& fenceInfo = fenceInfoIt->second;
+
+        auto deviceInfoIt = mDeviceInfo.find(device);
+        if (deviceInfoIt == mDeviceInfo.end()) {
+            ERR("Failed to find device info for VkDevice:%p for VkFence:%p. Leaking fence!", device,
+                fence);
+            return;
+        }
+        auto& deviceInfo = deviceInfoIt->second;
+
+        fenceInfo.boxed = VK_NULL_HANDLE;
+
+        // External fences are just slated for recycling. This addresses known
+        // behavior where the guest might destroy the fence prematurely. b/228221208
+        if (fenceInfo.external) {
+            if (allowExternalFenceRecycling) {
+                deviceInfo.externalFencePool->add(fence);
+            }
+            return;
+        }
+
+        if (fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
+            deviceInfo.deviceOpTracker->AddPendingGarbage(*fenceInfo.latestUse, fence);
+            deviceInfo.deviceOpTracker->PollAndProcessGarbage();
+        } else {
+            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
+        }
+
+        mFenceInfo.erase(fenceInfoIt);
+    }
+
     void on_vkDestroyFence(android::base::BumpPool* pool, VkDevice boxed_device, VkFence fence,
                            const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
-        bool destructionDeferred = false;
-        {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            auto fenceInfoIt = mFenceInfo.find(fence);
-            if (fenceInfoIt == mFenceInfo.end()) {
-                ERR("Failed to find fence info for VkFence:%p. Leaking fence!", fence);
-                return;
-            }
-            auto& fenceInfo = fenceInfoIt->second;
-
-            auto deviceInfoIt = mDeviceInfo.find(device);
-            if (deviceInfoIt == mDeviceInfo.end()) {
-                ERR("Failed to find device info for VkDevice:%p for VkFence:%p. Leaking fence!",
-                    device, fence);
-                return;
-            }
-            auto& deviceInfo = deviceInfoIt->second;
-
-            fenceInfo.boxed = VK_NULL_HANDLE;
-
-            // External fences are just slated for recycling. This addresses known
-            // behavior where the guest might destroy the fence prematurely. b/228221208
-            if (fenceInfo.external) {
-                deviceInfo.externalFencePool->add(fence);
-                return;
-            }
-
-            // Fences used for swapchains have their destruction deferred.
-            if (fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
-                deviceInfo.deviceOpTracker->AddPendingGarbage(*fenceInfo.latestUse, fence);
-                deviceInfo.deviceOpTracker->PollAndProcessGarbage();
-                destructionDeferred = true;
-            }
-            mFenceInfo.erase(fence);
-        }
-
-        if (!destructionDeferred) {
-            deviceDispatch->vkDestroyFence(device, fence, pAllocator);
-        }
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        destroyFenceLocked(device, deviceDispatch, fence, pAllocator, true);
     }
 
     VkResult on_vkCreateDescriptorSetLayout(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -3072,128 +3321,129 @@ class VkDecoderGlobalState::Impl {
                                        const VkWriteDescriptorSet* pDescriptorWrites,
                                        uint32_t descriptorCopyCount,
                                        const VkCopyDescriptorSet* pDescriptorCopies) {
-        if (snapshotsEnabled()) {
-            for (uint32_t writeIdx = 0; writeIdx < descriptorWriteCount; writeIdx++) {
-                const VkWriteDescriptorSet& descriptorWrite = pDescriptorWrites[writeIdx];
-                auto ite = mDescriptorSetInfo.find(descriptorWrite.dstSet);
-                if (ite == mDescriptorSetInfo.end()) {
-                    continue;
-                }
-                DescriptorSetInfo& descriptorSetInfo = ite->second;
-                auto& table = descriptorSetInfo.allWrites;
-                VkDescriptorType descType = descriptorWrite.descriptorType;
-                uint32_t dstBinding = descriptorWrite.dstBinding;
-                uint32_t dstArrayElement = descriptorWrite.dstArrayElement;
-                uint32_t descriptorCount = descriptorWrite.descriptorCount;
+        for (uint32_t writeIdx = 0; writeIdx < descriptorWriteCount; writeIdx++) {
+            const VkWriteDescriptorSet& descriptorWrite = pDescriptorWrites[writeIdx];
+            auto ite = mDescriptorSetInfo.find(descriptorWrite.dstSet);
+            if (ite == mDescriptorSetInfo.end()) {
+                continue;
+            }
+            DescriptorSetInfo& descriptorSetInfo = ite->second;
+            auto& table = descriptorSetInfo.allWrites;
+            VkDescriptorType descType = descriptorWrite.descriptorType;
+            uint32_t dstBinding = descriptorWrite.dstBinding;
+            uint32_t dstArrayElement = descriptorWrite.dstArrayElement;
+            uint32_t descriptorCount = descriptorWrite.descriptorCount;
 
-                uint32_t arrOffset = dstArrayElement;
+            uint32_t arrOffset = dstArrayElement;
 
-                if (isDescriptorTypeImageInfo(descType)) {
-                    for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
-                         ++writeElemIdx, ++arrOffset) {
-                        // Descriptor writes wrap to the next binding. See
-                        // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkWriteDescriptorSet.html
-                        if (arrOffset >= table[dstBinding].size()) {
-                            ++dstBinding;
-                            arrOffset = 0;
-                        }
-                        auto& entry = table[dstBinding][arrOffset];
-                        entry.imageInfo = descriptorWrite.pImageInfo[writeElemIdx];
-                        entry.writeType = DescriptorSetInfo::DescriptorWriteType::ImageInfo;
-                        entry.descriptorType = descType;
-                        entry.alives.clear();
-                        if (descriptorTypeContainsImage(descType)) {
-                            auto* imageViewInfo =
-                                android::base::find(mImageViewInfo, entry.imageInfo.imageView);
-                            if (imageViewInfo) {
-                                entry.alives.push_back(imageViewInfo->alive);
-                            }
-                        }
-                        if (descriptorTypeContainsSampler(descType)) {
-                            auto* samplerInfo =
-                                android::base::find(mSamplerInfo, entry.imageInfo.sampler);
-                            if (samplerInfo) {
-                                entry.alives.push_back(samplerInfo->alive);
-                            }
-                        }
+            if (isDescriptorTypeImageInfo(descType)) {
+                for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
+                     ++writeElemIdx, ++arrOffset) {
+                    // Descriptor writes wrap to the next binding. See
+                    // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkWriteDescriptorSet.html
+                    if (arrOffset >= table[dstBinding].size()) {
+                        ++dstBinding;
+                        arrOffset = 0;
                     }
-                } else if (isDescriptorTypeBufferInfo(descType)) {
-                    for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
-                         ++writeElemIdx, ++arrOffset) {
-                        if (arrOffset >= table[dstBinding].size()) {
-                            ++dstBinding;
-                            arrOffset = 0;
-                        }
-                        auto& entry = table[dstBinding][arrOffset];
-                        entry.bufferInfo = descriptorWrite.pBufferInfo[writeElemIdx];
-                        entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferInfo;
-                        entry.descriptorType = descType;
-                        entry.alives.clear();
-                        auto* bufferInfo =
-                            android::base::find(mBufferInfo, entry.bufferInfo.buffer);
-                        if (bufferInfo) {
-                            entry.alives.push_back(bufferInfo->alive);
-                        }
-                    }
-                } else if (isDescriptorTypeBufferView(descType)) {
-                    for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
-                         ++writeElemIdx, ++arrOffset) {
-                        if (arrOffset >= table[dstBinding].size()) {
-                            ++dstBinding;
-                            arrOffset = 0;
-                        }
-                        auto& entry = table[dstBinding][arrOffset];
-                        entry.bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
-                        entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
-                        entry.descriptorType = descType;
-                        // TODO: check alive
-                        ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
-                    }
-                } else if (isDescriptorTypeInlineUniformBlock(descType)) {
-                    const VkWriteDescriptorSetInlineUniformBlock* descInlineUniformBlock =
-                        static_cast<const VkWriteDescriptorSetInlineUniformBlock*>(
-                            descriptorWrite.pNext);
-                    while (descInlineUniformBlock &&
-                           descInlineUniformBlock->sType !=
-                               VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK) {
-                        descInlineUniformBlock =
-                            static_cast<const VkWriteDescriptorSetInlineUniformBlock*>(
-                                descInlineUniformBlock->pNext);
-                    }
-                    if (!descInlineUniformBlock) {
-                        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                            << __func__ << ": did not find inline uniform block";
-                        return;
-                    }
-                    auto& entry = table[dstBinding][0];
-                    entry.inlineUniformBlock = *descInlineUniformBlock;
-                    entry.inlineUniformBlockBuffer.assign(
-                        static_cast<const uint8_t*>(descInlineUniformBlock->pData),
-                        static_cast<const uint8_t*>(descInlineUniformBlock->pData) +
-                            descInlineUniformBlock->dataSize);
-                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock;
+                    auto& entry = table[dstBinding][arrOffset];
+                    entry.imageInfo = descriptorWrite.pImageInfo[writeElemIdx];
+                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::ImageInfo;
                     entry.descriptorType = descType;
-                    entry.dstArrayElement = dstArrayElement;
-                } else if (isDescriptorTypeAccelerationStructure(descType)) {
-                    // TODO
-                    // Look for pNext inline uniform block or acceleration structure.
-                    // Append new DescriptorWrite entry that holds the buffer
-                    ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n",
-                        __func__, descType);
+                    entry.alives.clear();
+                    entry.boundColorBuffer.reset();
+                    if (descriptorTypeContainsImage(descType)) {
+                        auto* imageViewInfo =
+                            android::base::find(mImageViewInfo, entry.imageInfo.imageView);
+                        if (imageViewInfo) {
+                            entry.alives.push_back(imageViewInfo->alive);
+                            entry.boundColorBuffer = imageViewInfo->boundColorBuffer;
+                        }
+                    }
+                    if (descriptorTypeContainsSampler(descType)) {
+                        auto* samplerInfo =
+                            android::base::find(mSamplerInfo, entry.imageInfo.sampler);
+                        if (samplerInfo) {
+                            entry.alives.push_back(samplerInfo->alive);
+                        }
+                    }
                 }
+            } else if (isDescriptorTypeBufferInfo(descType)) {
+                for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
+                     ++writeElemIdx, ++arrOffset) {
+                    if (arrOffset >= table[dstBinding].size()) {
+                        ++dstBinding;
+                        arrOffset = 0;
+                    }
+                    auto& entry = table[dstBinding][arrOffset];
+                    entry.bufferInfo = descriptorWrite.pBufferInfo[writeElemIdx];
+                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferInfo;
+                    entry.descriptorType = descType;
+                    entry.alives.clear();
+                    auto* bufferInfo = android::base::find(mBufferInfo, entry.bufferInfo.buffer);
+                    if (bufferInfo) {
+                        entry.alives.push_back(bufferInfo->alive);
+                    }
+                }
+            } else if (isDescriptorTypeBufferView(descType)) {
+                for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
+                     ++writeElemIdx, ++arrOffset) {
+                    if (arrOffset >= table[dstBinding].size()) {
+                        ++dstBinding;
+                        arrOffset = 0;
+                    }
+                    auto& entry = table[dstBinding][arrOffset];
+                    entry.bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
+                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
+                    entry.descriptorType = descType;
+                    // TODO: check alive
+                    ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
+                }
+            } else if (isDescriptorTypeInlineUniformBlock(descType)) {
+                const VkWriteDescriptorSetInlineUniformBlock* descInlineUniformBlock =
+                    static_cast<const VkWriteDescriptorSetInlineUniformBlock*>(
+                        descriptorWrite.pNext);
+                while (descInlineUniformBlock &&
+                       descInlineUniformBlock->sType !=
+                           VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK) {
+                    descInlineUniformBlock =
+                        static_cast<const VkWriteDescriptorSetInlineUniformBlock*>(
+                            descInlineUniformBlock->pNext);
+                }
+                if (!descInlineUniformBlock) {
+                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                        << __func__ << ": did not find inline uniform block";
+                    return;
+                }
+                auto& entry = table[dstBinding][0];
+                entry.inlineUniformBlock = *descInlineUniformBlock;
+                entry.inlineUniformBlockBuffer.assign(
+                    static_cast<const uint8_t*>(descInlineUniformBlock->pData),
+                    static_cast<const uint8_t*>(descInlineUniformBlock->pData) +
+                        descInlineUniformBlock->dataSize);
+                entry.writeType = DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock;
+                entry.descriptorType = descType;
+                entry.dstArrayElement = dstArrayElement;
+            } else if (isDescriptorTypeAccelerationStructure(descType)) {
+                // TODO
+                // Look for pNext inline uniform block or acceleration structure.
+                // Append new DescriptorWrite entry that holds the buffer
+                ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n", __func__,
+                    descType);
             }
-            // TODO: bookkeep pDescriptorCopies
-            // Our primary use case vkQueueCommitDescriptorSetUpdatesGOOGLE does not use
-            // pDescriptorCopies. Thus skip its implementation for now.
-            if (descriptorCopyCount) {
-                ERR("%s: Snapshot does not support descriptor copy yet\n");
-            }
+        }
+        // TODO: bookkeep pDescriptorCopies
+        // Our primary use case vkQueueCommitDescriptorSetUpdatesGOOGLE does not use
+        // pDescriptorCopies. Thus skip its implementation for now.
+        if (descriptorCopyCount && snapshotsEnabled()) {
+            ERR("%s: Snapshot does not support descriptor copy yet\n");
         }
         bool needEmulateWriteDescriptor = false;
         // c++ seems to allow for 0-size array allocation
         std::unique_ptr<bool[]> descriptorWritesNeedDeepCopy(new bool[descriptorWriteCount]);
         for (uint32_t i = 0; i < descriptorWriteCount; i++) {
             const VkWriteDescriptorSet& descriptorWrite = pDescriptorWrites[i];
+            auto descriptorSetInfo =
+                android::base::find(mDescriptorSetInfo, descriptorWrite.dstSet);
             descriptorWritesNeedDeepCopy[i] = false;
             if (!vk_util::vk_descriptor_type_has_image_view(descriptorWrite.descriptorType)) {
                 continue;
@@ -3203,14 +3453,6 @@ class VkDecoderGlobalState::Impl {
                 const auto* imgViewInfo = android::base::find(mImageViewInfo, imageInfo.imageView);
                 if (!imgViewInfo) {
                     continue;
-                }
-                if (imgViewInfo->boundColorBuffer) {
-                    // TODO(igorc): Move this to vkQueueSubmit time.
-                    // Likely can be removed after b/323596143
-                    auto fb = FrameBuffer::getFB();
-                    if (fb) {
-                        fb->invalidateColorBufferForVk(*imgViewInfo->boundColorBuffer);
-                    }
                 }
                 if (descriptorWrite.descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
                     continue;
@@ -3959,6 +4201,57 @@ class VkDecoderGlobalState::Impl {
         convertQueueFamilyForeignToExternal(&barrier->dstQueueFamilyIndex);
     }
 
+    inline VkImage getIMBImage(const VkImageMemoryBarrier& imb) { return imb.image; }
+    inline VkImage getIMBImage(const VkImageMemoryBarrier2& imb) { return imb.image; }
+
+    inline VkImageLayout getIMBNewLayout(const VkImageMemoryBarrier& imb) { return imb.newLayout; }
+    inline VkImageLayout getIMBNewLayout(const VkImageMemoryBarrier2& imb) { return imb.newLayout; }
+
+    inline uint32_t getIMBSrcQueueFamilyIndex(const VkImageMemoryBarrier& imb) {
+        return imb.srcQueueFamilyIndex;
+    }
+    inline uint32_t getIMBSrcQueueFamilyIndex(const VkImageMemoryBarrier2& imb) {
+        return imb.srcQueueFamilyIndex;
+    }
+    inline uint32_t getIMBDstQueueFamilyIndex(const VkImageMemoryBarrier& imb) {
+        return imb.dstQueueFamilyIndex;
+    }
+    inline uint32_t getIMBDstQueueFamilyIndex(const VkImageMemoryBarrier2& imb) {
+        return imb.dstQueueFamilyIndex;
+    }
+
+    template <typename VkImageMemoryBarrierType>
+    void processImageMemoryBarrier(VkCommandBuffer commandBuffer, uint32_t imageMemoryBarrierCount,
+                                   const VkImageMemoryBarrierType* pImageMemoryBarriers) {
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) return;
+
+        // TODO: update image layout in ImageInfo
+        for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
+            auto* imageInfo = android::base::find(mImageInfo, getIMBImage(pImageMemoryBarriers[i]));
+            if (!imageInfo) {
+                continue;
+            }
+            cmdBufferInfo->imageLayouts[getIMBImage(pImageMemoryBarriers[i])] =
+                getIMBNewLayout(pImageMemoryBarriers[i]);
+            if (!imageInfo->boundColorBuffer.has_value()) {
+                continue;
+            }
+            HandleType cb = imageInfo->boundColorBuffer.value();
+            if (getIMBSrcQueueFamilyIndex(pImageMemoryBarriers[i]) == VK_QUEUE_FAMILY_EXTERNAL) {
+                cmdBufferInfo->acquiredColorBuffers.insert(cb);
+            }
+            if (getIMBDstQueueFamilyIndex(pImageMemoryBarriers[i]) == VK_QUEUE_FAMILY_EXTERNAL) {
+                cmdBufferInfo->releasedColorBuffers.insert(cb);
+            }
+            cmdBufferInfo->cbLayouts[cb] = getIMBNewLayout(pImageMemoryBarriers[i]);
+            // Insert unconditionally to this list, regardless of whether or not
+            // there is a queue family ownership transfer
+            cmdBufferInfo->imageBarrierColorBuffers.insert(cb);
+        }
+    }
+
     void on_vkCmdPipelineBarrier(android::base::BumpPool* pool, VkCommandBuffer boxed_commandBuffer,
                                  VkPipelineStageFlags srcStageMask,
                                  VkPipelineStageFlags dstStageMask,
@@ -3995,26 +4288,7 @@ class VkDecoderGlobalState::Impl {
         DeviceInfo* deviceInfo = android::base::find(mDeviceInfo, cmdBufferInfo->device);
         if (!deviceInfo) return;
 
-        // TODO: update image layout in ImageInfo
-        for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
-            const VkImageMemoryBarrier& barrier = pImageMemoryBarriers[i];
-            auto* imageInfo = android::base::find(mImageInfo, barrier.image);
-            if (!imageInfo) {
-                continue;
-            }
-            cmdBufferInfo->imageLayouts[barrier.image] = barrier.newLayout;
-            if (!imageInfo->boundColorBuffer.has_value()) {
-                continue;
-            }
-            HandleType cb = imageInfo->boundColorBuffer.value();
-            if (barrier.srcQueueFamilyIndex == VK_QUEUE_FAMILY_EXTERNAL) {
-                cmdBufferInfo->acquiredColorBuffers.insert(cb);
-            }
-            if (barrier.dstQueueFamilyIndex == VK_QUEUE_FAMILY_EXTERNAL) {
-                cmdBufferInfo->releasedColorBuffers.insert(cb);
-            }
-            cmdBufferInfo->cbLayouts[cb] = barrier.newLayout;
-        }
+        processImageMemoryBarrier(commandBuffer, imageMemoryBarrierCount, pImageMemoryBarriers);
 
         if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
             vk->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags,
@@ -4050,12 +4324,12 @@ class VkDecoderGlobalState::Impl {
             // decompress, could we do it once before calling vkCmdDispatch?
             vk->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                                   cmdBufferInfo->computePipeline);
-            if (!cmdBufferInfo->descriptorSets.empty()) {
+            if (!cmdBufferInfo->currentDescriptorSets.empty()) {
                 vk->vkCmdBindDescriptorSets(
                     commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, cmdBufferInfo->descriptorLayout,
-                    cmdBufferInfo->firstSet, cmdBufferInfo->descriptorSets.size(),
-                    cmdBufferInfo->descriptorSets.data(), cmdBufferInfo->dynamicOffsets.size(),
-                    cmdBufferInfo->dynamicOffsets.data());
+                    cmdBufferInfo->firstSet, cmdBufferInfo->currentDescriptorSets.size(),
+                    cmdBufferInfo->currentDescriptorSets.data(),
+                    cmdBufferInfo->dynamicOffsets.size(), cmdBufferInfo->dynamicOffsets.data());
             }
         }
 
@@ -4066,6 +4340,37 @@ class VkDecoderGlobalState::Impl {
                                      pBufferMemoryBarriers, imageBarriers.size(),
                                      imageBarriers.data());
         }
+    }
+
+    void on_vkCmdPipelineBarrier2(android::base::BumpPool* pool,
+                                  VkCommandBuffer boxed_commandBuffer,
+                                  const VkDependencyInfo* pDependencyInfo) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        for (uint32_t i = 0; i < pDependencyInfo->bufferMemoryBarrierCount; ++i) {
+            convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier(
+                ((VkBufferMemoryBarrier*)pDependencyInfo->pBufferMemoryBarriers) + i);
+        }
+
+        for (uint32_t i = 0; i < pDependencyInfo->imageMemoryBarrierCount; ++i) {
+            convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(
+                ((VkImageMemoryBarrier*)pDependencyInfo->pImageMemoryBarriers) + i);
+        }
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) return;
+
+        DeviceInfo* deviceInfo = android::base::find(mDeviceInfo, cmdBufferInfo->device);
+        if (!deviceInfo) return;
+
+        processImageMemoryBarrier(commandBuffer, pDependencyInfo->imageMemoryBarrierCount,
+                                  pDependencyInfo->pImageMemoryBarriers);
+
+        // TODO: If this is a decompressed image, handle decompression before calling
+        // VkCmdvkCmdPipelineBarrier2 i.e. match on_vkCmdPipelineBarrier implementation
+        vk->vkCmdPipelineBarrier2(commandBuffer, pDependencyInfo);
     }
 
     bool mapHostVisibleMemoryToGuestPhysicalAddressLocked(VulkanDispatch* vk, VkDevice device,
@@ -4256,54 +4561,99 @@ class VkDecoderGlobalState::Impl {
         };
 #endif
 
+#if defined(__APPLE__)
+        VkImportMetalBufferInfoEXT importInfoMetalBuffer = {
+            VK_STRUCTURE_TYPE_IMPORT_METAL_BUFFER_INFO_EXT,
+            0,
+            nullptr,
+        };
+#endif
+
         void* mappedPtr = nullptr;
         ManagedDescriptor externalMemoryHandle;
         if (importCbInfoPtr) {
-            bool vulkanOnly = mGuestUsesAngle;
-
             bool colorBufferMemoryUsesDedicatedAlloc = false;
             if (!getColorBufferAllocationInfo(importCbInfoPtr->colorBuffer,
                                               &localAllocInfo.allocationSize,
                                               &localAllocInfo.memoryTypeIndex,
                                               &colorBufferMemoryUsesDedicatedAlloc, &mappedPtr)) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Failed to get allocation info for ColorBuffer:"
-                    << importCbInfoPtr->colorBuffer;
-            }
-
-            shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
-
-            if (!vulkanOnly) {
-                auto fb = FrameBuffer::getFB();
-                if (fb) {
-                    fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
+                if (mSnapshotState != SnapshotState::Loading) {
+                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                        << "Failed to get allocation info for ColorBuffer:"
+                        << importCbInfoPtr->colorBuffer;
                 }
-            }
+                // During snapshot load there could be invalidated references to
+                // color buffers.
+                // Here we just create a placeholder for it, as it is not suppoed
+                // to be used.
+                importCbInfoPtr = nullptr;
+            } else {
+                shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
 
-            if (m_emu->instanceSupportsExternalMemoryCapabilities) {
-                VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
-                    getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
-
-                if (cbExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
-                    fprintf(stderr,
-                            "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
-                            "colorBuffer 0x%x does not have Vulkan external memory backing\n",
-                            __func__, importCbInfoPtr->colorBuffer);
-                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                if (!m_emu->features.GuestVulkanOnly.enabled) {
+                    auto fb = FrameBuffer::getFB();
+                    if (fb) {
+                        fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
+                    }
                 }
+
+#if defined(__APPLE__)
+                // Use metal object extension on MoltenVK mode for color buffer import,
+                // non-moltenVK path on MacOS will use FD handles
+                if (m_emu->instanceSupportsMoltenVK) {
+                    // TODO(b/333460957): This is a temporary fix to get MoltenVK image memory
+                    // binding checks working as expected  based on dedicated memory checks. It's
+                    // not a valid usage of Vulkan as the device of the image is different than
+                    // what's being used here
+                    localDedicatedAllocInfo = {
+                        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+                        .pNext = nullptr,
+                        .image = getColorBufferVkImage(importCbInfoPtr->colorBuffer),
+                        .buffer = VK_NULL_HANDLE,
+                    };
+                    shouldUseDedicatedAllocInfo = true;
+
+                    MTLBufferRef cbExtMemoryHandle =
+                        getColorBufferMetalMemoryHandle(importCbInfoPtr->colorBuffer);
+
+                    if (cbExtMemoryHandle == nullptr) {
+                        fprintf(stderr,
+                                "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
+                                "colorBuffer 0x%x does not have Vulkan external memory backing\n",
+                                __func__, importCbInfoPtr->colorBuffer);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
+
+                    importInfoMetalBuffer.mtlBuffer = cbExtMemoryHandle;
+                    vk_append_struct(&structChainIter, &importInfoMetalBuffer);
+                } else
+#endif
+                if (m_emu->deviceInfo.supportsExternalMemoryImport) {
+                    VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
+                        getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
+
+                    if (cbExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
+                        fprintf(stderr,
+                                "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
+                                "colorBuffer 0x%x does not have Vulkan external memory backing\n",
+                                __func__, importCbInfoPtr->colorBuffer);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
 
 #if defined(__QNX__)
-                importInfo.buffer = cbExtMemoryHandle;
+                    importInfo.buffer = cbExtMemoryHandle;
 #else
-                externalMemoryHandle = ManagedDescriptor(dupExternalMemory(cbExtMemoryHandle));
+                    externalMemoryHandle = ManagedDescriptor(dupExternalMemory(cbExtMemoryHandle));
 
 #ifdef _WIN32
-                importInfo.handle = externalMemoryHandle.get().value_or(static_cast<HANDLE>(NULL));
+                    importInfo.handle =
+                        externalMemoryHandle.get().value_or(static_cast<HANDLE>(NULL));
 #else
-                importInfo.fd = externalMemoryHandle.get().value_or(-1);
+                    importInfo.fd = externalMemoryHandle.get().value_or(-1);
 #endif
 #endif
-                vk_append_struct(&structChainIter, &importInfo);
+                    vk_append_struct(&structChainIter, &importInfo);
+                }
             }
         }
 
@@ -4318,9 +4668,28 @@ class VkDecoderGlobalState::Impl {
 
             shouldUseDedicatedAllocInfo &= bufferMemoryUsesDedicatedAlloc;
 
-            if (m_emu->instanceSupportsExternalMemoryCapabilities) {
+#ifdef __APPLE__
+            if (m_emu->instanceSupportsMoltenVK) {
+                MTLBufferRef bufferMetalMemoryHandle =
+                    getBufferMetalMemoryHandle(importBufferInfoPtr->buffer);
+
+                if (bufferMetalMemoryHandle == nullptr) {
+                    fprintf(stderr,
+                            "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
+                            "buffer 0x%x does not have Vulkan external memory "
+                            "backing\n",
+                            __func__, importBufferInfoPtr->buffer);
+                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                }
+
+                importInfoMetalBuffer.mtlBuffer = bufferMetalMemoryHandle;
+                vk_append_struct(&structChainIter, &importInfoMetalBuffer);
+            } else
+#endif
+            if (m_emu->deviceInfo.supportsExternalMemoryImport) {
+                uint32_t outStreamHandleType;
                 VK_EXT_MEMORY_HANDLE bufferExtMemoryHandle =
-                    getBufferExtMemoryHandle(importBufferInfoPtr->buffer);
+                    getBufferExtMemoryHandle(importBufferInfoPtr->buffer, &outStreamHandleType);
 
                 if (bufferExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
                     fprintf(stderr,
@@ -4390,13 +4759,21 @@ class VkDecoderGlobalState::Impl {
 #endif
 
 #ifdef __linux__
-        if (hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+        if (m_emu->deviceInfo.supportsDmaBuf &&
+            hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
             exportAllocate.handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
         }
 #endif
 
 #ifdef _WIN32
         exportAllocate.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+#endif
+
+#if defined(__APPLE__)
+        if (m_emu->instanceSupportsMoltenVK) {
+            // Using a different handle type when in MoltenVK mode
+            exportAllocate.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR;
+        }
 #endif
 
         bool hostVisible = memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
@@ -4410,8 +4787,8 @@ class VkDecoderGlobalState::Impl {
             uint32_t ctx_id = mSnapshotState == SnapshotState::Loading
                                   ? kTemporaryContextIdForSnapshotLoading
                                   : tInfo->ctx_id;
-            auto descriptorInfoOpt =
-                BlobManager::get()->removeDescriptorInfo(ctx_id, createBlobInfoPtr->blobId);
+            auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
+                ctx_id, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
                 auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
                 if (rawDescriptorOpt) {
@@ -4429,7 +4806,8 @@ class VkDecoderGlobalState::Impl {
 #endif
 
 #ifdef __linux__
-            if (hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+            if (m_emu->deviceInfo.supportsDmaBuf &&
+                hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
                 importInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
             }
 #endif
@@ -4476,16 +4854,56 @@ class VkDecoderGlobalState::Impl {
         VkImportMemoryHostPointerInfoEXT importHostInfoPrivate{};
         if (hostVisible && m_emu->features.VulkanAllocateHostMemory.enabled &&
             localAllocInfo.pNext == nullptr) {
-            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
+            if (!m_emu || !m_emu->deviceInfo.supportsExternalMemoryHostProps) {
+                ERR("VK_EXT_EXTERNAL_MEMORY_HOST is not supported, cannot use "
+                    "VulkanAllocateHostMemory");
+                return VK_ERROR_INCOMPATIBLE_DRIVER;
+            }
+            VkDeviceSize alignmentSize = m_emu->deviceInfo.externalMemoryHostProps.minImportedHostPointerAlignment;
+            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, alignmentSize);
             localAllocInfo.allocationSize = alignedSize;
             privateMemory =
-                std::make_shared<PrivateMemory>(kPageSizeforBlob, localAllocInfo.allocationSize);
+                std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
             mappedPtr = privateMemory->getAddr();
             importHostInfoPrivate = {
                 .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
                 .pNext = NULL,
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
                 .pHostPointer = mappedPtr};
+
+            VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
+                .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
+                .pNext = NULL,
+                .memoryTypeBits = 0,
+            };
+
+            vk->vkGetMemoryHostPointerPropertiesEXT(
+                device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr,
+                &memoryHostPointerProperties);
+
+            if (memoryHostPointerProperties.memoryTypeBits == 0) {
+                ERR("Cannot find suitable memory type for VulkanAllocateHostMemory");
+                return VK_ERROR_INCOMPATIBLE_DRIVER;
+            }
+
+            if (((1u << localAllocInfo.memoryTypeIndex) & memoryHostPointerProperties.memoryTypeBits) == 0) {
+
+                // TODO Consider assigning the correct memory index earlier, instead of switching right before allocation.
+
+                // Look for the first available supported memory index and assign it.
+                for(uint32_t i =0; i<= 31; ++i) {
+                    if ((memoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
+                        continue;
+                    }
+                    localAllocInfo.memoryTypeIndex = i;
+                    break;
+                }
+                VERBOSE(
+                    "Detected memoryTypeIndex violation on requested host memory import. Switching "
+                    "to a supported memory index %d",
+                    localAllocInfo.memoryTypeIndex);
+            }
+
             vk_append_struct(&structChainIter, &importHostInfoPrivate);
         }
 
@@ -4519,13 +4937,8 @@ class VkDecoderGlobalState::Impl {
         memoryInfo.size = localAllocInfo.allocationSize;
         memoryInfo.device = device;
         memoryInfo.memoryIndex = localAllocInfo.memoryTypeIndex;
-#if defined(__APPLE__) && defined(VK_MVK_moltenvk)
-        if (importCbInfoPtr && m_emu->instanceSupportsMoltenVK) {
-            memoryInfo.mtlTexture = getColorBufferMTLTexture(importCbInfoPtr->colorBuffer);
-        }
-#endif
 
-        if (importCbInfoPtr && !mGuestUsesAngle) {
+        if (importCbInfoPtr) {
             memoryInfo.boundColorBuffer = importCbInfoPtr->colorBuffer;
         }
 
@@ -4542,8 +4955,6 @@ class VkDecoderGlobalState::Impl {
             memoryInfo.caching = MAP_CACHE_WC;
         }
 
-        VkInstance* instance = deviceToInstanceLocked(device);
-        InstanceInfo* instanceInfo = android::base::find(mInstanceInfo, *instance);
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
         if (!deviceInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
@@ -4592,13 +5003,6 @@ class VkDecoderGlobalState::Impl {
                           const VkAllocationCallbacks* pAllocator) {
         auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return;  // Invalid usage.
-
-#ifdef __APPLE__
-        if (info->mtlTexture) {
-            CFRelease(info->mtlTexture);
-            info->mtlTexture = nullptr;
-        }
-#endif
 
         if (info->directMapped) {
             // if direct mapped, we leave it up to the guest address space driver
@@ -4918,12 +5322,13 @@ class VkDecoderGlobalState::Impl {
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
-            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId,
-                                                  info->sharedMemory->releaseHandle(), handleType,
-                                                  info->caching, std::nullopt);
+            ExternalObjectManager::get()->addBlobDescriptorInfo(
+                ctx_id, hostBlobId, info->sharedMemory->releaseHandle(), handleType, info->caching,
+                std::nullopt);
         } else if (m_emu->features.ExternalBlob.enabled) {
             VkResult result;
             auto device = unbox_VkDevice(boxed_device);
+            auto vk = dispatch_VkDevice(boxed_device);
             DescriptorType handle;
             uint32_t handleType;
             struct VulkanInfo vulkanInfo = {
@@ -4933,6 +5338,15 @@ class VkDecoderGlobalState::Impl {
                    sizeof(vulkanInfo.deviceUUID));
             memcpy(vulkanInfo.driverUUID, m_emu->deviceInfo.idProps.driverUUID,
                    sizeof(vulkanInfo.driverUUID));
+
+            if (snapshotsEnabled()) {
+                VkResult mapResult = vk->vkMapMemory(device, memory, 0, info->size, 0, &info->ptr);
+                if (mapResult != VK_SUCCESS) {
+                    return VK_ERROR_OUT_OF_HOST_MEMORY;
+                }
+
+                info->needUnmap = true;
+            }
 
 #ifdef __unix__
             VkMemoryGetFdInfoKHR getFd = {
@@ -4946,7 +5360,8 @@ class VkDecoderGlobalState::Impl {
 #endif
 
 #ifdef __linux__
-            if (hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+            if (m_emu->deviceInfo.supportsDmaBuf &&
+                hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
                 getFd.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
                 handleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
             }
@@ -4975,10 +5390,17 @@ class VkDecoderGlobalState::Impl {
             }
 #endif
 
+#ifdef __APPLE__
+            if (m_emu->instanceSupportsMoltenVK) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "ExternalBlob feature is not supported with MoltenVK";
+            }
+#endif
+
             ManagedDescriptor managedHandle(handle);
-            BlobManager::get()->addDescriptorInfo(ctx_id, hostBlobId, std::move(managedHandle),
-                                                  handleType, info->caching,
-                                                  std::optional<VulkanInfo>(vulkanInfo));
+            ExternalObjectManager::get()->addBlobDescriptorInfo(
+                ctx_id, hostBlobId, std::move(managedHandle), handleType, info->caching,
+                std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
             auto device = unbox_VkDevice(boxed_device);
             auto vk = dispatch_VkDevice(boxed_device);
@@ -4992,11 +5414,7 @@ class VkDecoderGlobalState::Impl {
 
         if (info->needUnmap) {
             uint64_t hva = (uint64_t)(uintptr_t)(info->ptr);
-            uint64_t size = (uint64_t)(uintptr_t)(info->size);
-
             uint64_t alignedHva = hva & kPageMaskForBlob;
-            uint64_t alignedSize =
-                kPageSizeforBlob * ((size + kPageSizeforBlob - 1) / kPageSizeforBlob);
 
             if (hva != alignedHva) {
                 ERR("Mapping non page-size (0x%" PRIx64
@@ -5005,8 +5423,8 @@ class VkDecoderGlobalState::Impl {
                     "using this blob may be corrupted/offset.",
                     kPageSizeforBlob, hva, alignedHva);
             }
-            BlobManager::get()->addMapping(ctx_id, hostBlobId, (void*)(uintptr_t)alignedHva,
-                                           info->caching);
+            ExternalObjectManager::get()->addMapping(ctx_id, hostBlobId,
+                                                     (void*)(uintptr_t)alignedHva, info->caching);
             info->virtioGpuMapped = true;
             info->hostmemId = hostBlobId;
         }
@@ -5154,6 +5572,32 @@ class VkDecoderGlobalState::Impl {
         return submitInfo.pCommandBufferInfos[idx].commandBuffer;
     }
 
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.waitSemaphoreCount;
+    }
+    uint32_t getWaitSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.waitSemaphoreInfoCount;
+    }
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pWaitSemaphores[i];
+    }
+    VkSemaphore getWaitSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pWaitSemaphoreInfos[i].semaphore;
+    }
+
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo& pSubmit) {
+        return pSubmit.signalSemaphoreCount;
+    }
+    uint32_t getSignalSemaphoreCount(const VkSubmitInfo2& pSubmit) {
+        return pSubmit.signalSemaphoreInfoCount;
+    }
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo& pSubmit, int i) {
+        return pSubmit.pSignalSemaphores[i];
+    }
+    VkSemaphore getSignalSemaphore(const VkSubmitInfo2& pSubmit, int i) {
+        return pSubmit.pSignalSemaphoreInfos[i].semaphore;
+    }
+
     template <typename VkSubmitInfoType>
     VkResult on_vkQueueSubmit(android::base::BumpPool* pool, VkQueue boxed_queue,
                               uint32_t submitCount, const VkSubmitInfoType* pSubmits,
@@ -5163,8 +5607,7 @@ class VkDecoderGlobalState::Impl {
 
         std::unordered_set<HandleType> acquiredColorBuffers;
         std::unordered_set<HandleType> releasedColorBuffers;
-        bool vulkanOnly = mGuestUsesAngle;
-        if (!vulkanOnly) {
+        if (!m_emu->features.GuestVulkanOnly.enabled) {
             {
                 std::lock_guard<std::recursive_mutex> lock(mLock);
                 for (int i = 0; i < submitCount; i++) {
@@ -5175,6 +5618,25 @@ class VkDecoderGlobalState::Impl {
                         if (!cmdBufferInfo) {
                             continue;
                         }
+                        for (auto descriptorSet : cmdBufferInfo->allDescriptorSets) {
+                            auto descriptorSetInfo =
+                                android::base::find(mDescriptorSetInfo, descriptorSet);
+                            if (!descriptorSetInfo) {
+                                continue;
+                            }
+                            for (auto& writes : descriptorSetInfo->allWrites) {
+                                for (const auto& write : writes) {
+                                    bool isValid = true;
+                                    for (const auto& alive : write.alives) {
+                                        isValid &= !alive.expired();
+                                    }
+                                    if (isValid && write.boundColorBuffer.has_value()) {
+                                        acquiredColorBuffers.insert(write.boundColorBuffer.value());
+                                    }
+                                }
+                            }
+                        }
+
                         acquiredColorBuffers.merge(cmdBufferInfo->acquiredColorBuffers);
                         releasedColorBuffers.merge(cmdBufferInfo->releasedColorBuffers);
                         for (const auto& ite : cmdBufferInfo->cbLayouts) {
@@ -5217,20 +5679,50 @@ class VkDecoderGlobalState::Impl {
             ql = queueInfo->lock;
         }
 
-        VkFence localFence = VK_NULL_HANDLE;
-        if (!releasedColorBuffers.empty() && fence == VK_NULL_HANDLE) {
-            // Need to manually inject a fence so that we could update color buffer
-            // after queue submits..
-            // This should almost never happen.
-            VkFenceCreateInfo fenceCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-            };
-            vk->vkCreateFence(device, &fenceCreateInfo, nullptr, &localFence);
+        VkFence usedFence = fence;
+        DeviceOpWaitable queueCompletedWaitable;
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
+            DeviceOpBuilder builder(*deviceInfo->deviceOpTracker);
+            if (VK_NULL_HANDLE == usedFence) {
+                // Note: This fence will be managed by the DeviceOpTracker after the
+                // OnQueueSubmittedWithFence call, so it does not need to be destroyed in the scope
+                // of this queueSubmit
+                usedFence = builder.CreateFenceForOp();
+            }
+            queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
+
+            deviceInfo->deviceOpTracker->PollAndProcessGarbage();
         }
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            std::unordered_set<HandleType> imageBarrierColorBuffers;
+            for (int i = 0; i < submitCount; i++) {
+                for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
+                    VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
+                    CommandBufferInfo* cmdBufferInfo =
+                        android::base::find(mCmdBufferInfo, cmdBuffer);
+                    if (cmdBufferInfo) {
+                        imageBarrierColorBuffers.merge(cmdBufferInfo->imageBarrierColorBuffers);
+                    }
+                }
+            }
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
+            for (const auto& colorBuffer : imageBarrierColorBuffers) {
+                setColorBufferLatestUse(colorBuffer, queueCompletedWaitable,
+                                        deviceInfo->deviceOpTracker);
+            }
+        }
+
         AutoLock qlock(*ql);
-        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, localFence ?: fence);
+        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
 
         if (result != VK_SUCCESS) {
+            WARN("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result), result);
             return result;
         }
         {
@@ -5253,6 +5745,26 @@ class VkDecoderGlobalState::Impl {
                     }
                 }
             }
+            // Update latestUse for all wait/signal semaphores, to ensure that they
+            // are never asynchronously destroyed before the queue submissions referencing
+            // them have completed
+            for (int i = 0; i < submitCount; i++) {
+                for (int j = 0; j < getWaitSemaphoreCount(pSubmits[i]); j++) {
+                    SemaphoreInfo* semaphoreInfo =
+                        android::base::find(mSemaphoreInfo, getWaitSemaphore(pSubmits[i], j));
+                    if (semaphoreInfo) {
+                        semaphoreInfo->latestUse = queueCompletedWaitable;
+                    }
+                }
+                for (int j = 0; j < getSignalSemaphoreCount(pSubmits[i]); j++) {
+                    SemaphoreInfo* semaphoreInfo =
+                        android::base::find(mSemaphoreInfo, getSignalSemaphore(pSubmits[i], j));
+                    if (semaphoreInfo) {
+                        semaphoreInfo->latestUse = queueCompletedWaitable;
+                    }
+                }
+            }
+
             // After vkQueueSubmit is called, we can signal the conditional variable
             // in FenceInfo, so that other threads (e.g. SyncThread) can call
             // waitForFence() on this fence.
@@ -5261,10 +5773,14 @@ class VkDecoderGlobalState::Impl {
                 fenceInfo->state = FenceInfo::State::kWaitable;
                 fenceInfo->lock.lock();
                 fenceInfo->cv.signalAndUnlock(&fenceInfo->lock);
+                // Also update the latestUse waitable for this fence, to ensure
+                // it is not asynchronously destroyed before all the waitables
+                // referencing it
+                fenceInfo->latestUse = queueCompletedWaitable;
             }
         }
         if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, localFence ? &localFence : &fence, VK_TRUE,
+            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE,
                                 /* 1 sec */ 1000000000L);
             auto fb = FrameBuffer::getFB();
             if (fb) {
@@ -5272,9 +5788,6 @@ class VkDecoderGlobalState::Impl {
                     fb->flushColorBufferFromVk(cb);
                 }
             }
-        }
-        if (localFence) {
-            vk->vkDestroyFence(device, localFence, nullptr);
         }
 
         return result;
@@ -5304,6 +5817,8 @@ class VkDecoderGlobalState::Impl {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
+        m_emu->deviceLostHelper.onResetCommandBuffer(commandBuffer);
+
         VkResult result = vk->vkResetCommandBuffer(commandBuffer, flags);
         if (VK_SUCCESS == result) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
@@ -5320,7 +5835,13 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkDevice(boxed_device);
 
         if (!device) return;
+
+        for (uint32_t i = 0; i < commandBufferCount; i++) {
+            m_emu->deviceLostHelper.onFreeCommandBuffer(pCommandBuffers[i]);
+        }
+
         vk->vkFreeCommandBuffers(device, commandPool, commandBufferCount, pCommandBuffers);
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
         for (uint32_t i = 0; i < commandBufferCount; i++) {
             const auto& cmdBufferInfoIt = mCmdBufferInfo.find(pCommandBuffers[i]);
@@ -5345,28 +5866,31 @@ class VkDecoderGlobalState::Impl {
         if (!physicalDevice) {
             return;
         }
-        // Cannot forward this call to driver because nVidia linux driver crahses on it.
-        switch (pExternalSemaphoreInfo->handleType) {
-            case VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT:
-                pExternalSemaphoreProperties->exportFromImportedHandleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
-                pExternalSemaphoreProperties->compatibleHandleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
-                pExternalSemaphoreProperties->externalSemaphoreFeatures =
-                    VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
-                    VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
-                return;
-            case VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT:
-                pExternalSemaphoreProperties->exportFromImportedHandleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
-                pExternalSemaphoreProperties->compatibleHandleTypes =
-                    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
-                pExternalSemaphoreProperties->externalSemaphoreFeatures =
-                    VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
-                    VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
-                return;
-            default:
-                break;
+
+        if (m_emu->features.VulkanExternalSync.enabled) {
+            // Cannot forward this call to driver because nVidia linux driver crahses on it.
+            switch (pExternalSemaphoreInfo->handleType) {
+                case VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT:
+                    pExternalSemaphoreProperties->exportFromImportedHandleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+                    pExternalSemaphoreProperties->compatibleHandleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+                    pExternalSemaphoreProperties->externalSemaphoreFeatures =
+                        VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
+                        VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
+                    return;
+                case VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT:
+                    pExternalSemaphoreProperties->exportFromImportedHandleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+                    pExternalSemaphoreProperties->compatibleHandleTypes =
+                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+                    pExternalSemaphoreProperties->externalSemaphoreFeatures =
+                        VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
+                        VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
+                    return;
+                default:
+                    break;
+            }
         }
 
         pExternalSemaphoreProperties->exportFromImportedHandleTypes = 0;
@@ -5627,6 +6151,8 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
 
+        m_emu->deviceLostHelper.onBeginCommandBuffer(commandBuffer, vk);
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
         auto* commandBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
@@ -5653,6 +6179,8 @@ class VkDecoderGlobalState::Impl {
                                    const VkDecoderContext& context) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        m_emu->deviceLostHelper.onEndCommandBuffer(commandBuffer, vk);
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
@@ -5703,19 +6231,19 @@ class VkDecoderGlobalState::Impl {
         vk->vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet,
                                     descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
                                     pDynamicOffsets);
-        if (pipelineBindPoint == VK_PIPELINE_BIND_POINT_COMPUTE) {
+        if (descriptorSetCount) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
             if (cmdBufferInfo) {
                 cmdBufferInfo->descriptorLayout = layout;
 
-                if (descriptorSetCount) {
-                    cmdBufferInfo->firstSet = firstSet;
-                    cmdBufferInfo->descriptorSets.assign(pDescriptorSets,
-                                                         pDescriptorSets + descriptorSetCount);
-                    cmdBufferInfo->dynamicOffsets.assign(pDynamicOffsets,
-                                                         pDynamicOffsets + dynamicOffsetCount);
-                }
+                cmdBufferInfo->allDescriptorSets.insert(pDescriptorSets,
+                                                        pDescriptorSets + descriptorSetCount);
+                cmdBufferInfo->firstSet = firstSet;
+                cmdBufferInfo->currentDescriptorSets.assign(pDescriptorSets,
+                                                            pDescriptorSets + descriptorSetCount);
+                cmdBufferInfo->dynamicOffsets.assign(pDynamicOffsets,
+                                                     pDynamicOffsets + dynamicOffsetCount);
             }
         }
     }
@@ -6307,9 +6835,70 @@ class VkDecoderGlobalState::Impl {
         return;
     }
 
-    void on_DeviceLost() { GFXSTREAM_ABORT(FatalError(VK_ERROR_DEVICE_LOST)); }
+    VkResult on_vkEnumeratePhysicalDeviceGroups(
+        android::base::BumpPool* pool, VkInstance boxed_instance,
+        uint32_t* pPhysicalDeviceGroupCount,
+        VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
+        auto instance = unbox_VkInstance(boxed_instance);
+        auto vk = dispatch_VkInstance(boxed_instance);
 
-    void DeviceLostHandler() {}
+        std::vector<VkPhysicalDevice> physicalDevices;
+        auto res = GetPhysicalDevices(instance, vk, physicalDevices);
+        if (res != VK_SUCCESS) {
+            return res;
+        }
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            FilterPhysicalDevicesLocked(instance, vk, physicalDevices);
+        }
+
+        const uint32_t requestedCount = pPhysicalDeviceGroupCount ? *pPhysicalDeviceGroupCount : 0;
+        const uint32_t availableCount = static_cast<uint32_t>(physicalDevices.size());
+
+        if (pPhysicalDeviceGroupCount) {
+            *pPhysicalDeviceGroupCount = availableCount;
+        }
+        if (pPhysicalDeviceGroupCount && pPhysicalDeviceGroupProperties) {
+            for (uint32_t i = 0; i < std::min(requestedCount, availableCount); ++i) {
+                pPhysicalDeviceGroupProperties[i] = VkPhysicalDeviceGroupProperties{
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES,
+                    .pNext = nullptr,
+                    .physicalDeviceCount = 1,
+                    .physicalDevices =
+                        {
+                            unboxed_to_boxed_VkPhysicalDevice(physicalDevices[i]),
+                        },
+                    .subsetAllocation = VK_FALSE,
+                };
+            }
+            if (requestedCount < availableCount) {
+                return VK_INCOMPLETE;
+            }
+        }
+
+        return VK_SUCCESS;
+    }
+
+    void on_DeviceLost() {
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+
+            std::vector<DeviceLostHelper::DeviceWithQueues> devicesToQueues;
+            for (const auto& [device, deviceInfo] : mDeviceInfo) {
+                auto& deviceToQueues = devicesToQueues.emplace_back();
+                deviceToQueues.device = device;
+                deviceToQueues.deviceDispatch = dispatch_VkDevice(deviceInfo.boxed);
+                for (const auto& [queueIndex, queues] : deviceInfo.queues) {
+                    deviceToQueues.queues.insert(deviceToQueues.queues.end(), queues.begin(),
+                                                 queues.end());
+                }
+            }
+            m_emu->deviceLostHelper.onDeviceLost(devicesToQueues);
+        }
+
+        GFXSTREAM_ABORT(FatalError(VK_ERROR_DEVICE_LOST));
+    }
 
     void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,
                              std::optional<uint64_t> allocationSize = std::nullopt) {
@@ -6323,15 +6912,13 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult waitForFence(VkFence boxed_fence, uint64_t timeout) {
-        VkFence fence;
+        VkFence fence = unbox_VkFence(boxed_fence);
         VkDevice device;
         VulkanDispatch* vk;
         StaticLock* fenceLock;
         ConditionVariable* cv;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            fence = unbox_VkFence(boxed_fence);
             if (fence == VK_NULL_HANDLE || mFenceInfo.find(fence) == mFenceInfo.end()) {
                 // No fence, could be a semaphore.
                 // TODO: Async wait for semaphores
@@ -6379,13 +6966,11 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult getFenceStatus(VkFence boxed_fence) {
+        VkFence fence = unbox_VkFence(boxed_fence);
         VkDevice device;
-        VkFence fence;
         VulkanDispatch* vk;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            fence = unbox_VkFence(boxed_fence);
             if (fence == VK_NULL_HANDLE || mFenceInfo.find(fence) == mFenceInfo.end()) {
                 // No fence, could be a semaphore.
                 // TODO: Async get status for semaphores
@@ -6757,13 +7342,14 @@ class VkDecoderGlobalState::Impl {
     void set_boxed_non_dispatchable_##type(type boxed, type underlying) {                         \
         DispatchableHandleInfo<uint64_t> item;                                                    \
         item.underlying = (uint64_t)underlying;                                                   \
-        sBoxedHandleManager.update((uint64_t)boxed, item, Tag_##type);                          \
+        sBoxedHandleManager.update((uint64_t)boxed, item, Tag_##type);                            \
     }                                                                                             \
     type unboxed_to_boxed_non_dispatchable_##type(type unboxed) {                                 \
         AutoLock lock(sBoxedHandleManager.lock);                                                  \
         return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
     }                                                                                             \
     type unbox_##type(type boxed) {                                                               \
+        AutoLock lock(sBoxedHandleManager.lock);                                                  \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
         if (!elt) {                                                                               \
             if constexpr (!std::is_same_v<type, VkFence>) {                                       \
@@ -6858,6 +7444,10 @@ class VkDecoderGlobalState::Impl {
         // decoding, etc. However, push name to indicate external memory support to guest
         if (hasDeviceExtension(properties, VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME)) {
             res.push_back(VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME);
+            // EXT_queue_family_foreign is a pre-requisite for QNX_external_memory_screen_buffer
+            if (hasDeviceExtension(properties, VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME)) {
+                res.push_back(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
+            }
         }
 
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
@@ -6879,15 +7469,32 @@ class VkDecoderGlobalState::Impl {
             if (hasDeviceExtension(properties, VK_EXT_METAL_OBJECTS_EXTENSION_NAME)) {
                 res.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
             }
+        } else {
+            // Non-MoltenVK path, use memory_fd
+            if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)) {
+                res.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+            }
         }
 #endif
 
 #ifdef __linux__
         // A dma-buf is a Linux kernel construct, commonly used with open-source DRM drivers.
         // See https://docs.kernel.org/driver-api/dma-buf.html for details.
-        if (hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+        if (m_emu->deviceInfo.supportsDmaBuf &&
+            hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
             res.push_back(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
         }
+
+        if (hasDeviceExtension(properties, VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME)) {
+            // Mesa Vulkan Wayland WSI needs vkGetImageDrmFormatModifierPropertiesEXT. On some Intel
+            // GPUs, this extension is exposed by the driver only if
+            // VK_EXT_image_drm_format_modifier extension is requested via
+            // VkDeviceCreateInfo::ppEnabledExtensionNames. vkcube-wayland does not request it,
+            // which makes the host attempt to call a null function pointer unless we force-enable
+            // it regardless of the client's wishes.
+            res.push_back(VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME);
+        }
+
 #endif
         return res;
     }
@@ -6908,6 +7515,10 @@ class VkDecoderGlobalState::Impl {
 
         if (m_emu->instanceSupportsExternalSemaphoreCapabilities) {
             res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME);
+        }
+
+        if (m_emu->instanceSupportsExternalFenceCapabilities) {
+            res.push_back(VK_KHR_EXTERNAL_FENCE_CAPABILITIES_EXTENSION_NAME);
         }
 
         if (m_emu->debugUtilsAvailableAndRequested) {
@@ -7016,6 +7627,80 @@ class VkDecoderGlobalState::Impl {
         VkPhysicalDeviceFeatures feature;
         vk->vkGetPhysicalDeviceFeatures(physicalDevice, &feature);
         return !feature.textureCompressionASTC_LDR;
+    }
+
+    void getSupportedFenceHandleTypes(VulkanDispatch* vk, VkPhysicalDevice physicalDevice,
+                                      uint32_t* supportedFenceHandleTypes) {
+        if (!m_emu->instanceSupportsExternalFenceCapabilities) {
+            return;
+        }
+
+        VkExternalFenceHandleTypeFlagBits handleTypes[] = {
+            VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR,
+            VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_FD_BIT,
+            VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT,
+        };
+
+        for (auto handleType : handleTypes) {
+            VkExternalFenceProperties externalFenceProps;
+            externalFenceProps.sType = VK_STRUCTURE_TYPE_EXTERNAL_FENCE_PROPERTIES;
+            externalFenceProps.pNext = nullptr;
+
+            VkPhysicalDeviceExternalFenceInfo externalFenceInfo = {
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FENCE_INFO, nullptr, handleType};
+
+            vk->vkGetPhysicalDeviceExternalFenceProperties(physicalDevice, &externalFenceInfo,
+                                                           &externalFenceProps);
+
+            if ((externalFenceProps.externalFenceFeatures &
+                 (VK_EXTERNAL_FENCE_FEATURE_IMPORTABLE_BIT)) == 0) {
+                continue;
+            }
+
+            if ((externalFenceProps.externalFenceFeatures &
+                 (VK_EXTERNAL_FENCE_FEATURE_EXPORTABLE_BIT)) == 0) {
+                continue;
+            }
+
+            *supportedFenceHandleTypes |= handleType;
+        }
+    }
+
+    void getSupportedSemaphoreHandleTypes(VulkanDispatch* vk, VkPhysicalDevice physicalDevice,
+                                          uint32_t* supportedBinarySemaphoreHandleTypes) {
+        if (!m_emu->instanceSupportsExternalSemaphoreCapabilities) {
+            return;
+        }
+
+        VkExternalSemaphoreHandleTypeFlagBits handleTypes[] = {
+            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR,
+            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT,
+            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT,
+        };
+
+        for (auto handleType : handleTypes) {
+            VkExternalSemaphoreProperties externalSemaphoreProps;
+            externalSemaphoreProps.sType = VK_STRUCTURE_TYPE_EXTERNAL_SEMAPHORE_PROPERTIES;
+            externalSemaphoreProps.pNext = nullptr;
+
+            VkPhysicalDeviceExternalSemaphoreInfo externalSemaphoreInfo = {
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SEMAPHORE_INFO, nullptr, handleType};
+
+            vk->vkGetPhysicalDeviceExternalSemaphoreProperties(
+                physicalDevice, &externalSemaphoreInfo, &externalSemaphoreProps);
+
+            if ((externalSemaphoreProps.externalSemaphoreFeatures &
+                 (VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT)) == 0) {
+                continue;
+            }
+
+            if ((externalSemaphoreProps.externalSemaphoreFeatures &
+                 (VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT)) == 0) {
+                continue;
+            }
+
+            *supportedBinarySemaphoreHandleTypes |= handleType;
+        }
     }
 
     bool supportsSwapchainMaintenance1(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) {
@@ -7297,12 +7982,14 @@ class VkDecoderGlobalState::Impl {
         VkPipeline computePipeline = VK_NULL_HANDLE;
         uint32_t firstSet = 0;
         VkPipelineLayout descriptorLayout = VK_NULL_HANDLE;
-        std::vector<VkDescriptorSet> descriptorSets;
+        std::vector<VkDescriptorSet> currentDescriptorSets;
+        std::unordered_set<VkDescriptorSet> allDescriptorSets;
         std::vector<uint32_t> dynamicOffsets;
         std::unordered_set<HandleType> acquiredColorBuffers;
         std::unordered_set<HandleType> releasedColorBuffers;
         std::unordered_map<HandleType, VkImageLayout> cbLayouts;
         std::unordered_map<VkImage, VkImageLayout> imageLayouts;
+        std::unordered_set<HandleType> imageBarrierColorBuffers;
 
         void reset() {
             preprocessFuncs.clear();
@@ -7310,7 +7997,8 @@ class VkDecoderGlobalState::Impl {
             computePipeline = VK_NULL_HANDLE;
             firstSet = 0;
             descriptorLayout = VK_NULL_HANDLE;
-            descriptorSets.clear();
+            currentDescriptorSets.clear();
+            allDescriptorSets.clear();
             dynamicOffsets.clear();
             acquiredColorBuffers.clear();
             releasedColorBuffers.clear();
@@ -7510,7 +8198,6 @@ class VkDecoderGlobalState::Impl {
     bool mLogging = false;
     bool mVerbosePrints = false;
     bool mUseOldMemoryCleanupPath = false;
-    bool mGuestUsesAngle = false;
 
     std::recursive_mutex mLock;
 
@@ -8046,6 +8733,12 @@ VkResult VkDecoderGlobalState::on_vkGetSemaphoreFdKHR(android::base::BumpPool* p
     return mImpl->on_vkGetSemaphoreFdKHR(pool, device, pGetFdInfo, pFd);
 }
 
+VkResult VkDecoderGlobalState::on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool,
+                                                       VkDevice device, VkSemaphore semaphore,
+                                                       uint64_t syncId) {
+    return mImpl->on_vkGetSemaphoreGOOGLE(pool, device, semaphore, syncId);
+}
+
 void VkDecoderGlobalState::on_vkDestroySemaphore(android::base::BumpPool* pool, VkDevice device,
                                                  VkSemaphore semaphore,
                                                  const VkAllocationCallbacks* pAllocator) {
@@ -8281,6 +8974,12 @@ void VkDecoderGlobalState::on_vkCmdPipelineBarrier(
                                    memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
                                    pBufferMemoryBarriers, imageMemoryBarrierCount,
                                    pImageMemoryBarriers);
+}
+
+void VkDecoderGlobalState::on_vkCmdPipelineBarrier2(android::base::BumpPool* pool,
+                                                    VkCommandBuffer commandBuffer,
+                                                    const VkDependencyInfo* pDependencyInfo) {
+    mImpl->on_vkCmdPipelineBarrier2(pool, commandBuffer, pDependencyInfo);
 }
 
 VkResult VkDecoderGlobalState::on_vkAllocateMemory(android::base::BumpPool* pool, VkDevice device,
@@ -8796,9 +9495,21 @@ void VkDecoderGlobalState::on_vkDestroySamplerYcbcrConversionKHR(
     mImpl->on_vkDestroySamplerYcbcrConversion(pool, device, ycbcrConversion, pAllocator);
 }
 
-void VkDecoderGlobalState::on_DeviceLost() { mImpl->on_DeviceLost(); }
+VkResult VkDecoderGlobalState::on_vkEnumeratePhysicalDeviceGroups(
+    android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+    VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
+    return mImpl->on_vkEnumeratePhysicalDeviceGroups(pool, instance, pPhysicalDeviceGroupCount,
+                                                     pPhysicalDeviceGroupProperties);
+}
 
-void VkDecoderGlobalState::DeviceLostHandler() { mImpl->DeviceLostHandler(); }
+VkResult VkDecoderGlobalState::on_vkEnumeratePhysicalDeviceGroupsKHR(
+    android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+    VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
+    return mImpl->on_vkEnumeratePhysicalDeviceGroups(pool, instance, pPhysicalDeviceGroupCount,
+                                                     pPhysicalDeviceGroupProperties);
+}
+
+void VkDecoderGlobalState::on_DeviceLost() { mImpl->on_DeviceLost(); }
 
 void VkDecoderGlobalState::on_CheckOutOfMemory(VkResult result, uint32_t opCode,
                                                const VkDecoderContext& context,
@@ -8946,6 +9657,9 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HAN
         return (type)elt->underlying;                                                             \
     }                                                                                             \
     type unboxed_to_boxed_non_dispatchable_##type(type unboxed) {                                 \
+        if (!unboxed) {                                                                           \
+            return nullptr;                                                                       \
+        }                                                                                         \
         AutoLock lock(sBoxedHandleManager.lock);                                                  \
         return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
     }

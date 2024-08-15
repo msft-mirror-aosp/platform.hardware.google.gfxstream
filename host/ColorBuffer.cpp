@@ -54,7 +54,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
                                                  vk::VkEmulation* emulationVk, uint32_t width,
                                                  uint32_t height, GLenum format,
                                                  FrameworkFormat frameworkFormat, HandleType handle,
-                                                 android::base::Stream* stream) {
+                                                 android::base::Stream* stream, bool linear) {
     std::shared_ptr<ColorBuffer> colorBuffer(
         new ColorBuffer(handle, width, height, format, frameworkFormat));
 
@@ -82,10 +82,12 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
 
     if (emulationVk && emulationVk->live) {
         const bool vulkanOnly = colorBuffer->mColorBufferGl == nullptr;
-
-        colorBuffer->mColorBufferVk =
-            vk::ColorBufferVk::create(handle, width, height, format, frameworkFormat, vulkanOnly,
-                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, stream);
+        uint32_t memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        if (vulkanOnly && linear) {
+            memoryProperty |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        }
+        colorBuffer->mColorBufferVk = vk::ColorBufferVk::create(
+            handle, width, height, format, frameworkFormat, vulkanOnly, memoryProperty, stream);
         if (!colorBuffer->mColorBufferVk) {
             if (emulationGl) {
                 // Historically, ColorBufferVk setup was deferred until the first actual Vulkan
@@ -224,12 +226,16 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height,
     if (mColorBufferGl) {
         mColorBufferGl->subUpdateFromFrameworkFormat(x, y, width, height, frameworkFormat,
                                                      pixelsFormat, pixelsType, pixels, metadata);
+        flushFromGl();
         return true;
     }
 #endif
 
     if (mColorBufferVk) {
-        return mColorBufferVk->updateFromBytes(x, y, width, height, pixels);
+        bool success = mColorBufferVk->updateFromBytes(x, y, width, height, pixels);
+        if (!success) return success;
+        flushFromVk();
+        return true;
     }
 
     GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "No ColorBuffer impl?";
@@ -242,7 +248,11 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height, GLenum pi
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
-        return mColorBufferGl->subUpdate(x, y, width, height, pixelsFormat, pixelsType, pixels);
+        bool res = mColorBufferGl->subUpdate(x, y, width, height, pixelsFormat, pixelsType, pixels);
+        if (res) {
+            flushFromGl();
+        }
+        return res;
     }
 #endif
 
@@ -319,6 +329,7 @@ bool ColorBuffer::flushFromGl() {
 
     // ColorBufferGl is currently considered the "main" backing. If this changes,
     // the "main"  should be updated from the current contents of the GL backing.
+    mGlTexDirty = true;
     return true;
 }
 
@@ -346,7 +357,7 @@ bool ColorBuffer::flushFromVk() {
         return false;
     }
 #endif
-
+    mGlTexDirty = false;
     return true;
 }
 
@@ -367,7 +378,7 @@ bool ColorBuffer::flushFromVkBytes(const void* bytes, size_t bytesSize) {
         }
     }
 #endif
-
+    mGlTexDirty = false;
     return true;
 }
 
@@ -394,6 +405,10 @@ bool ColorBuffer::invalidateForVk() {
         return true;
     }
 
+    if (!mGlTexDirty) {
+        return true;
+    }
+
 #if GFXSTREAM_ENABLE_HOST_GLES
     std::size_t contentsSize = 0;
     if (!mColorBufferGl->readContents(&contentsSize, nullptr)) {
@@ -413,7 +428,7 @@ bool ColorBuffer::invalidateForVk() {
         return false;
     }
 #endif
-
+    mGlTexDirty = false;
     return true;
 }
 
@@ -439,6 +454,26 @@ bool ColorBuffer::importNativeResource(void* nativeResource, uint32_t type, bool
                 << "Unrecognized type for ColorBuffer::importNativeResource.";
             return false;
     }
+}
+
+int ColorBuffer::waitSync() {
+    if (mColorBufferGl) {
+        return -1;
+    }
+
+    if (!mColorBufferVk) {
+        return -1;
+    }
+
+    return mColorBufferVk->waitSync();
+}
+
+std::optional<BlobDescriptorInfo> ColorBuffer::exportBlob() {
+    if (!mColorBufferVk) {
+        return std::nullopt;
+    }
+
+    return mColorBufferVk->exportBlob();
 }
 
 #if GFXSTREAM_ENABLE_HOST_GLES

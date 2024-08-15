@@ -203,6 +203,38 @@ static bool sGetFormatParameters(GLint* internalFormat,
             *bytesPerPixel = 2;
             *sizedInternalFormat = GL_RG8;
             return true;
+        case GL_DEPTH_COMPONENT:
+        case GL_DEPTH_COMPONENT16:
+            *texFormat = GL_DEPTH_COMPONENT;
+            *pixelType = GL_UNSIGNED_SHORT;
+            *bytesPerPixel = 2;
+            *sizedInternalFormat = GL_DEPTH_COMPONENT16;
+            return true;
+        case GL_DEPTH_COMPONENT24:
+            *texFormat = GL_DEPTH_COMPONENT;
+            *pixelType = GL_UNSIGNED_INT;
+            *bytesPerPixel = 4;
+            *sizedInternalFormat = GL_DEPTH_COMPONENT24;
+            return true;
+        case GL_DEPTH_COMPONENT32F:
+            *texFormat = GL_DEPTH_COMPONENT;
+            *pixelType = GL_FLOAT;
+            *bytesPerPixel = 4;
+            *sizedInternalFormat = GL_DEPTH_COMPONENT32F;
+            return true;
+        case GL_DEPTH_STENCIL:
+        case GL_DEPTH24_STENCIL8:
+            *texFormat = GL_DEPTH_STENCIL;
+            *pixelType = GL_UNSIGNED_INT_24_8;
+            *bytesPerPixel = 4;
+            *sizedInternalFormat = GL_DEPTH24_STENCIL8;
+            return true;
+        case GL_DEPTH32F_STENCIL8:
+            *texFormat = GL_DEPTH_STENCIL;
+            *pixelType = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+            *bytesPerPixel = 8;
+            *sizedInternalFormat = GL_DEPTH32F_STENCIL8;
+            return true;
         default:
             fprintf(stderr, "%s: Unknown format 0x%x\n", __func__,
                     *internalFormat);

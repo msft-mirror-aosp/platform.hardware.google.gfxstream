@@ -28,20 +28,13 @@ static const size_t kTransferBufferSize = (1048576);
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
-VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize) :
-    IOStream(bufSize),
-    m_virtio_mapped(nullptr),
-    m_bufsize(bufSize),
-    m_buf(nullptr),
-    m_writtenPos(0) { }
-
-VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int fd) :
-    IOStream(bufSize),
-    m_fd(fd),
-    m_virtio_mapped(nullptr),
-    m_bufsize(bufSize),
-    m_buf(nullptr),
-    m_writtenPos(0) { }
+VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int32_t descriptor)
+    : IOStream(bufSize),
+      m_fd(descriptor),
+      m_virtio_mapped(nullptr),
+      m_bufsize(bufSize),
+      m_buf(nullptr),
+      m_writtenPos(0) {}
 
 VirtioGpuPipeStream::~VirtioGpuPipeStream()
 {
@@ -68,8 +61,11 @@ int VirtioGpuPipeStream::connect(const char* serviceName)
             return -1;
         }
 
-        m_resource = m_device->createResource(kTransferBufferSize, 1, VIRGL_FORMAT_R8_UNORM,
-                                              PIPE_BUFFER, VIRGL_BIND_CUSTOM, 1);
+        m_resource = m_device->createResource(/*width=*/kTransferBufferSize,
+                                              /*height=*/1,
+                                              /*stride=*/kTransferBufferSize,
+                                              /*size=*/kTransferBufferSize, VIRGL_FORMAT_R8_UNORM,
+                                              PIPE_BUFFER, VIRGL_BIND_CUSTOM);
         if (!m_resource) {
             ALOGE("Failed to create VirtioGpuPipeStream resource.");
             return -1;

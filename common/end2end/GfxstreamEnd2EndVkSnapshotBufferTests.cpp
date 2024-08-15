@@ -16,7 +16,6 @@
 
 #include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
-#include "gfxstream/RutabagaLayerTestUtils.h"
 
 namespace gfxstream {
 namespace tests {
@@ -31,7 +30,7 @@ using testing::NotNull;
 
 class GfxstreamEnd2EndVkSnapshotBufferTest : public GfxstreamEnd2EndTest {};
 
-TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, BufferContent) {
+TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, DeviceLocalBufferContent) {
     static constexpr vkhpp::DeviceSize kSize = 256;
 
     std::vector<uint8_t> srcBufferContent(kSize);
@@ -39,7 +38,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, BufferContent) {
         srcBufferContent[i] = static_cast<uint8_t>(i & 0xff);
     }
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     // Staging buffer
     const vkhpp::BufferCreateInfo stagingBufferCreateInfo = {
@@ -86,7 +85,9 @@ TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, BufferContent) {
     // Vertex buffer
     const vkhpp::BufferCreateInfo vertexBufferCreateInfo = {
         .size = static_cast<VkDeviceSize>(kSize),
-        .usage = vkhpp::BufferUsageFlagBits::eVertexBuffer,
+        .usage = vkhpp::BufferUsageFlagBits::eVertexBuffer |
+                 vkhpp::BufferUsageFlagBits::eTransferSrc |
+                 vkhpp::BufferUsageFlagBits::eTransferDst,
         .sharingMode = vkhpp::SharingMode::eExclusive,
     };
     auto vertexBuffer = device->createBufferUnique(vertexBufferCreateInfo).value;
@@ -95,9 +96,9 @@ TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, BufferContent) {
     vkhpp::MemoryRequirements vertexBufferMemoryRequirements{};
     device->getBufferMemoryRequirements(*vertexBuffer, &vertexBufferMemoryRequirements);
 
-    const auto vertexBufferMemoryType = utils::getMemoryType(
-        physicalDevice, vertexBufferMemoryRequirements,
-        vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
+    const auto vertexBufferMemoryType =
+        utils::getMemoryType(physicalDevice, vertexBufferMemoryRequirements,
+                             vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
 
     // Vertex memory
     const vkhpp::MemoryAllocateInfo vertexBufferMemoryAllocateInfo = {
@@ -212,6 +213,69 @@ TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, BufferContent) {
         ASSERT_THAT(bytes[i], Eq(srcBufferContent[i]));
     }
     device->unmapMemory(*readbackBufferMemory);
+}
+
+TEST_P(GfxstreamEnd2EndVkSnapshotBufferTest, HostVisibleBufferContent) {
+    static constexpr vkhpp::DeviceSize kSize = 256;
+
+    std::vector<uint8_t> srcBufferContent(kSize);
+    for (size_t i = 0; i < kSize; i++) {
+        srcBufferContent[i] = static_cast<uint8_t>(i & 0xff);
+    }
+    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
+
+    // Vertex buffer
+    const vkhpp::BufferCreateInfo uniformBufferCreateInfo = {
+        .size = static_cast<VkDeviceSize>(kSize),
+        .usage = vkhpp::BufferUsageFlagBits::eUniformBuffer,
+        .sharingMode = vkhpp::SharingMode::eExclusive,
+    };
+    auto uniformBuffer = device->createBufferUnique(uniformBufferCreateInfo).value;
+    ASSERT_THAT(uniformBuffer, IsValidHandle());
+
+    vkhpp::MemoryRequirements uniformBufferMemoryRequirements{};
+    device->getBufferMemoryRequirements(*uniformBuffer, &uniformBufferMemoryRequirements);
+
+    const auto uniformBufferMemoryType = utils::getMemoryType(
+        physicalDevice, uniformBufferMemoryRequirements,
+        vkhpp::MemoryPropertyFlagBits::eHostVisible | vkhpp::MemoryPropertyFlagBits::eHostCoherent);
+
+    // Vertex memory
+    const vkhpp::MemoryAllocateInfo uniformBufferMemoryAllocateInfo = {
+        .allocationSize = uniformBufferMemoryRequirements.size,
+        .memoryTypeIndex = uniformBufferMemoryType,
+    };
+    auto uniformBufferMemory = device->allocateMemoryUnique(uniformBufferMemoryAllocateInfo).value;
+    ASSERT_THAT(uniformBufferMemory, IsValidHandle());
+    ASSERT_THAT(device->bindBufferMemory(*uniformBuffer, *uniformBufferMemory, 0), IsVkSuccess());
+
+    // Fill memory content
+    void* mapped = nullptr;
+    auto mapResult =
+        device->mapMemory(*uniformBufferMemory, 0, VK_WHOLE_SIZE, vkhpp::MemoryMapFlags{}, &mapped);
+    ASSERT_THAT(mapResult, IsVkSuccess());
+    ASSERT_THAT(mapped, NotNull());
+
+    auto* bytes = reinterpret_cast<uint8_t*>(mapped);
+    std::memcpy(bytes, srcBufferContent.data(), kSize);
+
+    device->unmapMemory(*uniformBufferMemory);
+
+    // We need to unmap before snapshot due to limitations of the testing framework.
+    SnapshotSaveAndLoad();
+
+    // Verify content
+    mapResult =
+        device->mapMemory(*uniformBufferMemory, 0, VK_WHOLE_SIZE, vkhpp::MemoryMapFlags{}, &mapped);
+    ASSERT_THAT(mapResult, IsVkSuccess());
+    ASSERT_THAT(mapped, NotNull());
+    bytes = reinterpret_cast<uint8_t*>(mapped);
+
+    for (uint32_t i = 0; i < kSize; ++i) {
+        ASSERT_THAT(bytes[i], Eq(srcBufferContent[i]));
+    }
+    device->unmapMemory(*uniformBufferMemory);
 }
 
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotBufferTest,

@@ -61,7 +61,7 @@ std::vector<VkReconstruction::HandleWithState> typeTagSortedHandles(
 void VkReconstruction::save(android::base::Stream* stream) {
     DEBUG_RECON("start")
 
-#if DEBUG_RECON
+#if DEBUG_RECONSTRUCTION
     dump();
 #endif
 
@@ -445,6 +445,8 @@ void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t cou
                                            uint64_t parentHandle, HandleState childState,
                                            HandleState parentState) {
     if (!handles) return;
+
+    if (!parentHandle) return;
 
     auto parentItem = mHandleReconstructions.get(parentHandle);
 

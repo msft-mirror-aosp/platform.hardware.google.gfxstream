@@ -31,6 +31,7 @@
 #include "Compositor.h"
 #include "Display.h"
 #include "DisplaySurface.h"
+#include "ExternalObjectManager.h"
 #include "Hwc2.h"
 #include "PostCommands.h"
 #include "PostWorker.h"
@@ -188,6 +189,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void setPostCallback(Renderer::OnPostCallback onPost, void* onPostContext, uint32_t displayId,
                          bool useBgraReadback = false);
 
+    // Tests and reports if the host supports the format through the allocator
+    bool isFormatSupported(GLenum format);
+
     // Create a new ColorBuffer instance from this display instance.
     // |p_width| and |p_height| are its dimensions in pixels.
     // |p_internalFormat| is the OpenGL format of this color buffer.
@@ -204,7 +208,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // handle already assigned. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl.
     void createColorBufferWithHandle(int p_width, int p_height, GLenum p_internalFormat,
-                                     FrameworkFormat p_frameworkFormat, HandleType handle);
+                                     FrameworkFormat p_frameworkFormat, HandleType handle,
+                                     bool linear = false);
 
     // Create a new data Buffer instance from this display instance.
     // The buffer will be backed by a VkBuffer and VkDeviceMemory (if Vulkan
@@ -480,6 +485,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
         return *m_logger;
     }
 
+    void logVulkanDeviceLost();
     void logVulkanOutOfMemory(VkResult result, const char* function, int line,
                               std::optional<uint64_t> allocationSize = std::nullopt);
 
@@ -495,6 +501,10 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     bool flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes,
                                      size_t bytesSize);
     bool invalidateColorBufferForVk(HandleType colorBufferHandle);
+
+    int waitSyncColorBuffer(HandleType colorBufferHandle);
+    std::optional<BlobDescriptorInfo> exportColorBuffer(HandleType colorBufferHandle);
+    std::optional<BlobDescriptorInfo> exportBuffer(HandleType bufferHandle);
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     // Retrieves the color buffer handle associated with |p_surface|.
@@ -703,7 +713,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     }
     HandleType createColorBufferWithHandleLocked(int p_width, int p_height, GLenum p_internalFormat,
                                                  FrameworkFormat p_frameworkFormat,
-                                                 HandleType handle);
+                                                 HandleType handle, bool linear = false);
     HandleType createBufferWithHandleLocked(int p_size, HandleType handle, uint32_t memoryProperty);
 
     void recomputeLayout();
@@ -842,7 +852,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
 
     bool m_vulkanInteropSupported = false;
     bool m_vulkanEnabled = false;
-    bool m_guestUsesAngle = false;
     // Whether the guest manages ColorBuffer lifetime
     // so we don't need refcounting on the host side.
     bool m_guestManagedColorBufferLifetime = false;

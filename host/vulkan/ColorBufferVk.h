@@ -17,6 +17,7 @@
 #include <memory>
 #include <vector>
 
+#include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
 #include "aemu/base/files/Stream.h"
 
@@ -41,6 +42,9 @@ class ColorBufferVk {
     bool importExtMemoryHandle(void* nativeResource, uint32_t type, bool preserveContent);
 
     void onSave(android::base::Stream* stream);
+
+    int waitSync();
+    std::optional<BlobDescriptorInfo> exportBlob();
 
    private:
     ColorBufferVk(uint32_t handle);

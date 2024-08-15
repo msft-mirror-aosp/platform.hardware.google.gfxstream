@@ -13,6 +13,9 @@
 // limitations under the License.
 #include "VulkanStreamGuest.h"
 
+#include "util/log.h"
+#include "util/perf/cpu_trace.h"
+
 namespace gfxstream {
 namespace vk {
 
@@ -99,7 +102,7 @@ void VulkanStreamGuest::loadStringArrayInPlaceWithStreamPtr(char*** forOutput,
 
 ssize_t VulkanStreamGuest::read(void* buffer, size_t size) {
     if (!mStream->readback(buffer, size)) {
-        ALOGE("FATAL: Could not read back %zu bytes", size);
+        mesa_loge("FATAL: Could not read back %zu bytes", size);
         abort();
     }
     return size;
@@ -126,7 +129,7 @@ void VulkanStreamGuest::unsetHandleMapping() { mCurrentHandleMapping = &mDefault
 VulkanHandleMapping* VulkanStreamGuest::handleMapping() const { return mCurrentHandleMapping; }
 
 void VulkanStreamGuest::flush() {
-    AEMU_SCOPED_TRACE("VulkanStreamGuest device write");
+    MESA_TRACE_SCOPE("VulkanStreamGuest device write");
     mStream->flush();
 }
 

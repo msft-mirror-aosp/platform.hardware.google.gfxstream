@@ -19,7 +19,7 @@
 #include <sys/mman.h>
 
 #include "host-common/logging.h"
-#include "host/BlobManager.h"
+#include "host/ExternalObjectManager.h"
 
 namespace gfxstream {
 namespace magma {
@@ -43,7 +43,7 @@ DrmBuffer::~DrmBuffer() {
         return;
     }
     if (mHva) {
-        BlobManager::get()->removeMapping(mContextId, mId);
+        ExternalObjectManager::get()->removeMapping(mContextId, mId);
     }
     drm_gem_close params{.handle = mGemHandle};
     int result = mDevice.ioctl(DRM_IOCTL_GEM_CLOSE, &params);
@@ -95,7 +95,7 @@ void* DrmBuffer::map() {
     mId = mIdNext.fetch_add(1);
 
     // Add the mapping entry.
-    BlobManager::get()->addMapping(mContextId, mId, mHva, MAP_CACHE_CACHED);
+    ExternalObjectManager::get()->addMapping(mContextId, mId, mHva, MAP_CACHE_CACHED);
 
     INFO("Mapped DrmBuffer size %" PRIu64 " gem %" PRIu32 " to addr %p mid %" PRIu64, mSize,
          mGemHandle, mHva, mId);

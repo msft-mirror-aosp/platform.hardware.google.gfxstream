@@ -75,8 +75,9 @@ VirtGpuResourcePtr FuchsiaVirtGpuDevice::createBlob(const struct VirtGpuCreateBl
 }
 
 VirtGpuResourcePtr FuchsiaVirtGpuDevice::createResource(uint32_t width, uint32_t height,
+                                                        uint32_t stride, uint32_t size,
                                                         uint32_t virglFormat, uint32_t target,
-                                                        uint32_t bind, uint32_t bpp) {
+                                                        uint32_t bind) {
     ALOGE("%s: unimplemented", __func__);
     return nullptr;
 }
@@ -94,11 +95,10 @@ int FuchsiaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
 
 struct VirtGpuCaps FuchsiaVirtGpuDevice::getCaps(void) { return {}; }
 
-VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int fd) {
+VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor) {
     // We don't handle the VirtioGpuPipeStream case.
-    if (fd >= 0) {
+    if (descriptor >= 0) {
         ALOGE("Fuchsia: fd not handled");
-        abort();
         return nullptr;
     }
 
