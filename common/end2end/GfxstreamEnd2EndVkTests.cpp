@@ -1087,6 +1087,15 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         const uint32_t width = 1920;
         const uint32_t height = 1080;
         const auto goldenPixel = PixelR8G8B8A8(0, 255, 255, 255);
+        const auto badPixel = PixelR8G8B8A8(0, 0, 0, 255);
+
+        // Bind to a placeholder ahb before rebinding to the real one.
+        // This is to test the behavior of descriptors and make sure
+        // it removes the references to the old one when overwritten.
+        auto deletedAhb =
+            GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
+
+        GFXSTREAM_ASSERT(FillAhb(deletedAhb, badPixel));
 
         auto ahb =
             GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
@@ -1100,6 +1109,10 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             .deviceExtensions = {{VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME}},
             .deviceCreateInfoPNext = &deviceFeatures,
         }));
+
+        auto deletedAhbImage =
+            GFXSTREAM_ASSERT(CreateImageWithAhb(vk, deletedAhb, vkhpp::ImageUsageFlagBits::eSampled,
+                                                vkhpp::ImageLayout::eShaderReadOnlyOptimal));
 
         auto ahbImage =
             GFXSTREAM_ASSERT(CreateImageWithAhb(vk, ahb, vkhpp::ImageUsageFlagBits::eSampled,
@@ -1123,9 +1136,9 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                                 {{
                                     .binding = 0,
                                     .image = {{
-                                        .imageView = *ahbImage.imageView,
+                                        .imageView = *deletedAhbImage.imageView,
                                         .imageLayout = vkhpp::ImageLayout::eShaderReadOnlyOptimal,
-                                        .imageSampler = *ahbImage.imageSampler,
+                                        .imageSampler = *deletedAhbImage.imageSampler,
                                     }},
                                 }}));
 
@@ -1136,6 +1149,24 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
                                                     .descriptorSets = {&descriptorSet0},
                                                     .framebuffer = &framebuffer,
                                                 }));
+
+        std::vector<vkhpp::WriteDescriptorSet> descriptorSetWrites;
+        vkhpp::DescriptorImageInfo descriptorImageInfo = {
+            .imageView = *ahbImage.imageView,
+            .imageLayout = vkhpp::ImageLayout::eShaderReadOnlyOptimal,
+            .sampler = *ahbImage.imageSampler,
+        };
+        descriptorSetWrites.emplace_back(vkhpp::WriteDescriptorSet{
+            .dstSet = *descriptorSet0.ds,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = vkhpp::DescriptorType::eCombinedImageSampler,
+            .pImageInfo = &descriptorImageInfo,
+        });
+        vk.device->updateDescriptorSets(descriptorSetWrites, {});
+        deletedAhbImage = {};
+        deletedAhb = {};
 
         GFXSTREAM_ASSERT(DoCommandsImmediate(vk, [&](vkhpp::UniqueCommandBuffer& cmd) {
             const std::vector<vkhpp::ClearValue> renderPassBeginClearValues = {
@@ -1716,12 +1747,13 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
 
         constexpr const int kNumThreads = 5;
         for (int t = 0; t < kNumThreads; t++) {
-            threads.emplace_back([&, this](){
+            threads.emplace_back([&, this]() {
                 // Perform some work to ensure host RenderThread started.
                 auto buffer1 = device->createBufferUnique(bufferCreateInfo).value;
 
                 ++threadsReady;
-                while (threadsReady.load() != kNumThreads) {}
+                while (threadsReady.load() != kNumThreads) {
+                }
 
                 // Sleep a little which is hopefully enough time to potentially get
                 // the corresponding host ASG RenderThreads to go sleep waiting for

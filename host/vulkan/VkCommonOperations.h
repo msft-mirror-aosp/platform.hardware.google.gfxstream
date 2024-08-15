@@ -143,6 +143,8 @@ struct VkEmulation {
     VulkanDispatch* ivk = nullptr;
     VulkanDispatch* dvk = nullptr;
 
+    bool instanceSupportsPhysicalDeviceIDProperties = false;
+    bool instanceSupportsGetPhysicalDeviceProperties2 = false;
     bool instanceSupportsExternalMemoryCapabilities = false;
     bool instanceSupportsExternalSemaphoreCapabilities = false;
     bool instanceSupportsExternalFenceCapabilities = false;
@@ -204,7 +206,6 @@ struct VkEmulation {
         bool supportsExternalMemoryImport = false;
         bool supportsExternalMemoryExport = false;
         bool supportsDmaBuf = false;
-        bool supportsIdProperties = false;
         bool supportsDriverProperties = false;
         bool supportsExternalMemoryHostProps = false;
         bool hasSamplerYcbcrConversionExtension = false;
@@ -493,6 +494,8 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
                                                                         uint32_t width,
                                                                         uint32_t height,
                                                                         VkImageTiling tiling);
+
+bool isFormatSupported(GLenum format);
 
 bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
                          FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
