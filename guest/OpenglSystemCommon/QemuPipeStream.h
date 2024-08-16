@@ -29,24 +29,24 @@
 
 class QemuPipeStream : public gfxstream::guest::IOStream {
 public:
-    typedef enum { ERR_INVALID_SOCKET = -1000 } QemuPipeStreamError;
+ typedef enum { ERR_INVALID_SOCKET = -1000 } QemuPipeStreamError;
 
-    explicit QemuPipeStream(size_t bufsize = 10000);
-    ~QemuPipeStream();
-    int connect(void);
+ explicit QemuPipeStream(size_t bufsize = 10000);
+ ~QemuPipeStream();
+ int connect(void);
 
-    virtual void *allocBuffer(size_t minSize);
-    virtual int commitBuffer(size_t size);
-    virtual const unsigned char *readFully( void *buf, size_t len);
-    virtual const unsigned char *commitBufferAndReadFully(size_t size, void *buf, size_t len);
-    virtual const unsigned char *read( void *buf, size_t *inout_len);
+ virtual void* allocBuffer(size_t minSize);
+ virtual int commitBuffer(size_t size);
+ virtual const unsigned char* readFully(void* buf, size_t len);
+ virtual const unsigned char* commitBufferAndReadFully(size_t size, void* buf, size_t len);
+ virtual const unsigned char* read(void* buf, size_t* inout_len);
 
-    bool valid() { return qemu_pipe_valid(m_sock); }
-    int recv(void *buf, size_t len);
+ bool valid() { return qemu_pipe_valid(m_sock); }
+ int recv(void* buf, size_t len);
 
-    virtual int writeFully(const void *buf, size_t len);
+ virtual int writeFully(const void* buf, size_t len);
 
-    QEMU_PIPE_HANDLE getSocket() const;
+ QEMU_PIPE_HANDLE getSocket() const;
 private:
     QEMU_PIPE_HANDLE m_sock;
     size_t m_bufsize;
