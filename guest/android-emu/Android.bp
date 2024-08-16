@@ -8,8 +8,6 @@ cc_library_shared {
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
-    host_supported: true,
-    vendor: true,
     srcs: [
         "aemu/base/AlignedBuf.cpp",
         "aemu/base/files/MemStream.cpp",
@@ -51,8 +49,6 @@ cc_library_static {
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
-    host_supported: true,
-    vendor: true,
     srcs: [
         "aemu/base/AlignedBuf.cpp",
         "aemu/base/files/MemStream.cpp",
@@ -91,8 +87,9 @@ cc_library_static {
 
 cc_library_static {
     name: "libringbuffer",
-    host_supported: true,
-    vendor: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
     srcs: [
         "aemu/base/ring_buffer.c",
     ],

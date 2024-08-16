@@ -21,8 +21,9 @@ package {
 
 cc_library_headers {
     name: "libgfxstream_guest_errorlog_headers",
-    host_supported: true,
-    vendor_available: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
     export_include_dirs: [
         ".",
     ],
@@ -30,6 +31,54 @@ cc_library_headers {
 
 cc_library_shared {
     name: "libOpenglCodecCommon",
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    header_libs: [
+        "gfxstream_opengl_headers",
+        "libgfxstream_guest_graphics_headers",
+        "libgfxstream_guest_iostream",
+    ],
+    export_header_lib_headers: [
+        "gfxstream_opengl_headers",
+    ],
+    shared_libs: [
+        "libcutils",
+        "liblog",
+        "libutils",
+    ],
+    export_shared_lib_headers: [
+        "libcutils",
+        "liblog",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_androidemu_static",
+    ],
+    static_libs: [
+        "libgfxstream_etc",
+        "libgfxstream_androidemu_static",
+        "libqemupipe.ranchu",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"eglCodecCommon\"",
+        "-Wno-unused-private-field",
+    ],
+    srcs: [
+        "ChecksumCalculator.cpp",
+        "EncoderDebug.cpp",
+        "GLClientState.cpp",
+        "GLESTextureUtils.cpp",
+        "GLSharedGroup.cpp",
+        "glUtils.cpp",
+        "IndexRangeCache.cpp",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+}
+
+cc_library_static {
+    name: "libOpenglCodecCommon_static",
     host_supported: true,
     vendor: true,
     defaults: [
