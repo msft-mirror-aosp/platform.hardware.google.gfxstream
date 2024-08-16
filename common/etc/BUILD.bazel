@@ -13,6 +13,7 @@ cc_library(
 cc_library(
     name = "gfxstream_etc",
     srcs = ["etc.cpp"],
+    copts = ["-fno-exceptions"],
     visibility = ["//visibility:public"],  # Control visibility
     deps = [":gfxstream_etc_headers"],
 )

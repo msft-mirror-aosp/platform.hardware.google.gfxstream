@@ -14,16 +14,20 @@
 
 #include "TextureDraw.h"
 
-#include "OpenGLESDispatch/DispatchTables.h"
-
-#include "host-common/crash_reporter.h"
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <algorithm>
 #include <string>
-#include <assert.h>
-#include <string.h>
-#include <stdio.h>
-#define ERR(...)  fprintf(stderr, __VA_ARGS__)
+
+#include "OpenGLESDispatch/DispatchTables.h"
+#include "host-common/crash_reporter.h"
+#include "host-common/logging.h"
+
+#ifndef NDEBUG
+#define DEBUG_TEXTURE_DRAW
+#endif
 
 namespace gfxstream {
 namespace gl {
@@ -282,7 +286,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
 
     s_gles2.glEnable(GL_BLEND);
     s_gles2.glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     GLenum err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could not use program error=0x%x\n",
@@ -293,7 +297,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
     // Setup the |position| attribute values.
     s_gles2.glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
 
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could not bind GL_ARRAY_BUFFER error=0x%x\n",
@@ -309,7 +313,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
                                   sizeof(Vertex),
                                   0);
 
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could glVertexAttribPointer with mPositionSlot error=0x%x\n",
@@ -336,7 +340,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
     // setup the |translation| uniform value.
     s_gles2.glUniform2f(mTranslationSlot, dx, dy);
 
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     // Validate program, just to be sure.
     s_gles2.glValidateProgram(mProgram);
     GLint validState = 0;
@@ -352,7 +356,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
 
     // Do the rendering.
     s_gles2.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could not glBindBuffer(GL_ELEMENT_ARRAY_BUFFER) error=0x%x\n",
@@ -451,7 +455,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
         s_gles2.glUniform2f(mScaleSlot, scale[0], scale[1]);
     }
 
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could not glDrawElements() error=0x%x\n",
@@ -512,7 +516,7 @@ void TextureDraw::preDrawLayer() {
         return;
     }
     s_gles2.glUseProgram(mProgram);
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     GLenum err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could not use program error=0x%x\n",
@@ -521,7 +525,7 @@ void TextureDraw::preDrawLayer() {
 #endif
 
     s_gles2.glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could not bind GL_ARRAY_BUFFER error=0x%x\n",
@@ -529,7 +533,7 @@ void TextureDraw::preDrawLayer() {
     }
 #endif
     s_gles2.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could not glBindBuffer(GL_ELEMENT_ARRAY_BUFFER) error=0x%x\n",
@@ -554,7 +558,7 @@ void TextureDraw::preDrawLayer() {
                                   reinterpret_cast<GLvoid*>(
                                         static_cast<uintptr_t>(
                                                 sizeof(float) * 3)));
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could glVertexAttribPointer with mPositionSlot error=0x%x\n",
@@ -662,7 +666,7 @@ void TextureDraw::drawLayer(const ComposeLayer& layer, int frameWidth, int frame
     }
     s_gles2.glDrawElements(GL_TRIANGLES, kIndicesPerDraw, GL_UNSIGNED_BYTE,
                            (const GLvoid*)indexShift);
-#ifndef NDEBUG
+#ifdef DEBUG_TEXTURE_DRAW
     GLenum err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
         ERR("%s: Could not glDrawElements() error=0x%x\n",

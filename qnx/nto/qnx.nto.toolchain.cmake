@@ -24,8 +24,6 @@ set(QNX true)
 set(CMAKE_SYSTEM_NAME QNX)
 add_definitions("-D_QNX_SOURCE")
 
-set(DEPENDENCY_OVERRIDE "DOWNLOAD")
-
 set(GENERATE_PINFO_FILES $ENV{GENERATE_PINFO_FILES})
 
 set(target gcc_nto$ENV{VARIANT})

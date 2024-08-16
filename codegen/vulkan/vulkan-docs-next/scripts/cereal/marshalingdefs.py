@@ -346,14 +346,9 @@ KNOWN_FUNCTION_OPCODES = {
     "vkQueueWaitIdleAsyncGOOGLE": 20331,
     "vkQueueBindSparseAsyncGOOGLE": 20332,
     "vkGetLinearImageLayoutGOOGLE": 20333,
-    "vkGetMTLDeviceMVK": 20334,
-    "vkSetMTLTextureMVK": 20335,
-    "vkGetMTLTextureMVK": 20336,
-    "vkGetMTLBufferMVK": 20337,
-    "vkUseIOSurfaceMVK": 20338,
-    "vkGetIOSurfaceMVK": 20339,
     "vkQueueFlushCommandsGOOGLE": 20340,
     "vkGetBlobGOOGLE": 20341,
+    "vkGetSemaphoreGOOGLE": 20342,
 }
 
 CUSTOM_MARSHAL_TYPES = {

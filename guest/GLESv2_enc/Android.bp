@@ -19,10 +19,23 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+cc_library {
+    name: "libgfxstream_gles2_encoder_program_binary_proto",
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
+    proto: {
+        canonical_path_from_root: false,
+        export_proto_headers: true,
+        type: "lite",
+    },
+    srcs: [
+        "ProgramBinary.proto",
+    ],
+}
+
 cc_library_shared {
     name: "libGLESv2_enc",
-    host_supported: true,
-    vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
@@ -31,12 +44,19 @@ cc_library_shared {
         "libgfxstream_guest_iostream",
     ],
     shared_libs: [
-        "libandroidemu",
         "liblog",
         "libOpenglCodecCommon",
     ],
     export_shared_lib_headers: [
         "libOpenglCodecCommon",
+    ],
+    static_libs: [
+        "libgfxstream_androidemu_static",
+        "libgfxstream_gles2_encoder_program_binary_proto",
+        "libprotobuf-cpp-lite",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_gles2_encoder_program_binary_proto",
     ],
     cflags: [
         "-DGL_GLEXT_PROTOTYPES",
