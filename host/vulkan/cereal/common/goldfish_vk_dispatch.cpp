@@ -659,6 +659,15 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdInsertDebugUtilsLabelEXT =
         (PFN_vkCmdInsertDebugUtilsLabelEXT)dlSymFunc(lib, "vkCmdInsertDebugUtilsLabelEXT");
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+    out->vkGetImageDrmFormatModifierPropertiesEXT =
+        (PFN_vkGetImageDrmFormatModifierPropertiesEXT)dlSymFunc(
+            lib, "vkGetImageDrmFormatModifierPropertiesEXT");
+#endif
+#ifdef VK_EXT_external_memory_host
+    out->vkGetMemoryHostPointerPropertiesEXT = (PFN_vkGetMemoryHostPointerPropertiesEXT)dlSymFunc(
+        lib, "vkGetMemoryHostPointerPropertiesEXT");
+#endif
 #ifdef VK_NV_device_diagnostic_checkpoints
     out->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)dlSymFunc(lib, "vkCmdSetCheckpointNV");
     out->vkGetQueueCheckpointDataNV =
@@ -1617,6 +1626,16 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkCmdInsertDebugUtilsLabelEXT =
         (PFN_vkCmdInsertDebugUtilsLabelEXT)vk->vkGetInstanceProcAddr(
             instance, "vkCmdInsertDebugUtilsLabelEXT");
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+    out->vkGetImageDrmFormatModifierPropertiesEXT =
+        (PFN_vkGetImageDrmFormatModifierPropertiesEXT)vk->vkGetInstanceProcAddr(
+            instance, "vkGetImageDrmFormatModifierPropertiesEXT");
+#endif
+#ifdef VK_EXT_external_memory_host
+    out->vkGetMemoryHostPointerPropertiesEXT =
+        (PFN_vkGetMemoryHostPointerPropertiesEXT)vk->vkGetInstanceProcAddr(
+            instance, "vkGetMemoryHostPointerPropertiesEXT");
 #endif
 #ifdef VK_NV_device_diagnostic_checkpoints
     out->vkCmdSetCheckpointNV =
@@ -2584,6 +2603,16 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         device, "vkCmdEndDebugUtilsLabelEXT");
     out->vkCmdInsertDebugUtilsLabelEXT = (PFN_vkCmdInsertDebugUtilsLabelEXT)vk->vkGetDeviceProcAddr(
         device, "vkCmdInsertDebugUtilsLabelEXT");
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+    out->vkGetImageDrmFormatModifierPropertiesEXT =
+        (PFN_vkGetImageDrmFormatModifierPropertiesEXT)vk->vkGetDeviceProcAddr(
+            device, "vkGetImageDrmFormatModifierPropertiesEXT");
+#endif
+#ifdef VK_EXT_external_memory_host
+    out->vkGetMemoryHostPointerPropertiesEXT =
+        (PFN_vkGetMemoryHostPointerPropertiesEXT)vk->vkGetDeviceProcAddr(
+            device, "vkGetMemoryHostPointerPropertiesEXT");
 #endif
 #ifdef VK_NV_device_diagnostic_checkpoints
     out->vkCmdSetCheckpointNV =

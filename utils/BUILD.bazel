@@ -17,6 +17,7 @@ cc_library(
 cc_library(
     name = "gfxstream_utils",
     srcs = ["GfxApiLogger.cpp"],
+    copts = ["-fno-exceptions"],
     visibility = ["//visibility:public"],
     deps = [":gfxstream_utils_headers"],
 )

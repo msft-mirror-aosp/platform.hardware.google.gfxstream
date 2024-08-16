@@ -1711,6 +1711,54 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkDescriptorPoolInlineUniformBlockCreate
                       reservedunmarshal_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+void reservedunmarshal_VkDrmFormatModifierPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesListEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierListCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierExplicitCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierProperties2EXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesList2EXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
+#ifdef VK_EXT_external_memory_host
+void reservedunmarshal_VkImportMemoryHostPointerInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImportMemoryHostPointerInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkMemoryHostPointerPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMemoryHostPointerPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceExternalMemoryHostPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     VulkanStream* vkStream, VkStructureType rootType,

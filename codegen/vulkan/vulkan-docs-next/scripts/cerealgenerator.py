@@ -45,6 +45,7 @@ SUPPORTED_FEATURES = [
     "VK_EXT_debug_report",
     "VK_EXT_validation_features",
     # Device extensions
+    "VK_EXT_external_memory_host",
     "VK_KHR_storage_buffer_storage_class",
     "VK_KHR_vulkan_memory_model",
     "VK_KHR_buffer_device_address",
@@ -90,6 +91,7 @@ SUPPORTED_FEATURES = [
     "VK_EXT_host_image_copy",
     "VK_EXT_image_compression_control",
     "VK_EXT_image_compression_control_swapchain",
+    "VK_EXT_image_drm_format_modifier",
     # VK1.3 extensions: see b/298704840
     "VK_KHR_copy_commands2",
     "VK_KHR_dynamic_rendering",
@@ -155,6 +157,7 @@ HOST_MODULES = ["goldfish_vk_extension_structs", "goldfish_vk_marshaling",
 # we wish run wrappers when the module requires it. For example, `VK_GOOGLE_gfxstream`
 # shouldn't generate a function table entry since it's an internal interface.
 SUPPORTED_MODULES = {
+    "VK_EXT_external_memory_host": HOST_MODULES,
     "VK_EXT_debug_utils": HOST_MODULES,
     "VK_EXT_debug_report": HOST_MODULES,
     "VK_EXT_validation_features": HOST_MODULES,
@@ -308,7 +311,6 @@ class CerealGenerator(OutputGenerator):
         self.hostCommonExtraVulkanHeaders = '#include "vk_android_native_buffer_gfxstream.h"'
 
         encoderInclude = f"""
-#include "{self.guestBaseLibDirPrefix}/AndroidHealthMonitor.h"
 #include "goldfish_vk_private_defs.h"
 #include <memory>
 
@@ -328,7 +330,6 @@ class IOStream;
 
 #include "{self.guestBaseLibDirPrefix}/AlignedBuf.h"
 #include "{self.guestBaseLibDirPrefix}/BumpPool.h"
-#include "{self.guestBaseLibDirPrefix}/synchronization/AndroidLock.h"
 
 #include <cutils/properties.h>
 

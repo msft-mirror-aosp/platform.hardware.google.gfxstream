@@ -14,6 +14,9 @@
 
 #include "VirtioGpuAddressSpaceStream.h"
 
+#include <cutils/log.h>
+#include <errno.h>
+
 #include "util.h"
 
 static bool GetRingParamsFromCapset(enum VirtGpuCapset capset, const VirtGpuCaps& caps,
@@ -74,8 +77,7 @@ bool virtgpu_address_space_ping(address_space_handle_t, struct address_space_pin
     return true;
 }
 
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(enum VirtGpuCapset capset,
-                                                      HealthMonitor<>* healthMonitor) {
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(enum VirtGpuCapset capset) {
     VirtGpuResourcePtr pipe, blob;
     VirtGpuResourceMappingPtr pipeMapping, blobMapping;
     struct VirtGpuExecBuffer exec = {};
@@ -141,7 +143,7 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(enum VirtGpuCapset capset,
     };
 
     AddressSpaceStream* res =
-            new AddressSpaceStream((address_space_handle_t)(-1), 1, context, 0, 0, ops, healthMonitor);
+        new AddressSpaceStream((address_space_handle_t)(-1), 1, context, 0, 0, ops);
 
     res->setMapping(blobMapping);
     res->setResourceId(contextCreate.resourceId);

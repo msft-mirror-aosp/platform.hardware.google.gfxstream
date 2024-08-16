@@ -16,6 +16,7 @@
 #define VIRTGPU_GFXSTREAM_PROTOCOL_H
 
 #include <stdint.h>
+#include "virgl_hw.h"
 
 namespace gfxstream {
 
@@ -126,7 +127,7 @@ struct vulkanCapset {
     uint32_t noRenderControlEnc;
     uint32_t alwaysBlob;
     uint32_t externalSync;
-    uint32_t padding[12];
+    uint32_t virglSupportedFormats[16];
 };
 
 struct magmaCapset {

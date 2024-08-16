@@ -1,4 +1,4 @@
-// Copyright (C) 2023 The Android Open Source Project
+// Copyright (C) 2024 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,32 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern "C" {
+#pragma once
 
-int qemu_pipe_open_ns(const char*, const char*, int) {
-    return -1;
-}
+#include <cstdint>
+#include <string>
 
-int qemu_pipe_open(const char*) {
-    return -1;
-}
+#include "virtgpu_kumquat_ffi.h"
 
-void qemu_pipe_close(int) {
-}
+namespace gfxstream {
+namespace tests {
 
-int qemu_pipe_read(int, void*, int) {
-    return -1;
-}
+class KumquatInstance {
+   public:
+    KumquatInstance();
+    ~KumquatInstance();
 
-int qemu_pipe_write(int, const void*, int) {
-    return -1;
-}
+    void SetUp(bool withGl, bool withVk, std::string features);
+    void Snapshot();
+    void Restore();
 
-int qemu_pipe_try_again(int) {
-    return -1;
-}
+   private:
+    pid_t mKumquatPid = 0;
+    struct virtgpu_kumquat* mVirtGpu = nullptr;
+};
 
-void qemu_pipe_print_error(int) {
-}
-
-}  // extern "C"
+}  // namespace tests
+}  // namespace gfxstream
