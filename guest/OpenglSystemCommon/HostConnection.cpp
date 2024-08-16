@@ -63,8 +63,6 @@ using gfxstream::vk::VkEncoder;
 #include "QemuPipeStream.h"
 #include "ThreadInfo.h"
 
-using gfxstream::guest::getCurrentThreadId;
-
 #include "VirtGpu.h"
 #include "VirtioGpuPipeStream.h"
 
