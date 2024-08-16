@@ -39,199 +39,6 @@
 namespace gfxstream {
 namespace vk {
 
-#ifdef VK_VERSION_1_0
-#endif
-#ifdef VK_VERSION_1_1
-#endif
-#ifdef VK_VERSION_1_2
-#endif
-#ifdef VK_VERSION_1_3
-#endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
-#endif
-#ifdef VK_KHR_dynamic_rendering
-#endif
-#ifdef VK_KHR_get_physical_device_properties2
-#endif
-#ifdef VK_KHR_maintenance1
-#endif
-#ifdef VK_KHR_external_memory_capabilities
-#endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
-#ifdef VK_KHR_external_semaphore_capabilities
-#endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
-#endif
-#ifdef VK_KHR_external_semaphore_fd
-#endif
-#ifdef VK_KHR_shader_float16_int8
-#endif
-#ifdef VK_KHR_incremental_present
-#endif
-#ifdef VK_KHR_descriptor_update_template
-#endif
-#ifdef VK_KHR_imageless_framebuffer
-#endif
-#ifdef VK_KHR_create_renderpass2
-#endif
-#ifdef VK_KHR_external_fence_capabilities
-#endif
-#ifdef VK_KHR_external_fence
-#endif
-#ifdef VK_KHR_external_fence_fd
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
-#endif
-#ifdef VK_KHR_get_memory_requirements2
-#endif
-#ifdef VK_KHR_image_format_list
-#endif
-#ifdef VK_KHR_sampler_ycbcr_conversion
-#endif
-#ifdef VK_KHR_bind_memory2
-#endif
-#ifdef VK_KHR_maintenance3
-#endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
-#endif
-#ifdef VK_KHR_buffer_device_address
-#endif
-#ifdef VK_KHR_pipeline_executable_properties
-#endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
-#endif
-#ifdef VK_KHR_synchronization2
-#endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
-#endif
-#ifdef VK_KHR_copy_commands2
-#endif
-#ifdef VK_KHR_format_feature_flags2
-#endif
-#ifdef VK_KHR_maintenance4
-#endif
-#ifdef VK_KHR_maintenance5
-#endif
-#ifdef VK_ANDROID_native_buffer
-#endif
-#ifdef VK_EXT_debug_report
-#endif
-#ifdef VK_EXT_transform_feedback
-#endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
-#ifdef VK_EXT_depth_clip_enable
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
-#endif
-#ifdef VK_EXT_vertex_attribute_divisor
-#endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
-#ifdef VK_EXT_fragment_density_map
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
-#endif
-#ifdef VK_EXT_tooling_info
-#endif
-#ifdef VK_EXT_validation_features
-#endif
-#ifdef VK_EXT_provoking_vertex
-#endif
-#ifdef VK_EXT_line_rasterization
-#endif
-#ifdef VK_EXT_index_type_uint8
-#endif
-#ifdef VK_EXT_extended_dynamic_state
-#endif
-#ifdef VK_EXT_host_image_copy
-#endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
-#ifdef VK_EXT_texel_buffer_alignment
-#endif
-#ifdef VK_EXT_device_memory_report
-#endif
-#ifdef VK_EXT_robustness2
-#endif
-#ifdef VK_EXT_custom_border_color
-#endif
-#ifdef VK_EXT_private_data
-#endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_metal_objects
-#endif
-#ifdef VK_EXT_graphics_pipeline_library
-#endif
-#ifdef VK_EXT_ycbcr_2plane_444_formats
-#endif
-#ifdef VK_EXT_image_robustness
-#endif
-#ifdef VK_EXT_image_compression_control
-#endif
-#ifdef VK_EXT_4444_formats
-#endif
-#ifdef VK_EXT_primitive_topology_list_restart
-#endif
-#ifdef VK_EXT_extended_dynamic_state2
-#endif
-#ifdef VK_EXT_color_write_enable
-#endif
-#ifdef VK_GOOGLE_gfxstream
-#endif
-#ifdef VK_EXT_load_store_op_none
-#endif
-#ifdef VK_EXT_image_compression_control_swapchain
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
-#endif
-
 void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dlSymFunc,
                                              VulkanDispatch* out) {
     memset(out, 0x0, sizeof(VulkanDispatch));
@@ -852,6 +659,20 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdInsertDebugUtilsLabelEXT =
         (PFN_vkCmdInsertDebugUtilsLabelEXT)dlSymFunc(lib, "vkCmdInsertDebugUtilsLabelEXT");
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+    out->vkGetImageDrmFormatModifierPropertiesEXT =
+        (PFN_vkGetImageDrmFormatModifierPropertiesEXT)dlSymFunc(
+            lib, "vkGetImageDrmFormatModifierPropertiesEXT");
+#endif
+#ifdef VK_EXT_external_memory_host
+    out->vkGetMemoryHostPointerPropertiesEXT = (PFN_vkGetMemoryHostPointerPropertiesEXT)dlSymFunc(
+        lib, "vkGetMemoryHostPointerPropertiesEXT");
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    out->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)dlSymFunc(lib, "vkCmdSetCheckpointNV");
+    out->vkGetQueueCheckpointDataNV =
+        (PFN_vkGetQueueCheckpointDataNV)dlSymFunc(lib, "vkGetQueueCheckpointDataNV");
+#endif
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT = (PFN_vkGetPhysicalDeviceToolPropertiesEXT)dlSymFunc(
         lib, "vkGetPhysicalDeviceToolPropertiesEXT");
@@ -977,10 +798,27 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
             lib, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
     out->vkQueueSubmitAsync2GOOGLE =
         (PFN_vkQueueSubmitAsync2GOOGLE)dlSymFunc(lib, "vkQueueSubmitAsync2GOOGLE");
+    out->vkGetSemaphoreGOOGLE = (PFN_vkGetSemaphoreGOOGLE)dlSymFunc(lib, "vkGetSemaphoreGOOGLE");
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)dlSymFunc(lib, "vkGetScreenBufferPropertiesQNX");
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    out->vkCmdTraceRaysKHR = (PFN_vkCmdTraceRaysKHR)dlSymFunc(lib, "vkCmdTraceRaysKHR");
+    out->vkCreateRayTracingPipelinesKHR =
+        (PFN_vkCreateRayTracingPipelinesKHR)dlSymFunc(lib, "vkCreateRayTracingPipelinesKHR");
+    out->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
+        (PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)dlSymFunc(
+            lib, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
+    out->vkCmdTraceRaysIndirectKHR =
+        (PFN_vkCmdTraceRaysIndirectKHR)dlSymFunc(lib, "vkCmdTraceRaysIndirectKHR");
+    out->vkGetRayTracingShaderGroupStackSizeKHR =
+        (PFN_vkGetRayTracingShaderGroupStackSizeKHR)dlSymFunc(
+            lib, "vkGetRayTracingShaderGroupStackSizeKHR");
+    out->vkCmdSetRayTracingPipelineStackSizeKHR =
+        (PFN_vkCmdSetRayTracingPipelineStackSizeKHR)dlSymFunc(
+            lib, "vkCmdSetRayTracingPipelineStackSizeKHR");
 #endif
 }
 
@@ -1789,6 +1627,22 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkCmdInsertDebugUtilsLabelEXT)vk->vkGetInstanceProcAddr(
             instance, "vkCmdInsertDebugUtilsLabelEXT");
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+    out->vkGetImageDrmFormatModifierPropertiesEXT =
+        (PFN_vkGetImageDrmFormatModifierPropertiesEXT)vk->vkGetInstanceProcAddr(
+            instance, "vkGetImageDrmFormatModifierPropertiesEXT");
+#endif
+#ifdef VK_EXT_external_memory_host
+    out->vkGetMemoryHostPointerPropertiesEXT =
+        (PFN_vkGetMemoryHostPointerPropertiesEXT)vk->vkGetInstanceProcAddr(
+            instance, "vkGetMemoryHostPointerPropertiesEXT");
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    out->vkCmdSetCheckpointNV =
+        (PFN_vkCmdSetCheckpointNV)vk->vkGetInstanceProcAddr(instance, "vkCmdSetCheckpointNV");
+    out->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vk->vkGetInstanceProcAddr(
+        instance, "vkGetQueueCheckpointDataNV");
+#endif
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT =
         (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vk->vkGetInstanceProcAddr(
@@ -1939,11 +1793,31 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
             instance, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
     out->vkQueueSubmitAsync2GOOGLE = (PFN_vkQueueSubmitAsync2GOOGLE)vk->vkGetInstanceProcAddr(
         instance, "vkQueueSubmitAsync2GOOGLE");
+    out->vkGetSemaphoreGOOGLE =
+        (PFN_vkGetSemaphoreGOOGLE)vk->vkGetInstanceProcAddr(instance, "vkGetSemaphoreGOOGLE");
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)vk->vkGetInstanceProcAddr(
             instance, "vkGetScreenBufferPropertiesQNX");
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    out->vkCmdTraceRaysKHR =
+        (PFN_vkCmdTraceRaysKHR)vk->vkGetInstanceProcAddr(instance, "vkCmdTraceRaysKHR");
+    out->vkCreateRayTracingPipelinesKHR =
+        (PFN_vkCreateRayTracingPipelinesKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCreateRayTracingPipelinesKHR");
+    out->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
+        (PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
+    out->vkCmdTraceRaysIndirectKHR = (PFN_vkCmdTraceRaysIndirectKHR)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdTraceRaysIndirectKHR");
+    out->vkGetRayTracingShaderGroupStackSizeKHR =
+        (PFN_vkGetRayTracingShaderGroupStackSizeKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkGetRayTracingShaderGroupStackSizeKHR");
+    out->vkCmdSetRayTracingPipelineStackSizeKHR =
+        (PFN_vkCmdSetRayTracingPipelineStackSizeKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdSetRayTracingPipelineStackSizeKHR");
 #endif
 }
 
@@ -2730,6 +2604,22 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkCmdInsertDebugUtilsLabelEXT = (PFN_vkCmdInsertDebugUtilsLabelEXT)vk->vkGetDeviceProcAddr(
         device, "vkCmdInsertDebugUtilsLabelEXT");
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+    out->vkGetImageDrmFormatModifierPropertiesEXT =
+        (PFN_vkGetImageDrmFormatModifierPropertiesEXT)vk->vkGetDeviceProcAddr(
+            device, "vkGetImageDrmFormatModifierPropertiesEXT");
+#endif
+#ifdef VK_EXT_external_memory_host
+    out->vkGetMemoryHostPointerPropertiesEXT =
+        (PFN_vkGetMemoryHostPointerPropertiesEXT)vk->vkGetDeviceProcAddr(
+            device, "vkGetMemoryHostPointerPropertiesEXT");
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    out->vkCmdSetCheckpointNV =
+        (PFN_vkCmdSetCheckpointNV)vk->vkGetDeviceProcAddr(device, "vkCmdSetCheckpointNV");
+    out->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vk->vkGetDeviceProcAddr(
+        device, "vkGetQueueCheckpointDataNV");
+#endif
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT =
         (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vk->vkGetDeviceProcAddr(
@@ -2875,11 +2765,31 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
             device, "vkUpdateDescriptorSetWithTemplateSized2GOOGLE");
     out->vkQueueSubmitAsync2GOOGLE =
         (PFN_vkQueueSubmitAsync2GOOGLE)vk->vkGetDeviceProcAddr(device, "vkQueueSubmitAsync2GOOGLE");
+    out->vkGetSemaphoreGOOGLE =
+        (PFN_vkGetSemaphoreGOOGLE)vk->vkGetDeviceProcAddr(device, "vkGetSemaphoreGOOGLE");
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)vk->vkGetDeviceProcAddr(
             device, "vkGetScreenBufferPropertiesQNX");
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    out->vkCmdTraceRaysKHR =
+        (PFN_vkCmdTraceRaysKHR)vk->vkGetDeviceProcAddr(device, "vkCmdTraceRaysKHR");
+    out->vkCreateRayTracingPipelinesKHR =
+        (PFN_vkCreateRayTracingPipelinesKHR)vk->vkGetDeviceProcAddr(
+            device, "vkCreateRayTracingPipelinesKHR");
+    out->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
+        (PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)vk->vkGetDeviceProcAddr(
+            device, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
+    out->vkCmdTraceRaysIndirectKHR =
+        (PFN_vkCmdTraceRaysIndirectKHR)vk->vkGetDeviceProcAddr(device, "vkCmdTraceRaysIndirectKHR");
+    out->vkGetRayTracingShaderGroupStackSizeKHR =
+        (PFN_vkGetRayTracingShaderGroupStackSizeKHR)vk->vkGetDeviceProcAddr(
+            device, "vkGetRayTracingShaderGroupStackSizeKHR");
+    out->vkCmdSetRayTracingPipelineStackSizeKHR =
+        (PFN_vkCmdSetRayTracingPipelineStackSizeKHR)vk->vkGetDeviceProcAddr(
+            device, "vkCmdSetRayTracingPipelineStackSizeKHR");
 #endif
 }
 

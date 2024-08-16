@@ -34,8 +34,10 @@ dl_dep = cc.find_library('dl', required: false)
 drm_dep = dependency('libdrm')
 thread_dep = dependency('threads')
 
-if with_guest_test
-  rutabaga_gfx_ffi_dep = dependency('rutabaga_gfx_ffi')
+with_kumquat = false
+virtgpu_kumquat_dep = dependency('virtgpu_kumquat_ffi', required: false)
+if virtgpu_kumquat_dep.found()
+  with_kumquat = true
 endif
 
 #===============#

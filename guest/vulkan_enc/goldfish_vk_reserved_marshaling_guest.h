@@ -1156,16 +1156,6 @@ void reservedmarshal_VkDeviceImageMemoryRequirements(
     const VkDeviceImageMemoryRequirements* forMarshaling, uint8_t** ptr);
 
 #endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
-#ifdef VK_KHR_android_surface
-#endif
-#ifdef VK_KHR_win32_surface
-#endif
 #ifdef VK_KHR_dynamic_rendering
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkRenderingInfo, reservedmarshal_VkRenderingInfoKHR)
 
@@ -1229,8 +1219,6 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceSparseImageFormatInfo2,
                       reservedmarshal_VkPhysicalDeviceSparseImageFormatInfo2KHR)
 
 #endif
-#ifdef VK_KHR_maintenance1
-#endif
 #ifdef VK_KHR_external_memory_capabilities
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkExternalMemoryProperties,
                       reservedmarshal_VkExternalMemoryPropertiesKHR)
@@ -1262,10 +1250,6 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkExportMemoryAllocateInfo,
                       reservedmarshal_VkExportMemoryAllocateInfoKHR)
 
 #endif
-#ifdef VK_KHR_external_memory_win32
-#endif
-#ifdef VK_KHR_external_memory_fd
-#endif
 #ifdef VK_KHR_external_semaphore_capabilities
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceExternalSemaphoreInfo,
                       reservedmarshal_VkPhysicalDeviceExternalSemaphoreInfoKHR)
@@ -1278,8 +1262,6 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkExternalSemaphoreProperties,
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkExportSemaphoreCreateInfo,
                       reservedmarshal_VkExportSemaphoreCreateInfoKHR)
 
-#endif
-#ifdef VK_KHR_external_semaphore_win32
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 void reservedmarshal_VkImportSemaphoreFdInfoKHR(VulkanStreamGuest* vkStream,
@@ -1399,8 +1381,6 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkMemoryDedicatedRequirements,
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkMemoryDedicatedAllocateInfo,
                       reservedmarshal_VkMemoryDedicatedAllocateInfoKHR)
 
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkBufferMemoryRequirementsInfo2,
@@ -1529,8 +1509,6 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceShaderIntegerDotProductFea
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceShaderIntegerDotProductProperties,
                       reservedmarshal_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
 #endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkMemoryBarrier2, reservedmarshal_VkMemoryBarrier2KHR)
@@ -1664,8 +1642,6 @@ void reservedmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
     const VkPhysicalDevicePresentationPropertiesANDROID* forMarshaling, uint8_t** ptr);
 
 #endif
-#ifdef VK_EXT_debug_report
-#endif
 #ifdef VK_EXT_transform_feedback
 void reservedmarshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -1679,8 +1655,6 @@ void reservedmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
     const VkPipelineRasterizationStateStreamCreateInfoEXT* forMarshaling, uint8_t** ptr);
 
-#endif
-#ifdef VK_AMD_gpu_shader_half_float
 #endif
 #ifdef VK_EXT_texture_compression_astc_hdr
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceTextureCompressionASTCHDRFeatures,
@@ -1697,14 +1671,6 @@ void reservedmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     const VkPipelineRasterizationDepthClipStateCreateInfoEXT* forMarshaling, uint8_t** ptr);
 
 #endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
-#ifdef VK_ANDROID_external_memory_android_hardware_buffer
-#endif
 #ifdef VK_EXT_inline_uniform_block
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceInlineUniformBlockFeatures,
                       reservedmarshal_VkPhysicalDeviceInlineUniformBlockFeaturesEXT)
@@ -1719,7 +1685,39 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkDescriptorPoolInlineUniformBlockCreateIn
                       reservedmarshal_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
-#ifdef VK_EXT_shader_stencil_export
+#ifdef VK_EXT_image_drm_format_modifier
+void reservedmarshal_VkDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesListEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierPropertiesEXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierProperties2EXT* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesList2EXT* forMarshaling, uint8_t** ptr);
+
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void reservedmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
@@ -1746,10 +1744,6 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPipelineCreationFeedbackCreateInfo,
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPipelineCreationFeedback,
                       reservedmarshal_VkPipelineCreationFeedbackEXT)
 
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
 #endif
 #ifdef VK_EXT_fragment_density_map
 void reservedmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
@@ -1785,8 +1779,6 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPipelineShaderStageRequiredSubgroupSizeC
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceToolProperties,
                       reservedmarshal_VkPhysicalDeviceToolPropertiesEXT)
 
-#endif
-#ifdef VK_EXT_validation_features
 #endif
 #ifdef VK_EXT_provoking_vertex
 void reservedmarshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
@@ -1879,8 +1871,6 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkImageSubresource2KHR,
                       reservedmarshal_VkImageSubresource2EXT)
 
 #endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures,
                       reservedmarshal_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT)
@@ -1948,8 +1938,6 @@ DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPrivateDataSlotCreateInfo,
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDevicePipelineCreationCacheControlFeatures,
                       reservedmarshal_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT)
 
-#endif
-#ifdef VK_EXT_metal_objects
 #endif
 #ifdef VK_EXT_graphics_pipeline_library
 void reservedmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
@@ -2032,8 +2020,6 @@ void reservedmarshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructure
                                         const VkCreateBlobGOOGLE* forMarshaling, uint8_t** ptr);
 
 #endif
-#ifdef VK_EXT_load_store_op_none
-#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void reservedmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -2041,8 +2027,5 @@ void reservedmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT
     uint8_t** ptr);
 
 #endif
-#ifdef VK_QNX_external_memory_screen_buffer
-#endif
-
 }  // namespace vk
 }  // namespace gfxstream

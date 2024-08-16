@@ -18,9 +18,9 @@
 
 namespace gfxstream {
 
-class StubSyncHelper : public SyncHelper {
+class VirtGpuKumquatSyncHelper : public SyncHelper {
    public:
-    StubSyncHelper();
+    VirtGpuKumquatSyncHelper();
 
     int wait(int syncFd, int timeoutMilliseconds) override;
 

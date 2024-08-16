@@ -31,6 +31,7 @@ config("common_config") {
 
   include_dirs = [
     "../common/opengl/include",
+    "../common/vulkan/include",
     "android-emu",
     "GoldfishAddressSpace/include",
     "iostream/include",
@@ -214,10 +215,6 @@ loadable_module("libvulkan_gfxstream") {
     "gralloc_cb/include/gralloc_cb_bp.h",
     "platform/VirtGpu.cpp",
     "platform/include/VirtGpu.h",
-    "platform/stub/StubSync.cpp",
-    "platform/stub/StubVirtGpuBlob.cpp",
-    "platform/stub/StubVirtGpuBlobMapping.cpp",
-    "platform/stub/StubVirtGpuDevice.cpp",
     "qemupipe/include-types/qemu_pipe_types_bp.h",
     "qemupipe/include/qemu_pipe_bp.h",
     "qemupipe/qemu_pipe_common.cpp",
@@ -243,7 +240,6 @@ loadable_module("libvulkan_gfxstream") {
     "vulkan_enc/VulkanStreamGuest.cpp",
     "vulkan_enc/VulkanStreamGuest.h",
     "vulkan_enc/func_table.cpp",
-    "vulkan_enc/func_table.h",
     "vulkan_enc/gfxstream_vk_private.cpp",
     "vulkan_enc/gfxstream_vk_private.h",
     "vulkan_enc/goldfish_vk_counting_guest.cpp",
@@ -265,9 +261,6 @@ loadable_module("libvulkan_gfxstream") {
   if (target_os == "fuchsia") {
     sources -= [
       "OpenglSystemCommon/QemuPipeStream.cpp",
-      "platform/stub/StubVirtGpuBlob.cpp",
-      "platform/stub/StubVirtGpuBlobMapping.cpp",
-      "platform/stub/StubVirtGpuDevice.cpp",
       "qemupipe/qemu_pipe_common.cpp",
       "qemupipe/qemu_pipe_guest.cpp",
     ]
@@ -277,6 +270,7 @@ loadable_module("libvulkan_gfxstream") {
       "fuchsia/fuchsia_stdio.cc",
       "fuchsia/port.cc",
       "fuchsia/service_connector.cc",
+      "platform/kumquat/VirtGpuKumquatStub.cpp",
       "platform/fuchsia/FuchsiaVirtGpuBlob.cpp",
       "platform/fuchsia/FuchsiaVirtGpuBlobMapping.cpp",
       "platform/fuchsia/FuchsiaVirtGpuDevice.cpp",

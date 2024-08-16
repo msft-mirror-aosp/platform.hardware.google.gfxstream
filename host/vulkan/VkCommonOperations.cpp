@@ -25,6 +25,7 @@
 #include <sstream>
 #include <unordered_set>
 
+#include "ExternalObjectManager.h"
 #include "VkDecoderGlobalState.h"
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VkFormatUtils.h"
@@ -483,7 +484,6 @@ static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList() {
         {VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM},
         {VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM},
         {VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16},
-
     };
 
     std::vector<VkImageType> types = {
@@ -520,7 +520,146 @@ static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList() {
         }
     }
 
+    // Add depth attachment cases
+    std::vector<ImageFeatureCombo> depthCombos = {
+        // Depth formats
+        {VK_FORMAT_D16_UNORM},
+        {VK_FORMAT_X8_D24_UNORM_PACK32},
+        {VK_FORMAT_D24_UNORM_S8_UINT},
+        {VK_FORMAT_D32_SFLOAT},
+        {VK_FORMAT_D32_SFLOAT_S8_UINT},
+    };
+
+    std::vector<VkImageUsageFlags> depthUsageFlags = {
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+        VK_IMAGE_USAGE_SAMPLED_BIT,          VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+    };
+
+    for (auto combo : depthCombos) {
+        for (auto t : types) {
+            for (auto u : depthUsageFlags) {
+                VkEmulation::ImageSupportInfo info;
+                info.format = combo.format;
+                info.type = t;
+                info.tiling = VK_IMAGE_TILING_OPTIMAL;
+                info.usageFlags = u;
+                info.createFlags = combo.createFlags;
+                res.push_back(info);
+            }
+        }
+    }
+
     return res;
+}
+
+// Checks if the user enforced a specific GPU, it can be done via index or name.
+// Otherwise try to find the best device with discrete GPU and high vulkan API level.
+// Scoring of the devices is done by some implicit choices based on known driver
+// quality, stability and performance issues of current GPUs.
+// Only one Vulkan device is selected; this makes things simple for now, but we
+// could consider utilizing multiple devices in use cases that make sense.
+int getSelectedGpuIndex(const std::vector<VkEmulation::DeviceSupportInfo>& deviceInfos) {
+    const int physdevCount = deviceInfos.size();
+    if (physdevCount == 1) {
+        return 0;
+    }
+
+    if (!sVkEmulation->instanceSupportsGetPhysicalDeviceProperties2) {
+        // If we don't support physical device ID properties, pick the first physical device
+        WARN("Instance doesn't support '%s', picking the first physical device",
+             VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+        return 0;
+    }
+
+    const char* EnvVarSelectGpu = "ANDROID_EMU_VK_SELECT_GPU";
+    std::string enforcedGpuStr = android::base::getEnvironmentVariable(EnvVarSelectGpu);
+    int enforceGpuIndex = -1;
+    if (enforcedGpuStr.size()) {
+        INFO("%s is set to %s", EnvVarSelectGpu, enforcedGpuStr.c_str());
+
+        if (enforcedGpuStr[0] == '0') {
+            enforceGpuIndex = 0;
+        } else {
+            enforceGpuIndex = (atoi(enforcedGpuStr.c_str()));
+            if (enforceGpuIndex == 0) {
+                // Could not convert to an integer, try searching with device name
+                // Do the comparison case insensitive as vendor names don't have consistency
+                enforceGpuIndex = -1;
+                std::transform(enforcedGpuStr.begin(), enforcedGpuStr.end(), enforcedGpuStr.begin(),
+                               [](unsigned char c) { return std::tolower(c); });
+
+                for (int i = 0; i < physdevCount; ++i) {
+                    std::string deviceName = std::string(deviceInfos[i].physdevProps.deviceName);
+                    std::transform(deviceName.begin(), deviceName.end(), deviceName.begin(),
+                                   [](unsigned char c) { return std::tolower(c); });
+                    INFO("Physical device [%d] = %s", i, deviceName.c_str());
+
+                    if (deviceName.find(enforcedGpuStr) != std::string::npos) {
+                        enforceGpuIndex = i;
+                    }
+                }
+            }
+        }
+
+        if (enforceGpuIndex != -1 && enforceGpuIndex >= 0 && enforceGpuIndex < deviceInfos.size()) {
+            INFO("Selecting GPU (%s) at index %d.",
+                 deviceInfos[enforceGpuIndex].physdevProps.deviceName, enforceGpuIndex);
+        } else {
+            WARN("Could not select the GPU with ANDROID_EMU_VK_GPU_SELECT.");
+            enforceGpuIndex = -1;
+        }
+    }
+
+    if (enforceGpuIndex != -1) {
+        return enforceGpuIndex;
+    }
+
+    // If there are multiple devices, and none of them are enforced to use,
+    // score each device and select the best
+    int selectedGpuIndex = 0;
+    auto getDeviceScore = [](const VkEmulation::DeviceSupportInfo& deviceInfo) {
+        uint32_t deviceScore = 0;
+        if (!deviceInfo.hasGraphicsQueueFamily) {
+            // Not supporting graphics, cannot be used.
+            return deviceScore;
+        }
+
+        // Matches the ordering in VkPhysicalDeviceType
+        const uint32_t deviceTypeScoreTable[] = {
+            100,   // VK_PHYSICAL_DEVICE_TYPE_OTHER = 0,
+            1000,  // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1,
+            2000,  // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2,
+            500,   // VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU = 3,
+            600,   // VK_PHYSICAL_DEVICE_TYPE_CPU = 4,
+        };
+
+        // Prefer discrete GPUs, then integrated and then others..
+        const int deviceType = deviceInfo.physdevProps.deviceType;
+        deviceScore += deviceTypeScoreTable[deviceInfo.physdevProps.deviceType];
+
+        // Prefer higher level of Vulkan API support, restrict version numbers to
+        // common limits to ensure an always increasing scoring change
+        const uint32_t major = VK_API_VERSION_MAJOR(deviceInfo.physdevProps.apiVersion);
+        const uint32_t minor = VK_API_VERSION_MINOR(deviceInfo.physdevProps.apiVersion);
+        const uint32_t patch = VK_API_VERSION_PATCH(deviceInfo.physdevProps.apiVersion);
+        deviceScore += major * 5000 + std::min(minor, 10u) * 500 + std::min(patch, 400u);
+
+        return deviceScore;
+    };
+
+    uint32_t maxScore = 0;
+    for (int i = 0; i < physdevCount; ++i) {
+        const uint32_t score = getDeviceScore(deviceInfos[i]);
+        VERBOSE("Device selection score for '%s' = %d", deviceInfos[i].physdevProps.deviceName,
+                score);
+        if (score > maxScore) {
+            selectedGpuIndex = i;
+            maxScore = score;
+        }
+    }
+
+    return selectedGpuIndex;
 }
 
 VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::FeatureSet features) {
@@ -547,9 +686,23 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     sVkEmulation->gvk = vk;
     auto gvk = vk;
 
+    std::vector<const char*> getPhysicalDeviceProperties2InstanceExtNames = {
+        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+    };
     std::vector<const char*> externalMemoryInstanceExtNames = {
         VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
-        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+    };
+
+    std::vector<const char*> externalSemaphoreInstanceExtNames = {
+        VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
+    };
+
+    std::vector<const char*> externalFenceInstanceExtNames = {
+        VK_KHR_EXTERNAL_FENCE_CAPABILITIES_EXTENSION_NAME,
+    };
+
+    std::vector<const char*> surfaceInstanceExtNames = {
+        VK_KHR_SURFACE_EXTENSION_NAME,
     };
 
     std::vector<const char*> externalMemoryDeviceExtNames = {
@@ -569,14 +722,6 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
 #endif
     };
 
-    std::vector<const char*> externalSemaphoreInstanceExtNames = {
-        VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
-    };
-
-    std::vector<const char*> surfaceInstanceExtNames = {
-        VK_KHR_SURFACE_EXTENSION_NAME,
-    };
-
 #if defined(__APPLE__)
     std::vector<const char*> moltenVkInstanceExtNames = {
         VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
@@ -594,10 +739,14 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     instanceExts.resize(instanceExtCount);
     gvk->vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtCount, instanceExts.data());
 
-    bool externalMemoryCapabilitiesSupported =
+    bool getPhysicalDeviceProperties2Supported =
+        extensionsSupported(instanceExts, getPhysicalDeviceProperties2InstanceExtNames);
+    bool externalMemoryCapabilitiesSupported = getPhysicalDeviceProperties2Supported &&
         extensionsSupported(instanceExts, externalMemoryInstanceExtNames);
-    bool externalSemaphoreCapabilitiesSupported =
+    bool externalSemaphoreCapabilitiesSupported = getPhysicalDeviceProperties2Supported &&
         extensionsSupported(instanceExts, externalSemaphoreInstanceExtNames);
+    bool externalFenceCapabilitiesSupported = getPhysicalDeviceProperties2Supported &&
+        extensionsSupported(instanceExts, externalFenceInstanceExtNames);
     bool surfaceSupported = extensionsSupported(instanceExts, surfaceInstanceExtNames);
 #if defined(__APPLE__)
     const std::string vulkanIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
@@ -623,8 +772,26 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
              VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
-    if (externalMemoryCapabilitiesSupported) {
+    if (getPhysicalDeviceProperties2Supported) {
+        for (auto extension : getPhysicalDeviceProperties2InstanceExtNames) {
+            selectedInstanceExtensionNames.emplace(extension);
+        }
+    }
+
+    if (externalSemaphoreCapabilitiesSupported) {
         for (auto extension : externalMemoryInstanceExtNames) {
+            selectedInstanceExtensionNames.emplace(extension);
+        }
+    }
+
+    if (externalFenceCapabilitiesSupported) {
+        for (auto extension : externalSemaphoreInstanceExtNames) {
+            selectedInstanceExtensionNames.emplace(extension);
+        }
+    }
+
+    if (externalMemoryCapabilitiesSupported) {
+        for (auto extension : externalFenceInstanceExtNames) {
             selectedInstanceExtensionNames.emplace(extension);
         }
     }
@@ -731,25 +898,39 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
 
     sVkEmulation->vulkanInstanceVersion = appInfo.apiVersion;
 
+    // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPhysicalDeviceIDProperties.html
+    // Provided by VK_VERSION_1_1, or VK_KHR_external_fence_capabilities, VK_KHR_external_memory_capabilities,
+    // VK_KHR_external_semaphore_capabilities
+    sVkEmulation->instanceSupportsPhysicalDeviceIDProperties =
+        externalFenceCapabilitiesSupported || externalMemoryCapabilitiesSupported ||
+        externalSemaphoreCapabilitiesSupported;
+
+    sVkEmulation->instanceSupportsGetPhysicalDeviceProperties2 = getPhysicalDeviceProperties2Supported;
     sVkEmulation->instanceSupportsExternalMemoryCapabilities = externalMemoryCapabilitiesSupported;
     sVkEmulation->instanceSupportsExternalSemaphoreCapabilities =
         externalSemaphoreCapabilitiesSupported;
+    sVkEmulation->instanceSupportsExternalFenceCapabilities = externalFenceCapabilitiesSupported;
     sVkEmulation->instanceSupportsSurface = surfaceSupported;
 #if defined(__APPLE__)
     sVkEmulation->instanceSupportsMoltenVK = moltenVKSupported;
 #endif
 
-    if (sVkEmulation->instanceSupportsExternalMemoryCapabilities) {
+    if (sVkEmulation->instanceSupportsGetPhysicalDeviceProperties2) {
         sVkEmulation->getImageFormatProperties2Func = vk_util::getVkInstanceProcAddrWithFallback<
             vk_util::vk_fn_info::GetPhysicalDeviceImageFormatProperties2>(
             {ivk->vkGetInstanceProcAddr, vk->vkGetInstanceProcAddr}, sVkEmulation->instance);
         sVkEmulation->getPhysicalDeviceProperties2Func = vk_util::getVkInstanceProcAddrWithFallback<
             vk_util::vk_fn_info::GetPhysicalDeviceProperties2>(
             {ivk->vkGetInstanceProcAddr, vk->vkGetInstanceProcAddr}, sVkEmulation->instance);
-    }
-    sVkEmulation->getPhysicalDeviceFeatures2Func =
-        vk_util::getVkInstanceProcAddrWithFallback<vk_util::vk_fn_info::GetPhysicalDeviceFeatures2>(
+        sVkEmulation->getPhysicalDeviceFeatures2Func = vk_util::getVkInstanceProcAddrWithFallback<
+            vk_util::vk_fn_info::GetPhysicalDeviceFeatures2>(
             {ivk->vkGetInstanceProcAddr, vk->vkGetInstanceProcAddr}, sVkEmulation->instance);
+
+        if (!sVkEmulation->getPhysicalDeviceProperties2Func) {
+            ERR("Warning: device claims to support ID properties "
+                "but vkGetPhysicalDeviceProperties2 could not be found");
+        }
+    }
 
 #if defined(__APPLE__)
     if (sVkEmulation->instanceSupportsMoltenVK) {
@@ -812,42 +993,43 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
             // External memory export not supported on QNX
             deviceInfos[i].supportsExternalMemoryExport = false;
 #endif
-            deviceInfos[i].supportsIdProperties =
-                sVkEmulation->getPhysicalDeviceProperties2Func != nullptr;
+        }
+
+        if (sVkEmulation->instanceSupportsGetPhysicalDeviceProperties2) {
             deviceInfos[i].supportsDriverProperties =
                 extensionsSupported(deviceExts, {VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME}) ||
                 (deviceInfos[i].physdevProps.apiVersion >= VK_API_VERSION_1_2);
+            deviceInfos[i].supportsExternalMemoryHostProps =
+                extensionsSupported(deviceExts, {VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME});
 
-            if (!sVkEmulation->getPhysicalDeviceProperties2Func) {
-                ERR("Warning: device claims to support ID properties "
-                    "but vkGetPhysicalDeviceProperties2 could not be found");
-            }
-        }
-
-        if (sVkEmulation->getPhysicalDeviceProperties2Func) {
             VkPhysicalDeviceProperties2 deviceProps = {
-                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
             };
+            auto devicePropsChain = vk_make_chain_iterator(&deviceProps);
+
             VkPhysicalDeviceIDProperties idProps = {
                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR,
             };
-            VkPhysicalDeviceDriverPropertiesKHR driverProps = {
-                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR,
-            };
-
-            auto devicePropsChain = vk_make_chain_iterator(&deviceProps);
-
-            if (deviceInfos[i].supportsIdProperties) {
+            if (sVkEmulation->instanceSupportsPhysicalDeviceIDProperties) {
                 vk_append_struct(&devicePropsChain, &idProps);
             }
 
+            VkPhysicalDeviceDriverPropertiesKHR driverProps = {
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR,
+            };
             if (deviceInfos[i].supportsDriverProperties) {
                 vk_append_struct(&devicePropsChain, &driverProps);
             }
 
+            VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProps = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT,
+            };
+            if(deviceInfos[i].supportsExternalMemoryHostProps) {
+                vk_append_struct(&devicePropsChain, &externalMemoryHostProps);
+            }
             sVkEmulation->getPhysicalDeviceProperties2Func(physdevs[i], &deviceProps);
-
             deviceInfos[i].idProps = vk_make_orphan_copy(idProps);
+            deviceInfos[i].externalMemoryHostProps = vk_make_orphan_copy(externalMemoryHostProps);
 
             std::stringstream driverVendorBuilder;
             driverVendorBuilder << "Vendor " << std::hex << std::setfill('0') << std::showbase
@@ -873,17 +1055,28 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
             deviceInfos[i].driverVersion = driverVersion;
         }
 
+        bool dmaBufBlockList = deviceInfos[i].driverVendor == "NVIDIA (Vendor 0x10de)";
+        deviceInfos[i].supportsDmaBuf =
+            extensionsSupported(deviceExts, {VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME}) &&
+            !dmaBufBlockList;
+
         deviceInfos[i].hasSamplerYcbcrConversionExtension =
             extensionsSupported(deviceExts, {VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME});
+
+        deviceInfos[i].hasNvidiaDeviceDiagnosticCheckpointsExtension =
+            extensionsSupported(deviceExts, {VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME});
+
         if (sVkEmulation->getPhysicalDeviceFeatures2Func) {
             VkPhysicalDeviceFeatures2 features2 = {
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
             };
             auto features2Chain = vk_make_chain_iterator(&features2);
+
             VkPhysicalDeviceSamplerYcbcrConversionFeatures samplerYcbcrConversionFeatures = {
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES,
             };
             vk_append_struct(&features2Chain, &samplerYcbcrConversionFeatures);
+
 #if defined(__QNX__)
             VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX extMemScreenBufferFeatures = {
                 .sType =
@@ -891,10 +1084,23 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
             };
             vk_append_struct(&features2Chain, &extMemScreenBufferFeatures);
 #endif
+
+            VkPhysicalDeviceDiagnosticsConfigFeaturesNV deviceDiagnosticsConfigFeatures = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV,
+                .diagnosticsConfig = VK_FALSE,
+            };
+            if (deviceInfos[i].hasNvidiaDeviceDiagnosticCheckpointsExtension) {
+                vk_append_struct(&features2Chain, &deviceDiagnosticsConfigFeatures);
+            }
+
             sVkEmulation->getPhysicalDeviceFeatures2Func(physdevs[i], &features2);
 
             deviceInfos[i].supportsSamplerYcbcrConversion =
                 samplerYcbcrConversionFeatures.samplerYcbcrConversion == VK_TRUE;
+
+            deviceInfos[i].supportsNvidiaDeviceDiagnosticCheckpoints =
+                deviceDiagnosticsConfigFeatures.diagnosticsConfig == VK_TRUE;
+
 #if defined(__QNX__)
             deviceInfos[i].supportsExternalMemoryImport =
                 extMemScreenBufferFeatures.screenBufferImport == VK_TRUE;
@@ -934,73 +1140,16 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         }
     }
 
-    // Of all the devices enumerated, find the best one. Try to find a device
-    // with graphics queue as the highest priority, then ext memory, then
-    // compute.
+    // When there are multiple physical devices, find the best one or enable selecting
+    // the one enforced by environment variable setting.
+    int selectedGpuIndex = getSelectedGpuIndex(deviceInfos);
 
-    // Graphics queue is highest priority since without that, we really
-    // shouldn't be using the driver. Although, one could make a case for doing
-    // some sorts of things if only a compute queue is available (such as for
-    // AI), that's not really the priority yet.
-
-    // As for external memory, we really should not be running on any driver
-    // without external memory support, but we might be able to pull it off, and
-    // single Vulkan apps might work via CPU transfer of the rendered frames.
-
-    // Compute support is treated as icing on the cake and not relied upon yet
-    // for anything critical to emulation. However, we might potentially use it
-    // to perform image format conversion on GPUs where that's not natively
-    // supported.
-
-    // Another implicit choice is to select only one Vulkan device. This makes
-    // things simple for now, but we could consider utilizing multiple devices
-    // in use cases that make sense, if/when they come up.
-
-    std::vector<uint32_t> deviceScores(physdevCount, 0);
-
-    for (uint32_t i = 0; i < physdevCount; ++i) {
-        uint32_t deviceScore = 0;
-        if (deviceInfos[i].hasGraphicsQueueFamily) deviceScore += 10000;
-        if (deviceInfos[i].supportsExternalMemoryImport ||
-            deviceInfos[i].supportsExternalMemoryExport)
-            deviceScore += 1000;
-        if (deviceInfos[i].physdevProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ||
-            deviceInfos[i].physdevProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU) {
-            deviceScore += 100;
-        }
-        if (deviceInfos[i].physdevProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
-            deviceScore += 50;
-        }
-        deviceScores[i] = deviceScore;
-    }
-
-    uint32_t maxScoringIndex = 0;
-    uint32_t maxScore = 0;
-
-    // If we don't support physical device ID properties,
-    // just pick the first physical device.
-    if (!sVkEmulation->instanceSupportsExternalMemoryCapabilities) {
-        ERR("Warning: instance doesn't support "
-            "external memory capabilities, picking first physical device");
-        maxScoringIndex = 0;
-    } else {
-        for (uint32_t i = 0; i < physdevCount; ++i) {
-            if (deviceScores[i] > maxScore) {
-                maxScoringIndex = i;
-                maxScore = deviceScores[i];
-            }
-        }
-    }
-
-    sVkEmulation->physdev = physdevs[maxScoringIndex];
-    sVkEmulation->physicalDeviceIndex = maxScoringIndex;
-    sVkEmulation->deviceInfo = deviceInfos[maxScoringIndex];
+    sVkEmulation->physdev = physdevs[selectedGpuIndex];
+    sVkEmulation->physicalDeviceIndex = selectedGpuIndex;
+    sVkEmulation->deviceInfo = deviceInfos[selectedGpuIndex];
     // Postcondition: sVkEmulation has valid device support info
 
-    // Ask about image format support here.
-    // TODO: May have to first ask when selecting physical devices
-    // (e.g., choose between Intel or NVIDIA GPU for certain image format
-    // support)
+    // Collect image support info of the selected device
     sVkEmulation->imageSupportInfo = getBasicImageSupportList();
     for (size_t i = 0; i < sVkEmulation->imageSupportInfo.size(); ++i) {
         getImageFormatExternalMemorySupportInfo(ivk, sVkEmulation->physdev,
@@ -1023,7 +1172,6 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         "hasComputeQueueFamily = %d\n"
         "supportsExternalMemoryImport = %d\n"
         "supportsExternalMemoryExport = %d\n"
-        "supportsIdProperties = %d\n"
         "supportsDriverProperties = %d\n"
         "hasSamplerYcbcrConversionExtension = %d\n"
         "supportsSamplerYcbcrConversion = %d\n"
@@ -1032,7 +1180,6 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         sVkEmulation->deviceInfo.hasComputeQueueFamily,
         sVkEmulation->deviceInfo.supportsExternalMemoryImport,
         sVkEmulation->deviceInfo.supportsExternalMemoryExport,
-        sVkEmulation->deviceInfo.supportsIdProperties,
         sVkEmulation->deviceInfo.supportsDriverProperties,
         sVkEmulation->deviceInfo.hasSamplerYcbcrConversionExtension,
         sVkEmulation->deviceInfo.supportsSamplerYcbcrConversion,
@@ -1056,6 +1203,12 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
             selectedDeviceExtensionNames_.emplace(extension);
         }
     }
+
+#if defined(__linux__)
+    if (sVkEmulation->deviceInfo.supportsDmaBuf) {
+        selectedDeviceExtensionNames_.emplace(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
+    }
+#endif
 
     // We need to always enable swapchain extensions to be able to use this device
     // to do VK_IMAGE_LAYOUT_PRESENT_SRC_KHR transition operations done
@@ -1109,6 +1262,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
                 });
         vk_append_struct(&deviceCiChain, samplerYcbcrConversionFeatures.get());
     }
+
 #if defined(__QNX__)
     std::unique_ptr<VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX>
         extMemScreenBufferFeaturesQNX = nullptr;
@@ -1123,6 +1277,25 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
         vk_append_struct(&deviceCiChain, extMemScreenBufferFeaturesQNX.get());
     }
 #endif
+
+    const bool commandBufferCheckpointsSupported =
+        sVkEmulation->deviceInfo.supportsNvidiaDeviceDiagnosticCheckpoints;
+    const bool commandBufferCheckpointsRequested =
+        sVkEmulation->features.VulkanCommandBufferCheckpoints.enabled;
+    const bool commandBufferCheckpointsSupportedAndRequested =
+        commandBufferCheckpointsSupported && commandBufferCheckpointsRequested;
+    VkPhysicalDeviceDiagnosticsConfigFeaturesNV deviceDiagnosticsConfigFeatures = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV,
+        .diagnosticsConfig = VK_TRUE,
+    };
+    if (commandBufferCheckpointsSupportedAndRequested) {
+        INFO("Enabling command buffer checkpoints with VK_NV_device_diagnostic_checkpoints.");
+        vk_append_struct(&deviceCiChain, &deviceDiagnosticsConfigFeatures);
+    } else if (commandBufferCheckpointsRequested) {
+        WARN(
+            "VulkanCommandBufferCheckpoints was requested but the "
+            "VK_NV_device_diagnostic_checkpoints extension is not supported.");
+    }
 
     ivk->vkCreateDevice(sVkEmulation->physdev, &dCi, nullptr, &sVkEmulation->device);
 
@@ -1317,8 +1490,8 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
                                              string_VkResult(stagingBufferBindRes));
     }
 
-    sVkEmulation->debugUtilsAvailableAndRequested = debugUtilsAvailableAndRequested;
-    if (sVkEmulation->debugUtilsAvailableAndRequested) {
+    if (debugUtilsAvailableAndRequested) {
+        sVkEmulation->debugUtilsAvailableAndRequested = true;
         sVkEmulation->debugUtilsHelper =
             DebugUtilsHelper::withUtilsEnabled(sVkEmulation->device, sVkEmulation->ivk);
 
@@ -1328,6 +1501,11 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
                                                      "AEMU_StagingBuffer");
         sVkEmulation->debugUtilsHelper.addDebugLabel(sVkEmulation->commandBuffer,
                                                      "AEMU_CommandBuffer");
+    }
+
+    if (commandBufferCheckpointsSupportedAndRequested) {
+        sVkEmulation->commandBufferCheckpointsSupportedAndRequested = true;
+        sVkEmulation->deviceLostHelper.enableWithNvidiaDeviceDiagnosticCheckpoints();
     }
 
     VERBOSE("Vulkan global emulation state successfully initialized.");
@@ -1359,7 +1537,7 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
     INFO("    ASTC LDR emulation mode: %d", features->astcLdrEmulationMode);
     INFO("    enable ETC2 emulation: %s", features->enableEtc2Emulation ? "true" : "false");
     INFO("    enable Ycbcr emulation: %s", features->enableYcbcrEmulation ? "true" : "false");
-    INFO("    guestUsesAngle: %s", features->guestUsesAngle ? "true" : "false");
+    INFO("    guestVulkanOnly: %s", features->guestVulkanOnly ? "true" : "false");
     INFO("    useDedicatedAllocations: %s", features->useDedicatedAllocations ? "true" : "false");
     sVkEmulation->deviceInfo.glInteropSupported = features->glInteropSupported;
     sVkEmulation->useDeferredCommands = features->deferredCommands;
@@ -1368,7 +1546,7 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures> features) {
     sVkEmulation->astcLdrEmulationMode = features->astcLdrEmulationMode;
     sVkEmulation->enableEtc2Emulation = features->enableEtc2Emulation;
     sVkEmulation->enableYcbcrEmulation = features->enableYcbcrEmulation;
-    sVkEmulation->guestUsesAngle = features->guestUsesAngle;
+    sVkEmulation->guestVulkanOnly = features->guestVulkanOnly;
     sVkEmulation->useDedicatedAllocations = features->useDedicatedAllocations;
 
     if (features->useVulkanComposition) {
@@ -1441,6 +1619,8 @@ void teardownGlobalVkEmulation() {
     delete sVkEmulation;
     sVkEmulation = nullptr;
 }
+
+void onVkDeviceLost() { VkDecoderGlobalState::get()->on_DeviceLost(); }
 
 std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowType window,
                                                                 uint32_t width, uint32_t height) {
@@ -1529,6 +1709,9 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
             vk_append_struct(&allocInfoChain, &metalBufferExport);
         }
 #endif
+        if (sVkEmulation->deviceInfo.supportsDmaBuf && actuallyExternal) {
+            exportAi.handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+        }
 
         vk_append_struct(&allocInfoChain, &exportAi);
     }
@@ -1613,6 +1796,8 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
         return true;
     }
 
+    VkExternalMemoryHandleTypeFlagBits vkHandleType = VK_EXT_MEMORY_HANDLE_TYPE_BIT;
+    uint32_t streamHandleType = 0;
     VkResult exportRes = VK_SUCCESS;
     bool validHandle = false;
 #ifdef _WIN32
@@ -1620,14 +1805,18 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
         VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR,
         0,
         info->memory,
-        VK_EXT_MEMORY_HANDLE_TYPE_BIT,
+        vkHandleType,
     };
+
     exportRes = sVkEmulation->deviceInfo.getMemoryHandleFunc(
         sVkEmulation->device, &getWin32HandleInfo, &info->externalHandle);
     validHandle = (VK_EXT_MEMORY_HANDLE_INVALID != info->externalHandle);
+    info->streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32;
 #elif !defined(__QNX__)
-#ifdef __APPLE__
+    bool opaque_fd = true;
     if (sVkEmulation->instanceSupportsMoltenVK) {
+        opaque_fd = false;
+#if defined(__APPLE__)
         info->externalMetalHandle = getMtlBufferFromVkDeviceMemory(vk, info->memory);
         validHandle = (nullptr != info->externalMetalHandle);
         if (validHandle) {
@@ -1636,14 +1825,21 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
         } else {
             exportRes = VK_ERROR_INVALID_EXTERNAL_HANDLE;
         }
-    } else
 #endif
-    {
+    }
+    if (opaque_fd) {
+        if (sVkEmulation->deviceInfo.supportsDmaBuf) {
+            vkHandleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+            info->streamHandleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
+        } else {
+            info->streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
+        }
+
         VkMemoryGetFdInfoKHR getFdInfo = {
             VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
             0,
             info->memory,
-            VK_EXT_MEMORY_HANDLE_TYPE_BIT,
+            vkHandleType,
         };
         exportRes = sVkEmulation->deviceInfo.getMemoryHandleFunc(sVkEmulation->device, &getFdInfo,
                                                                  &info->externalHandle);
@@ -1866,6 +2062,16 @@ static VkFormat glFormat2VkFormat(GLint internalFormat) {
             return VK_FORMAT_R16_UNORM;
         case GL_RG8_EXT:
             return VK_FORMAT_R8G8_UNORM;
+        case GL_DEPTH_COMPONENT16:
+            return VK_FORMAT_D16_UNORM;
+        case GL_DEPTH_COMPONENT24:
+            return VK_FORMAT_X8_D24_UNORM_PACK32;
+        case GL_DEPTH24_STENCIL8:
+            return VK_FORMAT_D24_UNORM_S8_UINT;
+        case GL_DEPTH_COMPONENT32F:
+            return VK_FORMAT_D32_SFLOAT;
+        case GL_DEPTH32F_STENCIL8:
+            return VK_FORMAT_D32_SFLOAT_S8_UINT;
         default:
             ERR("Unhandled format %d, falling back to VK_FORMAT_R8G8B8A8_UNORM", internalFormat);
             return VK_FORMAT_R8G8B8A8_UNORM;
@@ -2005,6 +2211,8 @@ static std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo_l
     constexpr std::pair<VkFormatFeatureFlags, VkImageUsageFlags> formatUsagePairs[] = {
         {VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT,
          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT},
+        {VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT},
         {VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT, VK_IMAGE_USAGE_SAMPLED_BIT},
         {VK_FORMAT_FEATURE_TRANSFER_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_SRC_BIT},
         {VK_FORMAT_FEATURE_TRANSFER_DST_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT},
@@ -2374,6 +2582,27 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
     return true;
 }
 
+bool isFormatSupported(GLenum format) {
+    VkFormat vkFormat = glFormat2VkFormat(format);
+    bool supported = !gfxstream::vk::formatIsDepthOrStencil(vkFormat);
+    // TODO(b/356603558): add proper Vulkan querying, for now preserve existing assumption
+    if (!supported) {
+        for (size_t i = 0; i < sVkEmulation->imageSupportInfo.size(); ++i) {
+            // Only enable depth/stencil if it is usable as an attachment
+            if (sVkEmulation->imageSupportInfo[i].format == vkFormat &&
+                gfxstream::vk::formatIsDepthOrStencil(
+                    sVkEmulation->imageSupportInfo[i].format) &&
+                sVkEmulation->imageSupportInfo[i].supported &&
+                sVkEmulation->imageSupportInfo[i]
+                        .formatProps2.formatProperties.optimalTilingFeatures &
+                    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+                supported = true;
+            }
+        }
+    }
+    return supported;
+}
+
 bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
                          FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
                          bool vulkanOnly, uint32_t memoryProperty) {
@@ -2408,13 +2637,17 @@ std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorB
     AutoLock lock(sVkEmulationLock);
 
     const auto& deviceInfo = sVkEmulation->deviceInfo;
-    if ((!(deviceInfo.supportsExternalMemoryExport || !deviceInfo.supportsExternalMemoryImport)) ||
-        (!deviceInfo.glInteropSupported)) {
+    if (!deviceInfo.supportsExternalMemoryExport && deviceInfo.supportsExternalMemoryImport) {
         return std::nullopt;
     }
 
     auto info = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
     if (!info) {
+        return std::nullopt;
+    }
+
+    if ((info->vulkanMode != VkEmulation::VulkanMode::VulkanOnly) &&
+        !deviceInfo.glInteropSupported) {
         return std::nullopt;
     }
 
@@ -2430,6 +2663,7 @@ std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorB
     return VkColorBufferMemoryExport{
         .descriptor = std::move(descriptor),
         .size = info->memory.size,
+        .streamHandleType = info->memory.streamHandleType,
         .linearTiling = info->imageCreateInfoShallow.tiling == VK_IMAGE_TILING_LINEAR,
         .dedicatedAllocation = info->memory.dedicatedAllocation,
     };
@@ -3310,7 +3544,8 @@ bool teardownVkBuffer(uint32_t bufferHandle) {
     return true;
 }
 
-VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle) {
+VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle,
+                                              uint32_t* outStreamHandleType) {
     if (!sVkEmulation || !sVkEmulation->live) return VK_EXT_MEMORY_HANDLE_INVALID;
 
     AutoLock lock(sVkEmulationLock);
@@ -3321,6 +3556,7 @@ VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle) {
         return VK_EXT_MEMORY_HANDLE_INVALID;
     }
 
+    *outStreamHandleType = infoPtr->memory.streamHandleType;
     return infoPtr->memory.externalHandle;
 }
 
