@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "VirtGpu.h"
 
- #include "VirtGpu.h"
- #include <cutils/log.h>
+#include <cutils/log.h>
+
+#include <cstdlib>
+
+#include "Sync.h"
 
 namespace {
 
@@ -23,7 +27,15 @@ static VirtGpuDevice* sDevice = nullptr;
 
 }  // namespace
 
-VirtGpuDevice* VirtGpuDevice::getInstance(enum VirtGpuCapset capset) {
+VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor) {
+    if (getenv("VIRTGPU_KUMQUAT")) {
+        return kumquatCreateVirtGpuDevice(capset, descriptor);
+    } else {
+        return osCreateVirtGpuDevice(capset, descriptor);
+    }
+}
+
+VirtGpuDevice* VirtGpuDevice::getInstance(enum VirtGpuCapset capset, int32_t descriptor) {
     // If kCapsetNone is passed, we return a device that was created with any capset.
     // Otherwise, the created device's capset must match the requested capset.
     // We could support multiple capsets with a map of devices but that case isn't needed
@@ -34,7 +46,7 @@ VirtGpuDevice* VirtGpuDevice::getInstance(enum VirtGpuCapset capset) {
         return nullptr;
     }
     if (!sDevice) {
-        sDevice = createPlatformVirtGpuDevice(capset);
+        sDevice = createPlatformVirtGpuDevice(capset, descriptor);
     }
     return sDevice;
 }
@@ -46,6 +58,14 @@ void VirtGpuDevice::resetInstance() {
     }
 }
 
-void VirtGpuDevice::setInstanceForTesting(VirtGpuDevice* device) {
-    sDevice = device;
+namespace gfxstream {
+
+SyncHelper* createPlatformSyncHelper() {
+    if (getenv("VIRTGPU_KUMQUAT")) {
+        return kumquatCreateSyncHelper();
+    } else {
+        return osCreateSyncHelper();
+    }
 }
+
+}  // namespace gfxstream

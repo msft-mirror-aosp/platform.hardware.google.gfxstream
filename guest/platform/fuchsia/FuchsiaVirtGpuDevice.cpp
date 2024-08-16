@@ -25,6 +25,7 @@
 #include <cstdlib>
 
 #include "FuchsiaVirtGpu.h"
+#include "Sync.h"
 
 FuchsiaVirtGpuDevice::FuchsiaVirtGpuDevice(enum VirtGpuCapset capset, magma_device_t device)
     : VirtGpuDevice(capset), device_(device) {
@@ -95,11 +96,10 @@ int FuchsiaVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
 
 struct VirtGpuCaps FuchsiaVirtGpuDevice::getCaps(void) { return {}; }
 
-VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int fd) {
+VirtGpuDevice* osCreateVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor) {
     // We don't handle the VirtioGpuPipeStream case.
-    if (fd >= 0) {
+    if (descriptor >= 0) {
         ALOGE("Fuchsia: fd not handled");
-        abort();
         return nullptr;
     }
 
@@ -146,3 +146,9 @@ VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int fd) {
 
     return gpu_device;
 }
+
+namespace gfxstream {
+
+SyncHelper* osCreateSyncHelper() { return nullptr; }
+
+}  // namespace gfxstream

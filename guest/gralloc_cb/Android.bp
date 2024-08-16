@@ -26,10 +26,8 @@ cc_library_headers {
     export_include_dirs: ["include"],
     header_libs: [
         "libcutils_headers",
-        "libqemupipe-types.ranchu",
     ],
     export_header_lib_headers: [
         "libcutils_headers",
-        "libqemupipe-types.ranchu",
     ],
 }
