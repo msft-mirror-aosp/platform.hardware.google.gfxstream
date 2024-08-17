@@ -21,8 +21,6 @@ package {
 
 cc_library_shared {
     name: "libGLESv1_enc",
-    host_supported: true,
-    vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
