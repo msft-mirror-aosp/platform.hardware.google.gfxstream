@@ -21,8 +21,6 @@ package {
 
 cc_library_headers {
     name: "libgfxstream_guest_rendercontrol_encoder_headers",
-    host_supported: true,
-    vendor_available: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
@@ -33,8 +31,6 @@ cc_library_headers {
 
 cc_library_shared {
     name: "lib_renderControl_enc",
-    host_supported: true,
-    vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
