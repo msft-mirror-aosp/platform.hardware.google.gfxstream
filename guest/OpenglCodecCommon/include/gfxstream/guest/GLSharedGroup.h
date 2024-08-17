@@ -16,29 +16,21 @@
 #ifndef _GL_SHARED_GROUP_H_
 #define _GL_SHARED_GROUP_H_
 
-#define GL_API
-#ifndef ANDROID
-#define GL_APIENTRY
-#define GL_APIENTRYP
-#endif
-
-#include "TextureSharedData.h"
-
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "ErrorLog.h"
 #include "IndexRangeCache.h"
 #include "StateTrackingSupport.h"
+#include "TextureSharedData.h"
 
 using gfxstream::guest::AutoLock;
 using gfxstream::guest::Lock;

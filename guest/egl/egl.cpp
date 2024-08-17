@@ -158,27 +158,26 @@ const char *  eglStrError(EGLint err)
         return ret;                                                  \
     }
 
-#define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls)                    \
-    HostConnection* hostCon =                                                    \
-        HostConnection::getWithThreadInfo(tls, kCapsetNone, INVALID_DESCRIPTOR); \
-    if (!hostCon) {                                                              \
-        ALOGE("egl: Failed to get host connection\n");                           \
-        return ret;                                                              \
-    }                                                                            \
-    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();                      \
-    if (!rcEnc) {                                                                \
-        ALOGE("egl: Failed to get renderControl encoder context\n");             \
-        return ret;                                                              \
-    }                                                                            \
-    auto const* grallocHelper = hostCon->grallocHelper();                        \
-    if (!grallocHelper) {                                                        \
-        ALOGE("egl: Failed to get grallocHelper\n");                             \
-        return ret;                                                              \
-    }                                                                            \
-    auto* anwHelper = hostCon->anwHelper();                                      \
-    if (!anwHelper) {                                                            \
-        ALOGE("egl: Failed to get anwHelper\n");                                 \
-        return ret;                                                              \
+#define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls)                      \
+    HostConnection* hostCon = HostConnection::getWithThreadInfo(tls, kCapsetNone); \
+    if (!hostCon) {                                                                \
+        ALOGE("egl: Failed to get host connection\n");                             \
+        return ret;                                                                \
+    }                                                                              \
+    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();                        \
+    if (!rcEnc) {                                                                  \
+        ALOGE("egl: Failed to get renderControl encoder context\n");               \
+        return ret;                                                                \
+    }                                                                              \
+    auto const* grallocHelper = hostCon->grallocHelper();                          \
+    if (!grallocHelper) {                                                          \
+        ALOGE("egl: Failed to get grallocHelper\n");                               \
+        return ret;                                                                \
+    }                                                                              \
+    auto* anwHelper = hostCon->anwHelper();                                        \
+    if (!anwHelper) {                                                              \
+        ALOGE("egl: Failed to get anwHelper\n");                                   \
+        return ret;                                                                \
     }
 
 #define VALIDATE_CONTEXT_RETURN(context,ret)  \
@@ -667,7 +666,7 @@ static uint64_t createNativeSync_virtioGpu(
         exec.command_size = sizeof(exportSync);
         exec.flags = kFenceOut;
         if (instance->execBuffer(exec, /*blob=*/nullptr)) {
-            ERR("Failed to execbuffer to create sync.");
+            ALOGE("Failed to execbuffer to create sync.");
             return 0;
         }
         *fd_out = exec.handle.osHandle
@@ -2605,16 +2604,6 @@ EGLint eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags) {
     if (rcEnc->hasVirtioGpuNativeSync() || rcEnc->hasNativeSyncV3()) {
         EGLSync_t* sync = (EGLSync_t*)eglsync;
         rcEnc->rcWaitSyncKHR(rcEnc, sync->handle, flags);
-    }
-
-    return EGL_TRUE;
-}
-
-EGLBoolean eglInitializeKumquat(EGLint descriptor) {
-    HostConnection* hostCon = HostConnection::getWithDescriptor(kCapsetNone, descriptor);
-    if (!hostCon) {
-        ALOGE("egl: Failed to get kumquat connection");
-        return EGL_FALSE;
     }
 
     return EGL_TRUE;
