@@ -60,7 +60,7 @@ genrule {
 cc_library_headers {
     name: "libmesa_util_headers_gfxstream",
     host_supported: true,
-    vendor_available: true,
+    vendor: true,
     export_include_dirs: [
         ".",
     ],
