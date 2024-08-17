@@ -666,7 +666,7 @@ static uint64_t createNativeSync_virtioGpu(
         exec.command_size = sizeof(exportSync);
         exec.flags = kFenceOut;
         if (instance->execBuffer(exec, /*blob=*/nullptr)) {
-            ERR("Failed to execbuffer to create sync.");
+            ALOGE("Failed to execbuffer to create sync.");
             return 0;
         }
         *fd_out = exec.handle.osHandle

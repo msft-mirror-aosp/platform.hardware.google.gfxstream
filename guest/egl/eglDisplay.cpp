@@ -504,10 +504,8 @@ EGLBoolean eglDisplay::getConfigAttrib(EGLConfig config, EGLint attrib, EGLint *
 void eglDisplay::dumpConfig(EGLConfig config)
 {
     EGLint value = 0;
-    DBG("^^^^^^^^^^ dumpConfig %p ^^^^^^^^^^^^^^^^^^", config);
     for (int i=0; i<m_numConfigAttribs; i++) {
         getAttribValue(config, i, &value);
-        DBG("Config %p: {%u}[%d] %d\n", config, getIndexOfConfig(config), i, value);
     }
 }
 

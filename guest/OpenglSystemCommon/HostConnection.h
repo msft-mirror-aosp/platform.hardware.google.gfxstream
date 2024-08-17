@@ -90,7 +90,7 @@ public:
             }
             return m_dmaPhysAddr;
         } else {
-            ALOGE("%s: ERROR: No DMA context bound!", __func__);
+            ALOGE("%s: ALOGEOR: No DMA context bound!", __func__);
             return 0;
         }
     }
