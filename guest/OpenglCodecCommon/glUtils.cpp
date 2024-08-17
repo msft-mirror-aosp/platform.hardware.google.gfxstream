@@ -14,11 +14,11 @@
 * limitations under the License.
 */
 #include "glUtils.h"
-#include <string.h>
-#include "ErrorLog.h"
-#include "gfxstream/guest/IOStream.h"
 
 #include <GLES3/gl31.h>
+#include <string.h>
+
+#include "gfxstream/guest/IOStream.h"
 
 using gfxstream::guest::IOStream;
 
@@ -955,7 +955,7 @@ int glUtilsPixelBitSize(GLenum format, GLenum type)
         pixelsize = 32;
         break;
     default:
-        ERR("glUtilsPixelBitSize: unknown pixel type %d - assuming pixel data 0\n", type);
+        ALOGE("glUtilsPixelBitSize: unknown pixel type %d - assuming pixel data 0\n", type);
         componentsize = 0;
     }
 
@@ -989,7 +989,7 @@ int glUtilsPixelBitSize(GLenum format, GLenum type)
             pixelsize = 64;
             break;
         default:
-            ERR("glUtilsPixelBitSize: unknown pixel format %d\n", format);
+            ALOGE("glUtilsPixelBitSize: unknown pixel format %d\n", format);
             components = 0;
         }
         if (pixelsize == 0) {
