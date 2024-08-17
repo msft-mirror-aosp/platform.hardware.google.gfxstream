@@ -22,6 +22,7 @@ package {
 cc_library_headers {
     name: "libmagma_headers",
     vendor: true,
+    host_supported: true,
     export_include_dirs: [
         "include",
         "include/lib",

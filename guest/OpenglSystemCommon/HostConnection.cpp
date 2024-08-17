@@ -318,7 +318,6 @@ GLEncoder *HostConnection::glEncoder()
 {
     if (!m_glEnc) {
         m_glEnc = std::make_unique<GLEncoder>(m_stream, &m_checksumHelper);
-        DBG("HostConnection::glEncoder new encoder %p, tid %lu", m_glEnc, getCurrentThreadId());
         m_glEnc->setContextAccessor(s_getGLContext);
     }
     return m_glEnc.get();
@@ -328,7 +327,6 @@ GL2Encoder *HostConnection::gl2Encoder()
 {
     if (!m_gl2Enc) {
         m_gl2Enc = std::make_unique<GL2Encoder>(m_stream, &m_checksumHelper);
-        DBG("HostConnection::gl2Encoder new encoder %p, tid %lu", m_gl2Enc, getCurrentThreadId());
         m_gl2Enc->setContextAccessor(s_getGL2Context);
         m_gl2Enc->setNoHostError(m_noHostError);
         m_gl2Enc->setDrawCallFlushInterval(
