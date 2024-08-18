@@ -19,15 +19,17 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_defaults {
-    name: "libgfxstream_guest_glesv1_defaults",
-    host_supported: true,
-    vendor: true,
+cc_library_shared {
+    name: "libGLESv1_CM_emulation",
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
+    header_libs: [
+        "libgfxstream_egl_headers",
+    ],
     shared_libs: [
         "liblog",
+        "libOpenglSystemCommon",
         "lib_renderControl_enc",
         "libGLESv1_enc",
     ],
@@ -41,34 +43,6 @@ cc_defaults {
     target: {
         android: {
             relative_install_path: "egl",
-        },
-    },
-}
-
-cc_library_shared {
-    name: "libGLESv1_CM_emulation",
-    defaults: [
-        "libgfxstream_guest_glesv1_defaults",
-    ],
-    shared_libs: [
-        "libOpenglSystemCommon",
-    ],
-}
-
-cc_library_shared {
-    name: "libGLESv1_CM_emulation_with_host",
-    defaults: [
-        "libgfxstream_guest_glesv1_defaults",
-    ],
-    shared_libs: [
-        "libOpenglSystemCommonWithHost",
-    ],
-    target: {
-        host: {
-            compile_multilib: "64",
-        },
-        android: {
-            compile_multilib: "64",
         },
     },
 }

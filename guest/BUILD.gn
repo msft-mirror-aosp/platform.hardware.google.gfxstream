@@ -270,6 +270,7 @@ loadable_module("libvulkan_gfxstream") {
       "fuchsia/fuchsia_stdio.cc",
       "fuchsia/port.cc",
       "fuchsia/service_connector.cc",
+      "platform/kumquat/VirtGpuKumquatStub.cpp",
       "platform/fuchsia/FuchsiaVirtGpuBlob.cpp",
       "platform/fuchsia/FuchsiaVirtGpuBlobMapping.cpp",
       "platform/fuchsia/FuchsiaVirtGpuDevice.cpp",

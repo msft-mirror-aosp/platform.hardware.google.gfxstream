@@ -84,7 +84,7 @@ void *QemuPipeStream::allocBuffer(size_t minSize)
             m_buf = p;
             m_bufsize = allocSize;
         } else {
-            ERR("realloc (%zu) failed\n", allocSize);
+            ALOGE("realloc (%zu) failed\n", allocSize);
             free(m_buf);
             m_buf = NULL;
             m_bufsize = 0;
@@ -208,8 +208,8 @@ const unsigned char *QemuPipeStream::read( void *buf, size_t *inout_len)
     //DBG(">> QemuPipeStream::read %d\n", *inout_len);
     if (!valid()) return NULL;
     if (!buf) {
-      ERR("QemuPipeStream::read failed, buf=NULL");
-      return NULL;  // do not allow NULL buf in that implementation
+        ALOGE("QemuPipeStream::read failed, buf=NULL");
+        return NULL;  // do not allow NULL buf in that implementation
     }
 
     int n = recv(buf, *inout_len);

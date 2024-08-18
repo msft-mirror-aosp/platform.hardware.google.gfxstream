@@ -90,7 +90,7 @@ public:
             }
             return m_dmaPhysAddr;
         } else {
-            ALOGE("%s: ERROR: No DMA context bound!", __func__);
+            ALOGE("%s: ALOGEOR: No DMA context bound!", __func__);
             return 0;
         }
     }
@@ -135,10 +135,6 @@ public:
     GL2Encoder *gl2Encoder();
     gfxstream::vk::VkEncoder *vkEncoder();
     ExtendedRCEncoderContext *rcEncoder();
-
-    int getRendernodeFd() { return m_rendernodeFd; }
-
-    gfxstream::guest::ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
 
 #if defined(ANDROID)
     gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper.get(); }
