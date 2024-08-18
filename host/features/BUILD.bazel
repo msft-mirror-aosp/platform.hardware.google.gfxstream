@@ -1,6 +1,7 @@
 cc_library(
     name = "gfxstream_features",
     srcs = ["Features.cpp"] + glob(["include/**/*.h"]),
+    copts = ["-fno-exceptions"],
     includes = ["include"],
     visibility = ["//visibility:public"],
 )

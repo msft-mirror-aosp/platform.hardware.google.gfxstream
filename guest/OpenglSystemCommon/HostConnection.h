@@ -123,15 +123,10 @@ class HostConnection
 public:
     static HostConnection *get();
     static HostConnection* getOrCreate(enum VirtGpuCapset capset = kCapsetNone);
-    static HostConnection* getWithDescriptor(enum VirtGpuCapset capset,
-                                             int32_t descriptor);  // For testing purposes
-
-    static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo, enum VirtGpuCapset capset,
-                                             int32_t descriptor);
+    static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo, enum VirtGpuCapset capset);
     static void exit();
 
-    static std::unique_ptr<HostConnection> createUnique(enum VirtGpuCapset capset,
-                                                        int32_t descriptor);
+    static std::unique_ptr<HostConnection> createUnique(enum VirtGpuCapset capset);
     HostConnection(const HostConnection&) = delete;
 
     ~HostConnection();
@@ -140,10 +135,6 @@ public:
     GL2Encoder *gl2Encoder();
     gfxstream::vk::VkEncoder *vkEncoder();
     ExtendedRCEncoderContext *rcEncoder();
-
-    int getRendernodeFd() { return m_rendernodeFd; }
-
-    gfxstream::guest::ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
 
 #if defined(ANDROID)
     gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper.get(); }
@@ -170,7 +161,7 @@ public:
 private:
     // If the connection failed, |conn| is deleted.
     // Returns NULL if connection failed.
- static std::unique_ptr<HostConnection> connect(enum VirtGpuCapset capset, int32_t descriptor);
+ static std::unique_ptr<HostConnection> connect(enum VirtGpuCapset capset);
 
  HostConnection();
  static gl_client_context_t* s_getGLContext();

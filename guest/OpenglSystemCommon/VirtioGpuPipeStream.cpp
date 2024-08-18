@@ -28,20 +28,13 @@ static const size_t kTransferBufferSize = (1048576);
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
-VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize) :
-    IOStream(bufSize),
-    m_virtio_mapped(nullptr),
-    m_bufsize(bufSize),
-    m_buf(nullptr),
-    m_writtenPos(0) { }
-
-VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int fd) :
-    IOStream(bufSize),
-    m_fd(fd),
-    m_virtio_mapped(nullptr),
-    m_bufsize(bufSize),
-    m_buf(nullptr),
-    m_writtenPos(0) { }
+VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int32_t descriptor)
+    : IOStream(bufSize),
+      m_fd(descriptor),
+      m_virtio_mapped(nullptr),
+      m_bufsize(bufSize),
+      m_buf(nullptr),
+      m_writtenPos(0) {}
 
 VirtioGpuPipeStream::~VirtioGpuPipeStream()
 {

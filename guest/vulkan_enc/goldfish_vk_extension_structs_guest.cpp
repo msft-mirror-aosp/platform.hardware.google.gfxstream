@@ -441,6 +441,23 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
             return sizeof(VkPipelineRasterizationDepthClipStateCreateInfoEXT);
         }
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT: {
+            return sizeof(VkDrmFormatModifierPropertiesListEXT);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT: {
+            return sizeof(VkPhysicalDeviceImageDrmFormatModifierInfoEXT);
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT: {
+            return sizeof(VkImageDrmFormatModifierListCreateInfoEXT);
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT: {
+            return sizeof(VkImageDrmFormatModifierExplicitCreateInfoEXT);
+        }
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT: {
+            return sizeof(VkDrmFormatModifierPropertiesList2EXT);
+        }
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: {
             return sizeof(VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT);
@@ -1066,6 +1083,23 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: {
             return sizeof(VkPipelineRasterizationDepthClipStateCreateInfoEXT);
+        }
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT: {
+            return sizeof(VkDrmFormatModifierPropertiesListEXT);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT: {
+            return sizeof(VkPhysicalDeviceImageDrmFormatModifierInfoEXT);
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT: {
+            return sizeof(VkImageDrmFormatModifierListCreateInfoEXT);
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT: {
+            return sizeof(VkImageDrmFormatModifierExplicitCreateInfoEXT);
+        }
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT: {
+            return sizeof(VkDrmFormatModifierPropertiesList2EXT);
         }
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor

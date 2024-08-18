@@ -185,12 +185,36 @@ genrule {
         "$(location vk_format_info.c)",
 }
 
+soong_config_module_type_import {
+    from: "hardware/google/gfxstream/Android.bp",
+    module_types: ["gfxstream_cc_defaults_config_for_platform"],
+}
+
+gfxstream_cc_defaults_config_for_platform {
+    name: "libmesa_vulkan_runtime_gfxstream_cc_defaults_for_platform",
+    soong_config_variables: {
+        mesa3d_platforms: {
+            // Android surfaceless build
+            none: {},
+            // The default when variable is not set is Android
+            conditions_default: {
+                target: {
+                    android: {
+                        srcs: ["vk_android.c"],
+                    },
+                },
+            },
+        },
+    },
+}
+
 cc_library_static {
     name: "libmesa_vulkan_runtime_gfxstream",
     host_supported: true,
     vendor: true,
     defaults: [
         "mesa_common_defaults_gfxstream",
+        "libmesa_vulkan_runtime_gfxstream_cc_defaults_for_platform",
     ],
     header_libs: [
         "mesa_common_headers_gfxstream",
@@ -278,9 +302,6 @@ cc_library_static {
             header_libs: [
                 "hwvulkan_headers",
                 "libnativewindow_headers",
-            ],
-            srcs: [
-                "vk_android.c",
             ],
         },
     },
