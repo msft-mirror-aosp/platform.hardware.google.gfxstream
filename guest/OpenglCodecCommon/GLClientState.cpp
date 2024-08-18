@@ -15,14 +15,13 @@
 */
 #include "gfxstream/guest/GLClientState.h"
 
-#include "GLESTextureUtils.h"
-#include "ErrorLog.h"
+#include <cutils/log.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "glUtils.h"
 
-#include <cutils/log.h>
+#include "GLESTextureUtils.h"
+#include "glUtils.h"
 
 #ifndef MAX
 #define MAX(a, b) ((a) < (b) ? (b) : (a))

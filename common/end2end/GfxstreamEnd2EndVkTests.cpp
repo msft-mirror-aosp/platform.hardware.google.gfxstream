@@ -1747,12 +1747,13 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedShutdown) {
 
         constexpr const int kNumThreads = 5;
         for (int t = 0; t < kNumThreads; t++) {
-            threads.emplace_back([&, this](){
+            threads.emplace_back([&, this]() {
                 // Perform some work to ensure host RenderThread started.
                 auto buffer1 = device->createBufferUnique(bufferCreateInfo).value;
 
                 ++threadsReady;
-                while (threadsReady.load() != kNumThreads) {}
+                while (threadsReady.load() != kNumThreads) {
+                }
 
                 // Sleep a little which is hopefully enough time to potentially get
                 // the corresponding host ASG RenderThreads to go sleep waiting for
