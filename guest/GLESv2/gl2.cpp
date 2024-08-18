@@ -15,13 +15,12 @@
 */
 
 #include "EGLClientIface.h"
-#include "HostConnection.h"
+#include "EGLImage.h"
 #include "GL2Encoder.h"
 #include "GLES/gl.h"
 #include "GLES/glext.h"
-#include "ErrorLog.h"
+#include "HostConnection.h"
 #include "ThreadInfo.h"
-#include "EGLImage.h"
 
 //XXX: fix this macro to get the context from fast tls path
 #define GET_CONTEXT GL2Encoder * ctx = getEGLThreadInfo()->hostConn->gl2Encoder();
@@ -63,8 +62,6 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
     (void)self;
     (void)target;
 
-    DBG("glEGLImageTargetTexture2DOES v2 target=%#x img=%p\n", target, img);
-
     EGLImage_t *image = (EGLImage_t*)img;
     GLeglImageOES hostImage = reinterpret_cast<GLeglImageOES>((intptr_t)image->host_egl_image);
 
@@ -98,7 +95,6 @@ void glEGLImageTargetRenderbufferStorageOES(void *self, GLenum target, GLeglImag
     (void)self;
     (void)target;
 
-    DBG("glEGLImageTargetRenderbufferStorageOES v2 image=%p\n", img);
     //TODO: check error - we don't have a way to set gl error
     EGLImage_t *image = (EGLImage_t*)img;
     GLeglImageOES hostImage = reinterpret_cast<GLeglImageOES>((intptr_t)image->host_egl_image);

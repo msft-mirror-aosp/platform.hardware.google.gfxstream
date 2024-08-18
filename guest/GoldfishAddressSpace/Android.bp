@@ -5,8 +5,10 @@ package {
 
 cc_library_static {
     name: "libGoldfishAddressSpace",
-    host_supported: true,
-    vendor: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+        "libplatform_virtgpu_defaults",
+    ],
     srcs: [
         "AddressSpaceStream.cpp",
         "VirtioGpuAddressSpaceStream.cpp",
@@ -20,7 +22,6 @@ cc_library_static {
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
-        "libplatform",
     ],
     export_include_dirs: [
         "include",
