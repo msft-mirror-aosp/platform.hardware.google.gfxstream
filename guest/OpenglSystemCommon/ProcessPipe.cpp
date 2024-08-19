@@ -40,16 +40,6 @@ static HostConnectionType sConnType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
 
 static uint32_t* sSeqnoPtr = 0;
 
-// Meant to be called only once per process.
-static void initSeqno(void) {
-    // So why do we reinitialize here? It's for testing purposes only;
-    // we have a unit test that exercise the case where this sequence
-    // number is reset as a result of guest process kill.
-    if (sSeqnoPtr) delete sSeqnoPtr;
-    sSeqnoPtr = new uint32_t;
-    *sSeqnoPtr = 0;
-}
-
 namespace {
 
 static std::mutex sNeedInitMutex;
@@ -88,8 +78,6 @@ static void sQemuPipeInit() {
 #endif // !__Fuchsia__
 
 static void processPipeDoInit(uint32_t noRenderControlEnc) {
-    initSeqno();
-
     // No need to setup auxiliary pipe stream in this case
     if (noRenderControlEnc) return;
 
@@ -142,17 +130,4 @@ bool processPipeInit(int streamHandle, HostConnectionType connType, uint32_t noR
     return true;
 }
 
-uint64_t getPuid() {
-    return sProcUID;
-}
-
-void processPipeRestart() {
-    std::lock_guard<std::mutex> lock(sNeedInitMutex);
-    VirtGpuDevice::resetInstance();
-    sNeedInit = true;
-}
-
-uint32_t* getSeqnoPtrForProcess() {
-    // It's assumed process pipe state has already been initialized.
-    return sSeqnoPtr;
-}
+uint64_t getPuid() { return sProcUID; }
