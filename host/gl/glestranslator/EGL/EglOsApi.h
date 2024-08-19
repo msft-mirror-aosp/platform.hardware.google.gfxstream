@@ -92,6 +92,7 @@ struct ConfigInfo {
     EGLint green_size;
     EGLint blue_size;
     EGLint alpha_size;
+    EGLint alpha_mask_size = 0;
     EGLenum caveat;
     EGLint depth_size;
     EGLint frame_buffer_level;
