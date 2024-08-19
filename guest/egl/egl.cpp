@@ -158,26 +158,26 @@ const char *  eglStrError(EGLint err)
         return ret;                                                  \
     }
 
-#define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls)         \
-    HostConnection* hostCon = HostConnection::getWithThreadInfo(tls); \
-    if (!hostCon) {                                                   \
-        ALOGE("egl: Failed to get host connection\n");                \
-        return ret;                                                   \
-    }                                                                 \
-    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();           \
-    if (!rcEnc) {                                                     \
-        ALOGE("egl: Failed to get renderControl encoder context\n");  \
-        return ret;                                                   \
-    }                                                                 \
-    auto const* grallocHelper = hostCon->grallocHelper();             \
-    if (!grallocHelper) {                                             \
-        ALOGE("egl: Failed to get grallocHelper\n");                  \
-        return ret;                                                   \
-    }                                                                 \
-    auto* anwHelper = hostCon->anwHelper();                           \
-    if (!anwHelper) {                                                 \
-        ALOGE("egl: Failed to get anwHelper\n");                      \
-        return ret;                                                   \
+#define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls)                      \
+    HostConnection* hostCon = HostConnection::getWithThreadInfo(tls, kCapsetNone); \
+    if (!hostCon) {                                                                \
+        ALOGE("egl: Failed to get host connection\n");                             \
+        return ret;                                                                \
+    }                                                                              \
+    ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();                        \
+    if (!rcEnc) {                                                                  \
+        ALOGE("egl: Failed to get renderControl encoder context\n");               \
+        return ret;                                                                \
+    }                                                                              \
+    auto const* grallocHelper = hostCon->grallocHelper();                          \
+    if (!grallocHelper) {                                                          \
+        ALOGE("egl: Failed to get grallocHelper\n");                               \
+        return ret;                                                                \
+    }                                                                              \
+    auto* anwHelper = hostCon->anwHelper();                                        \
+    if (!anwHelper) {                                                              \
+        ALOGE("egl: Failed to get anwHelper\n");                                   \
+        return ret;                                                                \
     }
 
 #define VALIDATE_CONTEXT_RETURN(context,ret)  \
@@ -337,8 +337,6 @@ struct app_time_metric_t {
             float avgMs = ns2ms(totalAppTime) / numSamples;
             float minMs = ns2ms(minAppTime);
             float maxMs = ns2ms(maxAppTime);
-            // B* needs the following log.
-            ALOGD("app_time_stats: avg=%0.2fms min=%0.2fms max=%0.2fms count=%u", avgMs, minMs, maxMs, numSamples);
             totalAppTime = 0;
             minAppTime = 0;
             maxAppTime = 0;
@@ -668,7 +666,7 @@ static uint64_t createNativeSync_virtioGpu(
         exec.command_size = sizeof(exportSync);
         exec.flags = kFenceOut;
         if (instance->execBuffer(exec, /*blob=*/nullptr)) {
-            ERR("Failed to execbuffer to create sync.");
+            ALOGE("Failed to execbuffer to create sync.");
             return 0;
         }
         *fd_out = exec.handle.osHandle
@@ -2265,6 +2263,11 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
             case HAL_PIXEL_FORMAT_RGBA_1010102:
             case HAL_PIXEL_FORMAT_YCBCR_420_888:
             case HAL_PIXEL_FORMAT_YCBCR_P010:
+            case HAL_PIXEL_FORMAT_DEPTH_16:
+            case HAL_PIXEL_FORMAT_DEPTH_24:
+            case HAL_PIXEL_FORMAT_DEPTH_24_STENCIL_8:
+            case HAL_PIXEL_FORMAT_DEPTH_32F:
+            case HAL_PIXEL_FORMAT_DEPTH_32F_STENCIL_8:
                 break;
             case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
                 ALOGW("%s:%d using HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED\n", __func__, __LINE__);

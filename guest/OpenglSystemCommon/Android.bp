@@ -28,8 +28,6 @@ cc_library_headers {
 
 cc_library_headers {
     name: "libOpenglSystemCommonHeaders",
-    host_supported: true,
-    vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
@@ -46,10 +44,9 @@ cc_library_headers {
 
 cc_defaults {
     name: "libOpenglSystemCommonDefaults",
-    host_supported: true,
-    vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
+        "libplatform_virtgpu_defaults",
     ],
     header_libs: [
         "libgfxstream_vulkan_headers",
@@ -64,6 +61,10 @@ cc_defaults {
         "libhardware_headers",
         "libnativebase_headers",
     ],
+    export_static_lib_headers: [
+        "libgfxstream_guest_android",
+        "libplatform_virtgpu",
+    ],
     shared_libs: [
         "lib_renderControl_enc",
         "libbase",
@@ -72,7 +73,6 @@ cc_defaults {
         "libGLESv1_enc",
         "libGLESv2_enc",
         "liblog",
-        "libOpenglCodecCommon",
     ],
     export_shared_lib_headers: [
         "lib_renderControl_enc",
@@ -117,18 +117,14 @@ cc_library_shared {
         "libOpenglSystemCommonDefaults",
     ],
     shared_libs: [
-        "libandroidemu",
+        "libOpenglCodecCommon",
     ],
     static_libs: [
+        "libgfxstream_androidemu_static",
         "libgfxstream_guest_android",
         "libmesa_util_gfxstream",
         "libmesa_util_c11_gfxstream",
         "libvulkan_enc",
-        "libplatform",
-    ],
-    export_static_lib_headers: [
-        "libgfxstream_guest_android",
-        "libplatform",
     ],
     target: {
         android: {
@@ -136,36 +132,6 @@ cc_library_shared {
                 "libnativewindow",
                 "libsync",
             ],
-        },
-    },
-}
-
-cc_library_shared {
-    name: "libOpenglSystemCommonWithHost",
-    defaults: [
-        "libOpenglSystemCommonDefaults",
-    ],
-    shared_libs: [
-        "libandroidemu",
-        "libgfxstream_platform_rutabaga_server",
-    ],
-    static_libs: [
-        "libgfxstream_guest_android_with_host",
-        "libgfxstream_guest_vulkan_encoder_with_host",
-        "libmesa_util_gfxstream",
-        "libmesa_util_c11_gfxstream",
-        "libgfxstream_platform_rutabaga",
-    ],
-    export_static_lib_headers: [
-        "libgfxstream_guest_android_with_host",
-        "libgfxstream_platform_rutabaga",
-    ],
-    target: {
-        host: {
-            compile_multilib: "64",
-        },
-        android: {
-            compile_multilib: "64",
         },
     },
 }
@@ -180,41 +146,16 @@ cc_library_static {
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
-        "libgfxstream_guest_android",
-        "libplatform",
-    ],
-    export_static_lib_headers: [
-        "libgfxstream_guest_android",
-        "libplatform",
-    ],
-}
-
-cc_library_static {
-    name: "libgfxstream_guest_system_common_with_host",
-    defaults: [
-        "libOpenglSystemCommonDefaults",
-    ],
-    header_libs: [
-        "vulkan_enc_headers",
-    ],
-    shared_libs: [
-        "libgfxstream_platform_rutabaga_server",
-    ],
-    static_libs: [
         "libgfxstream_androidemu_static",
-        "libgfxstream_guest_android_with_host",
-        "libgfxstream_platform_rutabaga",
-    ],
-    export_static_lib_headers: [
-        "libgfxstream_guest_android_with_host",
-        "libgfxstream_platform_rutabaga",
+        "libgfxstream_guest_android",
+        "libOpenglCodecCommon_static",
     ],
     target: {
-        host: {
-            compile_multilib: "64",
-        },
         android: {
-            compile_multilib: "64",
+            shared_libs: [
+                "libnativewindow",
+                "libsync",
+            ],
         },
     },
 }

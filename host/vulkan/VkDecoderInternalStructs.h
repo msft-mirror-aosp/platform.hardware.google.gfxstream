@@ -156,7 +156,6 @@ struct MemoryInfo {
     uint64_t sizeToPage = 0;
     uint64_t hostmemId = 0;
     VkDevice device = VK_NULL_HANDLE;
-    MTLTextureRef mtlTexture = nullptr;
     uint32_t memoryIndex = 0;
     // Set if the memory is backed by shared memory.
     std::optional<android::base::SharedMemory> sharedMemory;
@@ -188,12 +187,19 @@ struct PhysicalDeviceInfo {
     VkPhysicalDevice boxed = nullptr;
 };
 
+struct ExternalFenceInfo {
+    VkExternalSemaphoreHandleTypeFlagBits supportedBinarySemaphoreHandleTypes;
+    VkExternalFenceHandleTypeFlagBits supportedFenceHandleTypes;
+};
+
 struct DeviceInfo {
     std::unordered_map<uint32_t, std::vector<VkQueue>> queues;
     std::vector<std::string> enabledExtensionNames;
     bool emulateTextureEtc2 = false;
     bool emulateTextureAstc = false;
     bool useAstcCpuDecompression = false;
+
+    ExternalFenceInfo externalFenceInfo;
     VkPhysicalDevice physicalDevice;
     VkDevice boxed = nullptr;
     DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
@@ -360,6 +366,7 @@ struct DescriptorSetInfo {
         std::vector<uint8_t> inlineUniformBlockBuffer;
         // Weak pointer(s) to detect if all objects on dependency chain are alive.
         std::vector<std::weak_ptr<bool>> alives;
+        std::optional<HandleType> boundColorBuffer;
     };
 
     VkDescriptorPool pool;

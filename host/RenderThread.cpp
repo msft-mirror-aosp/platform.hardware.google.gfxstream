@@ -273,7 +273,7 @@ intptr_t RenderThread::main() {
     //
     // initialize decoders
 #if GFXSTREAM_ENABLE_HOST_GLES
-    if (!FrameBuffer::getFB()->getFeatures().GuestUsesAngle.enabled) {
+    if (!FrameBuffer::getFB()->getFeatures().GuestVulkanOnly.enabled) {
         tInfo.initGl();
     }
 

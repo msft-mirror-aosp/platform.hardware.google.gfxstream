@@ -83,7 +83,6 @@ struct drm_virtgpu_execbuffer {
 #define VIRTGPU_PARAM_CONTEXT_INIT 6 /* DRM_VIRTGPU_CONTEXT_INIT */
 #define VIRTGPU_PARAM_SUPPORTED_CAPSET_IDs 7 /* Bitmask of supported capability set ids */
 #define VIRTGPU_PARAM_EXPLICIT_DEBUG_NAME 8 /* Ability to set debug name from userspace */
-#define VIRTGPU_PARAM_CREATE_GUEST_HANDLE 9  /* Host OS handle can be created from guest memory. */
 
 struct drm_virtgpu_getparam {
 	__u64 param;

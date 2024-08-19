@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,18 @@
  * limitations under the License.
  */
 
-#include <memory>
+#include <cutils/log.h>
 
-#include "RutabagaLayer.h"
 #include "Sync.h"
+#include "VirtGpu.h"
+
+VirtGpuDevice* kumquatCreateVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor) {
+    ALOGE("Using stub implementation of kumquat");
+    return nullptr;
+}
 
 namespace gfxstream {
 
-class RutabagaVirtGpuSyncHelper : public SyncHelper {
-  public:
-    RutabagaVirtGpuSyncHelper();
-
-    bool Init();
-
-    int wait(int syncFd, int timeoutMilliseconds) override;
-
-    int dup(int syncFd) override;
-
-    int close(int) override;
-
-   private:
-    std::shared_ptr<EmulatedVirtioGpu> mEmulation;
-};
-
-SyncHelper* createPlatformSyncHelper();
+SyncHelper* kumquatCreateSyncHelper() { return nullptr; }
 
 }  // namespace gfxstream

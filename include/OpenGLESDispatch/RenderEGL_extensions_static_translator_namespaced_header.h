@@ -28,5 +28,6 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSetImageInfoANDROID(EGLDisplay display, EGLImag
 EGLAPI EGLImage EGLAPIENTRY eglImportImageANDROID(EGLDisplay display, EGLImage image);
 EGLAPI EGLint EGLAPIENTRY eglDebugMessageControlKHR(EGLDEBUGPROCKHR callback, const EGLAttrib * attrib_list);
 EGLAPI EGLBoolean EGLAPIENTRY eglSetNativeTextureDecompressionEnabledANDROID(EGLDisplay display, EGLBoolean enabled);
+EGLAPI EGLBoolean EGLAPIENTRY eglSetProgramBinaryLinkStatusEnabledANDROID(EGLDisplay display, EGLBoolean enabled);
 } // namespace translator
 } // namespace egl

@@ -39,8 +39,10 @@ using gfxstream::guest::FboFormatInfo;
 using gfxstream::guest::GLClientState;
 using gfxstream::guest::GLSharedGroupPtr;
 using gfxstream::guest::IOStream;
+using gfxstream::guest::ProgramData;
 using gfxstream::guest::ShaderData;
 using gfxstream::guest::ShaderProgramData;
+using gfxstream::guest::gles2::ProgramBinaryInfo;
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -4961,20 +4963,129 @@ const GLubyte* GL2Encoder::s_glGetStringi(void* self, GLenum name, GLuint index)
     return retval;
 }
 
+std::optional<ProgramBinaryInfo> GL2Encoder::getProgramBinary(GLuint program) {
+    GL2Encoder* ctx = this;
+
+    VALIDATE_PROGRAM_NAME_RET(program, std::nullopt);
+
+    GLint linkStatus = 0;
+    ctx->m_glGetProgramiv_enc(ctx, program, GL_LINK_STATUS, &linkStatus);
+    if (!linkStatus) return std::nullopt;
+
+    ProgramBinaryInfo info;
+
+    {
+        auto* guestProgramInfo = info.mutable_guest_program_info();
+
+        // External sampler uniforms can not be reconstructed from the host program info
+        // because the host only sees the modified shader where each `samplerExternalOES`
+        // was rewritten to `sampler2D`.
+        std::vector<GLuint> externalSamplerUnifomIndices;
+        if (!ctx->m_shared->getExternalSamplerUniformIndices(program,
+                                                             &externalSamplerUnifomIndices)) {
+            return std::nullopt;
+        }
+        for (GLuint index : externalSamplerUnifomIndices) {
+            guestProgramInfo->add_external_sampler_uniform_indices(index);
+        }
+    }
+
+    {
+        auto* hostProgramInfo = info.mutable_host_program_info();
+
+        GLint hostProgramBinaryLength = 0;
+        ctx->m_glGetProgramiv_enc(ctx, program, GL_PROGRAM_BINARY_LENGTH, &hostProgramBinaryLength);
+
+        std::string hostProgramBinary;
+        hostProgramBinary.resize(hostProgramBinaryLength, 'x');
+
+        GLenum hostProgramBinaryFormat = 0;
+        ctx->m_glGetProgramBinary_enc(ctx, program, hostProgramBinary.size(), nullptr,
+                                      &hostProgramBinaryFormat, hostProgramBinary.data());
+
+        hostProgramInfo->set_binary_format(static_cast<uint64_t>(hostProgramBinaryFormat));
+        hostProgramInfo->set_binary(hostProgramBinary);
+    }
+
+    return info;
+}
+
+void GL2Encoder::getProgramBinaryLength(GLuint program, GLint* outLength) {
+    GL2Encoder* ctx = (GL2Encoder*)this;
+
+    VALIDATE_PROGRAM_NAME(program);
+
+    auto programBinaryInfoOpt = ctx->getProgramBinary(program);
+    SET_ERROR_IF(!programBinaryInfoOpt.has_value(), GL_INVALID_OPERATION);
+    auto& programBinaryInfo = *programBinaryInfoOpt;
+
+    std::string programBinaryInfoBytes;
+    SET_ERROR_IF(!programBinaryInfo.SerializeToString(&programBinaryInfoBytes),
+                 GL_INVALID_OPERATION);
+
+    *outLength = static_cast<GLint>(programBinaryInfoBytes.size());
+}
+
+#define GL_PROGRAM_BINARY_FORMAT_GFXSTREAM_PROGRAM_BINARY_INFO_V1 0x0001
+
 void GL2Encoder::s_glGetProgramBinary(void* self, GLuint program, GLsizei bufSize, GLsizei* length, GLenum* binaryFormat, void* binary) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
     VALIDATE_PROGRAM_NAME(program);
 
-    GLint linkStatus = 0;
-    ctx->m_glGetProgramiv_enc(self, program, GL_LINK_STATUS, &linkStatus);
-    GLint properLength = 0;
-    ctx->m_glGetProgramiv_enc(self, program, GL_PROGRAM_BINARY_LENGTH, &properLength);
+    auto programBinaryInfoOpt = ctx->getProgramBinary(program);
+    SET_ERROR_IF(!programBinaryInfoOpt.has_value(), GL_INVALID_OPERATION);
+    auto& programBinaryInfo = *programBinaryInfoOpt;
 
-    SET_ERROR_IF(!linkStatus, GL_INVALID_OPERATION);
-    SET_ERROR_IF(bufSize < properLength, GL_INVALID_OPERATION);
+    std::string programBinaryInfoBytes;
+    SET_ERROR_IF(!programBinaryInfo.SerializeToString(&programBinaryInfoBytes),
+                 GL_INVALID_OPERATION);
 
-    ctx->m_glGetProgramBinary_enc(ctx, program, bufSize, length, binaryFormat, binary);
+    SET_ERROR_IF(bufSize < programBinaryInfoBytes.size(), GL_INVALID_OPERATION);
+
+    if (length) {
+        *length = static_cast<GLsizei>(programBinaryInfoBytes.size());
+    }
+    *binaryFormat = GL_PROGRAM_BINARY_FORMAT_GFXSTREAM_PROGRAM_BINARY_INFO_V1;
+    std::memcpy(binary, programBinaryInfoBytes.data(), programBinaryInfoBytes.size());
+}
+
+void GL2Encoder::s_glProgramBinary(void* self, GLuint program, GLenum binaryFormat,
+                                   const void* binary, GLsizei length) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+
+    VALIDATE_PROGRAM_NAME(program);
+
+    SET_ERROR_IF(binaryFormat != GL_PROGRAM_BINARY_FORMAT_GFXSTREAM_PROGRAM_BINARY_INFO_V1,
+                 GL_INVALID_ENUM);
+
+    std::string programBinaryInfoBytes(reinterpret_cast<const char*>(binary), length);
+
+    ProgramBinaryInfo programBinaryInfo;
+    if (!programBinaryInfo.ParseFromString(programBinaryInfoBytes)) {
+        ctx->m_shared->setProgramLinkStatus(program, GL_FALSE);
+        return;
+    }
+
+    {
+        const auto& hostProgramInfo = programBinaryInfo.host_program_info();
+
+        const auto hostProgramBinaryFormat = static_cast<GLenum>(hostProgramInfo.binary_format());
+        const auto& hostProgramBinary = hostProgramInfo.binary();
+        ctx->m_glProgramBinary_enc(self, program, hostProgramBinaryFormat,
+                                   hostProgramBinary.c_str(), hostProgramBinary.size());
+
+        ctx->updateProgramInfoAfterLink(program);
+    }
+
+    {
+        const auto& guestProgramInfo = programBinaryInfo.guest_program_info();
+
+        for (uint64_t index : guestProgramInfo.external_sampler_uniform_indices()) {
+            ctx->m_shared->setProgramIndexFlag(program, index,
+                                               ProgramData::INDEX_FLAG_SAMPLER_EXTERNAL);
+        }
+    }
 }
 
 void GL2Encoder::s_glReadPixels(void* self, GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels) {
@@ -6351,18 +6462,6 @@ void GL2Encoder::s_glValidateProgram(void* self, GLuint program ) {
     ctx->m_glValidateProgram_enc(self, program);
 }
 
-void GL2Encoder::s_glProgramBinary(void *self , GLuint program, GLenum binaryFormat, const void* binary, GLsizei length) {
-    GL2Encoder *ctx = (GL2Encoder*)self;
-
-    VALIDATE_PROGRAM_NAME(program);
-
-    SET_ERROR_IF(~0 == binaryFormat, GL_INVALID_ENUM);
-
-    ctx->m_glProgramBinary_enc(self, program, binaryFormat, binary, length);
-
-    ctx->updateProgramInfoAfterLink(program);
-}
-
 void GL2Encoder::s_glGetSamplerParameterfv(void *self, GLuint sampler, GLenum pname, GLfloat* params) {
     GL2Encoder *ctx = (GL2Encoder*)self;
 
@@ -6698,6 +6797,11 @@ void GL2Encoder::s_glGetProgramiv(void *self , GLuint program, GLenum pname, GLi
     GL2Encoder* ctx = (GL2Encoder*)self;
     SET_ERROR_IF(!GLESv2Validation::allowedGetProgram(ctx->majorVersion(), ctx->minorVersion(), pname), GL_INVALID_ENUM);
     VALIDATE_PROGRAM_NAME(program);
+
+    if (pname == GL_PROGRAM_BINARY_LENGTH) {
+        return ctx->getProgramBinaryLength(program, params);
+    }
+
     ctx->m_glGetProgramiv_enc(ctx, program, pname, params);
 }
 

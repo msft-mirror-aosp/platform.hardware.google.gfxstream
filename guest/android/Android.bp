@@ -24,8 +24,6 @@ cc_defaults {
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
-    host_supported: true,
-    vendor: true,
     header_libs: [
         "gfxstream_opengl_headers",
     ],
@@ -51,9 +49,7 @@ cc_library_static {
     name: "libgfxstream_guest_android",
     defaults: [
         "libgfxstream_guest_android_defaults",
-    ],
-    static_libs: [
-        "libplatform",
+        "libplatform_virtgpu_defaults",
     ],
     target: {
         android: {
@@ -75,31 +71,9 @@ cc_library_static {
         },
         host: {
             srcs: [
-                "ANativeWindowStub.cpp",
-                "GrallocStub.cpp",
+                "ANativeWindowEmulated.cpp",
+                "GrallocEmulated.cpp",
             ],
         },
     },
-}
-
-cc_library_static {
-    name: "libgfxstream_guest_android_with_host",
-    defaults: [
-        "libgfxstream_guest_android_defaults",
-    ],
-    static_libs: [
-        "libgfxstream_platform_rutabaga",
-    ],
-    target: {
-        host: {
-            compile_multilib: "64",
-        },
-        android: {
-            compile_multilib: "64",
-        },
-    },
-    srcs: [
-        "ANativeWindowEmulated.cpp",
-        "GrallocEmulated.cpp",
-    ],
 }

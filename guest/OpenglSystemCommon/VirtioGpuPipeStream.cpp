@@ -28,20 +28,13 @@ static const size_t kTransferBufferSize = (1048576);
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
-VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize) :
-    IOStream(bufSize),
-    m_virtio_mapped(nullptr),
-    m_bufsize(bufSize),
-    m_buf(nullptr),
-    m_writtenPos(0) { }
-
-VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int fd) :
-    IOStream(bufSize),
-    m_fd(fd),
-    m_virtio_mapped(nullptr),
-    m_bufsize(bufSize),
-    m_buf(nullptr),
-    m_writtenPos(0) { }
+VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int32_t descriptor)
+    : IOStream(bufSize),
+      m_fd(descriptor),
+      m_virtio_mapped(nullptr),
+      m_bufsize(bufSize),
+      m_buf(nullptr),
+      m_writtenPos(0) {}
 
 VirtioGpuPipeStream::~VirtioGpuPipeStream()
 {
@@ -68,9 +61,11 @@ int VirtioGpuPipeStream::connect(const char* serviceName)
             return -1;
         }
 
-        m_resource =
-            m_device->createResource(kTransferBufferSize, 1, kTransferBufferSize,
-                                     VIRGL_FORMAT_R8_UNORM, PIPE_BUFFER, VIRGL_BIND_CUSTOM);
+        m_resource = m_device->createResource(/*width=*/kTransferBufferSize,
+                                              /*height=*/1,
+                                              /*stride=*/kTransferBufferSize,
+                                              /*size=*/kTransferBufferSize, VIRGL_FORMAT_R8_UNORM,
+                                              PIPE_BUFFER, VIRGL_BIND_CUSTOM);
         if (!m_resource) {
             ALOGE("Failed to create VirtioGpuPipeStream resource.");
             return -1;
@@ -122,7 +117,7 @@ void *VirtioGpuPipeStream::allocBuffer(size_t minSize) {
             m_buf = p;
             m_bufsize = allocSize;
         } else {
-            ERR("realloc (%zu) failed\n", allocSize);
+            ALOGE("realloc (%zu) failed\n", allocSize);
             free(m_buf);
             m_buf = NULL;
             m_bufsize = 0;
@@ -145,9 +140,11 @@ int VirtioGpuPipeStream::writeFully(const void *buf, size_t len)
        if (len>0) {
             // If len is non-zero, buf must not be NULL. Otherwise the pipe would be
             // in a corrupted state, which is lethal for the emulator.
-           ERR("VirtioGpuPipeStream::writeFully failed, buf=NULL, len %zu,"
-                   " lethal error, exiting", len);
-           abort();
+            ALOGE(
+                "VirtioGpuPipeStream::writeFully failed, buf=NULL, len %zu,"
+                " lethal error, exiting",
+                len);
+            abort();
        }
        return 0;
     }
@@ -162,7 +159,7 @@ int VirtioGpuPipeStream::writeFully(const void *buf, size_t len)
             continue;
         }
         if (stat == 0) { /* EOF */
-            ERR("VirtioGpuPipeStream::writeFully failed: premature EOF\n");
+            ALOGE("VirtioGpuPipeStream::writeFully failed: premature EOF\n");
             retval = -1;
             break;
         }
@@ -170,8 +167,8 @@ int VirtioGpuPipeStream::writeFully(const void *buf, size_t len)
             continue;
         }
         retval =  stat;
-        ERR("VirtioGpuPipeStream::writeFully failed: %s, lethal error, exiting.\n",
-                strerror(errno));
+        ALOGE("VirtioGpuPipeStream::writeFully failed: %s, lethal error, exiting.\n",
+              strerror(errno));
         abort();
     }
     //DBG("<< VirtioGpuPipeStream::writeFully %d\n", len );
@@ -187,8 +184,10 @@ const unsigned char *VirtioGpuPipeStream::readFully(void *buf, size_t len)
         if (len > 0) {
             // If len is non-zero, buf must not be NULL. Otherwise the pipe would be
             // in a corrupted state, which is lethal for the emulator.
-            ERR("VirtioGpuPipeStream::readFully failed, buf=NULL, len %zu, lethal"
-                    " error, exiting.", len);
+            ALOGE(
+                "VirtioGpuPipeStream::readFully failed, buf=NULL, len %zu, lethal"
+                " error, exiting.",
+                len);
             abort();
         }
     }
@@ -203,9 +202,10 @@ const unsigned char *VirtioGpuPipeStream::readFully(void *buf, size_t len)
             if (errno == EAGAIN) {
                 continue;
             } else {
-                ERR("VirtioGpuPipeStream::readFully failed (buf %p, len %zu"
-                    ", res %zu): %s, lethal error, exiting.", buf, len, res,
-                    strerror(errno));
+                ALOGE(
+                    "VirtioGpuPipeStream::readFully failed (buf %p, len %zu"
+                    ", res %zu): %s, lethal error, exiting.",
+                    buf, len, res, strerror(errno));
                 abort();
             }
         } else {
@@ -227,8 +227,8 @@ const unsigned char *VirtioGpuPipeStream::read( void *buf, size_t *inout_len)
     //DBG(">> VirtioGpuPipeStream::read %d\n", *inout_len);
     if (!valid()) return NULL;
     if (!buf) {
-      ERR("VirtioGpuPipeStream::read failed, buf=NULL");
-      return NULL;  // do not allow NULL buf in that implementation
+        ALOGE("VirtioGpuPipeStream::read failed, buf=NULL");
+        return NULL;  // do not allow NULL buf in that implementation
     }
 
     int n = recv(buf, *inout_len);
@@ -273,7 +273,8 @@ int VirtioGpuPipeStream::recv(void *buf, size_t len)
 void VirtioGpuPipeStream::wait() {
     int ret = m_resource->wait();
     if (ret) {
-        ERR("VirtioGpuPipeStream: DRM_IOCTL_VIRTGPU_WAIT failed with %d (%s)\n", errno, strerror(errno));
+        ALOGE("VirtioGpuPipeStream: DRM_IOCTL_VIRTGPU_WAIT failed with %d (%s)\n", errno,
+              strerror(errno));
     }
 
     m_writtenPos = 0;
@@ -299,7 +300,8 @@ ssize_t VirtioGpuPipeStream::transferToHost(const void* buffer, size_t len) {
 
         ret = m_resource->transferToHost(m_writtenPos, toXfer);
         if (ret) {
-            ERR("VirtioGpuPipeStream: failed to transferToHost() with errno %d (%s)\n", errno, strerror(errno));
+            ALOGE("VirtioGpuPipeStream: failed to transferToHost() with errno %d (%s)\n", errno,
+                  strerror(errno));
             return (ssize_t)ret;
         }
 
@@ -329,7 +331,8 @@ ssize_t VirtioGpuPipeStream::transferFromHost(void* buffer, size_t len) {
 
         ret = m_resource->transferFromHost(0, toXfer);
         if (ret) {
-            ERR("VirtioGpuPipeStream: failed to transferFromHost() with errno %d (%s)\n", errno, strerror(errno));
+            ALOGE("VirtioGpuPipeStream: failed to transferFromHost() with errno %d (%s)\n", errno,
+                  strerror(errno));
             return (ssize_t)ret;
         }
 
