@@ -333,7 +333,10 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
                 [fb = fb.get()](uint32_t colorBufferHandle) {
                     fb->flushColorBufferFromVk(colorBufferHandle);
                 },
-        };
+            .flushColorBufferFromBytes =
+                [fb = fb.get()](uint32_t colorBufferHandle, const void* bytes, size_t bytesSize) {
+                    fb->flushColorBufferFromVkBytes(colorBufferHandle, bytes, bytesSize);
+                }};
         vkEmu = vk::createGlobalVkEmulation(vkDispatch, callbacks, fb->m_features);
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
