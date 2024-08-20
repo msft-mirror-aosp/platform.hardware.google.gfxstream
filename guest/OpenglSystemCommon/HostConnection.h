@@ -90,7 +90,7 @@ public:
             }
             return m_dmaPhysAddr;
         } else {
-            ALOGE("%s: ERROR: No DMA context bound!", __func__);
+            ALOGE("%s: ALOGEOR: No DMA context bound!", __func__);
             return 0;
         }
     }
@@ -111,18 +111,22 @@ private:
 
 struct EGLThreadInfo;
 
+enum HostConnectionType {
+    HOST_CONNECTION_QEMU_PIPE = 1,
+    HOST_CONNECTION_ADDRESS_SPACE = 2,
+    HOST_CONNECTION_VIRTIO_GPU_PIPE = 3,
+    HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE = 4,
+};
+
 class HostConnection
 {
 public:
     static HostConnection *get();
     static HostConnection* getOrCreate(enum VirtGpuCapset capset = kCapsetNone);
-
-    static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo,
-                                             enum VirtGpuCapset capset = kCapsetNone);
+    static HostConnection* getWithThreadInfo(EGLThreadInfo* tInfo, enum VirtGpuCapset capset);
     static void exit();
-    static void exitUnclean(); // for testing purposes
 
-    static std::unique_ptr<HostConnection> createUnique(enum VirtGpuCapset capset = kCapsetNone);
+    static std::unique_ptr<HostConnection> createUnique(enum VirtGpuCapset capset);
     HostConnection(const HostConnection&) = delete;
 
     ~HostConnection();
@@ -131,10 +135,6 @@ public:
     GL2Encoder *gl2Encoder();
     gfxstream::vk::VkEncoder *vkEncoder();
     ExtendedRCEncoderContext *rcEncoder();
-
-    int getRendernodeFd() { return m_rendernodeFd; }
-
-    gfxstream::guest::ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
 
 #if defined(ANDROID)
     gfxstream::ANativeWindowHelper* anwHelper() { return m_anwHelper.get(); }
@@ -157,8 +157,6 @@ public:
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
-
-    bool exitUncleanly; // for testing purposes
 
 private:
     // If the connection failed, |conn| is deleted.

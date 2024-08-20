@@ -126,6 +126,9 @@ VkResult gfxstream_vk_AllocateCommandBuffers(VkDevice device,
     VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
     VK_FROM_HANDLE(gfxstream_vk_command_pool, gfxstream_commandPool, pAllocateInfo->commandPool);
     VkResult result = (VkResult)0;
+    for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; i++) {
+        pCommandBuffers[i] = VK_NULL_HANDLE;
+    }
     std::vector<gfxstream_vk_command_buffer*> gfxstream_commandBuffers(
         pAllocateInfo->commandBufferCount);
     for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; i++) {
@@ -171,20 +174,26 @@ void gfxstream_vk_FreeCommandBuffers(VkDevice device, VkCommandPool commandPool,
     VK_FROM_HANDLE(gfxstream_vk_command_pool, gfxstream_commandPool, commandPool);
     {
         // Set up internal commandBuffer array for gfxstream-internal call
-        std::vector<VkCommandBuffer> internal_objects(commandBufferCount);
+        std::vector<VkCommandBuffer> internal_objects;
+        internal_objects.reserve(commandBufferCount);
         for (uint32_t i = 0; i < commandBufferCount; i++) {
             VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer,
                            pCommandBuffers[i]);
-            internal_objects[i] = gfxstream_commandBuffer->internal_object;
+            if (gfxstream_commandBuffer) {
+                internal_objects.push_back(gfxstream_commandBuffer->internal_object);
+            }
         }
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
         vkEnc->vkFreeCommandBuffers(gfxstream_device->internal_object,
-                                    gfxstream_commandPool->internal_object, commandBufferCount,
+                                    gfxstream_commandPool->internal_object,
+                                    internal_objects.size(),
                                     internal_objects.data(), true /* do lock */);
     }
     for (uint32_t i = 0; i < commandBufferCount; i++) {
         VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, pCommandBuffers[i]);
-        vk_command_buffer_destroyOp(&gfxstream_commandBuffer->vk);
+        if (gfxstream_commandBuffer) {
+            vk_command_buffer_destroyOp(&gfxstream_commandBuffer->vk);
+        }
     }
 }
 

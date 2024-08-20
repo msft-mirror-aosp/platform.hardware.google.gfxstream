@@ -327,7 +327,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
         if (fb->m_features.VulkanNativeSwapchain.enabled) {
             fb->m_vkInstance = vkEmu->instance;
         }
-        if (vkEmu->deviceInfo.supportsIdProperties) {
+        if (vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
             GL_LOG("Supports id properties, got a vulkan device UUID");
             fprintf(stderr, "%s: Supports id properties, got a vulkan device UUID\n", __func__);
             memcpy(fb->m_vulkanUUID.data(), vkEmu->deviceInfo.idProps.deviceUUID, VK_UUID_SIZE);
@@ -436,7 +436,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     bool vulkanInteropSupported = true;
     // First, if the VkEmulation instance doesn't support ext memory capabilities,
     // it won't support uuids.
-    if (!vkEmu || !vkEmu->deviceInfo.supportsIdProperties) {
+    if (!vkEmu || !vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
         vulkanInteropSupported = false;
     }
     if (!fb->m_emulationGl) {
@@ -1125,6 +1125,17 @@ HandleType FrameBuffer::genHandle_locked() {
              m_buffers.find(id) != m_buffers.end());
 
     return id;
+}
+
+bool FrameBuffer::isFormatSupported(GLenum format) {
+    bool supported = true;
+    if (m_emulationGl) {
+        supported &= m_emulationGl->isFormatSupported(format);
+    }
+    if (m_emulationVk) {
+        supported &= vk::isFormatSupported(format);
+    }
+    return supported;
 }
 
 HandleType FrameBuffer::createColorBuffer(int p_width,

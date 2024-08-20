@@ -15,6 +15,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <lib/magma/magma_common_defs.h>
+#include <log/log.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
@@ -28,8 +29,8 @@
 #include <thread>
 #include <unordered_map>
 
-#include "VirtioGpuAddressSpaceStream.h"
 #include "EncoderDebug.h"
+#include "VirtioGpuAddressSpaceStream.h"
 #include "magma_enc.h"
 
 static uint64_t get_ns_monotonic(bool raw) {
@@ -149,7 +150,7 @@ magma_status_t MagmaClientContext::get_fd_for_buffer(magma_buffer_t buffer, int*
 
     auto it = buffer_info_.find(buffer);
     if (it == buffer_info_.end()) {
-        ALOGE("%s: buffer (%lu) not found in map", __func__, buffer);
+        ALOGE("%s: buffer (%llu) not found in map", __func__, (unsigned long long)buffer);
         return MAGMA_STATUS_INVALID_ARGS;
     }
     auto& info = it->second;
@@ -200,7 +201,7 @@ magma_status_t MagmaClientContext::magma_device_query(void* self, magma_device_t
             return MAGMA_STATUS_INVALID_ARGS;
         }
         *value_out = value;
-        ALOGE("MAGMA_STATUS_OK (value = %lu)\n", value);
+        ALOGE("MAGMA_STATUS_OK (value = %llu)\n", (unsigned long long)value);
         return MAGMA_STATUS_OK;
     }
 
@@ -210,7 +211,8 @@ magma_status_t MagmaClientContext::magma_device_query(void* self, magma_device_t
         return MAGMA_STATUS_INVALID_ARGS;
     }
 
-    ALOGI("opening blob id %lu size %lu\n", result_buffer_mapping_id, result_buffer_size);
+    ALOGI("opening blob id %llu size %llu\n", (unsigned long long)result_buffer_mapping_id,
+          (unsigned long long)result_buffer_size);
     auto blob = VirtGpuDevice::getInstance(VirtGpuCapset::kCapsetGfxStreamMagma)
                     ->createBlob({.size = result_buffer_size,
                                   .flags = kBlobFlagMappable | kBlobFlagShareable,
@@ -304,7 +306,8 @@ magma_status_t MagmaClientContext::magma_poll(void* self, magma_poll_item_t* ite
         // TODO(fxb/122604): Add back-off to the busy loop, ideally based on recent sleep
         // patterns (e.g. start polling shortly before next expected burst).
         if (!warned_for_long_poll && time_now - time_start > 5000000000) {
-            ALOGE("magma_poll: long poll detected (%lu us)", (time_now - time_start) / 1000);
+            ALOGE("magma_poll: long poll detected (%llu us)",
+                  (unsigned long long)((time_now - time_start) / 1000));
             warned_for_long_poll = true;
         }
 
@@ -348,14 +351,16 @@ void MagmaClientContext::magma_connection_release_buffer(void* self, magma_conne
     // Invalid buffer or connection is treated as no-op by magma, so only log as verbose.
     auto it = context->buffer_info_.find(buffer);
     if (it == context->buffer_info_.end()) {
-        ALOGV("magma_connection_release_buffer: buffer (%lu) not found in map", buffer);
+        ALOGV("magma_connection_release_buffer: buffer (%llu) not found in map",
+              (unsigned long long)buffer);
         return;
     }
     if (it->second.connection != connection) {
         ALOGV(
-            "magma_connection_release_buffer: buffer (%lu) attempted release using wrong "
-            "connection (expected %lu, received %lu)",
-            buffer, it->second.connection, connection);
+            "magma_connection_release_buffer: buffer (%llu) attempted release using wrong "
+            "connection (expected %llu, received %llu)",
+            (unsigned long long)buffer, (unsigned long long)it->second.connection,
+            (unsigned long long)connection);
         return;
     }
     context->buffer_info_.erase(it);
@@ -376,7 +381,7 @@ MagmaClientContext* GetMagmaContext() {
     static std::once_flag once_flag;
 
     std::call_once(once_flag, []() {
-        auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamMagma, nullptr);
+        auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamMagma);
         assert(stream);
 
         // RenderThread expects flags: send zero 'clientFlags' to the host.
