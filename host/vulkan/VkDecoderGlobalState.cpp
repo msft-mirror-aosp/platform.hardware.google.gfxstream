@@ -2312,6 +2312,8 @@ class VkDecoderGlobalState::Impl {
                 deviceDispatch->vkDestroyImage(device, image, pAllocator);
             }
         }
+
+        imageInfo.anbInfo.reset();
     }
 
     void destroyImageLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkImage image,
@@ -5400,8 +5402,9 @@ class VkDecoderGlobalState::Impl {
         }
 
         auto* imageInfo = android::base::find(mImageInfo, image);
-        auto anbInfo = imageInfo->anbInfo;
+        if (!imageInfo) return VK_ERROR_INITIALIZATION_FAILED;
 
+        auto* anbInfo = imageInfo->anbInfo.get();
         if (anbInfo->useVulkanNativeImage) {
             // vkQueueSignalReleaseImageANDROID() is only called by the Android framework's
             // implementation of vkQueuePresentKHR(). The guest application is responsible for
@@ -7184,47 +7187,33 @@ class VkDecoderGlobalState::Impl {
     }
 
     AsyncResult registerQsriCallback(VkImage boxed_image, VkQsriTimeline::Callback callback) {
-        VkImage image;
-        std::shared_ptr<AndroidNativeBufferInfo> anbInfo;
-        {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
+        std::lock_guard<std::recursive_mutex> lock(mLock);
 
-            image = unbox_VkImage(boxed_image);
+        VkImage image = unbox_VkImage(boxed_image);
+        if (image == VK_NULL_HANDLE) return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
 
-            if (mLogging) {
-                fprintf(stderr, "%s: for boxed image 0x%llx image %p\n", __func__,
-                        (unsigned long long)boxed_image, image);
-            }
+        auto imageInfoIt = mImageInfo.find(image);
+        if (imageInfoIt == mImageInfo.end()) return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
+        auto& imageInfo = imageInfoIt->second;
 
-            if (image == VK_NULL_HANDLE || mImageInfo.find(image) == mImageInfo.end()) {
-                // No image
-                return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
-            }
-
-            anbInfo = mImageInfo[image].anbInfo;  // shared ptr, take ref
-        }
-
+        auto* anbInfo = imageInfo.anbInfo.get();
         if (!anbInfo) {
-            fprintf(stderr, "%s: warning: image %p doesn't ahve anb info\n", __func__, image);
+            ERR("Attempted to register QSRI callback on VkImage:%p without ANB info.", image);
             return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
         }
         if (!anbInfo->vk) {
-            fprintf(stderr, "%s:%p warning: image %p anb info not initialized\n", __func__,
-                    anbInfo.get(), image);
+            ERR("Attempted to register QSRI callback on VkImage:%p with uninitialized ANB info.",
+                image);
             return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
         }
         // Could be null or mismatched image, check later
         if (image != anbInfo->image) {
-            fprintf(stderr, "%s:%p warning: image %p anb info has wrong image: %p\n", __func__,
-                    anbInfo.get(), image, anbInfo->image);
+            ERR("Attempted on register QSRI callback on VkImage:%p with wrong image %p.", image,
+                anbInfo->image);
             return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
         }
 
         anbInfo->qsriTimeline->registerCallbackForNextPresentAndPoll(std::move(callback));
-
-        if (mLogging) {
-            fprintf(stderr, "%s:%p Done registering\n", __func__, anbInfo.get());
-        }
         return AsyncResult::OK_AND_CALLBACK_SCHEDULED;
     }
 

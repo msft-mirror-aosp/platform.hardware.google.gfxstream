@@ -246,7 +246,7 @@ struct BufferInfo {
 struct ImageInfo {
     VkDevice device;
     VkImageCreateInfo imageCreateInfoShallow;
-    std::shared_ptr<AndroidNativeBufferInfo> anbInfo;
+    std::unique_ptr<AndroidNativeBufferInfo> anbInfo;
     CompressedImageInfo cmpInfo;
     // ColorBuffer, provided via vkAllocateMemory().
     std::optional<HandleType> boundColorBuffer;
