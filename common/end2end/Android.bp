@@ -64,6 +64,12 @@ cc_test_host {
     test_options: {
         // Disabled by default as requires host OpenGL and Vulkan.
         unit_test: false,
+        test_runner_options: [
+            {
+                name: "native-test-timeout",
+                value: "30m",
+            },
+        ],
     },
     test_suites: [
         "general-tests",
