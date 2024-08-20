@@ -21,7 +21,10 @@ package {
 
 cc_library_static {
     name: "libmagma_android",
-    vendor: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+        "libplatform_virtgpu_defaults",
+    ],
     header_libs: [
         "libmagma_enc_headers",
         "libmagma_headers",
@@ -33,7 +36,6 @@ cc_library_static {
         "libOpenglCodecCommon",
     ],
     static_libs: [
-        "libplatform",
         "libgfxstream_guest_android",
         "libGoldfishAddressSpace",
         "libgfxstream_androidemu_static",
