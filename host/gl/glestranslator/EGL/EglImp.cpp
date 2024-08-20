@@ -479,6 +479,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
         EGLint      green_size         = 0;
         EGLint      blue_size          = 0;
         EGLint      alpha_size         = 0;
+        EGLint      alpha_mask_size    = 0;
         EGLint      depth_size         = 0;
         EGLint      frame_buffer_level = 0;
         EGLint      sample_buffers_num = 0;
@@ -575,6 +576,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
                     CHOOSE_CONFIG_DLOG_BAD_ATTRIBUTE(EGL_ALPHA_MASK_SIZE);
                     RETURN_ERROR(EGL_FALSE,EGL_BAD_ATTRIBUTE);
                 }
+                alpha_mask_size = attrib_list[i+1];
                 wanted_attribs.push_back(EGL_ALPHA_MASK_SIZE);
                 break;
             case EGL_BIND_TO_TEXTURE_RGB:
@@ -749,7 +751,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
             }
         }
     }
-    EglConfig dummy(red_size,green_size,blue_size,alpha_size,caveat,conformant,depth_size,
+    EglConfig dummy(red_size,green_size,blue_size,alpha_size,alpha_mask_size,caveat,conformant,depth_size,
                     frame_buffer_level,0,0,0,native_renderable,renderable_type,0,native_visual_type,
                     sample_buffers_num, samples_per_pixel,stencil_size,luminance_size,wanted_buffer_size,
                     surface_type,transparent_type,trans_red_val,trans_green_val,trans_blue_val,recordable_android, framebuffer_target_android,
