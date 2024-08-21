@@ -63,8 +63,6 @@ using gfxstream::vk::VkEncoder;
 #include "QemuPipeStream.h"
 #include "ThreadInfo.h"
 
-using gfxstream::guest::getCurrentThreadId;
-
 #include "VirtGpu.h"
 #include "VirtioGpuPipeStream.h"
 
@@ -674,4 +672,29 @@ void HostConnection::queryAndSetVulkanAuxCommandBufferMemory(ExtendedRCEncoderCo
 GLint HostConnection::queryVersion(ExtendedRCEncoderContext* rcEnc) {
     GLint version = m_rcEnc->rcGetRendererVersion(m_rcEnc.get());
     return version;
+}
+
+void HostConnection::setVulkanFeatureInfo(void* info) {
+    struct EmulatorGfxStreamVkFeatureInfo* featureInfo =
+        (struct EmulatorGfxStreamVkFeatureInfo*)info;
+
+    featureInfo->hasDirectMem = m_rcEnc->featureInfo()->hasDirectMem;
+    featureInfo->hasVulkan = m_rcEnc->featureInfo()->hasVulkan;
+    featureInfo->hasDeferredVulkanCommands = m_rcEnc->featureInfo()->hasDeferredVulkanCommands;
+    featureInfo->hasVulkanNullOptionalStrings =
+        m_rcEnc->featureInfo()->hasVulkanNullOptionalStrings;
+    featureInfo->hasVulkanCreateResourcesWithRequirements =
+        m_rcEnc->featureInfo()->hasVulkanCreateResourcesWithRequirements;
+    featureInfo->hasVulkanIgnoredHandles = m_rcEnc->featureInfo()->hasVulkanIgnoredHandles;
+    featureInfo->hasVirtioGpuNext = m_rcEnc->featureInfo()->hasVirtioGpuNext;
+    featureInfo->hasVulkanFreeMemorySync = m_rcEnc->featureInfo()->hasVulkanFreeMemorySync;
+    featureInfo->hasVirtioGpuNativeSync = m_rcEnc->featureInfo()->hasVirtioGpuNativeSync;
+    featureInfo->hasVulkanShaderFloat16Int8 = m_rcEnc->featureInfo()->hasVulkanShaderFloat16Int8;
+    featureInfo->hasVulkanAsyncQueueSubmit = m_rcEnc->featureInfo()->hasVulkanAsyncQueueSubmit;
+    featureInfo->hasVulkanQueueSubmitWithCommands =
+        m_rcEnc->featureInfo()->hasVulkanQueueSubmitWithCommands;
+    featureInfo->hasVulkanBatchedDescriptorSetUpdate =
+        m_rcEnc->featureInfo()->hasVulkanBatchedDescriptorSetUpdate;
+    featureInfo->hasVulkanAsyncQsri = m_rcEnc->featureInfo()->hasVulkanAsyncQsri;
+    featureInfo->hasVulkanAuxCommandMemory = m_rcEnc->featureInfo()->hasVulkanAuxCommandMemory;
 }
