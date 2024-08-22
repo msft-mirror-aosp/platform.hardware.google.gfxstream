@@ -49,7 +49,10 @@ gfxstream_backend_magma_static_deps = [
 
 cc_defaults {
     name: "libgfxstream_backend_defaults",
-    defaults: ["gfxstream_defaults"],
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
     vendor_available: true,
     cflags: [
         "-Wno-unused-parameter",
