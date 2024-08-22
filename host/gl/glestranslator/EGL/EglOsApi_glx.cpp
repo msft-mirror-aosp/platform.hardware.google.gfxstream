@@ -237,6 +237,22 @@ void pixelFormatToConfig(EGLNativeDisplayType dpy,
                                             &info.max_pbuffer_height));
     EXIT_IF_FALSE(glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_MAX_PBUFFER_HEIGHT,
                                             &info.max_pbuffer_size));
+    if (info.surface_type & EGL_PBUFFER_BIT) {
+        // b/357847438
+        // Tested on NVIDIA Quadro P1000 Driver Version: 535.183.01
+        // Some driver reports pbuffer support while giving size 0.
+        // This looks like a driver bug and would require workarounds.
+        // So just give them some values.
+        if (!info.max_pbuffer_width) {
+            info.max_pbuffer_width = 2048;
+        }
+        if (!info.max_pbuffer_height) {
+            info.max_pbuffer_height = 2048;
+        }
+        if (!info.max_pbuffer_size) {
+            info.max_pbuffer_size = 2048;
+        }
+    }
 
     EXIT_IF_FALSE(
         glx->glXGetFBConfigAttrib((Display*)dpy, frmt, GLX_LEVEL, &info.frame_buffer_level));

@@ -90,7 +90,7 @@ public:
             }
             return m_dmaPhysAddr;
         } else {
-            ALOGE("%s: ERROR: No DMA context bound!", __func__);
+            ALOGE("%s: ALOGEOR: No DMA context bound!", __func__);
             return 0;
         }
     }
@@ -158,7 +158,9 @@ public:
 #pragma clang diagnostic pop
 #endif
 
-private:
+    void setVulkanFeatureInfo(void* info);
+
+   private:
     // If the connection failed, |conn| is deleted.
     // Returns NULL if connection failed.
  static std::unique_ptr<HostConnection> connect(enum VirtGpuCapset capset);
