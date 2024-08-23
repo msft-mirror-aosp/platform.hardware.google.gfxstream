@@ -40,7 +40,6 @@ namespace base {
 class CpuUsage;
 class MemoryTracker;
 class GLObjectCounter;
-class GraphicsObjectCounter;
 
 } // namespace base
 } // namespace android
@@ -69,8 +68,6 @@ public:
     // Get the GLES major/minor version determined by libOpenglRender.
     virtual void getGlesVersion(int* maj, int* min) = 0;
     virtual void setLogger(emugl_logger_struct logger) = 0;
-    virtual void setGraphicsObjectCounter(
-            android::base::GraphicsObjectCounter* counter) = 0;
     virtual void setGLObjectCounter(
             android::base::GLObjectCounter* counter) = 0;
     virtual void setCrashReporter(emugl_crash_reporter_t reporter) = 0;
