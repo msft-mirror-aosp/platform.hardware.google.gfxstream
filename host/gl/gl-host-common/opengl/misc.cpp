@@ -15,14 +15,17 @@
 #include "host-common/opengl/misc.h"
 
 #include "aemu/base/GLObjectCounter.h"
+#include "aemu/base/GraphicsObjectCounter.h"
 
 #include <cstring>
 
 static int s_glesMajorVersion = 2;
 static int s_glesMinorVersion = 0;
 
-android::base::GLObjectCounter* s_default_gl_object_counter = nullptr;
+android::base::GraphicsObjectCounter* s_default_graphics_object_counter = nullptr;
+android::base::GraphicsObjectCounter* s_graphics_object_counter = nullptr;
 
+android::base::GLObjectCounter* s_default_gl_object_counter = nullptr;
 android::base::GLObjectCounter* s_gl_object_counter = nullptr;
 static GrallocImplementation s_gralloc_implementation = MINIGBM;
 
@@ -63,6 +66,20 @@ bool emugl::hasExtension(const char* extensionsStr, const char* wantedExtension)
 
 void emugl::setGLObjectCounter(android::base::GLObjectCounter* counter) {
     s_gl_object_counter = counter;
+}
+
+void emugl::setGraphicsObjectCounter(android::base::GraphicsObjectCounter* counter) {
+    s_graphics_object_counter = counter;
+}
+
+android::base::GraphicsObjectCounter* emugl::getGraphicsObjectCounter() {
+    if (!s_graphics_object_counter) {
+        if (!s_default_graphics_object_counter) {
+            s_default_graphics_object_counter = new android::base::GraphicsObjectCounter;
+        }
+        return s_default_graphics_object_counter;
+    }
+    return s_graphics_object_counter;
 }
 
 android::base::GLObjectCounter* emugl::getGLObjectCounter() {
