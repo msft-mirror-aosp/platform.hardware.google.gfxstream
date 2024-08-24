@@ -2754,23 +2754,6 @@ std::future<void> FrameBuffer::blockPostWorker(std::future<void> continueSignal)
     return scheduledFuture;
 }
 
-void FrameBuffer::waitForGpuVulkan(uint64_t deviceHandle, uint64_t fenceHandle) {
-    (void)deviceHandle;
-    if (!m_emulationGl) {
-        // Guest ANGLE should always use the asyncWaitForGpuVulkanWithCb call. EmulatedEglFenceSync
-        // is a wrapper over EGLSyncKHR and should not be used for pure Vulkan environment.
-        return;
-    }
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-    // Note: this will always be nullptr.
-    EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(fenceHandle);
-
-    // Note: This will always signal right away.
-    SyncThread::get()->triggerBlockedWaitNoTimeline(fenceSync);
-#endif
-}
-
 void FrameBuffer::asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fenceHandle,
                                               FenceCompletionCallback cb) {
     (void)deviceHandle;
@@ -2779,14 +2762,6 @@ void FrameBuffer::asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fe
 
 void FrameBuffer::asyncWaitForGpuVulkanQsriWithCb(uint64_t image, FenceCompletionCallback cb) {
     SyncThread::get()->triggerWaitVkQsriWithCompletionCallback((VkImage)image, std::move(cb));
-}
-
-void FrameBuffer::waitForGpuVulkanQsri(uint64_t image) {
-    (void)image;
-    // Signal immediately, because this was a sync wait and it's vulkan.
-#if GFXSTREAM_ENABLE_HOST_GLES
-    SyncThread::get()->triggerBlockedWaitNoTimeline(nullptr);
-#endif
 }
 
 void FrameBuffer::setGuestManagedColorBufferLifetime(bool guestManaged) {
@@ -3884,17 +3859,6 @@ bool FrameBuffer::readColorBufferContents(HandleType p_colorbuffer, size_t* numB
     }
 
     return colorBuffer->glOpReadContents(numBytes, pixels);
-}
-
-void FrameBuffer::waitForGpu(uint64_t eglsync) {
-    EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(eglsync);
-
-    if (!fenceSync) {
-        ERR("err: fence sync 0x%llx not found", (unsigned long long)eglsync);
-        return;
-    }
-
-    SyncThread::get()->triggerBlockedWaitNoTimeline(fenceSync);
 }
 
 void FrameBuffer::asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallback cb) {
