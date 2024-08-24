@@ -21,7 +21,7 @@
 #include <time.h>
 
 #include <iomanip>
-#include <iostream>
+
 #if defined(__linux__)
 #include <sys/resource.h>
 #endif
@@ -35,7 +35,6 @@
 #include "aemu/base/Metrics.h"
 #include "aemu/base/SharedLibrary.h"
 #include "aemu/base/Tracing.h"
-#include "aemu/base/GraphicsObjectCounter.h"
 #include "aemu/base/containers/Lookup.h"
 #include "aemu/base/files/StreamSerializing.h"
 #include "aemu/base/memory/MemoryTracker.h"
@@ -1195,7 +1194,6 @@ HandleType FrameBuffer::createColorBufferWithHandleLocked(int p_width, int p_hei
     // m_colorBufferDelayedCloseList in FrameBuffer::onLoad().
     if (m_refCountPipeEnabled) {
         m_colorbuffers.try_emplace(handle, ColorBufferRef{std::move(cb), 1, false, 0});
-        GL_LOG("RefCountPipeEnabled in createColorBufferWithHandleLocked for cb with handle %d", handle);
     } else {
         // Android master default api level is 1000
         int apiLevel = 1000;
@@ -1213,10 +1211,9 @@ HandleType FrameBuffer::createColorBufferWithHandleLocked(int p_width, int p_hei
 
         } else {
             m_colorbuffers.try_emplace(handle, ColorBufferRef{std::move(cb), 0, false, 0});
-            GL_LOG("Added cb in createColorBufferWithHandleLocked for cb with handle %d", handle);
         }
     }
-    emugl::getGraphicsObjectCounter()->incCount(android::base::toIndex(android::base::GraphicsObjectType::COLORBUFFER));
+
     return handle;
 }
 
@@ -1289,7 +1286,6 @@ void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer) {
     // When guest feature flag RefCountPipe is on, no reference counting is
     // needed.
     if (m_refCountPipeEnabled) {
-        GL_LOG("RefCountPipeEnabled so closeColorBuffer doesn't run");
         return;
     }
 
@@ -1360,8 +1356,6 @@ bool FrameBuffer::closeColorBufferLocked(HandleType p_colorbuffer, bool forced) 
             if (forced) {
                 eraseDelayedCloseColorBufferLocked(c->first, c->second.closedTs);
                 m_colorbuffers.erase(c);
-                emugl::getGraphicsObjectCounter()->decCount(
-                    android::base::toIndex(android::base::GraphicsObjectType::COLORBUFFER));
                 deleted = true;
             } else {
                 c->second.closedTs = android::base::getUnixTimeUs();
@@ -1406,8 +1400,6 @@ void FrameBuffer::performDelayedColorBufferCloseLocked(bool forced) {
             const auto& cb = m_colorbuffers.find(it->cbHandle);
             if (cb != m_colorbuffers.end()) {
                 m_colorbuffers.erase(cb);
-                emugl::getGraphicsObjectCounter()->decCount(
-                    android::base::toIndex(android::base::GraphicsObjectType::COLORBUFFER));
             }
         }
         ++it;
@@ -2142,8 +2134,6 @@ bool FrameBuffer::decColorBufferRefCountLocked(HandleType p_colorbuffer) {
         it->second.refcount -= 1;
         if (it->second.refcount == 0) {
             m_colorbuffers.erase(p_colorbuffer);
-            emugl::getGraphicsObjectCounter()->decCount(
-                android::base::toIndex(android::base::GraphicsObjectType::COLORBUFFER));
             return true;
         }
     }
