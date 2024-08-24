@@ -20,7 +20,6 @@
 
 #include "aemu/base/ArraySize.h"
 #include "aemu/base/GLObjectCounter.h"
-#include "aemu/base/GraphicsObjectCounter.h"
 #include "aemu/base/files/PathUtils.h"
 #include "aemu/base/system/System.h"
 #include "aemu/base/testing/TestSystem.h"
@@ -445,7 +444,6 @@ protected:
         VulkanTest::SetUp();
 
         emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
-        emugl::setGraphicsObjectCounter(android::base::GraphicsObjectCounter::get());
         emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
         emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
         ASSERT_NE(nullptr, gl::LazyLoadedEGLDispatch::get());

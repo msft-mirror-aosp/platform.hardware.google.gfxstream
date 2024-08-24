@@ -51,11 +51,6 @@ void RenderLibImpl::setLogger(emugl_logger_struct logger) {
 #endif
 }
 
-void RenderLibImpl::setGraphicsObjectCounter(
-        android::base::GraphicsObjectCounter* counter) {
-    emugl::setGraphicsObjectCounter(counter);
-}
-
 void RenderLibImpl::setGLObjectCounter(
         android::base::GLObjectCounter* counter) {
     emugl::setGLObjectCounter(counter);
