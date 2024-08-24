@@ -203,7 +203,8 @@ vk_common_AllocateCommandBuffers(VkDevice device,
    for (i = 0; i < pAllocateInfo->commandBufferCount; i++) {
       struct vk_command_buffer *cmd_buffer = vk_command_pool_find_free(pool);
       if (cmd_buffer == NULL) {
-         result = pool->command_buffer_ops->create(pool, &cmd_buffer);
+         result = pool->command_buffer_ops->create(
+            pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, &cmd_buffer);
          if (unlikely(result != VK_SUCCESS))
             goto fail;
       }
