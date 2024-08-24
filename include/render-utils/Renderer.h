@@ -28,7 +28,6 @@
 
 namespace android_studio {
 class EmulatorGLESUsages;
-class GraphicsResourceUsage;
 }
 
 namespace gfxstream {
