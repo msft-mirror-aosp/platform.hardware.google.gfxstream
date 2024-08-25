@@ -94,8 +94,6 @@ typedef void (*repost_t)(void);
 typedef uint32_t (*get_last_posted_color_buffer_t)(void);
 typedef void (*bind_color_buffer_to_texture_t)(uint32_t);
 typedef void* (*get_global_egl_context_t)(void);
-typedef void (*wait_for_gpu_t)(uint64_t eglsync);
-typedef void (*wait_for_gpu_vulkan_t)(uint64_t device, uint64_t fence);
 typedef void (*set_guest_managed_color_buffer_lifetime_t)(bool guest_managed);
 typedef void (*update_color_buffer_from_framework_format_t)(uint32_t handle,
                                                             int x,
@@ -118,7 +116,7 @@ typedef void* async_wait_for_gpu_with_cb_t;
 typedef void* async_wait_for_gpu_vulkan_with_cb_t;
 typedef void* async_wait_for_gpu_vulkan_qsri_with_cb_t;
 #endif
-typedef void (*wait_for_gpu_vulkan_qsri_t)(uint64_t image);
+
 
 // Platform resources and contexts support
 #define RESOURCE_TYPE_MASK 0x0F
@@ -162,14 +160,11 @@ struct AndroidVirtioGpuOps {
     get_last_posted_color_buffer_t get_last_posted_color_buffer;
     bind_color_buffer_to_texture_t bind_color_buffer_to_texture;
     get_global_egl_context_t get_global_egl_context;
-    wait_for_gpu_t wait_for_gpu;
-    wait_for_gpu_vulkan_t wait_for_gpu_vulkan;
+
     set_guest_managed_color_buffer_lifetime_t set_guest_managed_color_buffer_lifetime;
     async_wait_for_gpu_with_cb_t async_wait_for_gpu_with_cb;
     async_wait_for_gpu_vulkan_with_cb_t async_wait_for_gpu_vulkan_with_cb;
-
     async_wait_for_gpu_vulkan_qsri_with_cb_t async_wait_for_gpu_vulkan_qsri_with_cb;
-    wait_for_gpu_vulkan_qsri_t wait_for_gpu_vulkan_qsri;
 
     update_color_buffer_from_framework_format_t update_color_buffer_from_framework_format;
 
