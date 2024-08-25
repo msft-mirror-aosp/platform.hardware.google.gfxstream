@@ -108,7 +108,7 @@ cc_library_static {
     name: "libvulkan_enc",
     defaults: [
         "libgfxstream_guest_cc_defaults",
-        "gfxstream_guest_cc_defaults_for_platform",
+        "gfxstream_guest_cc_defaults",
         "libplatform_virtgpu_defaults",
     ],
     header_libs: [
