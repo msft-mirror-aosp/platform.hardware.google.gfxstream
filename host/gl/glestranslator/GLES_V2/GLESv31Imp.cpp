@@ -112,6 +112,7 @@ EXTERN_PART GL_APICALL GLuint GL_APIENTRY glCreateShaderProgramv(GLenum type, GL
         ctx->shareGroup()->genName(ShaderProgramType::PROGRAM, 0, true, glCreateShaderProgramvRET);
 
     ProgramData* progdata = new ProgramData(ctx->getMajorVersion(), ctx->getMinorVersion());
+    progdata->addProgramName(glCreateShaderProgramvRET);
     progdata->setHostLinkStatus(linkstatus);
     progdata->setLinkStatus(GL_TRUE);
 
