@@ -24,18 +24,6 @@ cc_defaults {
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
-    header_libs: [
-        "gfxstream_opengl_headers",
-    ],
-    shared_libs: [
-        "libcutils",
-        "libdrm",
-        "liblog",
-        "libutils",
-    ],
-    export_shared_lib_headers: [
-        "libdrm",
-    ],
     export_include_dirs: [
         "include",
     ],
@@ -50,6 +38,15 @@ cc_library_static {
     defaults: [
         "libgfxstream_guest_android_defaults",
         "libplatform_virtgpu_defaults",
+    ],
+    header_libs: [
+        "mesa_common_headers_gfxstream",
+    ],
+    shared_libs: [
+        "libutils",
+    ],
+    static_libs: [
+        "libmesa_util_gfxstream",
     ],
     target: {
         android: {

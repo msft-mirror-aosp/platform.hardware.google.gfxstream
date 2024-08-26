@@ -34,8 +34,6 @@ cc_library_static {
         "libmesa_util_gfxstream",
     ],
     shared_libs: [
-        "liblog",
-        "libutils",
         "libdrm",
     ],
     export_include_dirs: [
