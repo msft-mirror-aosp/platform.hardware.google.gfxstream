@@ -895,7 +895,13 @@ EGLBoolean egl_pbuffer_surface_t::init(GLenum pixelFormat)
         return EGL_FALSE;
     }
 
-    rcColorBuffer = grallocHelper->createColorBuffer(rcEnc, getWidth(), getHeight(), pixelFormat);
+    uint32_t rcColorBuffer = 0;
+    if (grallocHelper->getGrallocType() == gfxstream::GRALLOC_TYPE_GOLDFISH) {
+        rcColorBuffer = rcEnc->rcCreateColorBuffer(rcEnc, getWidth(), getHeight(), pixelFormat);
+    } else {
+        rcColorBuffer = grallocHelper->createColorBuffer(getWidth(), getHeight(), pixelFormat);
+    }
+
     if (!rcColorBuffer) {
         ALOGE("rcCreateColorBuffer returned 0");
         return EGL_FALSE;

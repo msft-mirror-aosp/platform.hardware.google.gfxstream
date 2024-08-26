@@ -67,7 +67,7 @@ class Gralloc {
     virtual ~Gralloc() {}
 
     virtual GrallocType getGrallocType() = 0;
-    virtual uint32_t createColorBuffer(void* rcEnc, int width, int height, uint32_t glformat) = 0;
+    virtual uint32_t createColorBuffer(int width, int height, uint32_t glformat) = 0;
 
     virtual void acquire(AHardwareBuffer* ahb) = 0;
     virtual void release(AHardwareBuffer* ahb) = 0;

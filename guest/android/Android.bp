@@ -59,7 +59,6 @@ cc_library_static {
                 "minigbm_headers",
             ],
             shared_libs: [
-                "lib_renderControl_enc",
                 "libnativewindow",
             ],
             srcs: [
