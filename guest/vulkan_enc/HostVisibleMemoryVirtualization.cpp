@@ -16,7 +16,6 @@
 
 #include <set>
 
-#include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
 #include "ResourceTracker.h"
 #include "Resources.h"
 #include "VkEncoder.h"
