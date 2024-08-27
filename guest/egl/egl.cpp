@@ -14,41 +14,35 @@
 * limitations under the License.
 */
 
-#include <atomic>
-#include <time.h>
-
+#include <GLES3/gl31.h>
 #include <assert.h>
+#include <cutils/log.h>
+#include <cutils/properties.h>
+#include <cutils/trace.h>
+#include <poll.h>
+#include <qemu_pipe_bp.h>
+#include <time.h>
+#include <xf86drm.h>
 
+#include <atomic>
+
+#include "ClientAPIExts.h"
+#include "EGLImage.h"
+#include "GL2Encoder.h"
+#include "GLEncoder.h"
 #include "HostConnection.h"
+#include "ProcessPipe.h"
 #include "ThreadInfo.h"
+#include "VirtGpu.h"
+#include "aemu/base/Tracing.h"
 #include "aemu/base/threads/AndroidThread.h"
+#include "eglContext.h"
 #include "eglDisplay.h"
 #include "eglSync.h"
 #include "egl_ftable.h"
-#include <cutils/log.h>
-#include <cutils/properties.h>
-#include "goldfish_sync.h"
 #include "gfxstream/guest/GLClientState.h"
 #include "gfxstream/guest/GLSharedGroup.h"
-#include "eglContext.h"
-#include "ClientAPIExts.h"
-#include "EGLImage.h"
-#include "ProcessPipe.h"
-
-#include <qemu_pipe_bp.h>
-
-#include "GLEncoder.h"
-#include "GL2Encoder.h"
-
-#include <GLES3/gl31.h>
-
-#include <xf86drm.h>
-#include <poll.h>
-#include "VirtGpu.h"
-#include "virtgpu_drm.h"
-
-#include "aemu/base/Tracing.h"
-#include <cutils/trace.h>
+#include "goldfish_sync.h"
 
 using gfxstream::guest::GLClientState;
 using gfxstream::guest::getCurrentThreadId;
