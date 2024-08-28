@@ -29,13 +29,12 @@ cc_library_static {
     ],
     header_libs: [
         "mesa_common_headers_gfxstream",
+        "libgfxstream_guest_mesa_graphics_headers",
     ],
     static_libs: [
         "libmesa_util_gfxstream",
     ],
     shared_libs: [
-        "liblog",
-        "libutils",
         "libdrm",
     ],
     export_include_dirs: [
