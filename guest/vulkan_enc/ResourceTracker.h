@@ -26,14 +26,12 @@
 
 #include "CommandBufferStagingStream.h"
 #include "HostVisibleMemoryVirtualization.h"
+#include "Sync.h"
 #include "VirtGpu.h"
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
-#include "aemu/base/threads/AndroidWorkPool.h"
 #include "goldfish_vk_transform_guest.h"
 #include "util/perf/cpu_trace.h"
-
-using gfxstream::guest::WorkPool;
 
 /// Use installed headers or locally defined Fuchsia-specific bits
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -81,6 +79,7 @@ typedef uint64_t zx_koid_t;
 /// Use installed headers or locally defined Android-specific bits
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include "AndroidHardwareBuffer.h"
+#include "gfxstream/guest/Gralloc.h"
 #endif
 
 #if defined(__linux__) || defined(__Fuchsia__)
@@ -550,6 +549,7 @@ class ResourceTracker {
 
     void setupFeatures(const struct GfxStreamVkFeatureInfo* features);
     void setupCaps(uint32_t& noRenderControlEnc);
+    void setupPlatformHelpers();
 
     void setThreadingCallbacks(const ThreadingCallbacks& callbacks);
     bool hostSupportsVulkan() const;
@@ -719,6 +719,8 @@ class ResourceTracker {
         fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* collection,
         const VkImageCreateInfo* pImageInfo);
 #endif
+
+    uint64_t getAHardwareBufferId(AHardwareBuffer* ahw);
 
     void unregister_VkDescriptorSet_locked(VkDescriptorSet set);
 
@@ -902,6 +904,12 @@ class ResourceTracker {
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 #endif  // defined(__ANDROID__)
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+    std::unique_ptr<gfxstream::Gralloc> mGralloc = nullptr;
+#endif
+
+    std::unique_ptr<gfxstream::SyncHelper> mSyncHelper = nullptr;
+
     struct VirtGpuCaps mCaps;
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
     std::vector<VkExtensionProperties> mHostDeviceExtensions;
@@ -920,10 +928,6 @@ class ResourceTracker {
 #define HANDLE_REGISTER_DECLARATION(type) std::unordered_map<type, type##_Info> info_##type;
 
     GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_DECLARATION)
-
-    WorkPool mWorkPool{4};
-    std::unordered_map<VkQueue, std::vector<WorkPool::WaitGroupHandle>>
-        mQueueSensitiveWorkPoolItems;
 
     std::unordered_map<const VkEncoder*, std::unordered_map<void*, CleanupCallback>>
         mEncoderCleanupCallbacks;
