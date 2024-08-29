@@ -206,10 +206,24 @@ struct EmulatorFeatureInfo {
     bool hasVulkanAuxCommandMemory; // This feature tracks if vulkan command buffers should be stored in an auxiliary shared memory
 };
 
-enum GrallocType {
-    GRALLOC_TYPE_RANCHU = 0,
-    GRALLOC_TYPE_MINIGBM = 1,
-    GRALLOC_TYPE_DYN_ALLOC_MINIGBM = 2,
+// This should be ABI identical with the variant in ResourceTracker.h
+struct EmulatorGfxStreamVkFeatureInfo {
+    bool hasDirectMem;
+    bool hasVulkan;
+    bool hasDeferredVulkanCommands;
+    bool hasVulkanNullOptionalStrings;
+    bool hasVulkanCreateResourcesWithRequirements;
+    bool hasVulkanIgnoredHandles;
+    bool hasVirtioGpuNext;
+    bool hasVulkanFreeMemorySync;
+    bool hasVirtioGpuNativeSync;
+    bool hasVulkanShaderFloat16Int8;
+    bool hasVulkanAsyncQueueSubmit;
+    bool hasVulkanQueueSubmitWithCommands;
+    bool hasVulkanBatchedDescriptorSetUpdate;
+    bool hasVulkanAsyncQsri;
+    bool hasVulkanAuxCommandMemory;
+    bool setupComplete;
 };
 
 #endif // __COMMON_EMULATOR_FEATURE_INFO_H

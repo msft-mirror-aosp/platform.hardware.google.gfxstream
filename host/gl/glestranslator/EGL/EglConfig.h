@@ -80,6 +80,7 @@ public:
               EGLint green_size,
               EGLint blue_size,
               EGLint alpha_size,
+              EGLint alpha_mask_size,
               EGLenum  caveat,
               EGLint  conformant,
               EGLint depth_size,
@@ -110,6 +111,7 @@ public:
               EGLint green_size,
               EGLint blue_size,
               EGLint alpha_size,
+              EGLint alpha_mask_size,
               EGLenum  caveat,
               EGLint depth_size,
               EGLint frame_buffer_level,
@@ -166,6 +168,7 @@ private:
     const EGLint      m_green_size;
     const EGLint      m_blue_size;
     const EGLint      m_alpha_size;
+    const EGLint      m_alpha_mask_size;
     const EGLBoolean  m_bind_to_tex_rgb;
     const EGLBoolean  m_bind_to_tex_rgba;
     const EGLenum     m_caveat;
