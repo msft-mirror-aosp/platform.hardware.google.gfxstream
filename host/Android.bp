@@ -27,6 +27,7 @@ gfxstream_backend_static_deps = [
     "libgfxstream_glestranslator_glescm",
     "libgfxstream_glestranslator_glesv2",
     "libgfxstream_host_apigen_codec_common",
+    "libgfxstream_host_backend",
     "libgfxstream_host_compressedtextures",
     "libgfxstream_host_dispatch",
     "libgfxstream_host_gl_host_common",
