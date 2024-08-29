@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "ExternalObjectManager.h"
-#include "FrameBuffer.h"
 #include "RenderThreadInfoVk.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
@@ -1060,11 +1059,8 @@ class VkDecoderGlobalState::Impl {
 
         *pInstance = (VkInstance)info.boxed;
 
-        auto fb = FrameBuffer::getFB();
-        if (!fb) return res;
-
         if (vkCleanupEnabled()) {
-            fb->registerProcessCleanupCallback(unbox_VkInstance(boxed), [this, boxed] {
+            m_emu->callbacks.registerProcessCleanupCallback(unbox_VkInstance(boxed), [this, boxed] {
                 if (snapshotsEnabled()) {
                     snapshot()->vkDestroyInstance(nullptr, 0, nullptr, boxed, nullptr);
                 }
@@ -1125,10 +1121,7 @@ class VkDecoderGlobalState::Impl {
 
         vkDestroyInstanceImpl(instance, pAllocator);
 
-        auto fb = FrameBuffer::getFB();
-        if (!fb) return;
-
-        fb->unregisterProcessCleanupCallback(instance);
+        m_emu->callbacks.unregisterProcessCleanupCallback(instance);
     }
 
     VkResult GetPhysicalDevices(VkInstance instance, VulkanDispatch* vk,
@@ -4591,10 +4584,7 @@ class VkDecoderGlobalState::Impl {
                 shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
 
                 if (!m_emu->features.GuestVulkanOnly.enabled) {
-                    auto fb = FrameBuffer::getFB();
-                    if (fb) {
-                        fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
-                    }
+                    m_emu->callbacks.invalidateColorBuffer(importCbInfoPtr->colorBuffer);
                 }
 
 #if defined(__APPLE__)
@@ -5645,11 +5635,9 @@ class VkDecoderGlobalState::Impl {
                     }
                 }
             }
-            auto fb = FrameBuffer::getFB();
-            if (fb) {
-                for (HandleType cb : acquiredColorBuffers) {
-                    fb->invalidateColorBufferForVk(cb);
-                }
+
+            for (HandleType cb : acquiredColorBuffers) {
+                m_emu->callbacks.invalidateColorBuffer(cb);
             }
         }
 
@@ -5780,13 +5768,10 @@ class VkDecoderGlobalState::Impl {
             }
         }
         if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE,
-                                /* 1 sec */ 1000000000L);
-            auto fb = FrameBuffer::getFB();
-            if (fb) {
-                for (HandleType cb : releasedColorBuffers) {
-                    fb->flushColorBufferFromVk(cb);
-                }
+            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+
+            for (HandleType cb : releasedColorBuffers) {
+                m_emu->callbacks.flushColorBuffer(cb);
             }
         }
 
