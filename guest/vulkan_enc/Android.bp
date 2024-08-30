@@ -117,6 +117,7 @@ cc_library_static {
         "libgfxstream_guest_iostream",
         "libnativewindow_headers",
         "mesa_common_headers_gfxstream",
+        "aemu_common_headers",
     ],
     generated_headers: [
         "vk_cmd_queue_header_gfxstream",
@@ -135,6 +136,7 @@ cc_library_static {
         "libgfxstream_androidemu_static",
         "libGoldfishAddressSpace",
         "libmesa_vulkan_util_gfxstream",
+        "gfxstream_base",
         "libmesa_vulkan_runtime_gfxstream",
         "libgfxstream_guest_android",
         "libgfxstream_guest_vulkan_entrypoints",
