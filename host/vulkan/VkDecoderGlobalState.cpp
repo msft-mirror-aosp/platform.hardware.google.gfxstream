@@ -23,6 +23,7 @@
 
 #include "ExternalObjectManager.h"
 #include "RenderThreadInfoVk.h"
+#include "SyncThread.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
 #include "VkDecoderContext.h"
@@ -5769,11 +5770,13 @@ class VkDecoderGlobalState::Impl {
             }
         }
         if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
-
-            for (HandleType cb : releasedColorBuffers) {
-                m_emu->callbacks.flushColorBuffer(cb);
-            }
+            SyncThread::get()->triggerWaitVkWithCompletionCallback(
+                usedFence,
+                [flushColorBuffer = m_emu->callbacks.flushColorBuffer, releasedColorBuffers]() {
+                    for (HandleType cb : releasedColorBuffers) {
+                        flushColorBuffer(cb);
+                    }
+                });
         }
 
         return result;
