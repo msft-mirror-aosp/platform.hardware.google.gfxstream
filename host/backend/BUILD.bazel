@@ -1,0 +1,6 @@
+cc_library(
+    name = "gfxstream_backend",
+    srcs = glob(["include/**/*.h"]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)

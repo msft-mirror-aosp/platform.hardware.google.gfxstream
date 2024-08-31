@@ -3,6 +3,7 @@
 
 files_lib_render_control_enc = files(
   'renderControl_enc.cpp',
+  'ExtendedRenderControl.cpp',
 )
 
 lib_render_control_enc = static_library(

@@ -33,7 +33,9 @@ public:
 
  explicit QemuPipeStream(size_t bufsize = 10000);
  ~QemuPipeStream();
- int connect(void);
+
+ virtual int connect(const char* serviceName = nullptr);
+ virtual uint64_t processPipeInit();
 
  virtual void* allocBuffer(size_t minSize);
  virtual int commitBuffer(size_t size);
