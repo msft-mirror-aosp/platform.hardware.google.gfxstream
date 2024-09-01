@@ -26,6 +26,7 @@
 #include "aemu/base/BumpPool.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/BackendCallbacks.h"
 #include "goldfish_vk_private_defs.h"
 
 namespace gfxstream {
@@ -163,7 +164,8 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
                                                 VkSemaphore semaphore, VkFence fence,
                                                 AndroidNativeBufferInfo* anbInfo);
 
-VkResult syncImageToColorBuffer(VulkanDispatch* vk, uint32_t queueFamilyIndex, VkQueue queue,
+VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, VulkanDispatch* vk,
+                                uint32_t queueFamilyIndex, VkQueue queue,
                                 android::base::Lock* queueLock, uint32_t waitSemaphoreCount,
                                 const VkSemaphore* pWaitSemaphores, int* pNativeFenceFd,
                                 std::shared_ptr<AndroidNativeBufferInfo> anbInfo);
