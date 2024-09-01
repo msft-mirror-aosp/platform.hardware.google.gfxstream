@@ -316,7 +316,27 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     vk::VulkanDispatch* vkDispatch = nullptr;
     if (fb->m_features.Vulkan.enabled) {
         vkDispatch = vk::vkDispatch(false /* not for testing */);
-        vkEmu = vk::createGlobalVkEmulation(vkDispatch, fb->m_features);
+
+        gfxstream::host::BackendCallbacks callbacks{
+            .registerProcessCleanupCallback =
+                [fb = fb.get()](void* key, std::function<void()> callback) {
+                    fb->registerProcessCleanupCallback(key, callback);
+                },
+            .unregisterProcessCleanupCallback =
+                [fb = fb.get()](void* key) { fb->unregisterProcessCleanupCallback(key); },
+            .invalidateColorBuffer =
+                [fb = fb.get()](uint32_t colorBufferHandle) {
+                    fb->invalidateColorBufferForVk(colorBufferHandle);
+                },
+            .flushColorBuffer =
+                [fb = fb.get()](uint32_t colorBufferHandle) {
+                    fb->flushColorBufferFromVk(colorBufferHandle);
+                },
+            .flushColorBufferFromBytes =
+                [fb = fb.get()](uint32_t colorBufferHandle, const void* bytes, size_t bytesSize) {
+                    fb->flushColorBufferFromVkBytes(colorBufferHandle, bytes, bytesSize);
+                }};
+        vkEmu = vk::createGlobalVkEmulation(vkDispatch, callbacks, fb->m_features);
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
         }
