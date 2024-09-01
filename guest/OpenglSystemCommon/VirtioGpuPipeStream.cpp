@@ -97,7 +97,7 @@ int VirtioGpuPipeStream::connect(const char* serviceName)
     return 0;
 }
 
-uint64_t VirtioGpuPipeStream::initProcessPipe() {
+uint64_t VirtioGpuPipeStream::processPipeInit() {
     connect("pipe:GLProcessPipe");
     int32_t confirmInt = 100;
     writeFully(&confirmInt, sizeof(confirmInt));
