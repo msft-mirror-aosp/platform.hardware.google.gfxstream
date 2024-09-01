@@ -31,8 +31,9 @@ class VirtioGpuPipeStream : public gfxstream::guest::IOStream {
    public:
     explicit VirtioGpuPipeStream(size_t bufsize, int32_t descriptor);
     ~VirtioGpuPipeStream();
-    int connect(const char* serviceName = 0);
-    uint64_t initProcessPipe();
+
+    virtual int connect(const char* serviceName = nullptr);
+    virtual uint64_t processPipeInit();
 
     virtual void *allocBuffer(size_t minSize);
     virtual int commitBuffer(size_t size);

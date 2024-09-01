@@ -11,13 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#ifndef EXTENDED_RENDERCONTROL_H
+#define EXTENDED_RENDERCONTROL_H
 
 #include <cstring>
+#include <string>
 
 #include "EmulatorFeatureInfo.h"
 #include "gfxstream/guest/ChecksumCalculator.h"
 #include "gfxstream/guest/IOStream.h"
 #include "renderControl_enc.h"
+
+using gfxstream::guest::ChecksumCalculator;
 
 // ExtendedRCEncoderContext is an extended version of renderControl_encoder_context_t
 // that will be used to track available emulator features.
@@ -69,8 +74,46 @@ class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
     const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
     EmulatorFeatureInfo* featureInfo() { return &m_featureInfo; }
 
+    const std::string& queryHostExtensions();
+    // setProtocol initializes GL communication protocol for checksums
+    // should be called when m_rcEnc is created
+    void setChecksumHelper(ChecksumCalculator* calculator);
+    void queryAndSetSyncImpl();
+    void queryAndSetDmaImpl();
+    void queryAndSetGLESMaxVersion();
+    void queryAndSetNoErrorState(bool& hostError);
+    void queryAndSetHostCompositionImpl();
+    void queryAndSetDirectMemSupport();
+    void queryAndSetVulkanSupport();
+    void queryAndSetDeferredVulkanCommandsSupport();
+    void queryAndSetVulkanNullOptionalStringsSupport();
+    void queryAndSetVulkanCreateResourcesWithRequirementsSupport();
+    void queryAndSetVulkanIgnoredHandles();
+    void queryAndSetYUVCache();
+    void queryAndSetAsyncUnmapBuffer();
+    void queryAndSetVirtioGpuNext();
+    void queryHasSharedSlotsHostMemoryAllocator();
+    void queryAndSetVulkanFreeMemorySync();
+    void queryAndSetVirtioGpuNativeSync();
+    void queryAndSetVulkanShaderFloat16Int8Support();
+    void queryAndSetVulkanAsyncQueueSubmitSupport();
+    void queryAndSetHostSideTracingSupport();
+    void queryAndSetAsyncFrameCommands();
+    void queryAndSetVulkanQueueSubmitWithCommandsSupport();
+    void queryAndSetVulkanBatchedDescriptorSetUpdateSupport();
+    void queryAndSetSyncBufferData();
+    void queryAndSetVulkanAsyncQsri();
+    void queryAndSetReadColorBufferDma();
+    void queryAndSetHWCMultiConfigs();
+    void queryAndSetVulkanAuxCommandBufferMemory();
+    GLint queryVersion();
+    void setVulkanFeatureInfo(void* info);
+
    private:
     EmulatorFeatureInfo m_featureInfo;
+    std::string m_hostExtensions;
     void* m_dmaPtr = nullptr;
     uint64_t m_dmaPhysAddr = 0;
 };
+
+#endif
