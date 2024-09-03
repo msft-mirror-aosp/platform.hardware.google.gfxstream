@@ -105,6 +105,10 @@ static void initIcdPaths(bool forTesting) {
         //  submission order.
         android::base::setEnvironmentVariable("MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE", "0");
 
+        // TODO(b/364055067)
+        // MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS is not working correctly
+        android::base::setEnvironmentVariable("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0");
+
         // TODO(b/351765838): VVL won't work with MoltenVK due to the current
         //  way of external memory handling, add it into disable list to
         //  avoid users enabling it implicitly (i.e. via vkconfig).
