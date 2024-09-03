@@ -145,18 +145,6 @@ void SyncThread::triggerWait(EmulatedEglFenceSync* fenceSync,
         ss.str());
 }
 
-void SyncThread::triggerBlockedWaitNoTimeline(EmulatedEglFenceSync* fenceSync) {
-    std::stringstream ss;
-    ss << "triggerBlockedWaitNoTimeline fenceSyncInfo=0x" << std::hex
-       << reinterpret_cast<uintptr_t>(fenceSync);
-    sendAndWaitForResult(
-        [fenceSync, this](WorkerId) {
-            doSyncWait(fenceSync, std::function<void()>());
-            return 0;
-        },
-        ss.str());
-}
-
 void SyncThread::triggerWaitWithCompletionCallback(EmulatedEglFenceSync* fenceSync, FenceCompletionCallback cb) {
     std::stringstream ss;
     ss << "triggerWaitWithCompletionCallback fenceSyncInfo=0x" << std::hex

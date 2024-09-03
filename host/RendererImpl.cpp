@@ -130,6 +130,9 @@ bool RendererImpl::initialize(int width, int height, gfxstream::host::FeatureSet
     if (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1") {
         set_gfxstream_enable_verbose_logs();
     }
+    if (android::base::getEnvironmentVariable("ANDROID_EMUGL_LOG_COLORS") == "1") {
+        set_gfxstream_enable_log_colors();
+    }
 #endif
 
     if (mRenderWindow) {
@@ -625,12 +628,7 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
     .bind_color_buffer_to_texture =
         [](uint32_t handle) { FrameBuffer::getFB()->bindColorBufferToTexture2(handle); },
     .get_global_egl_context = []() { return FrameBuffer::getFB()->getGlobalEGLContext(); },
-    .wait_for_gpu = [](uint64_t eglsync) { FrameBuffer::getFB()->waitForGpu(eglsync); },
 #endif
-    .wait_for_gpu_vulkan =
-        [](uint64_t device, uint64_t fence) {
-            FrameBuffer::getFB()->waitForGpuVulkan(device, fence);
-        },
     .set_guest_managed_color_buffer_lifetime =
         [](bool guestManaged) {
             FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(guestManaged);
@@ -649,8 +647,6 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
         [](uint64_t image, FenceCompletionCallback cb) {
             FrameBuffer::getFB()->asyncWaitForGpuVulkanQsriWithCb(image, cb);
         },
-    .wait_for_gpu_vulkan_qsri =
-        [](uint64_t image) { FrameBuffer::getFB()->waitForGpuVulkanQsri(image); },
     .update_color_buffer_from_framework_format =
         [](uint32_t handle, int x, int y, int width, int height, uint32_t fwkFormat,
            uint32_t format, uint32_t type, void* pixels, void* pMetadata) {

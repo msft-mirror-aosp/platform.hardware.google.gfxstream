@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <cutils/log.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -24,7 +23,8 @@
 #include <cstring>
 
 #include "LinuxVirtGpu.h"
-#include "virtgpu_drm.h"
+#include "drm-uapi/virtgpu_drm.h"
+#include "util/log.h"
 
 LinuxVirtGpuResource::LinuxVirtGpuResource(int64_t deviceHandle, uint32_t blobHandle,
                                            uint32_t resourceHandle, uint64_t size)
@@ -34,20 +34,31 @@ LinuxVirtGpuResource::LinuxVirtGpuResource(int64_t deviceHandle, uint32_t blobHa
       mSize(size) {}
 
 LinuxVirtGpuResource::~LinuxVirtGpuResource() {
+    if (mBlobHandle == INVALID_DESCRIPTOR) {
+        return;
+    }
+
     struct drm_gem_close gem_close {
         .handle = mBlobHandle, .pad = 0,
     };
 
     int ret = drmIoctl(mDeviceHandle, DRM_IOCTL_GEM_CLOSE, &gem_close);
     if (ret) {
-        ALOGE("DRM_IOCTL_GEM_CLOSE failed with : [%s, blobHandle %u, resourceHandle: %u]",
-              strerror(errno), mBlobHandle, mResourceHandle);
+        mesa_loge("DRM_IOCTL_GEM_CLOSE failed with : [%s, blobHandle %u, resourceHandle: %u]",
+                  strerror(errno), mBlobHandle, mResourceHandle);
     }
+}
+
+void LinuxVirtGpuResource::intoRaw() {
+    mBlobHandle = INVALID_DESCRIPTOR;
+    mResourceHandle = INVALID_DESCRIPTOR;
 }
 
 uint32_t LinuxVirtGpuResource::getBlobHandle() const { return mBlobHandle; }
 
 uint32_t LinuxVirtGpuResource::getResourceHandle() const { return mResourceHandle; }
+
+uint64_t LinuxVirtGpuResource::getSize() const { return mSize; }
 
 VirtGpuResourceMappingPtr LinuxVirtGpuResource::createMapping() {
     int ret;
@@ -57,7 +68,7 @@ VirtGpuResourceMappingPtr LinuxVirtGpuResource::createMapping() {
 
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_MAP, &map);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_MAP failed with %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_MAP failed with %s", strerror(errno));
         return nullptr;
     }
 
@@ -65,7 +76,7 @@ VirtGpuResourceMappingPtr LinuxVirtGpuResource::createMapping() {
         mmap64(nullptr, mSize, PROT_WRITE | PROT_READ, MAP_SHARED, mDeviceHandle, map.offset));
 
     if (ptr == MAP_FAILED) {
-        ALOGE("mmap64 failed with (%s)", strerror(errno));
+        mesa_loge("mmap64 failed with (%s)", strerror(errno));
         return nullptr;
     }
 
@@ -78,7 +89,7 @@ int LinuxVirtGpuResource::exportBlob(struct VirtGpuExternalHandle& handle) {
     uint32_t flags = DRM_CLOEXEC;
     ret = drmPrimeHandleToFD(mDeviceHandle, mBlobHandle, flags, &fd);
     if (ret) {
-        ALOGE("drmPrimeHandleToFD failed with %s", strerror(errno));
+        mesa_loge("drmPrimeHandleToFD failed with %s", strerror(errno));
         return ret;
     }
 
@@ -94,7 +105,7 @@ int LinuxVirtGpuResource::wait() {
     int retry = 0;
     do {
         if (retry > 0 && (retry % 10 == 0)) {
-            ALOGE("DRM_IOCTL_VIRTGPU_WAIT failed with EBUSY for %d times.", retry);
+            mesa_loge("DRM_IOCTL_VIRTGPU_WAIT failed with EBUSY for %d times.", retry);
         }
         wait_3d.handle = mBlobHandle;
         ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_WAIT, &wait_3d);
@@ -102,7 +113,7 @@ int LinuxVirtGpuResource::wait() {
     } while (ret < 0 && errno == EBUSY);
 
     if (ret < 0) {
-        ALOGE("DRM_IOCTL_VIRTGPU_WAIT failed with %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_WAIT failed with %s", strerror(errno));
         return ret;
     }
 
@@ -122,7 +133,7 @@ int LinuxVirtGpuResource::transferToHost(uint32_t x, uint32_t y, uint32_t w, uin
 
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST, &xfer);
     if (ret < 0) {
-        ALOGE("DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST failed with %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST failed with %s", strerror(errno));
         return ret;
     }
 
@@ -142,7 +153,7 @@ int LinuxVirtGpuResource::transferFromHost(uint32_t x, uint32_t y, uint32_t w, u
 
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST, &xfer);
     if (ret < 0) {
-        ALOGE("DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST failed with %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST failed with %s", strerror(errno));
         return ret;
     }
 

@@ -34,7 +34,7 @@ NamedObject::NamedObject(GenNameInfo genNameInfo,
     m_globalNameSpace = globalNameSpace;
     m_type = genNameInfo.m_type;
     if (genNameInfo.m_existingGlobal) {
-        fprintf(stderr, "%s: global name %u exists already\n", __func__, genNameInfo.m_existingGlobal);
+        // This happens with glCreateShaderProgramv
         m_globalName = genNameInfo.m_existingGlobal;
     } else {
         android::base::AutoLock _lock(m_globalNameSpace->m_lock);

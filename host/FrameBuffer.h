@@ -189,6 +189,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void setPostCallback(Renderer::OnPostCallback onPost, void* onPostContext, uint32_t displayId,
                          bool useBgraReadback = false);
 
+    // Tests and reports if the host supports the format through the allocator
+    bool isFormatSupported(GLenum format);
+
     // Create a new ColorBuffer instance from this display instance.
     // |p_width| and |p_height| are its dimensions in pixels.
     // |p_internalFormat| is the OpenGL format of this color buffer.
@@ -463,10 +466,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     static const uint32_t s_maxNumMultiDisplay = 11;
 
     HandleType getLastPostedColorBuffer() { return m_lastPostedColorBuffer; }
-    void waitForGpuVulkan(uint64_t deviceHandle, uint64_t fenceHandle);
     void asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fenceHandle, FenceCompletionCallback cb);
     void asyncWaitForGpuVulkanQsriWithCb(uint64_t image, FenceCompletionCallback cb);
-    void waitForGpuVulkanQsri(uint64_t image);
 
     bool platformImportResource(uint32_t handle, uint32_t info, void* resource);
 
@@ -668,7 +669,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // back as raw YUV data.
     bool readColorBufferContents(HandleType p_colorbuffer, size_t* numBytes, void* pixels);
 
-    void waitForGpu(uint64_t eglsync);
     void asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallback cb);
 
     const gl::EGLDispatch* getEglDispatch();
