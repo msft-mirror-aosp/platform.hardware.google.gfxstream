@@ -18,6 +18,7 @@ cc_library_static {
     header_libs: [
         "libgfxstream_guest_iostream",
         "mesa_common_headers_gfxstream",
+        "aemu_common_headers",
     ],
     shared_libs: [
         "libdrm",
@@ -26,6 +27,7 @@ cc_library_static {
     static_libs: [
         "libmesa_util_gfxstream",
         "libringbuffer",
+        "gfxstream_base",
     ],
     export_include_dirs: [
         "include",

@@ -124,7 +124,6 @@ cc_library_shared {
         "libgfxstream_guest_android",
         "libmesa_util_gfxstream",
         "libmesa_util_c11_gfxstream",
-        "libvulkan_enc",
     ],
     target: {
         android: {
@@ -140,9 +139,6 @@ cc_library_static {
     name: "libgfxstream_guest_system_common",
     defaults: [
         "libOpenglSystemCommonDefaults",
-    ],
-    header_libs: [
-        "vulkan_enc_headers",
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
