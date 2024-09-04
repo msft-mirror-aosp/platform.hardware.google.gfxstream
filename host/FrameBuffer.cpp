@@ -316,7 +316,27 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     vk::VulkanDispatch* vkDispatch = nullptr;
     if (fb->m_features.Vulkan.enabled) {
         vkDispatch = vk::vkDispatch(false /* not for testing */);
-        vkEmu = vk::createGlobalVkEmulation(vkDispatch, fb->m_features);
+
+        gfxstream::host::BackendCallbacks callbacks{
+            .registerProcessCleanupCallback =
+                [fb = fb.get()](void* key, std::function<void()> callback) {
+                    fb->registerProcessCleanupCallback(key, callback);
+                },
+            .unregisterProcessCleanupCallback =
+                [fb = fb.get()](void* key) { fb->unregisterProcessCleanupCallback(key); },
+            .invalidateColorBuffer =
+                [fb = fb.get()](uint32_t colorBufferHandle) {
+                    fb->invalidateColorBufferForVk(colorBufferHandle);
+                },
+            .flushColorBuffer =
+                [fb = fb.get()](uint32_t colorBufferHandle) {
+                    fb->flushColorBufferFromVk(colorBufferHandle);
+                },
+            .flushColorBufferFromBytes =
+                [fb = fb.get()](uint32_t colorBufferHandle, const void* bytes, size_t bytesSize) {
+                    fb->flushColorBufferFromVkBytes(colorBufferHandle, bytes, bytesSize);
+                }};
+        vkEmu = vk::createGlobalVkEmulation(vkDispatch, callbacks, fb->m_features);
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
         }
@@ -327,7 +347,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
         if (fb->m_features.VulkanNativeSwapchain.enabled) {
             fb->m_vkInstance = vkEmu->instance;
         }
-        if (vkEmu->deviceInfo.supportsIdProperties) {
+        if (vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
             GL_LOG("Supports id properties, got a vulkan device UUID");
             fprintf(stderr, "%s: Supports id properties, got a vulkan device UUID\n", __func__);
             memcpy(fb->m_vulkanUUID.data(), vkEmu->deviceInfo.idProps.deviceUUID, VK_UUID_SIZE);
@@ -436,7 +456,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     bool vulkanInteropSupported = true;
     // First, if the VkEmulation instance doesn't support ext memory capabilities,
     // it won't support uuids.
-    if (!vkEmu || !vkEmu->deviceInfo.supportsIdProperties) {
+    if (!vkEmu || !vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
         vulkanInteropSupported = false;
     }
     if (!fb->m_emulationGl) {
@@ -2744,23 +2764,6 @@ std::future<void> FrameBuffer::blockPostWorker(std::future<void> continueSignal)
     return scheduledFuture;
 }
 
-void FrameBuffer::waitForGpuVulkan(uint64_t deviceHandle, uint64_t fenceHandle) {
-    (void)deviceHandle;
-    if (!m_emulationGl) {
-        // Guest ANGLE should always use the asyncWaitForGpuVulkanWithCb call. EmulatedEglFenceSync
-        // is a wrapper over EGLSyncKHR and should not be used for pure Vulkan environment.
-        return;
-    }
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-    // Note: this will always be nullptr.
-    EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(fenceHandle);
-
-    // Note: This will always signal right away.
-    SyncThread::get()->triggerBlockedWaitNoTimeline(fenceSync);
-#endif
-}
-
 void FrameBuffer::asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fenceHandle,
                                               FenceCompletionCallback cb) {
     (void)deviceHandle;
@@ -2769,14 +2772,6 @@ void FrameBuffer::asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fe
 
 void FrameBuffer::asyncWaitForGpuVulkanQsriWithCb(uint64_t image, FenceCompletionCallback cb) {
     SyncThread::get()->triggerWaitVkQsriWithCompletionCallback((VkImage)image, std::move(cb));
-}
-
-void FrameBuffer::waitForGpuVulkanQsri(uint64_t image) {
-    (void)image;
-    // Signal immediately, because this was a sync wait and it's vulkan.
-#if GFXSTREAM_ENABLE_HOST_GLES
-    SyncThread::get()->triggerBlockedWaitNoTimeline(nullptr);
-#endif
 }
 
 void FrameBuffer::setGuestManagedColorBufferLifetime(bool guestManaged) {
@@ -3874,17 +3869,6 @@ bool FrameBuffer::readColorBufferContents(HandleType p_colorbuffer, size_t* numB
     }
 
     return colorBuffer->glOpReadContents(numBytes, pixels);
-}
-
-void FrameBuffer::waitForGpu(uint64_t eglsync) {
-    EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(eglsync);
-
-    if (!fenceSync) {
-        ERR("err: fence sync 0x%llx not found", (unsigned long long)eglsync);
-        return;
-    }
-
-    SyncThread::get()->triggerBlockedWaitNoTimeline(fenceSync);
 }
 
 void FrameBuffer::asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallback cb) {

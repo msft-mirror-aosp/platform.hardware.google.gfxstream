@@ -24,20 +24,6 @@ cc_defaults {
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
-    host_supported: true,
-    vendor: true,
-    header_libs: [
-        "gfxstream_opengl_headers",
-    ],
-    shared_libs: [
-        "libcutils",
-        "libdrm",
-        "liblog",
-        "libutils",
-    ],
-    export_shared_lib_headers: [
-        "libdrm",
-    ],
     export_include_dirs: [
         "include",
     ],
@@ -51,9 +37,16 @@ cc_library_static {
     name: "libgfxstream_guest_android",
     defaults: [
         "libgfxstream_guest_android_defaults",
+        "libplatform_virtgpu_defaults",
+    ],
+    header_libs: [
+        "mesa_common_headers_gfxstream",
+    ],
+    shared_libs: [
+        "libutils",
     ],
     static_libs: [
-        "libplatform",
+        "libmesa_util_gfxstream",
     ],
     target: {
         android: {
@@ -63,7 +56,6 @@ cc_library_static {
                 "minigbm_headers",
             ],
             shared_libs: [
-                "lib_renderControl_enc",
                 "libnativewindow",
             ],
             srcs: [
@@ -75,31 +67,9 @@ cc_library_static {
         },
         host: {
             srcs: [
-                "ANativeWindowStub.cpp",
-                "GrallocStub.cpp",
+                "ANativeWindowEmulated.cpp",
+                "GrallocEmulated.cpp",
             ],
         },
     },
-}
-
-cc_library_static {
-    name: "libgfxstream_guest_android_with_host",
-    defaults: [
-        "libgfxstream_guest_android_defaults",
-    ],
-    static_libs: [
-        "libgfxstream_platform_rutabaga",
-    ],
-    target: {
-        host: {
-            compile_multilib: "64",
-        },
-        android: {
-            compile_multilib: "64",
-        },
-    },
-    srcs: [
-        "ANativeWindowEmulated.cpp",
-        "GrallocEmulated.cpp",
-    ],
 }

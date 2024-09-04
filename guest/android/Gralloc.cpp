@@ -24,11 +24,10 @@
 
 namespace gfxstream {
 
-Gralloc* createPlatformGralloc(int deviceFd) {
+Gralloc* createPlatformGralloc(int32_t descriptor) {
     const std::string value = android::base::GetProperty("ro.hardware.gralloc", "");
     if (value == "minigbm") {
-        auto gralloc = new MinigbmGralloc();
-        gralloc->setFd(deviceFd);
+        auto gralloc = new MinigbmGralloc(descriptor);
         return gralloc;
     }
     return new GoldfishGralloc();

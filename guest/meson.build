@@ -34,8 +34,10 @@ dl_dep = cc.find_library('dl', required: false)
 drm_dep = dependency('libdrm')
 thread_dep = dependency('threads')
 
-if with_guest_test
-  virtgpu_kumquat_dep = dependency('virtgpu_kumquat_ffi')
+with_kumquat = false
+virtgpu_kumquat_dep = dependency('virtgpu_kumquat_ffi', required: false)
+if virtgpu_kumquat_dep.found()
+  with_kumquat = true
 endif
 
 #===============#
@@ -45,8 +47,6 @@ endif
 inc_include_mesa = include_directories('mesa/include')
 inc_vulkan_headers = include_directories('../common/vulkan/include')
 inc_opengl_headers = include_directories('../common/opengl/include')
-inc_fuchsia_magma = include_directories('../third-party/fuchsia/magma/include')
-inc_fuchsia_magma_nolib = include_directories('../third-party/fuchsia/magma/include/lib')
 inc_android_emu = include_directories('android-emu')
 inc_gralloc = include_directories('gralloc_cb/include')
 inc_magma = include_directories('magma')
@@ -76,6 +76,5 @@ subdir('qemupipe')
 subdir('OpenglCodecCommon')
 subdir('renderControl_enc')
 subdir('OpenglSystemCommon')
-subdir('magma')
 subdir('vulkan_enc')
 subdir('vulkan')

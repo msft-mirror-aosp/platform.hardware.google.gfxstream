@@ -14,13 +14,21 @@
 
 #pragma once
 
+#include <memory>
+
+#include "VirtGpu.h"
 #include "gfxstream/guest/Gralloc.h"
 
 namespace gfxstream {
 
 class MinigbmGralloc : public Gralloc {
    public:
-    uint32_t createColorBuffer(void* rcEnc, int width, int height, uint32_t glformat) override;
+    MinigbmGralloc(int32_t descriptor);
+    ~MinigbmGralloc(){};
+
+    GrallocType getGrallocType() override;
+
+    uint32_t createColorBuffer(int width, int height, uint32_t glformat) override;
 
     int allocate(uint32_t width, uint32_t height, uint32_t format, uint64_t usage,
                  AHardwareBuffer** outputAhb) override;
@@ -51,10 +59,8 @@ class MinigbmGralloc : public Gralloc {
 
     int getId(const AHardwareBuffer* ahb, uint64_t* id) override;
 
-    void setFd(int fd) { m_fd = fd; }
-
    private:
-    int m_fd;
+    std::unique_ptr<VirtGpuDevice> mDevice;
 };
 
 }  // namespace gfxstream

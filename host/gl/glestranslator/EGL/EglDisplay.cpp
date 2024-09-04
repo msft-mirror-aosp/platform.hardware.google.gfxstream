@@ -224,6 +224,7 @@ EglConfig* EglDisplay::addSimplePixelFormat(int red_size,
                     blue_size,
                     alpha_size,  // RGB_565
                     EGL_DONT_CARE,
+                    EGL_DONT_CARE,
                     16, // Depth
                     EGL_DONT_CARE,
                     EGL_DONT_CARE,
@@ -619,6 +620,7 @@ void EglDisplay::addConfig(void* opaque, const EglOS::ConfigInfo* info) {
          info->green_size,
          info->blue_size,
          info->alpha_size,
+         info->alpha_mask_size,
          info->caveat,
          info->depth_size,
          info->frame_buffer_level,
