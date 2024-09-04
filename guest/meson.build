@@ -55,8 +55,6 @@ inc_vulkan_enc = include_directories('vulkan_enc')
 #================#
 # Subdirectories #
 #================#
-
-subdir('fuchsia')
 subdir('iostream')
 subdir('platform')
 subdir('GoldfishAddressSpace')
