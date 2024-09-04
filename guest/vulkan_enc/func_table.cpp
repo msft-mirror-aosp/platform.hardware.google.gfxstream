@@ -30,11 +30,8 @@
 // $CEREAL_OUTPUT_DIR
 //
 
-#include <log/log.h>
-
 #include <cstring>
 
-#include "../OpenglSystemCommon/HostConnection.h"
 #include "ResourceTracker.h"
 #include "VkEncoder.h"
 #include "gfxstream_vk_entrypoints.h"
