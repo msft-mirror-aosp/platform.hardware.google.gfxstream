@@ -8,8 +8,6 @@ cc_library_shared {
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
-    host_supported: true,
-    vendor: true,
     srcs: [
         "aemu/base/AlignedBuf.cpp",
         "aemu/base/files/MemStream.cpp",
@@ -19,14 +17,11 @@ cc_library_shared {
         "aemu/base/Pool.cpp",
         "aemu/base/StringFormat.cpp",
         "aemu/base/Process.cpp",
-        "aemu/base/AndroidSubAllocator.cpp",
         "aemu/base/synchronization/AndroidMessageChannel.cpp",
         "aemu/base/threads/AndroidFunctorThread.cpp",
         "aemu/base/threads/AndroidThreadStore.cpp",
         "aemu/base/threads/AndroidThread_pthread.cpp",
         "aemu/base/threads/AndroidWorkPool.cpp",
-        "aemu/base/AndroidHealthMonitor.cpp",
-        "aemu/base/AndroidHealthMonitorConsumerBasic.cpp",
         "aemu/base/Tracing.cpp",
         "android/utils/debug.c",
     ],
@@ -51,8 +46,6 @@ cc_library_static {
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
-    host_supported: true,
-    vendor: true,
     srcs: [
         "aemu/base/AlignedBuf.cpp",
         "aemu/base/files/MemStream.cpp",
@@ -62,14 +55,11 @@ cc_library_static {
         "aemu/base/Pool.cpp",
         "aemu/base/StringFormat.cpp",
         "aemu/base/Process.cpp",
-        "aemu/base/AndroidSubAllocator.cpp",
         "aemu/base/synchronization/AndroidMessageChannel.cpp",
         "aemu/base/threads/AndroidFunctorThread.cpp",
         "aemu/base/threads/AndroidThreadStore.cpp",
         "aemu/base/threads/AndroidThread_pthread.cpp",
         "aemu/base/threads/AndroidWorkPool.cpp",
-        "aemu/base/AndroidHealthMonitor.cpp",
-        "aemu/base/AndroidHealthMonitorConsumerBasic.cpp",
         "aemu/base/Tracing.cpp",
         "android/utils/debug.c",
     ],
@@ -91,8 +81,9 @@ cc_library_static {
 
 cc_library_static {
     name: "libringbuffer",
-    host_supported: true,
-    vendor: true,
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+    ],
     srcs: [
         "aemu/base/ring_buffer.c",
     ],

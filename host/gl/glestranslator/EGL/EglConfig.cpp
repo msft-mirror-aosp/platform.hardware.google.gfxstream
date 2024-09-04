@@ -22,6 +22,7 @@ EglConfig::EglConfig(EGLint     red_size,
                      EGLint     green_size,
                      EGLint     blue_size,
                      EGLint     alpha_size,
+                     EGLint     alpha_mask_size,
                      EGLenum    caveat,
                      EGLint     conformant,
                      EGLint     depth_size,
@@ -51,6 +52,7 @@ EglConfig::EglConfig(EGLint     red_size,
         m_green_size(green_size),
         m_blue_size(blue_size),
         m_alpha_size(alpha_size),
+        m_alpha_mask_size(alpha_mask_size),
         m_bind_to_tex_rgb(EGL_FALSE), //not supported for now
         m_bind_to_tex_rgba(EGL_FALSE), //not supported for now
         m_caveat(caveat),
@@ -88,6 +90,7 @@ EglConfig::EglConfig(EGLint     red_size,
                      EGLint     green_size,
                      EGLint     blue_size,
                      EGLint     alpha_size,
+                     EGLint     alpha_mask_size,
                      EGLenum    caveat,
                      EGLint     depth_size,
                      EGLint     frame_buffer_level,
@@ -112,6 +115,7 @@ EglConfig::EglConfig(EGLint     red_size,
         m_green_size(green_size),
         m_blue_size(blue_size),
         m_alpha_size(alpha_size),
+        m_alpha_mask_size(alpha_mask_size),
         m_bind_to_tex_rgb(EGL_FALSE), //not supported for now
         m_bind_to_tex_rgba(EGL_FALSE), //not supported for now
         m_caveat(caveat),
@@ -151,6 +155,7 @@ EglConfig::EglConfig(const EglConfig& conf) :
         m_green_size(conf.m_green_size),
         m_blue_size(conf.m_blue_size),
         m_alpha_size(conf.m_alpha_size),
+        m_alpha_mask_size(conf.m_alpha_mask_size),
         m_bind_to_tex_rgb(conf.m_bind_to_tex_rgb),
         m_bind_to_tex_rgba(conf.m_bind_to_tex_rgba),
         m_caveat(conf.m_caveat),
@@ -193,6 +198,7 @@ EglConfig::EglConfig(const EglConfig& conf,
         m_green_size(green_size),
         m_blue_size(blue_size),
         m_alpha_size(alpha_size),
+        m_alpha_mask_size(conf.m_alpha_mask_size),
         m_bind_to_tex_rgb(conf.m_bind_to_tex_rgb),
         m_bind_to_tex_rgba(conf.m_bind_to_tex_rgba),
         m_caveat(conf.m_caveat),
@@ -242,6 +248,9 @@ bool EglConfig::getConfAttrib(EGLint attrib,EGLint* val) const {
         break;
     case EGL_ALPHA_SIZE:
         *val = m_alpha_size;
+        break;
+    case EGL_ALPHA_MASK_SIZE:
+        *val = m_alpha_mask_size;
         break;
     case EGL_BIND_TO_TEXTURE_RGB:
         *val = m_bind_to_tex_rgb;
@@ -419,6 +428,7 @@ bool EglConfig::operator==(const EglConfig& other) const {
     EGLCONFIG_EQ(m_green_size) &&
     EGLCONFIG_EQ(m_blue_size) &&
     EGLCONFIG_EQ(m_alpha_size) &&
+    EGLCONFIG_EQ(m_alpha_mask_size) &&
     EGLCONFIG_EQ(m_bind_to_tex_rgb) &&
     EGLCONFIG_EQ(m_bind_to_tex_rgba) &&
     EGLCONFIG_EQ(m_caveat) &&
@@ -466,6 +476,7 @@ uint32_t EglConfig::u32hash() const {
     EGLCONFIG_HASH(m_green_size)
     EGLCONFIG_HASH(m_blue_size)
     EGLCONFIG_HASH(m_alpha_size)
+    EGLCONFIG_HASH(m_alpha_mask_size)
     EGLCONFIG_HASH(m_bind_to_tex_rgb)
     EGLCONFIG_HASH(m_bind_to_tex_rgba)
     EGLCONFIG_HASH(m_caveat)
@@ -523,7 +534,7 @@ bool EglConfig::chosen(const EglConfig& dummy) const {
 
    CHOOSE_CONFIG_DLOG("checking config id 0x%x for compatibility\n", m_config_id);
    CHOOSE_CONFIG_DLOG("config info for 0x%x: "
-                      "rgbads %d %d %d %d %d %d "
+                      "rgbads %d %d %d %d %d %d alpha mask size %d "
                       "samp spp %d %d fblvl %d n.vistype %d maxswap %d minswap %d"
                       "transrgb %d %d %d caveat %d n.renderable %d "
                       "transptype %d surftype %d conform %d rendertype %d",
@@ -535,6 +546,8 @@ bool EglConfig::chosen(const EglConfig& dummy) const {
                       m_alpha_size,
                       m_depth_size,
                       m_stencil_size,
+
+                      m_alpha_mask_size,
 
                       m_sample_buffers_num,
                       m_samples_per_pixel,
@@ -564,6 +577,7 @@ bool EglConfig::chosen(const EglConfig& dummy) const {
    CHECK_PROP(dummy,m_green_size,>);
    CHECK_PROP(dummy,m_blue_size,>);
    CHECK_PROP(dummy,m_alpha_size,>);
+   CHECK_PROP(dummy,m_alpha_mask_size,>);
    CHECK_PROP(dummy,m_depth_size,>);
    CHECK_PROP(dummy,m_stencil_size,>);
 

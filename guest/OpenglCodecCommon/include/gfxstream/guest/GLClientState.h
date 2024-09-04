@@ -16,32 +16,22 @@
 #ifndef _GL_CLIENT_STATE_H_
 #define _GL_CLIENT_STATE_H_
 
-#define GL_API
-#ifndef ANDROID
-#define GL_APIENTRY
-#define GL_APIENTRYP
-#endif
-
-#include "StateTrackingSupport.h"
-
-#include "TextureSharedData.h"
-
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-
 #include <stdio.h>
 #include <stdlib.h>
-#include "ErrorLog.h"
-#include "codec_defs.h"
 
-#include <vector>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
+#include <vector>
 
+#include "StateTrackingSupport.h"
+#include "TextureSharedData.h"
+#include "codec_defs.h"
 
 namespace gfxstream {
 namespace guest {
@@ -798,7 +788,6 @@ public:
             break;
         default:
             handled = false;
-            ERR("unknown vertex-attrib parameter param %d\n", param);
         }
         return handled;
     }

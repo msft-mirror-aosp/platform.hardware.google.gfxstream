@@ -22,7 +22,7 @@ package {
 cc_library_static {
     name: "libmesa_util_c11_gfxstream",
     host_supported: true,
-    vendor: true,
+    vendor_available: true,
     defaults: [
         "mesa_common_defaults_gfxstream",
     ],

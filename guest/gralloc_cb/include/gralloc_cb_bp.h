@@ -17,47 +17,61 @@
 #ifndef __GRALLOC_CB_H__
 #define __GRALLOC_CB_H__
 
-#include <cutils/native_handle.h>
-#include <qemu_pipe_types_bp.h>
-
 #include <cinttypes>
+#include <cutils/native_handle.h>
 
-const uint32_t CB_HANDLE_MAGIC_MASK = 0xFFFFFFF0;
-const uint32_t CB_HANDLE_MAGIC_BASE = 0xABFABFA0;
-
-#define CB_HANDLE_NUM_INTS(nfd) \
-    ((sizeof(*this)-sizeof(native_handle_t)-nfd*sizeof(int32_t))/sizeof(int32_t))
+static_assert(sizeof(int) == sizeof(int32_t));
+static_assert(sizeof(uint64_t) >= sizeof(uintptr_t));
 
 struct cb_handle_t : public native_handle_t {
-    cb_handle_t(uint32_t p_magic,
+    static constexpr uint32_t kCbHandleMagic = 0xABFABF05;
+
+    cb_handle_t(int p_bufferFd,
+                int p_hostHandleRefCountFd,
                 uint32_t p_hostHandle,
-                int32_t p_format,
-                uint32_t p_drmformat,
-                uint32_t p_stride,
-                uint32_t p_bufSize,
-                uint64_t p_mmapedOffset)
-        : magic(p_magic),
+                uint64_t p_usage,
+                uint32_t p_format, uint32_t p_drmformat,
+                uint32_t p_stride, uint32_t p_bufSize,
+                void* p_bufPtr, uint32_t p_mmapedSize, uint64_t p_mmapedOffset,
+                uint32_t p_externalMetadataOffset)
+        : bufferFd(p_bufferFd),
+          hostHandleRefcountFd(p_hostHandleRefCountFd),
+          usage(p_usage),
+          mmapedOffset(p_mmapedOffset),
+          bufferPtr64(reinterpret_cast<uintptr_t>(p_bufPtr)),
+          magic(kCbHandleMagic),
           hostHandle(p_hostHandle),
           format(p_format),
           drmformat(p_drmformat),
+          mmapedSize(p_mmapedSize),
           bufferSize(p_bufSize),
-          stride(p_stride),
-          mmapedOffsetLo(static_cast<uint32_t>(p_mmapedOffset)),
-          mmapedOffsetHi(static_cast<uint32_t>(p_mmapedOffset >> 32)) {
+          externalMetadataOffset(p_externalMetadataOffset),
+          stride(p_stride) {
         version = sizeof(native_handle);
+        numFds = (p_hostHandleRefCountFd >= 0) ? 2 : 1;
+        numInts = (sizeof(*this) - sizeof(native_handle_t) - numFds * sizeof(int)) / sizeof(int);
     }
 
     uint64_t getMmapedOffset() const {
-        return (uint64_t(mmapedOffsetHi) << 32) | mmapedOffsetLo;
+        return mmapedOffset;
     }
 
     uint32_t allocatedSize() const {
         return bufferSize;
     }
 
+    char* getBufferPtr() const {
+        return reinterpret_cast<char*>(static_cast<uintptr_t>(bufferPtr64));
+    }
+
+    void setBufferPtr(void* ptr) {
+        bufferPtr64 = reinterpret_cast<uintptr_t>(ptr);
+    }
+
     bool isValid() const {
-        return (version == sizeof(native_handle))
-               && (magic & CB_HANDLE_MAGIC_MASK) == CB_HANDLE_MAGIC_BASE;
+        return (version == sizeof(native_handle_t)) &&
+               (sizeof(*this) == ((numFds + numInts) * sizeof(int) + sizeof(native_handle_t))) &&
+               (magic == kCbHandleMagic);
     }
 
     static cb_handle_t* from(void* p) {
@@ -74,17 +88,23 @@ struct cb_handle_t : public native_handle_t {
         return from(const_cast<void*>(p));
     }
 
-    int32_t fds[2];
+    const int32_t bufferFd;       // always allocated
+    const int32_t hostHandleRefcountFd;  // optional
 
     // ints
-    uint32_t magic;         // magic number in order to validate a pointer
-    uint32_t hostHandle;    // the host reference to this buffer
-    uint32_t format;        // real internal pixel format format
-    uint32_t drmformat;     // drm format
-    uint32_t bufferSize;
-    uint32_t stride;
-    uint32_t mmapedOffsetLo;
-    uint32_t mmapedOffsetHi;
+    const uint64_t usage;         // allocation usage
+    const uint64_t mmapedOffset;
+    uint64_t       bufferPtr64;
+    const uint32_t magic;         // magic number in order to validate a pointer
+    const uint32_t hostHandle;    // the host reference to this buffer
+    const uint32_t format;        // real internal pixel format format
+    const uint32_t drmformat;     // drm format
+    const uint32_t mmapedSize;    // real allocation side
+    const uint32_t bufferSize;
+    const uint32_t externalMetadataOffset; // relative to bufferPtr
+    const uint32_t stride;
+    uint8_t        lockedUsage;
+    uint8_t        unused[3];
 };
 
 #endif //__GRALLOC_CB_H__

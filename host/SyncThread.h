@@ -76,10 +76,6 @@ class SyncThread : public android::base::Thread {
     // knows when to increment timelines / signal native fence FD's.
     void triggerWait(gl::EmulatedEglFenceSync* fenceSync, uint64_t timeline);
 
-    // for use with the virtio-gpu path; is meant to have a current context
-    // while waiting.
-    void triggerBlockedWaitNoTimeline(gl::EmulatedEglFenceSync* fenceSync);
-
     // For use with virtio-gpu and async fence completion callback. This is async like triggerWait,
     // but takes a fence completion callback instead of incrementing some timeline directly.
     void triggerWaitWithCompletionCallback(gl::EmulatedEglFenceSync* fenceSync,
