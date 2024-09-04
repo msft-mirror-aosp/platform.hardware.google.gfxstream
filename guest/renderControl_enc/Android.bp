@@ -21,8 +21,6 @@ package {
 
 cc_library_headers {
     name: "libgfxstream_guest_rendercontrol_encoder_headers",
-    host_supported: true,
-    vendor_available: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
@@ -33,8 +31,6 @@ cc_library_headers {
 
 cc_library_shared {
     name: "lib_renderControl_enc",
-    host_supported: true,
-    vendor: true,
     defaults: [
         "libgfxstream_guest_cc_defaults",
     ],
@@ -46,8 +42,10 @@ cc_library_shared {
         "libgfxstream_guest_graphics_headers",
         "libgfxstream_guest_iostream",
     ],
+    static_libs: [
+        "libgfxstream_androidemu_static",
+    ],
     shared_libs: [
-        "libandroidemu",
         "liblog",
         "libOpenglCodecCommon",
     ],
@@ -61,6 +59,49 @@ cc_library_shared {
         "renderControl_client_context.cpp",
         "renderControl_enc.cpp",
         "renderControl_entry.cpp",
+        "ExtendedRenderControl.cpp",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+}
+
+cc_library_static {
+    name: "libgfxstream_rcEnc_static",
+    defaults: [
+        "libgfxstream_guest_cc_defaults",
+        "libplatform_virtgpu_defaults",
+    ],
+    header_libs: [
+        "libgfxstream_guest_graphics_headers",
+        "libgfxstream_guest_iostream",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_guest_graphics_headers",
+        "libgfxstream_guest_iostream",
+    ],
+    static_libs: [
+        "libgfxstream_androidemu_static",
+        "libgfxstream_guest_connection_manager",
+    ],
+    shared_libs: [
+        "liblog",
+        "libbase",
+        "libOpenglCodecCommon",
+    ],
+    export_shared_lib_headers: [
+        "libOpenglCodecCommon",
+    ],
+    cflags: [
+        "-Wno-unused-function",
+    ],
+    srcs: [
+        "renderControl_client_context.cpp",
+        "renderControl_enc.cpp",
+        "renderControl_entry.cpp",
+        "ExtendedRenderControl.cpp",
+        "GfxStreamRenderControl.cpp",
+        "GfxStreamRenderControlConnection.cpp",
     ],
     export_include_dirs: [
         ".",

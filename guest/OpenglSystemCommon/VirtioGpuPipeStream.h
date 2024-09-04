@@ -29,11 +29,11 @@
 
 class VirtioGpuPipeStream : public gfxstream::guest::IOStream {
    public:
-    explicit VirtioGpuPipeStream(size_t bufsize = 10000);
-    explicit VirtioGpuPipeStream(size_t bufsize, int stream_handle);
+    explicit VirtioGpuPipeStream(size_t bufsize, int32_t descriptor);
     ~VirtioGpuPipeStream();
-    int connect(const char* serviceName = 0);
-    uint64_t initProcessPipe();
+
+    virtual int connect(const char* serviceName = nullptr);
+    virtual uint64_t processPipeInit();
 
     virtual void *allocBuffer(size_t minSize);
     virtual int commitBuffer(size_t size);
@@ -56,7 +56,7 @@ private:
     ssize_t transferToHost(const void* buffer, size_t len);
     ssize_t transferFromHost(void* buffer, size_t len);
 
-    int m_fd = -1;
+    int32_t m_fd = -1;
     std::unique_ptr<VirtGpuDevice> m_device;
     VirtGpuResourcePtr m_resource;
     VirtGpuResourceMappingPtr m_resourceMapping;

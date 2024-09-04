@@ -33,6 +33,7 @@
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/BackendCallbacks.h"
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
 #include "utils/GfxApiLogger.h"
@@ -103,6 +104,8 @@ struct VkEmulation {
     // Whether initialization succeeded.
     bool live = false;
 
+    gfxstream::host::BackendCallbacks callbacks;
+
     gfxstream::host::FeatureSet features;
 
     // Whether to use deferred command submission.
@@ -143,6 +146,8 @@ struct VkEmulation {
     VulkanDispatch* ivk = nullptr;
     VulkanDispatch* dvk = nullptr;
 
+    bool instanceSupportsPhysicalDeviceIDProperties = false;
+    bool instanceSupportsGetPhysicalDeviceProperties2 = false;
     bool instanceSupportsExternalMemoryCapabilities = false;
     bool instanceSupportsExternalSemaphoreCapabilities = false;
     bool instanceSupportsExternalFenceCapabilities = false;
@@ -204,7 +209,6 @@ struct VkEmulation {
         bool supportsExternalMemoryImport = false;
         bool supportsExternalMemoryExport = false;
         bool supportsDmaBuf = false;
-        bool supportsIdProperties = false;
         bool supportsDriverProperties = false;
         bool supportsExternalMemoryHostProps = false;
         bool hasSamplerYcbcrConversionExtension = false;
@@ -442,7 +446,9 @@ struct VkEmulation {
     std::optional<RepresentativeColorBufferMemoryTypeInfo> representativeColorBufferMemoryTypeInfo;
 };
 
-VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::FeatureSet features);
+VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
+                                     gfxstream::host::BackendCallbacks callbacks,
+                                     gfxstream::host::FeatureSet features);
 
 struct VkEmulationFeatures {
     bool glInteropSupported = false;

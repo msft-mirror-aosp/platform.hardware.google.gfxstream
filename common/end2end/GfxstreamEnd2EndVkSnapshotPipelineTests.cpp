@@ -16,7 +16,6 @@
 
 #include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
-#include "gfxstream/RutabagaLayerTestUtils.h"
 #include "shaders/simple_shader_frag.h"
 #include "shaders/simple_shader_vert.h"
 
@@ -1255,6 +1254,11 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineTest, DeleteBufferAfterWriteDescriptor)
 
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotPipelineTest,
                         ::testing::ValuesIn({
+                            TestParams{
+                                .with_gl = false,
+                                .with_vk = true,
+                                .with_features = {"VulkanSnapshots", "VulkanBatchedDescriptorSetUpdate"},
+                            },
                             TestParams{
                                 .with_gl = false,
                                 .with_vk = true,

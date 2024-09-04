@@ -5,7 +5,7 @@ cc_library_headers {
         "include",
     ],
     host_supported: true,
-    vendor: true,
+    vendor_available: true,
 }
 
 cc_defaults {
@@ -14,8 +14,11 @@ cc_defaults {
     // uncomment to keep the debug symbols
     // strip: { none: true, },
 
-    vendor: true,
     header_libs: ["mesa_common_headers_gfxstream"],
+
+    defaults: [
+        "gfxstream_guest_cc_defaults",
+    ],
 
     cflags: [
         "-Wno-error",
@@ -60,7 +63,6 @@ cc_defaults {
         "-DHAVE_LINUX_FUTEX_H",
         "-DHAVE_ENDIAN_H",
         "-DMAJOR_IN_SYSMACROS",
-        "-DVK_USE_PLATFORM_ANDROID_KHR",
         "-fvisibility=hidden",
         "-fno-math-errno",
         "-fno-trapping-math",
