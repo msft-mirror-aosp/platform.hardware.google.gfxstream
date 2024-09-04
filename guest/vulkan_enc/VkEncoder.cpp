@@ -32,15 +32,12 @@
 
 #include "VkEncoder.h"
 
-#include <cutils/properties.h>
-
 #include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "EncoderDebug.h"
 #include "ResourceTracker.h"
 #include "Resources.h"
 #include "Validation.h"
@@ -76,8 +73,6 @@ using gfxstream::guest::BumpPool;
 VkResult VkEncoder::vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo,
                                      const VkAllocationCallbacks* pAllocator, VkInstance* pInstance,
                                      uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCreateInstance(pCreateInfo:%p, pAllocator:%p, pInstance:%p)", pCreateInfo,
-                      pAllocator, pInstance);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -174,7 +169,6 @@ VkResult VkEncoder::vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo,
 
 void VkEncoder::vkDestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocator,
                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyInstance(instance:%p, pAllocator:%p)", instance, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -250,9 +244,6 @@ void VkEncoder::vkDestroyInstance(VkInstance instance, const VkAllocationCallbac
 VkResult VkEncoder::vkEnumeratePhysicalDevices(VkInstance instance, uint32_t* pPhysicalDeviceCount,
                                                VkPhysicalDevice* pPhysicalDevices,
                                                uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkEnumeratePhysicalDevices(instance:%p, pPhysicalDeviceCount:%p, pPhysicalDevices:%p)",
-        instance, pPhysicalDeviceCount, pPhysicalDevices);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -366,8 +357,6 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(VkInstance instance, uint32_t* pP
 
 void VkEncoder::vkGetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice,
                                             VkPhysicalDeviceFeatures* pFeatures, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetPhysicalDeviceFeatures(physicalDevice:%p, pFeatures:%p)",
-                      physicalDevice, pFeatures);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -424,9 +413,6 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDev
                                                     VkFormat format,
                                                     VkFormatProperties* pFormatProperties,
                                                     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceFormatProperties(physicalDevice:%p, format:%d, pFormatProperties:%p)",
-        physicalDevice, format, pFormatProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -488,10 +474,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkImageTiling tiling,
     VkImageUsageFlags usage, VkImageCreateFlags flags,
     VkImageFormatProperties* pImageFormatProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceImageFormatProperties(physicalDevice:%p, format:%d, usage:%d, "
-        "flags:%d, pImageFormatProperties:%p)",
-        physicalDevice, format, usage, flags, pImageFormatProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -577,8 +559,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
 void VkEncoder::vkGetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice,
                                               VkPhysicalDeviceProperties* pProperties,
                                               uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetPhysicalDeviceProperties(physicalDevice:%p, pProperties:%p)",
-                      physicalDevice, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -636,10 +616,6 @@ void VkEncoder::vkGetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice,
 void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
     VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties* pQueueFamilyProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice:%p, pQueueFamilyPropertyCount:%p, "
-        "pQueueFamilyProperties:%p)",
-        physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -756,9 +732,6 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
 void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
     VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties* pMemoryProperties,
     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceMemoryProperties(physicalDevice:%p, pMemoryProperties:%p)",
-        physicalDevice, pMemoryProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -815,7 +788,6 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
 
 PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(VkInstance instance, const char* pName,
                                                     uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetInstanceProcAddr(instance:%p, pName:%p)", instance, pName);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -875,7 +847,6 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(VkInstance instance, const c
 
 PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(VkDevice device, const char* pName,
                                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetDeviceProcAddr(device:%p, pName:%p)", device, pName);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -937,9 +908,6 @@ VkResult VkEncoder::vkCreateDevice(VkPhysicalDevice physicalDevice,
                                    const VkDeviceCreateInfo* pCreateInfo,
                                    const VkAllocationCallbacks* pAllocator, VkDevice* pDevice,
                                    uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateDevice(physicalDevice:%p, pCreateInfo:%p, pAllocator:%p, pDevice:%p)",
-        physicalDevice, pCreateInfo, pAllocator, pDevice);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1044,7 +1012,6 @@ VkResult VkEncoder::vkCreateDevice(VkPhysicalDevice physicalDevice,
 
 void VkEncoder::vkDestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator,
                                 uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyDevice(device:%p, pAllocator:%p)", device, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1121,9 +1088,6 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(const char* pLayerNam
                                                            uint32_t* pPropertyCount,
                                                            VkExtensionProperties* pProperties,
                                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkEnumerateInstanceExtensionProperties(pLayerName:%p, pPropertyCount:%p, pProperties:%p)",
-        pLayerName, pPropertyCount, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1273,10 +1237,6 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physic
                                                          uint32_t* pPropertyCount,
                                                          VkExtensionProperties* pProperties,
                                                          uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkEnumerateDeviceExtensionProperties(physicalDevice:%p, pLayerName:%p, pPropertyCount:%p, "
-        "pProperties:%p)",
-        physicalDevice, pLayerName, pPropertyCount, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1431,8 +1391,6 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physic
 VkResult VkEncoder::vkEnumerateInstanceLayerProperties(uint32_t* pPropertyCount,
                                                        VkLayerProperties* pProperties,
                                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkEnumerateInstanceLayerProperties(pPropertyCount:%p, pProperties:%p)",
-                      pPropertyCount, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1540,9 +1498,6 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(VkPhysicalDevice physicalDe
                                                      uint32_t* pPropertyCount,
                                                      VkLayerProperties* pProperties,
                                                      uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkEnumerateDeviceLayerProperties(physicalDevice:%p, pPropertyCount:%p, pProperties:%p)",
-        physicalDevice, pPropertyCount, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1656,8 +1611,6 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(VkPhysicalDevice physicalDe
 
 void VkEncoder::vkGetDeviceQueue(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueIndex,
                                  VkQueue* pQueue, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetDeviceQueue(device:%p, queueFamilyIndex:%d, queueIndex:%d, pQueue:%p)",
-                      device, queueFamilyIndex, queueIndex, pQueue);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1725,8 +1678,6 @@ void VkEncoder::vkGetDeviceQueue(VkDevice device, uint32_t queueFamilyIndex, uin
 
 VkResult VkEncoder::vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits,
                                   VkFence fence, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkQueueSubmit(queue:%p, submitCount:%d, pSubmits:%p, fence:%p)", queue,
-                      submitCount, pSubmits, fence);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1807,7 +1758,6 @@ VkResult VkEncoder::vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkS
 }
 
 VkResult VkEncoder::vkQueueWaitIdle(VkQueue queue, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkQueueWaitIdle(queue:%p)", queue);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1853,7 +1803,6 @@ VkResult VkEncoder::vkQueueWaitIdle(VkQueue queue, uint32_t doLock) {
 }
 
 VkResult VkEncoder::vkDeviceWaitIdle(VkDevice device, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDeviceWaitIdle(device:%p)", device);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -1901,8 +1850,6 @@ VkResult VkEncoder::vkDeviceWaitIdle(VkDevice device, uint32_t doLock) {
 VkResult VkEncoder::vkAllocateMemory(VkDevice device, const VkMemoryAllocateInfo* pAllocateInfo,
                                      const VkAllocationCallbacks* pAllocator,
                                      VkDeviceMemory* pMemory, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkAllocateMemory(device:%p, pAllocateInfo:%p, pAllocator:%p, pMemory:%p)",
-                      device, pAllocateInfo, pAllocator, pMemory);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -2008,8 +1955,6 @@ VkResult VkEncoder::vkAllocateMemory(VkDevice device, const VkMemoryAllocateInfo
 
 void VkEncoder::vkFreeMemory(VkDevice device, VkDeviceMemory memory,
                              const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkFreeMemory(device:%p, memory:%p, pAllocator:%p)", device, memory,
-                      pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -2316,9 +2261,6 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(VkDevice device, uint32_t mem
 void VkEncoder::vkGetDeviceMemoryCommitment(VkDevice device, VkDeviceMemory memory,
                                             VkDeviceSize* pCommittedMemoryInBytes,
                                             uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetDeviceMemoryCommitment(device:%p, memory:%p, pCommittedMemoryInBytes:%p)", device,
-        memory, pCommittedMemoryInBytes);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -2378,8 +2320,6 @@ void VkEncoder::vkGetDeviceMemoryCommitment(VkDevice device, VkDeviceMemory memo
 
 VkResult VkEncoder::vkBindBufferMemory(VkDevice device, VkBuffer buffer, VkDeviceMemory memory,
                                        VkDeviceSize memoryOffset, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkBindBufferMemory(device:%p, buffer:%p, memory:%p, memoryOffset:%ld)",
-                      device, buffer, memory, memoryOffset);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -2451,8 +2391,6 @@ VkResult VkEncoder::vkBindBufferMemory(VkDevice device, VkBuffer buffer, VkDevic
 
 VkResult VkEncoder::vkBindImageMemory(VkDevice device, VkImage image, VkDeviceMemory memory,
                                       VkDeviceSize memoryOffset, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkBindImageMemory(device:%p, image:%p, memory:%p, memoryOffset:%ld)", device,
-                      image, memory, memoryOffset);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -2525,8 +2463,6 @@ VkResult VkEncoder::vkBindImageMemory(VkDevice device, VkImage image, VkDeviceMe
 void VkEncoder::vkGetBufferMemoryRequirements(VkDevice device, VkBuffer buffer,
                                               VkMemoryRequirements* pMemoryRequirements,
                                               uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetBufferMemoryRequirements(device:%p, buffer:%p, pMemoryRequirements:%p)",
-                      device, buffer, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -2591,8 +2527,6 @@ void VkEncoder::vkGetBufferMemoryRequirements(VkDevice device, VkBuffer buffer,
 void VkEncoder::vkGetImageMemoryRequirements(VkDevice device, VkImage image,
                                              VkMemoryRequirements* pMemoryRequirements,
                                              uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetImageMemoryRequirements(device:%p, image:%p, pMemoryRequirements:%p)",
-                      device, image, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -2657,10 +2591,6 @@ void VkEncoder::vkGetImageMemoryRequirements(VkDevice device, VkImage image,
 void VkEncoder::vkGetImageSparseMemoryRequirements(
     VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements* pSparseMemoryRequirements, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetImageSparseMemoryRequirements(device:%p, image:%p, pSparseMemoryRequirementCount:%p, "
-        "pSparseMemoryRequirements:%p)",
-        device, image, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -2789,10 +2719,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type,
     VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling,
     uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice:%p, format:%d, usage:%d, "
-        "pPropertyCount:%p, pProperties:%p)",
-        physicalDevice, format, usage, pPropertyCount, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -2933,8 +2859,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
 VkResult VkEncoder::vkQueueBindSparse(VkQueue queue, uint32_t bindInfoCount,
                                       const VkBindSparseInfo* pBindInfo, VkFence fence,
                                       uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkQueueBindSparse(queue:%p, bindInfoCount:%d, pBindInfo:%p, fence:%p)",
-                      queue, bindInfoCount, pBindInfo, fence);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3020,8 +2944,6 @@ VkResult VkEncoder::vkQueueBindSparse(VkQueue queue, uint32_t bindInfoCount,
 VkResult VkEncoder::vkCreateFence(VkDevice device, const VkFenceCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator, VkFence* pFence,
                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCreateFence(device:%p, pCreateInfo:%p, pAllocator:%p, pFence:%p)", device,
-                      pCreateInfo, pAllocator, pFence);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3124,8 +3046,6 @@ VkResult VkEncoder::vkCreateFence(VkDevice device, const VkFenceCreateInfo* pCre
 
 void VkEncoder::vkDestroyFence(VkDevice device, VkFence fence,
                                const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyFence(device:%p, fence:%p, pAllocator:%p)", device, fence,
-                      pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3207,8 +3127,6 @@ void VkEncoder::vkDestroyFence(VkDevice device, VkFence fence,
 
 VkResult VkEncoder::vkResetFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences,
                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkResetFences(device:%p, fenceCount:%d, pFences:%p)", device, fenceCount,
-                      pFences);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3273,7 +3191,6 @@ VkResult VkEncoder::vkResetFences(VkDevice device, uint32_t fenceCount, const Vk
 }
 
 VkResult VkEncoder::vkGetFenceStatus(VkDevice device, VkFence fence, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetFenceStatus(device:%p, fence:%p)", device, fence);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3328,9 +3245,6 @@ VkResult VkEncoder::vkGetFenceStatus(VkDevice device, VkFence fence, uint32_t do
 
 VkResult VkEncoder::vkWaitForFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences,
                                     VkBool32 waitAll, uint64_t timeout, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkWaitForFences(device:%p, fenceCount:%d, pFences:%p, waitAll:%d, timeout:%ld)", device,
-        fenceCount, pFences, waitAll, timeout);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3407,8 +3321,6 @@ VkResult VkEncoder::vkWaitForFences(VkDevice device, uint32_t fenceCount, const 
 VkResult VkEncoder::vkCreateSemaphore(VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator,
                                       VkSemaphore* pSemaphore, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCreateSemaphore(device:%p, pCreateInfo:%p, pAllocator:%p, pSemaphore:%p)",
-                      device, pCreateInfo, pAllocator, pSemaphore);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3514,8 +3426,6 @@ VkResult VkEncoder::vkCreateSemaphore(VkDevice device, const VkSemaphoreCreateIn
 
 void VkEncoder::vkDestroySemaphore(VkDevice device, VkSemaphore semaphore,
                                    const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroySemaphore(device:%p, semaphore:%p, pAllocator:%p)", device,
-                      semaphore, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3599,8 +3509,6 @@ void VkEncoder::vkDestroySemaphore(VkDevice device, VkSemaphore semaphore,
 VkResult VkEncoder::vkCreateEvent(VkDevice device, const VkEventCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator, VkEvent* pEvent,
                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCreateEvent(device:%p, pCreateInfo:%p, pAllocator:%p, pEvent:%p)", device,
-                      pCreateInfo, pAllocator, pEvent);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3703,8 +3611,6 @@ VkResult VkEncoder::vkCreateEvent(VkDevice device, const VkEventCreateInfo* pCre
 
 void VkEncoder::vkDestroyEvent(VkDevice device, VkEvent event,
                                const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyEvent(device:%p, event:%p, pAllocator:%p)", device, event,
-                      pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3785,7 +3691,6 @@ void VkEncoder::vkDestroyEvent(VkDevice device, VkEvent event,
 }
 
 VkResult VkEncoder::vkGetEventStatus(VkDevice device, VkEvent event, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetEventStatus(device:%p, event:%p)", device, event);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3839,7 +3744,6 @@ VkResult VkEncoder::vkGetEventStatus(VkDevice device, VkEvent event, uint32_t do
 }
 
 VkResult VkEncoder::vkSetEvent(VkDevice device, VkEvent event, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkSetEvent(device:%p, event:%p)", device, event);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3893,7 +3797,6 @@ VkResult VkEncoder::vkSetEvent(VkDevice device, VkEvent event, uint32_t doLock) 
 }
 
 VkResult VkEncoder::vkResetEvent(VkDevice device, VkEvent event, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkResetEvent(device:%p, event:%p)", device, event);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -3949,8 +3852,6 @@ VkResult VkEncoder::vkResetEvent(VkDevice device, VkEvent event, uint32_t doLock
 VkResult VkEncoder::vkCreateQueryPool(VkDevice device, const VkQueryPoolCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator,
                                       VkQueryPool* pQueryPool, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCreateQueryPool(device:%p, pCreateInfo:%p, pAllocator:%p, pQueryPool:%p)",
-                      device, pCreateInfo, pAllocator, pQueryPool);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4056,8 +3957,6 @@ VkResult VkEncoder::vkCreateQueryPool(VkDevice device, const VkQueryPoolCreateIn
 
 void VkEncoder::vkDestroyQueryPool(VkDevice device, VkQueryPool queryPool,
                                    const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyQueryPool(device:%p, queryPool:%p, pAllocator:%p)", device,
-                      queryPool, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4142,10 +4041,6 @@ VkResult VkEncoder::vkGetQueryPoolResults(VkDevice device, VkQueryPool queryPool
                                           uint32_t firstQuery, uint32_t queryCount, size_t dataSize,
                                           void* pData, VkDeviceSize stride,
                                           VkQueryResultFlags flags, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetQueryPoolResults(device:%p, queryPool:%p, firstQuery:%d, queryCount:%d, "
-        "dataSize:%ld, pData:%p, stride:%ld, flags:%d)",
-        device, queryPool, firstQuery, queryCount, dataSize, pData, stride, flags);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4233,8 +4128,6 @@ VkResult VkEncoder::vkGetQueryPoolResults(VkDevice device, VkQueryPool queryPool
 VkResult VkEncoder::vkCreateBuffer(VkDevice device, const VkBufferCreateInfo* pCreateInfo,
                                    const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer,
                                    uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCreateBuffer(device:%p, pCreateInfo:%p, pAllocator:%p, pBuffer:%p)",
-                      device, pCreateInfo, pAllocator, pBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4337,8 +4230,6 @@ VkResult VkEncoder::vkCreateBuffer(VkDevice device, const VkBufferCreateInfo* pC
 
 void VkEncoder::vkDestroyBuffer(VkDevice device, VkBuffer buffer,
                                 const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyBuffer(device:%p, buffer:%p, pAllocator:%p)", device, buffer,
-                      pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4421,8 +4312,6 @@ void VkEncoder::vkDestroyBuffer(VkDevice device, VkBuffer buffer,
 VkResult VkEncoder::vkCreateBufferView(VkDevice device, const VkBufferViewCreateInfo* pCreateInfo,
                                        const VkAllocationCallbacks* pAllocator, VkBufferView* pView,
                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCreateBufferView(device:%p, pCreateInfo:%p, pAllocator:%p, pView:%p)",
-                      device, pCreateInfo, pAllocator, pView);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4528,8 +4417,6 @@ VkResult VkEncoder::vkCreateBufferView(VkDevice device, const VkBufferViewCreate
 
 void VkEncoder::vkDestroyBufferView(VkDevice device, VkBufferView bufferView,
                                     const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyBufferView(device:%p, bufferView:%p, pAllocator:%p)", device,
-                      bufferView, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4717,8 +4604,6 @@ VkResult VkEncoder::vkCreateImage(VkDevice device, const VkImageCreateInfo* pCre
 
 void VkEncoder::vkDestroyImage(VkDevice device, VkImage image,
                                const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyImage(device:%p, image:%p, pAllocator:%p)", device, image,
-                      pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4801,9 +4686,6 @@ void VkEncoder::vkDestroyImage(VkDevice device, VkImage image,
 void VkEncoder::vkGetImageSubresourceLayout(VkDevice device, VkImage image,
                                             const VkImageSubresource* pSubresource,
                                             VkSubresourceLayout* pLayout, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetImageSubresourceLayout(device:%p, image:%p, pSubresource:%p, pLayout:%p)", device,
-        image, pSubresource, pLayout);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4881,8 +4763,6 @@ void VkEncoder::vkGetImageSubresourceLayout(VkDevice device, VkImage image,
 VkResult VkEncoder::vkCreateImageView(VkDevice device, const VkImageViewCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator, VkImageView* pView,
                                       uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCreateImageView(device:%p, pCreateInfo:%p, pAllocator:%p, pView:%p)",
-                      device, pCreateInfo, pAllocator, pView);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -4988,8 +4868,6 @@ VkResult VkEncoder::vkCreateImageView(VkDevice device, const VkImageViewCreateIn
 
 void VkEncoder::vkDestroyImageView(VkDevice device, VkImageView imageView,
                                    const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyImageView(device:%p, imageView:%p, pAllocator:%p)", device,
-                      imageView, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -5074,9 +4952,6 @@ VkResult VkEncoder::vkCreateShaderModule(VkDevice device,
                                          const VkShaderModuleCreateInfo* pCreateInfo,
                                          const VkAllocationCallbacks* pAllocator,
                                          VkShaderModule* pShaderModule, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateShaderModule(device:%p, pCreateInfo:%p, pAllocator:%p, pShaderModule:%p)", device,
-        pCreateInfo, pAllocator, pShaderModule);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -5183,8 +5058,6 @@ VkResult VkEncoder::vkCreateShaderModule(VkDevice device,
 
 void VkEncoder::vkDestroyShaderModule(VkDevice device, VkShaderModule shaderModule,
                                       const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyShaderModule(device:%p, shaderModule:%p, pAllocator:%p)", device,
-                      shaderModule, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -5269,9 +5142,6 @@ VkResult VkEncoder::vkCreatePipelineCache(VkDevice device,
                                           const VkPipelineCacheCreateInfo* pCreateInfo,
                                           const VkAllocationCallbacks* pAllocator,
                                           VkPipelineCache* pPipelineCache, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreatePipelineCache(device:%p, pCreateInfo:%p, pAllocator:%p, pPipelineCache:%p)",
-        device, pCreateInfo, pAllocator, pPipelineCache);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -5378,8 +5248,6 @@ VkResult VkEncoder::vkCreatePipelineCache(VkDevice device,
 
 void VkEncoder::vkDestroyPipelineCache(VkDevice device, VkPipelineCache pipelineCache,
                                        const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyPipelineCache(device:%p, pipelineCache:%p, pAllocator:%p)", device,
-                      pipelineCache, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -5463,8 +5331,6 @@ void VkEncoder::vkDestroyPipelineCache(VkDevice device, VkPipelineCache pipeline
 
 VkResult VkEncoder::vkGetPipelineCacheData(VkDevice device, VkPipelineCache pipelineCache,
                                            size_t* pDataSize, void* pData, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetPipelineCacheData(device:%p, pipelineCache:%p, pDataSize:%p, pData:%p)",
-                      device, pipelineCache, pDataSize, pData);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -5571,9 +5437,6 @@ VkResult VkEncoder::vkGetPipelineCacheData(VkDevice device, VkPipelineCache pipe
 VkResult VkEncoder::vkMergePipelineCaches(VkDevice device, VkPipelineCache dstCache,
                                           uint32_t srcCacheCount, const VkPipelineCache* pSrcCaches,
                                           uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkMergePipelineCaches(device:%p, dstCache:%p, srcCacheCount:%d, pSrcCaches:%p)", device,
-        dstCache, srcCacheCount, pSrcCaches);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -5651,10 +5514,6 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache p
                                               const VkGraphicsPipelineCreateInfo* pCreateInfos,
                                               const VkAllocationCallbacks* pAllocator,
                                               VkPipeline* pPipelines, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateGraphicsPipelines(device:%p, pipelineCache:%p, createInfoCount:%d, "
-        "pCreateInfos:%p, pAllocator:%p, pPipelines:%p)",
-        device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -5795,10 +5654,6 @@ VkResult VkEncoder::vkCreateComputePipelines(VkDevice device, VkPipelineCache pi
                                              const VkComputePipelineCreateInfo* pCreateInfos,
                                              const VkAllocationCallbacks* pAllocator,
                                              VkPipeline* pPipelines, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateComputePipelines(device:%p, pipelineCache:%p, createInfoCount:%d, "
-        "pCreateInfos:%p, pAllocator:%p, pPipelines:%p)",
-        device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -5936,8 +5791,6 @@ VkResult VkEncoder::vkCreateComputePipelines(VkDevice device, VkPipelineCache pi
 
 void VkEncoder::vkDestroyPipeline(VkDevice device, VkPipeline pipeline,
                                   const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyPipeline(device:%p, pipeline:%p, pAllocator:%p)", device, pipeline,
-                      pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6022,9 +5875,6 @@ VkResult VkEncoder::vkCreatePipelineLayout(VkDevice device,
                                            const VkPipelineLayoutCreateInfo* pCreateInfo,
                                            const VkAllocationCallbacks* pAllocator,
                                            VkPipelineLayout* pPipelineLayout, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreatePipelineLayout(device:%p, pCreateInfo:%p, pAllocator:%p, pPipelineLayout:%p)",
-        device, pCreateInfo, pAllocator, pPipelineLayout);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6132,8 +5982,6 @@ VkResult VkEncoder::vkCreatePipelineLayout(VkDevice device,
 
 void VkEncoder::vkDestroyPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout,
                                         const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyPipelineLayout(device:%p, pipelineLayout:%p, pAllocator:%p)",
-                      device, pipelineLayout, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6218,8 +6066,6 @@ void VkEncoder::vkDestroyPipelineLayout(VkDevice device, VkPipelineLayout pipeli
 VkResult VkEncoder::vkCreateSampler(VkDevice device, const VkSamplerCreateInfo* pCreateInfo,
                                     const VkAllocationCallbacks* pAllocator, VkSampler* pSampler,
                                     uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCreateSampler(device:%p, pCreateInfo:%p, pAllocator:%p, pSampler:%p)",
-                      device, pCreateInfo, pAllocator, pSampler);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6322,8 +6168,6 @@ VkResult VkEncoder::vkCreateSampler(VkDevice device, const VkSamplerCreateInfo* 
 
 void VkEncoder::vkDestroySampler(VkDevice device, VkSampler sampler,
                                  const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroySampler(device:%p, sampler:%p, pAllocator:%p)", device, sampler,
-                      pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6408,9 +6252,6 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(VkDevice device,
                                                 const VkAllocationCallbacks* pAllocator,
                                                 VkDescriptorSetLayout* pSetLayout,
                                                 uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateDescriptorSetLayout(device:%p, pCreateInfo:%p, pAllocator:%p, pSetLayout:%p)",
-        device, pCreateInfo, pAllocator, pSetLayout);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6521,9 +6362,6 @@ void VkEncoder::vkDestroyDescriptorSetLayout(VkDevice device,
                                              VkDescriptorSetLayout descriptorSetLayout,
                                              const VkAllocationCallbacks* pAllocator,
                                              uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkDestroyDescriptorSetLayout(device:%p, descriptorSetLayout:%p, pAllocator:%p)", device,
-        descriptorSetLayout, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6609,9 +6447,6 @@ VkResult VkEncoder::vkCreateDescriptorPool(VkDevice device,
                                            const VkDescriptorPoolCreateInfo* pCreateInfo,
                                            const VkAllocationCallbacks* pAllocator,
                                            VkDescriptorPool* pDescriptorPool, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateDescriptorPool(device:%p, pCreateInfo:%p, pAllocator:%p, pDescriptorPool:%p)",
-        device, pCreateInfo, pAllocator, pDescriptorPool);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6719,8 +6554,6 @@ VkResult VkEncoder::vkCreateDescriptorPool(VkDevice device,
 
 void VkEncoder::vkDestroyDescriptorPool(VkDevice device, VkDescriptorPool descriptorPool,
                                         const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyDescriptorPool(device:%p, descriptorPool:%p, pAllocator:%p)",
-                      device, descriptorPool, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6804,8 +6637,6 @@ void VkEncoder::vkDestroyDescriptorPool(VkDevice device, VkDescriptorPool descri
 
 VkResult VkEncoder::vkResetDescriptorPool(VkDevice device, VkDescriptorPool descriptorPool,
                                           VkDescriptorPoolResetFlags flags, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkResetDescriptorPool(device:%p, descriptorPool:%p, flags:%d)", device,
-                      descriptorPool, flags);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6868,8 +6699,6 @@ VkResult VkEncoder::vkResetDescriptorPool(VkDevice device, VkDescriptorPool desc
 VkResult VkEncoder::vkAllocateDescriptorSets(VkDevice device,
                                              const VkDescriptorSetAllocateInfo* pAllocateInfo,
                                              VkDescriptorSet* pDescriptorSets, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkAllocateDescriptorSets(device:%p, pAllocateInfo:%p, pDescriptorSets:%p)",
-                      device, pAllocateInfo, pDescriptorSets);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -6958,10 +6787,6 @@ VkResult VkEncoder::vkAllocateDescriptorSets(VkDevice device,
 VkResult VkEncoder::vkFreeDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,
                                          uint32_t descriptorSetCount,
                                          const VkDescriptorSet* pDescriptorSets, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkFreeDescriptorSets(device:%p, descriptorPool:%p, descriptorSetCount:%d, "
-        "pDescriptorSets:%p)",
-        device, descriptorPool, descriptorSetCount, pDescriptorSets);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7054,10 +6879,6 @@ void VkEncoder::vkUpdateDescriptorSets(VkDevice device, uint32_t descriptorWrite
                                        uint32_t descriptorCopyCount,
                                        const VkCopyDescriptorSet* pDescriptorCopies,
                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkUpdateDescriptorSets(device:%p, descriptorWriteCount:%d, pDescriptorWrites:%p, "
-        "descriptorCopyCount:%d, pDescriptorCopies:%p)",
-        device, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7166,9 +6987,6 @@ void VkEncoder::vkUpdateDescriptorSets(VkDevice device, uint32_t descriptorWrite
 VkResult VkEncoder::vkCreateFramebuffer(VkDevice device, const VkFramebufferCreateInfo* pCreateInfo,
                                         const VkAllocationCallbacks* pAllocator,
                                         VkFramebuffer* pFramebuffer, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateFramebuffer(device:%p, pCreateInfo:%p, pAllocator:%p, pFramebuffer:%p)", device,
-        pCreateInfo, pAllocator, pFramebuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7275,8 +7093,6 @@ VkResult VkEncoder::vkCreateFramebuffer(VkDevice device, const VkFramebufferCrea
 
 void VkEncoder::vkDestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer,
                                      const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyFramebuffer(device:%p, framebuffer:%p, pAllocator:%p)", device,
-                      framebuffer, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7360,9 +7176,6 @@ void VkEncoder::vkDestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer,
 VkResult VkEncoder::vkCreateRenderPass(VkDevice device, const VkRenderPassCreateInfo* pCreateInfo,
                                        const VkAllocationCallbacks* pAllocator,
                                        VkRenderPass* pRenderPass, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateRenderPass(device:%p, pCreateInfo:%p, pAllocator:%p, pRenderPass:%p)", device,
-        pCreateInfo, pAllocator, pRenderPass);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7469,8 +7282,6 @@ VkResult VkEncoder::vkCreateRenderPass(VkDevice device, const VkRenderPassCreate
 
 void VkEncoder::vkDestroyRenderPass(VkDevice device, VkRenderPass renderPass,
                                     const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyRenderPass(device:%p, renderPass:%p, pAllocator:%p)", device,
-                      renderPass, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7553,8 +7364,6 @@ void VkEncoder::vkDestroyRenderPass(VkDevice device, VkRenderPass renderPass,
 
 void VkEncoder::vkGetRenderAreaGranularity(VkDevice device, VkRenderPass renderPass,
                                            VkExtent2D* pGranularity, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetRenderAreaGranularity(device:%p, renderPass:%p, pGranularity:%p)",
-                      device, renderPass, pGranularity);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7616,9 +7425,6 @@ void VkEncoder::vkGetRenderAreaGranularity(VkDevice device, VkRenderPass renderP
 VkResult VkEncoder::vkCreateCommandPool(VkDevice device, const VkCommandPoolCreateInfo* pCreateInfo,
                                         const VkAllocationCallbacks* pAllocator,
                                         VkCommandPool* pCommandPool, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateCommandPool(device:%p, pCreateInfo:%p, pAllocator:%p, pCommandPool:%p)", device,
-        pCreateInfo, pAllocator, pCommandPool);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7725,8 +7531,6 @@ VkResult VkEncoder::vkCreateCommandPool(VkDevice device, const VkCommandPoolCrea
 
 void VkEncoder::vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool,
                                      const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyCommandPool(device:%p, commandPool:%p, pAllocator:%p)", device,
-                      commandPool, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7809,8 +7613,6 @@ void VkEncoder::vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool,
 
 VkResult VkEncoder::vkResetCommandPool(VkDevice device, VkCommandPool commandPool,
                                        VkCommandPoolResetFlags flags, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkResetCommandPool(device:%p, commandPool:%p, flags:%d)", device,
-                      commandPool, flags);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7872,8 +7674,6 @@ VkResult VkEncoder::vkResetCommandPool(VkDevice device, VkCommandPool commandPoo
 VkResult VkEncoder::vkAllocateCommandBuffers(VkDevice device,
                                              const VkCommandBufferAllocateInfo* pAllocateInfo,
                                              VkCommandBuffer* pCommandBuffers, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkAllocateCommandBuffers(device:%p, pAllocateInfo:%p, pCommandBuffers:%p)",
-                      device, pAllocateInfo, pCommandBuffers);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -7962,10 +7762,6 @@ VkResult VkEncoder::vkAllocateCommandBuffers(VkDevice device,
 void VkEncoder::vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool,
                                      uint32_t commandBufferCount,
                                      const VkCommandBuffer* pCommandBuffers, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkFreeCommandBuffers(device:%p, commandPool:%p, commandBufferCount:%d, "
-        "pCommandBuffers:%p)",
-        device, commandPool, commandBufferCount, pCommandBuffers);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8054,8 +7850,6 @@ void VkEncoder::vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool,
 VkResult VkEncoder::vkBeginCommandBuffer(VkCommandBuffer commandBuffer,
                                          const VkCommandBufferBeginInfo* pBeginInfo,
                                          uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkBeginCommandBuffer(commandBuffer:%p, pBeginInfo:%p)", commandBuffer,
-                      pBeginInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8115,7 +7909,6 @@ VkResult VkEncoder::vkBeginCommandBuffer(VkCommandBuffer commandBuffer,
 }
 
 VkResult VkEncoder::vkEndCommandBuffer(VkCommandBuffer commandBuffer, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkEndCommandBuffer(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8159,7 +7952,6 @@ VkResult VkEncoder::vkEndCommandBuffer(VkCommandBuffer commandBuffer, uint32_t d
 
 VkResult VkEncoder::vkResetCommandBuffer(VkCommandBuffer commandBuffer,
                                          VkCommandBufferResetFlags flags, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkResetCommandBuffer(commandBuffer:%p, flags:%d)", commandBuffer, flags);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8210,7 +8002,6 @@ VkResult VkEncoder::vkResetCommandBuffer(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdBindPipeline(VkCommandBuffer commandBuffer,
                                   VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline,
                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdBindPipeline(commandBuffer:%p, pipeline:%p)", commandBuffer, pipeline);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8266,9 +8057,6 @@ void VkEncoder::vkCmdBindPipeline(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstViewport,
                                  uint32_t viewportCount, const VkViewport* pViewports,
                                  uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetViewport(commandBuffer:%p, firstViewport:%d, viewportCount:%d, pViewports:%p)",
-        commandBuffer, firstViewport, viewportCount, pViewports);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8341,9 +8129,6 @@ void VkEncoder::vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstVi
 
 void VkEncoder::vkCmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstScissor,
                                 uint32_t scissorCount, const VkRect2D* pScissors, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetScissor(commandBuffer:%p, firstScissor:%d, scissorCount:%d, pScissors:%p)",
-        commandBuffer, firstScissor, scissorCount, pScissors);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8415,8 +8200,6 @@ void VkEncoder::vkCmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstSci
 }
 
 void VkEncoder::vkCmdSetLineWidth(VkCommandBuffer commandBuffer, float lineWidth, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetLineWidth(commandBuffer:%p, lineWidth:%f)", commandBuffer,
-                      lineWidth);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8463,10 +8246,6 @@ void VkEncoder::vkCmdSetLineWidth(VkCommandBuffer commandBuffer, float lineWidth
 void VkEncoder::vkCmdSetDepthBias(VkCommandBuffer commandBuffer, float depthBiasConstantFactor,
                                   float depthBiasClamp, float depthBiasSlopeFactor,
                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetDepthBias(commandBuffer:%p, depthBiasConstantFactor:%f, depthBiasClamp:%f, "
-        "depthBiasSlopeFactor:%f)",
-        commandBuffer, depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8522,8 +8301,6 @@ void VkEncoder::vkCmdSetDepthBias(VkCommandBuffer commandBuffer, float depthBias
 
 void VkEncoder::vkCmdSetBlendConstants(VkCommandBuffer commandBuffer, const float blendConstants[4],
                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetBlendConstants(commandBuffer:%p, blendConstants:%f)", commandBuffer,
-                      blendConstants);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8569,8 +8346,6 @@ void VkEncoder::vkCmdSetBlendConstants(VkCommandBuffer commandBuffer, const floa
 
 void VkEncoder::vkCmdSetDepthBounds(VkCommandBuffer commandBuffer, float minDepthBounds,
                                     float maxDepthBounds, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthBounds(commandBuffer:%p, minDepthBounds:%f, maxDepthBounds:%f)",
-                      commandBuffer, minDepthBounds, maxDepthBounds);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8622,8 +8397,6 @@ void VkEncoder::vkCmdSetDepthBounds(VkCommandBuffer commandBuffer, float minDept
 void VkEncoder::vkCmdSetStencilCompareMask(VkCommandBuffer commandBuffer,
                                            VkStencilFaceFlags faceMask, uint32_t compareMask,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetStencilCompareMask(commandBuffer:%p, faceMask:%d, compareMask:%d)",
-                      commandBuffer, faceMask, compareMask);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8674,8 +8447,6 @@ void VkEncoder::vkCmdSetStencilCompareMask(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdSetStencilWriteMask(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
                                          uint32_t writeMask, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetStencilWriteMask(commandBuffer:%p, faceMask:%d, writeMask:%d)",
-                      commandBuffer, faceMask, writeMask);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8726,8 +8497,6 @@ void VkEncoder::vkCmdSetStencilWriteMask(VkCommandBuffer commandBuffer, VkStenci
 
 void VkEncoder::vkCmdSetStencilReference(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
                                          uint32_t reference, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetStencilReference(commandBuffer:%p, faceMask:%d, reference:%d)",
-                      commandBuffer, faceMask, reference);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8780,11 +8549,6 @@ void VkEncoder::vkCmdBindDescriptorSets(
     VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
     uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets,
     uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBindDescriptorSets(commandBuffer:%p, layout:%p, firstSet:%d, descriptorSetCount:%d, "
-        "pDescriptorSets:%p, dynamicOffsetCount:%d, pDynamicOffsets:%p)",
-        commandBuffer, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
-        pDynamicOffsets);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8875,8 +8639,6 @@ void VkEncoder::vkCmdBindDescriptorSets(
 
 void VkEncoder::vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                      VkDeviceSize offset, VkIndexType indexType, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdBindIndexBuffer(commandBuffer:%p, buffer:%p, offset:%ld)",
-                      commandBuffer, buffer, offset);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -8936,10 +8698,6 @@ void VkEncoder::vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buf
 void VkEncoder::vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t firstBinding,
                                        uint32_t bindingCount, const VkBuffer* pBuffers,
                                        const VkDeviceSize* pOffsets, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBindVertexBuffers(commandBuffer:%p, firstBinding:%d, bindingCount:%d, pBuffers:%p, "
-        "pOffsets:%p)",
-        commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9011,10 +8769,6 @@ void VkEncoder::vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t f
 void VkEncoder::vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount,
                           uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance,
                           uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdDraw(commandBuffer:%p, vertexCount:%d, instanceCount:%d, firstVertex:%d, "
-        "firstInstance:%d)",
-        commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9076,10 +8830,6 @@ void VkEncoder::vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount,
 void VkEncoder::vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCount,
                                  uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset,
                                  uint32_t firstInstance, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdDrawIndexed(commandBuffer:%p, indexCount:%d, instanceCount:%d, firstIndex:%d, "
-        "vertexOffset:%d, firstInstance:%d)",
-        commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9146,9 +8896,6 @@ void VkEncoder::vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCo
 void VkEncoder::vkCmdDrawIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                   VkDeviceSize offset, uint32_t drawCount, uint32_t stride,
                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdDrawIndirect(commandBuffer:%p, buffer:%p, offset:%ld, drawCount:%d, stride:%d)",
-        commandBuffer, buffer, offset, drawCount, stride);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9213,10 +8960,6 @@ void VkEncoder::vkCmdDrawIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer
 void VkEncoder::vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                          VkDeviceSize offset, uint32_t drawCount, uint32_t stride,
                                          uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdDrawIndexedIndirect(commandBuffer:%p, buffer:%p, offset:%ld, drawCount:%d, "
-        "stride:%d)",
-        commandBuffer, buffer, offset, drawCount, stride);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9280,9 +9023,6 @@ void VkEncoder::vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer
 
 void VkEncoder::vkCmdDispatch(VkCommandBuffer commandBuffer, uint32_t groupCountX,
                               uint32_t groupCountY, uint32_t groupCountZ, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdDispatch(commandBuffer:%p, groupCountX:%d, groupCountY:%d, groupCountZ:%d)",
-        commandBuffer, groupCountX, groupCountY, groupCountZ);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9338,8 +9078,6 @@ void VkEncoder::vkCmdDispatch(VkCommandBuffer commandBuffer, uint32_t groupCount
 
 void VkEncoder::vkCmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                       VkDeviceSize offset, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdDispatchIndirect(commandBuffer:%p, buffer:%p, offset:%ld)",
-                      commandBuffer, buffer, offset);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9394,10 +9132,6 @@ void VkEncoder::vkCmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer bu
 void VkEncoder::vkCmdCopyBuffer(VkCommandBuffer commandBuffer, VkBuffer srcBuffer,
                                 VkBuffer dstBuffer, uint32_t regionCount,
                                 const VkBufferCopy* pRegions, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdCopyBuffer(commandBuffer:%p, srcBuffer:%p, dstBuffer:%p, regionCount:%d, "
-        "pRegions:%p)",
-        commandBuffer, srcBuffer, dstBuffer, regionCount, pRegions);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9483,10 +9217,6 @@ void VkEncoder::vkCmdCopyImage(VkCommandBuffer commandBuffer, VkImage srcImage,
                                VkImageLayout srcImageLayout, VkImage dstImage,
                                VkImageLayout dstImageLayout, uint32_t regionCount,
                                const VkImageCopy* pRegions, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdCopyImage(commandBuffer:%p, srcImage:%p, srcImageLayout:%d, dstImage:%p, "
-        "dstImageLayout:%d, regionCount:%d, pRegions:%p)",
-        commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9582,10 +9312,6 @@ void VkEncoder::vkCmdBlitImage(VkCommandBuffer commandBuffer, VkImage srcImage,
                                VkImageLayout srcImageLayout, VkImage dstImage,
                                VkImageLayout dstImageLayout, uint32_t regionCount,
                                const VkImageBlit* pRegions, VkFilter filter, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBlitImage(commandBuffer:%p, srcImage:%p, srcImageLayout:%d, dstImage:%p, "
-        "dstImageLayout:%d, regionCount:%d, pRegions:%p)",
-        commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9686,10 +9412,6 @@ void VkEncoder::vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer s
                                        VkImage dstImage, VkImageLayout dstImageLayout,
                                        uint32_t regionCount, const VkBufferImageCopy* pRegions,
                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdCopyBufferToImage(commandBuffer:%p, srcBuffer:%p, dstImage:%p, dstImageLayout:%d, "
-        "regionCount:%d, pRegions:%p)",
-        commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9782,10 +9504,6 @@ void VkEncoder::vkCmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage sr
                                        VkImageLayout srcImageLayout, VkBuffer dstBuffer,
                                        uint32_t regionCount, const VkBufferImageCopy* pRegions,
                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdCopyImageToBuffer(commandBuffer:%p, srcImage:%p, srcImageLayout:%d, dstBuffer:%p, "
-        "regionCount:%d, pRegions:%p)",
-        commandBuffer, srcImage, srcImageLayout, dstBuffer, regionCount, pRegions);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9877,9 +9595,6 @@ void VkEncoder::vkCmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage sr
 void VkEncoder::vkCmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
                                   VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData,
                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdUpdateBuffer(commandBuffer:%p, dstBuffer:%p, dstOffset:%ld, dataSize:%ld, pData:%p)",
-        commandBuffer, dstBuffer, dstOffset, dataSize, pData);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -9945,9 +9660,6 @@ void VkEncoder::vkCmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuf
 void VkEncoder::vkCmdFillBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
                                 VkDeviceSize dstOffset, VkDeviceSize size, uint32_t data,
                                 uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdFillBuffer(commandBuffer:%p, dstBuffer:%p, dstOffset:%ld, size:%ld, data:%d)",
-        commandBuffer, dstBuffer, dstOffset, size, data);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10013,10 +9725,6 @@ void VkEncoder::vkCmdClearColorImage(VkCommandBuffer commandBuffer, VkImage imag
                                      VkImageLayout imageLayout, const VkClearColorValue* pColor,
                                      uint32_t rangeCount, const VkImageSubresourceRange* pRanges,
                                      uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdClearColorImage(commandBuffer:%p, image:%p, imageLayout:%d, pColor:%p, "
-        "rangeCount:%d, pRanges:%p)",
-        commandBuffer, image, imageLayout, pColor, rangeCount, pRanges);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10118,10 +9826,6 @@ void VkEncoder::vkCmdClearDepthStencilImage(VkCommandBuffer commandBuffer, VkIma
                                             uint32_t rangeCount,
                                             const VkImageSubresourceRange* pRanges,
                                             uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdClearDepthStencilImage(commandBuffer:%p, image:%p, imageLayout:%d, pDepthStencil:%p, "
-        "rangeCount:%d, pRanges:%p)",
-        commandBuffer, image, imageLayout, pDepthStencil, rangeCount, pRanges);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10223,10 +9927,6 @@ void VkEncoder::vkCmdClearDepthStencilImage(VkCommandBuffer commandBuffer, VkIma
 void VkEncoder::vkCmdClearAttachments(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
                                       const VkClearAttachment* pAttachments, uint32_t rectCount,
                                       const VkClearRect* pRects, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdClearAttachments(commandBuffer:%p, attachmentCount:%d, pAttachments:%p, "
-        "rectCount:%d, pRects:%p)",
-        commandBuffer, attachmentCount, pAttachments, rectCount, pRects);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10326,10 +10026,6 @@ void VkEncoder::vkCmdResolveImage(VkCommandBuffer commandBuffer, VkImage srcImag
                                   VkImageLayout srcImageLayout, VkImage dstImage,
                                   VkImageLayout dstImageLayout, uint32_t regionCount,
                                   const VkImageResolve* pRegions, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdResolveImage(commandBuffer:%p, srcImage:%p, srcImageLayout:%d, dstImage:%p, "
-        "dstImageLayout:%d, regionCount:%d, pRegions:%p)",
-        commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10425,8 +10121,6 @@ void VkEncoder::vkCmdResolveImage(VkCommandBuffer commandBuffer, VkImage srcImag
 
 void VkEncoder::vkCmdSetEvent(VkCommandBuffer commandBuffer, VkEvent event,
                               VkPipelineStageFlags stageMask, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetEvent(commandBuffer:%p, event:%p, stageMask:%d)", commandBuffer,
-                      event, stageMask);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10480,8 +10174,6 @@ void VkEncoder::vkCmdSetEvent(VkCommandBuffer commandBuffer, VkEvent event,
 
 void VkEncoder::vkCmdResetEvent(VkCommandBuffer commandBuffer, VkEvent event,
                                 VkPipelineStageFlags stageMask, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdResetEvent(commandBuffer:%p, event:%p, stageMask:%d)", commandBuffer,
-                      event, stageMask);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10541,13 +10233,6 @@ void VkEncoder::vkCmdWaitEvents(VkCommandBuffer commandBuffer, uint32_t eventCou
                                 const VkBufferMemoryBarrier* pBufferMemoryBarriers,
                                 uint32_t imageMemoryBarrierCount,
                                 const VkImageMemoryBarrier* pImageMemoryBarriers, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdWaitEvents(commandBuffer:%p, eventCount:%d, pEvents:%p, srcStageMask:%d, "
-        "dstStageMask:%d, memoryBarrierCount:%d, pMemoryBarriers:%p, bufferMemoryBarrierCount:%d, "
-        "pBufferMemoryBarriers:%p, imageMemoryBarrierCount:%d, pImageMemoryBarriers:%p)",
-        commandBuffer, eventCount, pEvents, srcStageMask, dstStageMask, memoryBarrierCount,
-        pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
-        pImageMemoryBarriers);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10716,14 +10401,6 @@ void VkEncoder::vkCmdPipelineBarrier(
     uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers,
     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdPipelineBarrier(commandBuffer:%p, srcStageMask:%d, dstStageMask:%d, "
-        "dependencyFlags:%d, memoryBarrierCount:%d, pMemoryBarriers:%p, "
-        "bufferMemoryBarrierCount:%d, pBufferMemoryBarriers:%p, imageMemoryBarrierCount:%d, "
-        "pImageMemoryBarriers:%p)",
-        commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount,
-        pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
-        pImageMemoryBarriers);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10873,8 +10550,6 @@ void VkEncoder::vkCmdPipelineBarrier(
 
 void VkEncoder::vkCmdBeginQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                 uint32_t query, VkQueryControlFlags flags, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdBeginQuery(commandBuffer:%p, queryPool:%p, query:%d, flags:%d)",
-                      commandBuffer, queryPool, query, flags);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10933,8 +10608,6 @@ void VkEncoder::vkCmdBeginQuery(VkCommandBuffer commandBuffer, VkQueryPool query
 
 void VkEncoder::vkCmdEndQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query,
                               uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdEndQuery(commandBuffer:%p, queryPool:%p, query:%d)", commandBuffer,
-                      queryPool, query);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -10988,9 +10661,6 @@ void VkEncoder::vkCmdEndQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPo
 
 void VkEncoder::vkCmdResetQueryPool(VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                     uint32_t firstQuery, uint32_t queryCount, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdResetQueryPool(commandBuffer:%p, queryPool:%p, firstQuery:%d, queryCount:%d)",
-        commandBuffer, queryPool, firstQuery, queryCount);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11050,8 +10720,6 @@ void VkEncoder::vkCmdResetQueryPool(VkCommandBuffer commandBuffer, VkQueryPool q
 void VkEncoder::vkCmdWriteTimestamp(VkCommandBuffer commandBuffer,
                                     VkPipelineStageFlagBits pipelineStage, VkQueryPool queryPool,
                                     uint32_t query, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdWriteTimestamp(commandBuffer:%p, queryPool:%p, query:%d)",
-                      commandBuffer, queryPool, query);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11114,10 +10782,6 @@ void VkEncoder::vkCmdCopyQueryPoolResults(VkCommandBuffer commandBuffer, VkQuery
                                           VkBuffer dstBuffer, VkDeviceSize dstOffset,
                                           VkDeviceSize stride, VkQueryResultFlags flags,
                                           uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdCopyQueryPoolResults(commandBuffer:%p, queryPool:%p, firstQuery:%d, queryCount:%d, "
-        "dstBuffer:%p, dstOffset:%ld, stride:%ld, flags:%d)",
-        commandBuffer, queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11200,10 +10864,6 @@ void VkEncoder::vkCmdCopyQueryPoolResults(VkCommandBuffer commandBuffer, VkQuery
 void VkEncoder::vkCmdPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayout layout,
                                    VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size,
                                    const void* pValues, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdPushConstants(commandBuffer:%p, layout:%p, stageFlags:%d, offset:%d, size:%d, "
-        "pValues:%p)",
-        commandBuffer, layout, stageFlags, offset, size, pValues);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11274,8 +10934,6 @@ void VkEncoder::vkCmdPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayo
 void VkEncoder::vkCmdBeginRenderPass(VkCommandBuffer commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin,
                                      VkSubpassContents contents, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdBeginRenderPass(commandBuffer:%p, pRenderPassBegin:%p)", commandBuffer,
-                      pRenderPassBegin);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11338,7 +10996,6 @@ void VkEncoder::vkCmdBeginRenderPass(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContents contents,
                                  uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdNextSubpass(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11383,7 +11040,6 @@ void VkEncoder::vkCmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContent
 }
 
 void VkEncoder::vkCmdEndRenderPass(VkCommandBuffer commandBuffer, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdEndRenderPass(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11424,9 +11080,6 @@ void VkEncoder::vkCmdEndRenderPass(VkCommandBuffer commandBuffer, uint32_t doLoc
 
 void VkEncoder::vkCmdExecuteCommands(VkCommandBuffer commandBuffer, uint32_t commandBufferCount,
                                      const VkCommandBuffer* pCommandBuffers, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdExecuteCommands(commandBuffer:%p, commandBufferCount:%d, pCommandBuffers:%p)",
-        commandBuffer, commandBufferCount, pCommandBuffers);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11487,7 +11140,6 @@ void VkEncoder::vkCmdExecuteCommands(VkCommandBuffer commandBuffer, uint32_t com
 #endif
 #ifdef VK_VERSION_1_1
 VkResult VkEncoder::vkEnumerateInstanceVersion(uint32_t* pApiVersion, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkEnumerateInstanceVersion(pApiVersion:%p)", pApiVersion);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11529,8 +11181,6 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(uint32_t* pApiVersion, uint32_t d
 
 VkResult VkEncoder::vkBindBufferMemory2(VkDevice device, uint32_t bindInfoCount,
                                         const VkBindBufferMemoryInfo* pBindInfos, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkBindBufferMemory2(device:%p, bindInfoCount:%d, pBindInfos:%p)", device,
-                      bindInfoCount, pBindInfos);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11690,10 +11340,6 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(VkDevice device, uint32_t hea
                                                    uint32_t remoteDeviceIndex,
                                                    VkPeerMemoryFeatureFlags* pPeerMemoryFeatures,
                                                    uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetDeviceGroupPeerMemoryFeatures(device:%p, heapIndex:%d, localDeviceIndex:%d, "
-        "remoteDeviceIndex:%d, pPeerMemoryFeatures:%p)",
-        device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11758,8 +11404,6 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(VkDevice device, uint32_t hea
 
 void VkEncoder::vkCmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t deviceMask,
                                    uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDeviceMask(commandBuffer:%p, deviceMask:%d)", commandBuffer,
-                      deviceMask);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11806,10 +11450,6 @@ void VkEncoder::vkCmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t devic
 void VkEncoder::vkCmdDispatchBase(VkCommandBuffer commandBuffer, uint32_t baseGroupX,
                                   uint32_t baseGroupY, uint32_t baseGroupZ, uint32_t groupCountX,
                                   uint32_t groupCountY, uint32_t groupCountZ, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdDispatchBase(commandBuffer:%p, baseGroupX:%d, baseGroupY:%d, baseGroupZ:%d, "
-        "groupCountX:%d, groupCountY:%d, groupCountZ:%d)",
-        commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -11881,10 +11521,6 @@ void VkEncoder::vkCmdDispatchBase(VkCommandBuffer commandBuffer, uint32_t baseGr
 VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
     VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkEnumeratePhysicalDeviceGroups(instance:%p, pPhysicalDeviceGroupCount:%p, "
-        "pPhysicalDeviceGroupProperties:%p)",
-        instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12009,8 +11645,6 @@ void VkEncoder::vkGetImageMemoryRequirements2(VkDevice device,
                                               const VkImageMemoryRequirementsInfo2* pInfo,
                                               VkMemoryRequirements2* pMemoryRequirements,
                                               uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetImageMemoryRequirements2(device:%p, pInfo:%p, pMemoryRequirements:%p)",
-                      device, pInfo, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12086,8 +11720,6 @@ void VkEncoder::vkGetBufferMemoryRequirements2(VkDevice device,
                                                const VkBufferMemoryRequirementsInfo2* pInfo,
                                                VkMemoryRequirements2* pMemoryRequirements,
                                                uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetBufferMemoryRequirements2(device:%p, pInfo:%p, pMemoryRequirements:%p)",
-                      device, pInfo, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12163,10 +11795,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetImageSparseMemoryRequirements2(device:%p, pInfo:%p, "
-        "pSparseMemoryRequirementCount:%p, pSparseMemoryRequirements:%p)",
-        device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12305,8 +11933,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
 void VkEncoder::vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice,
                                              VkPhysicalDeviceFeatures2* pFeatures,
                                              uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetPhysicalDeviceFeatures2(physicalDevice:%p, pFeatures:%p)",
-                      physicalDevice, pFeatures);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12363,8 +11989,6 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice,
 void VkEncoder::vkGetPhysicalDeviceProperties2(VkPhysicalDevice physicalDevice,
                                                VkPhysicalDeviceProperties2* pProperties,
                                                uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetPhysicalDeviceProperties2(physicalDevice:%p, pProperties:%p)",
-                      physicalDevice, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12423,9 +12047,6 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDe
                                                      VkFormat format,
                                                      VkFormatProperties2* pFormatProperties,
                                                      uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceFormatProperties2(physicalDevice:%p, format:%d, pFormatProperties:%p)",
-        physicalDevice, format, pFormatProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12486,10 +12107,6 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDe
 VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceImageFormatProperties2(physicalDevice:%p, pImageFormatInfo:%p, "
-        "pImageFormatProperties:%p)",
-        physicalDevice, pImageFormatInfo, pImageFormatProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12570,10 +12187,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
 void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
     VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties2* pQueueFamilyProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice:%p, "
-        "pQueueFamilyPropertyCount:%p, pQueueFamilyProperties:%p)",
-        physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12690,9 +12303,6 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
 void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
     VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties,
     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceMemoryProperties2(physicalDevice:%p, pMemoryProperties:%p)",
-        physicalDevice, pMemoryProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12751,10 +12361,6 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
 void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
     uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceSparseImageFormatProperties2(physicalDevice:%p, pFormatInfo:%p, "
-        "pPropertyCount:%p, pProperties:%p)",
-        physicalDevice, pFormatInfo, pPropertyCount, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12890,8 +12496,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
 
 void VkEncoder::vkTrimCommandPool(VkDevice device, VkCommandPool commandPool,
                                   VkCommandPoolTrimFlags flags, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkTrimCommandPool(device:%p, commandPool:%p, flags:%d)", device, commandPool,
-                      flags);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -12950,8 +12554,6 @@ void VkEncoder::vkTrimCommandPool(VkDevice device, VkCommandPool commandPool,
 
 void VkEncoder::vkGetDeviceQueue2(VkDevice device, const VkDeviceQueueInfo2* pQueueInfo,
                                   VkQueue* pQueue, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetDeviceQueue2(device:%p, pQueueInfo:%p, pQueue:%p)", device, pQueueInfo,
-                      pQueue);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13027,10 +12629,6 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     VkDevice device, const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkSamplerYcbcrConversion* pYcbcrConversion,
     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateSamplerYcbcrConversion(device:%p, pCreateInfo:%p, pAllocator:%p, "
-        "pYcbcrConversion:%p)",
-        device, pCreateInfo, pAllocator, pYcbcrConversion);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13141,9 +12739,6 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(VkDevice device,
                                                 VkSamplerYcbcrConversion ycbcrConversion,
                                                 const VkAllocationCallbacks* pAllocator,
                                                 uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkDestroySamplerYcbcrConversion(device:%p, ycbcrConversion:%p, pAllocator:%p)", device,
-        ycbcrConversion, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13229,10 +12824,6 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     VkDevice device, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate,
     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateDescriptorUpdateTemplate(device:%p, pCreateInfo:%p, pAllocator:%p, "
-        "pDescriptorUpdateTemplate:%p)",
-        device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13345,9 +12936,6 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
 void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     VkDevice device, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkDestroyDescriptorUpdateTemplate(device:%p, descriptorUpdateTemplate:%p, pAllocator:%p)",
-        device, descriptorUpdateTemplate, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13432,10 +13020,6 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
 void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     VkDevice device, VkDescriptorSet descriptorSet,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, const void* pData, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkUpdateDescriptorSetWithTemplate(device:%p, descriptorSet:%p, "
-        "descriptorUpdateTemplate:%p, pData:%p)",
-        device, descriptorSet, descriptorUpdateTemplate, pData);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13515,10 +13099,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
 void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
     VkExternalBufferProperties* pExternalBufferProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceExternalBufferProperties(physicalDevice:%p, pExternalBufferInfo:%p, "
-        "pExternalBufferProperties:%p)",
-        physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13600,10 +13180,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
 void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
     VkExternalFenceProperties* pExternalFenceProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceExternalFenceProperties(physicalDevice:%p, pExternalFenceInfo:%p, "
-        "pExternalFenceProperties:%p)",
-        physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13682,10 +13258,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceExternalSemaphoreProperties(physicalDevice:%p, "
-        "pExternalSemaphoreInfo:%p, pExternalSemaphoreProperties:%p)",
-        physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13768,8 +13340,6 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(VkDevice device,
                                                 const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                                 VkDescriptorSetLayoutSupport* pSupport,
                                                 uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetDescriptorSetLayoutSupport(device:%p, pCreateInfo:%p, pSupport:%p)",
-                      device, pCreateInfo, pSupport);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13848,10 +13418,6 @@ void VkEncoder::vkCmdDrawIndirectCount(VkCommandBuffer commandBuffer, VkBuffer b
                                        VkDeviceSize offset, VkBuffer countBuffer,
                                        VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
                                        uint32_t stride, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdDrawIndirectCount(commandBuffer:%p, buffer:%p, offset:%ld, countBuffer:%p, "
-        "countBufferOffset:%ld, maxDrawCount:%d, stride:%d)",
-        commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -13930,10 +13496,6 @@ void VkEncoder::vkCmdDrawIndexedIndirectCount(VkCommandBuffer commandBuffer, VkB
                                               VkDeviceSize offset, VkBuffer countBuffer,
                                               VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
                                               uint32_t stride, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdDrawIndexedIndirectCount(commandBuffer:%p, buffer:%p, offset:%ld, countBuffer:%p, "
-        "countBufferOffset:%ld, maxDrawCount:%d, stride:%d)",
-        commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14011,9 +13573,6 @@ void VkEncoder::vkCmdDrawIndexedIndirectCount(VkCommandBuffer commandBuffer, VkB
 VkResult VkEncoder::vkCreateRenderPass2(VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo,
                                         const VkAllocationCallbacks* pAllocator,
                                         VkRenderPass* pRenderPass, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateRenderPass2(device:%p, pCreateInfo:%p, pAllocator:%p, pRenderPass:%p)", device,
-        pCreateInfo, pAllocator, pRenderPass);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14122,9 +13681,6 @@ void VkEncoder::vkCmdBeginRenderPass2(VkCommandBuffer commandBuffer,
                                       const VkRenderPassBeginInfo* pRenderPassBegin,
                                       const VkSubpassBeginInfo* pSubpassBeginInfo,
                                       uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBeginRenderPass2(commandBuffer:%p, pRenderPassBegin:%p, pSubpassBeginInfo:%p)",
-        commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14200,9 +13756,6 @@ void VkEncoder::vkCmdBeginRenderPass2(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdNextSubpass2(VkCommandBuffer commandBuffer,
                                   const VkSubpassBeginInfo* pSubpassBeginInfo,
                                   const VkSubpassEndInfo* pSubpassEndInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdNextSubpass2(commandBuffer:%p, pSubpassBeginInfo:%p, pSubpassEndInfo:%p)",
-        commandBuffer, pSubpassBeginInfo, pSubpassEndInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14275,8 +13828,6 @@ void VkEncoder::vkCmdNextSubpass2(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdEndRenderPass2(VkCommandBuffer commandBuffer,
                                     const VkSubpassEndInfo* pSubpassEndInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdEndRenderPass2(commandBuffer:%p, pSubpassEndInfo:%p)", commandBuffer,
-                      pSubpassEndInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14332,8 +13883,6 @@ void VkEncoder::vkCmdEndRenderPass2(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkResetQueryPool(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery,
                                  uint32_t queryCount, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkResetQueryPool(device:%p, queryPool:%p, firstQuery:%d, queryCount:%d)",
-                      device, queryPool, firstQuery, queryCount);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14396,8 +13945,6 @@ void VkEncoder::vkResetQueryPool(VkDevice device, VkQueryPool queryPool, uint32_
 
 VkResult VkEncoder::vkGetSemaphoreCounterValue(VkDevice device, VkSemaphore semaphore,
                                                uint64_t* pValue, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetSemaphoreCounterValue(device:%p, semaphore:%p, pValue:%p)", device,
-                      semaphore, pValue);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14457,8 +14004,6 @@ VkResult VkEncoder::vkGetSemaphoreCounterValue(VkDevice device, VkSemaphore sema
 
 VkResult VkEncoder::vkWaitSemaphores(VkDevice device, const VkSemaphoreWaitInfo* pWaitInfo,
                                      uint64_t timeout, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkWaitSemaphores(device:%p, pWaitInfo:%p, timeout:%ld)", device, pWaitInfo,
-                      timeout);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14525,7 +14070,6 @@ VkResult VkEncoder::vkWaitSemaphores(VkDevice device, const VkSemaphoreWaitInfo*
 
 VkResult VkEncoder::vkSignalSemaphore(VkDevice device, const VkSemaphoreSignalInfo* pSignalInfo,
                                       uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkSignalSemaphore(device:%p, pSignalInfo:%p)", device, pSignalInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14591,7 +14135,6 @@ VkResult VkEncoder::vkSignalSemaphore(VkDevice device, const VkSemaphoreSignalIn
 VkDeviceAddress VkEncoder::vkGetBufferDeviceAddress(VkDevice device,
                                                     const VkBufferDeviceAddressInfo* pInfo,
                                                     uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetBufferDeviceAddress(device:%p, pInfo:%p)", device, pInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14657,7 +14200,6 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddress(VkDevice device,
 uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddress(VkDevice device,
                                                     const VkBufferDeviceAddressInfo* pInfo,
                                                     uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetBufferOpaqueCaptureAddress(device:%p, pInfo:%p)", device, pInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14722,7 +14264,6 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddress(VkDevice device,
 
 uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddress(
     VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetDeviceMemoryOpaqueCaptureAddress(device:%p, pInfo:%p)", device, pInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14793,9 +14334,6 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddress(
 VkResult VkEncoder::vkGetPhysicalDeviceToolProperties(
     VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
     VkPhysicalDeviceToolProperties* pToolProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceToolProperties(physicalDevice:%p, pToolCount:%p, pToolProperties:%p)",
-        physicalDevice, pToolCount, pToolProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -14914,9 +14452,6 @@ VkResult VkEncoder::vkCreatePrivateDataSlot(VkDevice device,
                                             const VkPrivateDataSlotCreateInfo* pCreateInfo,
                                             const VkAllocationCallbacks* pAllocator,
                                             VkPrivateDataSlot* pPrivateDataSlot, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreatePrivateDataSlot(device:%p, pCreateInfo:%p, pAllocator:%p, pPrivateDataSlot:%p)",
-        device, pCreateInfo, pAllocator, pPrivateDataSlot);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15016,7 +14551,6 @@ VkResult VkEncoder::vkCreatePrivateDataSlot(VkDevice device,
 
 void VkEncoder::vkDestroyPrivateDataSlot(VkDevice device, VkPrivateDataSlot privateDataSlot,
                                          const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyPrivateDataSlot(device:%p, pAllocator:%p)", device, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15098,8 +14632,6 @@ void VkEncoder::vkDestroyPrivateDataSlot(VkDevice device, VkPrivateDataSlot priv
 VkResult VkEncoder::vkSetPrivateData(VkDevice device, VkObjectType objectType,
                                      uint64_t objectHandle, VkPrivateDataSlot privateDataSlot,
                                      uint64_t data, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkSetPrivateData(device:%p, objectHandle:%ld, data:%ld)", device,
-                      objectHandle, data);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15169,8 +14701,6 @@ VkResult VkEncoder::vkSetPrivateData(VkDevice device, VkObjectType objectType,
 void VkEncoder::vkGetPrivateData(VkDevice device, VkObjectType objectType, uint64_t objectHandle,
                                  VkPrivateDataSlot privateDataSlot, uint64_t* pData,
                                  uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetPrivateData(device:%p, objectHandle:%ld, pData:%p)", device,
-                      objectHandle, pData);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15235,8 +14765,6 @@ void VkEncoder::vkGetPrivateData(VkDevice device, VkObjectType objectType, uint6
 
 void VkEncoder::vkCmdSetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
                                const VkDependencyInfo* pDependencyInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetEvent2(commandBuffer:%p, event:%p, pDependencyInfo:%p)",
-                      commandBuffer, event, pDependencyInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15300,7 +14828,6 @@ void VkEncoder::vkCmdSetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
 
 void VkEncoder::vkCmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
                                  VkPipelineStageFlags2 stageMask, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdResetEvent2(commandBuffer:%p, event:%p)", commandBuffer, event);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15355,9 +14882,6 @@ void VkEncoder::vkCmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
 void VkEncoder::vkCmdWaitEvents2(VkCommandBuffer commandBuffer, uint32_t eventCount,
                                  const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos,
                                  uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdWaitEvents2(commandBuffer:%p, eventCount:%d, pEvents:%p, pDependencyInfos:%p)",
-        commandBuffer, eventCount, pEvents, pDependencyInfos);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15442,8 +14966,6 @@ void VkEncoder::vkCmdWaitEvents2(VkCommandBuffer commandBuffer, uint32_t eventCo
 
 void VkEncoder::vkCmdPipelineBarrier2(VkCommandBuffer commandBuffer,
                                       const VkDependencyInfo* pDependencyInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdPipelineBarrier2(commandBuffer:%p, pDependencyInfo:%p)", commandBuffer,
-                      pDependencyInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15499,8 +15021,6 @@ void VkEncoder::vkCmdPipelineBarrier2(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdWriteTimestamp2(VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
                                      VkQueryPool queryPool, uint32_t query, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdWriteTimestamp2(commandBuffer:%p, queryPool:%p, query:%d)",
-                      commandBuffer, queryPool, query);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15559,8 +15079,6 @@ void VkEncoder::vkCmdWriteTimestamp2(VkCommandBuffer commandBuffer, VkPipelineSt
 
 VkResult VkEncoder::vkQueueSubmit2(VkQueue queue, uint32_t submitCount,
                                    const VkSubmitInfo2* pSubmits, VkFence fence, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkQueueSubmit2(queue:%p, submitCount:%d, pSubmits:%p, fence:%p)", queue,
-                      submitCount, pSubmits, fence);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15642,8 +15160,6 @@ VkResult VkEncoder::vkQueueSubmit2(VkQueue queue, uint32_t submitCount,
 
 void VkEncoder::vkCmdCopyBuffer2(VkCommandBuffer commandBuffer,
                                  const VkCopyBufferInfo2* pCopyBufferInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdCopyBuffer2(commandBuffer:%p, pCopyBufferInfo:%p)", commandBuffer,
-                      pCopyBufferInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15699,8 +15215,6 @@ void VkEncoder::vkCmdCopyBuffer2(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdCopyImage2(VkCommandBuffer commandBuffer,
                                 const VkCopyImageInfo2* pCopyImageInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdCopyImage2(commandBuffer:%p, pCopyImageInfo:%p)", commandBuffer,
-                      pCopyImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15757,8 +15271,6 @@ void VkEncoder::vkCmdCopyImage2(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdCopyBufferToImage2(VkCommandBuffer commandBuffer,
                                         const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
                                         uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdCopyBufferToImage2(commandBuffer:%p, pCopyBufferToImageInfo:%p)",
-                      commandBuffer, pCopyBufferToImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15819,8 +15331,6 @@ void VkEncoder::vkCmdCopyBufferToImage2(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdCopyImageToBuffer2(VkCommandBuffer commandBuffer,
                                         const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo,
                                         uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdCopyImageToBuffer2(commandBuffer:%p, pCopyImageToBufferInfo:%p)",
-                      commandBuffer, pCopyImageToBufferInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15880,8 +15390,6 @@ void VkEncoder::vkCmdCopyImageToBuffer2(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdBlitImage2(VkCommandBuffer commandBuffer,
                                 const VkBlitImageInfo2* pBlitImageInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdBlitImage2(commandBuffer:%p, pBlitImageInfo:%p)", commandBuffer,
-                      pBlitImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15937,8 +15445,6 @@ void VkEncoder::vkCmdBlitImage2(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdResolveImage2(VkCommandBuffer commandBuffer,
                                    const VkResolveImageInfo2* pResolveImageInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdResolveImage2(commandBuffer:%p, pResolveImageInfo:%p)", commandBuffer,
-                      pResolveImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -15996,8 +15502,6 @@ void VkEncoder::vkCmdResolveImage2(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdBeginRendering(VkCommandBuffer commandBuffer,
                                     const VkRenderingInfo* pRenderingInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdBeginRendering(commandBuffer:%p, pRenderingInfo:%p)", commandBuffer,
-                      pRenderingInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16052,7 +15556,6 @@ void VkEncoder::vkCmdBeginRendering(VkCommandBuffer commandBuffer,
 }
 
 void VkEncoder::vkCmdEndRendering(VkCommandBuffer commandBuffer, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdEndRendering(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16093,7 +15596,6 @@ void VkEncoder::vkCmdEndRendering(VkCommandBuffer commandBuffer, uint32_t doLock
 
 void VkEncoder::vkCmdSetCullMode(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode,
                                  uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetCullMode(commandBuffer:%p, cullMode:%d)", commandBuffer, cullMode);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16139,7 +15641,6 @@ void VkEncoder::vkCmdSetCullMode(VkCommandBuffer commandBuffer, VkCullModeFlags 
 
 void VkEncoder::vkCmdSetFrontFace(VkCommandBuffer commandBuffer, VkFrontFace frontFace,
                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetFrontFace(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16185,7 +15686,6 @@ void VkEncoder::vkCmdSetFrontFace(VkCommandBuffer commandBuffer, VkFrontFace fro
 
 void VkEncoder::vkCmdSetPrimitiveTopology(VkCommandBuffer commandBuffer,
                                           VkPrimitiveTopology primitiveTopology, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetPrimitiveTopology(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16232,9 +15732,6 @@ void VkEncoder::vkCmdSetPrimitiveTopology(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdSetViewportWithCount(VkCommandBuffer commandBuffer, uint32_t viewportCount,
                                           const VkViewport* pViewports, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetViewportWithCount(commandBuffer:%p, viewportCount:%d, pViewports:%p)",
-        commandBuffer, viewportCount, pViewports);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16302,8 +15799,6 @@ void VkEncoder::vkCmdSetViewportWithCount(VkCommandBuffer commandBuffer, uint32_
 
 void VkEncoder::vkCmdSetScissorWithCount(VkCommandBuffer commandBuffer, uint32_t scissorCount,
                                          const VkRect2D* pScissors, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetScissorWithCount(commandBuffer:%p, scissorCount:%d, pScissors:%p)",
-                      commandBuffer, scissorCount, pScissors);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16373,10 +15868,6 @@ void VkEncoder::vkCmdBindVertexBuffers2(VkCommandBuffer commandBuffer, uint32_t 
                                         uint32_t bindingCount, const VkBuffer* pBuffers,
                                         const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
                                         const VkDeviceSize* pStrides, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBindVertexBuffers2(commandBuffer:%p, firstBinding:%d, bindingCount:%d, pBuffers:%p, "
-        "pOffsets:%p, pSizes:%p, pStrides:%p)",
-        commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets, pSizes, pStrides);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16493,8 +15984,6 @@ void VkEncoder::vkCmdBindVertexBuffers2(VkCommandBuffer commandBuffer, uint32_t 
 
 void VkEncoder::vkCmdSetDepthTestEnable(VkCommandBuffer commandBuffer, VkBool32 depthTestEnable,
                                         uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthTestEnable(commandBuffer:%p, depthTestEnable:%d)",
-                      commandBuffer, depthTestEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16540,8 +16029,6 @@ void VkEncoder::vkCmdSetDepthTestEnable(VkCommandBuffer commandBuffer, VkBool32 
 
 void VkEncoder::vkCmdSetDepthWriteEnable(VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable,
                                          uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthWriteEnable(commandBuffer:%p, depthWriteEnable:%d)",
-                      commandBuffer, depthWriteEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16587,7 +16074,6 @@ void VkEncoder::vkCmdSetDepthWriteEnable(VkCommandBuffer commandBuffer, VkBool32
 
 void VkEncoder::vkCmdSetDepthCompareOp(VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp,
                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthCompareOp(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16633,8 +16119,6 @@ void VkEncoder::vkCmdSetDepthCompareOp(VkCommandBuffer commandBuffer, VkCompareO
 
 void VkEncoder::vkCmdSetDepthBoundsTestEnable(VkCommandBuffer commandBuffer,
                                               VkBool32 depthBoundsTestEnable, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthBoundsTestEnable(commandBuffer:%p, depthBoundsTestEnable:%d)",
-                      commandBuffer, depthBoundsTestEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16680,8 +16164,6 @@ void VkEncoder::vkCmdSetDepthBoundsTestEnable(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdSetStencilTestEnable(VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable,
                                           uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetStencilTestEnable(commandBuffer:%p, stencilTestEnable:%d)",
-                      commandBuffer, stencilTestEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16728,7 +16210,6 @@ void VkEncoder::vkCmdSetStencilTestEnable(VkCommandBuffer commandBuffer, VkBool3
 void VkEncoder::vkCmdSetStencilOp(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
                                   VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp,
                                   VkCompareOp compareOp, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetStencilOp(commandBuffer:%p, faceMask:%d)", commandBuffer, faceMask);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16794,9 +16275,6 @@ void VkEncoder::vkCmdSetStencilOp(VkCommandBuffer commandBuffer, VkStencilFaceFl
 
 void VkEncoder::vkCmdSetRasterizerDiscardEnable(VkCommandBuffer commandBuffer,
                                                 VkBool32 rasterizerDiscardEnable, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetRasterizerDiscardEnable(commandBuffer:%p, rasterizerDiscardEnable:%d)",
-        commandBuffer, rasterizerDiscardEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16842,8 +16320,6 @@ void VkEncoder::vkCmdSetRasterizerDiscardEnable(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable,
                                         uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthBiasEnable(commandBuffer:%p, depthBiasEnable:%d)",
-                      commandBuffer, depthBiasEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16889,8 +16365,6 @@ void VkEncoder::vkCmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, VkBool32 
 
 void VkEncoder::vkCmdSetPrimitiveRestartEnable(VkCommandBuffer commandBuffer,
                                                VkBool32 primitiveRestartEnable, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetPrimitiveRestartEnable(commandBuffer:%p, primitiveRestartEnable:%d)",
-                      commandBuffer, primitiveRestartEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -16938,9 +16412,6 @@ void VkEncoder::vkGetDeviceBufferMemoryRequirements(VkDevice device,
                                                     const VkDeviceBufferMemoryRequirements* pInfo,
                                                     VkMemoryRequirements2* pMemoryRequirements,
                                                     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetDeviceBufferMemoryRequirements(device:%p, pInfo:%p, pMemoryRequirements:%p)", device,
-        pInfo, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17016,9 +16487,6 @@ void VkEncoder::vkGetDeviceImageMemoryRequirements(VkDevice device,
                                                    const VkDeviceImageMemoryRequirements* pInfo,
                                                    VkMemoryRequirements2* pMemoryRequirements,
                                                    uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetDeviceImageMemoryRequirements(device:%p, pInfo:%p, pMemoryRequirements:%p)", device,
-        pInfo, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17094,10 +16562,6 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirements(
     VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetDeviceImageSparseMemoryRequirements(device:%p, pInfo:%p, "
-        "pSparseMemoryRequirementCount:%p, pSparseMemoryRequirements:%p)",
-        device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17237,8 +16701,6 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirements(
 #ifdef VK_KHR_dynamic_rendering
 void VkEncoder::vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
                                        const VkRenderingInfo* pRenderingInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdBeginRenderingKHR(commandBuffer:%p, pRenderingInfo:%p)", commandBuffer,
-                      pRenderingInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17293,7 +16755,6 @@ void VkEncoder::vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
 }
 
 void VkEncoder::vkCmdEndRenderingKHR(VkCommandBuffer commandBuffer, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdEndRenderingKHR(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17337,8 +16798,6 @@ void VkEncoder::vkCmdEndRenderingKHR(VkCommandBuffer commandBuffer, uint32_t doL
 void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(VkPhysicalDevice physicalDevice,
                                                 VkPhysicalDeviceFeatures2* pFeatures,
                                                 uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetPhysicalDeviceFeatures2KHR(physicalDevice:%p, pFeatures:%p)",
-                      physicalDevice, pFeatures);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17395,8 +16854,6 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(VkPhysicalDevice physicalDevice,
 void VkEncoder::vkGetPhysicalDeviceProperties2KHR(VkPhysicalDevice physicalDevice,
                                                   VkPhysicalDeviceProperties2* pProperties,
                                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetPhysicalDeviceProperties2KHR(physicalDevice:%p, pProperties:%p)",
-                      physicalDevice, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17455,10 +16912,6 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(VkPhysicalDevice physica
                                                         VkFormat format,
                                                         VkFormatProperties2* pFormatProperties,
                                                         uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceFormatProperties2KHR(physicalDevice:%p, format:%d, "
-        "pFormatProperties:%p)",
-        physicalDevice, format, pFormatProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17520,10 +16973,6 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(VkPhysicalDevice physica
 VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceImageFormatProperties2KHR(physicalDevice:%p, pImageFormatInfo:%p, "
-        "pImageFormatProperties:%p)",
-        physicalDevice, pImageFormatInfo, pImageFormatProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17604,10 +17053,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
 void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
     VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties2* pQueueFamilyProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceQueueFamilyProperties2KHR(physicalDevice:%p, "
-        "pQueueFamilyPropertyCount:%p, pQueueFamilyProperties:%p)",
-        physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17724,9 +17169,6 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
 void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
     VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties,
     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceMemoryProperties2KHR(physicalDevice:%p, pMemoryProperties:%p)",
-        physicalDevice, pMemoryProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17786,10 +17228,6 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
 void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
     uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceSparseImageFormatProperties2KHR(physicalDevice:%p, pFormatInfo:%p, "
-        "pPropertyCount:%p, pProperties:%p)",
-        physicalDevice, pFormatInfo, pPropertyCount, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17927,8 +17365,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
 #ifdef VK_KHR_maintenance1
 void VkEncoder::vkTrimCommandPoolKHR(VkDevice device, VkCommandPool commandPool,
                                      VkCommandPoolTrimFlags flags, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkTrimCommandPoolKHR(device:%p, commandPool:%p, flags:%d)", device,
-                      commandPool, flags);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -17990,10 +17426,6 @@ void VkEncoder::vkTrimCommandPoolKHR(VkDevice device, VkCommandPool commandPool,
 void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
     VkExternalBufferProperties* pExternalBufferProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceExternalBufferPropertiesKHR(physicalDevice:%p, pExternalBufferInfo:%p, "
-        "pExternalBufferProperties:%p)",
-        physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18078,10 +17510,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(physicalDevice:%p, "
-        "pExternalSemaphoreInfo:%p, pExternalSemaphoreProperties:%p)",
-        physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18167,8 +17595,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
 VkResult VkEncoder::vkImportSemaphoreFdKHR(VkDevice device,
                                            const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkImportSemaphoreFdKHR(device:%p, pImportSemaphoreFdInfo:%p)", device,
-                      pImportSemaphoreFdInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18235,8 +17661,6 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(VkDevice device,
 
 VkResult VkEncoder::vkGetSemaphoreFdKHR(VkDevice device, const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
                                         int* pFd, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetSemaphoreFdKHR(device:%p, pGetFdInfo:%p, pFd:%p)", device, pGetFdInfo,
-                      pFd);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18309,10 +17733,6 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     VkDevice device, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate,
     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateDescriptorUpdateTemplateKHR(device:%p, pCreateInfo:%p, pAllocator:%p, "
-        "pDescriptorUpdateTemplate:%p)",
-        device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18425,10 +17845,6 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
 void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     VkDevice device, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const VkAllocationCallbacks* pAllocator, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkDestroyDescriptorUpdateTemplateKHR(device:%p, descriptorUpdateTemplate:%p, "
-        "pAllocator:%p)",
-        device, descriptorUpdateTemplate, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18513,10 +17929,6 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
 void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     VkDevice device, VkDescriptorSet descriptorSet,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, const void* pData, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkUpdateDescriptorSetWithTemplateKHR(device:%p, descriptorSet:%p, "
-        "descriptorUpdateTemplate:%p, pData:%p)",
-        device, descriptorSet, descriptorUpdateTemplate, pData);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18599,9 +18011,6 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(VkDevice device,
                                            const VkRenderPassCreateInfo2* pCreateInfo,
                                            const VkAllocationCallbacks* pAllocator,
                                            VkRenderPass* pRenderPass, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateRenderPass2KHR(device:%p, pCreateInfo:%p, pAllocator:%p, pRenderPass:%p)", device,
-        pCreateInfo, pAllocator, pRenderPass);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18710,9 +18119,6 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(VkCommandBuffer commandBuffer,
                                          const VkRenderPassBeginInfo* pRenderPassBegin,
                                          const VkSubpassBeginInfo* pSubpassBeginInfo,
                                          uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBeginRenderPass2KHR(commandBuffer:%p, pRenderPassBegin:%p, pSubpassBeginInfo:%p)",
-        commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18788,9 +18194,6 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdNextSubpass2KHR(VkCommandBuffer commandBuffer,
                                      const VkSubpassBeginInfo* pSubpassBeginInfo,
                                      const VkSubpassEndInfo* pSubpassEndInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdNextSubpass2KHR(commandBuffer:%p, pSubpassBeginInfo:%p, pSubpassEndInfo:%p)",
-        commandBuffer, pSubpassBeginInfo, pSubpassEndInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18863,8 +18266,6 @@ void VkEncoder::vkCmdNextSubpass2KHR(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdEndRenderPass2KHR(VkCommandBuffer commandBuffer,
                                        const VkSubpassEndInfo* pSubpassEndInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdEndRenderPass2KHR(commandBuffer:%p, pSubpassEndInfo:%p)", commandBuffer,
-                      pSubpassEndInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -18923,10 +18324,6 @@ void VkEncoder::vkCmdEndRenderPass2KHR(VkCommandBuffer commandBuffer,
 void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
     VkExternalFenceProperties* pExternalFenceProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceExternalFencePropertiesKHR(physicalDevice:%p, pExternalFenceInfo:%p, "
-        "pExternalFenceProperties:%p)",
-        physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19006,8 +18403,6 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
 VkResult VkEncoder::vkImportFenceFdKHR(VkDevice device,
                                        const VkImportFenceFdInfoKHR* pImportFenceFdInfo,
                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkImportFenceFdKHR(device:%p, pImportFenceFdInfo:%p)", device,
-                      pImportFenceFdInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19072,7 +18467,6 @@ VkResult VkEncoder::vkImportFenceFdKHR(VkDevice device,
 
 VkResult VkEncoder::vkGetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* pGetFdInfo,
                                     int* pFd, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetFenceFdKHR(device:%p, pGetFdInfo:%p, pFd:%p)", device, pGetFdInfo, pFd);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19142,9 +18536,6 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(VkDevice device,
                                                  const VkImageMemoryRequirementsInfo2* pInfo,
                                                  VkMemoryRequirements2* pMemoryRequirements,
                                                  uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetImageMemoryRequirements2KHR(device:%p, pInfo:%p, pMemoryRequirements:%p)", device,
-        pInfo, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19220,9 +18611,6 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(VkDevice device,
                                                   const VkBufferMemoryRequirementsInfo2* pInfo,
                                                   VkMemoryRequirements2* pMemoryRequirements,
                                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetBufferMemoryRequirements2KHR(device:%p, pInfo:%p, pMemoryRequirements:%p)", device,
-        pInfo, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19298,10 +18686,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetImageSparseMemoryRequirements2KHR(device:%p, pInfo:%p, "
-        "pSparseMemoryRequirementCount:%p, pSparseMemoryRequirements:%p)",
-        device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19444,10 +18828,6 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     VkDevice device, const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkSamplerYcbcrConversion* pYcbcrConversion,
     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateSamplerYcbcrConversionKHR(device:%p, pCreateInfo:%p, pAllocator:%p, "
-        "pYcbcrConversion:%p)",
-        device, pCreateInfo, pAllocator, pYcbcrConversion);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19558,9 +18938,6 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(VkDevice device,
                                                    VkSamplerYcbcrConversion ycbcrConversion,
                                                    const VkAllocationCallbacks* pAllocator,
                                                    uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkDestroySamplerYcbcrConversionKHR(device:%p, ycbcrConversion:%p, pAllocator:%p)", device,
-        ycbcrConversion, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19647,8 +19024,6 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(VkDevice device,
 VkResult VkEncoder::vkBindBufferMemory2KHR(VkDevice device, uint32_t bindInfoCount,
                                            const VkBindBufferMemoryInfo* pBindInfos,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkBindBufferMemory2KHR(device:%p, bindInfoCount:%d, pBindInfos:%p)", device,
-                      bindInfoCount, pBindInfos);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19727,8 +19102,6 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(VkDevice device, uint32_t bindInfoCou
 VkResult VkEncoder::vkBindImageMemory2KHR(VkDevice device, uint32_t bindInfoCount,
                                           const VkBindImageMemoryInfo* pBindInfos,
                                           uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkBindImageMemory2KHR(device:%p, bindInfoCount:%d, pBindInfos:%p)", device,
-                      bindInfoCount, pBindInfos);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19809,8 +19182,6 @@ VkResult VkEncoder::vkBindImageMemory2KHR(VkDevice device, uint32_t bindInfoCoun
 void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
     VkDescriptorSetLayoutSupport* pSupport, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetDescriptorSetLayoutSupportKHR(device:%p, pCreateInfo:%p, pSupport:%p)",
-                      device, pCreateInfo, pSupport);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19888,7 +19259,6 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
 VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressKHR(VkDevice device,
                                                        const VkBufferDeviceAddressInfo* pInfo,
                                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetBufferDeviceAddressKHR(device:%p, pInfo:%p)", device, pInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -19954,7 +19324,6 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressKHR(VkDevice device,
 uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddressKHR(VkDevice device,
                                                        const VkBufferDeviceAddressInfo* pInfo,
                                                        uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetBufferOpaqueCaptureAddressKHR(device:%p, pInfo:%p)", device, pInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20019,8 +19388,6 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddressKHR(VkDevice device,
 
 uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddressKHR(
     VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetDeviceMemoryOpaqueCaptureAddressKHR(device:%p, pInfo:%p)", device,
-                      pInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20091,10 +19458,6 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddressKHR(
 VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
     VkDevice device, const VkPipelineInfoKHR* pPipelineInfo, uint32_t* pExecutableCount,
     VkPipelineExecutablePropertiesKHR* pProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPipelineExecutablePropertiesKHR(device:%p, pPipelineInfo:%p, pExecutableCount:%p, "
-        "pProperties:%p)",
-        device, pPipelineInfo, pExecutableCount, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20227,10 +19590,6 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
 VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
     VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo, uint32_t* pStatisticCount,
     VkPipelineExecutableStatisticKHR* pStatistics, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPipelineExecutableStatisticsKHR(device:%p, pExecutableInfo:%p, pStatisticCount:%p, "
-        "pStatistics:%p)",
-        device, pExecutableInfo, pStatisticCount, pStatistics);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20367,10 +19726,6 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo,
     uint32_t* pInternalRepresentationCount,
     VkPipelineExecutableInternalRepresentationKHR* pInternalRepresentations, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPipelineExecutableInternalRepresentationsKHR(device:%p, pExecutableInfo:%p, "
-        "pInternalRepresentationCount:%p, pInternalRepresentations:%p)",
-        device, pExecutableInfo, pInternalRepresentationCount, pInternalRepresentations);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20518,8 +19873,6 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
 #ifdef VK_KHR_synchronization2
 void VkEncoder::vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
                                   const VkDependencyInfo* pDependencyInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetEvent2KHR(commandBuffer:%p, event:%p, pDependencyInfo:%p)",
-                      commandBuffer, event, pDependencyInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20583,7 +19936,6 @@ void VkEncoder::vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
 
 void VkEncoder::vkCmdResetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
                                     VkPipelineStageFlags2 stageMask, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdResetEvent2KHR(commandBuffer:%p, event:%p)", commandBuffer, event);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20638,9 +19990,6 @@ void VkEncoder::vkCmdResetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event
 void VkEncoder::vkCmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t eventCount,
                                     const VkEvent* pEvents,
                                     const VkDependencyInfo* pDependencyInfos, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdWaitEvents2KHR(commandBuffer:%p, eventCount:%d, pEvents:%p, pDependencyInfos:%p)",
-        commandBuffer, eventCount, pEvents, pDependencyInfos);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20725,8 +20074,6 @@ void VkEncoder::vkCmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t even
 
 void VkEncoder::vkCmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer,
                                          const VkDependencyInfo* pDependencyInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdPipelineBarrier2KHR(commandBuffer:%p, pDependencyInfo:%p)",
-                      commandBuffer, pDependencyInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20782,8 +20129,6 @@ void VkEncoder::vkCmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdWriteTimestamp2KHR(VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
                                         VkQueryPool queryPool, uint32_t query, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdWriteTimestamp2KHR(commandBuffer:%p, queryPool:%p, query:%d)",
-                      commandBuffer, queryPool, query);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20843,8 +20188,6 @@ void VkEncoder::vkCmdWriteTimestamp2KHR(VkCommandBuffer commandBuffer, VkPipelin
 VkResult VkEncoder::vkQueueSubmit2KHR(VkQueue queue, uint32_t submitCount,
                                       const VkSubmitInfo2* pSubmits, VkFence fence,
                                       uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkQueueSubmit2KHR(queue:%p, submitCount:%d, pSubmits:%p, fence:%p)", queue,
-                      submitCount, pSubmits, fence);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20929,9 +20272,6 @@ void VkEncoder::vkCmdWriteBufferMarker2AMD(VkCommandBuffer commandBuffer,
                                            VkPipelineStageFlags2 stage, VkBuffer dstBuffer,
                                            VkDeviceSize dstOffset, uint32_t marker,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdWriteBufferMarker2AMD(commandBuffer:%p, dstBuffer:%p, dstOffset:%ld, marker:%d)",
-        commandBuffer, dstBuffer, dstOffset, marker);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -20995,9 +20335,6 @@ void VkEncoder::vkCmdWriteBufferMarker2AMD(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpointDataCount,
                                             VkCheckpointData2NV* pCheckpointData, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetQueueCheckpointData2NV(queue:%p, pCheckpointDataCount:%p, pCheckpointData:%p)", queue,
-        pCheckpointDataCount, pCheckpointData);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21112,8 +20449,6 @@ void VkEncoder::vkGetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpoint
 #ifdef VK_KHR_copy_commands2
 void VkEncoder::vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
                                     const VkCopyBufferInfo2* pCopyBufferInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdCopyBuffer2KHR(commandBuffer:%p, pCopyBufferInfo:%p)", commandBuffer,
-                      pCopyBufferInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21169,8 +20504,6 @@ void VkEncoder::vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdCopyImage2KHR(VkCommandBuffer commandBuffer,
                                    const VkCopyImageInfo2* pCopyImageInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdCopyImage2KHR(commandBuffer:%p, pCopyImageInfo:%p)", commandBuffer,
-                      pCopyImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21227,8 +20560,6 @@ void VkEncoder::vkCmdCopyImage2KHR(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdCopyBufferToImage2KHR(VkCommandBuffer commandBuffer,
                                            const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdCopyBufferToImage2KHR(commandBuffer:%p, pCopyBufferToImageInfo:%p)",
-                      commandBuffer, pCopyBufferToImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21289,8 +20620,6 @@ void VkEncoder::vkCmdCopyBufferToImage2KHR(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdCopyImageToBuffer2KHR(VkCommandBuffer commandBuffer,
                                            const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdCopyImageToBuffer2KHR(commandBuffer:%p, pCopyImageToBufferInfo:%p)",
-                      commandBuffer, pCopyImageToBufferInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21350,8 +20679,6 @@ void VkEncoder::vkCmdCopyImageToBuffer2KHR(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdBlitImage2KHR(VkCommandBuffer commandBuffer,
                                    const VkBlitImageInfo2* pBlitImageInfo, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdBlitImage2KHR(commandBuffer:%p, pBlitImageInfo:%p)", commandBuffer,
-                      pBlitImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21408,8 +20735,6 @@ void VkEncoder::vkCmdBlitImage2KHR(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer,
                                       const VkResolveImageInfo2* pResolveImageInfo,
                                       uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdResolveImage2KHR(commandBuffer:%p, pResolveImageInfo:%p)",
-                      commandBuffer, pResolveImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21470,9 +20795,6 @@ void VkEncoder::vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer,
 void VkEncoder::vkGetDeviceBufferMemoryRequirementsKHR(
     VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo,
     VkMemoryRequirements2* pMemoryRequirements, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetDeviceBufferMemoryRequirementsKHR(device:%p, pInfo:%p, pMemoryRequirements:%p)",
-        device, pInfo, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21549,9 +20871,6 @@ void VkEncoder::vkGetDeviceImageMemoryRequirementsKHR(VkDevice device,
                                                       const VkDeviceImageMemoryRequirements* pInfo,
                                                       VkMemoryRequirements2* pMemoryRequirements,
                                                       uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetDeviceImageMemoryRequirementsKHR(device:%p, pInfo:%p, pMemoryRequirements:%p)",
-        device, pInfo, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21628,10 +20947,6 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirementsKHR(
     VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetDeviceImageSparseMemoryRequirementsKHR(device:%p, pInfo:%p, "
-        "pSparseMemoryRequirementCount:%p, pSparseMemoryRequirements:%p)",
-        device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21772,8 +21087,6 @@ void VkEncoder::vkGetDeviceImageSparseMemoryRequirementsKHR(
 void VkEncoder::vkCmdBindIndexBuffer2KHR(VkCommandBuffer commandBuffer, VkBuffer buffer,
                                          VkDeviceSize offset, VkDeviceSize size,
                                          VkIndexType indexType, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdBindIndexBuffer2KHR(commandBuffer:%p, buffer:%p, offset:%ld, size:%ld)",
-                      commandBuffer, buffer, offset, size);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21838,9 +21151,6 @@ void VkEncoder::vkCmdBindIndexBuffer2KHR(VkCommandBuffer commandBuffer, VkBuffer
 void VkEncoder::vkGetRenderingAreaGranularityKHR(VkDevice device,
                                                  const VkRenderingAreaInfoKHR* pRenderingAreaInfo,
                                                  VkExtent2D* pGranularity, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetRenderingAreaGranularityKHR(device:%p, pRenderingAreaInfo:%p, pGranularity:%p)",
-        device, pRenderingAreaInfo, pGranularity);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21912,8 +21222,6 @@ void VkEncoder::vkGetDeviceImageSubresourceLayoutKHR(VkDevice device,
                                                      const VkDeviceImageSubresourceInfoKHR* pInfo,
                                                      VkSubresourceLayout2KHR* pLayout,
                                                      uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetDeviceImageSubresourceLayoutKHR(device:%p, pInfo:%p, pLayout:%p)",
-                      device, pInfo, pLayout);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -21987,9 +21295,6 @@ void VkEncoder::vkGetDeviceImageSubresourceLayoutKHR(VkDevice device,
 void VkEncoder::vkGetImageSubresourceLayout2KHR(VkDevice device, VkImage image,
                                                 const VkImageSubresource2KHR* pSubresource,
                                                 VkSubresourceLayout2KHR* pLayout, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetImageSubresourceLayout2KHR(device:%p, image:%p, pSubresource:%p, pLayout:%p)", device,
-        image, pSubresource, pLayout);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22072,9 +21377,6 @@ void VkEncoder::vkGetImageSubresourceLayout2KHR(VkDevice device, VkImage image,
 VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format,
                                                       VkImageUsageFlags imageUsage,
                                                       int* grallocUsage, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetSwapchainGrallocUsageANDROID(device:%p, format:%d, imageUsage:%d, grallocUsage:%p)",
-        device, format, imageUsage, grallocUsage);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22216,10 +21518,6 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(VkQueue queue, uint32_t wai
                                                      const VkSemaphore* pWaitSemaphores,
                                                      VkImage image, int* pNativeFenceFd,
                                                      uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkQueueSignalReleaseImageANDROID(queue:%p, waitSemaphoreCount:%d, pWaitSemaphores:%p, "
-        "image:%p, pNativeFenceFd:%p)",
-        queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22312,10 +21610,6 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsage2ANDROID(
     VkDevice device, VkFormat format, VkImageUsageFlags imageUsage,
     VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
     uint64_t* grallocProducerUsage, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetSwapchainGrallocUsage2ANDROID(device:%p, format:%d, imageUsage:%d, "
-        "grallocConsumerUsage:%p, grallocProducerUsage:%p)",
-        device, format, imageUsage, grallocConsumerUsage, grallocProducerUsage);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22392,10 +21686,6 @@ void VkEncoder::vkCmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuff
                                                      const VkBuffer* pBuffers,
                                                      const VkDeviceSize* pOffsets,
                                                      const VkDeviceSize* pSizes, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBindTransformFeedbackBuffersEXT(commandBuffer:%p, firstBinding:%d, bindingCount:%d, "
-        "pBuffers:%p, pOffsets:%p, pSizes:%p)",
-        commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets, pSizes);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22484,11 +21774,6 @@ void VkEncoder::vkCmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuff
 void VkEncoder::vkCmdBeginTransformFeedbackEXT(
     VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer, uint32_t counterBufferCount,
     const VkBuffer* pCounterBuffers, const VkDeviceSize* pCounterBufferOffsets, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBeginTransformFeedbackEXT(commandBuffer:%p, firstCounterBuffer:%d, "
-        "counterBufferCount:%d, pCounterBuffers:%p, pCounterBufferOffsets:%p)",
-        commandBuffer, firstCounterBuffer, counterBufferCount, pCounterBuffers,
-        pCounterBufferOffsets);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22583,11 +21868,6 @@ void VkEncoder::vkCmdBeginTransformFeedbackEXT(
 void VkEncoder::vkCmdEndTransformFeedbackEXT(
     VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer, uint32_t counterBufferCount,
     const VkBuffer* pCounterBuffers, const VkDeviceSize* pCounterBufferOffsets, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdEndTransformFeedbackEXT(commandBuffer:%p, firstCounterBuffer:%d, "
-        "counterBufferCount:%d, pCounterBuffers:%p, pCounterBufferOffsets:%p)",
-        commandBuffer, firstCounterBuffer, counterBufferCount, pCounterBuffers,
-        pCounterBufferOffsets);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22682,9 +21962,6 @@ void VkEncoder::vkCmdEndTransformFeedbackEXT(
 void VkEncoder::vkCmdBeginQueryIndexedEXT(VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                           uint32_t query, VkQueryControlFlags flags, uint32_t index,
                                           uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBeginQueryIndexedEXT(commandBuffer:%p, queryPool:%p, query:%d, flags:%d, index:%d)",
-        commandBuffer, queryPool, query, flags, index);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22748,8 +22025,6 @@ void VkEncoder::vkCmdBeginQueryIndexedEXT(VkCommandBuffer commandBuffer, VkQuery
 
 void VkEncoder::vkCmdEndQueryIndexedEXT(VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                         uint32_t query, uint32_t index, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdEndQueryIndexedEXT(commandBuffer:%p, queryPool:%p, query:%d, index:%d)",
-                      commandBuffer, queryPool, query, index);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22811,11 +22086,6 @@ void VkEncoder::vkCmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
                                               VkDeviceSize counterBufferOffset,
                                               uint32_t counterOffset, uint32_t vertexStride,
                                               uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdDrawIndirectByteCountEXT(commandBuffer:%p, instanceCount:%d, firstInstance:%d, "
-        "counterBuffer:%p, counterBufferOffset:%ld, counterOffset:%d, vertexStride:%d)",
-        commandBuffer, instanceCount, firstInstance, counterBuffer, counterBufferOffset,
-        counterOffset, vertexStride);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22892,9 +22162,6 @@ void VkEncoder::vkCmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
 VkResult VkEncoder::vkGetImageDrmFormatModifierPropertiesEXT(
     VkDevice device, VkImage image, VkImageDrmFormatModifierPropertiesEXT* pProperties,
     uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetImageDrmFormatModifierPropertiesEXT(device:%p, image:%p, pProperties:%p)", device,
-        image, pProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -22966,10 +22233,6 @@ VkResult VkEncoder::vkGetImageDrmFormatModifierPropertiesEXT(
 VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
     VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
     VkPhysicalDeviceToolProperties* pToolProperties, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetPhysicalDeviceToolPropertiesEXT(physicalDevice:%p, pToolCount:%p, "
-        "pToolProperties:%p)",
-        physicalDevice, pToolCount, pToolProperties);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23088,9 +22351,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
 #ifdef VK_EXT_line_rasterization
 void VkEncoder::vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
                                        uint16_t lineStipplePattern, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetLineStippleEXT(commandBuffer:%p, lineStippleFactor:%d, lineStipplePattern:%d)",
-        commandBuffer, lineStippleFactor, lineStipplePattern);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23143,8 +22403,6 @@ void VkEncoder::vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t l
 #ifdef VK_EXT_extended_dynamic_state
 void VkEncoder::vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode,
                                     uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetCullModeEXT(commandBuffer:%p, cullMode:%d)", commandBuffer,
-                      cullMode);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23190,7 +22448,6 @@ void VkEncoder::vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFla
 
 void VkEncoder::vkCmdSetFrontFaceEXT(VkCommandBuffer commandBuffer, VkFrontFace frontFace,
                                      uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetFrontFaceEXT(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23237,7 +22494,6 @@ void VkEncoder::vkCmdSetFrontFaceEXT(VkCommandBuffer commandBuffer, VkFrontFace 
 void VkEncoder::vkCmdSetPrimitiveTopologyEXT(VkCommandBuffer commandBuffer,
                                              VkPrimitiveTopology primitiveTopology,
                                              uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetPrimitiveTopologyEXT(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23284,9 +22540,6 @@ void VkEncoder::vkCmdSetPrimitiveTopologyEXT(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdSetViewportWithCountEXT(VkCommandBuffer commandBuffer, uint32_t viewportCount,
                                              const VkViewport* pViewports, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetViewportWithCountEXT(commandBuffer:%p, viewportCount:%d, pViewports:%p)",
-        commandBuffer, viewportCount, pViewports);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23354,9 +22607,6 @@ void VkEncoder::vkCmdSetViewportWithCountEXT(VkCommandBuffer commandBuffer, uint
 
 void VkEncoder::vkCmdSetScissorWithCountEXT(VkCommandBuffer commandBuffer, uint32_t scissorCount,
                                             const VkRect2D* pScissors, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetScissorWithCountEXT(commandBuffer:%p, scissorCount:%d, pScissors:%p)",
-        commandBuffer, scissorCount, pScissors);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23426,10 +22676,6 @@ void VkEncoder::vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32
                                            uint32_t bindingCount, const VkBuffer* pBuffers,
                                            const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
                                            const VkDeviceSize* pStrides, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdBindVertexBuffers2EXT(commandBuffer:%p, firstBinding:%d, bindingCount:%d, "
-        "pBuffers:%p, pOffsets:%p, pSizes:%p, pStrides:%p)",
-        commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets, pSizes, pStrides);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23546,8 +22792,6 @@ void VkEncoder::vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32
 
 void VkEncoder::vkCmdSetDepthTestEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthTestEnable,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthTestEnableEXT(commandBuffer:%p, depthTestEnable:%d)",
-                      commandBuffer, depthTestEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23593,8 +22837,6 @@ void VkEncoder::vkCmdSetDepthTestEnableEXT(VkCommandBuffer commandBuffer, VkBool
 
 void VkEncoder::vkCmdSetDepthWriteEnableEXT(VkCommandBuffer commandBuffer,
                                             VkBool32 depthWriteEnable, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthWriteEnableEXT(commandBuffer:%p, depthWriteEnable:%d)",
-                      commandBuffer, depthWriteEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23640,7 +22882,6 @@ void VkEncoder::vkCmdSetDepthWriteEnableEXT(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdSetDepthCompareOpEXT(VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp,
                                           uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthCompareOpEXT(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23686,9 +22927,6 @@ void VkEncoder::vkCmdSetDepthCompareOpEXT(VkCommandBuffer commandBuffer, VkCompa
 
 void VkEncoder::vkCmdSetDepthBoundsTestEnableEXT(VkCommandBuffer commandBuffer,
                                                  VkBool32 depthBoundsTestEnable, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetDepthBoundsTestEnableEXT(commandBuffer:%p, depthBoundsTestEnable:%d)",
-        commandBuffer, depthBoundsTestEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23734,8 +22972,6 @@ void VkEncoder::vkCmdSetDepthBoundsTestEnableEXT(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCmdSetStencilTestEnableEXT(VkCommandBuffer commandBuffer,
                                              VkBool32 stencilTestEnable, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetStencilTestEnableEXT(commandBuffer:%p, stencilTestEnable:%d)",
-                      commandBuffer, stencilTestEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23783,8 +23019,6 @@ void VkEncoder::vkCmdSetStencilOpEXT(VkCommandBuffer commandBuffer, VkStencilFac
                                      VkStencilOp failOp, VkStencilOp passOp,
                                      VkStencilOp depthFailOp, VkCompareOp compareOp,
                                      uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetStencilOpEXT(commandBuffer:%p, faceMask:%d)", commandBuffer,
-                      faceMask);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23853,8 +23087,6 @@ void VkEncoder::vkCmdSetStencilOpEXT(VkCommandBuffer commandBuffer, VkStencilFac
 VkResult VkEncoder::vkCopyMemoryToImageEXT(VkDevice device,
                                            const VkCopyMemoryToImageInfoEXT* pCopyMemoryToImageInfo,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCopyMemoryToImageEXT(device:%p, pCopyMemoryToImageInfo:%p)", device,
-                      pCopyMemoryToImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23922,8 +23154,6 @@ VkResult VkEncoder::vkCopyMemoryToImageEXT(VkDevice device,
 VkResult VkEncoder::vkCopyImageToMemoryEXT(VkDevice device,
                                            const VkCopyImageToMemoryInfoEXT* pCopyImageToMemoryInfo,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCopyImageToMemoryEXT(device:%p, pCopyImageToMemoryInfo:%p)", device,
-                      pCopyImageToMemoryInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -23991,8 +23221,6 @@ VkResult VkEncoder::vkCopyImageToMemoryEXT(VkDevice device,
 VkResult VkEncoder::vkCopyImageToImageEXT(VkDevice device,
                                           const VkCopyImageToImageInfoEXT* pCopyImageToImageInfo,
                                           uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCopyImageToImageEXT(device:%p, pCopyImageToImageInfo:%p)", device,
-                      pCopyImageToImageInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24060,8 +23288,6 @@ VkResult VkEncoder::vkCopyImageToImageEXT(VkDevice device,
 VkResult VkEncoder::vkTransitionImageLayoutEXT(
     VkDevice device, uint32_t transitionCount,
     const VkHostImageLayoutTransitionInfoEXT* pTransitions, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkTransitionImageLayoutEXT(device:%p, transitionCount:%d, pTransitions:%p)",
-                      device, transitionCount, pTransitions);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24142,9 +23368,6 @@ VkResult VkEncoder::vkTransitionImageLayoutEXT(
 void VkEncoder::vkGetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
                                                 const VkImageSubresource2KHR* pSubresource,
                                                 VkSubresourceLayout2KHR* pLayout, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetImageSubresourceLayout2EXT(device:%p, image:%p, pSubresource:%p, pLayout:%p)", device,
-        image, pSubresource, pLayout);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24229,9 +23452,6 @@ VkResult VkEncoder::vkCreatePrivateDataSlotEXT(VkDevice device,
                                                const VkAllocationCallbacks* pAllocator,
                                                VkPrivateDataSlot* pPrivateDataSlot,
                                                uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreatePrivateDataSlotEXT(device:%p, pCreateInfo:%p, pAllocator:%p, pPrivateDataSlot:%p)",
-        device, pCreateInfo, pAllocator, pPrivateDataSlot);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24332,7 +23552,6 @@ VkResult VkEncoder::vkCreatePrivateDataSlotEXT(VkDevice device,
 void VkEncoder::vkDestroyPrivateDataSlotEXT(VkDevice device, VkPrivateDataSlot privateDataSlot,
                                             const VkAllocationCallbacks* pAllocator,
                                             uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkDestroyPrivateDataSlotEXT(device:%p, pAllocator:%p)", device, pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24414,8 +23633,6 @@ void VkEncoder::vkDestroyPrivateDataSlotEXT(VkDevice device, VkPrivateDataSlot p
 VkResult VkEncoder::vkSetPrivateDataEXT(VkDevice device, VkObjectType objectType,
                                         uint64_t objectHandle, VkPrivateDataSlot privateDataSlot,
                                         uint64_t data, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkSetPrivateDataEXT(device:%p, objectHandle:%ld, data:%ld)", device,
-                      objectHandle, data);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24486,8 +23703,6 @@ VkResult VkEncoder::vkSetPrivateDataEXT(VkDevice device, VkObjectType objectType
 void VkEncoder::vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType, uint64_t objectHandle,
                                     VkPrivateDataSlot privateDataSlot, uint64_t* pData,
                                     uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetPrivateDataEXT(device:%p, objectHandle:%ld, pData:%p)", device,
-                      objectHandle, pData);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24555,8 +23770,6 @@ void VkEncoder::vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType, ui
 #ifdef VK_EXT_extended_dynamic_state2
 void VkEncoder::vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
                                               uint32_t patchControlPoints, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetPatchControlPointsEXT(commandBuffer:%p, patchControlPoints:%d)",
-                      commandBuffer, patchControlPoints);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24603,9 +23816,6 @@ void VkEncoder::vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
 void VkEncoder::vkCmdSetRasterizerDiscardEnableEXT(VkCommandBuffer commandBuffer,
                                                    VkBool32 rasterizerDiscardEnable,
                                                    uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetRasterizerDiscardEnableEXT(commandBuffer:%p, rasterizerDiscardEnable:%d)",
-        commandBuffer, rasterizerDiscardEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24651,8 +23861,6 @@ void VkEncoder::vkCmdSetRasterizerDiscardEnableEXT(VkCommandBuffer commandBuffer
 
 void VkEncoder::vkCmdSetDepthBiasEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetDepthBiasEnableEXT(commandBuffer:%p, depthBiasEnable:%d)",
-                      commandBuffer, depthBiasEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24698,7 +23906,6 @@ void VkEncoder::vkCmdSetDepthBiasEnableEXT(VkCommandBuffer commandBuffer, VkBool
 
 void VkEncoder::vkCmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logicOp,
                                    uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkCmdSetLogicOpEXT(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24745,9 +23952,6 @@ void VkEncoder::vkCmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logi
 void VkEncoder::vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
                                                   VkBool32 primitiveRestartEnable,
                                                   uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetPrimitiveRestartEnableEXT(commandBuffer:%p, primitiveRestartEnable:%d)",
-        commandBuffer, primitiveRestartEnable);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24795,9 +23999,6 @@ void VkEncoder::vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
 #ifdef VK_EXT_color_write_enable
 void VkEncoder::vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
                                             const VkBool32* pColorWriteEnables, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCmdSetColorWriteEnableEXT(commandBuffer:%p, attachmentCount:%d, pColorWriteEnables:%p)",
-        commandBuffer, attachmentCount, pColorWriteEnables);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24852,8 +24053,6 @@ void VkEncoder::vkCmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint3
 #ifdef VK_GOOGLE_gfxstream
 VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(VkDevice device, VkDeviceMemory memory,
                                                       uint64_t* pAddress, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkMapMemoryIntoAddressSpaceGOOGLE(device:%p, memory:%p, pAddress:%p)",
-                      device, memory, pAddress);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -24944,14 +24143,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
     const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
     const VkBufferView* pBufferViews, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device:%p, descriptorSet:%p, "
-        "descriptorUpdateTemplate:%p, imageInfoCount:%d, bufferInfoCount:%d, bufferViewCount:%d, "
-        "pImageInfoEntryIndices:%p, pBufferInfoEntryIndices:%p, pBufferViewEntryIndices:%p, "
-        "pImageInfos:%p, pBufferInfos:%p, pBufferViews:%p)",
-        device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount,
-        bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices,
-        pImageInfos, pBufferInfos, pBufferViews);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25183,8 +24374,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
 void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
                                                 const VkCommandBufferBeginInfo* pBeginInfo,
                                                 uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkBeginCommandBufferAsyncGOOGLE(commandBuffer:%p, pBeginInfo:%p)",
-                      commandBuffer, pBeginInfo);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25241,7 +24430,6 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
 }
 
 void VkEncoder::vkEndCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkEndCommandBufferAsyncGOOGLE(commandBuffer:%p)", commandBuffer);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25283,8 +24471,6 @@ void VkEncoder::vkEndCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer, uin
 
 void VkEncoder::vkResetCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
                                                 VkCommandBufferResetFlags flags, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkResetCommandBufferAsyncGOOGLE(commandBuffer:%p, flags:%d)", commandBuffer,
-                      flags);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25331,9 +24517,6 @@ void VkEncoder::vkResetCommandBufferAsyncGOOGLE(VkCommandBuffer commandBuffer,
 
 void VkEncoder::vkCommandBufferHostSyncGOOGLE(VkCommandBuffer commandBuffer, uint32_t needHostSync,
                                               uint32_t sequenceNumber, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCommandBufferHostSyncGOOGLE(commandBuffer:%p, needHostSync:%d, sequenceNumber:%d)",
-        commandBuffer, needHostSync, sequenceNumber);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25502,10 +24685,6 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
 VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     VkDevice device, const VkBufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
     VkBuffer* pBuffer, VkMemoryRequirements* pMemoryRequirements, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCreateBufferWithRequirementsGOOGLE(device:%p, pCreateInfo:%p, pAllocator:%p, "
-        "pBuffer:%p, pMemoryRequirements:%p)",
-        device, pCreateInfo, pAllocator, pBuffer, pMemoryRequirements);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25621,10 +24800,6 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
 VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(VkDevice device, VkDeviceMemory memory,
                                                      uint64_t* pAddress, uint64_t* pSize,
                                                      uint64_t* pHostmemId, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetMemoryHostAddressInfoGOOGLE(device:%p, memory:%p, pAddress:%p, pSize:%p, "
-        "pHostmemId:%p)",
-        device, memory, pAddress, pSize, pHostmemId);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25753,8 +24928,6 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(VkDevice device, VkDeviceMe
 VkResult VkEncoder::vkFreeMemorySyncGOOGLE(VkDevice device, VkDeviceMemory memory,
                                            const VkAllocationCallbacks* pAllocator,
                                            uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkFreeMemorySyncGOOGLE(device:%p, memory:%p, pAllocator:%p)", device, memory,
-                      pAllocator);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25838,8 +25011,6 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(VkDevice device, VkDeviceMemory memor
 
 void VkEncoder::vkQueueHostSyncGOOGLE(VkQueue queue, uint32_t needHostSync, uint32_t sequenceNumber,
                                       uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkQueueHostSyncGOOGLE(queue:%p, needHostSync:%d, sequenceNumber:%d)", queue,
-                      needHostSync, sequenceNumber);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25896,8 +25067,6 @@ void VkEncoder::vkQueueHostSyncGOOGLE(VkQueue queue, uint32_t needHostSync, uint
 void VkEncoder::vkQueueSubmitAsyncGOOGLE(VkQueue queue, uint32_t submitCount,
                                          const VkSubmitInfo* pSubmits, VkFence fence,
                                          uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkQueueSubmitAsyncGOOGLE(queue:%p, submitCount:%d, pSubmits:%p, fence:%p)",
-                      queue, submitCount, pSubmits, fence);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -25977,7 +25146,6 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(VkQueue queue, uint32_t submitCount,
 }
 
 void VkEncoder::vkQueueWaitIdleAsyncGOOGLE(VkQueue queue, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkQueueWaitIdleAsyncGOOGLE(queue:%p)", queue);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26024,9 +25192,6 @@ void VkEncoder::vkQueueWaitIdleAsyncGOOGLE(VkQueue queue, uint32_t doLock) {
 void VkEncoder::vkQueueBindSparseAsyncGOOGLE(VkQueue queue, uint32_t bindInfoCount,
                                              const VkBindSparseInfo* pBindInfo, VkFence fence,
                                              uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkQueueBindSparseAsyncGOOGLE(queue:%p, bindInfoCount:%d, pBindInfo:%p, fence:%p)", queue,
-        bindInfoCount, pBindInfo, fence);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26110,9 +25275,6 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(VkQueue queue, uint32_t bindInfoCou
 void VkEncoder::vkGetLinearImageLayoutGOOGLE(VkDevice device, VkFormat format,
                                              VkDeviceSize* pOffset,
                                              VkDeviceSize* pRowPitchAlignment, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetLinearImageLayoutGOOGLE(device:%p, format:%d, pOffset:%p, pRowPitchAlignment:%p)",
-        device, format, pOffset, pRowPitchAlignment);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26171,10 +25333,6 @@ void VkEncoder::vkGetLinearImageLayoutGOOGLE(VkDevice device, VkFormat format,
 void VkEncoder::vkGetLinearImageLayout2GOOGLE(VkDevice device, const VkImageCreateInfo* pCreateInfo,
                                               VkDeviceSize* pOffset,
                                               VkDeviceSize* pRowPitchAlignment, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkGetLinearImageLayout2GOOGLE(device:%p, pCreateInfo:%p, pOffset:%p, "
-        "pRowPitchAlignment:%p)",
-        device, pCreateInfo, pOffset, pRowPitchAlignment);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26254,15 +25412,6 @@ void VkEncoder::vkQueueCommitDescriptorSetUpdatesGOOGLE(
     const uint32_t* pDescriptorSetPendingAllocation,
     const uint32_t* pDescriptorWriteStartingIndices, uint32_t pendingDescriptorWriteCount,
     const VkWriteDescriptorSet* pPendingDescriptorWrites, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkQueueCommitDescriptorSetUpdatesGOOGLE(queue:%p, descriptorPoolCount:%d, "
-        "pDescriptorPools:%p, descriptorSetCount:%d, pSetLayouts:%p, pDescriptorSetPoolIds:%p, "
-        "pDescriptorSetWhichPool:%p, pDescriptorSetPendingAllocation:%p, "
-        "pDescriptorWriteStartingIndices:%p, pendingDescriptorWriteCount:%d, "
-        "pPendingDescriptorWrites:%p)",
-        queue, descriptorPoolCount, pDescriptorPools, descriptorSetCount, pSetLayouts,
-        pDescriptorSetPoolIds, pDescriptorSetWhichPool, pDescriptorSetPendingAllocation,
-        pDescriptorWriteStartingIndices, pendingDescriptorWriteCount, pPendingDescriptorWrites);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26408,10 +25557,6 @@ void VkEncoder::vkQueueCommitDescriptorSetUpdatesGOOGLE(
 void VkEncoder::vkCollectDescriptorPoolIdsGOOGLE(VkDevice device, VkDescriptorPool descriptorPool,
                                                  uint32_t* pPoolIdCount, uint64_t* pPoolIds,
                                                  uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkCollectDescriptorPoolIdsGOOGLE(device:%p, descriptorPool:%p, pPoolIdCount:%p, "
-        "pPoolIds:%p)",
-        device, descriptorPool, pPoolIdCount, pPoolIds);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26495,10 +25640,6 @@ void VkEncoder::vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(VkQueue queue,
                                                             uint32_t waitSemaphoreCount,
                                                             const VkSemaphore* pWaitSemaphores,
                                                             VkImage image, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(queue:%p, waitSemaphoreCount:%d, "
-        "pWaitSemaphores:%p, image:%p)",
-        queue, waitSemaphoreCount, pWaitSemaphores, image);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26586,10 +25727,6 @@ void VkEncoder::vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
                                                         VkDeviceMemory deviceMemory,
                                                         VkDeviceSize dataOffset,
                                                         VkDeviceSize dataSize, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkQueueFlushCommandsFromAuxMemoryGOOGLE(queue:%p, commandBuffer:%p, deviceMemory:%p, "
-        "dataOffset:%ld, dataSize:%ld)",
-        queue, commandBuffer, deviceMemory, dataOffset, dataSize);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26661,7 +25798,6 @@ void VkEncoder::vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
 }
 
 VkResult VkEncoder::vkGetBlobGOOGLE(VkDevice device, VkDeviceMemory memory, uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetBlobGOOGLE(device:%p, memory:%p)", device, memory);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26725,15 +25861,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
     const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
     const uint8_t* pInlineUniformBlockData, uint32_t doLock) {
-    ENCODER_DEBUG_LOG(
-        "vkUpdateDescriptorSetWithTemplateSized2GOOGLE(device:%p, descriptorSet:%p, "
-        "descriptorUpdateTemplate:%p, imageInfoCount:%d, bufferInfoCount:%d, bufferViewCount:%d, "
-        "inlineUniformBlockCount:%d, pImageInfoEntryIndices:%p, pBufferInfoEntryIndices:%p, "
-        "pBufferViewEntryIndices:%p, pImageInfos:%p, pBufferInfos:%p, pBufferViews:%p, "
-        "pInlineUniformBlockData:%p)",
-        device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount,
-        bufferViewCount, inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
-        pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -26988,8 +26115,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
 void VkEncoder::vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
                                           const VkSubmitInfo2* pSubmits, VkFence fence,
                                           uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkQueueSubmitAsync2GOOGLE(queue:%p, submitCount:%d, pSubmits:%p, fence:%p)",
-                      queue, submitCount, pSubmits, fence);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -27070,8 +26195,6 @@ void VkEncoder::vkQueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
 
 VkResult VkEncoder::vkGetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore, uint64_t syncId,
                                          uint32_t doLock) {
-    ENCODER_DEBUG_LOG("vkGetSemaphoreGOOGLE(device:%p, semaphore:%p, syncId:%ld)", device,
-                      semaphore, syncId);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
