@@ -27,6 +27,7 @@ gfxstream_backend_static_deps = [
     "libgfxstream_glestranslator_glescm",
     "libgfxstream_glestranslator_glesv2",
     "libgfxstream_host_apigen_codec_common",
+    "libgfxstream_host_backend",
     "libgfxstream_host_compressedtextures",
     "libgfxstream_host_dispatch",
     "libgfxstream_host_gl_host_common",
@@ -49,7 +50,10 @@ gfxstream_backend_magma_static_deps = [
 
 cc_defaults {
     name: "libgfxstream_backend_defaults",
-    defaults: ["gfxstream_defaults"],
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
     vendor_available: true,
     cflags: [
         "-Wno-unused-parameter",

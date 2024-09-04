@@ -17,26 +17,13 @@
 
 #include "GoldfishAddressSpaceStream.h"
 #include "VirtioGpuAddressSpaceStream.h"
-#include "aemu/base/AndroidHealthMonitor.h"
-#include "aemu/base/AndroidHealthMonitorConsumerBasic.h"
 #include "aemu/base/threads/AndroidThread.h"
 #if defined(__ANDROID__)
 #include "android-base/properties.h"
 #endif
 #include "renderControl_types.h"
 
-#define DEBUG_HOSTCONNECTION 0
-
-#if DEBUG_HOSTCONNECTION
-#define DPRINT(fmt,...) ALOGD("%s: " fmt, __FUNCTION__, ##__VA_ARGS__);
-#else
-#define DPRINT(...)
-#endif
-
 using gfxstream::guest::ChecksumCalculator;
-using gfxstream::guest::CreateHealthMonitor;
-using gfxstream::guest::HealthMonitor;
-using gfxstream::guest::HealthMonitorConsumerBasic;
 using gfxstream::guest::IOStream;
 
 #ifdef GOLDFISH_NO_GL
@@ -76,20 +63,13 @@ using gfxstream::vk::VkEncoder;
 #include "QemuPipeStream.h"
 #include "ThreadInfo.h"
 
-using gfxstream::guest::getCurrentThreadId;
-
 #include "VirtGpu.h"
 #include "VirtioGpuPipeStream.h"
 
 #if defined(__linux__) || defined(__ANDROID__)
-#include "virtgpu_drm.h"
 #include <fstream>
 #include <string>
 #include <unistd.h>
-
-static const size_t kPageSize = getpagesize();
-#else
-constexpr size_t kPageSize = PAGE_SIZE;
 #endif
 
 #undef LOG_TAG
@@ -97,18 +77,8 @@ constexpr size_t kPageSize = PAGE_SIZE;
 #include <cutils/log.h>
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
-#define STREAM_PORT_NUM     22468
 
 constexpr const auto kEglProp = "ro.hardware.egl";
-
-HealthMonitor<>* getGlobalHealthMonitor() {
-    // Initialize HealthMonitor
-    // Rather than inject as a construct arg, we keep it as a static variable in the .cpp
-    // to avoid setting up dependencies in other repos (external/qemu)
-    static HealthMonitorConsumerBasic sHealthMonitorConsumerBasic;
-    static std::unique_ptr<HealthMonitor<>> sHealthMonitor = CreateHealthMonitor(sHealthMonitorConsumerBasic);
-    return sHealthMonitor.get();
-}
 
 static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capset) {
 #if defined(__Fuchsia__) || defined(LINUX_GUEST_BUILD)
@@ -169,18 +139,13 @@ static uint32_t getDrawCallFlushIntervalFromProperty() {
     return value;
 }
 
-HostConnection::HostConnection()
-    : exitUncleanly(false),
-      m_checksumHelper(),
-      m_hostExtensions(),
-      m_noHostError(true),
-      m_rendernodeFd(-1) { }
+HostConnection::HostConnection() : m_checksumHelper(), m_noHostError(true), m_rendernodeFd(-1) {}
 
 HostConnection::~HostConnection()
 {
     // round-trip to ensure that queued commands have been processed
     // before process pipe closure is detected.
-    if (m_rcEnc && !exitUncleanly) {
+    if (m_rcEnc) {
         (void)m_rcEnc->rcGetRendererVersion(m_rcEnc.get());
     }
 
@@ -192,7 +157,6 @@ HostConnection::~HostConnection()
         m_stream->decRef();
     }
 }
-
 
 // static
 std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capset) {
@@ -206,7 +170,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
 #if defined(__ANDROID__)
-            auto stream = createGoldfishAddressSpaceStream(STREAM_BUFFER_SIZE, getGlobalHealthMonitor());
+            auto stream = createGoldfishAddressSpaceStream(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create AddressSpaceStream for host connection\n");
                 return nullptr;
@@ -235,7 +199,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
         }
 #endif
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
-            auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE);
+            auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE, INVALID_DESCRIPTOR);
             if (!stream) {
                 ALOGE("Failed to create VirtioGpu for host connection\n");
                 return nullptr;
@@ -244,7 +208,9 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
                 ALOGE("Failed to connect to host (VirtioGpu)\n");
                 return nullptr;
             }
+
             auto rendernodeFd = stream->getRendernodeFd();
+            auto device = VirtGpuDevice::getInstance(capset);
             con->m_stream = stream;
             con->m_rendernodeFd = rendernodeFd;
             break;
@@ -254,8 +220,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
             // right capset.
             auto device = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
             auto deviceHandle = device->getDeviceHandle();
-            auto stream =
-                createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan, getGlobalHealthMonitor());
+            auto stream = createVirtioGpuAddressSpaceStream(kCapsetGfxStreamVulkan);
             if (!stream) {
                 ALOGE("Failed to create virtgpu AddressSpaceStream\n");
                 return nullptr;
@@ -298,8 +263,8 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
         noRenderControlEnc = caps.vulkanCapset.noRenderControlEnc;
     }
 
-    auto fd = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
-    processPipeInit(fd, connType, noRenderControlEnc);
+    auto handle = (connType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? con->m_rendernodeFd : -1;
+    processPipeInit(handle, connType, noRenderControlEnc);
     if (!noRenderControlEnc && capset == kCapsetGfxStreamVulkan) {
         con->rcEncoder();
     }
@@ -332,16 +297,12 @@ void HostConnection::exit() {
         return;
     }
 
-    tinfo->hostConn.reset();
-}
-
-void HostConnection::exitUnclean() {
-    EGLThreadInfo *tinfo = getEGLThreadInfo();
-    if (!tinfo) {
-        return;
+#if defined(ANDROID)
+    if (tinfo->hostConn) {
+        tinfo->hostConn->m_grallocHelper = nullptr;
     }
+#endif
 
-    tinfo->hostConn->exitUncleanly = true;
     tinfo->hostConn.reset();
 }
 
@@ -353,8 +314,7 @@ std::unique_ptr<HostConnection> HostConnection::createUnique(enum VirtGpuCapset 
 GLEncoder *HostConnection::glEncoder()
 {
     if (!m_glEnc) {
-        m_glEnc = std::make_unique<GLEncoder>(m_stream, checksumHelper());
-        DBG("HostConnection::glEncoder new encoder %p, tid %lu", m_glEnc, getCurrentThreadId());
+        m_glEnc = std::make_unique<GLEncoder>(m_stream, &m_checksumHelper);
         m_glEnc->setContextAccessor(s_getGLContext);
     }
     return m_glEnc.get();
@@ -363,9 +323,7 @@ GLEncoder *HostConnection::glEncoder()
 GL2Encoder *HostConnection::gl2Encoder()
 {
     if (!m_gl2Enc) {
-        m_gl2Enc =
-            std::make_unique<GL2Encoder>(m_stream, checksumHelper());
-        DBG("HostConnection::gl2Encoder new encoder %p, tid %lu", m_gl2Enc, getCurrentThreadId());
+        m_gl2Enc = std::make_unique<GL2Encoder>(m_stream, &m_checksumHelper);
         m_gl2Enc->setContextAccessor(s_getGL2Context);
         m_gl2Enc->setNoHostError(m_noHostError);
         m_gl2Enc->setDrawCallFlushInterval(
@@ -378,7 +336,7 @@ GL2Encoder *HostConnection::gl2Encoder()
 
 VkEncoder* HostConnection::vkEncoder() {
     if (!m_vkEnc) {
-        m_vkEnc = new VkEncoder(m_stream, getGlobalHealthMonitor());
+        m_vkEnc = new VkEncoder(m_stream);
     }
     return m_vkEnc;
 }
@@ -386,40 +344,39 @@ VkEncoder* HostConnection::vkEncoder() {
 ExtendedRCEncoderContext *HostConnection::rcEncoder()
 {
     if (!m_rcEnc) {
-        m_rcEnc = std::make_unique<ExtendedRCEncoderContext>(m_stream,
-                                                             checksumHelper());
+        m_rcEnc = std::make_unique<ExtendedRCEncoderContext>(m_stream, &m_checksumHelper);
 
         ExtendedRCEncoderContext* rcEnc = m_rcEnc.get();
-        setChecksumHelper(rcEnc);
-        queryAndSetSyncImpl(rcEnc);
-        queryAndSetDmaImpl(rcEnc);
-        queryAndSetGLESMaxVersion(rcEnc);
-        queryAndSetNoErrorState(rcEnc);
-        queryAndSetHostCompositionImpl(rcEnc);
-        queryAndSetDirectMemSupport(rcEnc);
-        queryAndSetVulkanSupport(rcEnc);
-        queryAndSetDeferredVulkanCommandsSupport(rcEnc);
-        queryAndSetVulkanNullOptionalStringsSupport(rcEnc);
-        queryAndSetVulkanCreateResourcesWithRequirementsSupport(rcEnc);
-        queryAndSetVulkanIgnoredHandles(rcEnc);
-        queryAndSetYUVCache(rcEnc);
-        queryAndSetAsyncUnmapBuffer(rcEnc);
-        queryAndSetVirtioGpuNext(rcEnc);
-        queryHasSharedSlotsHostMemoryAllocator(rcEnc);
-        queryAndSetVulkanFreeMemorySync(rcEnc);
-        queryAndSetVirtioGpuNativeSync(rcEnc);
-        queryAndSetVulkanShaderFloat16Int8Support(rcEnc);
-        queryAndSetVulkanAsyncQueueSubmitSupport(rcEnc);
-        queryAndSetHostSideTracingSupport(rcEnc);
-        queryAndSetAsyncFrameCommands(rcEnc);
-        queryAndSetVulkanQueueSubmitWithCommandsSupport(rcEnc);
-        queryAndSetVulkanBatchedDescriptorSetUpdateSupport(rcEnc);
-        queryAndSetSyncBufferData(rcEnc);
-        queryAndSetVulkanAsyncQsri(rcEnc);
-        queryAndSetReadColorBufferDma(rcEnc);
-        queryAndSetHWCMultiConfigs(rcEnc);
-        queryAndSetVulkanAuxCommandBufferMemory(rcEnc);
-        queryVersion(rcEnc);
+        rcEnc->setChecksumHelper(&m_checksumHelper);
+        rcEnc->queryAndSetSyncImpl();
+        rcEnc->queryAndSetDmaImpl();
+        rcEnc->queryAndSetGLESMaxVersion();
+        rcEnc->queryAndSetNoErrorState(m_noHostError);
+        rcEnc->queryAndSetHostCompositionImpl();
+        rcEnc->queryAndSetDirectMemSupport();
+        rcEnc->queryAndSetVulkanSupport();
+        rcEnc->queryAndSetDeferredVulkanCommandsSupport();
+        rcEnc->queryAndSetVulkanNullOptionalStringsSupport();
+        rcEnc->queryAndSetVulkanCreateResourcesWithRequirementsSupport();
+        rcEnc->queryAndSetVulkanIgnoredHandles();
+        rcEnc->queryAndSetYUVCache();
+        rcEnc->queryAndSetAsyncUnmapBuffer();
+        rcEnc->queryAndSetVirtioGpuNext();
+        rcEnc->queryHasSharedSlotsHostMemoryAllocator();
+        rcEnc->queryAndSetVulkanFreeMemorySync();
+        rcEnc->queryAndSetVirtioGpuNativeSync();
+        rcEnc->queryAndSetVulkanShaderFloat16Int8Support();
+        rcEnc->queryAndSetVulkanAsyncQueueSubmitSupport();
+        rcEnc->queryAndSetHostSideTracingSupport();
+        rcEnc->queryAndSetAsyncFrameCommands();
+        rcEnc->queryAndSetVulkanQueueSubmitWithCommandsSupport();
+        rcEnc->queryAndSetVulkanBatchedDescriptorSetUpdateSupport();
+        rcEnc->queryAndSetSyncBufferData();
+        rcEnc->queryAndSetVulkanAsyncQsri();
+        rcEnc->queryAndSetReadColorBufferDma();
+        rcEnc->queryAndSetHWCMultiConfigs();
+        rcEnc->queryAndSetVulkanAuxCommandBufferMemory();
+        rcEnc->queryVersion();
 
         rcEnc->rcSetPuid(rcEnc, getPuid());
     }
@@ -444,275 +401,7 @@ gl2_client_context_t *HostConnection::s_getGL2Context()
     return NULL;
 }
 
-const std::string& HostConnection::queryHostExtensions(ExtendedRCEncoderContext *rcEnc) {
-    if (!m_hostExtensions.empty()) {
-        return m_hostExtensions;
-    }
-
-    // Extensions strings are usually quite long, preallocate enough here.
-    std::string extensionsBuffer(1023, '\0');
-
-    // Returns the required size including the 0-terminator, so
-    // account it when passing/using the sizes.
-    int extensionSize = rcEnc->rcGetHostExtensionsString(rcEnc,
-                                                         extensionsBuffer.size() + 1,
-                                                         &extensionsBuffer[0]);
-    if (extensionSize < 0) {
-        extensionsBuffer.resize(-extensionSize);
-        extensionSize = rcEnc->rcGetHostExtensionsString(rcEnc,
-                                                         -extensionSize + 1,
-                                                         &extensionsBuffer[0]);
-    }
-
-    if (extensionSize > 0) {
-        extensionsBuffer.resize(extensionSize - 1);
-        m_hostExtensions.swap(extensionsBuffer);
-    }
-
-    return m_hostExtensions;
-}
-
-void HostConnection::queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& hostExtensions = queryHostExtensions(rcEnc);
-    DPRINT("HostComposition ext %s", hostExtensions.c_str());
-    // make sure V2 is checked first before V1, as host may declare supporting both
-    if (hostExtensions.find(kHostCompositionV2) != std::string::npos) {
-        rcEnc->setHostComposition(HOST_COMPOSITION_V2);
-    }
-    else if (hostExtensions.find(kHostCompositionV1) != std::string::npos) {
-        rcEnc->setHostComposition(HOST_COMPOSITION_V1);
-    }
-    else {
-        rcEnc->setHostComposition(HOST_COMPOSITION_NONE);
-    }
-}
-
-void HostConnection::setChecksumHelper(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& hostExtensions = queryHostExtensions(rcEnc);
-    // check the host supported version
-    uint32_t checksumVersion = 0;
-    const char* checksumPrefix = ChecksumCalculator::getMaxVersionStrPrefix();
-    const char* glProtocolStr = strstr(hostExtensions.c_str(), checksumPrefix);
-    if (glProtocolStr) {
-        uint32_t maxVersion = ChecksumCalculator::getMaxVersion();
-        sscanf(glProtocolStr+strlen(checksumPrefix), "%d", &checksumVersion);
-        if (maxVersion < checksumVersion) {
-            checksumVersion = maxVersion;
-        }
-        // The ordering of the following two commands matters!
-        // Must tell the host first before setting it in the guest
-        rcEnc->rcSelectChecksumHelper(rcEnc, checksumVersion, 0);
-        m_checksumHelper.setVersion(checksumVersion);
-    }
-}
-
-void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kRCNativeSyncV4) != std::string::npos) {
-        rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V4);
-    } else if (hostExtensions.find(kRCNativeSyncV3) != std::string::npos) {
-        rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V3);
-    } else if (hostExtensions.find(kRCNativeSyncV2) != std::string::npos) {
-        rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V2);
-    } else {
-        rcEnc->setSyncImpl(SYNC_IMPL_NONE);
-    }
-}
-
-void HostConnection::queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kDmaExtStr_v1) != std::string::npos) {
-        rcEnc->setDmaImpl(DMA_IMPL_v1);
-    } else {
-        rcEnc->setDmaImpl(DMA_IMPL_NONE);
-    }
-}
-
-void HostConnection::queryAndSetGLESMaxVersion(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kGLESMaxVersion_2) != std::string::npos) {
-        rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_2);
-    } else if (hostExtensions.find(kGLESMaxVersion_3_0) != std::string::npos) {
-        rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_3_0);
-    } else if (hostExtensions.find(kGLESMaxVersion_3_1) != std::string::npos) {
-        rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_3_1);
-    } else if (hostExtensions.find(kGLESMaxVersion_3_2) != std::string::npos) {
-        rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_3_2);
-    } else {
-        ALOGW("Unrecognized GLES max version string in extensions: %s",
-              hostExtensions.c_str());
-        rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_2);
-    }
-}
-
-void HostConnection::queryAndSetNoErrorState(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kGLESUseHostError) != std::string::npos) {
-        m_noHostError = false;
-    }
-}
-
-void HostConnection::queryAndSetDirectMemSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kGLDirectMem) != std::string::npos) {
-        rcEnc->featureInfo()->hasDirectMem = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkan) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkan = true;
-    }
-}
-
-void HostConnection::queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kDeferredVulkanCommands) != std::string::npos) {
-        rcEnc->featureInfo()->hasDeferredVulkanCommands = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkanNullOptionalStrings) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkanNullOptionalStrings = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkanCreateResourcesWithRequirements) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkanCreateResourcesWithRequirements = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanIgnoredHandles(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkanIgnoredHandles) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkanIgnoredHandles = true;
-    }
-}
-
-void HostConnection::queryAndSetYUVCache(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kYUVCache) != std::string::npos) {
-        rcEnc->featureInfo()->hasYUVCache = true;
-    }
-}
-
-void HostConnection::queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kAsyncUnmapBuffer) != std::string::npos) {
-        rcEnc->featureInfo()->hasAsyncUnmapBuffer = true;
-    }
-}
-
-void HostConnection::queryAndSetVirtioGpuNext(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVirtioGpuNext) != std::string::npos) {
-        rcEnc->featureInfo()->hasVirtioGpuNext = true;
-    }
-}
-
-void HostConnection::queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kHasSharedSlotsHostMemoryAllocator) != std::string::npos) {
-        rcEnc->featureInfo()->hasSharedSlotsHostMemoryAllocator = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkanFreeMemorySync) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkanFreeMemorySync = true;
-    }
-}
-
-void HostConnection::queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVirtioGpuNativeSync) != std::string::npos) {
-        rcEnc->featureInfo()->hasVirtioGpuNativeSync = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkanShaderFloat16Int8) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkanShaderFloat16Int8 = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkanAsyncQueueSubmit) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkanAsyncQueueSubmit = true;
-    }
-}
-
-void HostConnection::queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kHostSideTracing) != std::string::npos) {
-        rcEnc->featureInfo()->hasHostSideTracing = true;
-    }
-}
-
-void HostConnection::queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kAsyncFrameCommands) != std::string::npos) {
-        rcEnc->featureInfo()->hasAsyncFrameCommands = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkanQueueSubmitWithCommands) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkanQueueSubmitWithCommands = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkanBatchedDescriptorSetUpdate) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkanBatchedDescriptorSetUpdate = true;
-    }
-}
-
-void HostConnection::queryAndSetSyncBufferData(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kSyncBufferData) != std::string::npos) {
-        rcEnc->featureInfo()->hasSyncBufferData = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kVulkanAsyncQsri) != std::string::npos) {
-        rcEnc->featureInfo()->hasVulkanAsyncQsri = true;
-    }
-}
-
-void HostConnection::queryAndSetReadColorBufferDma(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kReadColorBufferDma) != std::string::npos) {
-        rcEnc->featureInfo()->hasReadColorBufferDma = true;
-    }
-}
-
-void HostConnection::queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    if (hostExtensions.find(kHWCMultiConfigs) != std::string::npos) {
-        rcEnc->featureInfo()->hasHWCMultiConfigs = true;
-    }
-}
-
-void HostConnection::queryAndSetVulkanAuxCommandBufferMemory(ExtendedRCEncoderContext* rcEnc) {
-    std::string hostExtensions = queryHostExtensions(rcEnc);
-    rcEnc->featureInfo()->hasVulkanAuxCommandMemory = hostExtensions.find(kVulkanAuxCommandMemory) != std::string::npos;
-}
-
-
-GLint HostConnection::queryVersion(ExtendedRCEncoderContext* rcEnc) {
-    GLint version = m_rcEnc->rcGetRendererVersion(m_rcEnc.get());
-    return version;
+void HostConnection::setVulkanFeatureInfo(void* info) {
+    ExtendedRCEncoderContext* rcEnc = m_rcEnc.get();
+    rcEnc->setVulkanFeatureInfo(info);
 }

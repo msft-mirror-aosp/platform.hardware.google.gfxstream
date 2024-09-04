@@ -337,6 +337,7 @@ const uint32_t kGlRgba1010102 = 0x8059;
 const uint32_t kGlR8 = 0x8229;
 const uint32_t kGlR16 = 0x822A;
 const uint32_t kGlRg8 = 0x822b;
+const uint32_t kGlRgb8 = 0x8051;
 const uint32_t kGlLuminance = 0x1909;
 const uint32_t kGlLuminanceAlpha = 0x190a;
 const uint32_t kGlUnsignedByte = 0x1401;
@@ -357,20 +358,21 @@ constexpr uint32_t kFwkFormatP010 = 4;
 static inline bool virgl_format_is_yuv(uint32_t format) {
     switch (format) {
         case VIRGL_FORMAT_B8G8R8X8_UNORM:
-        case VIRGL_FORMAT_B8G8R8A8_UNORM:
-        case VIRGL_FORMAT_R8G8B8X8_UNORM:
-        case VIRGL_FORMAT_R8G8B8A8_UNORM:
         case VIRGL_FORMAT_B5G6R5_UNORM:
-        case VIRGL_FORMAT_R8_UNORM:
+        case VIRGL_FORMAT_B8G8R8A8_UNORM:
+        case VIRGL_FORMAT_R10G10B10A2_UNORM:
         case VIRGL_FORMAT_R16_UNORM:
         case VIRGL_FORMAT_R16G16B16A16_FLOAT:
+        case VIRGL_FORMAT_R8_UNORM:
         case VIRGL_FORMAT_R8G8_UNORM:
-        case VIRGL_FORMAT_R10G10B10A2_UNORM:
+        case VIRGL_FORMAT_R8G8B8_UNORM:
+        case VIRGL_FORMAT_R8G8B8A8_UNORM:
+        case VIRGL_FORMAT_R8G8B8X8_UNORM:
         case VIRGL_FORMAT_Z16_UNORM:
-        case VIRGL_FORMAT_Z24X8_UNORM:
         case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
-        case VIRGL_FORMAT_Z32_FLOAT:
+        case VIRGL_FORMAT_Z24X8_UNORM:
         case VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT:
+        case VIRGL_FORMAT_Z32_FLOAT:
             return false;
         case VIRGL_FORMAT_NV12:
         case VIRGL_FORMAT_P010:
@@ -400,6 +402,8 @@ static inline uint32_t virgl_format_to_gl(uint32_t virgl_format) {
             return kGlR8;
         case VIRGL_FORMAT_R8G8_UNORM:
             return kGlRg8;
+        case VIRGL_FORMAT_R8G8B8_UNORM:
+            return kGlRgb8;
         case VIRGL_FORMAT_NV12:
         case VIRGL_FORMAT_P010:
         case VIRGL_FORMAT_YV12:
@@ -434,6 +438,7 @@ static inline uint32_t virgl_format_to_fwk_format(uint32_t virgl_format) {
         case VIRGL_FORMAT_R16_UNORM:
         case VIRGL_FORMAT_R16G16B16A16_FLOAT:
         case VIRGL_FORMAT_R8G8_UNORM:
+        case VIRGL_FORMAT_R8G8B8_UNORM:
         case VIRGL_FORMAT_B8G8R8X8_UNORM:
         case VIRGL_FORMAT_B8G8R8A8_UNORM:
         case VIRGL_FORMAT_R8G8B8X8_UNORM:
@@ -536,6 +541,9 @@ static inline size_t virgl_format_to_linear_base(uint32_t format, uint32_t total
             case VIRGL_FORMAT_Z32_FLOAT:
                 bpp = 4;
                 break;
+            case VIRGL_FORMAT_R8G8B8_UNORM:
+                bpp = 3;
+                break;
             case VIRGL_FORMAT_B5G6R5_UNORM:
             case VIRGL_FORMAT_R8G8_UNORM:
             case VIRGL_FORMAT_R16_UNORM:
@@ -615,6 +623,9 @@ static inline size_t virgl_format_to_total_xfer_len(uint32_t format, uint32_t to
             case VIRGL_FORMAT_Z24_UNORM_S8_UINT:
             case VIRGL_FORMAT_Z32_FLOAT:
                 bpp = 4;
+                break;
+            case VIRGL_FORMAT_R8G8B8_UNORM:
+                bpp = 3;
                 break;
             case VIRGL_FORMAT_B5G6R5_UNORM:
             case VIRGL_FORMAT_R16_UNORM:
@@ -1701,24 +1712,48 @@ class PipeVirglRenderer {
                 capset->externalSync = 1;
 #endif
 
-                const std::vector<uint32_t> kVirglPossibleFormats = {
-                    VIRGL_FORMAT_B8G8R8X8_UNORM, VIRGL_FORMAT_B8G8R8A8_UNORM,
-                    VIRGL_FORMAT_R8G8B8X8_UNORM, VIRGL_FORMAT_R8G8B8A8_UNORM,
-                    VIRGL_FORMAT_B5G6R5_UNORM, VIRGL_FORMAT_R16_UNORM,
-                    VIRGL_FORMAT_R16G16B16A16_FLOAT, VIRGL_FORMAT_R8_UNORM,
-                    VIRGL_FORMAT_R8G8_UNORM, VIRGL_FORMAT_NV12,
-                    VIRGL_FORMAT_P010, VIRGL_FORMAT_YV12,
-                    VIRGL_FORMAT_R10G10B10A2_UNORM, VIRGL_FORMAT_Z16_UNORM,
-                    VIRGL_FORMAT_Z24X8_UNORM, VIRGL_FORMAT_Z24_UNORM_S8_UINT,
-                    VIRGL_FORMAT_Z32_FLOAT, VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT,
-                };
-
                 memset(capset->virglSupportedFormats, 0, sizeof(capset->virglSupportedFormats));
 
-                for (uint32_t possibleFormat : kVirglPossibleFormats) {
-                    GLenum possibleFormatGl = virgl_format_to_gl(possibleFormat);
+                struct FormatWithName {
+                    uint32_t format;
+                    const char* name;
+                };
+#define MAKE_FORMAT_AND_NAME(x) \
+    { x, #x }
+                static const FormatWithName kPossibleFormats[] = {
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_B5G6R5_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_B8G8R8A8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_B8G8R8X8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_NV12),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_P010),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R10G10B10A2_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R16_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R16G16B16A16_FLOAT),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8B8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8B8A8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_R8G8B8X8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_YV12),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z16_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z24_UNORM_S8_UINT),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z24X8_UNORM),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT),
+                    MAKE_FORMAT_AND_NAME(VIRGL_FORMAT_Z32_FLOAT),
+                };
+#undef MAKE_FORMAT_AND_NAME
+
+                stream_renderer_info("Format support:");
+                for (std::size_t i = 0; i < std::size(kPossibleFormats); i++) {
+                    const FormatWithName& possibleFormat = kPossibleFormats[i];
+
+                    GLenum possibleFormatGl = virgl_format_to_gl(possibleFormat.format);
                     const bool supported =  gfxstream::FrameBuffer::getFB()->isFormatSupported(possibleFormatGl);
-                    set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat, supported);
+
+                    stream_renderer_info(" %s: %s", possibleFormat.name,
+                                         (supported ? "supported" : "unsupported"));
+                    set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat.format,
+                                               supported);
                 }
                 break;
             }

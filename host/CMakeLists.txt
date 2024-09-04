@@ -1,3 +1,4 @@
+add_subdirectory(backend)
 add_subdirectory(features)
 
 # Codec common sources
@@ -79,6 +80,7 @@ target_link_libraries(
         GLES_CM_translator_static
         OpenGLESDispatch
         renderControl_dec
+        gfxstream_backend_common
         gfxstream_features
         gfxstream-gl-server
         gfxstream-magma-server
@@ -134,6 +136,7 @@ target_link_libraries(
     gfxstream_backend
     PUBLIC
     gfxstream_common_utils
+    gfxstream_backend_common
     gfxstream_features
     gfxstream_backend_static
     PRIVATE
