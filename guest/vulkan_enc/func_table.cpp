@@ -30,8 +30,6 @@
 // $CEREAL_OUTPUT_DIR
 //
 
-#include <log/log.h>
-
 #include <cstring>
 
 #include "ResourceTracker.h"
