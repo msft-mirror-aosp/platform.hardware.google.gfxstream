@@ -55,12 +55,19 @@ enum {
     GFXSTREAM_AHB_FORMAT_R8_UNORM                 = 0x38,
 };
 
+enum GrallocType {
+    GRALLOC_TYPE_GOLDFISH = 1,
+    GRALLOC_TYPE_MINIGBM = 2,
+    GRALLOC_TYPE_EMULATED = 3,
+};
+
 // Abstraction for gralloc handle conversion
 class Gralloc {
    public:
     virtual ~Gralloc() {}
 
-    virtual uint32_t createColorBuffer(void* rcEnc, int width, int height, uint32_t glformat) = 0;
+    virtual GrallocType getGrallocType() = 0;
+    virtual uint32_t createColorBuffer(int width, int height, uint32_t glformat) = 0;
 
     virtual void acquire(AHardwareBuffer* ahb) = 0;
     virtual void release(AHardwareBuffer* ahb) = 0;
@@ -106,7 +113,7 @@ class Gralloc {
     virtual bool treatBlobAsImage() { return false; }
 };
 
-Gralloc* createPlatformGralloc(int deviceFd = -1);
+Gralloc* createPlatformGralloc(int32_t descriptor = -1);
 
 }  // namespace gfxstream
 

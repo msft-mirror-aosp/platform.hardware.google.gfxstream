@@ -30,11 +30,8 @@
 // $CEREAL_OUTPUT_DIR
 //
 
-#include <log/log.h>
-
 #include <cstring>
 
-#include "../OpenglSystemCommon/HostConnection.h"
 #include "ResourceTracker.h"
 #include "VkEncoder.h"
 #include "gfxstream_vk_entrypoints.h"
@@ -4043,6 +4040,21 @@ VkResult gfxstream_vk_GetMemoryAndroidHardwareBufferANDROID(
                 vkEnc, VK_SUCCESS, gfxstream_device->internal_object, pInfo, pBuffer);
     }
     return vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+VkResult gfxstream_vk_GetImageDrmFormatModifierPropertiesEXT(
+    VkDevice device, VkImage image, VkImageDrmFormatModifierPropertiesEXT* pProperties) {
+    MESA_TRACE_SCOPE("vkGetImageDrmFormatModifierPropertiesEXT");
+    VkResult vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return = (VkResult)0;
+    VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
+        vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return =
+            vkEnc->vkGetImageDrmFormatModifierPropertiesEXT(gfxstream_device->internal_object,
+                                                            image, pProperties, true /* do lock */);
+    }
+    return vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return;
 }
 #endif
 #ifdef VK_EXT_tooling_info

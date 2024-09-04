@@ -2,16 +2,22 @@ static ResourceTracker* sResourceTracker = nullptr;
 static uint32_t sFeatureBits = 0;
 static constexpr uint32_t kWatchdogBufferMax = 1'000;
 
+#if defined(__ANDROID__)
+#include <cutils/properties.h>
+#endif
+
 class VkEncoder::Impl {
    public:
     Impl(gfxstream::guest::IOStream* stream) : m_stream(stream), m_logEncodes(false) {
         if (!sResourceTracker) sResourceTracker = ResourceTracker::get();
         m_stream.incStreamRef();
+#if defined(__ANDROID__)
         const char* emuVkLogEncodesPropName = "qemu.vk.log";
         char encodeProp[PROPERTY_VALUE_MAX];
         if (property_get(emuVkLogEncodesPropName, encodeProp, nullptr) > 0) {
             m_logEncodes = atoi(encodeProp) > 0;
         }
+#endif
         sFeatureBits = m_stream.getFeatureBits();
     }
 
@@ -25,7 +31,6 @@ class VkEncoder::Impl {
 
     void log(const char* text) {
         if (!m_logEncodes) return;
-        ALOGD("encoder log: %s", text);
     }
 
     void flush() {
@@ -54,15 +59,8 @@ class VkEncoder::Impl {
 
 VkEncoder::~VkEncoder() {}
 
-struct EncoderAutoLock {
-    EncoderAutoLock(VkEncoder* enc) : mEnc(enc) { mEnc->lock(); }
-    ~EncoderAutoLock() { mEnc->unlock(); }
-    VkEncoder* mEnc;
-};
-
-VkEncoder::VkEncoder(gfxstream::guest::IOStream* stream,
-                     gfxstream::guest::HealthMonitor<>* healthMonitor)
-    : mImpl(new VkEncoder::Impl(stream)), mHealthMonitor(healthMonitor) {}
+VkEncoder::VkEncoder(gfxstream::guest::IOStream* stream)
+    : mImpl(new VkEncoder::Impl(stream)) {}
 
 void VkEncoder::flush() { mImpl->flush(); }
 

@@ -290,7 +290,7 @@ void reservedmarshal_VkAllocationCallbacks(VulkanStreamGuest* vkStream, VkStruct
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pUserData;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pUserData) {
         memcpy(*ptr, (void*)forMarshaling->pUserData, sizeof(uint8_t));
@@ -298,23 +298,23 @@ void reservedmarshal_VkAllocationCallbacks(VulkanStreamGuest* vkStream, VkStruct
     }
     uint64_t cgen_var_1 = (uint64_t)forMarshaling->pfnAllocation;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     uint64_t cgen_var_2 = (uint64_t)forMarshaling->pfnReallocation;
     memcpy((*ptr), &cgen_var_2, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     uint64_t cgen_var_3 = (uint64_t)forMarshaling->pfnFree;
     memcpy((*ptr), &cgen_var_3, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     uint64_t cgen_var_4 = (uint64_t)forMarshaling->pfnInternalAllocation;
     memcpy((*ptr), &cgen_var_4, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     uint64_t cgen_var_5 = (uint64_t)forMarshaling->pfnInternalFree;
     memcpy((*ptr), &cgen_var_5, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
 }
 
@@ -332,14 +332,14 @@ void reservedmarshal_VkApplicationInfo(VulkanStreamGuest* vkStream, VkStructureT
         // WARNING PTR CHECK
         uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pApplicationName;
         memcpy((*ptr), &cgen_var_0, 8);
-        gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+        android::base::Stream::toBe64((uint8_t*)(*ptr));
         *ptr += 8;
         if (forMarshaling->pApplicationName) {
             {
                 uint32_t l =
                     forMarshaling->pApplicationName ? strlen(forMarshaling->pApplicationName) : 0;
                 memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
-                gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+                android::base::Stream::toBe32((uint8_t*)*ptr);
                 *ptr += sizeof(uint32_t);
                 memcpy(*ptr, (char*)forMarshaling->pApplicationName, l);
                 *ptr += l;
@@ -350,7 +350,7 @@ void reservedmarshal_VkApplicationInfo(VulkanStreamGuest* vkStream, VkStructureT
             uint32_t l =
                 forMarshaling->pApplicationName ? strlen(forMarshaling->pApplicationName) : 0;
             memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
-            gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+            android::base::Stream::toBe32((uint8_t*)*ptr);
             *ptr += sizeof(uint32_t);
             memcpy(*ptr, (char*)forMarshaling->pApplicationName, l);
             *ptr += l;
@@ -362,13 +362,13 @@ void reservedmarshal_VkApplicationInfo(VulkanStreamGuest* vkStream, VkStructureT
         // WARNING PTR CHECK
         uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pEngineName;
         memcpy((*ptr), &cgen_var_0, 8);
-        gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+        android::base::Stream::toBe64((uint8_t*)(*ptr));
         *ptr += 8;
         if (forMarshaling->pEngineName) {
             {
                 uint32_t l = forMarshaling->pEngineName ? strlen(forMarshaling->pEngineName) : 0;
                 memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
-                gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+                android::base::Stream::toBe32((uint8_t*)*ptr);
                 *ptr += sizeof(uint32_t);
                 memcpy(*ptr, (char*)forMarshaling->pEngineName, l);
                 *ptr += l;
@@ -378,7 +378,7 @@ void reservedmarshal_VkApplicationInfo(VulkanStreamGuest* vkStream, VkStructureT
         {
             uint32_t l = forMarshaling->pEngineName ? strlen(forMarshaling->pEngineName) : 0;
             memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
-            gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+            android::base::Stream::toBe32((uint8_t*)*ptr);
             *ptr += sizeof(uint32_t);
             memcpy(*ptr, (char*)forMarshaling->pEngineName, l);
             *ptr += l;
@@ -437,7 +437,7 @@ void reservedmarshal_VkInstanceCreateInfo(VulkanStreamGuest* vkStream, VkStructu
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pApplicationInfo;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pApplicationInfo) {
         reservedmarshal_VkApplicationInfo(
@@ -451,14 +451,14 @@ void reservedmarshal_VkInstanceCreateInfo(VulkanStreamGuest* vkStream, VkStructu
             c = forMarshaling->enabledLayerCount;
         }
         memcpy(*ptr, (uint32_t*)&c, sizeof(uint32_t));
-        gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+        android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
         for (uint32_t i = 0; i < c; ++i) {
             uint32_t l = forMarshaling->ppEnabledLayerNames
                              ? strlen(forMarshaling->ppEnabledLayerNames[i])
                              : 0;
             memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
-            gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+            android::base::Stream::toBe32((uint8_t*)*ptr);
             *ptr += sizeof(uint32_t);
             if (l) {
                 memcpy(*ptr, (char*)(forMarshaling->ppEnabledLayerNames[i]), l);
@@ -474,14 +474,14 @@ void reservedmarshal_VkInstanceCreateInfo(VulkanStreamGuest* vkStream, VkStructu
             c = forMarshaling->enabledExtensionCount;
         }
         memcpy(*ptr, (uint32_t*)&c, sizeof(uint32_t));
-        gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+        android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
         for (uint32_t i = 0; i < c; ++i) {
             uint32_t l = forMarshaling->ppEnabledExtensionNames
                              ? strlen(forMarshaling->ppEnabledExtensionNames[i])
                              : 0;
             memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
-            gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+            android::base::Stream::toBe32((uint8_t*)*ptr);
             *ptr += sizeof(uint32_t);
             if (l) {
                 memcpy(*ptr, (char*)(forMarshaling->ppEnabledExtensionNames[i]), l);
@@ -782,7 +782,7 @@ void reservedmarshal_VkPhysicalDeviceLimits(VulkanStreamGuest* vkStream, VkStruc
     *ptr += sizeof(uint32_t);
     uint64_t cgen_var_0 = (uint64_t)forMarshaling->minMemoryMapAlignment;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     memcpy(*ptr, (VkDeviceSize*)&forMarshaling->minTexelBufferOffsetAlignment,
            sizeof(VkDeviceSize));
@@ -1007,14 +1007,14 @@ void reservedmarshal_VkDeviceCreateInfo(VulkanStreamGuest* vkStream, VkStructure
             c = forMarshaling->enabledLayerCount;
         }
         memcpy(*ptr, (uint32_t*)&c, sizeof(uint32_t));
-        gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+        android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
         for (uint32_t i = 0; i < c; ++i) {
             uint32_t l = forMarshaling->ppEnabledLayerNames
                              ? strlen(forMarshaling->ppEnabledLayerNames[i])
                              : 0;
             memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
-            gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+            android::base::Stream::toBe32((uint8_t*)*ptr);
             *ptr += sizeof(uint32_t);
             if (l) {
                 memcpy(*ptr, (char*)(forMarshaling->ppEnabledLayerNames[i]), l);
@@ -1030,14 +1030,14 @@ void reservedmarshal_VkDeviceCreateInfo(VulkanStreamGuest* vkStream, VkStructure
             c = forMarshaling->enabledExtensionCount;
         }
         memcpy(*ptr, (uint32_t*)&c, sizeof(uint32_t));
-        gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+        android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
         for (uint32_t i = 0; i < c; ++i) {
             uint32_t l = forMarshaling->ppEnabledExtensionNames
                              ? strlen(forMarshaling->ppEnabledExtensionNames[i])
                              : 0;
             memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
-            gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+            android::base::Stream::toBe32((uint8_t*)*ptr);
             *ptr += sizeof(uint32_t);
             if (l) {
                 memcpy(*ptr, (char*)(forMarshaling->ppEnabledExtensionNames[i]), l);
@@ -1048,7 +1048,7 @@ void reservedmarshal_VkDeviceCreateInfo(VulkanStreamGuest* vkStream, VkStructure
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pEnabledFeatures;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pEnabledFeatures) {
         reservedmarshal_VkPhysicalDeviceFeatures(
@@ -1462,7 +1462,7 @@ void reservedmarshal_VkBufferCreateInfo(VulkanStreamGuest* vkStream, VkStructure
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pQueueFamilyIndices;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pQueueFamilyIndices) {
         memcpy(*ptr, (const uint32_t*)forMarshaling->pQueueFamilyIndices,
@@ -1530,7 +1530,7 @@ void reservedmarshal_VkImageCreateInfo(VulkanStreamGuest* vkStream, VkStructureT
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pQueueFamilyIndices;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pQueueFamilyIndices) {
         memcpy(*ptr, (const uint32_t*)forMarshaling->pQueueFamilyIndices,
@@ -1614,7 +1614,7 @@ void reservedmarshal_VkShaderModuleCreateInfo(VulkanStreamGuest* vkStream, VkStr
     *ptr += sizeof(VkShaderModuleCreateFlags);
     uint64_t cgen_var_0 = (uint64_t)forMarshaling->codeSize;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     memcpy(*ptr, (const uint32_t*)forMarshaling->pCode,
            (forMarshaling->codeSize / 4) * sizeof(const uint32_t));
@@ -1638,7 +1638,7 @@ void reservedmarshal_VkPipelineCacheCreateInfo(VulkanStreamGuest* vkStream,
     *ptr += sizeof(VkPipelineCacheCreateFlags);
     uint64_t cgen_var_0 = (uint64_t)forMarshaling->initialDataSize;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     memcpy(*ptr, (const void*)forMarshaling->pInitialData,
            forMarshaling->initialDataSize * sizeof(const uint8_t));
@@ -1656,7 +1656,7 @@ void reservedmarshal_VkSpecializationMapEntry(VulkanStreamGuest* vkStream, VkStr
     *ptr += sizeof(uint32_t);
     uint64_t cgen_var_0 = (uint64_t)forMarshaling->size;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
 }
 
@@ -1674,7 +1674,7 @@ void reservedmarshal_VkSpecializationInfo(VulkanStreamGuest* vkStream, VkStructu
     }
     uint64_t cgen_var_0 = (uint64_t)forMarshaling->dataSize;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     memcpy(*ptr, (const void*)forMarshaling->pData,
            forMarshaling->dataSize * sizeof(const uint8_t));
@@ -1704,7 +1704,7 @@ void reservedmarshal_VkPipelineShaderStageCreateInfo(
     {
         uint32_t l = forMarshaling->pName ? strlen(forMarshaling->pName) : 0;
         memcpy(*ptr, (uint32_t*)&l, sizeof(uint32_t));
-        gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+        android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
         memcpy(*ptr, (char*)forMarshaling->pName, l);
         *ptr += l;
@@ -1712,7 +1712,7 @@ void reservedmarshal_VkPipelineShaderStageCreateInfo(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pSpecializationInfo;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pSpecializationInfo) {
         reservedmarshal_VkSpecializationInfo(
@@ -1885,7 +1885,7 @@ void reservedmarshal_VkPipelineViewportStateCreateInfo(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pViewports;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pViewports) {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->viewportCount; ++i) {
@@ -1898,7 +1898,7 @@ void reservedmarshal_VkPipelineViewportStateCreateInfo(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pScissors;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pScissors) {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->scissorCount; ++i) {
@@ -1968,7 +1968,7 @@ void reservedmarshal_VkPipelineMultisampleStateCreateInfo(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pSampleMask;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pSampleMask) {
         memcpy(*ptr, (const VkSampleMask*)forMarshaling->pSampleMask,
@@ -2130,7 +2130,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
                               }))));
         uint32_t cgen_var_0 = (uint32_t)hasRasterization;
         memcpy((*ptr), &cgen_var_0, 4);
-        gfxstream::guest::Stream::toBe32((uint8_t*)(*ptr));
+        android::base::Stream::toBe32((uint8_t*)(*ptr));
         *ptr += 4;
     }
     uint32_t hasTessellation = 1;
@@ -2143,7 +2143,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
                      });
         uint32_t cgen_var_0 = (uint32_t)hasTessellation;
         memcpy((*ptr), &cgen_var_0, 4);
-        gfxstream::guest::Stream::toBe32((uint8_t*)(*ptr));
+        android::base::Stream::toBe32((uint8_t*)(*ptr));
         *ptr += 4;
     }
     memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
@@ -2165,7 +2165,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pVertexInputState;
         memcpy((*ptr), &cgen_var_0, 8);
-        gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+        android::base::Stream::toBe64((uint8_t*)(*ptr));
         *ptr += 8;
     }
     if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -2178,7 +2178,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pInputAssemblyState;
         memcpy((*ptr), &cgen_var_0, 8);
-        gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+        android::base::Stream::toBe64((uint8_t*)(*ptr));
         *ptr += 8;
     }
     if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -2191,7 +2191,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pTessellationState;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pTessellationState) {
         if (hasTessellation) {
@@ -2204,7 +2204,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pViewportState;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pViewportState) {
         if (hasRasterization) {
@@ -2217,7 +2217,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         uint64_t cgen_var_1_0 = (uint64_t)(uintptr_t)forMarshaling->pRasterizationState;
         memcpy((*ptr), &cgen_var_1_0, 8);
-        gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+        android::base::Stream::toBe64((uint8_t*)(*ptr));
         *ptr += 8;
     }
     if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -2230,7 +2230,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pMultisampleState;
     memcpy((*ptr), &cgen_var_2, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pMultisampleState) {
         if (hasRasterization) {
@@ -2243,7 +2243,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)forMarshaling->pDepthStencilState;
     memcpy((*ptr), &cgen_var_3, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pDepthStencilState) {
         if (hasRasterization) {
@@ -2256,7 +2256,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     // WARNING PTR CHECK
     uint64_t cgen_var_4 = (uint64_t)(uintptr_t)forMarshaling->pColorBlendState;
     memcpy((*ptr), &cgen_var_4, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pColorBlendState) {
         if (hasRasterization) {
@@ -2268,7 +2268,7 @@ void reservedmarshal_VkGraphicsPipelineCreateInfo(VulkanStreamGuest* vkStream,
     // WARNING PTR CHECK
     uint64_t cgen_var_5 = (uint64_t)(uintptr_t)forMarshaling->pDynamicState;
     memcpy((*ptr), &cgen_var_5, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pDynamicState) {
         reservedmarshal_VkPipelineDynamicStateCreateInfo(
@@ -2530,7 +2530,7 @@ void reservedmarshal_VkDescriptorSetLayoutBinding(VulkanStreamGuest* vkStream,
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pImmutableSamplers;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pImmutableSamplers) {
         if (forMarshaling->descriptorCount) {
@@ -2595,7 +2595,7 @@ void reservedmarshal_VkWriteDescriptorSet(VulkanStreamGuest* vkStream, VkStructu
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pImageInfo;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pImageInfo) {
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -2614,7 +2614,7 @@ void reservedmarshal_VkWriteDescriptorSet(VulkanStreamGuest* vkStream, VkStructu
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pBufferInfo;
     memcpy((*ptr), &cgen_var_2, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pBufferInfo) {
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -2632,7 +2632,7 @@ void reservedmarshal_VkWriteDescriptorSet(VulkanStreamGuest* vkStream, VkStructu
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)forMarshaling->pTexelBufferView;
     memcpy((*ptr), &cgen_var_3, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pTexelBufferView) {
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -2759,7 +2759,7 @@ void reservedmarshal_VkSubpassDescription(VulkanStreamGuest* vkStream, VkStructu
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pResolveAttachments;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pResolveAttachments) {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->colorAttachmentCount; ++i) {
@@ -2771,7 +2771,7 @@ void reservedmarshal_VkSubpassDescription(VulkanStreamGuest* vkStream, VkStructu
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pDepthStencilAttachment;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pDepthStencilAttachment) {
         reservedmarshal_VkAttachmentReference(
@@ -2927,7 +2927,7 @@ void reservedmarshal_VkCommandBufferBeginInfo(VulkanStreamGuest* vkStream, VkStr
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pInheritanceInfo;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pInheritanceInfo) {
         reservedmarshal_VkCommandBufferInheritanceInfo(
@@ -3098,7 +3098,7 @@ void reservedmarshal_VkRenderPassBeginInfo(VulkanStreamGuest* vkStream, VkStruct
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pClearValues;
     memcpy((*ptr), &cgen_var_2, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pClearValues) {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->clearValueCount; ++i) {
@@ -4012,11 +4012,11 @@ void reservedmarshal_VkDescriptorUpdateTemplateEntry(
     *ptr += sizeof(VkDescriptorType);
     uint64_t cgen_var_0 = (uint64_t)forMarshaling->offset;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     uint64_t cgen_var_1 = (uint64_t)forMarshaling->stride;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
 }
 
@@ -4854,7 +4854,7 @@ void reservedmarshal_VkSubpassDescription2(VulkanStreamGuest* vkStream, VkStruct
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pResolveAttachments;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pResolveAttachments) {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->colorAttachmentCount; ++i) {
@@ -4866,7 +4866,7 @@ void reservedmarshal_VkSubpassDescription2(VulkanStreamGuest* vkStream, VkStruct
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pDepthStencilAttachment;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pDepthStencilAttachment) {
         reservedmarshal_VkAttachmentReference2(
@@ -5117,7 +5117,7 @@ void reservedmarshal_VkDescriptorSetLayoutBindingFlagsCreateInfo(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pBindingFlags;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pBindingFlags) {
         memcpy(*ptr, (const VkDescriptorBindingFlags*)forMarshaling->pBindingFlags,
@@ -5329,7 +5329,7 @@ void reservedmarshal_VkSubpassDescriptionDepthStencilResolve(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pDepthStencilResolveAttachment;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pDepthStencilResolveAttachment) {
         reservedmarshal_VkAttachmentReference2(
@@ -5689,7 +5689,7 @@ void reservedmarshal_VkTimelineSemaphoreSubmitInfo(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pWaitSemaphoreValues;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pWaitSemaphoreValues) {
         memcpy(*ptr, (const uint64_t*)forMarshaling->pWaitSemaphoreValues,
@@ -5701,7 +5701,7 @@ void reservedmarshal_VkTimelineSemaphoreSubmitInfo(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pSignalSemaphoreValues;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pSignalSemaphoreValues) {
         memcpy(*ptr, (const uint64_t*)forMarshaling->pSignalSemaphoreValues,
@@ -6943,7 +6943,7 @@ void reservedmarshal_VkRenderingInfo(VulkanStreamGuest* vkStream, VkStructureTyp
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pDepthAttachment;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pDepthAttachment) {
         reservedmarshal_VkRenderingAttachmentInfo(
@@ -6953,7 +6953,7 @@ void reservedmarshal_VkRenderingInfo(VulkanStreamGuest* vkStream, VkStructureTyp
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pStencilAttachment;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pStencilAttachment) {
         reservedmarshal_VkRenderingAttachmentInfo(
@@ -6980,7 +6980,7 @@ void reservedmarshal_VkPipelineRenderingCreateInfo(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pColorAttachmentFormats;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pColorAttachmentFormats) {
         memcpy(*ptr, (const VkFormat*)forMarshaling->pColorAttachmentFormats,
@@ -7348,7 +7348,7 @@ void reservedmarshal_VkAttachmentSampleCountInfoAMD(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pColorAttachmentSamples;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pColorAttachmentSamples) {
         memcpy(*ptr, (const VkSampleCountFlagBits*)forMarshaling->pColorAttachmentSamples,
@@ -7445,7 +7445,7 @@ void reservedmarshal_VkPresentRegionKHR(VulkanStreamGuest* vkStream, VkStructure
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pRectangles;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pRectangles) {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->rectangleCount; ++i) {
@@ -7470,7 +7470,7 @@ void reservedmarshal_VkPresentRegionsKHR(VulkanStreamGuest* vkStream, VkStructur
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pRegions;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pRegions) {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->swapchainCount; ++i) {
@@ -7649,12 +7649,12 @@ void reservedmarshal_VkPipelineExecutableInternalRepresentationKHR(
     *ptr += sizeof(VkBool32);
     uint64_t cgen_var_0 = (uint64_t)forMarshaling->dataSize;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pData;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pData) {
         memcpy(*ptr, (void*)forMarshaling->pData, forMarshaling->dataSize * sizeof(uint8_t));
@@ -7695,7 +7695,7 @@ void reservedmarshal_VkCheckpointData2NV(VulkanStreamGuest* vkStream, VkStructur
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pCheckpointMarker;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pCheckpointMarker) {
         memcpy(*ptr, (void*)forMarshaling->pCheckpointMarker, sizeof(uint8_t));
@@ -7766,7 +7766,7 @@ void reservedmarshal_VkRenderingAreaInfoKHR(VulkanStreamGuest* vkStream, VkStruc
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pColorAttachmentFormats;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pColorAttachmentFormats) {
         memcpy(*ptr, (const VkFormat*)forMarshaling->pColorAttachmentFormats,
@@ -7885,7 +7885,7 @@ void reservedmarshal_VkNativeBufferANDROID(VulkanStreamGuest* vkStream, VkStruct
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->handle;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->handle) {
         memcpy(*ptr, (const uint32_t*)forMarshaling->handle, sizeof(const uint32_t));
@@ -8038,6 +8038,178 @@ void reservedmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     *ptr += sizeof(VkPipelineRasterizationDepthClipStateCreateFlagsEXT);
     memcpy(*ptr, (VkBool32*)&forMarshaling->depthClipEnable, sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
+}
+
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+void reservedmarshal_VkDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierPlaneCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkFormatFeatureFlags*)&forMarshaling->drmFormatModifierTilingFeatures,
+           sizeof(VkFormatFeatureFlags));
+    *ptr += sizeof(VkFormatFeatureFlags);
+}
+
+void reservedmarshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesListEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pDrmFormatModifierProperties;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pDrmFormatModifierProperties) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->drmFormatModifierCount; ++i) {
+            reservedmarshal_VkDrmFormatModifierPropertiesEXT(
+                vkStream, rootType,
+                (VkDrmFormatModifierPropertiesEXT*)(forMarshaling->pDrmFormatModifierProperties +
+                                                    i),
+                ptr);
+        }
+    }
+}
+
+void reservedmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (VkSharingMode*)&forMarshaling->sharingMode, sizeof(VkSharingMode));
+    *ptr += sizeof(VkSharingMode);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->queueFamilyIndexCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pQueueFamilyIndices;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pQueueFamilyIndices) {
+        memcpy(*ptr, (const uint32_t*)forMarshaling->pQueueFamilyIndices,
+               forMarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
+        *ptr += forMarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+    }
+}
+
+void reservedmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (const uint64_t*)forMarshaling->pDrmFormatModifiers,
+           forMarshaling->drmFormatModifierCount * sizeof(const uint64_t));
+    *ptr += forMarshaling->drmFormatModifierCount * sizeof(const uint64_t);
+}
+
+void reservedmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierPlaneCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)forMarshaling->drmFormatModifierPlaneCount; ++i) {
+        reservedmarshal_VkSubresourceLayout(
+            vkStream, rootType, (const VkSubresourceLayout*)(forMarshaling->pPlaneLayouts + i),
+            ptr);
+    }
+}
+
+void reservedmarshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierPropertiesEXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedmarshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierProperties2EXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierPlaneCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy(*ptr, (VkFormatFeatureFlags2*)&forMarshaling->drmFormatModifierTilingFeatures,
+           sizeof(VkFormatFeatureFlags2));
+    *ptr += sizeof(VkFormatFeatureFlags2);
+}
+
+void reservedmarshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesList2EXT* forMarshaling, uint8_t** ptr) {
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (uint32_t*)&forMarshaling->drmFormatModifierCount, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pDrmFormatModifierProperties;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pDrmFormatModifierProperties) {
+        for (uint32_t i = 0; i < (uint32_t)forMarshaling->drmFormatModifierCount; ++i) {
+            reservedmarshal_VkDrmFormatModifierProperties2EXT(
+                vkStream, rootType,
+                (VkDrmFormatModifierProperties2EXT*)(forMarshaling->pDrmFormatModifierProperties +
+                                                     i),
+                ptr);
+        }
+    }
 }
 
 #endif
@@ -8351,7 +8523,7 @@ void reservedmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pCopySrcLayouts;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pCopySrcLayouts) {
         memcpy(*ptr, (VkImageLayout*)forMarshaling->pCopySrcLayouts,
@@ -8363,7 +8535,7 @@ void reservedmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT(
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pCopyDstLayouts;
     memcpy((*ptr), &cgen_var_1, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pCopyDstLayouts) {
         memcpy(*ptr, (VkImageLayout*)forMarshaling->pCopyDstLayouts,
@@ -8646,7 +8818,7 @@ void reservedmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     *ptr += sizeof(VkDeviceMemoryReportFlagsEXT);
     uint64_t cgen_var_0 = (uint64_t)forMarshaling->pfnUserCallback;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     memcpy(*ptr, (void*)forMarshaling->pUserData, sizeof(uint8_t));
     *ptr += sizeof(uint8_t);
@@ -8849,7 +9021,7 @@ void reservedmarshal_VkImageCompressionControlEXT(VulkanStreamGuest* vkStream,
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pFixedRateFlags;
     memcpy((*ptr), &cgen_var_0, 8);
-    gfxstream::guest::Stream::toBe64((uint8_t*)(*ptr));
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
     *ptr += 8;
     if (forMarshaling->pFixedRateFlags) {
         memcpy(*ptr, (VkImageCompressionFixedRateFlagsEXT*)forMarshaling->pFixedRateFlags,
@@ -9058,7 +9230,7 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
         // known or null extension struct
         memcpy(*ptr, &currExtSize, sizeof(uint32_t));
         ;
-        gfxstream::guest::Stream::toBe32((uint8_t*)*ptr);
+        android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
         if (!currExtSize) {
             // exit if this was a null extension struct (size == 0 in this branch)
@@ -9945,6 +10117,45 @@ void reservedmarshal_extension_struct(VulkanStreamGuest* vkStream, VkStructureTy
                 vkStream, rootType,
                 reinterpret_cast<const VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
                     structExtension),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT: {
+            reservedmarshal_VkDrmFormatModifierPropertiesListEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDrmFormatModifierPropertiesListEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT: {
+            reservedmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImageDrmFormatModifierInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT: {
+            reservedmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageDrmFormatModifierListCreateInfoEXT*>(structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT: {
+            reservedmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkImageDrmFormatModifierExplicitCreateInfoEXT*>(
+                    structExtension),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT: {
+            reservedmarshal_VkDrmFormatModifierPropertiesList2EXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkDrmFormatModifierPropertiesList2EXT*>(structExtension),
                 ptr);
             break;
         }

@@ -126,7 +126,7 @@ class VulkanReservedMarshalingCodegen(VulkanTypeIterator):
             else:
                 pass
 
-            streamNamespace = "gfxstream::guest" if self.variant == "guest" else "android::base"
+            streamNamespace = "android::base"
             if self.direction == "write":
                 self.cgen.stmt("%s::Stream::%s((uint8_t*)*%s)" % (streamNamespace, streamMethod, varname))
             else:
@@ -987,7 +987,7 @@ class VulkanReservedMarshaling(VulkanWrapperGenerator):
 
         cgen.line("// known or null extension struct")
 
-        streamNamespace = "gfxstream::guest" if self.variant == "guest" else "android::base"
+        streamNamespace = "android::base"
 
         if direction == "write":
             cgen.stmt("memcpy(*%s, &%s, sizeof(uint32_t));" % (self.ptrVarName, sizeVar))
@@ -1013,7 +1013,9 @@ class VulkanReservedMarshaling(VulkanWrapperGenerator):
             cgen.stmt("(void)pNext_placeholder")
 
         def fatalDefault(cgen):
-            cgen.line("// fatal; the switch is only taken if the extension struct is known");
+            cgen.line("// fatal; the switch is only taken if the extension struct is known")
+            if self.variant != "guest":
+                cgen.stmt("fprintf(stderr, \" %s, Unhandled Vulkan structure type %s [%d], aborting.\\n\", __func__, string_VkStructureType(VkStructureType(structType)), structType)")
             cgen.stmt("abort()")
             pass
 

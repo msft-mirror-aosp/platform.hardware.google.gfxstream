@@ -21,6 +21,7 @@ cc_library_static {
         "gfxstream_base",
         "gfxstream_host_common",
         "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_backend",
         "libgfxstream_host_compressedtextures",
         "libgfxstream_host_features",
         "libgfxstream_host_vulkan_cereal",

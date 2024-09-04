@@ -2681,6 +2681,56 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkDescriptorPoolInlineUniformBlockCreat
                       transform_fromhost_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+void transform_tohost_VkDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesEXT* toTransform);
+
+void transform_fromhost_VkDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesEXT* toTransform);
+
+void transform_tohost_VkDrmFormatModifierPropertiesListEXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesListEXT* toTransform);
+
+void transform_fromhost_VkDrmFormatModifierPropertiesListEXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesListEXT* toTransform);
+
+void transform_tohost_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceImageDrmFormatModifierInfoEXT* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceImageDrmFormatModifierInfoEXT* toTransform);
+
+void transform_tohost_VkImageDrmFormatModifierListCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierListCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkImageDrmFormatModifierListCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierListCreateInfoEXT* toTransform);
+
+void transform_tohost_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierExplicitCreateInfoEXT* toTransform);
+
+void transform_fromhost_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierExplicitCreateInfoEXT* toTransform);
+
+void transform_tohost_VkImageDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierPropertiesEXT* toTransform);
+
+void transform_fromhost_VkImageDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker, VkImageDrmFormatModifierPropertiesEXT* toTransform);
+
+void transform_tohost_VkDrmFormatModifierProperties2EXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierProperties2EXT* toTransform);
+
+void transform_fromhost_VkDrmFormatModifierProperties2EXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierProperties2EXT* toTransform);
+
+void transform_tohost_VkDrmFormatModifierPropertiesList2EXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesList2EXT* toTransform);
+
+void transform_fromhost_VkDrmFormatModifierPropertiesList2EXT(
+    ResourceTracker* resourceTracker, VkDrmFormatModifierPropertiesList2EXT* toTransform);
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     ResourceTracker* resourceTracker,
