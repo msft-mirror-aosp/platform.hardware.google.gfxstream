@@ -21,7 +21,6 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <virtgpu_drm.h>
 #include <xf86drm.h>
 
 #include <limits>

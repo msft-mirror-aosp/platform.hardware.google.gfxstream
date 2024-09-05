@@ -27,12 +27,9 @@
 #include <optional>
 #include <string>
 
-#include "EmulatorFeatureInfo.h"
+#include "ExtendedRenderControl.h"
 #include "Sync.h"
 #include "VirtGpu.h"
-#include "gfxstream/guest/ChecksumCalculator.h"
-#include "gfxstream/guest/IOStream.h"
-#include "renderControl_enc.h"
 
 class GLEncoder;
 struct gl_client_context_t;
@@ -44,70 +41,6 @@ namespace vk {
 class VkEncoder;
 }  // namespace vk
 }  // namespace gfxstream
-
-// ExtendedRCEncoderContext is an extended version of renderControl_encoder_context_t
-// that will be used to track available emulator features.
-class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
-public:
-    ExtendedRCEncoderContext(gfxstream::guest::IOStream *stream,
-                             gfxstream::guest::ChecksumCalculator *checksumCalculator)
-        : renderControl_encoder_context_t(stream, checksumCalculator) {}
-    void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
-    void setDmaImpl(DmaImpl dmaImpl) { m_featureInfo.dmaImpl = dmaImpl; }
-    void setHostComposition(HostComposition hostComposition) {
-        m_featureInfo.hostComposition = hostComposition; }
-    bool hasNativeSync() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V2; }
-    bool hasNativeSyncV3() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V3; }
-    bool hasNativeSyncV4() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V4; }
-    bool hasVirtioGpuNativeSync() const { return m_featureInfo.hasVirtioGpuNativeSync; }
-    bool hasHostCompositionV1() const {
-        return m_featureInfo.hostComposition == HOST_COMPOSITION_V1; }
-    bool hasHostCompositionV2() const {
-        return m_featureInfo.hostComposition == HOST_COMPOSITION_V2; }
-    bool hasYUVCache() const {
-        return m_featureInfo.hasYUVCache; }
-    bool hasAsyncUnmapBuffer() const {
-        return m_featureInfo.hasAsyncUnmapBuffer; }
-    bool hasHostSideTracing() const {
-        return m_featureInfo.hasHostSideTracing;
-    }
-    bool hasAsyncFrameCommands() const {
-        return m_featureInfo.hasAsyncFrameCommands;
-    }
-    bool hasSyncBufferData() const {
-        return m_featureInfo.hasSyncBufferData; }
-    bool hasHWCMultiConfigs() const {
-        return m_featureInfo.hasHWCMultiConfigs;
-    }
-    void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
-        m_dmaPtr = dmaPtr;
-        m_dmaPhysAddr = dmaPhysAddr;
-    }
-    virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
-        if (m_dmaPtr && m_dmaPhysAddr) {
-            if (data != m_dmaPtr) {
-                memcpy(m_dmaPtr, data, size);
-            }
-            return m_dmaPhysAddr;
-        } else {
-            ALOGE("%s: ALOGEOR: No DMA context bound!", __func__);
-            return 0;
-        }
-    }
-    void setGLESMaxVersion(GLESMaxVersion ver) { m_featureInfo.glesMaxVersion = ver; }
-    GLESMaxVersion getGLESMaxVersion() const { return m_featureInfo.glesMaxVersion; }
-    bool hasDirectMem() const {
-        return m_featureInfo.hasDirectMem;
-    }
-
-    const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
-    EmulatorFeatureInfo* featureInfo() { return &m_featureInfo; }
-
-private:
-    EmulatorFeatureInfo m_featureInfo;
-    void* m_dmaPtr = nullptr;
-    uint64_t m_dmaPhysAddr = 0;
-};
 
 struct EGLThreadInfo;
 
@@ -169,40 +102,6 @@ public:
  static gl_client_context_t* s_getGLContext();
  static gl2_client_context_t* s_getGL2Context();
 
- const std::string& queryHostExtensions(ExtendedRCEncoderContext* rcEnc);
- // setProtocol initializes GL communication protocol for checksums
- // should be called when m_rcEnc is created
- void setChecksumHelper(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetSyncImpl(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetDmaImpl(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetGLESMaxVersion(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetNoErrorState(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetHostCompositionImpl(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetDirectMemSupport(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanSupport(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanIgnoredHandles(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetYUVCache(ExtendedRCEncoderContext* mrcEnc);
- void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVirtioGpuNext(ExtendedRCEncoderContext* rcEnc);
- void queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetSyncBufferData(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetReadColorBufferDma(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc);
- void queryAndSetVulkanAuxCommandBufferMemory(ExtendedRCEncoderContext* rcEnc);
- GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
-
 private:
  HostConnectionType m_connectionType;
 
@@ -222,7 +121,6 @@ private:
  std::unique_ptr<gfxstream::Gralloc> m_grallocHelper;
 #endif
  std::unique_ptr<gfxstream::SyncHelper> m_syncHelper;
- std::string m_hostExtensions;
  bool m_noHostError;
  mutable std::mutex m_lock;
  int m_rendernodeFd;
