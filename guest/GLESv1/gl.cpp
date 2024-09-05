@@ -14,15 +14,14 @@
 * limitations under the License.
 */
 
-#include "EGLClientIface.h"
-#include "HostConnection.h"
-#include "GLEncoder.h"
 #include "GLES/gl.h"
-#include "GLES/glext.h"
-#include "ErrorLog.h"
-#include "ThreadInfo.h"
-#include "EGLImage.h"
 
+#include "EGLClientIface.h"
+#include "EGLImage.h"
+#include "GLES/glext.h"
+#include "GLEncoder.h"
+#include "HostConnection.h"
+#include "ThreadInfo.h"
 
 //XXX: fix this macro to get the context from fast tls path
 #define GET_CONTEXT GLEncoder * ctx = getEGLThreadInfo()->hostConn->glEncoder();
@@ -62,8 +61,6 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
 {
     (void)self;
 
-    DBG("glEGLImageTargetTexture2DOES v1 target=%#x img=%p", target, img);
-
     EGLImage_t *image = (EGLImage_t*)img;
 
     if (image->target == EGL_NATIVE_BUFFER_ANDROID) {
@@ -96,8 +93,6 @@ void glEGLImageTargetRenderbufferStorageOES(void *self, GLenum target, GLeglImag
     (void)self;
     (void)target;
 
-    DBG("glEGLImageTargetRenderbufferStorageOES v1 image=%p\n", img);
-    //TODO: check error - we don't have a way to set gl error
     EGLImage_t *image = (EGLImage_t*)img;
 
     if (image->target == EGL_NATIVE_BUFFER_ANDROID) {
