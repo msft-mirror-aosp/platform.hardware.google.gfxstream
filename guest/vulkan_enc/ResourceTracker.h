@@ -25,6 +25,7 @@
 #include <unordered_map>
 
 #include "CommandBufferStagingStream.h"
+#include "GfxStreamConnectionManager.h"
 #include "HostVisibleMemoryVirtualization.h"
 #include "Sync.h"
 #include "VirtGpu.h"
@@ -80,15 +81,12 @@ typedef uint64_t zx_koid_t;
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include "AndroidHardwareBuffer.h"
 #include "gfxstream/guest/Gralloc.h"
-#endif
-
-#if defined(__linux__) || defined(__Fuchsia__)
 #include <android/hardware_buffer.h>
 #endif
 
 #if GFXSTREAM_ENABLE_GUEST_GOLDFISH
 /// Goldfish sync only used for AEMU -- should replace in virtio-gpu when possibe
-#include "../egl/goldfish_sync.h"
+#include "gfxstream/guest/goldfish_sync.h"
 #endif
 
 // This should be ABI identical with the variant in ResourceTracker.h
@@ -127,8 +125,8 @@ class ResourceTracker {
     VulkanHandleMapping* createMapping();
     VulkanHandleMapping* destroyMapping();
 
-    using HostConnectionGetFunc = HostConnection* (*)();
-    using VkEncoderGetFunc = VkEncoder* (*)(HostConnection*);
+    using HostConnectionGetFunc = GfxStreamConnectionManager* (*)();
+    using VkEncoderGetFunc = VkEncoder* (*)(GfxStreamConnectionManager*);
     using CleanupCallback = std::function<void()>;
 
     struct ThreadingCallbacks {
@@ -637,8 +635,8 @@ class ResourceTracker {
                        const char* const* ppEnabledExtensionNames, const void* pNext);
 
     void setDeviceMemoryInfo(VkDevice device, VkDeviceMemory memory, VkDeviceSize allocationSize,
-                             uint8_t* ptr, uint32_t memoryTypeIndex, AHardwareBuffer* ahw,
-                             bool imported, zx_handle_t vmoHandle, VirtGpuResourcePtr blobPtr);
+                             uint8_t* ptr, uint32_t memoryTypeIndex, void* ahw, bool imported,
+                             zx_handle_t vmoHandle, VirtGpuResourcePtr blobPtr);
 
     void setImageInfo(VkImage image, VkDevice device, const VkImageCreateInfo* pCreateInfo);
 
@@ -720,7 +718,9 @@ class ResourceTracker {
         const VkImageCreateInfo* pImageInfo);
 #endif
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
     uint64_t getAHardwareBufferId(AHardwareBuffer* ahw);
+#endif
 
     void unregister_VkDescriptorSet_locked(VkDescriptorSet set);
 
