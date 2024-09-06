@@ -11,37 +11,25 @@ cc_library_static {
     ],
     srcs: [
         "AddressSpaceStream.cpp",
+        "goldfish_address_space.cpp",
         "VirtioGpuAddressSpaceStream.cpp",
+        "GoldfishAddressSpaceStream.cpp",
     ],
     header_libs: [
         "libgfxstream_guest_iostream",
+        "mesa_common_headers_gfxstream",
+        "aemu_common_headers",
     ],
     shared_libs: [
         "libdrm",
         "liblog",
     ],
     static_libs: [
-        "libgfxstream_androidemu_static",
+        "libmesa_util_gfxstream",
+        "libringbuffer",
+        "gfxstream_base",
     ],
     export_include_dirs: [
         "include",
     ],
-    cflags: [
-        "-DLOG_TAG=\"goldfish-address-space\"",
-    ],
-    include_dirs: [
-        "hardware/google/gfxstream/guest/include",
-    ],
-    target: {
-        android: {
-            shared_libs: [
-                "libbase",
-                "libcutils",
-            ],
-            srcs: [
-                "goldfish_address_space.cpp",
-                "GoldfishAddressSpaceStream.cpp",
-            ],
-        },
-    },
 }

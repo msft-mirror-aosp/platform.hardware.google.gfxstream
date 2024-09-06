@@ -101,6 +101,7 @@ filegroup {
         "VulkanHandleMapping.cpp",
         "VulkanStreamGuest.cpp",
         "gfxstream_vk_private.cpp",
+        "GfxStreamVulkanConnection.cpp",
     ],
 }
 
@@ -108,15 +109,15 @@ cc_library_static {
     name: "libvulkan_enc",
     defaults: [
         "libgfxstream_guest_cc_defaults",
-        "gfxstream_guest_cc_defaults_for_platform",
+        "gfxstream_guest_cc_defaults",
         "libplatform_virtgpu_defaults",
     ],
     header_libs: [
         "libgfxstream_vulkan_headers",
-        "libOpenglSystemCommonHeaders",
         "libgfxstream_guest_iostream",
         "libnativewindow_headers",
         "mesa_common_headers_gfxstream",
+        "aemu_common_headers",
     ],
     generated_headers: [
         "vk_cmd_queue_header_gfxstream",
@@ -135,12 +136,14 @@ cc_library_static {
         "libgfxstream_androidemu_static",
         "libGoldfishAddressSpace",
         "libmesa_vulkan_util_gfxstream",
+        "gfxstream_base",
         "libmesa_vulkan_runtime_gfxstream",
         "libgfxstream_guest_android",
         "libgfxstream_guest_vulkan_entrypoints",
         "libmesa_util_gfxstream",
         "libmesa_util_format_gfxstream",
         "libmesa_util_c11_gfxstream",
+        "libgfxstream_guest_connection_manager",
     ],
     cflags: [
         "-DLOG_TAG=\"goldfish_vulkan\"",

@@ -27,10 +27,14 @@ cc_library_static {
     srcs: [
         "VirtGpu.cpp",
     ],
+    header_libs: [
+        "mesa_common_headers_gfxstream",
+        "libgfxstream_guest_mesa_graphics_headers",
+    ],
+    static_libs: [
+        "libmesa_util_gfxstream",
+    ],
     shared_libs: [
-        "libcutils",
-        "liblog",
-        "libutils",
         "libdrm",
     ],
     export_include_dirs: [
@@ -40,7 +44,6 @@ cc_library_static {
         "libdrm",
     ],
     cflags: [
-        "-DLOG_TAG=\"platform\"",
         "-Wno-missing-field-initializers",
         "-fvisibility=default",
         "-fstrict-aliasing",
@@ -86,6 +89,8 @@ cc_defaults {
     name: "libplatform_virtgpu_defaults",
     static_libs: [
         "libplatform_virtgpu",
+        "libmesa_util_gfxstream",
+        "libmesa_util_c11_gfxstream",
     ],
     target: {
         host: {

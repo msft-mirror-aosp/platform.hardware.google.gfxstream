@@ -20,8 +20,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "ErrorLog.h"
-
 namespace gfxstream {
 namespace guest {
 
@@ -52,6 +50,9 @@ public:
         return m_bufsize < len ? len : m_bufsize;
     }
 
+    virtual int connect(const char* serviceName = nullptr) { return 0; }
+    virtual uint64_t processPipeInit() { return 0; }
+
     virtual void *allocBuffer(size_t minSize) = 0;
     virtual int commitBuffer(size_t size) = 0;
     virtual const unsigned char *readFully( void *buf, size_t len) = 0;
@@ -71,7 +72,6 @@ public:
 
         if (m_iostreamBuf && len > m_free) {
             if (flush() < 0) {
-                ERR("Failed to flush in alloc\n");
                 return NULL; // we failed to flush so something is wrong
             }
         }
@@ -80,7 +80,6 @@ public:
             size_t allocLen = this->idealAllocSize(len);
             m_iostreamBuf = (unsigned char *)allocBuffer(allocLen);
             if (!m_iostreamBuf) {
-                ERR("Alloc (%zu bytes) failed\n", allocLen);
                 return NULL;
             }
             m_bufsize = m_free = allocLen;
