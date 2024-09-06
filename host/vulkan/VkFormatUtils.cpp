@@ -145,7 +145,7 @@ bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
                            std::vector<VkBufferImageCopy>* outBufferImageCopies) {
     const FormatPlaneLayouts* formatInfo = getFormatPlaneLayouts(format);
     if (formatInfo == nullptr) {
-        ERR("Unhandled format: %s", string_VkFormat(format));
+        ERR("Unhandled format: %s [%d]", string_VkFormat(format), format);
         return false;
     }
 
