@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,31 @@ package {
 }
 
 cc_library_static {
-    name: "libmesa_util_c11_gfxstream",
-    host_supported: true,
-    vendor_available: true,
+    name: "libgfxstream_guest_connection_manager",
     defaults: [
-        "mesa_common_defaults_gfxstream",
+        "libgfxstream_guest_cc_defaults",
+        "libplatform_virtgpu_defaults",
     ],
     header_libs: [
+        "libgfxstream_guest_iostream",
         "mesa_common_headers_gfxstream",
     ],
+    static_libs: [
+        "libmesa_util_gfxstream",
+        "libGoldfishAddressSpace",
+        "libringbuffer",
+        "libqemupipe.ranchu",
+    ],
+    shared_libs: [
+        "libdrm",
+    ],
     srcs: [
-        "time.c",
-        "threads_posix.c",
+        "GfxStreamConnectionManager.cpp",
+        "GfxStreamConnection.cpp",
+        "QemuPipeStream.cpp",
+        "VirtioGpuPipeStream.cpp",
+    ],
+    export_include_dirs: [
+        ".",
     ],
 }
