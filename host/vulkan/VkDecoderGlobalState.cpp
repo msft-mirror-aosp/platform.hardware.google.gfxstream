@@ -2191,7 +2191,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (deviceInfo->imageFormats.find(pCreateInfo->format) == deviceInfo->imageFormats.end()) {
-            VERBOSE("gfxstream_texture_format_manifest: %s", string_VkFormat(pCreateInfo->format));
+            VERBOSE("gfxstream_texture_format_manifest: %s [%d]", string_VkFormat(pCreateInfo->format), pCreateInfo->format);
             deviceInfo->imageFormats.insert(pCreateInfo->format);
         }
 
@@ -7163,10 +7163,11 @@ class VkDecoderGlobalState::Impl {
                 continue;
             }
             if (resolvedFormat != colorBufferVkImageCi->format) {
-                ERR("The VkImageCreateInfo to import %s contains unexpected VkFormat: %s. %s "
-                    "expected.",
-                    importSource.c_str()?:"", string_VkFormat(imageCreateInfo.format),
-                    string_VkFormat(colorBufferVkImageCi->format));
+                ERR("The VkImageCreateInfo to import %s contains unexpected VkFormat:"
+                    "%s [%d]. %s [%d] expected.",
+                    importSource.c_str() ?: "", string_VkFormat(imageCreateInfo.format),
+                    imageCreateInfo.format, string_VkFormat(colorBufferVkImageCi->format),
+                    colorBufferVkImageCi->format);
             }
             if (imageCreateInfo.extent.width != colorBufferVkImageCi->extent.width) {
                 ERR("The VkImageCreateInfo to import %s contains unexpected VkExtent::width: "
