@@ -86,7 +86,7 @@ typedef uint64_t zx_koid_t;
 
 #if GFXSTREAM_ENABLE_GUEST_GOLDFISH
 /// Goldfish sync only used for AEMU -- should replace in virtio-gpu when possibe
-#include "../egl/goldfish_sync.h"
+#include "gfxstream/guest/goldfish_sync.h"
 #endif
 
 // This should be ABI identical with the variant in ResourceTracker.h
@@ -386,6 +386,9 @@ class ResourceTracker {
 
     VkResult on_vkGetFenceFdKHR(void* context, VkResult input_result, VkDevice device,
                                 const VkFenceGetFdInfoKHR* pGetFdInfo, int* pFd);
+
+    VkResult on_vkGetFenceStatus(void* context, VkResult input_result, VkDevice device,
+                                 VkFence fence);
 
     VkResult on_vkWaitForFences(void* context, VkResult input_result, VkDevice device,
                                 uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll,
@@ -850,7 +853,8 @@ class ResourceTracker {
         bool external = false;
         VkExportFenceCreateInfo exportFenceCreateInfo;
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-        int syncFd = -1;
+        // Note: -1 means already signaled.
+        std::optional<int> syncFd;
 #endif
     };
 
