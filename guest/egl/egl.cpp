@@ -42,7 +42,7 @@
 #include "egl_ftable.h"
 #include "gfxstream/guest/GLClientState.h"
 #include "gfxstream/guest/GLSharedGroup.h"
-#include "gfxstream/guest/goldfish_sync.h"
+#include "goldfish_sync.h"
 
 using gfxstream::guest::GLClientState;
 using gfxstream::guest::getCurrentThreadId;

@@ -462,9 +462,9 @@ VkResult gfxstream_vk_GetFenceStatus(VkDevice device, VkFence fence) {
     VK_FROM_HANDLE(gfxstream_vk_fence, gfxstream_fence, fence);
     {
         auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
-        auto resources = gfxstream::vk::ResourceTracker::get();
-        vkGetFenceStatus_VkResult_return = resources->on_vkGetFenceStatus(
-            vkEnc, VK_SUCCESS, gfxstream_device->internal_object, gfxstream_fence->internal_object);
+        vkGetFenceStatus_VkResult_return =
+            vkEnc->vkGetFenceStatus(gfxstream_device->internal_object,
+                                    gfxstream_fence->internal_object, true /* do lock */);
     }
     return vkGetFenceStatus_VkResult_return;
 }
