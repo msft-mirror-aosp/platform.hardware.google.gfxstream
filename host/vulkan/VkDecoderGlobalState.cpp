@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "ExternalObjectManager.h"
-#include "FrameBuffer.h"
 #include "RenderThreadInfoVk.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
@@ -386,8 +385,8 @@ class VkDecoderGlobalState::Impl {
         mImageInfo.clear();
         mImageViewInfo.clear();
         mSamplerInfo.clear();
-        mCmdBufferInfo.clear();
-        mCmdPoolInfo.clear();
+        mCommandBufferInfo.clear();
+        mCommandPoolInfo.clear();
         mDeviceToPhysicalDevice.clear();
         mPhysicalDeviceToInstance.clear();
         mQueueInfo.clear();
@@ -1060,11 +1059,8 @@ class VkDecoderGlobalState::Impl {
 
         *pInstance = (VkInstance)info.boxed;
 
-        auto fb = FrameBuffer::getFB();
-        if (!fb) return res;
-
         if (vkCleanupEnabled()) {
-            fb->registerProcessCleanupCallback(unbox_VkInstance(boxed), [this, boxed] {
+            m_emu->callbacks.registerProcessCleanupCallback(unbox_VkInstance(boxed), [this, boxed] {
                 if (snapshotsEnabled()) {
                     snapshot()->vkDestroyInstance(nullptr, 0, nullptr, boxed, nullptr);
                 }
@@ -1125,10 +1121,7 @@ class VkDecoderGlobalState::Impl {
 
         vkDestroyInstanceImpl(instance, pAllocator);
 
-        auto fb = FrameBuffer::getFB();
-        if (!fb) return;
-
-        fb->unregisterProcessCleanupCallback(instance);
+        m_emu->callbacks.unregisterProcessCleanupCallback(instance);
     }
 
     VkResult GetPhysicalDevices(VkInstance instance, VulkanDispatch* vk,
@@ -2198,7 +2191,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (deviceInfo->imageFormats.find(pCreateInfo->format) == deviceInfo->imageFormats.end()) {
-            VERBOSE("gfxstream_texture_format_manifest: %s", string_VkFormat(pCreateInfo->format));
+            VERBOSE("gfxstream_texture_format_manifest: %s [%d]", string_VkFormat(pCreateInfo->format), pCreateInfo->format);
             deviceInfo->imageFormats.insert(pCreateInfo->format);
         }
 
@@ -4039,7 +4032,7 @@ class VkDecoderGlobalState::Impl {
                                        regionCount, pRegions);
             return;
         }
-        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
             return;
         }
@@ -4092,7 +4085,7 @@ class VkDecoderGlobalState::Impl {
             vk->vkCmdCopyBufferToImage2(commandBuffer, pCopyBufferToImageInfo);
             return;
         }
-        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
             return;
         }
@@ -4149,7 +4142,7 @@ class VkDecoderGlobalState::Impl {
             vk->vkCmdCopyBufferToImage2KHR(commandBuffer, pCopyBufferToImageInfo);
             return;
         }
-        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
             return;
         }
@@ -4224,7 +4217,7 @@ class VkDecoderGlobalState::Impl {
     void processImageMemoryBarrier(VkCommandBuffer commandBuffer, uint32_t imageMemoryBarrierCount,
                                    const VkImageMemoryBarrierType* pImageMemoryBarriers) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) return;
 
         // TODO: update image layout in ImageInfo
@@ -4282,7 +4275,7 @@ class VkDecoderGlobalState::Impl {
             return;
         }
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) return;
 
         DeviceInfo* deviceInfo = android::base::find(mDeviceInfo, cmdBufferInfo->device);
@@ -4359,7 +4352,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) return;
 
         DeviceInfo* deviceInfo = android::base::find(mDeviceInfo, cmdBufferInfo->device);
@@ -4591,10 +4584,7 @@ class VkDecoderGlobalState::Impl {
                 shouldUseDedicatedAllocInfo &= colorBufferMemoryUsesDedicatedAlloc;
 
                 if (!m_emu->features.GuestVulkanOnly.enabled) {
-                    auto fb = FrameBuffer::getFB();
-                    if (fb) {
-                        fb->invalidateColorBufferForVk(importCbInfoPtr->colorBuffer);
-                    }
+                    m_emu->callbacks.invalidateColorBuffer(importCbInfoPtr->colorBuffer);
                 }
 
 #if defined(__APPLE__)
@@ -5270,8 +5260,9 @@ class VkDecoderGlobalState::Impl {
                                         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
         }
 
-        return syncImageToColorBuffer(vk, queueInfo->queueFamilyIndex, queue, queueInfo->lock,
-                                      waitSemaphoreCount, pWaitSemaphores, pNativeFenceFd, anbInfo);
+        return syncImageToColorBuffer(m_emu->callbacks, vk, queueInfo->queueFamilyIndex, queue,
+                                      queueInfo->lock, waitSemaphoreCount, pWaitSemaphores,
+                                      pNativeFenceFd, anbInfo);
     }
 
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(android::base::BumpPool* pool,
@@ -5472,13 +5463,13 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo) return VK_ERROR_UNKNOWN;
 
         for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; i++) {
-            mCmdBufferInfo[pCommandBuffers[i]] = CommandBufferInfo();
-            mCmdBufferInfo[pCommandBuffers[i]].device = device;
-            mCmdBufferInfo[pCommandBuffers[i]].debugUtilsHelper = deviceInfo->debugUtilsHelper;
-            mCmdBufferInfo[pCommandBuffers[i]].cmdPool = pAllocateInfo->commandPool;
+            mCommandBufferInfo[pCommandBuffers[i]] = CommandBufferInfo();
+            mCommandBufferInfo[pCommandBuffers[i]].device = device;
+            mCommandBufferInfo[pCommandBuffers[i]].debugUtilsHelper = deviceInfo->debugUtilsHelper;
+            mCommandBufferInfo[pCommandBuffers[i]].cmdPool = pAllocateInfo->commandPool;
             auto boxed = new_boxed_VkCommandBuffer(pCommandBuffers[i], vk,
                                                    false /* does not own dispatch */);
-            mCmdBufferInfo[pCommandBuffers[i]].boxed = boxed;
+            mCommandBufferInfo[pCommandBuffers[i]].boxed = boxed;
             pCommandBuffers[i] = (VkCommandBuffer)boxed;
         }
         return result;
@@ -5496,8 +5487,8 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        mCmdPoolInfo[*pCommandPool] = CommandPoolInfo();
-        auto& cmdPoolInfo = mCmdPoolInfo[*pCommandPool];
+        mCommandPoolInfo[*pCommandPool] = CommandPoolInfo();
+        auto& cmdPoolInfo = mCommandPoolInfo[*pCommandPool];
         cmdPoolInfo.device = device;
 
         *pCommandPool = new_boxed_non_dispatchable_VkCommandPool(*pCommandPool);
@@ -5514,10 +5505,10 @@ class VkDecoderGlobalState::Impl {
 
         vk->vkDestroyCommandPool(device, commandPool, pAllocator);
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        const auto* cmdPoolInfo = android::base::find(mCmdPoolInfo, commandPool);
+        const auto* cmdPoolInfo = android::base::find(mCommandPoolInfo, commandPool);
         if (cmdPoolInfo) {
             removeCommandBufferInfo(cmdPoolInfo->cmdBuffers);
-            mCmdPoolInfo.erase(commandPool);
+            mCommandPoolInfo.erase(commandPool);
         }
     }
 
@@ -5541,7 +5532,7 @@ class VkDecoderGlobalState::Impl {
 
         vk->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers);
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        CommandBufferInfo& cmdBuffer = mCmdBufferInfo[commandBuffer];
+        CommandBufferInfo& cmdBuffer = mCommandBufferInfo[commandBuffer];
         cmdBuffer.subCmds.insert(cmdBuffer.subCmds.end(), pCommandBuffers,
                                  pCommandBuffers + commandBufferCount);
     }
@@ -5614,7 +5605,7 @@ class VkDecoderGlobalState::Impl {
                     for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                         VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                         CommandBufferInfo* cmdBufferInfo =
-                            android::base::find(mCmdBufferInfo, cmdBuffer);
+                            android::base::find(mCommandBufferInfo, cmdBuffer);
                         if (!cmdBufferInfo) {
                             continue;
                         }
@@ -5645,11 +5636,9 @@ class VkDecoderGlobalState::Impl {
                     }
                 }
             }
-            auto fb = FrameBuffer::getFB();
-            if (fb) {
-                for (HandleType cb : acquiredColorBuffers) {
-                    fb->invalidateColorBufferForVk(cb);
-                }
+
+            for (HandleType cb : acquiredColorBuffers) {
+                m_emu->callbacks.invalidateColorBuffer(cb);
             }
         }
 
@@ -5704,7 +5693,7 @@ class VkDecoderGlobalState::Impl {
                 for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                     VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                     CommandBufferInfo* cmdBufferInfo =
-                        android::base::find(mCmdBufferInfo, cmdBuffer);
+                        android::base::find(mCommandBufferInfo, cmdBuffer);
                     if (cmdBufferInfo) {
                         imageBarrierColorBuffers.merge(cmdBufferInfo->imageBarrierColorBuffers);
                     }
@@ -5732,7 +5721,7 @@ class VkDecoderGlobalState::Impl {
                 for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                     VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                     CommandBufferInfo* cmdBufferInfo =
-                        android::base::find(mCmdBufferInfo, cmdBuffer);
+                        android::base::find(mCommandBufferInfo, cmdBuffer);
                     if (!cmdBufferInfo) {
                         continue;
                     }
@@ -5780,13 +5769,10 @@ class VkDecoderGlobalState::Impl {
             }
         }
         if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE,
-                                /* 1 sec */ 1000000000L);
-            auto fb = FrameBuffer::getFB();
-            if (fb) {
-                for (HandleType cb : releasedColorBuffers) {
-                    fb->flushColorBufferFromVk(cb);
-                }
+            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+
+            for (HandleType cb : releasedColorBuffers) {
+                m_emu->callbacks.flushColorBuffer(cb);
             }
         }
 
@@ -5822,7 +5808,7 @@ class VkDecoderGlobalState::Impl {
         VkResult result = vk->vkResetCommandBuffer(commandBuffer, flags);
         if (VK_SUCCESS == result) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-            auto& bufferInfo = mCmdBufferInfo[commandBuffer];
+            auto& bufferInfo = mCommandBufferInfo[commandBuffer];
             bufferInfo.reset();
         }
         return result;
@@ -5844,15 +5830,15 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
         for (uint32_t i = 0; i < commandBufferCount; i++) {
-            const auto& cmdBufferInfoIt = mCmdBufferInfo.find(pCommandBuffers[i]);
-            if (cmdBufferInfoIt != mCmdBufferInfo.end()) {
-                const auto& cmdPoolInfoIt = mCmdPoolInfo.find(cmdBufferInfoIt->second.cmdPool);
-                if (cmdPoolInfoIt != mCmdPoolInfo.end()) {
+            const auto& cmdBufferInfoIt = mCommandBufferInfo.find(pCommandBuffers[i]);
+            if (cmdBufferInfoIt != mCommandBufferInfo.end()) {
+                const auto& cmdPoolInfoIt = mCommandPoolInfo.find(cmdBufferInfoIt->second.cmdPool);
+                if (cmdPoolInfoIt != mCommandPoolInfo.end()) {
                     cmdPoolInfoIt->second.cmdBuffers.erase(pCommandBuffers[i]);
                 }
                 // Done in decoder
                 // delete_VkCommandBuffer(cmdBufferInfoIt->second.boxed);
-                mCmdBufferInfo.erase(cmdBufferInfoIt);
+                mCommandBufferInfo.erase(cmdBufferInfoIt);
             }
         }
     }
@@ -6155,7 +6141,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        auto* commandBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* commandBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!commandBufferInfo) return VK_ERROR_UNKNOWN;
         commandBufferInfo->reset();
 
@@ -6184,7 +6170,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        auto* commandBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* commandBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!commandBufferInfo) return VK_ERROR_UNKNOWN;
 
         if (context.processName) {
@@ -6213,7 +6199,7 @@ class VkDecoderGlobalState::Impl {
         vk->vkCmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline);
         if (pipelineBindPoint == VK_PIPELINE_BIND_POINT_COMPUTE) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-            auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+            auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
             if (cmdBufferInfo) {
                 cmdBufferInfo->computePipeline = pipeline;
             }
@@ -6233,7 +6219,7 @@ class VkDecoderGlobalState::Impl {
                                     pDynamicOffsets);
         if (descriptorSetCount) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-            auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+            auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
             if (cmdBufferInfo) {
                 cmdBufferInfo->descriptorLayout = layout;
 
@@ -6331,7 +6317,7 @@ class VkDecoderGlobalState::Impl {
 
     void registerRenderPassBeginInfo(VkCommandBuffer commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin) {
-        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         FramebufferInfo* fbInfo =
             android::base::find(mFramebufferInfo, pRenderPassBegin->framebuffer);
         cmdBufferInfo->releasedColorBuffers.insert(fbInfo->attachedColorBuffers.begin(),
@@ -7177,10 +7163,11 @@ class VkDecoderGlobalState::Impl {
                 continue;
             }
             if (resolvedFormat != colorBufferVkImageCi->format) {
-                ERR("The VkImageCreateInfo to import %s contains unexpected VkFormat: %s. %s "
-                    "expected.",
-                    importSource.c_str()?:"", string_VkFormat(imageCreateInfo.format),
-                    string_VkFormat(colorBufferVkImageCi->format));
+                ERR("The VkImageCreateInfo to import %s contains unexpected VkFormat:"
+                    "%s [%d]. %s [%d] expected.",
+                    importSource.c_str() ?: "", string_VkFormat(imageCreateInfo.format),
+                    imageCreateInfo.format, string_VkFormat(colorBufferVkImageCi->format),
+                    colorBufferVkImageCi->format);
             }
             if (imageCreateInfo.extent.width != colorBufferVkImageCi->extent.width) {
                 ERR("The VkImageCreateInfo to import %s contains unexpected VkExtent::width: "
@@ -7801,7 +7788,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void executePreprocessRecursive(int level, VkCommandBuffer cmdBuffer) {
-        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, cmdBuffer);
+        auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, cmdBuffer);
         if (!cmdBufferInfo) return;
         for (const auto& func : cmdBufferInfo->preprocessFuncs) {
             func();
@@ -7900,19 +7887,19 @@ class VkDecoderGlobalState::Impl {
                 freeMemoryLocked(deviceToDestroyDispatch, deviceToDestroy, memory, nullptr);
             }
 
-            for (auto [commandBuffer, commandPool] :
-                 findDeviceObjects(deviceToDestroy, mCmdBufferInfo, &CommandBufferInfo::cmdPool)) {
+            for (auto [commandBuffer, commandPool] : findDeviceObjects(
+                     deviceToDestroy, mCommandBufferInfo, &CommandBufferInfo::cmdPool)) {
                 // The command buffer is freed with the vkDestroyCommandPool() below.
                 delete_VkCommandBuffer(unboxed_to_boxed_VkCommandBuffer(commandBuffer));
-                mCmdBufferInfo.erase(commandBuffer);
+                mCommandBufferInfo.erase(commandBuffer);
             }
 
             for (auto [commandPool, commandPoolBoxed] :
-                 findDeviceObjects(deviceToDestroy, mCmdPoolInfo, &CommandPoolInfo::boxed)) {
+                 findDeviceObjects(deviceToDestroy, mCommandPoolInfo, &CommandPoolInfo::boxed)) {
                 deviceToDestroyDispatch->vkDestroyCommandPool(deviceToDestroy, commandPool,
                                                               nullptr);
                 delete_VkCommandPool(commandPoolBoxed);
-                mCmdPoolInfo.erase(commandPool);
+                mCommandPoolInfo.erase(commandPool);
             }
 
             for (auto [descriptorPool, descriptorPoolBoxed] : findDeviceObjects(
@@ -8015,7 +8002,7 @@ class VkDecoderGlobalState::Impl {
 
     void removeCommandBufferInfo(const std::unordered_set<VkCommandBuffer>& cmdBuffers) {
         for (const auto& cmdBuffer : cmdBuffers) {
-            mCmdBufferInfo.erase(cmdBuffer);
+            mCommandBufferInfo.erase(cmdBuffer);
         }
     }
 
@@ -8307,8 +8294,8 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkImage, ImageInfo> mImageInfo;
     std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo;
     std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo;
-    std::unordered_map<VkCommandBuffer, CommandBufferInfo> mCmdBufferInfo;
-    std::unordered_map<VkCommandPool, CommandPoolInfo> mCmdPoolInfo;
+    std::unordered_map<VkCommandBuffer, CommandBufferInfo> mCommandBufferInfo;
+    std::unordered_map<VkCommandPool, CommandPoolInfo> mCommandPoolInfo;
     // TODO: release CommandBufferInfo when a command pool is reset/released
 
     // Back-reference to the physical device associated with a particular
