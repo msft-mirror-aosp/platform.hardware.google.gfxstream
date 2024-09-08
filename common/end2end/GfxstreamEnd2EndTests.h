@@ -49,7 +49,7 @@
 #include "drm_fourcc.h"
 #include "gfxstream/Expected.h"
 #include "gfxstream/guest/ANativeWindow.h"
-#include "gfxstream/guest/Gralloc.h"
+#include "gfxstream/guest/GfxStreamGralloc.h"
 #include "gfxstream/guest/RenderControlApi.h"
 
 namespace gfxstream {

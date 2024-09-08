@@ -2204,7 +2204,7 @@ static std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo_l
         }
     }
     if (!maybeImageSupportInfo) {
-        ERR("Format %s is not supported.", string_VkFormat(format));
+        ERR("Format %s [%d] is not supported.", string_VkFormat(format), format);
         return nullptr;
     }
     const VkEmulation::ImageSupportInfo& imageSupportInfo = *maybeImageSupportInfo;

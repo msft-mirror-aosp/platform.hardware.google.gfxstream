@@ -702,15 +702,13 @@ SetBufferCollectionBufferConstraintsResult setBufferCollectionBufferConstraintsI
 }
 #endif
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
 uint64_t ResourceTracker::getAHardwareBufferId(AHardwareBuffer* ahw) {
     uint64_t id = 0;
-#if defined(ANDROID)
     mGralloc->getId(ahw, &id);
-#else
-    (void)ahw;
-#endif
     return id;
 }
+#endif
 
 void transformExternalResourceMemoryDedicatedRequirementsForGuest(
     VkMemoryDedicatedRequirements* dedicatedReqs) {
@@ -1182,8 +1180,8 @@ void ResourceTracker::unregister_VkFence(VkFence fence) {
     (void)fenceInfo;
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-    if (fenceInfo.syncFd >= 0) {
-        mSyncHelper->close(fenceInfo.syncFd);
+    if (fenceInfo.syncFd && *fenceInfo.syncFd >= 0) {
+        mSyncHelper->close(*fenceInfo.syncFd);
     }
 #endif
 
@@ -1343,9 +1341,8 @@ void ResourceTracker::setDeviceInfo(VkDevice device, VkPhysicalDevice physdev,
 
 void ResourceTracker::setDeviceMemoryInfo(VkDevice device, VkDeviceMemory memory,
                                           VkDeviceSize allocationSize, uint8_t* ptr,
-                                          uint32_t memoryTypeIndex, AHardwareBuffer* ahw,
-                                          bool imported, zx_handle_t vmoHandle,
-                                          VirtGpuResourcePtr blobPtr) {
+                                          uint32_t memoryTypeIndex, void* ahw, bool imported,
+                                          zx_handle_t vmoHandle, VirtGpuResourcePtr blobPtr) {
     std::lock_guard<std::recursive_mutex> lock(mLock);
     auto& info = info_VkDeviceMemory[memory];
 
@@ -1354,7 +1351,7 @@ void ResourceTracker::setDeviceMemoryInfo(VkDevice device, VkDeviceMemory memory
     info.ptr = ptr;
     info.memoryTypeIndex = memoryTypeIndex;
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-    info.ahw = ahw;
+    info.ahw = (AHardwareBuffer*)ahw;
 #endif
     info.imported = imported;
     info.vmoHandle = vmoHandle;
@@ -3236,21 +3233,6 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
         return result;                                                                         \
     }
 
-#define _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT                                         \
-    {                                                                                      \
-        uint64_t memoryObjectId = (uint64_t)(void*)*pMemory;                               \
-        if (ahw) {                                                                         \
-            memoryObjectId = getAHardwareBufferId(ahw);                                    \
-        }                                                                                  \
-        emitDeviceMemoryReport(info_VkDevice[device],                                      \
-                               isImport ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_IMPORT_EXT    \
-                                        : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATE_EXT, \
-                               memoryObjectId, pAllocateInfo->allocationSize,              \
-                               VK_OBJECT_TYPE_DEVICE_MEMORY, (uint64_t)(void*)*pMemory,    \
-                               pAllocateInfo->memoryTypeIndex);                            \
-        return VK_SUCCESS;                                                                 \
-    }
-
     if (input_result != VK_SUCCESS) _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(input_result);
 
     VkEncoder* enc = (VkEncoder*)context;
@@ -3301,8 +3283,19 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     const VkImportAndroidHardwareBufferInfoANDROID* importAhbInfoPtr =
         vk_find_struct<VkImportAndroidHardwareBufferInfoANDROID>(pAllocateInfo);
+    // Even if we export allocate, the underlying operation
+    // for the host is always going to be an import operation.
+    // This is also how Intel's implementation works,
+    // and is generally simpler;
+    // even in an export allocation,
+    // we perform AHardwareBuffer allocation
+    // on the guest side, at this layer,
+    // and then we attach a new VkDeviceMemory
+    // to the AHardwareBuffer on the host via an "import" operation.
+    AHardwareBuffer* ahw = nullptr;
 #else
     const void* importAhbInfoPtr = nullptr;
+    void* ahw = nullptr;
 #endif
 
 #if defined(__linux__) && !defined(VK_USE_PLATFORM_ANDROID_KHR)
@@ -3365,17 +3358,6 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
     bool importVmo = false;
     bool importDmabuf = false;
     (void)exportVmo;
-
-    // Even if we export allocate, the underlying operation
-    // for the host is always going to be an import operation.
-    // This is also how Intel's implementation works,
-    // and is generally simpler;
-    // even in an export allocation,
-    // we perform AHardwareBuffer allocation
-    // on the guest side, at this layer,
-    // and then we attach a new VkDeviceMemory
-    // to the AHardwareBuffer on the host via an "import" operation.
-    AHardwareBuffer* ahw = nullptr;
 
     if (exportAllocateInfoPtr) {
         exportAhb = exportAllocateInfoPtr->handleTypes &
@@ -3975,7 +3957,19 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
         setDeviceMemoryInfo(device, *pMemory, 0, nullptr, finalAllocInfo.memoryTypeIndex, ahw,
                             isImport, vmo_handle, bufferBlob);
 
-        _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
+        uint64_t memoryObjectId = (uint64_t)(void*)*pMemory;
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        if (ahw) {
+            memoryObjectId = getAHardwareBufferId(ahw);
+        }
+#endif
+        emitDeviceMemoryReport(info_VkDevice[device],
+                               isImport ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_IMPORT_EXT
+                                        : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATE_EXT,
+                               memoryObjectId, pAllocateInfo->allocationSize,
+                               VK_OBJECT_TYPE_DEVICE_MEMORY, (uint64_t)(void*)*pMemory,
+                               pAllocateInfo->memoryTypeIndex);
+        return VK_SUCCESS;
     }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -4017,7 +4011,21 @@ VkResult ResourceTracker::on_vkAllocateMemory(void* context, VkResult input_resu
     VkResult result = getCoherentMemory(&finalAllocInfo, enc, device, pMemory);
     if (result != VK_SUCCESS) return result;
 
-    _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
+    uint64_t memoryObjectId = (uint64_t)(void*)*pMemory;
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+    if (ahw) {
+        memoryObjectId = getAHardwareBufferId(ahw);
+    }
+#endif
+
+    emitDeviceMemoryReport(info_VkDevice[device],
+                           isImport ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_IMPORT_EXT
+                                    : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATE_EXT,
+                           memoryObjectId, pAllocateInfo->allocationSize,
+                           VK_OBJECT_TYPE_DEVICE_MEMORY, (uint64_t)(void*)*pMemory,
+                           pAllocateInfo->memoryTypeIndex);
+    return VK_SUCCESS;
 }
 
 void ResourceTracker::on_vkFreeMemory(void* context, VkDevice device, VkDeviceMemory memory,
@@ -4725,12 +4733,12 @@ VkResult ResourceTracker::on_vkResetFences(void* context, VkResult, VkDevice dev
         if (!info.external) continue;
 
 #if GFXSTREAM_ENABLE_GUEST_GOLDFISH
-        if (info.syncFd >= 0) {
+        if (info.syncFd && *info.syncFd >= 0) {
             mesa_logd("%s: resetting fence. make fd -1\n", __func__);
-            goldfish_sync_signal(info.syncFd);
-            mSyncHelper->close(info.syncFd);
-            info.syncFd = -1;
+            goldfish_sync_signal(*info.syncFd);
+            mSyncHelper->close(*info.syncFd);
         }
+        info.syncFd.reset();
 #endif
     }
 
@@ -4771,10 +4779,10 @@ VkResult ResourceTracker::on_vkImportFenceFdKHR(void* context, VkResult, VkDevic
     auto& info = it->second;
 
 #if GFXSTREAM_ENABLE_GUEST_GOLDFISH
-    if (info.syncFd >= 0) {
+    if (info.syncFd && *info.syncFd >= 0) {
         mesa_logd("%s: previous sync fd exists, close it\n", __func__);
-        goldfish_sync_signal(info.syncFd);
-        mSyncHelper->close(info.syncFd);
+        goldfish_sync_signal(*info.syncFd);
+        mSyncHelper->close(*info.syncFd);
     }
 #endif
 
@@ -4783,7 +4791,15 @@ VkResult ResourceTracker::on_vkImportFenceFdKHR(void* context, VkResult, VkDevic
         info.syncFd = -1;
     } else {
         mesa_logd("%s: import actual fd, dup and close()\n", __func__);
-        info.syncFd = mSyncHelper->dup(pImportFenceFdInfo->fd);
+
+        int fenceCopy = mSyncHelper->dup(pImportFenceFdInfo->fd);
+        if (fenceCopy < 0) {
+            mesa_loge("Failed to dup() import sync fd.");
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        info.syncFd = fenceCopy;
+
         mSyncHelper->close(pImportFenceFdInfo->fd);
     }
     return VK_SUCCESS;
@@ -4867,7 +4883,8 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
         }
 
         // relinquish ownership
-        info.syncFd = -1;
+        info.syncFd.reset();
+
         mesa_logd("%s: got fd: %d\n", __func__, *pFd);
         return VK_SUCCESS;
     }
@@ -4877,14 +4894,42 @@ VkResult ResourceTracker::on_vkGetFenceFdKHR(void* context, VkResult, VkDevice d
 #endif
 }
 
+VkResult ResourceTracker::on_vkGetFenceStatus(void* context, VkResult input_result, VkDevice device,
+                                              VkFence fence) {
+    VkEncoder* enc = (VkEncoder*)context;
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+    {
+        std::unique_lock<std::recursive_mutex> lock(mLock);
+
+        auto fenceInfoIt = info_VkFence.find(fence);
+        if (fenceInfoIt == info_VkFence.end()) {
+            mesa_loge("Failed to find VkFence:%p", fence);
+            return VK_NOT_READY;
+        }
+        auto& fenceInfo = fenceInfoIt->second;
+
+        if (fenceInfo.syncFd) {
+            if (*fenceInfo.syncFd == -1) {
+                return VK_SUCCESS;
+            }
+
+            int syncFdSignaled = mSyncHelper->wait(*fenceInfo.syncFd, /*timeout=*/0) == 0;
+            return syncFdSignaled ? VK_SUCCESS : VK_NOT_READY;
+        }
+    }
+#endif
+
+    return enc->vkGetFenceStatus(device, fence, /*doLock=*/true);
+}
+
 VkResult ResourceTracker::on_vkWaitForFences(void* context, VkResult, VkDevice device,
                                              uint32_t fenceCount, const VkFence* pFences,
                                              VkBool32 waitAll, uint64_t timeout) {
     VkEncoder* enc = (VkEncoder*)context;
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-    std::vector<VkFence> fencesExternal;
-    std::vector<int> fencesExternalWaitFds;
+    std::vector<int> fencesExternalSyncFds;
     std::vector<VkFence> fencesNonExternal;
 
     std::unique_lock<std::recursive_mutex> lock(mLock);
@@ -4893,9 +4938,10 @@ VkResult ResourceTracker::on_vkWaitForFences(void* context, VkResult, VkDevice d
         auto it = info_VkFence.find(pFences[i]);
         if (it == info_VkFence.end()) continue;
         const auto& info = it->second;
-        if (info.syncFd >= 0) {
-            fencesExternal.push_back(pFences[i]);
-            fencesExternalWaitFds.push_back(info.syncFd);
+        if (info.syncFd) {
+            if (*info.syncFd >= 0) {
+                fencesExternalSyncFds.push_back(*info.syncFd);
+            }
         } else {
             fencesNonExternal.push_back(pFences[i]);
         }
@@ -4903,40 +4949,35 @@ VkResult ResourceTracker::on_vkWaitForFences(void* context, VkResult, VkDevice d
 
     lock.unlock();
 
-    if (fencesExternal.empty()) {
-        // No need for work pool, just wait with host driver.
-        return enc->vkWaitForFences(device, fenceCount, pFences, waitAll, timeout,
-                                    true /* do lock */);
-    } else {
-        for (auto fd : fencesExternalWaitFds) {
-            mesa_logd("Waiting on sync fd: %d", fd);
+    for (auto fd : fencesExternalSyncFds) {
+        mesa_logd("Waiting on sync fd: %d", fd);
 
-            std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-            // syncHelper works in milliseconds
-            mSyncHelper->wait(fd, DIV_ROUND_UP(timeout, 1000));
-            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        // syncHelper works in milliseconds
+        mSyncHelper->wait(fd, DIV_ROUND_UP(timeout, 1000));
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-            uint64_t timeTaken =
-                std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
-            if (timeTaken >= timeout) {
-                return VK_TIMEOUT;
-            }
-
-            timeout -= timeTaken;
-            mesa_logd("Done waiting on sync fd: %d", fd);
+        uint64_t timeTaken =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+        if (timeTaken >= timeout) {
+            return VK_TIMEOUT;
         }
 
-        if (!fencesNonExternal.empty()) {
-            auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
-            auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
-            mesa_logd("vkWaitForFences to host");
-            return vkEncoder->vkWaitForFences(device, fencesNonExternal.size(),
-                                              fencesNonExternal.data(), waitAll, timeout,
-                                              true /* do lock */);
-        }
-
-        return VK_SUCCESS;
+        timeout -= timeTaken;
+        mesa_logd("Done waiting on sync fd: %d", fd);
     }
+
+    if (!fencesNonExternal.empty()) {
+        auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
+        auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
+        mesa_logd("vkWaitForFences to host");
+        return vkEncoder->vkWaitForFences(device, fencesNonExternal.size(),
+                                          fencesNonExternal.data(), waitAll, timeout,
+                                          true /* do lock */);
+    }
+
+    return VK_SUCCESS;
+
 #else
     return enc->vkWaitForFences(device, fenceCount, pFences, waitAll, timeout, true /* do lock */);
 #endif
@@ -5688,13 +5729,13 @@ VkResult ResourceTracker::on_vkGetSemaphoreFdKHR(void* context, VkResult, VkDevi
             VkResult result = enc->vkGetSemaphoreGOOGLE(device, pGetFdInfo->semaphore, syncId,
                                                         true /* do lock */);
             if (result != VK_SUCCESS) {
-                ALOGE("unable to get the semaphore");
+                mesa_loge("unable to get the semaphore");
                 return result;
             }
 
             result = acquireSync(syncId, osHandle);
             if (result != VK_SUCCESS) {
-                ALOGE("unable to create host sync object");
+                mesa_loge("unable to create host sync object");
                 return result;
             }
 
@@ -6149,8 +6190,8 @@ VkResult ResourceTracker::on_vkQueueSubmitTemplate(void* context, VkResult input
         auto it = info_VkFence.find(fence);
         if (it != info_VkFence.end()) {
             const auto& info = it->second;
-            if (info.syncFd >= 0) {
-                externalFenceFdToSignal = info.syncFd;
+            if (info.syncFd && *info.syncFd >= 0) {
+                externalFenceFdToSignal = *info.syncFd;
             }
         }
     }
