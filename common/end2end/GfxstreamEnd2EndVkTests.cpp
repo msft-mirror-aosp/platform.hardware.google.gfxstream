@@ -2211,6 +2211,90 @@ std::vector<TestParams> GenerateTestCases() {
     return cases;
 }
 
+TEST_P(GfxstreamEnd2EndVkTest, GetFenceStatusOnExternalFence) {
+    auto vk = GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
+    auto& [instance, physicalDevice, device, queue, queueFamilyIndex] = vk;
+
+    const uint32_t width = 32;
+    const uint32_t height = 32;
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+    const VkNativeBufferANDROID imageNativeBufferInfo = {
+        .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
+        .handle = mGralloc->getNativeHandle(ahb),
+    };
+    const vkhpp::ImageCreateInfo imageCreateInfo = {
+        .pNext = &imageNativeBufferInfo,
+        .imageType = vkhpp::ImageType::e2D,
+        .extent.width = width,
+        .extent.height = height,
+        .extent.depth = 1,
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .tiling = vkhpp::ImageTiling::eOptimal,
+        .initialLayout = vkhpp::ImageLayout::eUndefined,
+        .usage = vkhpp::ImageUsageFlagBits::eSampled | vkhpp::ImageUsageFlagBits::eTransferDst |
+                 vkhpp::ImageUsageFlagBits::eTransferSrc,
+        .sharingMode = vkhpp::SharingMode::eExclusive,
+        .samples = vkhpp::SampleCountFlagBits::e1,
+    };
+    auto image = device->createImageUnique(imageCreateInfo).value;
+
+    vkhpp::MemoryRequirements imageMemoryRequirements{};
+    device->getImageMemoryRequirements(*image, &imageMemoryRequirements);
+
+    const uint32_t imageMemoryIndex = utils::getMemoryType(
+        physicalDevice, imageMemoryRequirements, vkhpp::MemoryPropertyFlagBits::eDeviceLocal);
+    ASSERT_THAT(imageMemoryIndex, Not(Eq(-1)));
+
+    const vkhpp::MemoryAllocateInfo imageMemoryAllocateInfo = {
+        .allocationSize = imageMemoryRequirements.size,
+        .memoryTypeIndex = imageMemoryIndex,
+    };
+
+    auto imageMemory = device->allocateMemoryUnique(imageMemoryAllocateInfo).value;
+    ASSERT_THAT(imageMemory, IsValidHandle());
+    ASSERT_THAT(device->bindImageMemory(*image, *imageMemory, 0), IsVkSuccess());
+
+    auto vkQueueSignalReleaseImageANDROID = PFN_vkQueueSignalReleaseImageANDROID(
+        device->getProcAddr("vkQueueSignalReleaseImageANDROID"));
+    ASSERT_THAT(vkQueueSignalReleaseImageANDROID, NotNull());
+
+    int qsriSyncFd = -1;
+    auto qsriResult = vkQueueSignalReleaseImageANDROID(queue, 0, nullptr, *image, &qsriSyncFd);
+    ASSERT_THAT(qsriResult, Eq(VK_SUCCESS));
+    ASSERT_THAT(qsriSyncFd, Not(Eq(-1)));
+
+    // Initially unsignaled.
+    vkhpp::UniqueFence fence = device->createFenceUnique(vkhpp::FenceCreateInfo()).value;
+
+    const vkhpp::ImportFenceFdInfoKHR importFenceInfo = {
+        .fence = *fence,
+        .flags = vkhpp::FenceImportFlagBits::eTemporary,
+        .handleType = vkhpp::ExternalFenceHandleTypeFlagBits::eSyncFd,
+        .fd = qsriSyncFd,
+    };
+    auto importResult = device->importFenceFdKHR(&importFenceInfo);
+    ASSERT_THAT(qsriResult, Eq(VK_SUCCESS));
+
+    const auto kMaxTimeout = std::chrono::seconds(10);
+
+    auto begin = std::chrono::steady_clock::now();
+    while (true) {
+        vkhpp::Result fenceStatus = device->getFenceStatus(*fence);
+        if (fenceStatus == vkhpp::Result::eSuccess) {
+            break;
+        }
+
+        auto now = std::chrono::steady_clock::now();
+        if ((now - begin) > kMaxTimeout) {
+            ASSERT_THAT(fenceStatus, Eq(vkhpp::Result::eSuccess));
+        }
+    }
+}
+
 INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkTest,
                         ::testing::ValuesIn(GenerateTestCases()), &GetTestName);
 

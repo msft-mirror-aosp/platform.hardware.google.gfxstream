@@ -38,7 +38,7 @@ encoder_impl_preamble ="""
 
 using namespace gfxstream::vk;
 
-using gfxstream::guest::BumpPool;
+using android::base::BumpPool;
 
 #include "VkEncoder.cpp.inl"
 
@@ -481,8 +481,6 @@ def emit_debug_log(typeInfo, api, cgen):
 
     logFormatStr = ", ".join(logFormat)
     logVargsStr = ", ".join(logVargs)
-
-    cgen.stmt("ENCODER_DEBUG_LOG(\"%s(%s)\", %s)" % (api.name, logFormatStr, logVargsStr))
 
 def emit_default_encoding(typeInfo, api, cgen):
     emit_debug_log(typeInfo, api, cgen)
