@@ -52,11 +52,7 @@ public:
 #include "GL2Encoder.h"
 #endif
 
-#include "VkEncoder.h"
 #include "AddressSpaceStream.h"
-
-using gfxstream::vk::VkEncoder;
-
 #include <unistd.h>
 
 #include "ProcessPipe.h"
@@ -147,10 +143,6 @@ HostConnection::~HostConnection()
     // before process pipe closure is detected.
     if (m_rcEnc) {
         (void)m_rcEnc->rcGetRendererVersion(m_rcEnc.get());
-    }
-
-    if (m_vkEnc) {
-        m_vkEnc->decRef();
     }
 
     if (m_stream) {
@@ -332,13 +324,6 @@ GL2Encoder *HostConnection::gl2Encoder()
         m_gl2Enc->setHasSyncBufferData(m_rcEnc->hasSyncBufferData());
     }
     return m_gl2Enc.get();
-}
-
-VkEncoder* HostConnection::vkEncoder() {
-    if (!m_vkEnc) {
-        m_vkEnc = new VkEncoder(m_stream);
-    }
-    return m_vkEnc;
 }
 
 ExtendedRCEncoderContext *HostConnection::rcEncoder()
