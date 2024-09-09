@@ -24,6 +24,7 @@
 #include "cereal/common/goldfish_vk_deepcopy.h"
 #include "cereal/common/goldfish_vk_extension_structs.h"
 #include "gfxstream/host/BackendCallbacks.h"
+#include "gfxstream/host/Tracing.h"
 #include "goldfish_vk_private_defs.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "vulkan/vk_enum_string_helper.h"
@@ -644,6 +645,10 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
                                 uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores,
                                 int* pNativeFenceFd,
                                 std::shared_ptr<AndroidNativeBufferInfo> anbInfo) {
+    const uint64_t traceId = gfxstream::host::GetUniqueTracingId();
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "vkQSRI syncImageToColorBuffer()",
+                          GFXSTREAM_TRACE_FLOW(traceId));
+
     auto anbInfoPtr = anbInfo.get();
     auto fb = FrameBuffer::getFB();
     fb->lock();
@@ -803,7 +808,11 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
     VkFence qsriFence = anbInfo->qsriWaitFencePool->getFenceFromPool();
     AutoLock qLock(*queueLock);
     VK_CHECK(vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, qsriFence));
-    auto waitForQsriFenceTask = [anbInfoPtr, anbInfo, vk, device = anbInfo->device, qsriFence] {
+    auto waitForQsriFenceTask = [anbInfoPtr, anbInfo, vk, device = anbInfo->device, qsriFence,
+                                 traceId] {
+        GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "Wait for QSRI fence",
+                              GFXSTREAM_TRACE_FLOW(traceId));
+
         (void)anbInfoPtr;
         VK_ANB_DEBUG_OBJ(anbInfoPtr, "wait callback: enter");
         VK_ANB_DEBUG_OBJ(anbInfoPtr, "wait callback: wait for fence %p...", qsriFence);
@@ -818,6 +827,7 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
                 ERR("Failed to wait for QSRI fence: %s\n", string_VkResult(res));
                 VK_CHECK(res);
         }
+
         VK_ANB_DEBUG_OBJ(anbInfoPtr, "wait callback: wait for fence %p...(done)", qsriFence);
         anbInfo->qsriWaitFencePool->returnFence(qsriFence);
     };
