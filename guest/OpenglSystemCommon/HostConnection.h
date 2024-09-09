@@ -18,7 +18,7 @@
 
 #if defined(ANDROID)
 #include "gfxstream/guest/ANativeWindow.h"
-#include "gfxstream/guest/Gralloc.h"
+#include "gfxstream/guest/GfxStreamGralloc.h"
 #endif
 
 #include <cstring>
@@ -35,12 +35,6 @@ class GLEncoder;
 struct gl_client_context_t;
 class GL2Encoder;
 struct gl2_client_context_t;
-
-namespace gfxstream {
-namespace vk {
-class VkEncoder;
-}  // namespace vk
-}  // namespace gfxstream
 
 struct EGLThreadInfo;
 
@@ -66,7 +60,6 @@ public:
 
     GLEncoder *glEncoder();
     GL2Encoder *gl2Encoder();
-    gfxstream::vk::VkEncoder *vkEncoder();
     ExtendedRCEncoderContext *rcEncoder();
 
 #if defined(ANDROID)
@@ -112,7 +105,6 @@ private:
  std::unique_ptr<GL2Encoder> m_gl2Enc;
 
  // intrusively refcounted
- gfxstream::vk::VkEncoder* m_vkEnc = nullptr;
  std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
 
  gfxstream::guest::ChecksumCalculator m_checksumHelper;
