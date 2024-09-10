@@ -89,27 +89,39 @@ class VirtioGpuTimelines {
 
    private:
     VirtioGpuTimelines(bool withAsyncCallback);
+
     struct Fence {
         FenceId mId;
         FenceCompletionCallback mCompletionCallback;
         Fence(FenceId id, FenceCompletionCallback completionCallback)
             : mId(id), mCompletionCallback(std::move(completionCallback)) {}
     };
+
     struct Task {
         TaskId mId;
         Ring mRing;
+        uint64_t mTraceId;
         std::atomic_bool mHasCompleted;
-        Task(TaskId id, const Ring& ring) : mId(id), mRing(ring), mHasCompleted(false) {}
+        Task(TaskId id, const Ring& ring, uint64_t traceId)
+            : mId(id), mRing(ring), mTraceId(traceId), mHasCompleted(false) {}
     };
+
     using TimelineItem =
         std::variant<std::unique_ptr<Fence>, std::shared_ptr<Task>>;
+    struct Timeline {
+        uint64_t mTraceTrackId;
+        std::list<TimelineItem> mQueue;
+    };
+
+    Timeline& GetOrCreateTimelineLocked(const Ring& ring);
+
     android::base::Lock mLock;
     std::atomic<TaskId> mNextId;
     // The mTaskIdToTask cache must be destroyed after the actual owner of Task,
     // mTimelineQueues, is destroyed, because the deleter of Task will
     // automatically remove the entry in mTaskIdToTask.
     std::unordered_map<TaskId, std::weak_ptr<Task>> mTaskIdToTask;
-    std::unordered_map<Ring, std::list<TimelineItem>> mTimelineQueues;
+    std::unordered_map<Ring, Timeline> mTimelineQueues;
     const bool mWithAsyncCallback;
     // Go over the timeline, signal any fences without pending tasks, and remove
     // timeline items that are no longer needed.
