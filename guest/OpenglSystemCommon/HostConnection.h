@@ -18,7 +18,7 @@
 
 #if defined(ANDROID)
 #include "gfxstream/guest/ANativeWindow.h"
-#include "gfxstream/guest/Gralloc.h"
+#include "gfxstream/guest/GfxStreamGralloc.h"
 #endif
 
 #include <cstring>
