@@ -270,6 +270,14 @@ cc_library_static {
     ],
     target: {
         android: {
+            srcs: select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
+                // Android surfaceless build
+                "none": [],
+                // The default when variable is not set is Android
+                default: [
+                    "vk_android.c",
+                ],
+            }),
             shared_libs: [
                 "libnativewindow",
                 "libsync",
@@ -278,9 +286,6 @@ cc_library_static {
             header_libs: [
                 "hwvulkan_headers",
                 "libnativewindow_headers",
-            ],
-            srcs: [
-                "vk_android.c",
             ],
         },
     },

@@ -100,11 +100,32 @@ cc_defaults {
     ],
 }
 
+soong_config_string_variable {
+    name: "mesa3d_platforms",
+    values: [
+        // Android surfaceless build
+        "none",
+        // The default when variable is not set is Android
+    ],
+}
+
 cc_defaults {
     name: "gfxstream_guest_cc_defaults",
     defaults: [
         "gfxstream_cc_defaults",
     ],
+    cflags: select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
+        // Android surfaceless build
+        "none": [
+            "-UANDROID",
+            "-U__ANDROID__",
+            "-DLINUX_GUEST_BUILD",
+        ],
+        // The default when variable is not set is Android
+        default: [
+            "-DVK_USE_PLATFORM_ANDROID_KHR",
+        ],
+    }),
 }
 
 cc_defaults {
@@ -112,6 +133,16 @@ cc_defaults {
     defaults: [
         "gfxstream_cc_defaults",
     ],
+    cflags: [
+        "-DGFXSTREAM_BUILD_WITH_TRACING=1",
+    ] + select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
+        // Android surfaceless build
+        "none": [
+            "-DGFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL=1",
+        ],
+        // The default when variable is not set is Android
+        default: [],
+    }),
 }
 
 cc_defaults {

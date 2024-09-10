@@ -25,9 +25,11 @@
 #define DRM_FORMAT_S8_UINT fourcc_code('9', '9', '9', '1')
 #endif
 
+#if defined(ANDROID)
+
 #include <assert.h>
 
-#include "gfxstream/guest/Gralloc.h"
+#include "gfxstream/guest/GfxStreamGralloc.h"
 #include "vk_format_info.h"
 #include "vk_util.h"
 #include "util/log.h"
@@ -43,22 +45,29 @@ uint64_t getAndroidHardwareBufferUsageFromVkUsage(const VkImageCreateFlags vk_cr
                                                   const VkImageUsageFlags vk_usage) {
     uint64_t ahw_usage = 0;
 
-    if (vk_usage & VK_IMAGE_USAGE_SAMPLED_BIT) ahw_usage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
-
-    if (vk_usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
+    if (vk_usage & VK_IMAGE_USAGE_SAMPLED_BIT) {
         ahw_usage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
-
-    if (vk_usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+    }
+    if (vk_usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) {
+        ahw_usage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
+    }
+    if (vk_usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
         ahw_usage |= AHARDWAREBUFFER_USAGE_GPU_COLOR_OUTPUT;
-
-    if (vk_create & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
+    }
+    if (vk_usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+        ahw_usage |= AHARDWAREBUFFER_USAGE_GPU_COLOR_OUTPUT;
+    }
+    if (vk_create & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) {
         ahw_usage |= AHARDWAREBUFFER_USAGE_GPU_CUBE_MAP;
-
-    if (vk_create & VK_IMAGE_CREATE_PROTECTED_BIT)
+    }
+    if (vk_create & VK_IMAGE_CREATE_PROTECTED_BIT) {
         ahw_usage |= AHARDWAREBUFFER_USAGE_PROTECTED_CONTENT;
+    }
 
     /* No usage bits set - set at least one GPU usage. */
-    if (ahw_usage == 0) ahw_usage = AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
+    if (ahw_usage == 0) {
+        ahw_usage = AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
+    }
 
     return ahw_usage;
 }
@@ -324,3 +333,5 @@ VkResult createAndroidHardwareBuffer(gfxstream::Gralloc* gralloc, bool hasDedica
 
 }  // namespace vk
 }  // namespace gfxstream
+
+#endif  // ANDROID

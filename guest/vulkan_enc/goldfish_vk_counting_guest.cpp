@@ -32,7 +32,6 @@
 
 #include "goldfish_vk_counting_guest.h"
 
-#include <cstdlib>
 #include <cstring>
 
 #include "goldfish_vk_extension_structs_guest.h"
@@ -6365,6 +6364,166 @@ void count_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
 }
 
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+void count_VkDrmFormatModifierPropertiesEXT(uint32_t featureBits, VkStructureType rootType,
+                                            const VkDrmFormatModifierPropertiesEXT* toCount,
+                                            size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(uint64_t);
+    *count += sizeof(uint32_t);
+    *count += sizeof(VkFormatFeatureFlags);
+}
+
+void count_VkDrmFormatModifierPropertiesListEXT(uint32_t featureBits, VkStructureType rootType,
+                                                const VkDrmFormatModifierPropertiesListEXT* toCount,
+                                                size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    *count += 8;
+    if (toCount->pDrmFormatModifierProperties) {
+        if (toCount) {
+            for (uint32_t i = 0; i < (uint32_t)toCount->drmFormatModifierCount; ++i) {
+                count_VkDrmFormatModifierPropertiesEXT(
+                    featureBits, rootType,
+                    (VkDrmFormatModifierPropertiesEXT*)(toCount->pDrmFormatModifierProperties + i),
+                    count);
+            }
+        }
+    }
+}
+
+void count_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint64_t);
+    *count += sizeof(VkSharingMode);
+    *count += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    *count += 8;
+    if (toCount->pQueueFamilyIndices) {
+        if (toCount) {
+            *count += toCount->queueFamilyIndexCount * sizeof(const uint32_t);
+        }
+    }
+}
+
+void count_VkImageDrmFormatModifierListCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+    if (toCount) {
+        *count += toCount->drmFormatModifierCount * sizeof(const uint64_t);
+    }
+}
+
+void count_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint64_t);
+    *count += sizeof(uint32_t);
+    if (toCount) {
+        for (uint32_t i = 0; i < (uint32_t)toCount->drmFormatModifierPlaneCount; ++i) {
+            count_VkSubresourceLayout(featureBits, rootType,
+                                      (const VkSubresourceLayout*)(toCount->pPlaneLayouts + i),
+                                      count);
+        }
+    }
+}
+
+void count_VkImageDrmFormatModifierPropertiesEXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkImageDrmFormatModifierPropertiesEXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint64_t);
+}
+
+void count_VkDrmFormatModifierProperties2EXT(uint32_t featureBits, VkStructureType rootType,
+                                             const VkDrmFormatModifierProperties2EXT* toCount,
+                                             size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(uint64_t);
+    *count += sizeof(uint32_t);
+    *count += sizeof(VkFormatFeatureFlags2);
+}
+
+void count_VkDrmFormatModifierPropertiesList2EXT(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesList2EXT* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    *count += 8;
+    if (toCount->pDrmFormatModifierProperties) {
+        if (toCount) {
+            for (uint32_t i = 0; i < (uint32_t)toCount->drmFormatModifierCount; ++i) {
+                count_VkDrmFormatModifierProperties2EXT(
+                    featureBits, rootType,
+                    (VkDrmFormatModifierProperties2EXT*)(toCount->pDrmFormatModifierProperties + i),
+                    count);
+            }
+        }
+    }
+}
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void count_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     uint32_t featureBits, VkStructureType rootType,
@@ -8184,6 +8343,45 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
                 featureBits, rootType,
                 reinterpret_cast<const VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(
                     structExtension),
+                count);
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT: {
+            count_VkDrmFormatModifierPropertiesListEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkDrmFormatModifierPropertiesListEXT*>(structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT: {
+            count_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceImageDrmFormatModifierInfoEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT: {
+            count_VkImageDrmFormatModifierListCreateInfoEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkImageDrmFormatModifierListCreateInfoEXT*>(structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT: {
+            count_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkImageDrmFormatModifierExplicitCreateInfoEXT*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT: {
+            count_VkDrmFormatModifierPropertiesList2EXT(
+                featureBits, rootType,
+                reinterpret_cast<const VkDrmFormatModifierPropertiesList2EXT*>(structExtension),
                 count);
             break;
         }
