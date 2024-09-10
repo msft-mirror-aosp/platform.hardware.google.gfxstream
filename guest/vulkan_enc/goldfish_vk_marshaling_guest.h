@@ -3170,6 +3170,73 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+void marshal_VkDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesEXT* forMarshaling);
+
+void unmarshal_VkDrmFormatModifierPropertiesEXT(VulkanStreamGuest* vkStream,
+                                                VkStructureType rootType,
+                                                VkDrmFormatModifierPropertiesEXT* forUnmarshaling);
+
+void marshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesListEXT* forMarshaling);
+
+void unmarshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesListEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forUnmarshaling);
+
+void marshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierListCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierExplicitCreateInfoEXT* forUnmarshaling);
+
+void marshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkImageDrmFormatModifierPropertiesEXT* forMarshaling);
+
+void unmarshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierPropertiesEXT* forUnmarshaling);
+
+#define OP_vkGetImageDrmFormatModifierPropertiesEXT 251301237
+void marshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierProperties2EXT* forMarshaling);
+
+void unmarshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierProperties2EXT* forUnmarshaling);
+
+void marshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesList2EXT* forMarshaling);
+
+void unmarshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesList2EXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_vertex_attribute_divisor
 void marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
@@ -3736,6 +3803,7 @@ void unmarshal_VkCreateBlobGOOGLE(VulkanStreamGuest* vkStream, VkStructureType r
 #define OP_vkGetBlobGOOGLE 20341
 #define OP_vkUpdateDescriptorSetWithTemplateSized2GOOGLE 244782974
 #define OP_vkQueueSubmitAsync2GOOGLE 292092830
+#define OP_vkGetSemaphoreGOOGLE 20342
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void marshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(

@@ -14,9 +14,11 @@
 // limitations under the License.
 #pragma once
 
+#if defined(ANDROID)
+
 #include <vulkan/vulkan.h>
 
-#include "gfxstream/guest/Gralloc.h"
+#include "gfxstream/guest/GfxStreamGralloc.h"
 #include "HostVisibleMemoryVirtualization.h"
 
 // Structure similar to
@@ -51,3 +53,5 @@ VkResult createAndroidHardwareBuffer(gfxstream::Gralloc* grallocHelper, bool has
 
 }  // namespace vk
 }  // namespace gfxstream
+
+#endif  // ANDROID

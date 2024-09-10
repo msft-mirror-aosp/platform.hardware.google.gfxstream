@@ -251,6 +251,12 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
             emulationGl->mFeatures.NativeTextureDecompression.enabled);
     }
 
+    if (s_egl.eglSetProgramBinaryLinkStatusEnabledANDROID) {
+        s_egl.eglSetProgramBinaryLinkStatusEnabledANDROID(
+            emulationGl->mEglDisplay,
+            emulationGl->mFeatures.GlProgramBinaryLinkStatus.enabled);
+    }
+
     s_egl.eglBindAPI(EGL_OPENGL_ES_API);
 
 #ifdef ENABLE_GL_LOG
@@ -523,8 +529,8 @@ EmulationGl::~EmulationGl() {
 std::unique_ptr<gfxstream::DisplaySurface> EmulationGl::createFakeWindowSurface() {
     return std::make_unique<gfxstream::DisplaySurface>(
         mWidth, mHeight,
-        std::move(DisplaySurfaceGl::createPbufferSurface(
-            mEglDisplay, mEglConfig, mEglContext, getGlesMaxContextAttribs(), mWidth, mHeight)));
+        DisplaySurfaceGl::createPbufferSurface(
+            mEglDisplay, mEglConfig, mEglContext, getGlesMaxContextAttribs(), mWidth, mHeight));
 }
 
 /*static*/ const GLint* EmulationGl::getGlesMaxContextAttribs() {
@@ -626,6 +632,20 @@ std::unique_ptr<BufferGl> EmulationGl::createBuffer(uint64_t size, HandleType ha
 
 std::unique_ptr<BufferGl> EmulationGl::loadBuffer(android::base::Stream* stream) {
     return BufferGl::onLoad(stream, getColorBufferContextHelper());
+}
+
+bool EmulationGl::isFormatSupported(GLenum format) {
+    const std::vector<GLenum> kUnhandledFormats = {
+        GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, GL_DEPTH24_STENCIL8,
+        GL_DEPTH_COMPONENT32F, GL_DEPTH32F_STENCIL8
+    };
+
+    if (std::find(kUnhandledFormats.begin(), kUnhandledFormats.end(), format) !=
+            kUnhandledFormats.end()) {
+        return false;
+    }
+    // TODO(b/356603558): add proper GL querying, for now preserve existing assumption
+    return true;
 }
 
 std::unique_ptr<ColorBufferGl> EmulationGl::createColorBuffer(uint32_t width, uint32_t height,

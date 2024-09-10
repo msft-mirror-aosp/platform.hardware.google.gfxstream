@@ -16,7 +16,6 @@
 
 #include "GfxstreamEnd2EndTestUtils.h"
 #include "GfxstreamEnd2EndTests.h"
-#include "gfxstream/RutabagaLayerTestUtils.h"
 
 namespace gfxstream {
 namespace tests {
@@ -33,7 +32,7 @@ class GfxstreamEnd2EndVkSnapshotImageTest : public GfxstreamEnd2EndTest {};
 
 TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, PreserveImageHandle) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const uint32_t width = 32;
     const uint32_t height = 32;
@@ -81,7 +80,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, PreserveImageHandle) {
 // create calls. The first device always work but the second might break.
 TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, MultipleDevicesPreserveHandles) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     uint32_t graphicsQueueFamilyIndex = -1;
     {
@@ -161,7 +160,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, MultipleDevicesPreserveHandles) {
 
 TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependency) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const uint32_t width = 32;
     const uint32_t height = 32;
@@ -237,7 +236,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependency) {
 // Use vkBindImageMemory2 instead of vkBindImageMemory
 TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependency2) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const uint32_t width = 32;
     const uint32_t height = 32;
@@ -319,7 +318,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependency2) {
 
 TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, MultiSampleImage) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const uint32_t width = 32;
     const uint32_t height = 32;
@@ -364,7 +363,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, MultiSampleImage) {
 
 TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageViewDependencyWithDedicatedMemory) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        VK_ASSERT(SetUpTypicalVkTestEnvironment());
+        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
 
     const uint32_t width = 32;
     const uint32_t height = 32;
@@ -438,7 +437,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotImageTest, ImageContent) {
     for (size_t i = 0; i < kSize; i++) {
         srcBufferContent[i] = static_cast<uint8_t>(i & 0xff);
     }
-    TypicalVkTestEnvironment testEnvironment = VK_ASSERT(SetUpTypicalVkTestEnvironment());
+    TypicalVkTestEnvironment testEnvironment = GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
     auto& instance = testEnvironment.instance;
     auto& physicalDevice = testEnvironment.physicalDevice;
     auto& device = testEnvironment.device;

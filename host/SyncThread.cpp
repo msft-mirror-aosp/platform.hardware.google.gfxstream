@@ -23,6 +23,7 @@
 #include "aemu/base/Metrics.h"
 #include "aemu/base/system/System.h"
 #include "aemu/base/threads/Thread.h"
+#include "gfxstream/host/Tracing.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
 #include "host-common/logging.h"
@@ -141,18 +142,6 @@ void SyncThread::triggerWait(EmulatedEglFenceSync* fenceSync,
                 DPRINT("wait done (with fence), use goldfish sync timeline inc");
                 emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
             });
-        },
-        ss.str());
-}
-
-void SyncThread::triggerBlockedWaitNoTimeline(EmulatedEglFenceSync* fenceSync) {
-    std::stringstream ss;
-    ss << "triggerBlockedWaitNoTimeline fenceSyncInfo=0x" << std::hex
-       << reinterpret_cast<uintptr_t>(fenceSync);
-    sendAndWaitForResult(
-        [fenceSync, this](WorkerId) {
-            doSyncWait(fenceSync, std::function<void()>());
-            return 0;
         },
         ss.str());
 }
@@ -424,6 +413,11 @@ void SyncThread::sendAsync(std::function<void(WorkerId)> job, std::string descri
 }
 
 void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) {
+    static thread_local std::once_flag sOnceFlag;
+    std::call_once(sOnceFlag, [&] {
+        GFXSTREAM_TRACE_NAME_TRACK(GFXSTREAM_TRACE_TRACK_FOR_CURRENT_THREAD(), "SyncThread");
+    });
+
     std::unique_ptr<std::unordered_map<std::string, std::string>> syncThreadData =
         std::make_unique<std::unordered_map<std::string, std::string>>();
     syncThreadData->insert({{"syncthread_cmd_desc", command.mDescription}});

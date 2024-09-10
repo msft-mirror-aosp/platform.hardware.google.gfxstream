@@ -17,14 +17,11 @@
 #include <gralloc_cb_bp.h>
 #include <vndk/hardware_buffer.h>
 
-#include "renderControl_enc.h"
-
 namespace gfxstream {
 
-uint32_t GoldfishGralloc::createColorBuffer(void* rcEnc, int width, int height, uint32_t glformat) {
-    auto* rc = reinterpret_cast<renderControl_client_context_t*>(rcEnc);
-    return rc->rcCreateColorBuffer(rc, width, height, glformat);
-}
+GrallocType GoldfishGralloc::getGrallocType() { return GRALLOC_TYPE_GOLDFISH; }
+
+uint32_t GoldfishGralloc::createColorBuffer(int width, int height, uint32_t glformat) { return 0; }
 
 int GoldfishGralloc::allocate(uint32_t width, uint32_t height, uint32_t format, uint64_t usage,
                               AHardwareBuffer** outputAhb) {
@@ -46,6 +43,10 @@ void GoldfishGralloc::release(AHardwareBuffer* ahb) { AHardwareBuffer_release(ah
 int GoldfishGralloc::lock(AHardwareBuffer* ahb, uint8_t** ptr) {
     return AHardwareBuffer_lock(ahb, AHARDWAREBUFFER_USAGE_CPU_READ_RARELY, -1, nullptr,
                                 reinterpret_cast<void**>(ptr));
+}
+
+int GoldfishGralloc::lockPlanes(AHardwareBuffer* ahb, std::vector<LockedPlane>* ahbPlanes) {
+    return -1;
 }
 
 int GoldfishGralloc::unlock(AHardwareBuffer* ahb) { return AHardwareBuffer_unlock(ahb, nullptr); }

@@ -131,6 +131,7 @@ EGLAPI void EGLAPIENTRY eglAddLibrarySearchPathANDROID(const char* path);
 EGLAPI EGLBoolean EGLAPIENTRY eglQueryVulkanInteropSupportANDROID(void);
 EGLAPI EGLBoolean EGLAPIENTRY eglGetSyncAttribKHR(EGLDisplay display, EGLSyncKHR sync, EGLint attribute, EGLint *value);
 EGLAPI EGLBoolean EGLAPIENTRY eglSetNativeTextureDecompressionEnabledANDROID(EGLDisplay display, EGLBoolean enabled);
+EGLAPI EGLBoolean EGLAPIENTRY eglSetProgramBinaryLinkStatusEnabledANDROID(EGLDisplay display, EGLBoolean enabled);
 
 EGLAPI EGLBoolean EGLAPIENTRY eglSaveConfig(EGLDisplay display, EGLConfig config, EGLStreamKHR stream);
 EGLAPI EGLConfig EGLAPIENTRY eglLoadConfig(EGLDisplay display, EGLStreamKHR stream);
@@ -194,6 +195,8 @@ static const ExtensionDescriptor s_eglExtensions[] = {
                 (__eglMustCastToProperFunctionPointerType)eglGetSyncAttribKHR },
         {"eglSetNativeTextureDecompressionEnabledANDROID",
                 (__eglMustCastToProperFunctionPointerType)eglSetNativeTextureDecompressionEnabledANDROID },
+        {"eglSetProgramBinaryLinkStatusEnabledANDROID",
+                (__eglMustCastToProperFunctionPointerType)eglSetProgramBinaryLinkStatusEnabledANDROID },
 };
 
 static const int s_eglExtensionsSize =
@@ -476,6 +479,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
         EGLint      green_size         = 0;
         EGLint      blue_size          = 0;
         EGLint      alpha_size         = 0;
+        EGLint      alpha_mask_size    = 0;
         EGLint      depth_size         = 0;
         EGLint      frame_buffer_level = 0;
         EGLint      sample_buffers_num = 0;
@@ -572,6 +576,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
                     CHOOSE_CONFIG_DLOG_BAD_ATTRIBUTE(EGL_ALPHA_MASK_SIZE);
                     RETURN_ERROR(EGL_FALSE,EGL_BAD_ATTRIBUTE);
                 }
+                alpha_mask_size = attrib_list[i+1];
                 wanted_attribs.push_back(EGL_ALPHA_MASK_SIZE);
                 break;
             case EGL_BIND_TO_TEXTURE_RGB:
@@ -746,7 +751,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay display, const EGLint *
             }
         }
     }
-    EglConfig dummy(red_size,green_size,blue_size,alpha_size,caveat,conformant,depth_size,
+    EglConfig dummy(red_size,green_size,blue_size,alpha_size,alpha_mask_size,caveat,conformant,depth_size,
                     frame_buffer_level,0,0,0,native_renderable,renderable_type,0,native_visual_type,
                     sample_buffers_num, samples_per_pixel,stencil_size,luminance_size,wanted_buffer_size,
                     surface_type,transparent_type,trans_red_val,trans_green_val,trans_blue_val,recordable_android, framebuffer_target_android,
@@ -1180,7 +1185,8 @@ EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay display,
             thread->updateInfo(newCtx,dpy,newCtx->getGlesContext(),newCtx->getShareGroup(),dpy->getManager(newCtx->version()));
             newCtx->setSurfaces(newReadSrfc,newDrawSrfc);
             g_eglInfo->getIface(newCtx->version())->initContext(newCtx->getGlesContext(), newCtx->getShareGroup(),
-                                                                dpy->nativeTextureDecompressionEnabled());
+                                                                dpy->nativeTextureDecompressionEnabled(),
+                                                                dpy->programBinaryLinkStatusEnabled());
             g_eglInfo->sweepDestroySurfaces();
         }
 
@@ -1662,6 +1668,13 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSetNativeTextureDecompressionEnabledANDROID(EGL
     MEM_TRACE("EMUGL");
     VALIDATE_DISPLAY_RETURN(display, EGL_FALSE);
     dpy->setNativeTextureDecompressionEnabled(enabled == EGL_TRUE);
+    return EGL_TRUE;
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglSetProgramBinaryLinkStatusEnabledANDROID(EGLDisplay display, EGLBoolean enabled) {
+    MEM_TRACE("EMUGL");
+    VALIDATE_DISPLAY_RETURN(display, EGL_FALSE);
+    dpy->setProgramBinaryLinkStatusEnabled(enabled == EGL_TRUE);
     return EGL_TRUE;
 }
 

@@ -14,6 +14,7 @@
 #include "VulkanStreamGuest.h"
 
 #include "util/log.h"
+#include "util/perf/cpu_trace.h"
 
 namespace gfxstream {
 namespace vk {
@@ -67,7 +68,7 @@ void VulkanStreamGuest::loadStringInPlaceWithStreamPtr(char** forOutput, uint8_t
     uint32_t len;
     memcpy(&len, *streamPtr, sizeof(uint32_t));
     *streamPtr += sizeof(uint32_t);
-    gfxstream::guest::Stream::fromBe32((uint8_t*)&len);
+    android::base::Stream::fromBe32((uint8_t*)&len);
 
     alloc((void**)forOutput, len + 1);
 
@@ -84,7 +85,7 @@ void VulkanStreamGuest::loadStringArrayInPlaceWithStreamPtr(char*** forOutput,
     uint32_t count;
     memcpy(&count, *streamPtr, sizeof(uint32_t));
     *streamPtr += sizeof(uint32_t);
-    gfxstream::guest::Stream::fromBe32((uint8_t*)&count);
+    android::base::Stream::fromBe32((uint8_t*)&count);
     if (!count) {
         *forOutput = nullptr;
         return;
@@ -128,7 +129,7 @@ void VulkanStreamGuest::unsetHandleMapping() { mCurrentHandleMapping = &mDefault
 VulkanHandleMapping* VulkanStreamGuest::handleMapping() const { return mCurrentHandleMapping; }
 
 void VulkanStreamGuest::flush() {
-    AEMU_SCOPED_TRACE("VulkanStreamGuest device write");
+    MESA_TRACE_SCOPE("VulkanStreamGuest device write");
     mStream->flush();
 }
 

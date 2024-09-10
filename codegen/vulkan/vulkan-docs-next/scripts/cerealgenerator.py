@@ -45,6 +45,7 @@ SUPPORTED_FEATURES = [
     "VK_EXT_debug_report",
     "VK_EXT_validation_features",
     # Device extensions
+    "VK_EXT_external_memory_host",
     "VK_KHR_storage_buffer_storage_class",
     "VK_KHR_vulkan_memory_model",
     "VK_KHR_buffer_device_address",
@@ -90,6 +91,7 @@ SUPPORTED_FEATURES = [
     "VK_EXT_host_image_copy",
     "VK_EXT_image_compression_control",
     "VK_EXT_image_compression_control_swapchain",
+    "VK_EXT_image_drm_format_modifier",
     # VK1.3 extensions: see b/298704840
     "VK_KHR_copy_commands2",
     "VK_KHR_dynamic_rendering",
@@ -123,6 +125,9 @@ SUPPORTED_FEATURES = [
     "VK_EXT_metal_objects",
     "VK_KHR_external_semaphore_win32",
     "VK_KHR_external_memory_win32",
+    "VK_NV_device_diagnostic_checkpoints",
+    "VK_KHR_ray_tracing_pipeline",
+    "VK_KHR_pipeline_library",
     # Android
     "VK_ANDROID_native_buffer",
     "VK_ANDROID_external_memory_android_hardware_buffer",
@@ -152,6 +157,7 @@ HOST_MODULES = ["goldfish_vk_extension_structs", "goldfish_vk_marshaling",
 # we wish run wrappers when the module requires it. For example, `VK_GOOGLE_gfxstream`
 # shouldn't generate a function table entry since it's an internal interface.
 SUPPORTED_MODULES = {
+    "VK_EXT_external_memory_host": HOST_MODULES,
     "VK_EXT_debug_utils": HOST_MODULES,
     "VK_EXT_debug_report": HOST_MODULES,
     "VK_EXT_validation_features": HOST_MODULES,
@@ -169,6 +175,9 @@ SUPPORTED_MODULES = {
     "VK_KHR_android_surface": ["func_table"],
     "VK_EXT_swapchain_maintenance1" : HOST_MODULES,
     "VK_KHR_swapchain" : HOST_MODULES,
+    "VK_NV_device_diagnostic_checkpoints": ["goldfish_vk_dispatch"],
+    "VK_KHR_ray_tracing_pipeline": HOST_MODULES,
+    "VK_KHR_pipeline_library": HOST_MODULES,
 }
 
 # These modules will be used when the feature is not supported.
@@ -302,7 +311,6 @@ class CerealGenerator(OutputGenerator):
         self.hostCommonExtraVulkanHeaders = '#include "vk_android_native_buffer_gfxstream.h"'
 
         encoderInclude = f"""
-#include "{self.guestBaseLibDirPrefix}/AndroidHealthMonitor.h"
 #include "goldfish_vk_private_defs.h"
 #include <memory>
 
@@ -313,7 +321,6 @@ class IOStream;
 }}  // namespace gfxstream
 """
         encoderImplInclude = f"""
-#include "EncoderDebug.h"
 #include "Resources.h"
 #include "ResourceTracker.h"
 #include "Validation.h"
@@ -322,9 +329,6 @@ class IOStream;
 
 #include "{self.guestBaseLibDirPrefix}/AlignedBuf.h"
 #include "{self.guestBaseLibDirPrefix}/BumpPool.h"
-#include "{self.guestBaseLibDirPrefix}/synchronization/AndroidLock.h"
-
-#include <cutils/properties.h>
 
 #include "goldfish_vk_marshaling_guest.h"
 #include "goldfish_vk_reserved_marshaling_guest.h"
@@ -343,14 +347,12 @@ class IOStream;
 
         functableImplInclude = """
 #include "VkEncoder.h"
-#include "../OpenglSystemCommon/HostConnection.h"
 #include "ResourceTracker.h"
 #include "gfxstream_vk_entrypoints.h"
 #include "gfxstream_vk_private.h"
 
 #include "goldfish_vk_private_defs.h"
 
-#include <log/log.h>
 #include <cstring>
 
 // Stuff we are not going to use but if included,
@@ -427,8 +429,8 @@ using android::base::BumpPool;
         poolIncludeGuest = f"""
 #include "goldfish_vk_private_defs.h"
 #include "{self.guestBaseLibDirPrefix}/BumpPool.h"
-using gfxstream::guest::Allocator;
-using gfxstream::guest::BumpPool;
+using android::base::Allocator;
+using android::base::BumpPool;
 // Stuff we are not going to use but if included,
 // will cause compile errors. These are Android Vulkan
 // required extensions, but the approach will be to
@@ -528,10 +530,10 @@ class BumpPool;
 
 #include "{self.baseLibDirPrefix}/BumpPool.h"
 #include "{self.baseLibDirPrefix}/system/System.h"
-#include "{self.baseLibDirPrefix}/Tracing.h"
 #include "{self.baseLibDirPrefix}/Metrics.h"
 #include "render-utils/IOStream.h"
 #include "FrameBuffer.h"
+#include "gfxstream/host/Tracing.h"
 #include "host-common/feature_control.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"

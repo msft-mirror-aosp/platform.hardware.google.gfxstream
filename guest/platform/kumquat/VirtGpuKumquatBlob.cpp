@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <cutils/log.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -23,7 +22,7 @@
 #include <cstring>
 
 #include "VirtGpuKumquat.h"
-#include "virtgpu_kumquat/virtgpu_kumquat_ffi.h"
+#include "util/log.h"
 
 VirtGpuKumquatResource::VirtGpuKumquatResource(struct virtgpu_kumquat* virtGpu, uint32_t blobHandle,
                                                uint32_t resourceHandle, uint64_t size)
@@ -36,14 +35,16 @@ VirtGpuKumquatResource::~VirtGpuKumquatResource() {
 
     int ret = virtgpu_kumquat_resource_unref(mVirtGpu, &unref);
     if (ret) {
-        ALOGE("Closed failed with : [%s, blobHandle %u, resourceHandle: %u]", strerror(errno),
-              mBlobHandle, mResourceHandle);
+        mesa_loge("Closed failed with : [%s, blobHandle %u, resourceHandle: %u]", strerror(errno),
+                  mBlobHandle, mResourceHandle);
     }
 }
 
 uint32_t VirtGpuKumquatResource::getBlobHandle() const { return mBlobHandle; }
 
 uint32_t VirtGpuKumquatResource::getResourceHandle() const { return mResourceHandle; }
+
+uint64_t VirtGpuKumquatResource::getSize() const { return mSize; }
 
 VirtGpuResourceMappingPtr VirtGpuKumquatResource::createMapping() {
     int ret;
@@ -53,12 +54,13 @@ VirtGpuResourceMappingPtr VirtGpuKumquatResource::createMapping() {
 
     ret = virtgpu_kumquat_resource_map(mVirtGpu, &map);
     if (ret < 0) {
-        ALOGE("Mapping failed with %s", strerror(errno));
+        mesa_loge("Mapping failed with %s for resource %u blob %u", strerror(errno),
+                  mResourceHandle, mBlobHandle);
         return nullptr;
     }
 
-    return std::make_shared<VirtGpuKumquatResourceMapping>(shared_from_this(), (uint8_t*)map.ptr,
-                                                           mSize);
+    return std::make_shared<VirtGpuKumquatResourceMapping>(shared_from_this(), mVirtGpu,
+                                                           (uint8_t*)map.ptr, mSize);
 }
 
 int VirtGpuKumquatResource::exportBlob(struct VirtGpuExternalHandle& handle) {
@@ -69,7 +71,7 @@ int VirtGpuKumquatResource::exportBlob(struct VirtGpuExternalHandle& handle) {
 
     ret = virtgpu_kumquat_resource_export(mVirtGpu, &exp);
     if (ret) {
-        ALOGE("Failed to export blob with %s", strerror(errno));
+        mesa_loge("Failed to export blob with %s", strerror(errno));
         return ret;
     }
 
@@ -87,7 +89,7 @@ int VirtGpuKumquatResource::wait() {
 
     ret = virtgpu_kumquat_wait(mVirtGpu, &wait);
     if (ret < 0) {
-        ALOGE("Wait failed with %s", strerror(errno));
+        mesa_loge("Wait failed with %s", strerror(errno));
         return ret;
     }
 
@@ -107,7 +109,7 @@ int VirtGpuKumquatResource::transferToHost(uint32_t x, uint32_t y, uint32_t w, u
 
     ret = virtgpu_kumquat_transfer_to_host(mVirtGpu, &xfer);
     if (ret < 0) {
-        ALOGE("Transfer to host failed with %s", strerror(errno));
+        mesa_loge("Transfer to host failed with %s", strerror(errno));
         return ret;
     }
 
@@ -127,7 +129,7 @@ int VirtGpuKumquatResource::transferFromHost(uint32_t x, uint32_t y, uint32_t w,
 
     ret = virtgpu_kumquat_transfer_from_host(mVirtGpu, &xfer);
     if (ret < 0) {
-        ALOGE("Transfer from host failed with %s", strerror(errno));
+        mesa_loge("Transfer from host failed with %s", strerror(errno));
         return ret;
     }
 

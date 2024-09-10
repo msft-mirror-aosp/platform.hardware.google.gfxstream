@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <cutils/log.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -28,20 +27,26 @@
 #include <string>
 
 #include "LinuxVirtGpu.h"
-#include "virtgpu_drm.h"
+#include "drm-uapi/virtgpu_drm.h"
+#include "util/log.h"
 #include "virtgpu_gfxstream_protocol.h"
+
+#define VIRTGPU_PARAM_CREATE_FENCE_PASSING 9  /* Fence passing */
+#define VIRTGPU_PARAM_CREATE_GUEST_HANDLE 10  /* Host OS handle can be created from guest memory. */
 
 #define PARAM(x) \
     (struct VirtGpuParam) { x, #x, 0 }
 
 static inline uint32_t align_up(uint32_t n, uint32_t a) { return ((n + a - 1) / a) * a; }
 
-LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : VirtGpuDevice(capset) {
+LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor)
+    : VirtGpuDevice(capset) {
     struct VirtGpuParam params[] = {
         PARAM(VIRTGPU_PARAM_3D_FEATURES),          PARAM(VIRTGPU_PARAM_CAPSET_QUERY_FIX),
         PARAM(VIRTGPU_PARAM_RESOURCE_BLOB),        PARAM(VIRTGPU_PARAM_HOST_VISIBLE),
         PARAM(VIRTGPU_PARAM_CROSS_DEVICE),         PARAM(VIRTGPU_PARAM_CONTEXT_INIT),
         PARAM(VIRTGPU_PARAM_SUPPORTED_CAPSET_IDs), PARAM(VIRTGPU_PARAM_EXPLICIT_DEBUG_NAME),
+        PARAM(VIRTGPU_PARAM_CREATE_FENCE_PASSING),
         PARAM(VIRTGPU_PARAM_CREATE_GUEST_HANDLE),
     };
 
@@ -57,16 +62,16 @@ LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : Virt
     processName = getprogname();
 #endif
 
-    if (fd < 0) {
+    if (descriptor < 0) {
         mDeviceHandle = static_cast<int64_t>(drmOpenRender(128));
         if (mDeviceHandle < 0) {
-            ALOGE("Failed to open rendernode: %s", strerror(errno));
+            mesa_loge("Failed to open rendernode: %s", strerror(errno));
             return;
         }
     } else {
-        mDeviceHandle = dup(fd);
+        mDeviceHandle = dup(descriptor);
         if (mDeviceHandle < 0) {
-            ALOGE("Failed to dup rendernode: %s", strerror(errno));
+            mesa_loge("Failed to dup rendernode: %s", strerror(errno));
             return;
         }
     }
@@ -78,7 +83,7 @@ LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : Virt
 
         ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_GETPARAM, &get_param);
         if (ret) {
-            ALOGV("virtgpu backend not enabling %s", params[i].name);
+            mesa_logi("virtgpu backend not enabling %s", params[i].name);
             continue;
         }
 
@@ -111,7 +116,7 @@ LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : Virt
     if (ret) {
         // Don't fail get capabilities just yet, AEMU doesn't use this API
         // yet (b/272121235);
-        ALOGE("DRM_IOCTL_VIRTGPU_GET_CAPS failed with %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_GET_CAPS failed with %s", strerror(errno));
     }
 
     // We always need an ASG blob in some cases, so always define blobAlignment
@@ -138,8 +143,8 @@ LinuxVirtGpuDevice::LinuxVirtGpuDevice(enum VirtGpuCapset capset, int fd) : Virt
     init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &init);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s, continuing without context...",
-              strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s, continuing without context...",
+                  strerror(errno));
     }
 }
 
@@ -150,8 +155,9 @@ struct VirtGpuCaps LinuxVirtGpuDevice::getCaps(void) { return mCaps; }
 int64_t LinuxVirtGpuDevice::getDeviceHandle(void) { return mDeviceHandle; }
 
 VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t height,
-                                                      uint32_t stride, uint32_t virglFormat,
-                                                      uint32_t target, uint32_t bind) {
+                                                      uint32_t stride, uint32_t size,
+                                                      uint32_t virglFormat, uint32_t target,
+                                                      uint32_t bind) {
     drm_virtgpu_resource_create create = {
         .target = target,
         .format = virglFormat,
@@ -162,13 +168,13 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::createResource(uint32_t width, uint32_t h
         .array_size = 1U,
         .last_level = 0,
         .nr_samples = 0,
-        .size = stride * height,
+        .size = size,
         .stride = stride,
     };
 
     int ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE, &create);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_RESOURCE_CREATE failed with %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_RESOURCE_CREATE failed with %s", strerror(errno));
         return nullptr;
     }
 
@@ -189,7 +195,7 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob
 
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB, &create);
     if (ret < 0) {
-        ALOGE("DRM_VIRTGPU_RESOURCE_CREATE_BLOB failed with %s", strerror(errno));
+        mesa_loge("DRM_VIRTGPU_RESOURCE_CREATE_BLOB failed with %s", strerror(errno));
         return nullptr;
     }
 
@@ -205,14 +211,14 @@ VirtGpuResourcePtr LinuxVirtGpuDevice::importBlob(const struct VirtGpuExternalHa
     ret = drmPrimeFDToHandle(mDeviceHandle, handle.osHandle, &blobHandle);
     close(handle.osHandle);
     if (ret) {
-        ALOGE("DRM_IOCTL_PRIME_FD_TO_HANDLE failed: %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_PRIME_FD_TO_HANDLE failed: %s", strerror(errno));
         return nullptr;
     }
 
     info.bo_handle = blobHandle;
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_RESOURCE_INFO, &info);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_RESOURCE_INFO failed: %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_RESOURCE_INFO failed: %s", strerror(errno));
         return nullptr;
     }
 
@@ -240,7 +246,7 @@ int LinuxVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
 
     ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_EXECBUFFER, &exec);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_EXECBUFFER failed: %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_EXECBUFFER failed: %s", strerror(errno));
         return ret;
     }
 
@@ -252,6 +258,6 @@ int LinuxVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
     return 0;
 }
 
-VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int fd) {
-    return new LinuxVirtGpuDevice(capset, fd);
+VirtGpuDevice* osCreateVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor) {
+    return new LinuxVirtGpuDevice(capset, descriptor);
 }

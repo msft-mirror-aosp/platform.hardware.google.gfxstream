@@ -57,9 +57,7 @@ QemuPipeStream::~QemuPipeStream()
     }
 }
 
-
-int QemuPipeStream::connect(void)
-{
+int QemuPipeStream::connect(const char* serviceName) {
     m_sock = qemu_pipe_open("opengles");
     if (!valid()) {
         ALOGE("%s: failed to connect to opengles pipe", __FUNCTION__);
@@ -67,6 +65,37 @@ int QemuPipeStream::connect(void)
         return -1;
     }
     return 0;
+}
+
+uint64_t QemuPipeStream::processPipeInit() {
+    QEMU_PIPE_HANDLE processPipe = qemu_pipe_open("GLProcessPipe");
+
+    uint64_t procUID = 0;
+    if (!qemu_pipe_valid(processPipe)) {
+        processPipe = 0;
+        ALOGW("Process pipe failed");
+        return 0;
+    }
+
+    // Send a confirmation int to the host
+    int32_t confirmInt = 100;
+    if (qemu_pipe_write_fully(processPipe, &confirmInt, sizeof(confirmInt))) {  // failed
+        qemu_pipe_close(processPipe);
+        processPipe = 0;
+        ALOGW("Process pipe failed");
+        return 0;
+    }
+
+    // Ask the host for per-process unique ID
+    if (qemu_pipe_read_fully(processPipe, &procUID, sizeof(procUID))) {
+        qemu_pipe_close(processPipe);
+        processPipe = 0;
+        procUID = 0;
+        ALOGW("Process pipe failed");
+        return 0;
+    }
+
+    return procUID;
 }
 
 void *QemuPipeStream::allocBuffer(size_t minSize)
@@ -84,7 +113,7 @@ void *QemuPipeStream::allocBuffer(size_t minSize)
             m_buf = p;
             m_bufsize = allocSize;
         } else {
-            ERR("realloc (%zu) failed\n", allocSize);
+            ALOGE("realloc (%zu) failed\n", allocSize);
             free(m_buf);
             m_buf = NULL;
             m_bufsize = 0;
@@ -208,8 +237,8 @@ const unsigned char *QemuPipeStream::read( void *buf, size_t *inout_len)
     //DBG(">> QemuPipeStream::read %d\n", *inout_len);
     if (!valid()) return NULL;
     if (!buf) {
-      ERR("QemuPipeStream::read failed, buf=NULL");
-      return NULL;  // do not allow NULL buf in that implementation
+        ALOGE("QemuPipeStream::read failed, buf=NULL");
+        return NULL;  // do not allow NULL buf in that implementation
     }
 
     int n = recv(buf, *inout_len);

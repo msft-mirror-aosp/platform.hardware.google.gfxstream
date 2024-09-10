@@ -14,11 +14,11 @@
 
 #include "GrallocEmulated.h"
 
-#include <cutils/log.h>
-
 #include <optional>
+#include <unordered_map>
 
 #include "drm_fourcc.h"
+#include "util/log.h"
 
 namespace gfxstream {
 namespace {
@@ -27,6 +27,18 @@ static constexpr int numFds = 0;
 static constexpr int numInts = 1;
 
 #define DRM_FORMAT_R8_BLOB fourcc_code('9', '9', '9', '9')
+
+template <typename T, typename N>
+T DivideRoundUp(T n, N divisor) {
+    const T div = static_cast<T>(divisor);
+    const T q = n / div;
+    return n % div == 0 ? q : q + 1;
+}
+
+template <typename T, typename N>
+T Align(T number, N n) {
+    return DivideRoundUp(number, n) * n;
+}
 
 std::optional<uint32_t> GlFormatToDrmFormat(uint32_t glFormat) {
     switch (glFormat) {
@@ -71,68 +83,204 @@ std::optional<uint32_t> AhbToDrmFormat(uint32_t ahbFormat) {
             return DRM_FORMAT_ABGR16161616F;
         case GFXSTREAM_AHB_FORMAT_R10G10B10A2_UNORM:
             return DRM_FORMAT_ABGR2101010;
+        case GFXSTREAM_AHB_FORMAT_Y8Cb8Cr8_420:
+            return DRM_FORMAT_NV12;
     }
     return std::nullopt;
 }
 
-std::optional<uint32_t> DrmToAhbFormat(uint32_t drmFormat) {
-    switch (drmFormat) {
-        case DRM_FORMAT_ABGR8888:
-            return GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM;
-        case DRM_FORMAT_XBGR8888:
-            return GFXSTREAM_AHB_FORMAT_R8G8B8X8_UNORM;
-        case DRM_FORMAT_ARGB8888:
-            return GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM;
-        case DRM_FORMAT_BGR888:
-            return GFXSTREAM_AHB_FORMAT_R8G8B8_UNORM;
-        case DRM_FORMAT_RGB565:
-            return GFXSTREAM_AHB_FORMAT_R5G6B5_UNORM;
-        case DRM_FORMAT_R8_BLOB:
-            return GFXSTREAM_AHB_FORMAT_BLOB;
-        case DRM_FORMAT_R8:
-            return GFXSTREAM_AHB_FORMAT_R8_UNORM;
-        case DRM_FORMAT_YVU420:
-            return GFXSTREAM_AHB_FORMAT_YV12;
-        case DRM_FORMAT_ABGR16161616F:
-            return GFXSTREAM_AHB_FORMAT_R16G16B16A16_FLOAT;
-        case DRM_FORMAT_ABGR2101010:
-            return GFXSTREAM_AHB_FORMAT_R10G10B10A2_UNORM;
-    }
-    return std::nullopt;
-}
-
-std::optional<uint32_t> DrmToBpp(uint32_t drmFormat) {
-    switch (drmFormat) {
-        case DRM_FORMAT_ABGR8888:
-        case DRM_FORMAT_ARGB8888:
-        case DRM_FORMAT_XBGR8888:
-            return 4;
-        case DRM_FORMAT_BGR888:
-            return 3;
-        case DRM_FORMAT_RGB565:
-            return 2;
-        case DRM_FORMAT_R8_BLOB:
-        case DRM_FORMAT_R8:
-            return 1;
-    }
-    return std::nullopt;
-}
-
-std::optional<uint32_t> DrmToVirglFormat(uint32_t drmFormat) {
-    switch (drmFormat) {
-        case DRM_FORMAT_ABGR8888:
-            return VIRGL_FORMAT_R8G8B8A8_UNORM;
-        case DRM_FORMAT_ARGB8888:
-            return VIRGL_FORMAT_B8G8R8A8_UNORM;
-        case DRM_FORMAT_BGR888:
-            return VIRGL_FORMAT_R8G8B8_UNORM;
-        case DRM_FORMAT_BGR565:
-            return VIRGL_FORMAT_B5G6R5_UNORM;
-        case DRM_FORMAT_R8:
-        case DRM_FORMAT_R8_BLOB:
-            return VIRGL_FORMAT_R8_UNORM;
-    }
-    return std::nullopt;
+struct DrmFormatPlaneInfo {
+    uint32_t horizontalSubsampling;
+    uint32_t verticalSubsampling;
+    uint32_t bytesPerPixel;
+};
+struct DrmFormatInfo {
+    uint32_t androidFormat;
+    uint32_t virglFormat;
+    bool isYuv;
+    uint32_t horizontalAlignmentPixels;
+    uint32_t verticalAlignmentPixels;
+    std::vector<DrmFormatPlaneInfo> planes;
+};
+const std::unordered_map<uint32_t, DrmFormatInfo>& GetDrmFormatInfoMap() {
+    static const auto* kFormatInfoMap = new std::unordered_map<uint32_t, DrmFormatInfo>({
+        {DRM_FORMAT_ABGR8888,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM,
+             .virglFormat = VIRGL_FORMAT_R8G8B8A8_UNORM,
+             .isYuv = false,
+             .horizontalAlignmentPixels = 1,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 4,
+                     },
+                 },
+         }},
+        {DRM_FORMAT_ARGB8888,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM,
+             .virglFormat = VIRGL_FORMAT_B8G8R8A8_UNORM,
+             .isYuv = false,
+             .horizontalAlignmentPixels = 1,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 4,
+                     },
+                 },
+         }},
+        {DRM_FORMAT_BGR888,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_R8G8B8_UNORM,
+             .virglFormat = VIRGL_FORMAT_R8G8B8_UNORM,
+             .isYuv = false,
+             .horizontalAlignmentPixels = 1,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 3,
+                     },
+                 },
+         }},
+        {DRM_FORMAT_BGR565,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_R5G6B5_UNORM,
+             .virglFormat = VIRGL_FORMAT_B5G6R5_UNORM,
+             .isYuv = false,
+             .horizontalAlignmentPixels = 1,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 2,
+                     },
+                 },
+         }},
+        {DRM_FORMAT_R8,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_R8_UNORM,
+             .virglFormat = VIRGL_FORMAT_R8_UNORM,
+             .isYuv = false,
+             .horizontalAlignmentPixels = 1,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 1,
+                     },
+                 },
+         }},
+        {DRM_FORMAT_R8_BLOB,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_BLOB,
+             .virglFormat = VIRGL_FORMAT_R8_UNORM,
+             .isYuv = false,
+             .horizontalAlignmentPixels = 1,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 1,
+                     },
+                 },
+         }},
+        {DRM_FORMAT_ABGR16161616F,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_R16G16B16A16_FLOAT,
+             .virglFormat = VIRGL_FORMAT_R16G16B16A16_FLOAT,
+             .isYuv = false,
+             .horizontalAlignmentPixels = 1,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 8,
+                     },
+                 },
+         }},
+        {DRM_FORMAT_ABGR2101010,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_R10G10B10A2_UNORM,
+             .virglFormat = VIRGL_FORMAT_R10G10B10A2_UNORM,
+             .isYuv = false,
+             .horizontalAlignmentPixels = 1,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 4,
+                     },
+                 },
+         }},
+        {DRM_FORMAT_NV12,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_Y8Cb8Cr8_420,
+             .virglFormat = VIRGL_FORMAT_NV12,
+             .isYuv = true,
+             .horizontalAlignmentPixels = 2,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 1,
+                     },
+                     {
+                         .horizontalSubsampling = 2,
+                         .verticalSubsampling = 2,
+                         .bytesPerPixel = 2,
+                     },
+                 },
+         }},
+        {DRM_FORMAT_YVU420,
+         {
+             .androidFormat = GFXSTREAM_AHB_FORMAT_YV12,
+             .virglFormat = VIRGL_FORMAT_YV12,
+             .isYuv = true,
+             .horizontalAlignmentPixels = 32,
+             .verticalAlignmentPixels = 1,
+             .planes =
+                 {
+                     {
+                         .horizontalSubsampling = 1,
+                         .verticalSubsampling = 1,
+                         .bytesPerPixel = 1,
+                     },
+                     {
+                         .horizontalSubsampling = 2,
+                         .verticalSubsampling = 2,
+                         .bytesPerPixel = 1,
+                     },
+                     {
+                         .horizontalSubsampling = 2,
+                         .verticalSubsampling = 2,
+                         .bytesPerPixel = 1,
+                     },
+                 },
+         }},
+    });
+    return *kFormatInfoMap;
 }
 
 }  // namespace
@@ -150,12 +298,14 @@ uint32_t EmulatedAHardwareBuffer::getWidth() const { return mWidth; }
 uint32_t EmulatedAHardwareBuffer::getHeight() const { return mHeight; }
 
 int EmulatedAHardwareBuffer::getAndroidFormat() const {
-    auto ahbFormat = DrmToAhbFormat(mDrmFormat);
-    if (!ahbFormat) {
-        ALOGE("Unhandled DRM format:%u", mDrmFormat);
+    const auto& formatInfosMap = GetDrmFormatInfoMap();
+    auto formatInfoIt = formatInfosMap.find(mDrmFormat);
+    if (formatInfoIt == formatInfosMap.end()) {
+        mesa_loge("Unhandled DRM format:%u", mDrmFormat);
         return -1;
     }
-    return *ahbFormat;
+    const auto& formatInfo = formatInfoIt->second;
+    return formatInfo.androidFormat;
 }
 
 uint32_t EmulatedAHardwareBuffer::getDrmFormat() const { return mDrmFormat; }
@@ -185,7 +335,7 @@ int EmulatedAHardwareBuffer::lock(uint8_t** ptr) {
     if (!mMapped) {
         mMapped = mResource->createMapping();
         if (!mMapped) {
-            ALOGE("Failed to lock EmulatedAHardwareBuffer: failed to create mapping.");
+            mesa_loge("Failed to lock EmulatedAHardwareBuffer: failed to create mapping.");
             return -1;
         }
 
@@ -197,9 +347,57 @@ int EmulatedAHardwareBuffer::lock(uint8_t** ptr) {
     return 0;
 }
 
+int EmulatedAHardwareBuffer::lockPlanes(std::vector<Gralloc::LockedPlane>* ahbPlanes) {
+    uint8_t* data = 0;
+    int ret = lock(&data);
+    if (ret) {
+        return ret;
+    }
+
+    const auto& formatInfosMap = GetDrmFormatInfoMap();
+    auto formatInfoIt = formatInfosMap.find(mDrmFormat);
+    if (formatInfoIt == formatInfosMap.end()) {
+        mesa_loge("Failed to lock: failed to find format info for drm format:%u", mDrmFormat);
+        return -1;
+    }
+    const auto& formatInfo = formatInfoIt->second;
+
+    const uint32_t alignedWidth = Align(mWidth, formatInfo.horizontalAlignmentPixels);
+    const uint32_t alignedHeight = Align(mHeight, formatInfo.verticalAlignmentPixels);
+    uint32_t cumulativeSize = 0;
+    for (const DrmFormatPlaneInfo& planeInfo : formatInfo.planes) {
+        const uint32_t planeWidth = DivideRoundUp(alignedWidth, planeInfo.horizontalSubsampling);
+        const uint32_t planeHeight = DivideRoundUp(alignedHeight, planeInfo.verticalSubsampling);
+        const uint32_t planeBpp = planeInfo.bytesPerPixel;
+        const uint32_t planeStrideBytes = planeWidth * planeBpp;
+        const uint32_t planeSizeBytes = planeHeight * planeStrideBytes;
+        ahbPlanes->emplace_back(Gralloc::LockedPlane{
+            .data = data + cumulativeSize,
+            .pixelStrideBytes = planeBpp,
+            .rowStrideBytes = planeStrideBytes,
+        });
+        cumulativeSize += planeSizeBytes;
+    }
+
+    if (mDrmFormat == DRM_FORMAT_NV12) {
+        const auto& uPlane = (*ahbPlanes)[1];
+        auto vPlane = uPlane;
+        vPlane.data += 1;
+
+        ahbPlanes->push_back(vPlane);
+    } else if (mDrmFormat == DRM_FORMAT_YVU420) {
+        // Note: lockPlanes() always returns Y, then U, then V but YV12 is Y, then V, then U.
+        auto& plane1 = (*ahbPlanes)[1];
+        auto& plane2 = (*ahbPlanes)[2];
+        std::swap(plane1, plane2);
+    }
+
+    return 0;
+}
+
 int EmulatedAHardwareBuffer::unlock() {
     if (!mMapped) {
-        ALOGE("Failed to unlock EmulatedAHardwareBuffer: never locked?");
+        mesa_loge("Failed to unlock EmulatedAHardwareBuffer: never locked?");
         return -1;
     }
     mResource->transferToHost(0, 0, mWidth, mHeight);
@@ -208,15 +406,25 @@ int EmulatedAHardwareBuffer::unlock() {
     return 0;
 }
 
-EmulatedGralloc::EmulatedGralloc() {}
+EmulatedGralloc::EmulatedGralloc(int32_t descriptor) {
+    mDevice.reset(createPlatformVirtGpuDevice(kCapsetNone, descriptor));
+}
 
-uint32_t EmulatedGralloc::createColorBuffer(void*, int width, int height, uint32_t glFormat) {
+EmulatedGralloc::~EmulatedGralloc() { mOwned.clear(); }
+
+GrallocType EmulatedGralloc::getGrallocType() { return GRALLOC_TYPE_EMULATED; }
+
+uint32_t EmulatedGralloc::createColorBuffer(int width, int height, uint32_t glFormat) {
     auto drmFormat = GlFormatToDrmFormat(glFormat);
     if (!drmFormat) {
-        ALOGE("Unhandled format");
+        mesa_loge("Unhandled format");
+        return -1;
     }
 
     auto ahb = allocate(width, height, *drmFormat);
+    if (ahb == nullptr) {
+        return -1;
+    }
 
     EmulatedAHardwareBuffer* rahb = reinterpret_cast<EmulatedAHardwareBuffer*>(ahb);
 
@@ -231,7 +439,7 @@ int EmulatedGralloc::allocate(uint32_t width, uint32_t height, uint32_t ahbForma
 
     auto drmFormat = AhbToDrmFormat(ahbFormat);
     if (!drmFormat) {
-        ALOGE("Unhandled AHB format:%u", ahbFormat);
+        mesa_loge("Unhandled AHB format:%u", ahbFormat);
         return -1;
     }
 
@@ -244,34 +452,40 @@ int EmulatedGralloc::allocate(uint32_t width, uint32_t height, uint32_t ahbForma
 }
 
 AHardwareBuffer* EmulatedGralloc::allocate(uint32_t width, uint32_t height, uint32_t drmFormat) {
-    ALOGE("Allocating AHB w:%u, h:%u, format %u", width, height, drmFormat);
+    mesa_loge("Allocating AHB w:%u, h:%u, format %u", width, height, drmFormat);
 
-    auto device = VirtGpuDevice::getInstance();
-    if (!device) {
-        ALOGE("Failed to allocate: no virtio gpu device.");
+    const auto& formatInfosMap = GetDrmFormatInfoMap();
+    auto formatInfoIt = formatInfosMap.find(drmFormat);
+    if (formatInfoIt == formatInfosMap.end()) {
+        mesa_loge("Failed to allocate: failed to find format info for drm format:%u", drmFormat);
         return nullptr;
     }
+    const auto& formatInfo = formatInfoIt->second;
 
-    auto virglFormat = DrmToVirglFormat(drmFormat);
-    if (!virglFormat) {
-        ALOGE("Failed to allocate: Unhandled DRM format:%u to Virgl format conversion.", drmFormat);
-        return nullptr;
+    const uint32_t alignedWidth = Align(width, formatInfo.horizontalAlignmentPixels);
+    const uint32_t alignedHeight = Align(height, formatInfo.verticalAlignmentPixels);
+    uint32_t stride = 0;
+    uint32_t size = 0;
+    for (uint32_t i = 0; i < formatInfo.planes.size(); i++) {
+        const DrmFormatPlaneInfo& planeInfo = formatInfo.planes[i];
+        const uint32_t planeWidth = DivideRoundUp(alignedWidth, planeInfo.horizontalSubsampling);
+        const uint32_t planeHeight = DivideRoundUp(alignedHeight, planeInfo.verticalSubsampling);
+        const uint32_t planeBpp = planeInfo.bytesPerPixel;
+        const uint32_t planeStrideBytes = planeWidth * planeBpp;
+        const uint32_t planeSizeBytes = planeHeight * planeStrideBytes;
+        size += planeSizeBytes;
+        if (i == 0) stride = planeStrideBytes;
     }
 
-    auto bpp = DrmToBpp(drmFormat);
-    if (!virglFormat) {
-        ALOGE("Failed to allocate: Unhandled DRM format:%u to bpp conversion.", drmFormat);
-        return nullptr;
-    }
+    const uint32_t bind = (drmFormat == DRM_FORMAT_R8_BLOB || drmFormat == DRM_FORMAT_NV12 ||
+                           drmFormat == DRM_FORMAT_YVU420)
+                              ? VIRGL_BIND_LINEAR
+                              : VIRGL_BIND_RENDER_TARGET;
 
-    const uint32_t bind =
-        (drmFormat == DRM_FORMAT_R8_BLOB) ? VIRGL_BIND_LINEAR : VIRGL_BIND_RENDER_TARGET;
-    const uint32_t stride = width * (*bpp);
-
-    auto resource =
-        device->createResource(width, height, stride, *virglFormat, PIPE_TEXTURE_2D, bind);
+    auto resource = mDevice->createResource(width, height, stride, size, formatInfo.virglFormat,
+                                            PIPE_TEXTURE_2D, bind);
     if (!resource) {
-        ALOGE("Failed to allocate: failed to create virtio resource.");
+        mesa_loge("Failed to allocate: failed to create virtio resource.");
         return nullptr;
     }
 
@@ -294,6 +508,11 @@ void EmulatedGralloc::release(AHardwareBuffer* ahb) {
 int EmulatedGralloc::lock(AHardwareBuffer* ahb, uint8_t** ptr) {
     auto* rahb = reinterpret_cast<EmulatedAHardwareBuffer*>(ahb);
     return rahb->lock(ptr);
+}
+
+int EmulatedGralloc::lockPlanes(AHardwareBuffer* ahb, std::vector<LockedPlane>* ahbPlanes) {
+    auto* rahb = reinterpret_cast<EmulatedAHardwareBuffer*>(ahb);
+    return rahb->lockPlanes(ahbPlanes);
 }
 
 int EmulatedGralloc::unlock(AHardwareBuffer* ahb) {
@@ -341,12 +560,12 @@ uint32_t EmulatedGralloc::getHeight(const AHardwareBuffer* handle) {
 }
 
 size_t EmulatedGralloc::getAllocatedSize(const native_handle_t*) {
-    ALOGE("Unimplemented.");
+    mesa_loge("Unimplemented.");
     return 0;
 }
 
 size_t EmulatedGralloc::getAllocatedSize(const AHardwareBuffer*) {
-    ALOGE("Unimplemented.");
+    mesa_loge("Unimplemented.");
     return 0;
 }
 
@@ -356,8 +575,6 @@ int EmulatedGralloc::getId(const AHardwareBuffer* ahb, uint64_t* id) {
     return 0;
 }
 
-Gralloc* createPlatformGralloc(int /*deviceFd*/) {
-    return new EmulatedGralloc();
-}
+Gralloc* createPlatformGralloc(int32_t descriptor) { return new EmulatedGralloc(descriptor); }
 
 }  // namespace gfxstream

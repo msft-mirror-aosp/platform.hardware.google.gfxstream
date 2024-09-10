@@ -136,6 +136,7 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     std::unique_ptr<vk::ColorBufferVk> mColorBufferVk;
 
     bool mGlAndVkAreSharingExternalMemory = false;
+    bool mGlTexDirty = false;
 };
 
 typedef std::shared_ptr<ColorBuffer> ColorBufferPtr;

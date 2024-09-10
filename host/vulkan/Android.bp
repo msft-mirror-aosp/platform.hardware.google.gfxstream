@@ -11,16 +11,23 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_vulkan_server",
-    defaults: ["gfxstream_defaults"],
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
     header_libs: [
         "gfxstream_gl_host_common_headers",
         "gfxstream_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
     ],
+    whole_static_libs: [
+        "libgfxstream_host_tracing",
+    ],
     static_libs: [
         "gfxstream_base",
         "gfxstream_host_common",
         "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_backend",
         "libgfxstream_host_compressedtextures",
         "libgfxstream_host_features",
         "libgfxstream_host_vulkan_cereal",
@@ -45,6 +52,7 @@ cc_library_static {
         "ColorBufferVk.cpp",
         "CompositorVk.cpp",
         "DebugUtilsHelper.cpp",
+        "DeviceLostHelper.cpp",
         "DeviceOpTracker.cpp",
         "DisplaySurfaceVk.cpp",
         "DisplayVk.cpp",

@@ -25,8 +25,10 @@ class LinuxVirtGpuResource : public std::enable_shared_from_this<LinuxVirtGpuRes
                          uint64_t size);
     ~LinuxVirtGpuResource();
 
+    void intoRaw() override;
     uint32_t getResourceHandle() const override;
     uint32_t getBlobHandle() const override;
+    uint64_t getSize() const override;
     int wait() override;
 
     VirtGpuResourceMappingPtr createMapping(void) override;
@@ -69,7 +71,7 @@ class LinuxVirtGpuDevice : public VirtGpuDevice {
 
     VirtGpuResourcePtr createBlob(const struct VirtGpuCreateBlob& blobCreate) override;
     VirtGpuResourcePtr createResource(uint32_t width, uint32_t height, uint32_t stride,
-                                      uint32_t virglFormat, uint32_t target,
+                                      uint32_t size, uint32_t virglFormat, uint32_t target,
                                       uint32_t bind) override;
 
     virtual VirtGpuResourcePtr importBlob(const struct VirtGpuExternalHandle& handle);

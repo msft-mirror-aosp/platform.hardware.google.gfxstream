@@ -26,12 +26,14 @@
 #include "BorrowedImageVk.h"
 #include "CompositorVk.h"
 #include "DebugUtilsHelper.h"
+#include "DeviceLostHelper.h"
 #include "DeviceOpTracker.h"
 #include "DisplayVk.h"
 #include "FrameworkFormats.h"
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/BackendCallbacks.h"
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
 #include "utils/GfxApiLogger.h"
@@ -102,6 +104,8 @@ struct VkEmulation {
     // Whether initialization succeeded.
     bool live = false;
 
+    gfxstream::host::BackendCallbacks callbacks;
+
     gfxstream::host::FeatureSet features;
 
     // Whether to use deferred command submission.
@@ -142,8 +146,11 @@ struct VkEmulation {
     VulkanDispatch* ivk = nullptr;
     VulkanDispatch* dvk = nullptr;
 
+    bool instanceSupportsPhysicalDeviceIDProperties = false;
+    bool instanceSupportsGetPhysicalDeviceProperties2 = false;
     bool instanceSupportsExternalMemoryCapabilities = false;
     bool instanceSupportsExternalSemaphoreCapabilities = false;
+    bool instanceSupportsExternalFenceCapabilities = false;
     bool instanceSupportsSurface = false;
     PFN_vkGetPhysicalDeviceImageFormatProperties2KHR getImageFormatProperties2Func = nullptr;
     PFN_vkGetPhysicalDeviceProperties2KHR getPhysicalDeviceProperties2Func = nullptr;
@@ -157,6 +164,9 @@ struct VkEmulation {
 
     bool debugUtilsAvailableAndRequested = false;
     DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
+
+    bool commandBufferCheckpointsSupportedAndRequested = false;
+    DeviceLostHelper deviceLostHelper{};
 
     // Queue, command pool, and command buffer
     // for running commands to sync stuff system-wide.
@@ -199,11 +209,13 @@ struct VkEmulation {
         bool supportsExternalMemoryImport = false;
         bool supportsExternalMemoryExport = false;
         bool supportsDmaBuf = false;
-        bool supportsIdProperties = false;
         bool supportsDriverProperties = false;
+        bool supportsExternalMemoryHostProps = false;
         bool hasSamplerYcbcrConversionExtension = false;
         bool supportsSamplerYcbcrConversion = false;
         bool glInteropSupported = false;
+        bool hasNvidiaDeviceDiagnosticCheckpointsExtension = false;
+        bool supportsNvidiaDeviceDiagnosticCheckpoints = false;
 
         std::vector<VkExtensionProperties> extensions;
 
@@ -213,6 +225,7 @@ struct VkEmulation {
         VkPhysicalDeviceProperties physdevProps;
         VkPhysicalDeviceMemoryProperties memProps;
         VkPhysicalDeviceIDPropertiesKHR idProps;
+        VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProps;
 
         std::string driverVendor;
         std::string driverVersion;
@@ -433,7 +446,9 @@ struct VkEmulation {
     std::optional<RepresentativeColorBufferMemoryTypeInfo> representativeColorBufferMemoryTypeInfo;
 };
 
-VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::FeatureSet features);
+VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
+                                     gfxstream::host::BackendCallbacks callbacks,
+                                     gfxstream::host::FeatureSet features);
 
 struct VkEmulationFeatures {
     bool glInteropSupported = false;
@@ -452,6 +467,8 @@ void initVkEmulationFeatures(std::unique_ptr<VkEmulationFeatures>);
 
 VkEmulation* getGlobalVkEmulation();
 void teardownGlobalVkEmulation();
+
+void onVkDeviceLost();
 
 std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowType window,
                                                                 uint32_t width, uint32_t height);
@@ -482,6 +499,8 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
                                                                         uint32_t width,
                                                                         uint32_t height,
                                                                         VkImageTiling tiling);
+
+bool isFormatSupported(GLenum format);
 
 bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
                          FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,

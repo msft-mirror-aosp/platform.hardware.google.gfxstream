@@ -1501,6 +1501,12 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceShaderIntegerDotProductP
                       reservedunmarshal_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
 #endif
+#ifdef VK_KHR_pipeline_library
+void reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineLibraryCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkMemoryBarrier2, reservedunmarshal_VkMemoryBarrier2KHR)
 
@@ -1703,6 +1709,54 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkWriteDescriptorSetInlineUniformBlock,
 
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       reservedunmarshal_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
+
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+void reservedunmarshal_VkDrmFormatModifierPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDrmFormatModifierPropertiesListEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesListEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceImageDrmFormatModifierInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierListCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierExplicitCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkImageDrmFormatModifierPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImageDrmFormatModifierPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDrmFormatModifierProperties2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierProperties2EXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDrmFormatModifierPropertiesList2EXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDrmFormatModifierPropertiesList2EXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
+#ifdef VK_EXT_external_memory_host
+void reservedunmarshal_VkImportMemoryHostPointerInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkImportMemoryHostPointerInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkMemoryHostPointerPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMemoryHostPointerPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceExternalMemoryHostPropertiesEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
@@ -2039,6 +2093,37 @@ void reservedunmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureTyp
 void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void reservedunmarshal_VkRayTracingShaderGroupCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingShaderGroupCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkRayTracingPipelineCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRayTracingPipelineCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkStridedDeviceAddressRegionKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkStridedDeviceAddressRegionKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream,
+                                                     VkStructureType rootType,
+                                                     VkTraceRaysIndirectCommandKHR* forUnmarshaling,
+                                                     uint8_t** ptr);
 
 #endif
 }  // namespace vk

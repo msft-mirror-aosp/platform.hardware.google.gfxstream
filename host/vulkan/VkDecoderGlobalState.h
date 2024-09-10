@@ -512,6 +512,8 @@ class VkDecoderGlobalState {
                                        const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo);
     VkResult on_vkGetSemaphoreFdKHR(android::base::BumpPool* pool, VkDevice boxed_device,
                                     const VkSemaphoreGetFdInfoKHR* pGetFdInfo, int* pFd);
+    VkResult on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
+                                     VkSemaphore semaphore, uint64_t syncId);
     void on_vkDestroySemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
                                VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator);
 
@@ -703,9 +705,14 @@ class VkDecoderGlobalState {
                                                VkSamplerYcbcrConversion ycbcrConversion,
                                                const VkAllocationCallbacks* pAllocator);
 
-    void on_DeviceLost();
+    VkResult on_vkEnumeratePhysicalDeviceGroups(
+        android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+        VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties);
+    VkResult on_vkEnumeratePhysicalDeviceGroupsKHR(
+        android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+        VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties);
 
-    void DeviceLostHandler();
+    void on_DeviceLost();
 
     void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,
                              std::optional<uint64_t> allocationSize = std::nullopt);

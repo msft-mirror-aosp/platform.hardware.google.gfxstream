@@ -1507,6 +1507,12 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderIntegerDotProductProperties
                       deepcopy_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR)
 
 #endif
+#ifdef VK_KHR_pipeline_library
+void deepcopy_VkPipelineLibraryCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                             const VkPipelineLibraryCreateInfoKHR* from,
+                                             VkPipelineLibraryCreateInfoKHR* to);
+
+#endif
 #ifdef VK_KHR_synchronization2
 DEFINE_ALIAS_FUNCTION(deepcopy_VkMemoryBarrier2, deepcopy_VkMemoryBarrier2KHR)
 
@@ -1706,6 +1712,58 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkWriteDescriptorSetInlineUniformBlock,
 
 DEFINE_ALIAS_FUNCTION(deepcopy_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       deepcopy_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
+
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+void deepcopy_VkDrmFormatModifierPropertiesEXT(Allocator* alloc, VkStructureType rootType,
+                                               const VkDrmFormatModifierPropertiesEXT* from,
+                                               VkDrmFormatModifierPropertiesEXT* to);
+
+void deepcopy_VkDrmFormatModifierPropertiesListEXT(Allocator* alloc, VkStructureType rootType,
+                                                   const VkDrmFormatModifierPropertiesListEXT* from,
+                                                   VkDrmFormatModifierPropertiesListEXT* to);
+
+void deepcopy_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceImageDrmFormatModifierInfoEXT* from,
+    VkPhysicalDeviceImageDrmFormatModifierInfoEXT* to);
+
+void deepcopy_VkImageDrmFormatModifierListCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkImageDrmFormatModifierListCreateInfoEXT* from,
+    VkImageDrmFormatModifierListCreateInfoEXT* to);
+
+void deepcopy_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkImageDrmFormatModifierExplicitCreateInfoEXT* from,
+    VkImageDrmFormatModifierExplicitCreateInfoEXT* to);
+
+void deepcopy_VkImageDrmFormatModifierPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType, const VkImageDrmFormatModifierPropertiesEXT* from,
+    VkImageDrmFormatModifierPropertiesEXT* to);
+
+void deepcopy_VkDrmFormatModifierProperties2EXT(Allocator* alloc, VkStructureType rootType,
+                                                const VkDrmFormatModifierProperties2EXT* from,
+                                                VkDrmFormatModifierProperties2EXT* to);
+
+void deepcopy_VkDrmFormatModifierPropertiesList2EXT(
+    Allocator* alloc, VkStructureType rootType, const VkDrmFormatModifierPropertiesList2EXT* from,
+    VkDrmFormatModifierPropertiesList2EXT* to);
+
+#endif
+#ifdef VK_EXT_external_memory_host
+void deepcopy_VkImportMemoryHostPointerInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                               const VkImportMemoryHostPointerInfoEXT* from,
+                                               VkImportMemoryHostPointerInfoEXT* to);
+
+void deepcopy_VkMemoryHostPointerPropertiesEXT(Allocator* alloc, VkStructureType rootType,
+                                               const VkMemoryHostPointerPropertiesEXT* from,
+                                               VkMemoryHostPointerPropertiesEXT* to);
+
+void deepcopy_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceExternalMemoryHostPropertiesEXT* from,
+    VkPhysicalDeviceExternalMemoryHostPropertiesEXT* to);
 
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
@@ -2068,6 +2126,39 @@ void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
     const VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* from,
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* to);
+
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void deepcopy_VkRayTracingShaderGroupCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                                   const VkRayTracingShaderGroupCreateInfoKHR* from,
+                                                   VkRayTracingShaderGroupCreateInfoKHR* to);
+
+void deepcopy_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkRayTracingPipelineInterfaceCreateInfoKHR* from,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* to);
+
+void deepcopy_VkRayTracingPipelineCreateInfoKHR(Allocator* alloc, VkStructureType rootType,
+                                                const VkRayTracingPipelineCreateInfoKHR* from,
+                                                VkRayTracingPipelineCreateInfoKHR* to);
+
+void deepcopy_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelineFeaturesKHR* from,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* to);
+
+void deepcopy_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* from,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* to);
+
+void deepcopy_VkStridedDeviceAddressRegionKHR(Allocator* alloc, VkStructureType rootType,
+                                              const VkStridedDeviceAddressRegionKHR* from,
+                                              VkStridedDeviceAddressRegionKHR* to);
+
+void deepcopy_VkTraceRaysIndirectCommandKHR(Allocator* alloc, VkStructureType rootType,
+                                            const VkTraceRaysIndirectCommandKHR* from,
+                                            VkTraceRaysIndirectCommandKHR* to);
 
 #endif
 }  // namespace vk

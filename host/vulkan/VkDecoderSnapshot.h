@@ -1321,6 +1321,18 @@ class VkDecoderSnapshot {
                                       VkDebugUtilsMessageTypeFlagsEXT messageTypes,
                                       const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData);
 #endif
+#ifdef VK_EXT_image_drm_format_modifier
+    void vkGetImageDrmFormatModifierPropertiesEXT(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkDevice device, VkImage image,
+        VkImageDrmFormatModifierPropertiesEXT* pProperties);
+#endif
+#ifdef VK_EXT_external_memory_host
+    void vkGetMemoryHostPointerPropertiesEXT(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType,
+        const void* pHostPointer, VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties);
+#endif
 #ifdef VK_EXT_tooling_info
     void vkGetPhysicalDeviceToolPropertiesEXT(const uint8_t* snapshotTraceBegin,
                                               size_t snapshotTraceBytes,
@@ -1561,6 +1573,49 @@ class VkDecoderSnapshot {
                                    android::base::BumpPool* pool, VkQueue queue,
                                    uint32_t submitCount, const VkSubmitInfo2* pSubmits,
                                    VkFence fence);
+    void vkGetSemaphoreGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+                              VkSemaphore semaphore, uint64_t syncId);
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+    void vkCmdTraceRaysKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                           const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+                           const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+                           uint32_t width, uint32_t height, uint32_t depth);
+    void vkCreateRayTracingPipelinesKHR(const uint8_t* snapshotTraceBegin,
+                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+                                        VkResult input_result, VkDevice device,
+                                        VkDeferredOperationKHR deferredOperation,
+                                        VkPipelineCache pipelineCache, uint32_t createInfoCount,
+                                        const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkPipeline* pPipelines);
+    void vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkResult input_result, VkDevice device, VkPipeline pipeline, uint32_t firstGroup,
+        uint32_t groupCount, size_t dataSize, void* pData);
+    void vkCmdTraceRaysIndirectKHR(
+        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        VkCommandBuffer commandBuffer,
+        const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+        const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+        VkDeviceAddress indirectDeviceAddress);
+    void vkGetRayTracingShaderGroupStackSizeKHR(const uint8_t* snapshotTraceBegin,
+                                                size_t snapshotTraceBytes,
+                                                android::base::BumpPool* pool,
+                                                VkDeviceSize input_result, VkDevice device,
+                                                VkPipeline pipeline, uint32_t group,
+                                                VkShaderGroupShaderKHR groupShader);
+    void vkCmdSetRayTracingPipelineStackSizeKHR(const uint8_t* snapshotTraceBegin,
+                                                size_t snapshotTraceBytes,
+                                                android::base::BumpPool* pool,
+                                                VkCommandBuffer commandBuffer,
+                                                uint32_t pipelineStackSize);
 #endif
    private:
     class Impl;

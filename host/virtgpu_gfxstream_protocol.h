@@ -16,6 +16,7 @@
 #define VIRTGPU_GFXSTREAM_PROTOCOL_H
 
 #include <stdint.h>
+#include "virgl_hw.h"
 
 namespace gfxstream {
 
@@ -44,6 +45,7 @@ namespace gfxstream {
 #define GFXSTREAM_CREATE_IMPORT_SYNC_VK         0xa001
 #define GFXSTREAM_CREATE_QSRI_EXPORT_VK         0xa002
 #define GFXSTREAM_RESOURCE_CREATE_3D            0xa003
+#define GFXSTREAM_ACQUIRE_SYNC                  0xa004
 
 // clang-format off
 // A placeholder command to ensure virtio-gpu completes
@@ -106,6 +108,12 @@ struct gfxstreamResourceCreate3d {
     uint64_t blobId;
 };
 
+struct gfxstreamAcquireSync {
+    struct gfxstreamHeader hdr;
+    uint32_t padding;
+    uint64_t syncId;
+};
+
 struct vulkanCapset {
     uint32_t protocolVersion;
 
@@ -118,7 +126,8 @@ struct vulkanCapset {
     uint32_t blobAlignment;
     uint32_t noRenderControlEnc;
     uint32_t alwaysBlob;
-    uint32_t padding[13];
+    uint32_t externalSync;
+    uint32_t virglSupportedFormats[16];
 };
 
 struct magmaCapset {
