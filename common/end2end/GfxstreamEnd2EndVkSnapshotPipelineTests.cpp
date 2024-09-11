@@ -526,6 +526,7 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) 
 
     SnapshotSaveAndLoad();
     ASSERT_THAT(device->getFenceStatus(*fence), IsVkSuccess());
+    device->resetFences(*fence);
     // TODO(b/332763326): fix validation layer complain about unreleased pipeline layout
 
     // Try to draw something.
