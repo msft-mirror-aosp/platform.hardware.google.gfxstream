@@ -16,6 +16,7 @@
 #include <cinttypes>
 #include <cstdio>
 
+#include "gfxstream/host/Tracing.h"
 #include "host-common/GfxstreamFatalError.h"
 
 using TaskId = VirtioGpuTimelines::TaskId;
@@ -36,12 +37,20 @@ TaskId VirtioGpuTimelines::enqueueTask(const Ring& ring) {
     AutoLock lock(mLock);
 
     TaskId id = mNextId++;
-    std::shared_ptr<Task> task(new Task(id, ring), [this](Task* task) {
+
+    const uint64_t traceId = gfxstream::host::GetUniqueTracingId();
+    GFXSTREAM_TRACE_EVENT_INSTANT(GFXSTREAM_TRACE_VIRTIO_GPU_TIMELINE_CATEGORY,
+                                  "Queue timeline task", "Task ID", id,
+                                  GFXSTREAM_TRACE_FLOW(traceId));
+
+    std::shared_ptr<Task> task(new Task(id, ring, traceId), [this](Task* task) {
         mTaskIdToTask.erase(task->mId);
         delete task;
     });
     mTaskIdToTask[id] = task;
-    mTimelineQueues[ring].emplace_back(std::move(task));
+
+    Timeline& timeline = GetOrCreateTimelineLocked(ring);
+    timeline.mQueue.emplace_back(std::move(task));
     return id;
 }
 
@@ -50,7 +59,9 @@ void VirtioGpuTimelines::enqueueFence(const Ring& ring, FenceId fenceId,
     AutoLock lock(mLock);
 
     auto fence = std::make_unique<Fence>(fenceId, std::move(fenceCompletionCallback));
-    mTimelineQueues[ring].emplace_back(std::move(fence));
+
+    Timeline& timeline = GetOrCreateTimelineLocked(ring);
+    timeline.mQueue.emplace_back(std::move(fence));
     if (mWithAsyncCallback) {
         poll_locked(ring);
     }
@@ -77,10 +88,33 @@ void VirtioGpuTimelines::notifyTaskCompletion(TaskId taskId) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Task(id = " << static_cast<uint64_t>(taskId) << ") has been set to completed.";
     }
+
+    GFXSTREAM_TRACE_EVENT_INSTANT(GFXSTREAM_TRACE_VIRTIO_GPU_TIMELINE_CATEGORY,
+                                  "Notify timeline task completed",
+                                  GFXSTREAM_TRACE_FLOW(task->mTraceId), "Task ID", task->mId);
+
     task->mHasCompleted = true;
     if (mWithAsyncCallback) {
         poll_locked(task->mRing);
     }
+}
+
+VirtioGpuTimelines::Timeline& VirtioGpuTimelines::GetOrCreateTimelineLocked(const Ring& ring) {
+    auto [it, inserted] =
+        mTimelineQueues.emplace(std::piecewise_construct, std::make_tuple(ring), std::make_tuple());
+    Timeline& timeline = it->second;
+    if (inserted) {
+        timeline.mTraceTrackId = gfxstream::host::GetUniqueTracingId();
+
+        const std::string timelineName = "Virtio Gpu Timeline " + to_string(ring);
+        GFXSTREAM_TRACE_NAME_TRACK(GFXSTREAM_TRACE_TRACK(timeline.mTraceTrackId), timelineName);
+
+        GFXSTREAM_TRACE_EVENT_INSTANT(GFXSTREAM_TRACE_VIRTIO_GPU_TIMELINE_CATEGORY,
+                                      "Create Timeline",
+                                      GFXSTREAM_TRACE_TRACK(timeline.mTraceTrackId));
+    }
+
+    return timeline;
 }
 
 void VirtioGpuTimelines::poll() {
@@ -94,26 +128,45 @@ void VirtioGpuTimelines::poll() {
     }
 }
 void VirtioGpuTimelines::poll_locked(const Ring& ring) {
-    auto iTimelineQueue = mTimelineQueues.find(ring);
-    if (iTimelineQueue == mTimelineQueues.end()) {
+    auto timelineIt = mTimelineQueues.find(ring);
+    if (timelineIt == mTimelineQueues.end()) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Ring(" << to_string(ring) << ") doesn't exist.";
     }
-    std::list<TimelineItem> &timelineQueue = iTimelineQueue->second;
+    Timeline& timeline = timelineIt->second;
+
+    auto& timelineQueue = timeline.mQueue;
     auto i = timelineQueue.begin();
     for (; i != timelineQueue.end(); i++) {
-        // This visitor will signal the fence and return whether the timeline
-        // item is an incompleted task.
-        struct {
-            bool operator()(std::unique_ptr<Fence> &fence) {
-                fence->mCompletionCallback();
-                return false;
-            }
-            bool operator()(std::shared_ptr<Task> &task) {
-                return !task->mHasCompleted;
-            }
-        } visitor;
-        if (std::visit(visitor, *i)) {
+        bool shouldStop = std::visit(
+            [&](auto& arg) {
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T, std::unique_ptr<Fence>>) {
+                    auto& fence = arg;
+
+                    GFXSTREAM_TRACE_EVENT_INSTANT(
+                        GFXSTREAM_TRACE_VIRTIO_GPU_TIMELINE_CATEGORY, "Signal Virtio Gpu Fence",
+                        GFXSTREAM_TRACE_TRACK(timeline.mTraceTrackId), "Fence", fence->mId);
+
+                    fence->mCompletionCallback();
+
+                    return false;
+                } else if constexpr (std::is_same_v<T, std::shared_ptr<Task>>) {
+                    auto& task = arg;
+
+                    const bool completed = task->mHasCompleted;
+                    if (completed) {
+                        GFXSTREAM_TRACE_EVENT_INSTANT(
+                            GFXSTREAM_TRACE_VIRTIO_GPU_TIMELINE_CATEGORY, "Process Task Complete",
+                            GFXSTREAM_TRACE_TRACK(timeline.mTraceTrackId),
+                            GFXSTREAM_TRACE_FLOW(task->mTraceId), "Task", task->mId);
+                    }
+                    return !completed;
+                }
+            },
+            *i);
+
+        if (shouldStop) {
             break;
         }
     }
