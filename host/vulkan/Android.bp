@@ -11,11 +11,17 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_vulkan_server",
-    defaults: ["gfxstream_defaults"],
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
     header_libs: [
         "gfxstream_gl_host_common_headers",
         "gfxstream_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
+    ],
+    whole_static_libs: [
+        "libgfxstream_host_tracing",
     ],
     static_libs: [
         "gfxstream_base",
