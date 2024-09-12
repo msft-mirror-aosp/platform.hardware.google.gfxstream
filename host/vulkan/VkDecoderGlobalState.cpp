@@ -23,6 +23,7 @@
 
 #include "ExternalObjectManager.h"
 #include "RenderThreadInfoVk.h"
+#include "SyncThread.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
 #include "VkDecoderContext.h"
@@ -34,7 +35,6 @@
 #include "VulkanStream.h"
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
-#include "aemu/base/Tracing.h"
 #include "aemu/base/containers/EntityManager.h"
 #include "aemu/base/containers/HybridEntityManager.h"
 #include "aemu/base/containers/Lookup.h"
@@ -48,6 +48,7 @@
 #include "common/goldfish_vk_marshaling.h"
 #include "common/goldfish_vk_reserved_marshaling.h"
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
+#include "gfxstream/host/Tracing.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/HostmemIdMapping.h"
 #include "host-common/address_space_device_control_ops.h"
@@ -385,8 +386,8 @@ class VkDecoderGlobalState::Impl {
         mImageInfo.clear();
         mImageViewInfo.clear();
         mSamplerInfo.clear();
-        mCmdBufferInfo.clear();
-        mCmdPoolInfo.clear();
+        mCommandBufferInfo.clear();
+        mCommandPoolInfo.clear();
         mDeviceToPhysicalDevice.clear();
         mPhysicalDeviceToInstance.clear();
         mQueueInfo.clear();
@@ -884,6 +885,8 @@ class VkDecoderGlobalState::Impl {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "Snapshot load failure: unrecognized VkFence";
             }
+            it->second.isWaitablePromise.reset(new std::promise<void>());
+            it->second.isWaitable = it->second.isWaitablePromise->get_future().share();
             const auto& device = it->second.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
@@ -2191,7 +2194,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (deviceInfo->imageFormats.find(pCreateInfo->format) == deviceInfo->imageFormats.end()) {
-            VERBOSE("gfxstream_texture_format_manifest: %s", string_VkFormat(pCreateInfo->format));
+            VERBOSE("gfxstream_texture_format_manifest: %s [%d]", string_VkFormat(pCreateInfo->format), pCreateInfo->format);
             deviceInfo->imageFormats.insert(pCreateInfo->format);
         }
 
@@ -2775,14 +2778,27 @@ class VkDecoderGlobalState::Impl {
             auto& fenceInfo = mFenceInfo[*pFence];
             fenceInfo.device = device;
             fenceInfo.vk = vk;
-
+            fenceInfo.isWaitablePromise.reset(new std::promise<void>());
+            fenceInfo.isWaitable = fenceInfo.isWaitablePromise->get_future().share();
+            if (createInfo.flags & VK_FENCE_CREATE_SIGNALED_BIT) {
+                fenceInfo.isWaitablePromise->set_value();
+            }
             *pFence = new_boxed_non_dispatchable_VkFence(*pFence);
             fenceInfo.boxed = *pFence;
             fenceInfo.external = exportSyncFd;
-            fenceInfo.state = FenceInfo::State::kNotWaitable;
         }
 
         return VK_SUCCESS;
+    }
+
+    VkResult on_vkGetFenceStatus(android::base::BumpPool* pool, VkDevice boxed_device,
+                                 VkFence fence) {
+        return getFenceStatus(fence);
+    }
+
+    VkResult on_vkWaitForFences(android::base::BumpPool* pool, VkDevice device, uint32_t fenceCount,
+                                const VkFence* pFences, VkBool32 waitAll, uint64_t timeout) {
+        return waitForFences(fenceCount, pFences, waitAll, timeout);
     }
 
     VkResult on_vkResetFences(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -2798,13 +2814,15 @@ class VkDecoderGlobalState::Impl {
             for (uint32_t i = 0; i < fenceCount; i++) {
                 if (pFences[i] == VK_NULL_HANDLE) continue;
 
-                DCHECK(mFenceInfo.find(pFences[i]) != mFenceInfo.end());
-                if (mFenceInfo[pFences[i]].external) {
+                auto* fenceInfo = android::base::find(mFenceInfo, pFences[i]);
+                DCHECK(fenceInfo != nullptr);
+                if (fenceInfo->external) {
                     externalFences.push_back(pFences[i]);
                 } else {
                     // Reset all fences' states to kNotWaitable.
                     cleanedFences.push_back(pFences[i]);
-                    mFenceInfo[pFences[i]].state = FenceInfo::State::kNotWaitable;
+                    fenceInfo->isWaitablePromise.reset(new std::promise<void>());
+                    fenceInfo->isWaitable = fenceInfo->isWaitablePromise->get_future().share();
                 }
             }
         }
@@ -2835,9 +2853,10 @@ class VkDecoderGlobalState::Impl {
                 auto& fenceInfo = mFenceInfo[replacement];
                 fenceInfo.device = device;
                 fenceInfo.vk = vk;
+                fenceInfo.isWaitablePromise.reset(new std::promise<void>());
+                fenceInfo.isWaitable = fenceInfo.isWaitablePromise->get_future().share();
                 fenceInfo.boxed = boxed_fence;
                 fenceInfo.external = true;
-                fenceInfo.state = FenceInfo::State::kNotWaitable;
 
                 mFenceInfo[fence].boxed = VK_NULL_HANDLE;
             }
@@ -4032,7 +4051,7 @@ class VkDecoderGlobalState::Impl {
                                        regionCount, pRegions);
             return;
         }
-        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
             return;
         }
@@ -4085,7 +4104,7 @@ class VkDecoderGlobalState::Impl {
             vk->vkCmdCopyBufferToImage2(commandBuffer, pCopyBufferToImageInfo);
             return;
         }
-        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
             return;
         }
@@ -4142,7 +4161,7 @@ class VkDecoderGlobalState::Impl {
             vk->vkCmdCopyBufferToImage2KHR(commandBuffer, pCopyBufferToImageInfo);
             return;
         }
-        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
             return;
         }
@@ -4217,7 +4236,7 @@ class VkDecoderGlobalState::Impl {
     void processImageMemoryBarrier(VkCommandBuffer commandBuffer, uint32_t imageMemoryBarrierCount,
                                    const VkImageMemoryBarrierType* pImageMemoryBarriers) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) return;
 
         // TODO: update image layout in ImageInfo
@@ -4275,7 +4294,7 @@ class VkDecoderGlobalState::Impl {
             return;
         }
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) return;
 
         DeviceInfo* deviceInfo = android::base::find(mDeviceInfo, cmdBufferInfo->device);
@@ -4352,7 +4371,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) return;
 
         DeviceInfo* deviceInfo = android::base::find(mDeviceInfo, cmdBufferInfo->device);
@@ -5220,6 +5239,7 @@ class VkDecoderGlobalState::Impl {
             auto fenceInfo = android::base::find(mFenceInfo, fence);
             if (fenceInfo != nullptr) {
                 fenceInfo->latestUse = aniCompletedWaitable;
+                fenceInfo->isWaitablePromise->set_value();
             }
         }
 
@@ -5260,8 +5280,9 @@ class VkDecoderGlobalState::Impl {
                                         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
         }
 
-        return syncImageToColorBuffer(vk, queueInfo->queueFamilyIndex, queue, queueInfo->lock,
-                                      waitSemaphoreCount, pWaitSemaphores, pNativeFenceFd, anbInfo);
+        return syncImageToColorBuffer(m_emu->callbacks, vk, queueInfo->queueFamilyIndex, queue,
+                                      queueInfo->lock, waitSemaphoreCount, pWaitSemaphores,
+                                      pNativeFenceFd, anbInfo);
     }
 
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(android::base::BumpPool* pool,
@@ -5462,13 +5483,13 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo) return VK_ERROR_UNKNOWN;
 
         for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; i++) {
-            mCmdBufferInfo[pCommandBuffers[i]] = CommandBufferInfo();
-            mCmdBufferInfo[pCommandBuffers[i]].device = device;
-            mCmdBufferInfo[pCommandBuffers[i]].debugUtilsHelper = deviceInfo->debugUtilsHelper;
-            mCmdBufferInfo[pCommandBuffers[i]].cmdPool = pAllocateInfo->commandPool;
+            mCommandBufferInfo[pCommandBuffers[i]] = CommandBufferInfo();
+            mCommandBufferInfo[pCommandBuffers[i]].device = device;
+            mCommandBufferInfo[pCommandBuffers[i]].debugUtilsHelper = deviceInfo->debugUtilsHelper;
+            mCommandBufferInfo[pCommandBuffers[i]].cmdPool = pAllocateInfo->commandPool;
             auto boxed = new_boxed_VkCommandBuffer(pCommandBuffers[i], vk,
                                                    false /* does not own dispatch */);
-            mCmdBufferInfo[pCommandBuffers[i]].boxed = boxed;
+            mCommandBufferInfo[pCommandBuffers[i]].boxed = boxed;
             pCommandBuffers[i] = (VkCommandBuffer)boxed;
         }
         return result;
@@ -5486,8 +5507,8 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        mCmdPoolInfo[*pCommandPool] = CommandPoolInfo();
-        auto& cmdPoolInfo = mCmdPoolInfo[*pCommandPool];
+        mCommandPoolInfo[*pCommandPool] = CommandPoolInfo();
+        auto& cmdPoolInfo = mCommandPoolInfo[*pCommandPool];
         cmdPoolInfo.device = device;
 
         *pCommandPool = new_boxed_non_dispatchable_VkCommandPool(*pCommandPool);
@@ -5504,10 +5525,10 @@ class VkDecoderGlobalState::Impl {
 
         vk->vkDestroyCommandPool(device, commandPool, pAllocator);
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        const auto* cmdPoolInfo = android::base::find(mCmdPoolInfo, commandPool);
+        const auto* cmdPoolInfo = android::base::find(mCommandPoolInfo, commandPool);
         if (cmdPoolInfo) {
             removeCommandBufferInfo(cmdPoolInfo->cmdBuffers);
-            mCmdPoolInfo.erase(commandPool);
+            mCommandPoolInfo.erase(commandPool);
         }
     }
 
@@ -5531,7 +5552,7 @@ class VkDecoderGlobalState::Impl {
 
         vk->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers);
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        CommandBufferInfo& cmdBuffer = mCmdBufferInfo[commandBuffer];
+        CommandBufferInfo& cmdBuffer = mCommandBufferInfo[commandBuffer];
         cmdBuffer.subCmds.insert(cmdBuffer.subCmds.end(), pCommandBuffers,
                                  pCommandBuffers + commandBufferCount);
     }
@@ -5604,7 +5625,7 @@ class VkDecoderGlobalState::Impl {
                     for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                         VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                         CommandBufferInfo* cmdBufferInfo =
-                            android::base::find(mCmdBufferInfo, cmdBuffer);
+                            android::base::find(mCommandBufferInfo, cmdBuffer);
                         if (!cmdBufferInfo) {
                             continue;
                         }
@@ -5643,6 +5664,7 @@ class VkDecoderGlobalState::Impl {
 
         VkDevice device = VK_NULL_HANDLE;
         Lock* ql;
+        std::shared_ptr<std::promise<void>> isWaitablePromise;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
 
@@ -5665,6 +5687,13 @@ class VkDecoderGlobalState::Impl {
             auto* queueInfo = android::base::find(mQueueInfo, queue);
             if (!queueInfo) return VK_SUCCESS;
             ql = queueInfo->lock;
+
+            if (fence) {
+                auto* fenceInfo = android::base::find(mFenceInfo, fence);
+                if (fenceInfo) {
+                    isWaitablePromise = fenceInfo->isWaitablePromise;
+                }
+            }
         }
 
         VkFence usedFence = fence;
@@ -5692,7 +5721,7 @@ class VkDecoderGlobalState::Impl {
                 for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                     VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                     CommandBufferInfo* cmdBufferInfo =
-                        android::base::find(mCmdBufferInfo, cmdBuffer);
+                        android::base::find(mCommandBufferInfo, cmdBuffer);
                     if (cmdBufferInfo) {
                         imageBarrierColorBuffers.merge(cmdBufferInfo->imageBarrierColorBuffers);
                     }
@@ -5706,9 +5735,11 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        AutoLock qlock(*ql);
-        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
-
+        VkResult result;
+        {
+            AutoLock qlock(*ql);
+            result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
+        }
         if (result != VK_SUCCESS) {
             WARN("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result), result);
             return result;
@@ -5720,7 +5751,7 @@ class VkDecoderGlobalState::Impl {
                 for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                     VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                     CommandBufferInfo* cmdBufferInfo =
-                        android::base::find(mCmdBufferInfo, cmdBuffer);
+                        android::base::find(mCommandBufferInfo, cmdBuffer);
                     if (!cmdBufferInfo) {
                         continue;
                     }
@@ -5753,26 +5784,35 @@ class VkDecoderGlobalState::Impl {
                 }
             }
 
-            // After vkQueueSubmit is called, we can signal the conditional variable
-            // in FenceInfo, so that other threads (e.g. SyncThread) can call
-            // waitForFence() on this fence.
             auto* fenceInfo = android::base::find(mFenceInfo, fence);
             if (fenceInfo) {
-                fenceInfo->state = FenceInfo::State::kWaitable;
-                fenceInfo->lock.lock();
-                fenceInfo->cv.signalAndUnlock(&fenceInfo->lock);
                 // Also update the latestUse waitable for this fence, to ensure
                 // it is not asynchronously destroyed before all the waitables
                 // referencing it
                 fenceInfo->latestUse = queueCompletedWaitable;
             }
         }
-        if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
-
-            for (HandleType cb : releasedColorBuffers) {
-                m_emu->callbacks.flushColorBuffer(cb);
+        if (releasedColorBuffers.empty()) {
+            if (isWaitablePromise.get()) {
+                isWaitablePromise->set_value();
             }
+        } else {
+            SyncThread::get()->triggerGeneral(
+                [flushColorBuffer = m_emu->callbacks.flushColorBuffer, releasedColorBuffers,
+                 usedFence, isWaitablePromise, vk, device]() {
+                    vk->vkWaitForFences(device, 1, &usedFence, true,
+                                        10ULL * 1000ULL * 1000ULL * 1000ULL);
+                    for (HandleType cb : releasedColorBuffers) {
+                        flushColorBuffer(cb);
+                    }
+                    // After vkQueueSubmit is called, we can signal the conditional variable
+                    // in FenceInfo, so that other threads (e.g. SyncThread) can call
+                    // waitForFence() on this fence.
+                    if (isWaitablePromise.get()) {
+                        isWaitablePromise->set_value();
+                    }
+                },
+                "Wait for submit and copy color buffers from vk->gl");
         }
 
         return result;
@@ -5807,7 +5847,7 @@ class VkDecoderGlobalState::Impl {
         VkResult result = vk->vkResetCommandBuffer(commandBuffer, flags);
         if (VK_SUCCESS == result) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-            auto& bufferInfo = mCmdBufferInfo[commandBuffer];
+            auto& bufferInfo = mCommandBufferInfo[commandBuffer];
             bufferInfo.reset();
         }
         return result;
@@ -5829,15 +5869,15 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
         for (uint32_t i = 0; i < commandBufferCount; i++) {
-            const auto& cmdBufferInfoIt = mCmdBufferInfo.find(pCommandBuffers[i]);
-            if (cmdBufferInfoIt != mCmdBufferInfo.end()) {
-                const auto& cmdPoolInfoIt = mCmdPoolInfo.find(cmdBufferInfoIt->second.cmdPool);
-                if (cmdPoolInfoIt != mCmdPoolInfo.end()) {
+            const auto& cmdBufferInfoIt = mCommandBufferInfo.find(pCommandBuffers[i]);
+            if (cmdBufferInfoIt != mCommandBufferInfo.end()) {
+                const auto& cmdPoolInfoIt = mCommandPoolInfo.find(cmdBufferInfoIt->second.cmdPool);
+                if (cmdPoolInfoIt != mCommandPoolInfo.end()) {
                     cmdPoolInfoIt->second.cmdBuffers.erase(pCommandBuffers[i]);
                 }
                 // Done in decoder
                 // delete_VkCommandBuffer(cmdBufferInfoIt->second.boxed);
-                mCmdBufferInfo.erase(cmdBufferInfoIt);
+                mCommandBufferInfo.erase(cmdBufferInfoIt);
             }
         }
     }
@@ -6140,7 +6180,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        auto* commandBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* commandBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!commandBufferInfo) return VK_ERROR_UNKNOWN;
         commandBufferInfo->reset();
 
@@ -6169,7 +6209,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        auto* commandBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        auto* commandBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!commandBufferInfo) return VK_ERROR_UNKNOWN;
 
         if (context.processName) {
@@ -6198,7 +6238,7 @@ class VkDecoderGlobalState::Impl {
         vk->vkCmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline);
         if (pipelineBindPoint == VK_PIPELINE_BIND_POINT_COMPUTE) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-            auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+            auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
             if (cmdBufferInfo) {
                 cmdBufferInfo->computePipeline = pipeline;
             }
@@ -6218,7 +6258,7 @@ class VkDecoderGlobalState::Impl {
                                     pDynamicOffsets);
         if (descriptorSetCount) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-            auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+            auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
             if (cmdBufferInfo) {
                 cmdBufferInfo->descriptorLayout = layout;
 
@@ -6316,7 +6356,7 @@ class VkDecoderGlobalState::Impl {
 
     void registerRenderPassBeginInfo(VkCommandBuffer commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin) {
-        CommandBufferInfo* cmdBufferInfo = android::base::find(mCmdBufferInfo, commandBuffer);
+        CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         FramebufferInfo* fbInfo =
             android::base::find(mFramebufferInfo, pRenderPassBegin->framebuffer);
         cmdBufferInfo->releasedColorBuffers.insert(fbInfo->attachedColorBuffers.begin(),
@@ -6896,62 +6936,53 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    VkResult waitForFence(VkFence boxed_fence, uint64_t timeout) {
-        VkFence fence = unbox_VkFence(boxed_fence);
-        VkDevice device;
-        VulkanDispatch* vk;
-        StaticLock* fenceLock;
-        ConditionVariable* cv;
-        {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-            if (fence == VK_NULL_HANDLE || mFenceInfo.find(fence) == mFenceInfo.end()) {
-                // No fence, could be a semaphore.
-                // TODO: Async wait for semaphores
-                return VK_SUCCESS;
-            }
-
-            // Vulkan specs require fences of vkQueueSubmit to be *externally
-            // synchronized*, i.e. we cannot submit a queue while waiting for the
-            // fence in another thread. For threads that call this function, they
-            // have to wait until a vkQueueSubmit() using this fence is called
-            // before calling vkWaitForFences(). So we use a conditional variable
-            // and mutex for thread synchronization.
-            //
-            // See:
-            // https://www.khronos.org/registry/vulkan/specs/1.2/html/vkspec.html#fundamentals-threadingbehavior
-            // https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/issues/519
-
-            device = mFenceInfo[fence].device;
-            vk = mFenceInfo[fence].vk;
-            fenceLock = &mFenceInfo[fence].lock;
-            cv = &mFenceInfo[fence].cv;
+    VkResult waitForFences(uint32_t fenceCount, const VkFence* pFences, bool waitAll,
+                           uint64_t timeout) {
+        if (!fenceCount) {
+            return VK_SUCCESS;
         }
+        const auto timeoutStamp =
+            std::chrono::system_clock::now() + std::chrono::nanoseconds(timeout);
+        VkDevice device = nullptr;
+        VulkanDispatch* vk = nullptr;
+        for (uint32_t i = 0; i < fenceCount; i++) {
+            VkFence fence = pFences[i];
+            std::shared_future<void> isWaitable;
+            {
+                std::lock_guard<std::recursive_mutex> lock(mLock);
+                if (fence == VK_NULL_HANDLE || mFenceInfo.find(fence) == mFenceInfo.end()) {
+                    // No fence, could be a semaphore.
+                    // TODO: Async wait for semaphores
+                    return VK_SUCCESS;
+                }
 
-        fenceLock->lock();
-        cv->wait(fenceLock, [this, fence] {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-            if (mFenceInfo[fence].state == FenceInfo::State::kWaitable) {
-                mFenceInfo[fence].state = FenceInfo::State::kWaiting;
-                return true;
+                // Vulkan specs require fences of vkQueueSubmit to be *externally
+                // synchronized*, i.e. we cannot submit a queue while waiting for the
+                // fence in another thread. For threads that call this function, they
+                // have to wait until a vkQueueSubmit() using this fence is called
+                // before calling vkWaitForFences(). So we use a future for thread
+                // synchronization.
+                //
+                // See:
+                // https://www.khronos.org/registry/vulkan/specs/1.2/html/vkspec.html#fundamentals-threadingbehavior
+                // https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/issues/519
+
+                device = mFenceInfo[fence].device;
+                vk = mFenceInfo[fence].vk;
+                isWaitable = mFenceInfo[fence].isWaitable;
             }
-            return false;
-        });
-        fenceLock->unlock();
-
-        {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-            if (mFenceInfo.find(fence) == mFenceInfo.end()) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Fence was destroyed before vkWaitForFences call.";
+            // Current implementation does not respect waitAll here.
+            if (std::future_status::ready != isWaitable.wait_until(timeoutStamp)) {
+                return VK_TIMEOUT;
             }
         }
-
-        return vk->vkWaitForFences(device, /* fenceCount */ 1u, &fence,
-                                   /* waitAll */ false, timeout);
+        return vk->vkWaitForFences(device, fenceCount, pFences, waitAll,
+                                   std::chrono::duration<uint64_t, std::nano>(
+                                       timeoutStamp - std::chrono::system_clock::now())
+                                       .count());
     }
 
-    VkResult getFenceStatus(VkFence boxed_fence) {
-        VkFence fence = unbox_VkFence(boxed_fence);
+    VkResult getFenceStatus(VkFence fence) {
         VkDevice device;
         VulkanDispatch* vk;
         {
@@ -6960,6 +6991,11 @@ class VkDecoderGlobalState::Impl {
                 // No fence, could be a semaphore.
                 // TODO: Async get status for semaphores
                 return VK_SUCCESS;
+            }
+
+            if (std::future_status::ready !=
+                mFenceInfo[fence].isWaitable.wait_for(std::chrono::nanoseconds(0LL))) {
+                return VK_NOT_READY;
             }
 
             device = mFenceInfo[fence].device;
@@ -7162,10 +7198,11 @@ class VkDecoderGlobalState::Impl {
                 continue;
             }
             if (resolvedFormat != colorBufferVkImageCi->format) {
-                ERR("The VkImageCreateInfo to import %s contains unexpected VkFormat: %s. %s "
-                    "expected.",
-                    importSource.c_str()?:"", string_VkFormat(imageCreateInfo.format),
-                    string_VkFormat(colorBufferVkImageCi->format));
+                ERR("The VkImageCreateInfo to import %s contains unexpected VkFormat:"
+                    "%s [%d]. %s [%d] expected.",
+                    importSource.c_str() ?: "", string_VkFormat(imageCreateInfo.format),
+                    imageCreateInfo.format, string_VkFormat(colorBufferVkImageCi->format),
+                    colorBufferVkImageCi->format);
             }
             if (imageCreateInfo.extent.width != colorBufferVkImageCi->extent.width) {
                 ERR("The VkImageCreateInfo to import %s contains unexpected VkExtent::width: "
@@ -7786,7 +7823,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void executePreprocessRecursive(int level, VkCommandBuffer cmdBuffer) {
-        auto* cmdBufferInfo = android::base::find(mCmdBufferInfo, cmdBuffer);
+        auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, cmdBuffer);
         if (!cmdBufferInfo) return;
         for (const auto& func : cmdBufferInfo->preprocessFuncs) {
             func();
@@ -7885,19 +7922,19 @@ class VkDecoderGlobalState::Impl {
                 freeMemoryLocked(deviceToDestroyDispatch, deviceToDestroy, memory, nullptr);
             }
 
-            for (auto [commandBuffer, commandPool] :
-                 findDeviceObjects(deviceToDestroy, mCmdBufferInfo, &CommandBufferInfo::cmdPool)) {
+            for (auto [commandBuffer, commandPool] : findDeviceObjects(
+                     deviceToDestroy, mCommandBufferInfo, &CommandBufferInfo::cmdPool)) {
                 // The command buffer is freed with the vkDestroyCommandPool() below.
                 delete_VkCommandBuffer(unboxed_to_boxed_VkCommandBuffer(commandBuffer));
-                mCmdBufferInfo.erase(commandBuffer);
+                mCommandBufferInfo.erase(commandBuffer);
             }
 
             for (auto [commandPool, commandPoolBoxed] :
-                 findDeviceObjects(deviceToDestroy, mCmdPoolInfo, &CommandPoolInfo::boxed)) {
+                 findDeviceObjects(deviceToDestroy, mCommandPoolInfo, &CommandPoolInfo::boxed)) {
                 deviceToDestroyDispatch->vkDestroyCommandPool(deviceToDestroy, commandPool,
                                                               nullptr);
                 delete_VkCommandPool(commandPoolBoxed);
-                mCmdPoolInfo.erase(commandPool);
+                mCommandPoolInfo.erase(commandPool);
             }
 
             for (auto [descriptorPool, descriptorPoolBoxed] : findDeviceObjects(
@@ -8000,7 +8037,7 @@ class VkDecoderGlobalState::Impl {
 
     void removeCommandBufferInfo(const std::unordered_set<VkCommandBuffer>& cmdBuffers) {
         for (const auto& cmdBuffer : cmdBuffers) {
-            mCmdBufferInfo.erase(cmdBuffer);
+            mCommandBufferInfo.erase(cmdBuffer);
         }
     }
 
@@ -8292,8 +8329,8 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkImage, ImageInfo> mImageInfo;
     std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo;
     std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo;
-    std::unordered_map<VkCommandBuffer, CommandBufferInfo> mCmdBufferInfo;
-    std::unordered_map<VkCommandPool, CommandPoolInfo> mCmdPoolInfo;
+    std::unordered_map<VkCommandBuffer, CommandBufferInfo> mCommandBufferInfo;
+    std::unordered_map<VkCommandPool, CommandPoolInfo> mCommandPoolInfo;
     // TODO: release CommandBufferInfo when a command pool is reset/released
 
     // Back-reference to the physical device associated with a particular
@@ -8735,6 +8772,17 @@ VkResult VkDecoderGlobalState::on_vkCreateFence(android::base::BumpPool* pool, V
                                                 const VkAllocationCallbacks* pAllocator,
                                                 VkFence* pFence) {
     return mImpl->on_vkCreateFence(pool, device, pCreateInfo, pAllocator, pFence);
+}
+
+VkResult VkDecoderGlobalState::on_vkGetFenceStatus(android::base::BumpPool* pool, VkDevice device,
+                                                   VkFence fence) {
+    return mImpl->on_vkGetFenceStatus(pool, device, fence);
+}
+
+VkResult VkDecoderGlobalState::on_vkWaitForFences(android::base::BumpPool* pool, VkDevice device,
+                                                  uint32_t fenceCount, const VkFence* pFences,
+                                                  VkBool32 waitAll, uint64_t timeout) {
+    return mImpl->on_vkWaitForFences(pool, device, fenceCount, pFences, waitAll, timeout);
 }
 
 VkResult VkDecoderGlobalState::on_vkResetFences(android::base::BumpPool* pool, VkDevice device,
@@ -9503,11 +9551,13 @@ void VkDecoderGlobalState::on_CheckOutOfMemory(VkResult result, uint32_t opCode,
 }
 
 VkResult VkDecoderGlobalState::waitForFence(VkFence boxed_fence, uint64_t timeout) {
-    return mImpl->waitForFence(boxed_fence, timeout);
+    VkFence fence = unbox_VkFence(boxed_fence);
+    return mImpl->waitForFences(1, &fence, true, timeout);
 }
 
 VkResult VkDecoderGlobalState::getFenceStatus(VkFence boxed_fence) {
-    return mImpl->getFenceStatus(boxed_fence);
+    VkFence fence = unbox_VkFence(boxed_fence);
+    return mImpl->getFenceStatus(fence);
 }
 
 AsyncResult VkDecoderGlobalState::registerQsriCallback(VkImage image,

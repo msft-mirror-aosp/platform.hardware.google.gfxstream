@@ -321,7 +321,6 @@ class IOStream;
 }}  // namespace gfxstream
 """
         encoderImplInclude = f"""
-#include "EncoderDebug.h"
 #include "Resources.h"
 #include "ResourceTracker.h"
 #include "Validation.h"
@@ -330,8 +329,6 @@ class IOStream;
 
 #include "{self.guestBaseLibDirPrefix}/AlignedBuf.h"
 #include "{self.guestBaseLibDirPrefix}/BumpPool.h"
-
-#include <cutils/properties.h>
 
 #include "goldfish_vk_marshaling_guest.h"
 #include "goldfish_vk_reserved_marshaling_guest.h"
@@ -350,14 +347,12 @@ class IOStream;
 
         functableImplInclude = """
 #include "VkEncoder.h"
-#include "../OpenglSystemCommon/HostConnection.h"
 #include "ResourceTracker.h"
 #include "gfxstream_vk_entrypoints.h"
 #include "gfxstream_vk_private.h"
 
 #include "goldfish_vk_private_defs.h"
 
-#include <log/log.h>
 #include <cstring>
 
 // Stuff we are not going to use but if included,
@@ -434,8 +429,8 @@ using android::base::BumpPool;
         poolIncludeGuest = f"""
 #include "goldfish_vk_private_defs.h"
 #include "{self.guestBaseLibDirPrefix}/BumpPool.h"
-using gfxstream::guest::Allocator;
-using gfxstream::guest::BumpPool;
+using android::base::Allocator;
+using android::base::BumpPool;
 // Stuff we are not going to use but if included,
 // will cause compile errors. These are Android Vulkan
 // required extensions, but the approach will be to
@@ -535,10 +530,10 @@ class BumpPool;
 
 #include "{self.baseLibDirPrefix}/BumpPool.h"
 #include "{self.baseLibDirPrefix}/system/System.h"
-#include "{self.baseLibDirPrefix}/Tracing.h"
 #include "{self.baseLibDirPrefix}/Metrics.h"
 #include "render-utils/IOStream.h"
 #include "FrameBuffer.h"
+#include "gfxstream/host/Tracing.h"
 #include "host-common/feature_control.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"

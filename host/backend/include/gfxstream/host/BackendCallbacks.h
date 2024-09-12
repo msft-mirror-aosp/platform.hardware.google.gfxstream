@@ -32,6 +32,10 @@ struct BackendCallbacks {
 
     using FlushColorBufferFunc = std::function<void(uint32_t colorBufferHandle)>;
     FlushColorBufferFunc flushColorBuffer;
+
+    using FlushColorBufferFromBytesFunc =
+        std::function<void(uint32_t colorBufferHandle, const void* bytes, size_t bytesSize)>;
+    FlushColorBufferFromBytesFunc flushColorBufferFromBytes;
 };
 
 }  // namespace host
