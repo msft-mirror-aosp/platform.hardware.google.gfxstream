@@ -704,6 +704,7 @@ custom_decodes = {
     "vkDestroyCommandPool" : emit_global_state_wrapped_decoding,
     "vkResetCommandPool" : emit_global_state_wrapped_decoding,
     "vkCmdPipelineBarrier" : emit_global_state_wrapped_decoding,
+    "vkCmdPipelineBarrier2" : emit_global_state_wrapped_decoding,
     "vkCmdBindPipeline" : emit_global_state_wrapped_decoding,
     "vkCmdBindDescriptorSets" : emit_global_state_wrapped_decoding,
 
@@ -741,6 +742,7 @@ custom_decodes = {
     "vkMapMemoryIntoAddressSpaceGOOGLE" : emit_global_state_wrapped_decoding,
     "vkGetMemoryHostAddressInfoGOOGLE" : emit_global_state_wrapped_decoding,
     "vkGetBlobGOOGLE" : emit_global_state_wrapped_decoding,
+    "vkGetSemaphoreGOOGLE" : emit_global_state_wrapped_decoding,
 
     # Descriptor update templates
     "vkCreateDescriptorUpdateTemplate" : emit_global_state_wrapped_decoding,

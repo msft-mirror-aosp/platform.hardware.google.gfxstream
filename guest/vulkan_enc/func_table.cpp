@@ -157,10 +157,8 @@ VkResult gfxstream_vk_QueueSubmit(VkQueue queue, uint32_t submitCount, const VkS
                 internal_VkSubmitInfo_pWaitSemaphores[i].size();
             /* VkSubmitInfo::pCommandBuffers */
             internal_VkSubmitInfo_pCommandBuffers.push_back(std::vector<VkCommandBuffer>());
-            internal_VkSubmitInfo_pCommandBuffers[i].reserve(
+            internal_VkSubmitInfo_pCommandBuffers[i].resize(
                 internal_pSubmits[i].commandBufferCount);
-            memset(&internal_VkSubmitInfo_pCommandBuffers[i][0], 0,
-                   sizeof(VkCommandBuffer) * internal_pSubmits[i].commandBufferCount);
             for (uint32_t j = 0; j < internal_pSubmits[i].commandBufferCount; ++j) {
                 VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_pCommandBuffers,
                                internal_pSubmits[i].pCommandBuffers[j]);
@@ -381,10 +379,7 @@ VkResult gfxstream_vk_QueueBindSparse(VkQueue queue, uint32_t bindInfoCount,
             /* VkBindSparseInfo::pBufferBinds */
             internal_VkBindSparseInfo_pBufferBinds.push_back(
                 std::vector<VkSparseBufferMemoryBindInfo>());
-            internal_VkBindSparseInfo_pBufferBinds[i].reserve(
-                internal_pBindInfo[i].bufferBindCount);
-            memset(&internal_VkBindSparseInfo_pBufferBinds[i][0], 0,
-                   sizeof(VkSparseBufferMemoryBindInfo) * internal_pBindInfo[i].bufferBindCount);
+            internal_VkBindSparseInfo_pBufferBinds[i].resize(internal_pBindInfo[i].bufferBindCount);
             for (uint32_t j = 0; j < internal_pBindInfo[i].bufferBindCount; ++j) {
                 internal_VkBindSparseInfo_pBufferBinds[i][j] =
                     internal_pBindInfo[i].pBufferBinds[j];
@@ -2352,11 +2347,8 @@ void gfxstream_vk_CmdSetEvent2(VkCommandBuffer commandBuffer, VkEvent event,
             /* VkDependencyInfo::pBufferMemoryBarriers */
             internal_VkDependencyInfo_pBufferMemoryBarriers.push_back(
                 std::vector<VkBufferMemoryBarrier2>());
-            internal_VkDependencyInfo_pBufferMemoryBarriers[i].reserve(
+            internal_VkDependencyInfo_pBufferMemoryBarriers[i].resize(
                 internal_pDependencyInfo[i].bufferMemoryBarrierCount);
-            memset(&internal_VkDependencyInfo_pBufferMemoryBarriers[i][0], 0,
-                   sizeof(VkBufferMemoryBarrier2) *
-                       internal_pDependencyInfo[i].bufferMemoryBarrierCount);
             for (uint32_t j = 0; j < internal_pDependencyInfo[i].bufferMemoryBarrierCount; ++j) {
                 internal_VkDependencyInfo_pBufferMemoryBarriers[i][j] =
                     internal_pDependencyInfo[i].pBufferMemoryBarriers[j];
@@ -2399,11 +2391,8 @@ void gfxstream_vk_CmdWaitEvents2(VkCommandBuffer commandBuffer, uint32_t eventCo
             /* VkDependencyInfo::pBufferMemoryBarriers */
             internal_VkDependencyInfo_pBufferMemoryBarriers.push_back(
                 std::vector<VkBufferMemoryBarrier2>());
-            internal_VkDependencyInfo_pBufferMemoryBarriers[i].reserve(
+            internal_VkDependencyInfo_pBufferMemoryBarriers[i].resize(
                 internal_pDependencyInfos[i].bufferMemoryBarrierCount);
-            memset(&internal_VkDependencyInfo_pBufferMemoryBarriers[i][0], 0,
-                   sizeof(VkBufferMemoryBarrier2) *
-                       internal_pDependencyInfos[i].bufferMemoryBarrierCount);
             for (uint32_t j = 0; j < internal_pDependencyInfos[i].bufferMemoryBarrierCount; ++j) {
                 internal_VkDependencyInfo_pBufferMemoryBarriers[i][j] =
                     internal_pDependencyInfos[i].pBufferMemoryBarriers[j];
@@ -2435,11 +2424,8 @@ void gfxstream_vk_CmdPipelineBarrier2(VkCommandBuffer commandBuffer,
             /* VkDependencyInfo::pBufferMemoryBarriers */
             internal_VkDependencyInfo_pBufferMemoryBarriers.push_back(
                 std::vector<VkBufferMemoryBarrier2>());
-            internal_VkDependencyInfo_pBufferMemoryBarriers[i].reserve(
+            internal_VkDependencyInfo_pBufferMemoryBarriers[i].resize(
                 internal_pDependencyInfo[i].bufferMemoryBarrierCount);
-            memset(&internal_VkDependencyInfo_pBufferMemoryBarriers[i][0], 0,
-                   sizeof(VkBufferMemoryBarrier2) *
-                       internal_pDependencyInfo[i].bufferMemoryBarrierCount);
             for (uint32_t j = 0; j < internal_pDependencyInfo[i].bufferMemoryBarrierCount; ++j) {
                 internal_VkDependencyInfo_pBufferMemoryBarriers[i][j] =
                     internal_pDependencyInfo[i].pBufferMemoryBarriers[j];
@@ -2497,10 +2483,8 @@ VkResult gfxstream_vk_QueueSubmit2(VkQueue queue, uint32_t submitCount,
             /* VkSubmitInfo2::pCommandBufferInfos */
             internal_VkSubmitInfo2_pCommandBufferInfos.push_back(
                 std::vector<VkCommandBufferSubmitInfo>());
-            internal_VkSubmitInfo2_pCommandBufferInfos[i].reserve(
+            internal_VkSubmitInfo2_pCommandBufferInfos[i].resize(
                 internal_pSubmits[i].commandBufferInfoCount);
-            memset(&internal_VkSubmitInfo2_pCommandBufferInfos[i][0], 0,
-                   sizeof(VkCommandBufferSubmitInfo) * internal_pSubmits[i].commandBufferInfoCount);
             for (uint32_t j = 0; j < internal_pSubmits[i].commandBufferInfoCount; ++j) {
                 internal_VkSubmitInfo2_pCommandBufferInfos[i][j] =
                     internal_pSubmits[i].pCommandBufferInfos[j];
@@ -2851,12 +2835,6 @@ void gfxstream_vk_GetDeviceImageSparseMemoryRequirements(
     }
 }
 #endif
-#ifdef VK_KHR_surface
-#endif
-#ifdef VK_KHR_swapchain
-#endif
-#ifdef VK_KHR_xcb_surface
-#endif
 #ifdef VK_KHR_android_surface
 VkResult gfxstream_vk_CreateAndroidSurfaceKHR(VkInstance instance,
                                               const VkAndroidSurfaceCreateInfoKHR* pCreateInfo,
@@ -2873,8 +2851,6 @@ VkResult gfxstream_vk_CreateAndroidSurfaceKHR(VkInstance instance,
     }
     return vkCreateAndroidSurfaceKHR_VkResult_return;
 }
-#endif
-#ifdef VK_KHR_win32_surface
 #endif
 #ifdef VK_KHR_dynamic_rendering
 void gfxstream_vk_CmdBeginRenderingKHR(VkCommandBuffer commandBuffer,
@@ -3011,10 +2987,6 @@ void gfxstream_vk_GetPhysicalDeviceExternalBufferPropertiesKHR(
     }
 }
 #endif
-#ifdef VK_KHR_external_memory
-#endif
-#ifdef VK_KHR_external_memory_win32
-#endif
 #ifdef VK_KHR_external_memory_fd
 VkResult gfxstream_vk_GetMemoryFdKHR(VkDevice device, const VkMemoryGetFdInfoKHR* pGetFdInfo,
                                      int* pFd) {
@@ -3061,10 +3033,6 @@ void gfxstream_vk_GetPhysicalDeviceExternalSemaphorePropertiesKHR(
     }
 }
 #endif
-#ifdef VK_KHR_external_semaphore
-#endif
-#ifdef VK_KHR_external_semaphore_win32
-#endif
 #ifdef VK_KHR_external_semaphore_fd
 VkResult gfxstream_vk_ImportSemaphoreFdKHR(
     VkDevice device, const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {
@@ -3109,10 +3077,6 @@ VkResult gfxstream_vk_GetSemaphoreFdKHR(VkDevice device, const VkSemaphoreGetFdI
     }
     return vkGetSemaphoreFdKHR_VkResult_return;
 }
-#endif
-#ifdef VK_KHR_shader_float16_int8
-#endif
-#ifdef VK_KHR_incremental_present
 #endif
 #ifdef VK_KHR_descriptor_update_template
 VkResult gfxstream_vk_CreateDescriptorUpdateTemplateKHR(
@@ -3159,8 +3123,6 @@ void gfxstream_vk_UpdateDescriptorSetWithTemplateKHR(
                                                            pData);
     }
 }
-#endif
-#ifdef VK_KHR_imageless_framebuffer
 #endif
 #ifdef VK_KHR_create_renderpass2
 VkResult gfxstream_vk_CreateRenderPass2KHR(VkDevice device,
@@ -3229,8 +3191,6 @@ void gfxstream_vk_GetPhysicalDeviceExternalFencePropertiesKHR(
     }
 }
 #endif
-#ifdef VK_KHR_external_fence
-#endif
 #ifdef VK_KHR_external_fence_fd
 VkResult gfxstream_vk_ImportFenceFdKHR(VkDevice device,
                                        const VkImportFenceFdInfoKHR* pImportFenceFdInfo) {
@@ -3274,12 +3234,6 @@ VkResult gfxstream_vk_GetFenceFdKHR(VkDevice device, const VkFenceGetFdInfoKHR* 
     }
     return vkGetFenceFdKHR_VkResult_return;
 }
-#endif
-#ifdef VK_KHR_maintenance2
-#endif
-#ifdef VK_KHR_dedicated_allocation
-#endif
-#ifdef VK_KHR_storage_buffer_storage_class
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 void gfxstream_vk_GetImageMemoryRequirements2KHR(VkDevice device,
@@ -3326,8 +3280,6 @@ void gfxstream_vk_GetImageSparseMemoryRequirements2KHR(
             pSparseMemoryRequirements, true /* do lock */);
     }
 }
-#endif
-#ifdef VK_KHR_image_format_list
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
 VkResult gfxstream_vk_CreateSamplerYcbcrConversionKHR(
@@ -3410,12 +3362,6 @@ void gfxstream_vk_GetDescriptorSetLayoutSupportKHR(
                                                   pSupport, true /* do lock */);
     }
 }
-#endif
-#ifdef VK_KHR_shader_subgroup_extended_types
-#endif
-#ifdef VK_KHR_vulkan_memory_model
-#endif
-#ifdef VK_KHR_shader_terminate_invocation
 #endif
 #ifdef VK_KHR_buffer_device_address
 VkDeviceAddress gfxstream_vk_GetBufferDeviceAddressKHR(VkDevice device,
@@ -3519,10 +3465,6 @@ VkResult gfxstream_vk_GetPipelineExecutableInternalRepresentationsKHR(
     return vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return;
 }
 #endif
-#ifdef VK_KHR_shader_integer_dot_product
-#endif
-#ifdef VK_KHR_shader_non_semantic_info
-#endif
 #ifdef VK_KHR_synchronization2
 void gfxstream_vk_CmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
                                   const VkDependencyInfo* pDependencyInfo) {
@@ -3539,11 +3481,8 @@ void gfxstream_vk_CmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event,
             /* VkDependencyInfo::pBufferMemoryBarriers */
             internal_VkDependencyInfo_pBufferMemoryBarriers.push_back(
                 std::vector<VkBufferMemoryBarrier2>());
-            internal_VkDependencyInfo_pBufferMemoryBarriers[i].reserve(
+            internal_VkDependencyInfo_pBufferMemoryBarriers[i].resize(
                 internal_pDependencyInfo[i].bufferMemoryBarrierCount);
-            memset(&internal_VkDependencyInfo_pBufferMemoryBarriers[i][0], 0,
-                   sizeof(VkBufferMemoryBarrier2) *
-                       internal_pDependencyInfo[i].bufferMemoryBarrierCount);
             for (uint32_t j = 0; j < internal_pDependencyInfo[i].bufferMemoryBarrierCount; ++j) {
                 internal_VkDependencyInfo_pBufferMemoryBarriers[i][j] =
                     internal_pDependencyInfo[i].pBufferMemoryBarriers[j];
@@ -3587,11 +3526,8 @@ void gfxstream_vk_CmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t even
             /* VkDependencyInfo::pBufferMemoryBarriers */
             internal_VkDependencyInfo_pBufferMemoryBarriers.push_back(
                 std::vector<VkBufferMemoryBarrier2>());
-            internal_VkDependencyInfo_pBufferMemoryBarriers[i].reserve(
+            internal_VkDependencyInfo_pBufferMemoryBarriers[i].resize(
                 internal_pDependencyInfos[i].bufferMemoryBarrierCount);
-            memset(&internal_VkDependencyInfo_pBufferMemoryBarriers[i][0], 0,
-                   sizeof(VkBufferMemoryBarrier2) *
-                       internal_pDependencyInfos[i].bufferMemoryBarrierCount);
             for (uint32_t j = 0; j < internal_pDependencyInfos[i].bufferMemoryBarrierCount; ++j) {
                 internal_VkDependencyInfo_pBufferMemoryBarriers[i][j] =
                     internal_pDependencyInfos[i].pBufferMemoryBarriers[j];
@@ -3623,11 +3559,8 @@ void gfxstream_vk_CmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer,
             /* VkDependencyInfo::pBufferMemoryBarriers */
             internal_VkDependencyInfo_pBufferMemoryBarriers.push_back(
                 std::vector<VkBufferMemoryBarrier2>());
-            internal_VkDependencyInfo_pBufferMemoryBarriers[i].reserve(
+            internal_VkDependencyInfo_pBufferMemoryBarriers[i].resize(
                 internal_pDependencyInfo[i].bufferMemoryBarrierCount);
-            memset(&internal_VkDependencyInfo_pBufferMemoryBarriers[i][0], 0,
-                   sizeof(VkBufferMemoryBarrier2) *
-                       internal_pDependencyInfo[i].bufferMemoryBarrierCount);
             for (uint32_t j = 0; j < internal_pDependencyInfo[i].bufferMemoryBarrierCount; ++j) {
                 internal_VkDependencyInfo_pBufferMemoryBarriers[i][j] =
                     internal_pDependencyInfo[i].pBufferMemoryBarriers[j];
@@ -3685,10 +3618,8 @@ VkResult gfxstream_vk_QueueSubmit2KHR(VkQueue queue, uint32_t submitCount,
             /* VkSubmitInfo2::pCommandBufferInfos */
             internal_VkSubmitInfo2_pCommandBufferInfos.push_back(
                 std::vector<VkCommandBufferSubmitInfo>());
-            internal_VkSubmitInfo2_pCommandBufferInfos[i].reserve(
+            internal_VkSubmitInfo2_pCommandBufferInfos[i].resize(
                 internal_pSubmits[i].commandBufferInfoCount);
-            memset(&internal_VkSubmitInfo2_pCommandBufferInfos[i][0], 0,
-                   sizeof(VkCommandBufferSubmitInfo) * internal_pSubmits[i].commandBufferInfoCount);
             for (uint32_t j = 0; j < internal_pSubmits[i].commandBufferInfoCount; ++j) {
                 internal_VkSubmitInfo2_pCommandBufferInfos[i][j] =
                     internal_pSubmits[i].pCommandBufferInfos[j];
@@ -3743,8 +3674,6 @@ void gfxstream_vk_GetQueueCheckpointData2NV(VkQueue queue, uint32_t* pCheckpoint
                                            pCheckpointData, true /* do lock */);
     }
 }
-#endif
-#ifdef VK_KHR_zero_initialize_workgroup_memory
 #endif
 #ifdef VK_KHR_copy_commands2
 void gfxstream_vk_CmdCopyBuffer2KHR(VkCommandBuffer commandBuffer,
@@ -3843,8 +3772,6 @@ void gfxstream_vk_CmdResolveImage2KHR(VkCommandBuffer commandBuffer,
                                      true /* do lock */);
     }
 }
-#endif
-#ifdef VK_KHR_format_feature_flags2
 #endif
 #ifdef VK_KHR_maintenance4
 void gfxstream_vk_GetDeviceBufferMemoryRequirementsKHR(
@@ -4024,28 +3951,6 @@ void gfxstream_vk_CmdBindTransformFeedbackBuffersEXT(VkCommandBuffer commandBuff
             internal_pBuffers.data(), pOffsets, pSizes, true /* do lock */);
     }
 }
-void gfxstream_vk_CmdBeginTransformFeedbackEXT(VkCommandBuffer commandBuffer,
-                                               uint32_t firstCounterBuffer,
-                                               uint32_t counterBufferCount,
-                                               const VkBuffer* pCounterBuffers,
-                                               const VkDeviceSize* pCounterBufferOffsets) {
-    AEMU_SCOPED_TRACE("vkCmdBeginTransformFeedbackEXT");
-    VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
-    {
-        auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
-            gfxstream_commandBuffer->internal_object);
-        std::vector<VkBuffer> internal_pCounterBuffers(counterBufferCount);
-        for (uint32_t i = 0; i < counterBufferCount; ++i) {
-            if (pCounterBuffers) {
-                VK_FROM_HANDLE(gfxstream_vk_buffer, gfxstream_pCounterBuffers, pCounterBuffers[i]);
-                internal_pCounterBuffers[i] = gfxstream_pCounterBuffers->internal_object;
-            }
-        }
-        vkEnc->vkCmdBeginTransformFeedbackEXT(
-            gfxstream_commandBuffer->internal_object, firstCounterBuffer, counterBufferCount,
-            internal_pCounterBuffers.data(), pCounterBufferOffsets, true /* do lock */);
-    }
-}
 void gfxstream_vk_CmdEndTransformFeedbackEXT(VkCommandBuffer commandBuffer,
                                              uint32_t firstCounterBuffer,
                                              uint32_t counterBufferCount,
@@ -4108,20 +4013,6 @@ void gfxstream_vk_CmdDrawIndirectByteCountEXT(VkCommandBuffer commandBuffer, uin
     }
 }
 #endif
-#ifdef VK_AMD_gpu_shader_half_float
-#endif
-#ifdef VK_EXT_texture_compression_astc_hdr
-#endif
-#ifdef VK_EXT_depth_clip_enable
-#endif
-#ifdef VK_EXT_swapchain_colorspace
-#endif
-#ifdef VK_MVK_moltenvk
-#endif
-#ifdef VK_EXT_queue_family_foreign
-#endif
-#ifdef VK_EXT_debug_utils
-#endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 VkResult gfxstream_vk_GetAndroidHardwareBufferPropertiesANDROID(
     VkDevice device, const AHardwareBuffer* buffer,
@@ -4154,24 +4045,6 @@ VkResult gfxstream_vk_GetMemoryAndroidHardwareBufferANDROID(
     return vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return;
 }
 #endif
-#ifdef VK_EXT_inline_uniform_block
-#endif
-#ifdef VK_EXT_shader_stencil_export
-#endif
-#ifdef VK_EXT_vertex_attribute_divisor
-#endif
-#ifdef VK_EXT_pipeline_creation_feedback
-#endif
-#ifdef VK_NV_shader_subgroup_partitioned
-#endif
-#ifdef VK_EXT_metal_surface
-#endif
-#ifdef VK_EXT_fragment_density_map
-#endif
-#ifdef VK_EXT_scalar_block_layout
-#endif
-#ifdef VK_EXT_subgroup_size_control
-#endif
 #ifdef VK_EXT_tooling_info
 VkResult gfxstream_vk_GetPhysicalDeviceToolPropertiesEXT(
     VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
@@ -4189,10 +4062,6 @@ VkResult gfxstream_vk_GetPhysicalDeviceToolPropertiesEXT(
     return vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return;
 }
 #endif
-#ifdef VK_EXT_validation_features
-#endif
-#ifdef VK_EXT_provoking_vertex
-#endif
 #ifdef VK_EXT_line_rasterization
 void gfxstream_vk_CmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
                                        uint16_t lineStipplePattern) {
@@ -4205,8 +4074,6 @@ void gfxstream_vk_CmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t l
                                       lineStipplePattern, true /* do lock */);
     }
 }
-#endif
-#ifdef VK_EXT_index_type_uint8
 #endif
 #ifdef VK_EXT_extended_dynamic_state
 void gfxstream_vk_CmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
@@ -4413,18 +4280,6 @@ void gfxstream_vk_GetImageSubresourceLayout2EXT(VkDevice device, VkImage image,
     }
 }
 #endif
-#ifdef VK_EXT_swapchain_maintenance1
-#endif
-#ifdef VK_EXT_shader_demote_to_helper_invocation
-#endif
-#ifdef VK_EXT_texel_buffer_alignment
-#endif
-#ifdef VK_EXT_device_memory_report
-#endif
-#ifdef VK_EXT_robustness2
-#endif
-#ifdef VK_EXT_custom_border_color
-#endif
 #ifdef VK_EXT_private_data
 VkResult gfxstream_vk_CreatePrivateDataSlotEXT(VkDevice device,
                                                const VkPrivateDataSlotCreateInfo* pCreateInfo,
@@ -4475,22 +4330,6 @@ void gfxstream_vk_GetPrivateDataEXT(VkDevice device, VkObjectType objectType, ui
                                    privateDataSlot, pData, true /* do lock */);
     }
 }
-#endif
-#ifdef VK_EXT_pipeline_creation_cache_control
-#endif
-#ifdef VK_EXT_metal_objects
-#endif
-#ifdef VK_EXT_graphics_pipeline_library
-#endif
-#ifdef VK_EXT_ycbcr_2plane_444_formats
-#endif
-#ifdef VK_EXT_image_robustness
-#endif
-#ifdef VK_EXT_image_compression_control
-#endif
-#ifdef VK_EXT_4444_formats
-#endif
-#ifdef VK_EXT_primitive_topology_list_restart
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
 void gfxstream_vk_CmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer,
@@ -4545,6 +4384,19 @@ void gfxstream_vk_CmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer,
             gfxstream_commandBuffer->internal_object);
         vkEnc->vkCmdSetPrimitiveRestartEnableEXT(gfxstream_commandBuffer->internal_object,
                                                  primitiveRestartEnable, true /* do lock */);
+    }
+}
+#endif
+#ifdef VK_EXT_color_write_enable
+void gfxstream_vk_CmdSetColorWriteEnableEXT(VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                            const VkBool32* pColorWriteEnables) {
+    AEMU_SCOPED_TRACE("vkCmdSetColorWriteEnableEXT");
+    VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
+            gfxstream_commandBuffer->internal_object);
+        vkEnc->vkCmdSetColorWriteEnableEXT(gfxstream_commandBuffer->internal_object,
+                                           attachmentCount, pColorWriteEnables, true /* do lock */);
     }
 }
 #endif
@@ -4735,10 +4587,8 @@ void gfxstream_vk_QueueSubmitAsyncGOOGLE(VkQueue queue, uint32_t submitCount,
                 internal_VkSubmitInfo_pWaitSemaphores[i].size();
             /* VkSubmitInfo::pCommandBuffers */
             internal_VkSubmitInfo_pCommandBuffers.push_back(std::vector<VkCommandBuffer>());
-            internal_VkSubmitInfo_pCommandBuffers[i].reserve(
+            internal_VkSubmitInfo_pCommandBuffers[i].resize(
                 internal_pSubmits[i].commandBufferCount);
-            memset(&internal_VkSubmitInfo_pCommandBuffers[i][0], 0,
-                   sizeof(VkCommandBuffer) * internal_pSubmits[i].commandBufferCount);
             for (uint32_t j = 0; j < internal_pSubmits[i].commandBufferCount; ++j) {
                 VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_pCommandBuffers,
                                internal_pSubmits[i].pCommandBuffers[j]);
@@ -4796,10 +4646,7 @@ void gfxstream_vk_QueueBindSparseAsyncGOOGLE(VkQueue queue, uint32_t bindInfoCou
             /* VkBindSparseInfo::pBufferBinds */
             internal_VkBindSparseInfo_pBufferBinds.push_back(
                 std::vector<VkSparseBufferMemoryBindInfo>());
-            internal_VkBindSparseInfo_pBufferBinds[i].reserve(
-                internal_pBindInfo[i].bufferBindCount);
-            memset(&internal_VkBindSparseInfo_pBufferBinds[i][0], 0,
-                   sizeof(VkSparseBufferMemoryBindInfo) * internal_pBindInfo[i].bufferBindCount);
+            internal_VkBindSparseInfo_pBufferBinds[i].resize(internal_pBindInfo[i].bufferBindCount);
             for (uint32_t j = 0; j < internal_pBindInfo[i].bufferBindCount; ++j) {
                 internal_VkBindSparseInfo_pBufferBinds[i][j] =
                     internal_pBindInfo[i].pBufferBinds[j];
@@ -4881,11 +4728,8 @@ void gfxstream_vk_QueueCommitDescriptorSetUpdatesGOOGLE(
             /* VkWriteDescriptorSet::pBufferInfo */
             internal_VkWriteDescriptorSet_pBufferInfo.push_back(
                 std::vector<VkDescriptorBufferInfo>());
-            internal_VkWriteDescriptorSet_pBufferInfo[i].reserve(
+            internal_VkWriteDescriptorSet_pBufferInfo[i].resize(
                 internal_pPendingDescriptorWrites[i].descriptorCount);
-            memset(&internal_VkWriteDescriptorSet_pBufferInfo[i][0], 0,
-                   sizeof(VkDescriptorBufferInfo) *
-                       internal_pPendingDescriptorWrites[i].descriptorCount);
             for (uint32_t j = 0; j < internal_pPendingDescriptorWrites[i].descriptorCount; ++j) {
                 if (internal_pPendingDescriptorWrites[i].pBufferInfo) {
                     internal_VkWriteDescriptorSet_pBufferInfo[i][j] =
@@ -5026,10 +4870,8 @@ void gfxstream_vk_QueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
             /* VkSubmitInfo2::pCommandBufferInfos */
             internal_VkSubmitInfo2_pCommandBufferInfos.push_back(
                 std::vector<VkCommandBufferSubmitInfo>());
-            internal_VkSubmitInfo2_pCommandBufferInfos[i].reserve(
+            internal_VkSubmitInfo2_pCommandBufferInfos[i].resize(
                 internal_pSubmits[i].commandBufferInfoCount);
-            memset(&internal_VkSubmitInfo2_pCommandBufferInfos[i][0], 0,
-                   sizeof(VkCommandBufferSubmitInfo) * internal_pSubmits[i].commandBufferInfoCount);
             for (uint32_t j = 0; j < internal_pSubmits[i].commandBufferInfoCount; ++j) {
                 internal_VkSubmitInfo2_pCommandBufferInfos[i][j] =
                     internal_pSubmits[i].pCommandBufferInfos[j];
@@ -5058,10 +4900,17 @@ void gfxstream_vk_QueueSubmitAsync2GOOGLE(VkQueue queue, uint32_t submitCount,
             true /* do lock */);
     }
 }
-#endif
-#ifdef VK_EXT_load_store_op_none
-#endif
-#ifdef VK_EXT_image_compression_control_swapchain
-#endif
-#ifdef VK_QNX_external_memory_screen_buffer
+VkResult gfxstream_vk_GetSemaphoreGOOGLE(VkDevice device, VkSemaphore semaphore, uint64_t syncId) {
+    AEMU_SCOPED_TRACE("vkGetSemaphoreGOOGLE");
+    VkResult vkGetSemaphoreGOOGLE_VkResult_return = (VkResult)0;
+    VK_FROM_HANDLE(gfxstream_vk_device, gfxstream_device, device);
+    VK_FROM_HANDLE(gfxstream_vk_semaphore, gfxstream_semaphore, semaphore);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getThreadLocalEncoder();
+        vkGetSemaphoreGOOGLE_VkResult_return = vkEnc->vkGetSemaphoreGOOGLE(
+            gfxstream_device->internal_object, gfxstream_semaphore->internal_object, syncId,
+            true /* do lock */);
+    }
+    return vkGetSemaphoreGOOGLE_VkResult_return;
+}
 #endif

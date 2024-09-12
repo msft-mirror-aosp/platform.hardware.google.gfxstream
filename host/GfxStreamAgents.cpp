@@ -336,7 +336,8 @@ static const QAndroidEmulatorWindowAgent sQAndroidEmulatorWindowAgent = {
                 },
 };
 
-static const QAndroidVmOperations sQAndroidVmOperations = {
+static const QAndroidVmOperations sQAndroidVmOperations =
+    {
         .vmStop = []() -> bool {
             DEBUG_LOG(stderr, "goldfish-opengl vm ops: vm stop\n");
             return true;
@@ -345,10 +346,8 @@ static const QAndroidVmOperations sQAndroidVmOperations = {
             DEBUG_LOG(stderr, "goldfish-opengl vm ops: vm start\n");
             return true;
         },
-        .vmReset =
-                []() { DEBUG_LOG(stderr, "goldfish-opengl vm ops: vm reset\n"); },
-        .vmShutdown =
-                []() { DEBUG_LOG(stderr, "goldfish-opengl vm ops: vm reset\n"); },
+        .vmReset = []() { DEBUG_LOG(stderr, "goldfish-opengl vm ops: vm reset\n"); },
+        .vmShutdown = []() { DEBUG_LOG(stderr, "goldfish-opengl vm ops: vm reset\n"); },
         .vmPause = []() -> bool {
             DEBUG_LOG(stderr, "goldfish-opengl vm ops: vm pause\n");
             return true;
@@ -361,100 +360,107 @@ static const QAndroidVmOperations sQAndroidVmOperations = {
             DEBUG_LOG(stderr, "goldfish-opengl vm ops: vm is running\n");
             return true;
         },
-        .snapshotList =
-                [](void*, LineConsumerCallback, LineConsumerCallback) -> bool {
+        .snapshotList = [](void*, LineConsumerCallback, LineConsumerCallback) -> bool {
             DEBUG_LOG(stderr, "goldfish-opengl vm ops: snapshot list\n");
             return true;
         },
-        .snapshotSave = [](const char* name,
-                           void* opaque,
-                           LineConsumerCallback) -> bool {
+        .snapshotSave = [](const char* name, void* opaque, LineConsumerCallback) -> bool {
             DEBUG_LOG(stderr, "gfxstream vm ops: snapshot save\n");
             return true;
         },
-        .snapshotLoad = [](const char* name,
-                           void* opaque,
-                           LineConsumerCallback) -> bool {
+        .snapshotLoad = [](const char* name, void* opaque, LineConsumerCallback) -> bool {
             DEBUG_LOG(stderr, "gfxstream vm ops: snapshot load\n");
             return true;
         },
-        .snapshotDelete = [](const char* name,
-                             void* opaque,
+        .snapshotDelete = [](const char* name, void* opaque,
                              LineConsumerCallback errConsumer) -> bool {
             DEBUG_LOG(stderr, "goldfish-opengl vm ops: snapshot delete\n");
             return true;
         },
-        .snapshotRemap = [](bool shared,
-                            void* opaque,
-                            LineConsumerCallback errConsumer) -> bool {
+        .snapshotRemap = [](bool shared, void* opaque, LineConsumerCallback errConsumer) -> bool {
             DEBUG_LOG(stderr, "goldfish-opengl vm ops: snapshot remap\n");
             return true;
         },
-        .snapshotExport = [](const char* snapshot,
-                             const char* dest,
-                             void* opaque,
+        .snapshotExport = [](const char* snapshot, const char* dest, void* opaque,
                              LineConsumerCallback errConsumer) -> bool {
             DEBUG_LOG(stderr, "goldfish-opengl vm ops: snapshot export image\n");
             return true;
         },
         .setSnapshotCallbacks =
-                [](void* opaque, const SnapshotCallbacks* callbacks) {
-                    DEBUG_LOG(stderr,
-                            "goldfish-opengl vm ops: set snapshot callbacks\n");
-                },
+            [](void* opaque, const SnapshotCallbacks* callbacks) {
+                DEBUG_LOG(stderr, "goldfish-opengl vm ops: set snapshot callbacks\n");
+            },
         .mapUserBackedRam =
-                [](uint64_t gpa, void* hva, uint64_t size) {
-                    DEBUG_LOG(stderr, "%s: map user backed ram\n", __func__);
-                },
+            [](uint64_t gpa, void* hva, uint64_t size) {
+                DEBUG_LOG(stderr, "%s: map user backed ram\n", __func__);
+            },
         .unmapUserBackedRam =
-                [](uint64_t gpa, uint64_t size) {
-                    DEBUG_LOG(stderr, "%s: unmap user backed ram\n", __func__);
-                },
+            [](uint64_t gpa, uint64_t size) {
+                DEBUG_LOG(stderr, "%s: unmap user backed ram\n", __func__);
+            },
         .getVmConfiguration =
-                [](VmConfiguration* out) {
-                    DEBUG_LOG(stderr,
-                            "goldfish-opengl vm ops: get vm configuration\n");
-                },
+            [](VmConfiguration* out) {
+                DEBUG_LOG(stderr, "goldfish-opengl vm ops: get vm configuration\n");
+            },
         .setFailureReason =
-                [](const char* name, int failureReason) {
-                    DEBUG_LOG(stderr,
-                            "goldfish-opengl vm ops: set failure reason\n");
-                },
-        .setExiting =
-                []() {
-                    DEBUG_LOG(stderr, "goldfish-opengl vm ops: set exiting\n");
-                },
+            [](const char* name, int failureReason) {
+                DEBUG_LOG(stderr, "goldfish-opengl vm ops: set failure reason\n");
+            },
+        .setExiting = []() { DEBUG_LOG(stderr, "goldfish-opengl vm ops: set exiting\n"); },
         .allowRealAudio =
-                [](bool allow) {
-                    DEBUG_LOG(stderr,
-                            "goldfish-opengl vm ops: allow real audio\n");
-                },
+            [](bool allow) { DEBUG_LOG(stderr, "goldfish-opengl vm ops: allow real audio\n"); },
         .physicalMemoryGetAddr =
-                [](uint64_t gpa) {
-                    DEBUG_LOG(stderr, "%s: physmemGetAddr\n", __func__);
-                    return (void*)nullptr;
-                },
+            [](uint64_t gpa) {
+                DEBUG_LOG(stderr, "%s: physmemGetAddr\n", __func__);
+                return (void*)nullptr;
+            },
         .isRealAudioAllowed =
-                [](void) {
-                    DEBUG_LOG(stderr,
-                            "goldfish-opengl vm ops: is real audiop allowed\n");
-                    return true;
-                },
+            [](void) {
+                DEBUG_LOG(stderr, "goldfish-opengl vm ops: is real audiop allowed\n");
+                return true;
+            },
         .setSkipSnapshotSave =
-                [](bool used) {
-                    DEBUG_LOG(stderr,
-                            "goldfish-opengl vm ops: set skip snapshot save\n");
-                },
+            [](bool used) {
+                DEBUG_LOG(stderr, "goldfish-opengl vm ops: set skip snapshot save\n");
+            },
         .isSnapshotSaveSkipped =
-                []() {
-                    DEBUG_LOG(stderr,
-                            "goldfish-opengl vm ops: is snapshot save "
-                            "skipped\n");
-                    return false;
-                },
+            []() {
+                DEBUG_LOG(stderr,
+                          "goldfish-opengl vm ops: is snapshot save "
+                          "skipped\n");
+                return false;
+            },
         .hostmemRegister = android_emulation_hostmem_register,
         .hostmemUnregister = android_emulation_hostmem_unregister,
         .hostmemGetInfo = android_emulation_hostmem_get_info,
+#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+        .setSkipSnapshotSaveReason =
+            [](SnapshotSkipReason reason) {
+                DEBUG_LOG(stderr,
+                        "goldfish-opengl vm ops: set skip snapshot save reason"
+                        "skipped\n");
+            },
+        .getSkipSnapshotSaveReason =
+            []() {
+                DEBUG_LOG(stderr,
+                        "goldfish-opengl vm ops: get skip snapshot save "
+                        "reason\n");
+                return SNAPSHOT_SKIP_UNKNOWN;
+            },
+        .setStatSnapshotUseVulkan =
+            []() {
+                DEBUG_LOG(stderr,
+                        "goldfish-opengl vm ops: set stat snapshot use Vulkan"
+                        "skipped\n");
+            },
+        .snapshotUseVulkan =
+            []() {
+                DEBUG_LOG(stderr,
+                        "goldfish-opengl vm ops: get stat snapshot use Vulkan"
+                        "skipped\n");
+                return false;
+            },
+#endif
 };
 
 namespace android {

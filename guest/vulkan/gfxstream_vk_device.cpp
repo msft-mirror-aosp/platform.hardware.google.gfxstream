@@ -43,8 +43,11 @@ static struct vk_instance_extension_table gfxstream_vk_instance_extensions_suppo
 // Provided by Mesa components only; never encoded/decoded through gfxstream
 static const char* const kMesaOnlyInstanceExtension[] = {
     VK_KHR_SURFACE_EXTENSION_NAME,
-#if defined(LINUX_GUEST_BUILD)
+#if defined(GFXSTREAM_VK_WAYLAND)
     VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME,
+#endif
+#if defined(GFXSTREAM_VK_X11)
+    VK_KHR_XCB_SURFACE_EXTENSION_NAME,
 #endif
     VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
 };
@@ -711,7 +714,7 @@ static std::vector<VkWriteDescriptorSet> transformDescriptorSetList(
         outDescriptorSet = srcDescriptorSet;
 
         bufferInfos.push_back(std::vector<VkDescriptorBufferInfo>());
-        bufferInfos[i].reserve(descriptorCount);
+        bufferInfos[i].resize(descriptorCount);
         memset(&bufferInfos[i][0], 0, sizeof(VkDescriptorBufferInfo) * descriptorCount);
         for (uint32_t j = 0; j < descriptorCount; ++j) {
             const auto* srcBufferInfo = srcDescriptorSet.pBufferInfo;

@@ -152,6 +152,9 @@ public:
     bool nativeTextureDecompressionEnabled() const;
     void setNativeTextureDecompressionEnabled(bool enabled);
 
+    bool programBinaryLinkStatusEnabled() const;
+    void setProgramBinaryLinkStatusEnabled(bool enabled);
+
 private:
     static void addConfig(void* opaque, const EglOS::ConfigInfo* configInfo);
 
@@ -175,6 +178,7 @@ private:
     mutable std::shared_ptr<EglOS::Context> m_globalSharedContext;
     ConfigSet               m_uniqueConfigs;
     bool                    m_nativeTextureDecompressionEnabled = false;
+    bool                    m_programBinaryLinkStatusEnabled = false;
 };
 
 #endif

@@ -126,9 +126,11 @@ RendererImpl::~RendererImpl() {
 
 bool RendererImpl::initialize(int width, int height, gfxstream::host::FeatureSet features,
                               bool useSubWindow, bool egl2egl) {
+#ifdef CONFIG_AEMU
     if (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1") {
-        // base_enable_verbose_logs();
+        set_gfxstream_enable_verbose_logs();
     }
+#endif
 
     if (mRenderWindow) {
         return false;
@@ -672,6 +674,8 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
             return FrameBuffer::getFB()->platformDestroySharedEglContext(context);
         },
 #endif
+    .wait_sync_color_buffer =
+        [](uint32_t handle) { return FrameBuffer::getFB()->waitSyncColorBuffer(handle); },
 };
 
 struct AndroidVirtioGpuOps* RendererImpl::getVirtioGpuOps() {

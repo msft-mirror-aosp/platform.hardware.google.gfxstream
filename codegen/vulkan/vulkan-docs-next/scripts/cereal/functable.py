@@ -122,6 +122,8 @@ HANDWRITTEN_ENTRY_POINTS = [
     "vkResetCommandPool",
     "vkFreeCommandBuffers",
     "vkResetCommandPool",
+    # Transform feedback
+    "vkCmdBeginTransformFeedbackEXT",
     # Special cases to handle struct translations in the pNext chain
     # TODO: Make a codegen module (use deepcopy as reference) to make this more robust
     "vkAllocateMemory",
@@ -392,8 +394,7 @@ class VulkanFuncTable(VulkanWrapperGenerator):
                         cgen.stmt("%s = %s.size()" % (countParamName, nestedOutName))
                     else:
                         # Standard translation
-                        cgen.stmt("%s.reserve(%s)" % (nestedOutName, countParamName))
-                        cgen.stmt("memset(&%s[0], 0, sizeof(%s) * %s)" % (nestedOutName, member.typeName, countParamName))
+                        cgen.stmt("%s.resize(%s)" % (nestedOutName, countParamName))
                         if not nextLoopVar:
                             nextLoopVar = getNextLoopVar()
                         internalArray = genInternalArray(member, countParamName, nestedOutName, inArrayName, nextLoopVar)

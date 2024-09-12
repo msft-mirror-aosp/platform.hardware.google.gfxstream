@@ -232,8 +232,10 @@ class VkDecoderGlobalState {
 
     VkResult on_vkBindImageMemory(android::base::BumpPool* pool, VkDevice device, VkImage image,
                                   VkDeviceMemory memory, VkDeviceSize memoryOffset);
+    // It might modify pBindInfos to support snapshot.
     VkResult on_vkBindImageMemory2(android::base::BumpPool* pool, VkDevice device,
                                    uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos);
+    // It might modify pBindInfos to support snapshot.
     VkResult on_vkBindImageMemory2KHR(android::base::BumpPool* pool, VkDevice device,
                                       uint32_t bindInfoCount,
                                       const VkBindImageMemoryInfo* pBindInfos);
@@ -387,6 +389,9 @@ class VkDecoderGlobalState {
                                  uint32_t imageMemoryBarrierCount,
                                  const VkImageMemoryBarrier* pImageMemoryBarriers);
 
+    void on_vkCmdPipelineBarrier2(android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                  const VkDependencyInfo* pDependencyInfo);
+
     // Do we need to wrap vk(Create|Destroy)Instance to
     // update our maps of VkDevices? Spec suggests no:
     // https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/vkDestroyInstance.html
@@ -507,6 +512,8 @@ class VkDecoderGlobalState {
                                        const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo);
     VkResult on_vkGetSemaphoreFdKHR(android::base::BumpPool* pool, VkDevice boxed_device,
                                     const VkSemaphoreGetFdInfoKHR* pGetFdInfo, int* pFd);
+    VkResult on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
+                                     VkSemaphore semaphore, uint64_t syncId);
     void on_vkDestroySemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
                                VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator);
 
@@ -699,8 +706,6 @@ class VkDecoderGlobalState {
                                                const VkAllocationCallbacks* pAllocator);
 
     void on_DeviceLost();
-
-    void DeviceLostHandler();
 
     void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,
                              std::optional<uint64_t> allocationSize = std::nullopt);
