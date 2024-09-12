@@ -2781,11 +2781,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 android::base::beginTrace("vkGetFenceStatus decode");
                 VkDevice device;
                 VkFence fence;
-                // Begin global wrapped dispatchable handle unboxing for device;
+                // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
@@ -2795,8 +2798,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             (unsigned long long)device, (unsigned long long)fence);
                 }
                 VkResult vkGetFenceStatus_VkResult_return = (VkResult)0;
-                vkGetFenceStatus_VkResult_return =
-                    m_state->on_vkGetFenceStatus(&m_pool, device, fence);
+                vkGetFenceStatus_VkResult_return = vk->vkGetFenceStatus(unboxed_device, fence);
                 if ((vkGetFenceStatus_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkGetFenceStatus_VkResult_return, opcode, context);
@@ -2824,11 +2826,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkFence* pFences;
                 VkBool32 waitAll;
                 uint64_t timeout;
-                // Begin global wrapped dispatchable handle unboxing for device;
+                // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
                 memcpy((uint32_t*)&fenceCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pFences, ((fenceCount)) * sizeof(const VkFence));
@@ -2856,8 +2861,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
                 VkResult vkWaitForFences_VkResult_return = (VkResult)0;
-                vkWaitForFences_VkResult_return = m_state->on_vkWaitForFences(
-                    &m_pool, device, fenceCount, pFences, waitAll, timeout);
+                vkWaitForFences_VkResult_return =
+                    vk->vkWaitForFences(unboxed_device, fenceCount, pFences, waitAll, timeout);
                 if ((vkWaitForFences_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkWaitForFences_VkResult_return, opcode, context);
