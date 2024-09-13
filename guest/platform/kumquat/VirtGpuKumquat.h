@@ -17,7 +17,13 @@
 #pragma once
 
 #include "VirtGpu.h"
+
+// Blueprint and Meson builds place things differently
+#if defined(ANDROID)
+#include "virtgpu_kumquat_ffi.h"
+#else
 #include "virtgpu_kumquat/virtgpu_kumquat_ffi.h"
+#endif
 
 class VirtGpuKumquatResource : public std::enable_shared_from_this<VirtGpuKumquatResource>,
                                public VirtGpuResource {
@@ -28,6 +34,8 @@ class VirtGpuKumquatResource : public std::enable_shared_from_this<VirtGpuKumqua
 
     uint32_t getResourceHandle() const override;
     uint32_t getBlobHandle() const override;
+    uint64_t getSize() const override;
+
     int wait() override;
 
     VirtGpuResourceMappingPtr createMapping(void) override;
@@ -79,6 +87,7 @@ class VirtGpuKumquatDevice : public VirtGpuDevice {
     virtual int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuResource* blob);
 
    private:
+    int32_t mDescriptor = 0;
     struct virtgpu_kumquat* mVirtGpu = nullptr;
     struct VirtGpuCaps mCaps;
 };

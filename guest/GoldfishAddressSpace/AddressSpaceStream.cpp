@@ -22,51 +22,41 @@
 #include <unistd.h>
 
 #include "VirtGpu.h"
-#include "aemu/base/Tracing.h"
 #include "util.h"
+#include "util/log.h"
+#include "util/perf/cpu_trace.h"
 #include "virtgpu_gfxstream_protocol.h"
-
-#if defined(__ANDROID__)
-#include "android-base/properties.h"
-#endif
-#include <cutils/log.h>
 
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
-AddressSpaceStream::AddressSpaceStream(
-    address_space_handle_t handle,
-    uint32_t version,
-    struct asg_context context,
-    uint64_t ringOffset,
-    uint64_t writeBufferOffset,
-    struct address_space_ops ops,
-    HealthMonitor<>* healthMonitor) :
-    IOStream(context.ring_config->flush_interval),
-    m_ops(ops),
-    m_tmpBuf(0),
-    m_tmpBufSize(0),
-    m_tmpBufXferSize(0),
-    m_usingTmpBuf(0),
-    m_readBuf(0),
-    m_read(0),
-    m_readLeft(0),
-    m_handle(handle),
-    m_version(version),
-    m_context(context),
-    m_ringOffset(ringOffset),
-    m_writeBufferOffset(writeBufferOffset),
-    m_writeBufferSize(context.ring_config->buffer_size),
-    m_writeBufferMask(m_writeBufferSize - 1),
-    m_buf((unsigned char*)context.buffer),
-    m_writeStart(m_buf),
-    m_writeStep(context.ring_config->flush_interval),
-    m_notifs(0),
-    m_written(0),
-    m_backoffIters(0),
-    m_backoffFactor(1),
-    m_ringStorageSize(sizeof(struct asg_ring_storage) + m_writeBufferSize),
-    m_healthMonitor(healthMonitor) {
+AddressSpaceStream::AddressSpaceStream(address_space_handle_t handle, uint32_t version,
+                                       struct asg_context context, uint64_t ringOffset,
+                                       uint64_t writeBufferOffset, struct address_space_ops ops)
+    : IOStream(context.ring_config->flush_interval),
+      m_ops(ops),
+      m_tmpBuf(0),
+      m_tmpBufSize(0),
+      m_tmpBufXferSize(0),
+      m_usingTmpBuf(0),
+      m_readBuf(0),
+      m_read(0),
+      m_readLeft(0),
+      m_handle(handle),
+      m_version(version),
+      m_context(context),
+      m_ringOffset(ringOffset),
+      m_writeBufferOffset(writeBufferOffset),
+      m_writeBufferSize(context.ring_config->buffer_size),
+      m_writeBufferMask(m_writeBufferSize - 1),
+      m_buf((unsigned char*)context.buffer),
+      m_writeStart(m_buf),
+      m_writeStep(context.ring_config->flush_interval),
+      m_notifs(0),
+      m_written(0),
+      m_backoffIters(0),
+      m_backoffFactor(1),
+      m_ringStorageSize(sizeof(struct asg_ring_storage) + m_writeBufferSize) {
     // We'll use this in the future, but at the moment,
     // it's a potential compile Werror.
     (void)m_ringStorageSize;
@@ -95,9 +85,8 @@ size_t AddressSpaceStream::idealAllocSize(size_t len) {
     return m_writeStep;
 }
 
-void *AddressSpaceStream::allocBuffer(size_t minSize) {
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
-    AEMU_SCOPED_TRACE("allocBuffer");
+void* AddressSpaceStream::allocBuffer(size_t minSize) {
+    MESA_TRACE_SCOPE("allocBuffer");
     ensureType3Finished();
 
     if (!m_readBuf) {
@@ -159,8 +148,11 @@ const unsigned char *AddressSpaceStream::readFully(void *ptr, size_t totalReadSi
 
     if (!userReadBuf) {
         if (totalReadSize > 0) {
-            ALOGE("AddressSpaceStream::commitBufferAndReadFully failed, userReadBuf=NULL, totalReadSize %zu, lethal"
-                    " error, exiting.", totalReadSize);
+            mesa_loge(
+                "AddressSpaceStream::commitBufferAndReadFully failed, userReadBuf=NULL, "
+                "totalReadSize %zu, lethal"
+                " error, exiting.",
+                totalReadSize);
             abort();
         }
         return nullptr;
@@ -194,7 +186,7 @@ const unsigned char *AddressSpaceStream::readFully(void *ptr, size_t totalReadSi
         }
 
         if (actual == 0) {
-            ALOGD("%s: end of pipe", __FUNCTION__);
+            mesa_logd("%s: end of pipe", __FUNCTION__);
             return NULL;
         }
     }
@@ -214,7 +206,7 @@ const unsigned char *AddressSpaceStream::readFully(void *ptr, size_t totalReadSi
         actual = speculativeRead(m_readBuf, kReadSize);
 
         if (actual == 0) {
-            ALOGD("%s: Failed reading from pipe: %d", __FUNCTION__,  errno);
+            mesa_logd("%s: Failed reading from pipe: %d", __FUNCTION__, errno);
             return NULL;
         }
 
@@ -242,10 +234,8 @@ const unsigned char *AddressSpaceStream::read(void *buf, size_t *inout_len) {
     return (const unsigned char*)dst;
 }
 
-int AddressSpaceStream::writeFully(const void *buf, size_t size)
-{
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
-    AEMU_SCOPED_TRACE("writeFully");
+int AddressSpaceStream::writeFully(const void* buf, size_t size) {
+    MESA_TRACE_SCOPE("writeFully");
     ensureType3Finished();
     ensureType1Finished();
 
@@ -300,18 +290,16 @@ int AddressSpaceStream::writeFully(const void *buf, size_t size)
 
     float mb = (float)m_written / 1048576.0f;
     if (mb > 100.0f) {
-        ALOGD("%s: %f mb in %d notifs. %f mb/notif\n", __func__,
-              mb, m_notifs, m_notifs ? mb / (float)m_notifs : 0.0f);
+        mesa_logd("%s: %f mb in %d notifs. %f mb/notif\n", __func__, mb, m_notifs,
+                  m_notifs ? mb / (float)m_notifs : 0.0f);
         m_notifs = 0;
         m_written = 0;
     }
     return 0;
 }
 
-int AddressSpaceStream::writeFullyAsync(const void *buf, size_t size)
-{
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
-    AEMU_SCOPED_TRACE("writeFullyAsync");
+int AddressSpaceStream::writeFullyAsync(const void* buf, size_t size) {
+    MESA_TRACE_SCOPE("writeFullyAsync");
     ensureType3Finished();
     ensureType1Finished();
 
@@ -369,8 +357,8 @@ int AddressSpaceStream::writeFullyAsync(const void *buf, size_t size)
 
     float mb = (float)m_written / 1048576.0f;
     if (mb > 100.0f) {
-        ALOGD("%s: %f mb in %d notifs. %f mb/notif\n", __func__,
-              mb, m_notifs, m_notifs ? mb / (float)m_notifs : 0.0f);
+        mesa_logd("%s: %f mb in %d notifs. %f mb/notif\n", __func__, mb, m_notifs,
+                  m_notifs ? mb / (float)m_notifs : 0.0f);
         m_notifs = 0;
         m_written = 0;
     }
@@ -432,8 +420,7 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
 }
 
 void AddressSpaceStream::notifyAvailable() {
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
-    AEMU_SCOPED_TRACE("PING");
+    MESA_TRACE_SCOPE("PING");
     struct address_space_ping request;
     request.metadata = ASG_NOTIFY_AVAILABLE;
     request.resourceId = m_resourceId;
@@ -475,8 +462,7 @@ void AddressSpaceStream::ensureConsumerFinishing() {
 }
 
 void AddressSpaceStream::ensureType1Finished() {
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
-    AEMU_SCOPED_TRACE("ensureType1Finished");
+    MESA_TRACE_SCOPE("ensureType1Finished");
 
     uint32_t currAvailRead =
         ring_buffer_available_read(m_context.to_host, 0);
@@ -492,8 +478,7 @@ void AddressSpaceStream::ensureType1Finished() {
 }
 
 void AddressSpaceStream::ensureType3Finished() {
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
-    AEMU_SCOPED_TRACE("ensureType3Finished");
+    MESA_TRACE_SCOPE("ensureType3Finished");
     uint32_t availReadLarge =
         ring_buffer_available_read(
             m_context.to_host_large_xfer.ring,
@@ -516,9 +501,7 @@ void AddressSpaceStream::ensureType3Finished() {
 }
 
 int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
-
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
-    AEMU_SCOPED_TRACE("type1Write");
+    MESA_TRACE_SCOPE("type1Write");
 
     ensureType3Finished();
 
@@ -581,8 +564,8 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
 
     float mb = (float)m_written / 1048576.0f;
     if (mb > 100.0f) {
-        ALOGD("%s: %f mb in %d notifs. %f mb/notif\n", __func__,
-              mb, m_notifs, m_notifs ? mb / (float)m_notifs : 0.0f);
+        mesa_logd("%s: %f mb in %d notifs. %f mb/notif\n", __func__, mb, m_notifs,
+                  m_notifs ? mb / (float)m_notifs : 0.0f);
         m_notifs = 0;
         m_written = 0;
     }
@@ -592,15 +575,8 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
 }
 
 void AddressSpaceStream::backoff() {
-#if defined(__APPLE__) || defined(__MACOSX) || defined(__Fuchsia__) || defined(__linux__)
     static const uint32_t kBackoffItersThreshold = 50000000;
     static const uint32_t kBackoffFactorDoublingIncrement = 50000000;
-#elif defined(__ANDROID__)
-    static const uint32_t kBackoffItersThreshold =
-        android::base::GetUintProperty("ro.boot.asg.backoffiters", 50000000);
-    static const uint32_t kBackoffFactorDoublingIncrement =
-        android::base::GetUintProperty("ro.boot.asg.backoffincrement", 50000000);
-#endif
     ++m_backoffIters;
 
     if (m_backoffIters > kBackoffItersThreshold) {

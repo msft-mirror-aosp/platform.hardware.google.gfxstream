@@ -19,13 +19,12 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-cc_defaults {
-    name: "libgfxstream_guest_vulkan_defaults",
-    host_supported: true,
-    vendor: true,
+cc_library_shared {
+    name: "vulkan.ranchu",
     defaults: [
         "libgfxstream_guest_cc_defaults",
         "mesa_common_defaults_gfxstream",
+        "libplatform_virtgpu_defaults",
     ],
     generated_headers: [
         "vk_cmd_queue_header_gfxstream",
@@ -37,6 +36,7 @@ cc_defaults {
         "mesa_common_headers_gfxstream",
         "libnativewindow_headers",
         "vulkan_enc_headers",
+        "aemu_common_headers",
     ],
     static_libs: [
         "libmesa_util_c11_gfxstream",
@@ -50,22 +50,23 @@ cc_defaults {
         "libringbuffer",
         "libqemupipe.ranchu",
         "libarect",
+        "gfxstream_base",
+        "libgfxstream_guest_android",
+        "libgfxstream_guest_system_common",
+        "libgfxstream_guest_connection_manager",
+        "libgfxstream_rcEnc_static",
         "libgfxstream_androidemu_static",
     ],
     shared_libs: [
         "liblog",
         "libcutils",
-        "libGLESv1_enc",
-        "libGLESv2_enc",
-        "lib_renderControl_enc",
-        "libOpenglCodecCommon",
         "libbase",
         "libdrm",
+        "libOpenglCodecCommon",
     ],
     cflags: [
         "-DLOG_TAG=\"goldfish_vulkan\"",
         "-DVK_NO_PROTOTYPES",
-        "-DVK_USE_PLATFORM_ANDROID_KHR",
         "-fstrict-aliasing",
         "-fvisibility=hidden",
         "-Wno-missing-field-initializers",
@@ -103,43 +104,10 @@ cc_defaults {
                 "gfxstream_vk_android.cpp",
             ],
         },
-    },
-}
-
-cc_library_shared {
-    name: "vulkan.ranchu",
-    defaults: [
-        "libgfxstream_guest_vulkan_defaults",
-    ],
-    static_libs: [
-        "libplatform",
-        "libgfxstream_guest_android",
-        "libgfxstream_guest_system_common",
-    ],
-}
-
-cc_library_shared {
-    name: "libgfxstream_guest_vulkan_with_host",
-    defaults: [
-        "libgfxstream_guest_vulkan_defaults",
-    ],
-    shared_libs: [
-        "libgfxstream_platform_rutabaga_server",
-    ],
-    static_libs: [
-        "libgfxstream_guest_android_with_host",
-        "libgfxstream_guest_system_common_with_host",
-        "libgfxstream_platform_rutabaga",
-    ],
-    cflags: [
-        "-DEND2END_TESTS",
-    ],
-    target: {
         host: {
-            compile_multilib: "64",
-        },
-        android: {
-            compile_multilib: "64",
+            cflags: [
+                "-DEND2END_TESTS",
+            ],
         },
     },
 }

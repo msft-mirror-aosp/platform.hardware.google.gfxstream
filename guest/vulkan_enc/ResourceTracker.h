@@ -25,15 +25,14 @@
 #include <unordered_map>
 
 #include "CommandBufferStagingStream.h"
+#include "GfxStreamConnectionManager.h"
 #include "HostVisibleMemoryVirtualization.h"
+#include "Sync.h"
 #include "VirtGpu.h"
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
-#include "aemu/base/Tracing.h"
-#include "aemu/base/threads/AndroidWorkPool.h"
 #include "goldfish_vk_transform_guest.h"
-
-using gfxstream::guest::WorkPool;
+#include "util/perf/cpu_trace.h"
 
 /// Use installed headers or locally defined Fuchsia-specific bits
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -81,18 +80,34 @@ typedef uint64_t zx_koid_t;
 /// Use installed headers or locally defined Android-specific bits
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include "AndroidHardwareBuffer.h"
-#endif
-
-#if defined(__linux__) || defined(__Fuchsia__)
+#include "gfxstream/guest/GfxStreamGralloc.h"
 #include <android/hardware_buffer.h>
 #endif
 
 #if GFXSTREAM_ENABLE_GUEST_GOLDFISH
 /// Goldfish sync only used for AEMU -- should replace in virtio-gpu when possibe
-#include "../egl/goldfish_sync.h"
+#include "gfxstream/guest/goldfish_sync.h"
 #endif
 
-struct EmulatorFeatureInfo;
+// This should be ABI identical with the variant in ResourceTracker.h
+struct GfxStreamVkFeatureInfo {
+    bool hasDirectMem;
+    bool hasVulkan;
+    bool hasDeferredVulkanCommands;
+    bool hasVulkanNullOptionalStrings;
+    bool hasVulkanCreateResourcesWithRequirements;
+    bool hasVulkanIgnoredHandles;
+    bool hasVirtioGpuNext;
+    bool hasVulkanFreeMemorySync;
+    bool hasVirtioGpuNativeSync;
+    bool hasVulkanShaderFloat16Int8;
+    bool hasVulkanAsyncQueueSubmit;
+    bool hasVulkanQueueSubmitWithCommands;
+    bool hasVulkanBatchedDescriptorSetUpdate;
+    bool hasVulkanAsyncQsri;
+    bool hasVulkanAuxCommandMemory;
+    bool setupComplete;
+};
 
 class HostConnection;
 
@@ -110,8 +125,8 @@ class ResourceTracker {
     VulkanHandleMapping* createMapping();
     VulkanHandleMapping* destroyMapping();
 
-    using HostConnectionGetFunc = HostConnection* (*)();
-    using VkEncoderGetFunc = VkEncoder* (*)(HostConnection*);
+    using HostConnectionGetFunc = GfxStreamConnectionManager* (*)();
+    using VkEncoderGetFunc = VkEncoder* (*)(GfxStreamConnectionManager*);
     using CleanupCallback = std::function<void()>;
 
     struct ThreadingCallbacks {
@@ -372,6 +387,9 @@ class ResourceTracker {
     VkResult on_vkGetFenceFdKHR(void* context, VkResult input_result, VkDevice device,
                                 const VkFenceGetFdInfoKHR* pGetFdInfo, int* pFd);
 
+    VkResult on_vkGetFenceStatus(void* context, VkResult input_result, VkDevice device,
+                                 VkFence fence);
+
     VkResult on_vkWaitForFences(void* context, VkResult input_result, VkDevice device,
                                 uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll,
                                 uint64_t timeout);
@@ -530,8 +548,9 @@ class ResourceTracker {
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
     bool isValidMemoryRange(const VkMappedMemoryRange& range);
 
-    void setupFeatures(const EmulatorFeatureInfo* features);
+    void setupFeatures(const struct GfxStreamVkFeatureInfo* features);
     void setupCaps(uint32_t& noRenderControlEnc);
+    void setupPlatformHelpers();
 
     void setThreadingCallbacks(const ThreadingCallbacks& callbacks);
     bool hostSupportsVulkan() const;
@@ -619,8 +638,8 @@ class ResourceTracker {
                        const char* const* ppEnabledExtensionNames, const void* pNext);
 
     void setDeviceMemoryInfo(VkDevice device, VkDeviceMemory memory, VkDeviceSize allocationSize,
-                             uint8_t* ptr, uint32_t memoryTypeIndex, AHardwareBuffer* ahw,
-                             bool imported, zx_handle_t vmoHandle, VirtGpuResourcePtr blobPtr);
+                             uint8_t* ptr, uint32_t memoryTypeIndex, void* ahw, bool imported,
+                             zx_handle_t vmoHandle, VirtGpuResourcePtr blobPtr);
 
     void setImageInfo(VkImage image, VkDevice device, const VkImageCreateInfo* pCreateInfo);
 
@@ -700,6 +719,10 @@ class ResourceTracker {
         VkEncoder* enc, VkDevice device,
         fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* collection,
         const VkImageCreateInfo* pImageInfo);
+#endif
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+    uint64_t getAHardwareBufferId(AHardwareBuffer* ahw);
 #endif
 
     void unregister_VkDescriptorSet_locked(VkDescriptorSet set);
@@ -830,7 +853,8 @@ class ResourceTracker {
         bool external = false;
         VkExportFenceCreateInfo exportFenceCreateInfo;
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-        int syncFd = -1;
+        // Note: -1 means already signaled.
+        std::optional<int> syncFd;
 #endif
     };
 
@@ -877,10 +901,18 @@ class ResourceTracker {
     std::recursive_mutex mLock;
 
     std::optional<const VkPhysicalDeviceMemoryProperties> mCachedPhysicalDeviceMemoryProps;
-    std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
+
+    struct GfxStreamVkFeatureInfo mFeatureInfo = {};
+
 #if defined(__ANDROID__)
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 #endif  // defined(__ANDROID__)
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+    std::unique_ptr<gfxstream::Gralloc> mGralloc = nullptr;
+#endif
+
+    std::unique_ptr<gfxstream::SyncHelper> mSyncHelper = nullptr;
 
     struct VirtGpuCaps mCaps;
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
@@ -900,10 +932,6 @@ class ResourceTracker {
 #define HANDLE_REGISTER_DECLARATION(type) std::unordered_map<type, type##_Info> info_##type;
 
     GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_DECLARATION)
-
-    WorkPool mWorkPool{4};
-    std::unordered_map<VkQueue, std::vector<WorkPool::WaitGroupHandle>>
-        mQueueSensitiveWorkPoolItems;
 
     std::unordered_map<const VkEncoder*, std::unordered_map<void*, CleanupCallback>>
         mEncoderCleanupCallbacks;

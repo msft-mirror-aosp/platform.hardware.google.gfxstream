@@ -94,7 +94,7 @@ static void initIcdPaths(bool forTesting) {
         // 4: Log errors, warnings, infos and debug messages.
         const bool verboseLogs =
             (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
-        const char* logLevelValue = verboseLogs ? "4" : "2";
+        const char* logLevelValue = verboseLogs ? "4" : "1";
         android::base::setEnvironmentVariable("MVK_CONFIG_LOG_LEVEL", logLevelValue);
 
         //  Limit MoltenVK to use single queue, as some older ANGLE versions
@@ -104,6 +104,10 @@ static void initIcdPaths(bool forTesting) {
         //  submitted to a queue will give the same result as if they had been run in
         //  submission order.
         android::base::setEnvironmentVariable("MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE", "0");
+
+        // TODO(b/364055067)
+        // MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS is not working correctly
+        android::base::setEnvironmentVariable("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0");
 
         // TODO(b/351765838): VVL won't work with MoltenVK due to the current
         //  way of external memory handling, add it into disable list to

@@ -22,33 +22,21 @@
 #include <qemu_pipe_bp.h>
 
 #include "HostConnection.h"
-#include "renderControl_enc.h"
 
 #ifndef __Fuchsia__
 
+#include "QemuPipeStream.h"
 #include "VirtioGpuPipeStream.h"
-static VirtioGpuPipeStream* sVirtioGpuPipeStream = 0;
+
+static QemuPipeStream* sQemuPipeStream = nullptr;
+static VirtioGpuPipeStream* sVirtioGpuPipeStream = nullptr;
 static int sStreamHandle = -1;
 
-#endif // !__Fuchsia__
-
-static QEMU_PIPE_HANDLE sProcPipe = 0;
+#endif  // !__Fuchsia__
 // sProcUID is a unique ID per process assigned by the host.
 // It is different from getpid().
 static uint64_t           sProcUID = 0;
 static HostConnectionType sConnType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
-
-static uint32_t* sSeqnoPtr = 0;
-
-// Meant to be called only once per process.
-static void initSeqno(void) {
-    // So why do we reinitialize here? It's for testing purposes only;
-    // we have a unit test that exercise the case where this sequence
-    // number is reset as a result of guest process kill.
-    if (sSeqnoPtr) delete sSeqnoPtr;
-    sSeqnoPtr = new uint32_t;
-    *sSeqnoPtr = 0;
-}
 
 namespace {
 
@@ -57,39 +45,7 @@ static bool sNeedInit = true;
 
 }  // namespace
 
-#ifndef __Fuchsia__
-
-static void sQemuPipeInit() {
-    sProcPipe = qemu_pipe_open("GLProcessPipe");
-    if (!qemu_pipe_valid(sProcPipe)) {
-        sProcPipe = 0;
-        ALOGW("Process pipe failed");
-        return;
-    }
-    // Send a confirmation int to the host
-    int32_t confirmInt = 100;
-    if (qemu_pipe_write_fully(sProcPipe, &confirmInt, sizeof(confirmInt))) { // failed
-        qemu_pipe_close(sProcPipe);
-        sProcPipe = 0;
-        ALOGW("Process pipe failed");
-        return;
-    }
-
-    // Ask the host for per-process unique ID
-    if (qemu_pipe_read_fully(sProcPipe, &sProcUID, sizeof(sProcUID))) {
-        qemu_pipe_close(sProcPipe);
-        sProcPipe = 0;
-        sProcUID = 0;
-        ALOGW("Process pipe failed");
-        return;
-    }
-}
-
-#endif // !__Fuchsia__
-
 static void processPipeDoInit(uint32_t noRenderControlEnc) {
-    initSeqno();
-
     // No need to setup auxiliary pipe stream in this case
     if (noRenderControlEnc) return;
 
@@ -102,12 +58,13 @@ static void processPipeDoInit(uint32_t noRenderControlEnc) {
         // TODO: Move those over too
         case HOST_CONNECTION_QEMU_PIPE:
         case HOST_CONNECTION_ADDRESS_SPACE:
-            sQemuPipeInit();
+            sQemuPipeStream = new QemuPipeStream();
+            sProcUID = sQemuPipeStream->processPipeInit();
             break;
         case HOST_CONNECTION_VIRTIO_GPU_PIPE:
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
             sVirtioGpuPipeStream = new VirtioGpuPipeStream(4096, sStreamHandle);
-            sProcUID = sVirtioGpuPipeStream->initProcessPipe();
+            sProcUID = sVirtioGpuPipeStream->processPipeInit();
             break;
         }
     }
@@ -132,7 +89,7 @@ bool processPipeInit(int streamHandle, HostConnectionType connType, uint32_t noR
             }
 
 #ifndef __Fuchsia__
-            if (!sProcPipe && !sVirtioGpuPipeStream) {
+            if (!sQemuPipeStream && !sVirtioGpuPipeStream) {
                 return false;
             }
 #endif
@@ -142,60 +99,4 @@ bool processPipeInit(int streamHandle, HostConnectionType connType, uint32_t noR
     return true;
 }
 
-uint64_t getPuid() {
-    return sProcUID;
-}
-
-void processPipeRestart() {
-    std::lock_guard<std::mutex> lock(sNeedInitMutex);
-
-    ALOGW("%s: restarting process pipe\n", __func__);
-    bool isPipe = false;
-
-    switch (sConnType) {
-        // TODO: Move those over too
-        case HOST_CONNECTION_QEMU_PIPE:
-        case HOST_CONNECTION_ADDRESS_SPACE:
-            isPipe = true;
-            break;
-        case HOST_CONNECTION_VIRTIO_GPU_PIPE:
-        case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
-            isPipe = false;
-            break;
-        }
-    }
-
-    sProcUID = 0;
-
-    if (isPipe) {
-        if (qemu_pipe_valid(sProcPipe)) {
-            qemu_pipe_close(sProcPipe);
-            sProcPipe = 0;
-        }
-    } else {
-#ifndef __Fuchsia__
-        if (sVirtioGpuPipeStream) {
-            delete sVirtioGpuPipeStream;
-            sVirtioGpuPipeStream = nullptr;
-        }
-#endif
-    }
-
-    if (sConnType == HOST_CONNECTION_VIRTIO_GPU_PIPE ||
-        sConnType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) {
-        VirtGpuDevice::resetInstance();
-    }
-
-    sNeedInit = true;
-}
-
-void refreshHostConnection() {
-    HostConnection* hostConn = HostConnection::get();
-    ExtendedRCEncoderContext* rcEnc = hostConn->rcEncoder();
-    rcEnc->rcSetPuid(rcEnc, sProcUID);
-}
-
-uint32_t* getSeqnoPtrForProcess() {
-    // It's assumed process pipe state has already been initialized.
-    return sSeqnoPtr;
-}
+uint64_t getPuid() { return sProcUID; }

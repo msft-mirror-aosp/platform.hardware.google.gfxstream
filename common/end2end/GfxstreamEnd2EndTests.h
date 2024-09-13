@@ -44,11 +44,12 @@
 #include <vulkan/vk_android_native_buffer.h>
 // clang-format on
 
+#include "KumquatInstance.h"
 #include "Sync.h"
 #include "drm_fourcc.h"
 #include "gfxstream/Expected.h"
 #include "gfxstream/guest/ANativeWindow.h"
-#include "gfxstream/guest/Gralloc.h"
+#include "gfxstream/guest/GfxStreamGralloc.h"
 #include "gfxstream/guest/RenderControlApi.h"
 
 namespace gfxstream {
@@ -361,7 +362,7 @@ class ScopedAHardwareBuffer {
     }
 
     ScopedAHardwareBuffer& operator=(ScopedAHardwareBuffer&& rhs) {
-        mGralloc = rhs.mGralloc;
+        std::swap(mGralloc, rhs.mGralloc);
         std::swap(mHandle, rhs.mHandle);
         return *this;
     }
@@ -522,7 +523,6 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     void SetUp() override;
 
     void TearDownGuest();
-    void TearDownHost();
     void TearDown() override;
 
     void SetUpEglContextAndSurface(uint32_t contextVersion,
@@ -576,6 +576,8 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     std::unique_ptr<GuestGlDispatchTable> mGl;
     std::unique_ptr<GuestRenderControlDispatchTable> mRc;
     std::unique_ptr<vkhpp::DynamicLoader> mVk;
+
+    std::unique_ptr<KumquatInstance> mKumquatInstance = nullptr;
 };
 
 }  // namespace tests

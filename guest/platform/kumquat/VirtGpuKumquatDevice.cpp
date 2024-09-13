@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <cutils/log.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -25,15 +24,15 @@
 #include <string>
 
 #include "VirtGpuKumquat.h"
+#include "util/log.h"
 #include "virtgpu_gfxstream_protocol.h"
-#include "virtgpu_kumquat/virtgpu_kumquat_ffi.h"
 
 #define PARAM(x) \
     (struct VirtGpuParam) { x, #x, 0 }
 
 static inline uint32_t align_up(uint32_t n, uint32_t a) { return ((n + a - 1) / a) * a; }
 
-VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
+VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int32_t descriptor)
     : VirtGpuDevice(capset) {
     struct VirtGpuParam params[] = {
         PARAM(VIRTGPU_KUMQUAT_PARAM_3D_FEATURES),
@@ -53,6 +52,7 @@ VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
     struct drm_kumquat_context_init init = {0};
     struct drm_kumquat_context_set_param ctx_set_params[3] = {{0}};
     const char* processName = nullptr;
+    std::string gpu_socket_path = "/tmp/kumquat-gpu-";
 
     memset(&mCaps, 0, sizeof(struct VirtGpuCaps));
 
@@ -60,9 +60,16 @@ VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
     processName = getprogname();
 #endif
 
-    ret = virtgpu_kumquat_init(&mVirtGpu);
+    if (descriptor >= 0) {
+        gpu_socket_path.append(std::to_string(descriptor));
+        mDescriptor = descriptor;
+    } else {
+        gpu_socket_path.append("0");
+    }
+
+    ret = virtgpu_kumquat_init(&mVirtGpu, gpu_socket_path.c_str());
     if (ret) {
-        ALOGV("Failed to init virtgpu kumquat");
+        mesa_logi("Failed to init virtgpu kumquat");
         return;
     }
 
@@ -72,7 +79,7 @@ VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
 
         ret = virtgpu_kumquat_get_param(mVirtGpu, &get_param);
         if (ret) {
-            ALOGV("virtgpu backend not enabling %s", params[i].name);
+            mesa_logi("virtgpu backend not enabling %s", params[i].name);
             continue;
         }
 
@@ -105,7 +112,7 @@ VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
     if (ret) {
         // Don't fail get capabilities just yet, AEMU doesn't use this API
         // yet (b/272121235);
-        ALOGE("DRM_IOCTL_VIRTGPU_KUMQUAT_GET_CAPS failed with %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_KUMQUAT_GET_CAPS failed with %s", strerror(errno));
     }
 
     // We always need an ASG blob in some cases, so always define blobAlignment
@@ -132,7 +139,7 @@ VirtGpuKumquatDevice::VirtGpuKumquatDevice(enum VirtGpuCapset capset, int fd)
     init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
     ret = virtgpu_kumquat_context_init(mVirtGpu, &init);
     if (ret) {
-        ALOGE(
+        mesa_loge(
             "DRM_IOCTL_VIRTGPU_KUMQUAT_CONTEXT_INIT failed with %s, continuing without context...",
             strerror(errno));
     }
@@ -142,7 +149,7 @@ VirtGpuKumquatDevice::~VirtGpuKumquatDevice() { virtgpu_kumquat_finish(&mVirtGpu
 
 struct VirtGpuCaps VirtGpuKumquatDevice::getCaps(void) { return mCaps; }
 
-int64_t VirtGpuKumquatDevice::getDeviceHandle(void) { return -1; }
+int64_t VirtGpuKumquatDevice::getDeviceHandle(void) { return mDescriptor; }
 
 VirtGpuResourcePtr VirtGpuKumquatDevice::createResource(uint32_t width, uint32_t height,
                                                         uint32_t stride, uint32_t size,
@@ -164,7 +171,7 @@ VirtGpuResourcePtr VirtGpuKumquatDevice::createResource(uint32_t width, uint32_t
 
     int ret = virtgpu_kumquat_resource_create_3d(mVirtGpu, &create);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_KUMQUAT_RESOURCE_CREATE failed with %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_KUMQUAT_RESOURCE_CREATE failed with %s", strerror(errno));
         return nullptr;
     }
 
@@ -185,7 +192,7 @@ VirtGpuResourcePtr VirtGpuKumquatDevice::createBlob(const struct VirtGpuCreateBl
 
     ret = virtgpu_kumquat_resource_create_blob(mVirtGpu, &create);
     if (ret < 0) {
-        ALOGE("DRM_VIRTGPU_KUMQUAT_RESOURCE_CREATE_BLOB failed with %s", strerror(errno));
+        mesa_loge("DRM_VIRTGPU_KUMQUAT_RESOURCE_CREATE_BLOB failed with %s", strerror(errno));
         return nullptr;
     }
 
@@ -202,7 +209,7 @@ VirtGpuResourcePtr VirtGpuKumquatDevice::importBlob(const struct VirtGpuExternal
 
     ret = virtgpu_kumquat_resource_import(mVirtGpu, &resource_import);
     if (ret < 0) {
-        ALOGE("DRM_VIRTGPU_KUMQUAT_RESOURCE_IMPORT failed with %s", strerror(errno));
+        mesa_loge("DRM_VIRTGPU_KUMQUAT_RESOURCE_IMPORT failed with %s", strerror(errno));
         return nullptr;
     }
 
@@ -230,7 +237,7 @@ int VirtGpuKumquatDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
 
     ret = virtgpu_kumquat_execbuffer(mVirtGpu, &exec);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_KUMQUAT_EXECBUFFER failed: %s", strerror(errno));
+        mesa_loge("DRM_IOCTL_VIRTGPU_KUMQUAT_EXECBUFFER failed: %s", strerror(errno));
         return ret;
     }
 
@@ -242,6 +249,6 @@ int VirtGpuKumquatDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
     return 0;
 }
 
-VirtGpuDevice* createPlatformVirtGpuDevice(enum VirtGpuCapset capset, int fd) {
-    return new VirtGpuKumquatDevice(capset, fd);
+VirtGpuDevice* kumquatCreateVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor) {
+    return new VirtGpuKumquatDevice(capset, descriptor);
 }

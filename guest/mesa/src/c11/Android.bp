@@ -23,5 +23,5 @@ cc_library_headers {
     name: "mesa_util_c11_headers_gfxstream",
     export_include_dirs: ["."],
     host_supported: true,
-    vendor: true,
+    vendor_available: true,
 }
