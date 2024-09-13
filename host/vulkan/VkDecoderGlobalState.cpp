@@ -5849,6 +5849,7 @@ class VkDecoderGlobalState::Impl {
         VkDevice device = VK_NULL_HANDLE;
         Lock* ql;
         std::shared_ptr<std::promise<void>> isWaitablePromise;
+        std::shared_future<void> isFenceWaitable;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
 
@@ -5876,11 +5877,18 @@ class VkDecoderGlobalState::Impl {
                 auto* fenceInfo = android::base::find(mFenceInfo, fence);
                 if (fenceInfo) {
                     isWaitablePromise = fenceInfo->isWaitablePromise;
+                    isFenceWaitable = fenceInfo->isWaitable;
                 }
             }
         }
+        if (isWaitablePromise == nullptr) {
+            isWaitablePromise.reset(new std::promise<void>());
+            isFenceWaitable = isWaitablePromise->get_future().share();
+        }
 
         VkFence usedFence = fence;
+        bool shouldDeleteFence = false;
+        DeviceOpWaitable colorBufferLatestUse;
         DeviceOpWaitable queueCompletedWaitable;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
@@ -5888,14 +5896,34 @@ class VkDecoderGlobalState::Impl {
             if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
             DeviceOpBuilder builder(*deviceInfo->deviceOpTracker);
             if (VK_NULL_HANDLE == usedFence) {
-                // Note: This fence will be managed by the DeviceOpTracker after the
-                // OnQueueSubmittedWithFence call, so it does not need to be destroyed in the scope
-                // of this queueSubmit
-                usedFence = builder.CreateFenceForOp();
+                // Maintain a local fence.
+                // Alternatively we could consider builder.CreateFenceForOp().
+                // But we could not wait on the returned fence from builder.CreateFenceForOp()
+                // as there could be a race condition that it will immediately destroy
+                // the fence after wait complete on a different thread.
+                const VkFenceCreateInfo fenceCreateInfo = {
+                    .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+                    .pNext = nullptr,
+                    .flags = 0,
+                };
+                VkResult result = vk->vkCreateFence(device, &fenceCreateInfo, nullptr, &usedFence);
+                if (result != VK_SUCCESS) {
+                    ERR("Queuesubmit failed to create VkFence!");
+                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                }
+                shouldDeleteFence = true;
             }
             queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
-
             deviceInfo->deviceOpTracker->PollAndProcessGarbage();
+        }
+        // If releasedColorBuffers is empty, the color buffers are good for use
+        // right after queue compltes.
+        // Otherwise, it will perform VK->GL copy after GPU fence and we need
+        // to wait for it.
+        if (releasedColorBuffers.empty()) {
+            colorBufferLatestUse = queueCompletedWaitable;
+        } else {
+            colorBufferLatestUse = isFenceWaitable;
         }
 
         {
@@ -5914,7 +5942,7 @@ class VkDecoderGlobalState::Impl {
             auto* deviceInfo = android::base::find(mDeviceInfo, device);
             if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
             for (const auto& colorBuffer : imageBarrierColorBuffers) {
-                setColorBufferLatestUse(colorBuffer, queueCompletedWaitable,
+                setColorBufferLatestUse(colorBuffer, colorBufferLatestUse,
                                         deviceInfo->deviceOpTracker);
             }
         }
@@ -5973,7 +6001,7 @@ class VkDecoderGlobalState::Impl {
                 // Also update the latestUse waitable for this fence, to ensure
                 // it is not asynchronously destroyed before all the waitables
                 // referencing it
-                fenceInfo->latestUse = queueCompletedWaitable;
+                fenceInfo->latestUse = colorBufferLatestUse;
             }
         }
         if (releasedColorBuffers.empty()) {
@@ -5983,11 +6011,16 @@ class VkDecoderGlobalState::Impl {
         } else {
             SyncThread::get()->triggerGeneral(
                 [flushColorBuffer = m_emu->callbacks.flushColorBuffer, releasedColorBuffers,
-                 usedFence, isWaitablePromise, vk, device]() {
-                    vk->vkWaitForFences(device, 1, &usedFence, true,
-                                        10ULL * 1000ULL * 1000ULL * 1000ULL);
-                    for (HandleType cb : releasedColorBuffers) {
-                        flushColorBuffer(cb);
+                 isWaitablePromise = std::move(isWaitablePromise), device, vk, usedFence,
+                 shouldDeleteFence]() {
+                    if (VK_SUCCESS == vk->vkWaitForFences(device, 1, &usedFence, true,
+                                                          10ULL * 1000ULL * 1000ULL * 1000ULL)) {
+                        for (HandleType cb : releasedColorBuffers) {
+                            flushColorBuffer(cb);
+                        }
+                        if (shouldDeleteFence) {
+                            vk->vkDestroyFence(device, usedFence, nullptr);
+                        }
                     }
                     // After vkQueueSubmit is called, we can signal the conditional variable
                     // in FenceInfo, so that other threads (e.g. SyncThread) can call
