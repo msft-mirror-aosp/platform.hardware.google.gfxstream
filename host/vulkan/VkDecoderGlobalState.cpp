@@ -34,7 +34,6 @@
 #include "VulkanStream.h"
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
-#include "aemu/base/Tracing.h"
 #include "aemu/base/containers/EntityManager.h"
 #include "aemu/base/containers/HybridEntityManager.h"
 #include "aemu/base/containers/Lookup.h"
@@ -48,6 +47,7 @@
 #include "common/goldfish_vk_marshaling.h"
 #include "common/goldfish_vk_reserved_marshaling.h"
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
+#include "gfxstream/host/Tracing.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/HostmemIdMapping.h"
 #include "host-common/address_space_device_control_ops.h"
@@ -4469,18 +4469,16 @@ class VkDecoderGlobalState::Impl {
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localAllocInfo);
 
         VkMemoryAllocateFlagsInfo allocFlagsInfo;
-        VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
-
         const VkMemoryAllocateFlagsInfo* allocFlagsInfoPtr =
             vk_find_struct<VkMemoryAllocateFlagsInfo>(pAllocateInfo);
-        const VkMemoryOpaqueCaptureAddressAllocateInfo* opaqueCaptureAddressAllocInfoPtr =
-            vk_find_struct<VkMemoryOpaqueCaptureAddressAllocateInfo>(pAllocateInfo);
-
         if (allocFlagsInfoPtr) {
             allocFlagsInfo = *allocFlagsInfoPtr;
             vk_append_struct(&structChainIter, &allocFlagsInfo);
         }
 
+        VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
+        const VkMemoryOpaqueCaptureAddressAllocateInfo* opaqueCaptureAddressAllocInfoPtr =
+            vk_find_struct<VkMemoryOpaqueCaptureAddressAllocateInfo>(pAllocateInfo);
         if (opaqueCaptureAddressAllocInfoPtr) {
             opaqueCaptureAddressAllocInfo = *opaqueCaptureAddressAllocInfoPtr;
             vk_append_struct(&structChainIter, &opaqueCaptureAddressAllocInfo);
@@ -4645,9 +4643,7 @@ class VkDecoderGlobalState::Impl {
                     vk_append_struct(&structChainIter, &importInfo);
                 }
             }
-        }
-
-        if (importBufferInfoPtr) {
+        } else if (importBufferInfoPtr) {
             bool bufferMemoryUsesDedicatedAlloc = false;
             if (!getBufferAllocationInfo(
                     importBufferInfoPtr->buffer, &localAllocInfo.allocationSize,
@@ -4739,37 +4735,7 @@ class VkDecoderGlobalState::Impl {
             vk_append_struct(&structChainIter, &localDedicatedAllocInfo);
         }
 
-        VkExportMemoryAllocateInfo exportAllocate = {
-            .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
-            .pNext = NULL,
-        };
-
-#ifdef __unix__
-        exportAllocate.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-#endif
-
-#ifdef __linux__
-        if (m_emu->deviceInfo.supportsDmaBuf &&
-            hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
-            exportAllocate.handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-        }
-#endif
-
-#ifdef _WIN32
-        exportAllocate.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-#endif
-
-#if defined(__APPLE__)
-        if (m_emu->instanceSupportsMoltenVK) {
-            // Using a different handle type when in MoltenVK mode
-            exportAllocate.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR;
-        }
-#endif
-
-        bool hostVisible = memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        if (hostVisible && m_emu->features.ExternalBlob.enabled) {
-            vk_append_struct(&structChainIter, &exportAllocate);
-        }
+        const bool hostVisible = memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
         if (createBlobInfoPtr && createBlobInfoPtr->blobMem == STREAM_BLOB_MEM_GUEST &&
             (createBlobInfoPtr->blobFlags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
@@ -4804,101 +4770,137 @@ class VkDecoderGlobalState::Impl {
             vk_append_struct(&structChainIter, &importInfo);
         }
 
-        VkImportMemoryHostPointerInfoEXT importHostInfo;
+        const bool isImport = importCbInfoPtr || importBufferInfoPtr;
+        const bool isExport = !isImport;
+
+        std::optional<VkImportMemoryHostPointerInfoEXT> importHostInfo;
+        std::optional<VkExportMemoryAllocateInfo> exportAllocateInfo;
+
         std::optional<SharedMemory> sharedMemory = std::nullopt;
         std::shared_ptr<PrivateMemory> privateMemory = {};
 
-        // TODO(b/261222354): Make sure the feature exists when initializing sVkEmulation.
-        if (hostVisible && m_emu->features.SystemBlob.enabled) {
-            // Ensure size is page-aligned.
-            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
-            if (alignedSize != localAllocInfo.allocationSize) {
-                ERR("Warning: Aligning allocation size from %llu to %llu",
-                    static_cast<unsigned long long>(localAllocInfo.allocationSize),
-                    static_cast<unsigned long long>(alignedSize));
-            }
-            localAllocInfo.allocationSize = alignedSize;
-
-            static std::atomic<uint64_t> uniqueShmemId = 0;
-            sharedMemory = SharedMemory("shared-memory-vk-" + std::to_string(uniqueShmemId++),
-                                        localAllocInfo.allocationSize);
-            int ret = sharedMemory->create(0600);
-            if (ret) {
-                ERR("Failed to create system-blob host-visible memory, error: %d", ret);
-                return VK_ERROR_OUT_OF_HOST_MEMORY;
-            }
-            mappedPtr = sharedMemory->get();
-            int mappedPtrAlignment = reinterpret_cast<uintptr_t>(mappedPtr) % kPageSizeforBlob;
-            if (mappedPtrAlignment != 0) {
-                ERR("Warning: Mapped shared memory pointer is not aligned to page size, alignment "
-                    "is: %d",
-                    mappedPtrAlignment);
-            }
-            importHostInfo = {.sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
-                              .pNext = NULL,
-                              .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
-                              .pHostPointer = mappedPtr};
-            vk_append_struct(&structChainIter, &importHostInfo);
-        }
-
-        VkImportMemoryHostPointerInfoEXT importHostInfoPrivate{};
-        if (hostVisible && m_emu->features.VulkanAllocateHostMemory.enabled &&
-            localAllocInfo.pNext == nullptr) {
-            if (!m_emu || !m_emu->deviceInfo.supportsExternalMemoryHostProps) {
-                ERR("VK_EXT_EXTERNAL_MEMORY_HOST is not supported, cannot use "
-                    "VulkanAllocateHostMemory");
-                return VK_ERROR_INCOMPATIBLE_DRIVER;
-            }
-            VkDeviceSize alignmentSize = m_emu->deviceInfo.externalMemoryHostProps.minImportedHostPointerAlignment;
-            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, alignmentSize);
-            localAllocInfo.allocationSize = alignedSize;
-            privateMemory =
-                std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
-            mappedPtr = privateMemory->getAddr();
-            importHostInfoPrivate = {
-                .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
-                .pNext = NULL,
-                .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
-                .pHostPointer = mappedPtr};
-
-            VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
-                .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
-                .pNext = NULL,
-                .memoryTypeBits = 0,
-            };
-
-            vk->vkGetMemoryHostPointerPropertiesEXT(
-                device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr,
-                &memoryHostPointerProperties);
-
-            if (memoryHostPointerProperties.memoryTypeBits == 0) {
-                ERR("Cannot find suitable memory type for VulkanAllocateHostMemory");
-                return VK_ERROR_INCOMPATIBLE_DRIVER;
-            }
-
-            if (((1u << localAllocInfo.memoryTypeIndex) & memoryHostPointerProperties.memoryTypeBits) == 0) {
-
-                // TODO Consider assigning the correct memory index earlier, instead of switching right before allocation.
-
-                // Look for the first available supported memory index and assign it.
-                for(uint32_t i =0; i<= 31; ++i) {
-                    if ((memoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
-                        continue;
-                    }
-                    localAllocInfo.memoryTypeIndex = i;
-                    break;
+        if (isExport && hostVisible) {
+            if (m_emu->features.SystemBlob.enabled) {
+                // Ensure size is page-aligned.
+                VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
+                if (alignedSize != localAllocInfo.allocationSize) {
+                    ERR("Warning: Aligning allocation size from %llu to %llu",
+                        static_cast<unsigned long long>(localAllocInfo.allocationSize),
+                        static_cast<unsigned long long>(alignedSize));
                 }
-                VERBOSE(
-                    "Detected memoryTypeIndex violation on requested host memory import. Switching "
-                    "to a supported memory index %d",
-                    localAllocInfo.memoryTypeIndex);
-            }
+                localAllocInfo.allocationSize = alignedSize;
 
-            vk_append_struct(&structChainIter, &importHostInfoPrivate);
+                static std::atomic<uint64_t> uniqueShmemId = 0;
+                sharedMemory = SharedMemory("shared-memory-vk-" + std::to_string(uniqueShmemId++),
+                                            localAllocInfo.allocationSize);
+                int ret = sharedMemory->create(0600);
+                if (ret) {
+                    ERR("Failed to create system-blob host-visible memory, error: %d", ret);
+                    return VK_ERROR_OUT_OF_HOST_MEMORY;
+                }
+                mappedPtr = sharedMemory->get();
+                int mappedPtrAlignment = reinterpret_cast<uintptr_t>(mappedPtr) % kPageSizeforBlob;
+                if (mappedPtrAlignment != 0) {
+                    ERR("Warning: Mapped shared memory pointer is not aligned to page size, "
+                        "alignment "
+                        "is: %d",
+                        mappedPtrAlignment);
+                }
+                importHostInfo = {
+                    .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+                    .pNext = NULL,
+                    .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+                    .pHostPointer = mappedPtr,
+                };
+                vk_append_struct(&structChainIter, &*importHostInfo);
+            } else if (m_emu->features.ExternalBlob.enabled) {
+                VkExternalMemoryHandleTypeFlags handleTypes;
+
+#if defined(__APPLE__)
+                if (m_emu->instanceSupportsMoltenVK) {
+                    // Using a different handle type when in MoltenVK mode
+                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR;
+                }
+#elif defined(_WIN32)
+                handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+#elif defined(__unix__)
+                handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+#endif
+
+#ifdef __linux__
+                if (m_emu->deviceInfo.supportsDmaBuf &&
+                    hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+                    handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+                }
+#endif
+
+                exportAllocateInfo = {
+                    .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
+                    .pNext = NULL,
+                    .handleTypes = handleTypes,
+                };
+                vk_append_struct(&structChainIter, &*exportAllocateInfo);
+            } else if (m_emu->features.VulkanAllocateHostMemory.enabled &&
+                       localAllocInfo.pNext == nullptr) {
+                if (!m_emu || !m_emu->deviceInfo.supportsExternalMemoryHostProps) {
+                    ERR("VK_EXT_EXTERNAL_MEMORY_HOST is not supported, cannot use "
+                        "VulkanAllocateHostMemory");
+                    return VK_ERROR_INCOMPATIBLE_DRIVER;
+                }
+                VkDeviceSize alignmentSize =
+                    m_emu->deviceInfo.externalMemoryHostProps.minImportedHostPointerAlignment;
+                VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, alignmentSize);
+                localAllocInfo.allocationSize = alignedSize;
+                privateMemory =
+                    std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
+                mappedPtr = privateMemory->getAddr();
+                importHostInfo = {
+                    .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+                    .pNext = NULL,
+                    .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+                    .pHostPointer = mappedPtr,
+                };
+
+                VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
+                    .pNext = NULL,
+                    .memoryTypeBits = 0,
+                };
+
+                vk->vkGetMemoryHostPointerPropertiesEXT(
+                    device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr,
+                    &memoryHostPointerProperties);
+
+                if (memoryHostPointerProperties.memoryTypeBits == 0) {
+                    ERR("Cannot find suitable memory type for VulkanAllocateHostMemory");
+                    return VK_ERROR_INCOMPATIBLE_DRIVER;
+                }
+
+                if (((1u << localAllocInfo.memoryTypeIndex) &
+                     memoryHostPointerProperties.memoryTypeBits) == 0) {
+                    // TODO Consider assigning the correct memory index earlier, instead of
+                    // switching right before allocation.
+
+                    // Look for the first available supported memory index and assign it.
+                    for (uint32_t i = 0; i <= 31; ++i) {
+                        if ((memoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
+                            continue;
+                        }
+                        localAllocInfo.memoryTypeIndex = i;
+                        break;
+                    }
+                    VERBOSE(
+                        "Detected memoryTypeIndex violation on requested host memory import. "
+                        "Switching "
+                        "to a supported memory index %d",
+                        localAllocInfo.memoryTypeIndex);
+                }
+
+                vk_append_struct(&structChainIter, &*importHostInfo);
+            }
         }
 
         VkResult result = vk->vkAllocateMemory(device, &localAllocInfo, pAllocator, pMemory);
-
         if (result != VK_SUCCESS) {
             return result;
         }
