@@ -22,6 +22,7 @@ gfxstream_backend_static_deps = [
     "gfxstream_host_common",
     "libgfxstream_common_utils",
     "libgfxstream_host_features",
+    "libgfxstream_host_tracing",
     "libgfxstream_etc",
     "libgfxstream_glestranslator_egl",
     "libgfxstream_glestranslator_glescm",
@@ -77,6 +78,7 @@ cc_defaults {
     export_static_lib_headers: [
         "gfxstream_base",
         "libgfxstream_host_features",
+        "libgfxstream_host_tracing",
         "libgfxstream_host_gl_host_common",
         "libgfxstream_host_gles2_dec",
         "libgfxstream_host_glsnapshot",

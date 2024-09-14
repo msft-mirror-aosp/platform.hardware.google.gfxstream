@@ -73,6 +73,64 @@ cc_library_static {
     ],
 }
 
+genrule {
+    name: "gfxstream_codegen_impl",
+    srcs: [
+        ":mesa_vulkan_gfxstream_xml",
+        ":gfxstream_vulkan_xml",
+    ],
+    out: [
+        "goldfish_vk_counting_guest.cpp",
+        "goldfish_vk_deepcopy_guest.cpp",
+        "goldfish_vk_extension_structs_guest.cpp",
+        "goldfish_vk_marshaling_guest.cpp",
+        "goldfish_vk_reserved_marshaling_guest.cpp",
+        "goldfish_vk_transform_guest.cpp",
+        "VkEncoder.cpp",
+        "func_table.cpp",
+    ],
+    tools: ["genvk_gfxstream"],
+    cmd: "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest GFXSTREAM_GUEST_ENCODER_DIR=$(genDir) " +
+        "python3 $(location genvk_gfxstream) -registry $(location :gfxstream_vulkan_xml) " +
+        "-registryGfxstream $(location :mesa_vulkan_gfxstream_xml) cereal -o $(genDir)/tmp",
+}
+
+genrule {
+    name: "gfxstream_codegen_headers",
+    srcs: [
+        ":mesa_vulkan_gfxstream_xml",
+        ":gfxstream_vulkan_xml",
+    ],
+    out: [
+        "vulkan_gfxstream_structure_type.h",
+        "VkEncoder.h",
+        "goldfish_vk_counting_guest.h",
+        "goldfish_vk_deepcopy_guest.h",
+        "goldfish_vk_marshaling_guest.h",
+        "goldfish_vk_extension_structs_guest.h",
+        "goldfish_vk_reserved_marshaling_guest.h",
+        "goldfish_vk_transform_guest.h",
+    ],
+    tools: ["genvk_gfxstream"],
+    cmd: "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest GFXSTREAM_GUEST_ENCODER_DIR=$(genDir) " +
+        "python3 $(location genvk_gfxstream) -registry $(location :gfxstream_vulkan_xml) " +
+        "-registryGfxstream $(location :mesa_vulkan_gfxstream_xml) cereal -o $(genDir)/tmp",
+}
+
+genrule {
+    name: "vulkan_gfxstream_header",
+    srcs: [
+        ":mesa_vulkan_gfxstream_xml",
+    ],
+    out: [
+        "vulkan_gfxstream.h",
+    ],
+    tools: ["genvk_gfxstream"],
+    cmd: "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest" +
+        "python3 $(location genvk_gfxstream) -registry $(location :mesa_vulkan_gfxstream_xml) vulkan_gfxstream.h " +
+        "-o $(genDir)",
+}
+
 cc_library_headers {
     name: "vulkan_enc_headers",
     export_include_dirs: ["."],
@@ -86,18 +144,10 @@ filegroup {
         "AndroidHardwareBuffer.cpp",
         "CommandBufferStagingStream.cpp",
         "DescriptorSetVirtualization.cpp",
-        "func_table.cpp",
-        "goldfish_vk_counting_guest.cpp",
-        "goldfish_vk_deepcopy_guest.cpp",
-        "goldfish_vk_extension_structs_guest.cpp",
-        "goldfish_vk_marshaling_guest.cpp",
-        "goldfish_vk_reserved_marshaling_guest.cpp",
-        "goldfish_vk_transform_guest.cpp",
         "HostVisibleMemoryVirtualization.cpp",
         "Resources.cpp",
         "ResourceTracker.cpp",
         "Validation.cpp",
-        "VkEncoder.cpp",
         "VulkanHandleMapping.cpp",
         "VulkanStreamGuest.cpp",
         "gfxstream_vk_private.cpp",
@@ -124,6 +174,11 @@ cc_library_static {
         "vk_physical_device_features_header_gfxstream",
         "vk_physical_device_properties_header_gfxstream",
         "u_format_pack_header_gfxstream",
+        "gfxstream_codegen_headers",
+        "vulkan_gfxstream_header",
+    ],
+    generated_sources: [
+        "gfxstream_codegen_impl",
     ],
     shared_libs: [
         "libcutils",
