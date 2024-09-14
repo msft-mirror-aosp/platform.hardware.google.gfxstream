@@ -133,7 +133,9 @@ cc_defaults {
     defaults: [
         "gfxstream_cc_defaults",
     ],
-    cflags: select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
+    cflags: [
+        "-DGFXSTREAM_BUILD_WITH_TRACING=1",
+    ] + select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
         // Android surfaceless build
         "none": [
             "-DGFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL=1",
@@ -141,6 +143,24 @@ cc_defaults {
         // The default when variable is not set is Android
         default: [],
     }),
+}
+
+python_binary_host {
+    name: "genvk_gfxstream",
+    main: "codegen/vulkan/vulkan-docs-next/scripts/genvk.py",
+    srcs: [
+        "codegen/**/*.py",
+    ],
+}
+
+filegroup {
+    name: "mesa_vulkan_gfxstream_xml",
+    srcs: ["codegen/vulkan/vulkan-docs-next/xml/vk_gfxstream.xml"],
+}
+
+filegroup {
+    name: "gfxstream_vulkan_xml",
+    srcs: ["codegen/vulkan/vulkan-docs-next/xml/vk.xml"],
 }
 
 cc_defaults {
