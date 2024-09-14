@@ -530,10 +530,10 @@ class BumpPool;
 
 #include "{self.baseLibDirPrefix}/BumpPool.h"
 #include "{self.baseLibDirPrefix}/system/System.h"
-#include "{self.baseLibDirPrefix}/Tracing.h"
 #include "{self.baseLibDirPrefix}/Metrics.h"
 #include "render-utils/IOStream.h"
 #include "FrameBuffer.h"
+#include "gfxstream/host/Tracing.h"
 #include "host-common/feature_control.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
@@ -576,7 +576,6 @@ class BumpPool;
             envGetOrDefault("GFXSTREAM_HOST_DECODER_DIR",
                             default_host_abs_decoder_destination)
         self.host_script_destination = envGetOrDefault("GFXSTREAM_SCRIPTS_DIR")
-        assert(self.host_script_destination is not None)
 
         if self.cerealFlags & VK_CEREAL_FLAG_GUEST:
             self.addGuestEncoderModule(
