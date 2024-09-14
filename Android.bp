@@ -145,6 +145,24 @@ cc_defaults {
     }),
 }
 
+python_binary_host {
+    name: "genvk_gfxstream",
+    main: "codegen/vulkan/vulkan-docs-next/scripts/genvk.py",
+    srcs: [
+        "codegen/**/*.py",
+    ],
+}
+
+filegroup {
+    name: "mesa_vulkan_gfxstream_xml",
+    srcs: ["codegen/vulkan/vulkan-docs-next/xml/vk_gfxstream.xml"],
+}
+
+filegroup {
+    name: "gfxstream_vulkan_xml",
+    srcs: ["codegen/vulkan/vulkan-docs-next/xml/vk.xml"],
+}
+
 cc_defaults {
     name: "gfxstream_defaults",
     cflags: [
