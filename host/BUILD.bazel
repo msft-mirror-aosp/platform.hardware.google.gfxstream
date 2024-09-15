@@ -151,6 +151,7 @@ cc_library(
         "//hardware/google/gfxstream/host/magma:gfxstream-magma-server",
         "//hardware/google/gfxstream/host/magma:magma-headers",
         "//hardware/google/gfxstream/host/renderControl_dec",
+        "//hardware/google/gfxstream/host/tracing:gfxstream_host_tracing",
         "//hardware/google/gfxstream/host/vulkan:gfxstream-vulkan-server",
     ] + select({
         "@platforms//os:macos": [
