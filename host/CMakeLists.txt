@@ -1,5 +1,6 @@
 add_subdirectory(backend)
 add_subdirectory(features)
+add_subdirectory(tracing)
 
 # Codec common sources
 add_subdirectory(apigen-codec-common)
@@ -82,6 +83,7 @@ target_link_libraries(
         renderControl_dec
         gfxstream_backend_common
         gfxstream_features
+        gfxstream_host_tracing
         gfxstream-gl-server
         gfxstream-magma-server
         gfxstream-vulkan-server
@@ -138,6 +140,7 @@ target_link_libraries(
     gfxstream_common_utils
     gfxstream_backend_common
     gfxstream_features
+    gfxstream_host_tracing
     gfxstream_backend_static
     PRIVATE
     )
