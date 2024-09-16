@@ -30,6 +30,11 @@ cc_library_shared {
         "vk_cmd_queue_header_gfxstream",
         "vk_physical_device_features_header_gfxstream",
         "vk_physical_device_properties_header_gfxstream",
+        "gfxstream_codegen_headers",
+        "vulkan_gfxstream_header",
+    ],
+    generated_sources: [
+        "gfxstream_codegen_impl",
     ],
     header_libs: [
         "libgfxstream_vulkan_headers",
