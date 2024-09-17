@@ -24,7 +24,7 @@
 
 namespace {
 
-bool WriteToFile(const std::string filename, const std::string contents) {
+bool WriteToFile(const std::string& filename, const std::string& contents) {
     std::ofstream ofs(filename);
     if (!ofs.is_open()) {
         return false;
