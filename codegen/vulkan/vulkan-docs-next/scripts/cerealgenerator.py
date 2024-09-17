@@ -123,6 +123,7 @@ SUPPORTED_FEATURES = [
     "VK_KHR_win32_surface",
     "VK_EXT_metal_surface",
     "VK_EXT_metal_objects",
+    "VK_EXT_external_memory_metal",
     "VK_KHR_external_semaphore_win32",
     "VK_KHR_external_memory_win32",
     "VK_NV_device_diagnostic_checkpoints",
@@ -166,6 +167,7 @@ SUPPORTED_MODULES = {
     "VK_KHR_win32_surface": ["goldfish_vk_dispatch"],
     "VK_EXT_metal_surface": ["goldfish_vk_dispatch"],
     "VK_EXT_metal_objects": ["goldfish_vk_dispatch"],
+    "VK_EXT_external_memory_metal": ["goldfish_vk_dispatch"],
     "VK_KHR_external_semaphore_win32" : ["goldfish_vk_dispatch"],
     "VK_KHR_external_memory_win32" : ["goldfish_vk_dispatch"],
     # Host dispatch for Linux hosts + and entrypoint for guests
