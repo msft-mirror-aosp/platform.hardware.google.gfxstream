@@ -1323,6 +1323,14 @@ class VkDecoderGlobalState::Impl {
             // information to mark as unsupported (see b/329845987).
             protectedMemoryFeatures->protectedMemory = VK_FALSE;
         }
+
+        VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
+            vk_find_struct<VkPhysicalDevicePrivateDataFeatures>(pFeatures);
+        if (privateDataFeatures != nullptr) {
+            // Private data from the guest side is not currently supported and causes emulator
+            // crashes with the dEQP-VK.api.object_management.private_data tests (b/368009403).
+            privateDataFeatures->privateData = VK_FALSE;
+        }
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties(
