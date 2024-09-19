@@ -23,7 +23,6 @@
 
 #include "ExternalObjectManager.h"
 #include "RenderThreadInfoVk.h"
-#include "SyncThread.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
 #include "VkDecoderContext.h"
@@ -885,8 +884,6 @@ class VkDecoderGlobalState::Impl {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "Snapshot load failure: unrecognized VkFence";
             }
-            it->second.isWaitablePromise.reset(new std::promise<void>());
-            it->second.isWaitable = it->second.isWaitablePromise->get_future().share();
             const auto& device = it->second.device;
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
@@ -1325,6 +1322,14 @@ class VkDecoderGlobalState::Impl {
             // Protected memory is not supported on emulators. Override feature
             // information to mark as unsupported (see b/329845987).
             protectedMemoryFeatures->protectedMemory = VK_FALSE;
+        }
+
+        VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
+            vk_find_struct<VkPhysicalDevicePrivateDataFeatures>(pFeatures);
+        if (privateDataFeatures != nullptr) {
+            // Private data from the guest side is not currently supported and causes emulator
+            // crashes with the dEQP-VK.api.object_management.private_data tests (b/368009403).
+            privateDataFeatures->privateData = VK_FALSE;
         }
     }
 
@@ -2778,27 +2783,14 @@ class VkDecoderGlobalState::Impl {
             auto& fenceInfo = mFenceInfo[*pFence];
             fenceInfo.device = device;
             fenceInfo.vk = vk;
-            fenceInfo.isWaitablePromise.reset(new std::promise<void>());
-            fenceInfo.isWaitable = fenceInfo.isWaitablePromise->get_future().share();
-            if (createInfo.flags & VK_FENCE_CREATE_SIGNALED_BIT) {
-                fenceInfo.isWaitablePromise->set_value();
-            }
+
             *pFence = new_boxed_non_dispatchable_VkFence(*pFence);
             fenceInfo.boxed = *pFence;
             fenceInfo.external = exportSyncFd;
+            fenceInfo.state = FenceInfo::State::kNotWaitable;
         }
 
         return VK_SUCCESS;
-    }
-
-    VkResult on_vkGetFenceStatus(android::base::BumpPool* pool, VkDevice boxed_device,
-                                 VkFence fence) {
-        return getFenceStatus(fence);
-    }
-
-    VkResult on_vkWaitForFences(android::base::BumpPool* pool, VkDevice device, uint32_t fenceCount,
-                                const VkFence* pFences, VkBool32 waitAll, uint64_t timeout) {
-        return waitForFences(fenceCount, pFences, waitAll, timeout);
     }
 
     VkResult on_vkResetFences(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -2814,15 +2806,13 @@ class VkDecoderGlobalState::Impl {
             for (uint32_t i = 0; i < fenceCount; i++) {
                 if (pFences[i] == VK_NULL_HANDLE) continue;
 
-                auto* fenceInfo = android::base::find(mFenceInfo, pFences[i]);
-                DCHECK(fenceInfo != nullptr);
-                if (fenceInfo->external) {
+                DCHECK(mFenceInfo.find(pFences[i]) != mFenceInfo.end());
+                if (mFenceInfo[pFences[i]].external) {
                     externalFences.push_back(pFences[i]);
                 } else {
                     // Reset all fences' states to kNotWaitable.
                     cleanedFences.push_back(pFences[i]);
-                    fenceInfo->isWaitablePromise.reset(new std::promise<void>());
-                    fenceInfo->isWaitable = fenceInfo->isWaitablePromise->get_future().share();
+                    mFenceInfo[pFences[i]].state = FenceInfo::State::kNotWaitable;
                 }
             }
         }
@@ -2853,10 +2843,9 @@ class VkDecoderGlobalState::Impl {
                 auto& fenceInfo = mFenceInfo[replacement];
                 fenceInfo.device = device;
                 fenceInfo.vk = vk;
-                fenceInfo.isWaitablePromise.reset(new std::promise<void>());
-                fenceInfo.isWaitable = fenceInfo.isWaitablePromise->get_future().share();
                 fenceInfo.boxed = boxed_fence;
                 fenceInfo.external = true;
+                fenceInfo.state = FenceInfo::State::kNotWaitable;
 
                 mFenceInfo[fence].boxed = VK_NULL_HANDLE;
             }
@@ -4488,18 +4477,16 @@ class VkDecoderGlobalState::Impl {
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localAllocInfo);
 
         VkMemoryAllocateFlagsInfo allocFlagsInfo;
-        VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
-
         const VkMemoryAllocateFlagsInfo* allocFlagsInfoPtr =
             vk_find_struct<VkMemoryAllocateFlagsInfo>(pAllocateInfo);
-        const VkMemoryOpaqueCaptureAddressAllocateInfo* opaqueCaptureAddressAllocInfoPtr =
-            vk_find_struct<VkMemoryOpaqueCaptureAddressAllocateInfo>(pAllocateInfo);
-
         if (allocFlagsInfoPtr) {
             allocFlagsInfo = *allocFlagsInfoPtr;
             vk_append_struct(&structChainIter, &allocFlagsInfo);
         }
 
+        VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
+        const VkMemoryOpaqueCaptureAddressAllocateInfo* opaqueCaptureAddressAllocInfoPtr =
+            vk_find_struct<VkMemoryOpaqueCaptureAddressAllocateInfo>(pAllocateInfo);
         if (opaqueCaptureAddressAllocInfoPtr) {
             opaqueCaptureAddressAllocInfo = *opaqueCaptureAddressAllocInfoPtr;
             vk_append_struct(&structChainIter, &opaqueCaptureAddressAllocInfo);
@@ -4664,9 +4651,7 @@ class VkDecoderGlobalState::Impl {
                     vk_append_struct(&structChainIter, &importInfo);
                 }
             }
-        }
-
-        if (importBufferInfoPtr) {
+        } else if (importBufferInfoPtr) {
             bool bufferMemoryUsesDedicatedAlloc = false;
             if (!getBufferAllocationInfo(
                     importBufferInfoPtr->buffer, &localAllocInfo.allocationSize,
@@ -4758,37 +4743,7 @@ class VkDecoderGlobalState::Impl {
             vk_append_struct(&structChainIter, &localDedicatedAllocInfo);
         }
 
-        VkExportMemoryAllocateInfo exportAllocate = {
-            .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
-            .pNext = NULL,
-        };
-
-#ifdef __unix__
-        exportAllocate.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-#endif
-
-#ifdef __linux__
-        if (m_emu->deviceInfo.supportsDmaBuf &&
-            hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
-            exportAllocate.handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-        }
-#endif
-
-#ifdef _WIN32
-        exportAllocate.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-#endif
-
-#if defined(__APPLE__)
-        if (m_emu->instanceSupportsMoltenVK) {
-            // Using a different handle type when in MoltenVK mode
-            exportAllocate.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR;
-        }
-#endif
-
-        bool hostVisible = memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        if (hostVisible && m_emu->features.ExternalBlob.enabled) {
-            vk_append_struct(&structChainIter, &exportAllocate);
-        }
+        const bool hostVisible = memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
         if (createBlobInfoPtr && createBlobInfoPtr->blobMem == STREAM_BLOB_MEM_GUEST &&
             (createBlobInfoPtr->blobFlags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
@@ -4823,101 +4778,137 @@ class VkDecoderGlobalState::Impl {
             vk_append_struct(&structChainIter, &importInfo);
         }
 
-        VkImportMemoryHostPointerInfoEXT importHostInfo;
+        const bool isImport = importCbInfoPtr || importBufferInfoPtr;
+        const bool isExport = !isImport;
+
+        std::optional<VkImportMemoryHostPointerInfoEXT> importHostInfo;
+        std::optional<VkExportMemoryAllocateInfo> exportAllocateInfo;
+
         std::optional<SharedMemory> sharedMemory = std::nullopt;
         std::shared_ptr<PrivateMemory> privateMemory = {};
 
-        // TODO(b/261222354): Make sure the feature exists when initializing sVkEmulation.
-        if (hostVisible && m_emu->features.SystemBlob.enabled) {
-            // Ensure size is page-aligned.
-            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
-            if (alignedSize != localAllocInfo.allocationSize) {
-                ERR("Warning: Aligning allocation size from %llu to %llu",
-                    static_cast<unsigned long long>(localAllocInfo.allocationSize),
-                    static_cast<unsigned long long>(alignedSize));
-            }
-            localAllocInfo.allocationSize = alignedSize;
-
-            static std::atomic<uint64_t> uniqueShmemId = 0;
-            sharedMemory = SharedMemory("shared-memory-vk-" + std::to_string(uniqueShmemId++),
-                                        localAllocInfo.allocationSize);
-            int ret = sharedMemory->create(0600);
-            if (ret) {
-                ERR("Failed to create system-blob host-visible memory, error: %d", ret);
-                return VK_ERROR_OUT_OF_HOST_MEMORY;
-            }
-            mappedPtr = sharedMemory->get();
-            int mappedPtrAlignment = reinterpret_cast<uintptr_t>(mappedPtr) % kPageSizeforBlob;
-            if (mappedPtrAlignment != 0) {
-                ERR("Warning: Mapped shared memory pointer is not aligned to page size, alignment "
-                    "is: %d",
-                    mappedPtrAlignment);
-            }
-            importHostInfo = {.sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
-                              .pNext = NULL,
-                              .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
-                              .pHostPointer = mappedPtr};
-            vk_append_struct(&structChainIter, &importHostInfo);
-        }
-
-        VkImportMemoryHostPointerInfoEXT importHostInfoPrivate{};
-        if (hostVisible && m_emu->features.VulkanAllocateHostMemory.enabled &&
-            localAllocInfo.pNext == nullptr) {
-            if (!m_emu || !m_emu->deviceInfo.supportsExternalMemoryHostProps) {
-                ERR("VK_EXT_EXTERNAL_MEMORY_HOST is not supported, cannot use "
-                    "VulkanAllocateHostMemory");
-                return VK_ERROR_INCOMPATIBLE_DRIVER;
-            }
-            VkDeviceSize alignmentSize = m_emu->deviceInfo.externalMemoryHostProps.minImportedHostPointerAlignment;
-            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, alignmentSize);
-            localAllocInfo.allocationSize = alignedSize;
-            privateMemory =
-                std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
-            mappedPtr = privateMemory->getAddr();
-            importHostInfoPrivate = {
-                .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
-                .pNext = NULL,
-                .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
-                .pHostPointer = mappedPtr};
-
-            VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
-                .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
-                .pNext = NULL,
-                .memoryTypeBits = 0,
-            };
-
-            vk->vkGetMemoryHostPointerPropertiesEXT(
-                device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr,
-                &memoryHostPointerProperties);
-
-            if (memoryHostPointerProperties.memoryTypeBits == 0) {
-                ERR("Cannot find suitable memory type for VulkanAllocateHostMemory");
-                return VK_ERROR_INCOMPATIBLE_DRIVER;
-            }
-
-            if (((1u << localAllocInfo.memoryTypeIndex) & memoryHostPointerProperties.memoryTypeBits) == 0) {
-
-                // TODO Consider assigning the correct memory index earlier, instead of switching right before allocation.
-
-                // Look for the first available supported memory index and assign it.
-                for(uint32_t i =0; i<= 31; ++i) {
-                    if ((memoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
-                        continue;
-                    }
-                    localAllocInfo.memoryTypeIndex = i;
-                    break;
+        if (isExport && hostVisible) {
+            if (m_emu->features.SystemBlob.enabled) {
+                // Ensure size is page-aligned.
+                VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
+                if (alignedSize != localAllocInfo.allocationSize) {
+                    ERR("Warning: Aligning allocation size from %llu to %llu",
+                        static_cast<unsigned long long>(localAllocInfo.allocationSize),
+                        static_cast<unsigned long long>(alignedSize));
                 }
-                VERBOSE(
-                    "Detected memoryTypeIndex violation on requested host memory import. Switching "
-                    "to a supported memory index %d",
-                    localAllocInfo.memoryTypeIndex);
-            }
+                localAllocInfo.allocationSize = alignedSize;
 
-            vk_append_struct(&structChainIter, &importHostInfoPrivate);
+                static std::atomic<uint64_t> uniqueShmemId = 0;
+                sharedMemory = SharedMemory("shared-memory-vk-" + std::to_string(uniqueShmemId++),
+                                            localAllocInfo.allocationSize);
+                int ret = sharedMemory->create(0600);
+                if (ret) {
+                    ERR("Failed to create system-blob host-visible memory, error: %d", ret);
+                    return VK_ERROR_OUT_OF_HOST_MEMORY;
+                }
+                mappedPtr = sharedMemory->get();
+                int mappedPtrAlignment = reinterpret_cast<uintptr_t>(mappedPtr) % kPageSizeforBlob;
+                if (mappedPtrAlignment != 0) {
+                    ERR("Warning: Mapped shared memory pointer is not aligned to page size, "
+                        "alignment "
+                        "is: %d",
+                        mappedPtrAlignment);
+                }
+                importHostInfo = {
+                    .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+                    .pNext = NULL,
+                    .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+                    .pHostPointer = mappedPtr,
+                };
+                vk_append_struct(&structChainIter, &*importHostInfo);
+            } else if (m_emu->features.ExternalBlob.enabled) {
+                VkExternalMemoryHandleTypeFlags handleTypes;
+
+#if defined(__APPLE__)
+                if (m_emu->instanceSupportsMoltenVK) {
+                    // Using a different handle type when in MoltenVK mode
+                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR;
+                }
+#elif defined(_WIN32)
+                handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+#elif defined(__unix__)
+                handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+#endif
+
+#ifdef __linux__
+                if (m_emu->deviceInfo.supportsDmaBuf &&
+                    hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
+                    handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+                }
+#endif
+
+                exportAllocateInfo = {
+                    .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
+                    .pNext = NULL,
+                    .handleTypes = handleTypes,
+                };
+                vk_append_struct(&structChainIter, &*exportAllocateInfo);
+            } else if (m_emu->features.VulkanAllocateHostMemory.enabled &&
+                       localAllocInfo.pNext == nullptr) {
+                if (!m_emu || !m_emu->deviceInfo.supportsExternalMemoryHostProps) {
+                    ERR("VK_EXT_EXTERNAL_MEMORY_HOST is not supported, cannot use "
+                        "VulkanAllocateHostMemory");
+                    return VK_ERROR_INCOMPATIBLE_DRIVER;
+                }
+                VkDeviceSize alignmentSize =
+                    m_emu->deviceInfo.externalMemoryHostProps.minImportedHostPointerAlignment;
+                VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, alignmentSize);
+                localAllocInfo.allocationSize = alignedSize;
+                privateMemory =
+                    std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
+                mappedPtr = privateMemory->getAddr();
+                importHostInfo = {
+                    .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+                    .pNext = NULL,
+                    .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+                    .pHostPointer = mappedPtr,
+                };
+
+                VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
+                    .pNext = NULL,
+                    .memoryTypeBits = 0,
+                };
+
+                vk->vkGetMemoryHostPointerPropertiesEXT(
+                    device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mappedPtr,
+                    &memoryHostPointerProperties);
+
+                if (memoryHostPointerProperties.memoryTypeBits == 0) {
+                    ERR("Cannot find suitable memory type for VulkanAllocateHostMemory");
+                    return VK_ERROR_INCOMPATIBLE_DRIVER;
+                }
+
+                if (((1u << localAllocInfo.memoryTypeIndex) &
+                     memoryHostPointerProperties.memoryTypeBits) == 0) {
+                    // TODO Consider assigning the correct memory index earlier, instead of
+                    // switching right before allocation.
+
+                    // Look for the first available supported memory index and assign it.
+                    for (uint32_t i = 0; i <= 31; ++i) {
+                        if ((memoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
+                            continue;
+                        }
+                        localAllocInfo.memoryTypeIndex = i;
+                        break;
+                    }
+                    VERBOSE(
+                        "Detected memoryTypeIndex violation on requested host memory import. "
+                        "Switching "
+                        "to a supported memory index %d",
+                        localAllocInfo.memoryTypeIndex);
+                }
+
+                vk_append_struct(&structChainIter, &*importHostInfo);
+            }
         }
 
         VkResult result = vk->vkAllocateMemory(device, &localAllocInfo, pAllocator, pMemory);
-
         if (result != VK_SUCCESS) {
             return result;
         }
@@ -5239,7 +5230,6 @@ class VkDecoderGlobalState::Impl {
             auto fenceInfo = android::base::find(mFenceInfo, fence);
             if (fenceInfo != nullptr) {
                 fenceInfo->latestUse = aniCompletedWaitable;
-                fenceInfo->isWaitablePromise->set_value();
             }
         }
 
@@ -5664,7 +5654,6 @@ class VkDecoderGlobalState::Impl {
 
         VkDevice device = VK_NULL_HANDLE;
         Lock* ql;
-        std::shared_ptr<std::promise<void>> isWaitablePromise;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
 
@@ -5687,13 +5676,6 @@ class VkDecoderGlobalState::Impl {
             auto* queueInfo = android::base::find(mQueueInfo, queue);
             if (!queueInfo) return VK_SUCCESS;
             ql = queueInfo->lock;
-
-            if (fence) {
-                auto* fenceInfo = android::base::find(mFenceInfo, fence);
-                if (fenceInfo) {
-                    isWaitablePromise = fenceInfo->isWaitablePromise;
-                }
-            }
         }
 
         VkFence usedFence = fence;
@@ -5735,11 +5717,9 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        VkResult result;
-        {
-            AutoLock qlock(*ql);
-            result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
-        }
+        AutoLock qlock(*ql);
+        auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
+
         if (result != VK_SUCCESS) {
             WARN("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result), result);
             return result;
@@ -5784,35 +5764,26 @@ class VkDecoderGlobalState::Impl {
                 }
             }
 
+            // After vkQueueSubmit is called, we can signal the conditional variable
+            // in FenceInfo, so that other threads (e.g. SyncThread) can call
+            // waitForFence() on this fence.
             auto* fenceInfo = android::base::find(mFenceInfo, fence);
             if (fenceInfo) {
+                fenceInfo->state = FenceInfo::State::kWaitable;
+                fenceInfo->lock.lock();
+                fenceInfo->cv.signalAndUnlock(&fenceInfo->lock);
                 // Also update the latestUse waitable for this fence, to ensure
                 // it is not asynchronously destroyed before all the waitables
                 // referencing it
                 fenceInfo->latestUse = queueCompletedWaitable;
             }
         }
-        if (releasedColorBuffers.empty()) {
-            if (isWaitablePromise.get()) {
-                isWaitablePromise->set_value();
+        if (!releasedColorBuffers.empty()) {
+            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+
+            for (HandleType cb : releasedColorBuffers) {
+                m_emu->callbacks.flushColorBuffer(cb);
             }
-        } else {
-            SyncThread::get()->triggerGeneral(
-                [flushColorBuffer = m_emu->callbacks.flushColorBuffer, releasedColorBuffers,
-                 usedFence, isWaitablePromise, vk, device]() {
-                    vk->vkWaitForFences(device, 1, &usedFence, true,
-                                        10ULL * 1000ULL * 1000ULL * 1000ULL);
-                    for (HandleType cb : releasedColorBuffers) {
-                        flushColorBuffer(cb);
-                    }
-                    // After vkQueueSubmit is called, we can signal the conditional variable
-                    // in FenceInfo, so that other threads (e.g. SyncThread) can call
-                    // waitForFence() on this fence.
-                    if (isWaitablePromise.get()) {
-                        isWaitablePromise->set_value();
-                    }
-                },
-                "Wait for submit and copy color buffers from vk->gl");
         }
 
         return result;
@@ -6936,53 +6907,62 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    VkResult waitForFences(uint32_t fenceCount, const VkFence* pFences, bool waitAll,
-                           uint64_t timeout) {
-        if (!fenceCount) {
-            return VK_SUCCESS;
-        }
-        const auto timeoutStamp =
-            std::chrono::system_clock::now() + std::chrono::nanoseconds(timeout);
-        VkDevice device = nullptr;
-        VulkanDispatch* vk = nullptr;
-        for (uint32_t i = 0; i < fenceCount; i++) {
-            VkFence fence = pFences[i];
-            std::shared_future<void> isWaitable;
-            {
-                std::lock_guard<std::recursive_mutex> lock(mLock);
-                if (fence == VK_NULL_HANDLE || mFenceInfo.find(fence) == mFenceInfo.end()) {
-                    // No fence, could be a semaphore.
-                    // TODO: Async wait for semaphores
-                    return VK_SUCCESS;
-                }
-
-                // Vulkan specs require fences of vkQueueSubmit to be *externally
-                // synchronized*, i.e. we cannot submit a queue while waiting for the
-                // fence in another thread. For threads that call this function, they
-                // have to wait until a vkQueueSubmit() using this fence is called
-                // before calling vkWaitForFences(). So we use a future for thread
-                // synchronization.
-                //
-                // See:
-                // https://www.khronos.org/registry/vulkan/specs/1.2/html/vkspec.html#fundamentals-threadingbehavior
-                // https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/issues/519
-
-                device = mFenceInfo[fence].device;
-                vk = mFenceInfo[fence].vk;
-                isWaitable = mFenceInfo[fence].isWaitable;
+    VkResult waitForFence(VkFence boxed_fence, uint64_t timeout) {
+        VkFence fence = unbox_VkFence(boxed_fence);
+        VkDevice device;
+        VulkanDispatch* vk;
+        StaticLock* fenceLock;
+        ConditionVariable* cv;
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            if (fence == VK_NULL_HANDLE || mFenceInfo.find(fence) == mFenceInfo.end()) {
+                // No fence, could be a semaphore.
+                // TODO: Async wait for semaphores
+                return VK_SUCCESS;
             }
-            // Current implementation does not respect waitAll here.
-            if (std::future_status::ready != isWaitable.wait_until(timeoutStamp)) {
-                return VK_TIMEOUT;
+
+            // Vulkan specs require fences of vkQueueSubmit to be *externally
+            // synchronized*, i.e. we cannot submit a queue while waiting for the
+            // fence in another thread. For threads that call this function, they
+            // have to wait until a vkQueueSubmit() using this fence is called
+            // before calling vkWaitForFences(). So we use a conditional variable
+            // and mutex for thread synchronization.
+            //
+            // See:
+            // https://www.khronos.org/registry/vulkan/specs/1.2/html/vkspec.html#fundamentals-threadingbehavior
+            // https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/issues/519
+
+            device = mFenceInfo[fence].device;
+            vk = mFenceInfo[fence].vk;
+            fenceLock = &mFenceInfo[fence].lock;
+            cv = &mFenceInfo[fence].cv;
+        }
+
+        fenceLock->lock();
+        cv->wait(fenceLock, [this, fence] {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            if (mFenceInfo[fence].state == FenceInfo::State::kWaitable) {
+                mFenceInfo[fence].state = FenceInfo::State::kWaiting;
+                return true;
+            }
+            return false;
+        });
+        fenceLock->unlock();
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            if (mFenceInfo.find(fence) == mFenceInfo.end()) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Fence was destroyed before vkWaitForFences call.";
             }
         }
-        return vk->vkWaitForFences(device, fenceCount, pFences, waitAll,
-                                   std::chrono::duration<uint64_t, std::nano>(
-                                       timeoutStamp - std::chrono::system_clock::now())
-                                       .count());
+
+        return vk->vkWaitForFences(device, /* fenceCount */ 1u, &fence,
+                                   /* waitAll */ false, timeout);
     }
 
-    VkResult getFenceStatus(VkFence fence) {
+    VkResult getFenceStatus(VkFence boxed_fence) {
+        VkFence fence = unbox_VkFence(boxed_fence);
         VkDevice device;
         VulkanDispatch* vk;
         {
@@ -6991,11 +6971,6 @@ class VkDecoderGlobalState::Impl {
                 // No fence, could be a semaphore.
                 // TODO: Async get status for semaphores
                 return VK_SUCCESS;
-            }
-
-            if (std::future_status::ready !=
-                mFenceInfo[fence].isWaitable.wait_for(std::chrono::nanoseconds(0LL))) {
-                return VK_NOT_READY;
             }
 
             device = mFenceInfo[fence].device;
@@ -8774,17 +8749,6 @@ VkResult VkDecoderGlobalState::on_vkCreateFence(android::base::BumpPool* pool, V
     return mImpl->on_vkCreateFence(pool, device, pCreateInfo, pAllocator, pFence);
 }
 
-VkResult VkDecoderGlobalState::on_vkGetFenceStatus(android::base::BumpPool* pool, VkDevice device,
-                                                   VkFence fence) {
-    return mImpl->on_vkGetFenceStatus(pool, device, fence);
-}
-
-VkResult VkDecoderGlobalState::on_vkWaitForFences(android::base::BumpPool* pool, VkDevice device,
-                                                  uint32_t fenceCount, const VkFence* pFences,
-                                                  VkBool32 waitAll, uint64_t timeout) {
-    return mImpl->on_vkWaitForFences(pool, device, fenceCount, pFences, waitAll, timeout);
-}
-
 VkResult VkDecoderGlobalState::on_vkResetFences(android::base::BumpPool* pool, VkDevice device,
                                                 uint32_t fenceCount, const VkFence* pFences) {
     return mImpl->on_vkResetFences(pool, device, fenceCount, pFences);
@@ -9551,13 +9515,11 @@ void VkDecoderGlobalState::on_CheckOutOfMemory(VkResult result, uint32_t opCode,
 }
 
 VkResult VkDecoderGlobalState::waitForFence(VkFence boxed_fence, uint64_t timeout) {
-    VkFence fence = unbox_VkFence(boxed_fence);
-    return mImpl->waitForFences(1, &fence, true, timeout);
+    return mImpl->waitForFence(boxed_fence, timeout);
 }
 
 VkResult VkDecoderGlobalState::getFenceStatus(VkFence boxed_fence) {
-    VkFence fence = unbox_VkFence(boxed_fence);
-    return mImpl->getFenceStatus(fence);
+    return mImpl->getFenceStatus(boxed_fence);
 }
 
 AsyncResult VkDecoderGlobalState::registerQsriCallback(VkImage image,

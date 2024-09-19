@@ -16,8 +16,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <future>
-
 #ifdef _WIN32
 #include <malloc.h>
 #endif
@@ -290,15 +288,15 @@ struct FenceInfo {
     VkFence boxed = VK_NULL_HANDLE;
     VulkanDispatch* vk = nullptr;
 
-    // 1. Handles races between the main virtio gpu channel and RenderThread/ASG
-    // channels by ensuring that the host does not do a `vkWaitForFences()` before
-    // the fence is used in a `VkQueueSubmit`.
-    //
-    // 2. Allows the host to insert additional operations and artificially delay when
-    // the fence will be marked as signaled (e.g. inserting VK->GL ColorBuffer syncs
-    // after vkQueueSubmit() operations).
-    std::shared_ptr<std::promise<void>> isWaitablePromise;
-    std::shared_future<void> isWaitable;
+    android::base::StaticLock lock;
+    android::base::ConditionVariable cv;
+
+    enum class State {
+        kWaitable,
+        kNotWaitable,
+        kWaiting,
+    };
+    State state = State::kNotWaitable;
 
     bool external = false;
 
