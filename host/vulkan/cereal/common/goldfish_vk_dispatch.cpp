@@ -804,6 +804,12 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)dlSymFunc(lib, "vkGetScreenBufferPropertiesQNX");
 #endif
+#ifdef VK_EXT_external_memory_metal
+    out->vkGetMemoryMetalHandleEXT =
+        (PFN_vkGetMemoryMetalHandleEXT)dlSymFunc(lib, "vkGetMemoryMetalHandleEXT");
+    out->vkGetMemoryMetalHandlePropertiesEXT = (PFN_vkGetMemoryMetalHandlePropertiesEXT)dlSymFunc(
+        lib, "vkGetMemoryMetalHandlePropertiesEXT");
+#endif
 #ifdef VK_KHR_ray_tracing_pipeline
     out->vkCmdTraceRaysKHR = (PFN_vkCmdTraceRaysKHR)dlSymFunc(lib, "vkCmdTraceRaysKHR");
     out->vkCreateRayTracingPipelinesKHR =
@@ -1801,6 +1807,13 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetScreenBufferPropertiesQNX)vk->vkGetInstanceProcAddr(
             instance, "vkGetScreenBufferPropertiesQNX");
 #endif
+#ifdef VK_EXT_external_memory_metal
+    out->vkGetMemoryMetalHandleEXT = (PFN_vkGetMemoryMetalHandleEXT)vk->vkGetInstanceProcAddr(
+        instance, "vkGetMemoryMetalHandleEXT");
+    out->vkGetMemoryMetalHandlePropertiesEXT =
+        (PFN_vkGetMemoryMetalHandlePropertiesEXT)vk->vkGetInstanceProcAddr(
+            instance, "vkGetMemoryMetalHandlePropertiesEXT");
+#endif
 #ifdef VK_KHR_ray_tracing_pipeline
     out->vkCmdTraceRaysKHR =
         (PFN_vkCmdTraceRaysKHR)vk->vkGetInstanceProcAddr(instance, "vkCmdTraceRaysKHR");
@@ -2772,6 +2785,13 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetScreenBufferPropertiesQNX =
         (PFN_vkGetScreenBufferPropertiesQNX)vk->vkGetDeviceProcAddr(
             device, "vkGetScreenBufferPropertiesQNX");
+#endif
+#ifdef VK_EXT_external_memory_metal
+    out->vkGetMemoryMetalHandleEXT =
+        (PFN_vkGetMemoryMetalHandleEXT)vk->vkGetDeviceProcAddr(device, "vkGetMemoryMetalHandleEXT");
+    out->vkGetMemoryMetalHandlePropertiesEXT =
+        (PFN_vkGetMemoryMetalHandlePropertiesEXT)vk->vkGetDeviceProcAddr(
+            device, "vkGetMemoryMetalHandlePropertiesEXT");
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
     out->vkCmdTraceRaysKHR =
