@@ -628,6 +628,10 @@ class VkDecoderSnapshot::Impl {
                     (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkShaderModule(
                         pCreateInfos[i].pStages[j].module));
             }
+            mReconstruction.addHandleDependency(
+                (const uint64_t*)(pPipelines + i), 1,
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkRenderPass(
+                    pCreateInfos[i].renderPass));
         }
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
