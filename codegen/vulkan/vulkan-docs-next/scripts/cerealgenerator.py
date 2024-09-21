@@ -1,19 +1,5 @@
-#!/usr/bin/python3 -i
-#
-# Copyright (c) 2013-2018 The Khronos Group Inc.
-# Copyright (c) 2013-2018 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright 2023 Google LLC
+# SPDX-License-Identifier: MIT
 
 import os, re, sys
 from generator import *
@@ -123,6 +109,7 @@ SUPPORTED_FEATURES = [
     "VK_KHR_win32_surface",
     "VK_EXT_metal_surface",
     "VK_EXT_metal_objects",
+    "VK_EXT_external_memory_metal",
     "VK_KHR_external_semaphore_win32",
     "VK_KHR_external_memory_win32",
     "VK_NV_device_diagnostic_checkpoints",
@@ -166,6 +153,7 @@ SUPPORTED_MODULES = {
     "VK_KHR_win32_surface": ["goldfish_vk_dispatch"],
     "VK_EXT_metal_surface": ["goldfish_vk_dispatch"],
     "VK_EXT_metal_objects": ["goldfish_vk_dispatch"],
+    "VK_EXT_external_memory_metal": ["goldfish_vk_dispatch"],
     "VK_KHR_external_semaphore_win32" : ["goldfish_vk_dispatch"],
     "VK_KHR_external_memory_win32" : ["goldfish_vk_dispatch"],
     # Host dispatch for Linux hosts + and entrypoint for guests
@@ -255,7 +243,6 @@ def banner_command(argv):
 def envGetOrDefault(key, default=None):
     if key in os.environ:
         return os.environ[key]
-    print("envGetOrDefault: notfound: %s" % key)
     return default
 
 # ---- methods overriding base class ----
