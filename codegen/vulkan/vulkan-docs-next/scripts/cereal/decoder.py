@@ -1,3 +1,6 @@
+# Copyright 2023 Google LLC
+# SPDX-License-Identifier: MIT
+
 from .common.codegen import CodeGen, VulkanWrapperGenerator
 from .common.vulkantypes import VulkanAPI, makeVulkanTypeSimple, iterateVulkanType, VulkanTypeInfo,\
     VulkanType
@@ -734,8 +737,6 @@ custom_decodes = {
     "vkDestroySemaphore" : emit_global_state_wrapped_decoding,
 
     "vkCreateFence" : emit_global_state_wrapped_decoding,
-    "vkGetFenceStatus" : emit_global_state_wrapped_decoding,
-    "vkWaitForFences" : emit_global_state_wrapped_decoding,
     "vkResetFences" : emit_global_state_wrapped_decoding,
     "vkDestroyFence" : emit_global_state_wrapped_decoding,
 
