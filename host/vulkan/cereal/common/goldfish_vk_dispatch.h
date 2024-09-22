@@ -558,6 +558,10 @@ struct VulkanDispatch {
 #ifdef VK_QNX_external_memory_screen_buffer
     PFN_vkGetScreenBufferPropertiesQNX vkGetScreenBufferPropertiesQNX;
 #endif
+#ifdef VK_EXT_external_memory_metal
+    PFN_vkGetMemoryMetalHandleEXT vkGetMemoryMetalHandleEXT;
+    PFN_vkGetMemoryMetalHandlePropertiesEXT vkGetMemoryMetalHandlePropertiesEXT;
+#endif
 #ifdef VK_KHR_ray_tracing_pipeline
     PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR;
     PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR;
