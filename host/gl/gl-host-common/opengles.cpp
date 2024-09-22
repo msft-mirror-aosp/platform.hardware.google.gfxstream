@@ -25,6 +25,7 @@
 #include "host-common/address_space_graphics_types.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/GoldfishDma.h"
+#include "host-common/logging.h"
 #include "host-common/RefcountPipe.h"
 #include "host-common/FeatureControl.h"
 #include "host-common/globals.h"
@@ -37,6 +38,7 @@
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,22 +47,17 @@
 
 #define D(...)
 #define DD(...)
-#define E(...)
 
-// #define D(...) do { \
-//     VERBOSE_PRINT(init,__VA_ARGS__); \
-//     android_opengl_logger_write(__VA_ARGS__); \
-// } while(0);
-//
-// #define DD(...) do { \
-//     VERBOSE_PRINT(gles,__VA_ARGS__); \
-//     android_opengl_logger_write(__VA_ARGS__); \
-// } while(0);
-//
-// #define E(fmt,...) do { \
-//     derror(fmt, ##__VA_ARGS__); \
-//     android_opengl_logger_write(fmt "\n", ##__VA_ARGS__); \
-// } while(0);
+#define I(fmt, ...)                                     \
+    do {                                                \
+        GFXSTREAM_LOG(stderr, 'I', fmt, ##__VA_ARGS__); \
+    } while (0);
+
+#define E(fmt, ...)                                     \
+    do {                                                \
+        GFXSTREAM_LOG(stderr, 'E', fmt, ##__VA_ARGS__); \
+    } while (0);
+
 
 using android::base::pj;
 using android::base::SharedLibrary;
@@ -148,8 +145,8 @@ android_startOpenglesRenderer(int width, int height,
 
     const GpuInfoList& gpuList = globalGpuInfoList();
     std::string gpuInfoAsString = gpuList.dump();
-    android_opengl_logger_write("%s: gpu info", __func__);
-    android_opengl_logger_write("%s", gpuInfoAsString.c_str());
+    I("%s: gpu info", __func__);
+    I("%s", gpuInfoAsString.c_str());
 
     sRenderLib->setRenderer(emuglConfig_get_current_renderer());
     sRenderLib->setAvdInfo(guestPhoneApi, guestApiLevel);
@@ -162,10 +159,7 @@ android_startOpenglesRenderer(int width, int height,
             goldfish_sync_register_trigger_wait,
             goldfish_sync_device_exists);
 
-    emugl_logger_struct logfuncs;
-    logfuncs.coarse = android_opengl_logger_write;
-    logfuncs.fine = android_opengl_cxt_logger_write;
-    sRenderLib->setLogger(logfuncs);
+    sRenderLib->setLogger(android_opengl_logger_write);
     sRenderLib->setGLObjectCounter(android::base::GLObjectCounter::get());
     emugl_dma_ops dma_ops;
     dma_ops.get_host_addr = android_goldfish_dma_ops.get_host_addr;

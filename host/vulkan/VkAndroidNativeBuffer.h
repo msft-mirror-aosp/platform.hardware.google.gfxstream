@@ -18,6 +18,7 @@
 #include <atomic>
 #include <deque>
 #include <memory>
+#include <optional>
 #include <unordered_set>
 #include <vector>
 
@@ -96,6 +97,7 @@ struct AndroidNativeBufferInfo {
         VkFence fence = VK_NULL_HANDLE;
         android::base::Lock* lock = nullptr;
         uint32_t queueFamilyIndex = 0;
+        std::optional<CancelableFuture> latestUse;
         void setup(VulkanDispatch* vk, VkDevice device, VkQueue queue, uint32_t queueFamilyIndex,
                    android::base::Lock* queueLock);
         void teardown(VulkanDispatch* vk, VkDevice device);
@@ -168,7 +170,7 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
                                 uint32_t queueFamilyIndex, VkQueue queue,
                                 android::base::Lock* queueLock, uint32_t waitSemaphoreCount,
                                 const VkSemaphore* pWaitSemaphores, int* pNativeFenceFd,
-                                std::shared_ptr<AndroidNativeBufferInfo> anbInfo);
+                                AndroidNativeBufferInfo* anbInfo);
 
 }  // namespace vk
 }  // namespace gfxstream
