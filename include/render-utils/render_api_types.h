@@ -23,5 +23,13 @@
 // Feature control
 typedef bool (*emugl_feature_is_enabled_t)(android::featurecontrol::Feature feature);
 
+typedef void (*gfxstream_logger_internal_t)(char severity, const char* file, unsigned int line,
+              int64_t timestamp_us, const char* message);
+
+#ifdef CONFIG_AEMU
 using emugl_logger_t = gfxstream_logger_t;
 using emugl_logger_struct = gfxstream_logger_t;
+#else
+using emugl_logger_t = gfxstream_logger_internal_t;
+using emugl_logger_struct = gfxstream_logger_internal_t;
+#endif
