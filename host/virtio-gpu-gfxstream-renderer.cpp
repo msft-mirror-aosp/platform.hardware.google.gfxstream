@@ -147,16 +147,20 @@ static char translate_severity(uint32_t type) {
 void stream_renderer_log(uint32_t type, const char* file, int line, const char* pretty_function,
                          const char* format, ...) {
 
-    static gfxstream_logger_t gfx_logger = get_gfx_stream_logger();
     char printbuf[MAX_DEBUG_BUFFER_SIZE];
     char* buf = printbuf;
     int remaining_size = MAX_DEBUG_BUFFER_SIZE;
     static_assert(MAX_DEBUG_BUFFER_SIZE > 4);
 
     // Add the logging prefix if needed
+#ifdef CONFIG_AEMU
+    static gfxstream_logger_t gfx_logger = get_gfx_stream_logger();
     if (!gfx_logger) {
         log_with_prefix(buf, remaining_size, file, line, pretty_function);
     }
+#else
+    log_with_prefix(buf, remaining_size, file, line, pretty_function);
+#endif
 
     // Format the message with variable arguments
     va_list args;
@@ -169,10 +173,12 @@ void stream_renderer_log(uint32_t type, const char* file, int line, const char* 
         append_truncation_marker(buf, remaining_size);
     }
 
+#ifdef CONFIG_AEMU
     // Forward to emulator?
     if (call_logger_if_valid(gfx_logger, translate_severity(type), file, line, 0, printbuf)) {
         return;
     }
+#endif
 
     // To a gfxstream debugger?
     if (globalUserData && globalDebugCallback) {
