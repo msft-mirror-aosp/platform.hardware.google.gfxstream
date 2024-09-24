@@ -36,11 +36,11 @@ cc_library_shared {
     ],
     header_libs: [
         "libgfxstream_guest_graphics_headers",
-        "libgfxstream_guest_iostream",
+        "mesa_gfxstream_guest_iostream",
     ],
     export_header_lib_headers: [
         "libgfxstream_guest_graphics_headers",
-        "libgfxstream_guest_iostream",
+        "mesa_gfxstream_guest_iostream",
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
@@ -70,19 +70,19 @@ cc_library_static {
     name: "libgfxstream_rcEnc_static",
     defaults: [
         "libgfxstream_guest_cc_defaults",
-        "libplatform_virtgpu_defaults",
+        "mesa_platform_virtgpu_defaults",
     ],
     header_libs: [
         "libgfxstream_guest_graphics_headers",
-        "libgfxstream_guest_iostream",
+        "mesa_gfxstream_guest_iostream",
     ],
     export_header_lib_headers: [
         "libgfxstream_guest_graphics_headers",
-        "libgfxstream_guest_iostream",
+        "mesa_gfxstream_guest_iostream",
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
-        "libgfxstream_guest_connection_manager",
+        "mesa_gfxstream_connection_manager",
     ],
     shared_libs: [
         "liblog",
