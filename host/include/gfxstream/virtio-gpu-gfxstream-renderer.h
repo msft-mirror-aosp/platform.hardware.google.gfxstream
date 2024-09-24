@@ -96,6 +96,8 @@ struct stream_renderer_handle {
 struct stream_renderer_debug {
     uint32_t debug_type;
     const char* message;
+    const char* file;
+    int line;
 };
 
 // Log level of gfxstream
