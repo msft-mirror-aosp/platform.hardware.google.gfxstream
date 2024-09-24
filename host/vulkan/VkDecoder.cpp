@@ -2774,14 +2774,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkGetFenceStatus");
                 VkDevice device;
                 VkFence fence;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
-                auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
@@ -2791,7 +2788,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             (unsigned long long)device, (unsigned long long)fence);
                 }
                 VkResult vkGetFenceStatus_VkResult_return = (VkResult)0;
-                vkGetFenceStatus_VkResult_return = vk->vkGetFenceStatus(unboxed_device, fence);
+                vkGetFenceStatus_VkResult_return =
+                    m_state->on_vkGetFenceStatus(&m_pool, device, fence);
                 if ((vkGetFenceStatus_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkGetFenceStatus_VkResult_return, opcode, context);
@@ -2819,14 +2817,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkFence* pFences;
                 VkBool32 waitAll;
                 uint64_t timeout;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
-                auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 memcpy((uint32_t*)&fenceCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pFences, ((fenceCount)) * sizeof(const VkFence));
@@ -2854,8 +2849,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
                 VkResult vkWaitForFences_VkResult_return = (VkResult)0;
-                vkWaitForFences_VkResult_return =
-                    vk->vkWaitForFences(unboxed_device, fenceCount, pFences, waitAll, timeout);
+                vkWaitForFences_VkResult_return = m_state->on_vkWaitForFences(
+                    &m_pool, device, fenceCount, pFences, waitAll, timeout);
                 if ((vkWaitForFences_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkWaitForFences_VkResult_return, opcode, context);
@@ -11446,9 +11441,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // Begin manual dispatchable handle unboxing for pPrivateDataSlot;
                 vkReadStream->unsetHandleMapping();
                 vkReadStream->alloc((void**)&pPrivateDataSlot, sizeof(VkPrivateDataSlot));
-                memcpy((VkPrivateDataSlot*)&(*pPrivateDataSlot), (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&(*pPrivateDataSlot));
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
+                *(VkPrivateDataSlot*)pPrivateDataSlot =
+                    (VkPrivateDataSlot)(VkPrivateDataSlot)((VkPrivateDataSlot)(*&cgen_var_2));
                 if (pCreateInfo) {
                     transform_tohost_VkPrivateDataSlotCreateInfo(
                         m_state, (VkPrivateDataSlotCreateInfo*)(pCreateInfo));
@@ -11472,8 +11469,17 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_CheckOutOfMemory(vkCreatePrivateDataSlot_VkResult_return, opcode,
                                              context);
                 vkStream->unsetHandleMapping();
-                uint64_t cgen_var_3 = (uint64_t)(*pPrivateDataSlot);
-                vkStream->putBe64(cgen_var_3);
+                // Begin auto non dispatchable handle create for pPrivateDataSlot;
+                if (vkCreatePrivateDataSlot_VkResult_return == VK_SUCCESS)
+                    vkStream->setHandleMapping(&m_boxedHandleCreateMapping);
+                uint64_t cgen_var_3;
+                static_assert(8 == sizeof(VkPrivateDataSlot),
+                              "handle map overwrite requires VkPrivateDataSlot to be 8 bytes long");
+                vkStream->handleMapping()->mapHandles_VkPrivateDataSlot(
+                    (VkPrivateDataSlot*)pPrivateDataSlot, 1);
+                vkStream->write((VkPrivateDataSlot*)pPrivateDataSlot, 8 * 1);
+                // Begin auto non dispatchable handle create for pPrivateDataSlot;
+                vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreatePrivateDataSlot_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
@@ -11504,9 +11510,15 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
-                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
-                *readStreamPtrPtr += 8;
+                // Begin manual non dispatchable handle destroy unboxing for privateDataSlot;
+                VkPrivateDataSlot boxed_privateDataSlot_preserve;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPrivateDataSlot*)&privateDataSlot =
+                    (VkPrivateDataSlot)(VkPrivateDataSlot)((VkPrivateDataSlot)(*&cgen_var_1));
+                boxed_privateDataSlot_preserve = privateDataSlot;
+                privateDataSlot = unbox_VkPrivateDataSlot(privateDataSlot);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -11534,9 +11546,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyPrivateDataSlot(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, privateDataSlot,
-                        pAllocator);
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
+                        boxed_privateDataSlot_preserve, pAllocator);
                 }
+                delete_VkPrivateDataSlot(boxed_privateDataSlot_preserve);
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
@@ -11562,9 +11575,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
-                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
-                *readStreamPtrPtr += 8;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPrivateDataSlot*)&privateDataSlot =
+                    (VkPrivateDataSlot)unbox_VkPrivateDataSlot((VkPrivateDataSlot)(*&cgen_var_1));
                 memcpy((uint64_t*)&data, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
@@ -11618,9 +11633,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
-                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
-                *readStreamPtrPtr += 8;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPrivateDataSlot*)&privateDataSlot =
+                    (VkPrivateDataSlot)unbox_VkPrivateDataSlot((VkPrivateDataSlot)(*&cgen_var_1));
                 // Begin manual dispatchable handle unboxing for pData;
                 vkReadStream->unsetHandleMapping();
                 vkReadStream->alloc((void**)&pData, sizeof(uint64_t));
@@ -20148,9 +20165,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // Begin manual dispatchable handle unboxing for pPrivateDataSlot;
                 vkReadStream->unsetHandleMapping();
                 vkReadStream->alloc((void**)&pPrivateDataSlot, sizeof(VkPrivateDataSlot));
-                memcpy((VkPrivateDataSlot*)&(*pPrivateDataSlot), (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&(*pPrivateDataSlot));
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
+                *(VkPrivateDataSlot*)pPrivateDataSlot =
+                    (VkPrivateDataSlot)(VkPrivateDataSlot)((VkPrivateDataSlot)(*&cgen_var_2));
                 if (pCreateInfo) {
                     transform_tohost_VkPrivateDataSlotCreateInfo(
                         m_state, (VkPrivateDataSlotCreateInfo*)(pCreateInfo));
@@ -20174,8 +20193,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_CheckOutOfMemory(vkCreatePrivateDataSlotEXT_VkResult_return, opcode,
                                              context);
                 vkStream->unsetHandleMapping();
-                uint64_t cgen_var_3 = (uint64_t)(*pPrivateDataSlot);
-                vkStream->putBe64(cgen_var_3);
+                uint64_t cgen_var_3;
+                vkStream->handleMapping()->mapHandles_VkPrivateDataSlot_u64(pPrivateDataSlot,
+                                                                            &cgen_var_3, 1);
+                vkStream->write((uint64_t*)&cgen_var_3, 8);
                 vkStream->write(&vkCreatePrivateDataSlotEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
@@ -20206,9 +20227,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
-                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
-                *readStreamPtrPtr += 8;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPrivateDataSlot*)&privateDataSlot =
+                    (VkPrivateDataSlot)unbox_VkPrivateDataSlot((VkPrivateDataSlot)(*&cgen_var_1));
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -20264,9 +20287,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
-                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
-                *readStreamPtrPtr += 8;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPrivateDataSlot*)&privateDataSlot =
+                    (VkPrivateDataSlot)unbox_VkPrivateDataSlot((VkPrivateDataSlot)(*&cgen_var_1));
                 memcpy((uint64_t*)&data, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
@@ -20320,9 +20345,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
-                memcpy((VkPrivateDataSlot*)&privateDataSlot, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&privateDataSlot);
-                *readStreamPtrPtr += 8;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPrivateDataSlot*)&privateDataSlot =
+                    (VkPrivateDataSlot)unbox_VkPrivateDataSlot((VkPrivateDataSlot)(*&cgen_var_1));
                 // Begin manual dispatchable handle unboxing for pData;
                 vkReadStream->unsetHandleMapping();
                 vkReadStream->alloc((void**)&pData, sizeof(uint64_t));

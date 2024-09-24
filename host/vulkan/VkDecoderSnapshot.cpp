@@ -628,6 +628,10 @@ class VkDecoderSnapshot::Impl {
                     (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkShaderModule(
                         pCreateInfos[i].pStages[j].module));
             }
+            mReconstruction.addHandleDependency(
+                (const uint64_t*)(pPipelines + i), 1,
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkRenderPass(
+                    pCreateInfos[i].renderPass));
         }
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
@@ -1955,11 +1959,29 @@ class VkDecoderSnapshot::Impl {
                                  android::base::BumpPool* pool, VkResult input_result,
                                  VkDevice device, const VkPrivateDataSlotCreateInfo* pCreateInfo,
                                  const VkAllocationCallbacks* pAllocator,
-                                 VkPrivateDataSlot* pPrivateDataSlot) {}
+                                 VkPrivateDataSlot* pPrivateDataSlot) {
+        if (!pPrivateDataSlot) return;
+        android::base::AutoLock lock(mLock);
+        // pPrivateDataSlot create
+        mReconstruction.addHandles((const uint64_t*)pPrivateDataSlot, 1);
+        mReconstruction.addHandleDependency((const uint64_t*)pPrivateDataSlot, 1,
+                                            (uint64_t)(uintptr_t)device);
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCreatePrivateDataSlot, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pPrivateDataSlot, 1, apiHandle,
+                                            VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPrivateDataSlot, 1);
+    }
     void vkDestroyPrivateDataSlot(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                   android::base::BumpPool* pool, VkDevice device,
                                   VkPrivateDataSlot privateDataSlot,
-                                  const VkAllocationCallbacks* pAllocator) {}
+                                  const VkAllocationCallbacks* pAllocator) {
+        android::base::AutoLock lock(mLock);
+        // privateDataSlot destroy
+        mReconstruction.removeHandles((const uint64_t*)(&privateDataSlot), 1, true);
+    }
     void vkSetPrivateData(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                           android::base::BumpPool* pool, VkResult input_result, VkDevice device,
                           VkObjectType objectType, uint64_t objectHandle,

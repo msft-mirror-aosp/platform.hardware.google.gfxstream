@@ -23,12 +23,12 @@ cc_library_static {
     name: "libmagma_android",
     defaults: [
         "libgfxstream_guest_cc_defaults",
-        "libplatform_virtgpu_defaults",
+        "mesa_platform_virtgpu_defaults",
     ],
     header_libs: [
         "libmagma_enc_headers",
         "libmagma_headers",
-        "libgfxstream_guest_iostream",
+        "mesa_gfxstream_guest_iostream",
     ],
     shared_libs: [
         "libdrm",
@@ -36,8 +36,8 @@ cc_library_static {
         "libOpenglCodecCommon",
     ],
     static_libs: [
-        "libgfxstream_guest_android",
-        "libGoldfishAddressSpace",
+        "mesa_gfxstream_guest_android",
+        "mesa_goldfish_address_space",
         "libgfxstream_androidemu_static",
     ],
     srcs: [
