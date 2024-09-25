@@ -1321,6 +1321,12 @@ class VkDecoderGlobalState::Impl {
             // crashes with the dEQP-VK.api.object_management.private_data tests (b/368009403).
             privateDataFeatures->privateData = VK_FALSE;
         }
+
+        VkPhysicalDeviceVulkan13Features* vulkan13Features =
+            vk_find_struct<VkPhysicalDeviceVulkan13Features>(pFeatures);
+        if (vulkan13Features != nullptr) {
+            vulkan13Features->privateData = VK_FALSE;
+        }
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties(
