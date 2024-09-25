@@ -2640,6 +2640,14 @@ VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
     return sRenderer()->vulkanInfo(res_handle, vulkan_info);
 }
 
+VG_EXPORT int stream_renderer_suspend() {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_suspend()");
+
+    // TODO: move pauseAllPreSave() here after kumquat updated.
+
+    return 0;
+}
+
 VG_EXPORT int stream_renderer_snapshot(const char* dir) {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_snapshot()");
 
@@ -2688,6 +2696,14 @@ VG_EXPORT int stream_renderer_restore(const char* dir) {
     stream_renderer_error("Snapshot save requested without support.");
     return -EINVAL;
 #endif
+}
+
+VG_EXPORT int stream_renderer_resume() {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_resume()");
+
+    // TODO: move resumeAll() here after kumquat updated.
+
+    return 0;
 }
 
 static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
