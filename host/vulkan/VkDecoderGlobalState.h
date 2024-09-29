@@ -520,6 +520,9 @@ class VkDecoderGlobalState {
     VkResult on_vkCreateFence(android::base::BumpPool* pool, VkDevice device,
                               const VkFenceCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkFence* pFence);
+    VkResult on_vkGetFenceStatus(android::base::BumpPool* pool, VkDevice device, VkFence pFence);
+    VkResult on_vkWaitForFences(android::base::BumpPool* pool, VkDevice device, uint32_t fenceCount,
+                                const VkFence* pFences, VkBool32 waitAll, uint64_t timeout);
     VkResult on_vkResetFences(android::base::BumpPool* pool, VkDevice device, uint32_t fenceCount,
                               const VkFence* pFences);
     void on_vkDestroyFence(android::base::BumpPool* pool, VkDevice device, VkFence fence,

@@ -90,7 +90,8 @@ static gfxstream::RendererPtr sRenderer = nullptr;
 int android_prepareOpenglesEmulation() {
     android_init_opengl_logger();
 
-    bool glFineLogging = android::base::getEnvironmentVariable("ANDROID_EMUGL_FINE_LOG") == "1";
+    bool glFineLogging = (android::base::getEnvironmentVariable("ANDROID_EMUGL_FINE_LOG") == "1") ||
+                         (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
     bool glLogPrinting = android::base::getEnvironmentVariable("ANDROID_EMUGL_LOG_PRINT") == "1";
 
     AndroidOpenglLoggerFlags loggerFlags =
